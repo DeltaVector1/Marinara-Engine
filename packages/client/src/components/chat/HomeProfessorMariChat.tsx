@@ -133,7 +133,6 @@ import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
 import { WorkspaceApprovalCard, WorkspaceErrorEvent } from "./MariApprovalCards";
 import { CommandResultPreview } from "../command-center/CommandResultPreview";
-import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
 import type { RichCommandResult } from "../command-center/command-result-preview.types";
 import {
   MariPanelSortSelect,
@@ -1509,39 +1508,6 @@ function ProfessorMariAttachmentPreviews({
   );
 }
 
-/**
- * R34: her transcript rows are labelled, not portraited. Repeating her face down
- * the left edge is what turns a mascot into a toy, and it competes with the one
- * sprite in the header that actually carries her state. The label mirrors the
- * "You" marker on user rows, so the two sides stay symmetric.
- */
-function MariAvatar({
-  active,
-  messageTime,
-  dateTime,
-}: {
-  active?: boolean;
-  messageTime?: string | null;
-  dateTime?: string;
-}) {
-  const { t: localizeUi } = useUiTranslation();
-  return (
-    <span
-      className={cn(
-        "flex flex-col pt-0.5 text-[0.6875rem] font-semibold",
-        active ? "text-[var(--primary)]" : "text-[var(--marinara-chat-chrome-panel-muted)]",
-      )}
-    >
-      <span>{localizeUi("ui.chat.compactmarimessage.mari")}</span>
-      {messageTime && dateTime ? (
-        <time className="mari-transcript-marker-time" dateTime={dateTime}>
-          {messageTime}
-        </time>
-      ) : null}
-    </span>
-  );
-}
-
 function MariReasoningPanel({
   thinking,
   live,
@@ -1733,15 +1699,11 @@ function MariWorkTimeline({
   character,
   lorebook,
   active = true,
-  messageTime,
-  dateTime,
 }: {
   items: WorkspaceTimelineItem[];
   character?: CharacterPreviewModel | null;
   lorebook?: LorebookPreviewModel | null;
   active?: boolean;
-  messageTime?: string | null;
-  dateTime?: string;
 }) {
   const { t } = useUiTranslation();
   const reduceMotion = useReducedMotion();
@@ -1783,7 +1745,7 @@ function MariWorkTimeline({
   const showHeader = !active && toolItems.length > 0;
 
   return (
-    <TranscriptRow marker={<MariAvatar active={active} messageTime={messageTime} dateTime={dateTime} />}>
+    <TranscriptRow layout="document" marker={null}>
       <MariSmoothGrow enabled={active && !reduceMotion}>
         <section
           className="mari-work-timeline"
@@ -1899,11 +1861,11 @@ function MariWorkTimeline({
           })}
 
           {active ? (
-            // The live line is always the last line, and working Mari stands on it: new work lands above
+            // The live line is always the last line, and working Mari leads it on the left: new work lands above
             // it and pushes the older lines up, so she is never left behind on an old step or clipped.
             <div className="mari-work-timeline__live">
-              <MariLiveHeadline text={headline.text} subject={headline.subject} />
               {liveScene ? <MariSprite scene={liveScene} role="working" /> : null}
+              <MariLiveHeadline text={headline.text} subject={headline.subject} />
               <span
                 className="mari-work-timeline__timer"
                 aria-label={t("mari.workCard.elapsed", { seconds: elapsedSeconds })}
@@ -2095,35 +2057,11 @@ const CompactMariMessage = memo(function CompactMariMessage({
   const messageTime = formatMariMessageTime(message.createdAt);
 
   if (message.role === "user") {
-    const requestSubject = characterSubject;
+    // Your side is a plain bubble on the right, like Claude and Gemini: no avatar and no name label.
     return (
-      <TranscriptRow
-        className="mari-user-request group"
-        marker={
-          requestSubject ? (
-            <CommandCenterMedia
-              size="row"
-              role="row"
-              icon={MessageCircle}
-              src={requestSubject.avatarSrc}
-              alt=""
-              kind="avatar"
-              avatarCropStyle={requestSubject.avatarCropStyle}
-              className="size-8"
-            />
-          ) : (
-            <span className="mari-user-request__fallback">
-              {localizeUi("ui.chat.compactmarimessage.you").slice(0, 1)}
-            </span>
-          )
-        }
-      >
-        <p className="mari-message-byline">
-          <strong>{requestSubject?.name ?? localizeUi("ui.chat.compactmarimessage.you")}</strong>
-          {messageTime ? <time dateTime={message.createdAt}>{messageTime}</time> : null}
-        </p>
+      <TranscriptRow layout="document" className="mari-user-request group" marker={null}>
         {isEditing ? (
-          <div className="mt-1">
+          <div className="mt-1 w-full">
             <MacroTextarea
               value={editContent}
               onChange={setEditContent}
@@ -2156,7 +2094,9 @@ const CompactMariMessage = memo(function CompactMariMessage({
             </div>
           </div>
         ) : (
-          <CompactMarkdown content={content} />
+          <div className="mari-user-request__bubble" title={messageTime ?? undefined}>
+            <CompactMarkdown content={content} />
+          </div>
         )}
         <ProfessorMariAttachedFiles
           attachments={attachments}
@@ -2205,10 +2145,8 @@ const CompactMariMessage = memo(function CompactMariMessage({
           character={characterSubject}
           lorebook={lorebookSubject}
           active={false}
-          messageTime={messageTime}
-          dateTime={message.createdAt}
         />
-        <div className="ml-[2.625rem] min-w-0">
+        <div className="min-w-0">
           {actionResults.map((result) => (
             <MariWorkspaceActionResultRow
               key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
@@ -2253,7 +2191,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
 
   return (
     <>
-      <TranscriptRow className="group" marker={<MariAvatar messageTime={messageTime} dateTime={message.createdAt} />}>
+      <TranscriptRow layout="document" className="group" marker={null}>
         <MariResourceSubject character={characterSubject} lorebook={lorebookSubject} className="mb-2" />
         <CompactMarkdown content={stripProfessorMariSpeakerPrefix(content)} />
         {actionResults.map((result) => (
@@ -2295,7 +2233,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
         )}
       </TranscriptRow>
       {thinking && (
-        <TranscriptRow marker={<Brain size="0.78rem" className="mt-1 text-[var(--muted-foreground)]" />}>
+        <TranscriptRow layout="document" marker={null}>
           <MariReasoningPanel thinking={thinking} />
         </TranscriptRow>
       )}
@@ -2306,7 +2244,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
 function LoadingHistoryState() {
   return (
     <div className="flex h-full flex-col justify-end gap-2 px-1 pb-2" aria-live="polite">
-      <TranscriptRow marker={<MariAvatar active />}>
+      <TranscriptRow layout="document" marker={null}>
         <div className="space-y-1.5 py-1">
           <div className="h-2 w-24 rounded-full bg-[var(--muted)]/45 animate-pulse" />
           <div className="h-2 w-full rounded-full bg-[var(--muted)]/35 animate-pulse" />
@@ -5120,7 +5058,7 @@ export function HomeProfessorMariChat({
   // R43: nothing touched your data, so this is a Note, not a bordered panel - and
   // Notes belong in the transcript, in order, rather than stacked over the composer.
   const recoveryNotice = recovery ? (
-    <TranscriptRow marker={<MariAvatar />}>
+    <TranscriptRow layout="document" marker={null}>
       <MariNote tone="danger" role="alert">
         {localizeUi(`ui.chat.homeprofessormarichat.recovery.${recovery.kind}`)}{" "}
         <span className="text-[var(--muted-foreground)]">
@@ -5717,7 +5655,7 @@ export function HomeProfessorMariChat({
                                 <div className="space-y-3 lg:hidden">{pendingApprovalsPanel}</div>
                               ) : null}
                               {omnibarMode && messages.length > 0 && showSuggestionPrompt && suggestionQuestion ? (
-                                <TranscriptRow marker={<MariAvatar active />} className="mari-suggestion-turn">
+                                <TranscriptRow layout="document" marker={null} className="mari-suggestion-turn">
                                   <div className="mari-suggestion-question-turn">
                                     <CompactMarkdown content={suggestionQuestion} />
                                   </div>
@@ -5730,9 +5668,10 @@ export function HomeProfessorMariChat({
 
                       <form
                         className={cn(
-                          "border-t border-[var(--border)]/60 px-2.5 py-2.5",
+                          "px-2.5 py-2.5",
                           omnibarMode && "mari-workspace-composer-dock px-3 py-3 sm:px-7",
                         )}
+                        data-working={workspaceTimelineActive ? "true" : composerHaloEnding ? "ending" : undefined}
                         onSubmit={(event) => {
                           event.preventDefault();
                           void handleSubmit();
@@ -5782,7 +5721,6 @@ export function HomeProfessorMariChat({
                             layout: "conversation",
                             className: "mari-professor-composer",
                           })}
-                          data-working={workspaceTimelineActive ? "true" : composerHaloEnding ? "ending" : undefined}
                         >
                           <div className="mari-workspace-composer__attach">
                             <MariAttachButton
