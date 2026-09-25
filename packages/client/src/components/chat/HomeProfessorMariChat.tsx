@@ -169,6 +169,12 @@ import { rafThrottle } from "../../lib/raf-throttle";
 import { prepareImageAttachment } from "../../lib/chat-attachment-images";
 import { cn, copyToClipboard } from "../../lib/utils";
 import { executeStateNavigation } from "../../lib/state-navigation";
+import {
+  collectMariReferencedResources,
+  type MariReferencedResource,
+  type MariReferencedResourceKind,
+} from "../../lib/mari-referenced-resources";
+import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { MariSuggestionChips } from "./MariSuggestionChips";
 import { MariNote, MariStrip } from "./mari-primitives";
@@ -181,6 +187,8 @@ import {
 
 const MARI_AVATAR_URL = "/sprites/mari/Mari_profile.png";
 const MARI_CHIBI_URL = "/sprites/mari/chibi-professor-mari.png";
+const MARI_HOME_IDLE_URL = "/sprites/mari/generated/professor-mari-assistant-idle.png";
+const MARI_HOME_BLINK_URL = "/sprites/mari/generated/professor-mari-assistant-blink-v3.png";
 const PROFESSOR_MARI_DRAFT_KEY = "__home_professor_mari__";
 const MARI_CONNECTION_STORAGE_KEY = "marinara:home-professor-mari-connection-id";
 const PROFESSOR_MARI_ERROR_TOAST_DURATION_MS = 120_000;
@@ -2120,6 +2128,81 @@ function MariWorkspaceActionResultRow({
   );
 }
 
+/**
+ * What she looked at, as small cards under her reply: avatar and name, and a click opens the card for a
+ * short description and an Open button. Asking "who is our coolest character?" shows the characters.
+ */
+function MariReferencedResources({
+  resources,
+  characterPreviews,
+  lorebookPreviews,
+  onOpen,
+}: {
+  resources: readonly MariReferencedResource[];
+  characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
+  lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
+  onOpen: (kind: MariReferencedResourceKind, id: string) => void;
+}) {
+  const { t: localizeUi } = useUiTranslation();
+  const cards = resources.flatMap((resource) => {
+    const character = resource.kind === "character" ? characterPreviews.get(resource.id) : undefined;
+    const lorebook = resource.kind === "lorebook" ? lorebookPreviews.get(resource.id) : undefined;
+    const name = character?.name ?? lorebook?.name ?? resource.name;
+    // A record she read that no longer exists (or never loaded) has nothing to show.
+    if (!name) return [];
+    return [
+      {
+        ...resource,
+        name,
+        src: character?.avatarSrc ?? lorebook?.imageSrc,
+        avatarCropStyle: character?.avatarCropStyle,
+        description: character?.description ?? character?.summary ?? lorebook?.description,
+        tags: (character?.tags ?? lorebook?.tags ?? []).slice(0, 4),
+      },
+    ];
+  });
+  if (cards.length === 0) return null;
+  return (
+    <div className="mari-ref-cards">
+      {cards.map((card) => (
+        <details key={`${card.kind}:${card.id}`} className="mari-ref-card">
+          <summary>
+            <CommandCenterMedia
+              size="row"
+              role="row"
+              icon={card.kind === "lorebook" ? BookOpen : MessageCircle}
+              src={card.src}
+              alt=""
+              kind={card.kind === "lorebook" ? "image" : "avatar"}
+              avatarCropStyle={card.avatarCropStyle}
+              className="size-8 rounded-full"
+            />
+            <span className="mari-ref-card__name">{card.name}</span>
+            <ChevronRight size="0.75rem" className="mari-ref-card__chevron" aria-hidden="true" />
+          </summary>
+          <div className="mari-ref-card__body">
+            {card.description ? <p className="mari-ref-card__description">{card.description}</p> : null}
+            {card.tags.length > 0 ? (
+              <div className="mari-ref-card__tags">
+                {card.tags.map((tag) => (
+                  <span key={tag}>{tag}</span>
+                ))}
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => onOpen(card.kind, card.id)}
+              className="mari-chrome-control mari-chrome-control--compact"
+            >
+              {localizeUi("ui.chat.homeprofessormarichat.openResult")}
+            </button>
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
 function MariResourceSubject({
   character,
   lorebook,
@@ -2166,6 +2249,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   onRemoveAttachment,
   onOpenActionResult,
   onReviewActionResult,
+  onOpenResource,
   characterSubject,
   lorebookSubject,
   characterPreviews,
@@ -2182,6 +2266,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   onRemoveAttachment?: (messageId: string, attachmentIndex: number) => void;
   onOpenActionResult: (result: MariWorkspaceActionResult) => void;
   onReviewActionResult: (reviewId: string) => void;
+  onOpenResource: (kind: MariReferencedResourceKind, id: string) => void;
   characterSubject?: CharacterPreviewModel | null;
   lorebookSubject?: LorebookPreviewModel | null;
   characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
@@ -2299,6 +2384,19 @@ const CompactMariMessage = memo(function CompactMariMessage({
       <div className="group space-y-2">
         <MariWorkTimeline items={traceItems} character={characterSubject} lorebook={lorebookSubject} active={false} />
         <div className="min-w-0">
+          <MariReferencedResources
+            resources={collectMariReferencedResources(
+              traceItems.flatMap((item) => (item.type === "tool" ? [item.tool] : [])),
+            ).filter(
+              (resource) =>
+                !actionResults.some(
+                  (result) => result.resource.kind === resource.kind && result.resource.id === resource.id,
+                ),
+            )}
+            characterPreviews={characterPreviews}
+            lorebookPreviews={lorebookPreviews}
+            onOpen={onOpenResource}
+          />
           {actionResults.map((result) => (
             <MariWorkspaceActionResultRow
               key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
@@ -3415,7 +3513,8 @@ export function HomeProfessorMariChat({
     composerHaloWasActiveRef.current = workspaceTimelineActive;
     if (workspaceTimelineActive || !wasActive) return;
     setComposerHaloEnding(true);
-    const timer = window.setTimeout(() => setComposerHaloEnding(false), 1_300);
+    // Long enough for the green glow to sink out of view (mari-glow-settle).
+    const timer = window.setTimeout(() => setComposerHaloEnding(false), 2_500);
     return () => window.clearTimeout(timer);
   }, [workspaceTimelineActive]);
   const visiblePendingChangeReviews = useMemo(
@@ -5283,6 +5382,14 @@ export function HomeProfessorMariChat({
     [closeChatWindow, invalidateActionResult, localizeUi, omnibarMode],
   );
 
+  const openReferencedResource = useCallback(
+    (kind: MariReferencedResourceKind, id: string) => {
+      executeStateNavigation({ kind: "resource", resource: kind, id });
+      if (omnibarMode) closeChatWindow();
+    },
+    [closeChatWindow, omnibarMode],
+  );
+
   const reviewActionResult = useCallback(
     async (reviewId: string) => {
       await refreshWorkspaceStatus().catch(() => undefined);
@@ -5347,6 +5454,7 @@ export function HomeProfessorMariChat({
           onRemoveAttachment={canManageMessage && !isBusy ? handleRemoveAttachment : undefined}
           onOpenActionResult={openActionResult}
           onReviewActionResult={reviewActionResult}
+          onOpenResource={openReferencedResource}
           characterSubject={messageCharacter}
           lorebookSubject={messageLorebook}
           characterPreviews={characterPreviewById}
@@ -5750,13 +5858,20 @@ export function HomeProfessorMariChat({
                               {displayMessages.map(renderDisplayMessage)}
                               {omnibarMode && messages.length === 0 && !isBusy && loadedMessagesChatId === chatId ? (
                                 <div className="mari-omnibar-empty-welcome">
-                                  <h3>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeTitle")}</h3>
-                                  <p>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeDescription")}</p>
-                                  <MariSuggestionChips
-                                    chips={chipRowChips}
-                                    onSelect={handleSuggestionSelect}
-                                    disabled={isBusy}
-                                  />
+                                  {/* The big Mari from Home greets you here too, blinking now and then. */}
+                                  <span className="mari-welcome-portrait" aria-hidden="true">
+                                    <img src={MARI_HOME_IDLE_URL} alt="" draggable={false} data-part="idle" />
+                                    <img src={MARI_HOME_BLINK_URL} alt="" draggable={false} data-part="blink" />
+                                  </span>
+                                  <div className="mari-omnibar-empty-welcome__copy">
+                                    <h3>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeTitle")}</h3>
+                                    <p>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeDescription")}</p>
+                                    <MariSuggestionChips
+                                      chips={chipRowChips}
+                                      onSelect={handleSuggestionSelect}
+                                      disabled={isBusy}
+                                    />
+                                  </div>
                                 </div>
                               ) : null}
                               {showConnectionFirstHint && (
@@ -5790,7 +5905,13 @@ export function HomeProfessorMariChat({
 
                       <form
                         className={cn("px-2.5 py-2.5", omnibarMode && "mari-workspace-composer-dock px-3 py-3 sm:px-7")}
-                        data-working={workspaceTimelineActive ? "true" : composerHaloEnding ? "ending" : undefined}
+                        data-working={
+                          workspaceTimelineActive
+                            ? "true"
+                            : composerHaloEnding && composerGlowTone !== "broken"
+                              ? "ending"
+                              : undefined
+                        }
                         data-glow={composerGlowTone}
                         onSubmit={(event) => {
                           event.preventDefault();
