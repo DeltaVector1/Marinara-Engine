@@ -747,10 +747,11 @@
   transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* The turning wheel: a circle much larger than the dock, its top edge just above the composer. */
+/* The wheel: a circle wider than the dock whose blurred top shows as a low dome. At rest it sits low,
+   faint and still; while she works it rises a little, turns, and wobbles like Gemini's glow. */
 .mari-workspace-composer-dock::before {
-  top: -95%;
-  width: min(135%, 72rem);
+  top: 60%;
+  width: min(85%, 38rem);
   aspect-ratio: 1;
   background: conic-gradient(
     var(--mari-glow-a),
@@ -761,49 +762,49 @@
     var(--mari-glow-c),
     var(--mari-glow-a)
   );
-  filter: blur(3.5rem);
-  opacity: 0.4;
-  animation: mari-glow-spin 22s linear infinite;
+  filter: blur(2rem);
+  opacity: 0.14;
+  transition:
+    top 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Drifting blobs over the wheel, so the light breathes instead of only turning. */
+/* Soft blobs over the wheel while she works, so the light breathes instead of only turning. */
 .mari-workspace-composer-dock::after {
-  bottom: -60%;
-  width: min(120%, 64rem);
-  height: 230%;
+  bottom: -35%;
+  width: min(80%, 34rem);
+  height: 100%;
   background:
-    radial-gradient(closest-side at 25% 55%, color-mix(in srgb, var(--mari-glow-a) 70%, transparent), transparent),
-    radial-gradient(closest-side at 52% 70%, color-mix(in srgb, var(--mari-glow-b) 55%, transparent), transparent),
-    radial-gradient(closest-side at 78% 55%, color-mix(in srgb, var(--mari-glow-c) 65%, transparent), transparent);
-  filter: blur(2.5rem);
-  opacity: 0.35;
-  animation: mari-glow-drift 9s ease-in-out infinite alternate;
+    radial-gradient(closest-side at 25% 60%, color-mix(in srgb, var(--mari-glow-a) 70%, transparent), transparent),
+    radial-gradient(closest-side at 52% 72%, color-mix(in srgb, var(--mari-glow-b) 55%, transparent), transparent),
+    radial-gradient(closest-side at 78% 60%, color-mix(in srgb, var(--mari-glow-c) 65%, transparent), transparent);
+  filter: blur(1.5rem);
+  opacity: 0;
 }
 
 .mari-workspace-composer-dock:focus-within::before {
-  opacity: 0.5;
-}
-
-.mari-workspace-composer-dock:focus-within::after {
-  opacity: 0.45;
+  opacity: 0.2;
 }
 
 .mari-workspace-composer-dock[data-working="true"]::before {
-  opacity: 0.85;
-  animation-duration: 6s;
+  top: 30%;
+  opacity: 0.7;
+  animation:
+    mari-glow-spin 7s linear infinite,
+    mari-glow-wobble 2.6s ease-in-out infinite alternate;
 }
 
 .mari-workspace-composer-dock[data-working="true"]::after {
-  opacity: 0.75;
-  animation-duration: 3.5s;
+  opacity: 0.55;
+  animation: mari-glow-drift 1.9s ease-in-out infinite alternate;
 }
 
 .mari-workspace-composer-dock[data-glow="waiting-approval"]::before,
 .mari-workspace-composer-dock[data-glow="broken"]::before {
-  opacity: 0.6;
+  opacity: 0.32;
 }
 
-/* The run ended: one bright breath, then back to rest. */
+/* The run ended: one bright breath while the dome settles back down. */
 .mari-workspace-composer-dock[data-working="ending"]::after {
   animation: mari-glow-flash 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -821,24 +822,40 @@
 
 @keyframes mari-glow-drift {
   from {
-    translate: -56% 6%;
-    scale: 0.94 1;
+    translate: -62% 8%;
+    scale: 0.9 0.85;
   }
   to {
-    translate: -44% -6%;
-    scale: 1.08 1.12;
+    translate: -38% -8%;
+    scale: 1.1 1.2;
   }
 }
 
 @keyframes mari-glow-flash {
   0% {
-    opacity: 0.75;
+    opacity: 0.6;
   }
   20% {
-    opacity: 1;
+    opacity: 0.9;
   }
   100% {
-    opacity: 0.35;
+    opacity: 0;
+  }
+}
+
+/* Uneven, like a flame: wider and flatter, then narrower and taller, drifting a little sideways. */
+@keyframes mari-glow-wobble {
+  0% {
+    scale: 1.08 0.8;
+    translate: -56% 0;
+  }
+  50% {
+    scale: 0.94 1.15;
+    translate: -47% -4%;
+  }
+  100% {
+    scale: 1.04 0.9;
+    translate: -52% 2%;
   }
 }
 
@@ -854,6 +871,64 @@
   }
 }
 
+/* While she works the bar folds into one centered, labelled Stop pill, and unfolds when she is done. */
+.mari-professor-composer {
+  max-width: 100%;
+  margin-inline: auto;
+  transition:
+    max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    padding 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mari-professor-composer[data-collapsed="true"] {
+  max-width: 6.5rem;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.mari-professor-composer[data-collapsed="true"] > :not(.mari-workspace-composer__send) {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mari-workspace-composer__send > [data-icon="label"] {
+  display: none;
+}
+
+.marinara-chat-input-shell .mari-workspace-composer__send[data-mode="stop"] {
+  display: flex;
+  width: 100%;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.mari-workspace-composer__send[data-mode="stop"] > [data-icon="send"] {
+  display: none;
+}
+
+.mari-workspace-composer__send[data-mode="stop"] > [data-icon="label"] {
+  display: inline;
+}
+
 /* While she works the bar steps back, so the one control that matters, Stop, stands out. */
 .mari-professor-composer[data-busy="true"] > :not(.mari-workspace-composer__send) {
   opacity: 0.4;
@@ -862,25 +937,22 @@
 
 /* Beats the shell's generic send-button colors. */
 .marinara-chat-input-shell .mari-workspace-composer__send[data-mode="stop"] {
+  border: 1px solid color-mix(in srgb, var(--foreground) 16%, transparent);
   border-radius: 999px;
-  background: var(--foreground);
-  color: var(--background);
-  box-shadow: 0 0 0 0.3rem color-mix(in srgb, var(--foreground) 14%, transparent);
-  animation: mari-stop-pulse 1.8s ease-in-out infinite;
+  background: color-mix(in srgb, var(--card) 80%, transparent);
+  color: var(--foreground);
+  backdrop-filter: blur(8px);
 }
 
 .marinara-chat-input-shell .mari-workspace-composer__send[data-mode="stop"]:hover {
-  background: color-mix(in srgb, var(--foreground) 88%, var(--destructive));
-  color: var(--background);
-}
-
-@keyframes mari-stop-pulse {
-  50% {
-    box-shadow: 0 0 0 0.45rem color-mix(in srgb, var(--foreground) 6%, transparent);
-  }
+  background: color-mix(in srgb, var(--foreground) 10%, var(--card));
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mari-professor-composer {
+    transition: none;
+  }
+
   .marinara-chat-input-shell .mari-workspace-composer__send[data-mode="stop"] {
     animation: none;
   }
@@ -2460,6 +2532,21 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* "Reading character  Shrek": the verb stays quiet, the subject is what you scan for. */
+.mari-live-work__step-label {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mari-live-work__step-subject {
+  margin-inline-start: 0.4rem;
+  color: var(--foreground);
+  font-weight: 550;
 }
 
 .mari-live-work__step-duration {

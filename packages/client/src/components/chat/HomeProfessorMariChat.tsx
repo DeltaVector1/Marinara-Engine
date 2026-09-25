@@ -1206,6 +1206,19 @@ function summarizeShellCommand(command: string) {
   return compact ? `$ ${compact}` : "Running shell command";
 }
 
+/**
+ * Who or what an app-data step was about, so a step reads "Reading character · Shrek" instead of a bare
+ * verb. The name comes from the output (a single read returns the record), else from what she searched.
+ * ponytail: the first "name"/"title" in the output text; parse per action if a record ever nests a
+ * different name first.
+ */
+function appDataSubject(tool: WorkspaceToolCall, input: Record<string, unknown> | null): string | null {
+  const named = tool.output?.match(/"(?:name|title)"\s*:\s*"((?:[^"\\]|\\.){1,80})"/u)?.[1];
+  if (named) return named.replace(/\\(.)/gu, "$1");
+  const asked = input?.query ?? input?.name ?? input?.search;
+  return typeof asked === "string" && asked.trim() ? previewValue(asked, 60) : null;
+}
+
 function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
   const name = formatToolName(tool.name);
   const input = asRecord(tool.input);
@@ -1294,7 +1307,7 @@ function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
     return {
       eyebrow: "App data",
       title: actionTitles[appDataAction] ?? `Reading ${appDataAction.replaceAll(".", " ")}`,
-      detail: null,
+      detail: appDataSubject(tool, input),
       tone: "db",
     };
   }
@@ -1591,11 +1604,14 @@ type WorkspaceToolItem = Extract<WorkspaceTimelineItem, { type: "tool" }>;
 
 const MARI_SPRITE_REACTIONS = ["hop", "flip", "wave", "bounce"] as const;
 
-/** Sizes of the `mari.workCard.thinkingPhrases.pN` and `mari.workCard.replyingPhrases.pN` galleries in en.json. */
-const MARI_THINKING_PHRASE_COUNT = 48;
-const MARI_REPLYING_PHRASE_COUNT = 16;
-/** A new phrase every few seconds while she stays in the same phase, like Claude's rotating verbs. */
-const MARI_PHRASE_ROTATE_SECONDS = 7;
+/**
+ * What the live line says between steps depends on where she is and how long you have waited, not on a
+ * timer: a fresh start, going over what she just found (naming it when she can), a longer wait, a very
+ * long one, or writing her answer. Sizes of each `mari.workCard.phrases.<group>.pN` group in en.json.
+ */
+const MARI_PHRASE_GROUPS = { start: 6, review: 6, reviewSubject: 4, long: 7, veryLong: 5, replying: 7 } as const;
+const MARI_LONG_WAIT_SECONDS = 15;
+const MARI_VERY_LONG_WAIT_SECONDS = 45;
 
 /** A little pixel Mari. The inner span is keyed by scene, so a new scene pops in instead of cutting. */
 function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working" }) {
@@ -1739,15 +1755,25 @@ function MariWorkTimeline({
     });
   const runningPresentation = runningTool ? inferToolPresentation(runningTool.tool) : null;
   const replying = lastBlock?.kind === "text";
-  const phraseSeed = stableHash(
-    `${lastBlock?.id ?? items[0]?.id ?? "mari"}:${Math.floor(elapsedSeconds / MARI_PHRASE_ROTATE_SECONDS)}`,
-  );
+  const lastDoneSubject = [...toolItems].reverse().find(({ tool }) => tool.status === "done");
+  const lastSubject = lastDoneSubject ? inferToolPresentation(lastDoneSubject.tool).detail : null;
+  const phraseGroup: keyof typeof MARI_PHRASE_GROUPS = replying
+    ? "replying"
+    : elapsedSeconds >= MARI_VERY_LONG_WAIT_SECONDS
+      ? "veryLong"
+      : elapsedSeconds >= MARI_LONG_WAIT_SECONDS
+        ? "long"
+        : toolItems.length > 0
+          ? lastSubject
+            ? "reviewSubject"
+            : "review"
+          : "start";
+  // Stable for the run and group: the phrase changes when her situation does, never on its own.
+  const phraseIndex = (stableHash(`${phraseGroup}:${items[0]?.id ?? "mari"}`) % MARI_PHRASE_GROUPS[phraseGroup]) + 1;
   const headline = runningPresentation
     ? { text: runningPresentation.title, subject: runningPresentation.detail }
     : {
-        text: replying
-          ? t(`mari.workCard.replyingPhrases.p${(phraseSeed % MARI_REPLYING_PHRASE_COUNT) + 1}`)
-          : t(`mari.workCard.thinkingPhrases.p${(phraseSeed % MARI_THINKING_PHRASE_COUNT) + 1}`),
+        text: t(`mari.workCard.phrases.${phraseGroup}.p${phraseIndex}`, { subject: lastSubject ?? "" }),
         subject: null,
       };
   // While she works, one scene plays on the live line: the running step's, or a thinking one between steps.
@@ -1757,7 +1783,8 @@ function MariWorkTimeline({
       ? stepAnimation(runningTool)
       : selectMariWorkAnimation({
           seed: items[0]?.id ?? "mari",
-          activity: lastBlock?.kind === "text" ? "write" : "think",
+          // A long wait gets one of her long-trip scenes; otherwise she thinks or writes.
+          activity: replying ? "write" : elapsedSeconds >= MARI_LONG_WAIT_SECONDS ? "wait" : "think",
           toolNames: [],
           disabledPacks: disabledAnimationPacks,
         });
@@ -1811,7 +1838,12 @@ function MariWorkTimeline({
                         <path data-part="check" d="M5.5 9.2l2.3 2.2 4.6-4.8" />
                       </svg>
                     )}
-                    <span className="min-w-0 flex-1 truncate">{presentation.title}</span>
+                    <span className="mari-live-work__step-label">
+                      {presentation.title}
+                      {presentation.detail ? (
+                        <span className="mari-live-work__step-subject">{presentation.detail}</span>
+                      ) : null}
+                    </span>
                     <span className="mari-live-work__step-duration">
                       {stepSeconds === null ? "—" : t("mari.workCard.stepSeconds", { seconds: stepSeconds })}
                     </span>
@@ -1858,8 +1890,8 @@ function MariWorkTimeline({
     flush();
     return out;
   };
-  // A finished run folds its work behind one summary line and keeps only her answer open, like Claude.
-  // A failed run stays open, so what went wrong is in view.
+  // A finished run keeps its steps open under one summary line (click it to fold them away), and her
+  // answer follows below.
   let lastWorkIndex = -1;
   blocks.forEach((block, index) => {
     if (block.kind !== "text") lastWorkIndex = index;
@@ -1880,7 +1912,7 @@ function MariWorkTimeline({
           <MariResourceSubject character={character} lorebook={lorebook} className="mari-work-timeline__subject" />
 
           {showHeader ? (
-            <details className="mari-work-timeline__work" open={failed || undefined}>
+            <details className="mari-work-timeline__work" open>
               <summary className="mari-work-timeline__header">
                 {failed ? (
                   <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
@@ -5828,6 +5860,7 @@ export function HomeProfessorMariChat({
                             className: "mari-professor-composer",
                           })}
                           data-busy={isBusy ? "true" : undefined}
+                          data-collapsed={workspaceTimelineActive ? "true" : undefined}
                         >
                           <div className="mari-workspace-composer__attach">
                             <MariAttachButton
@@ -6007,7 +6040,7 @@ export function HomeProfessorMariChat({
                               disabled={isBusy}
                             />
                           </div>
-                          {/* Like other agents, Send turns into Stop while she works: the one Stop control. */}
+                          {/* While she works the whole bar folds into one labelled Stop pill, and unfolds again after. */}
                           <button
                             type={workspaceTimelineActive ? "button" : "submit"}
                             onClick={workspaceTimelineActive ? () => void stopWorkspace() : undefined}
@@ -6038,6 +6071,9 @@ export function HomeProfessorMariChat({
                               data-icon="stop"
                               aria-hidden="true"
                             />
+                            <span data-icon="label" aria-hidden="true">
+                              {localizeUi("ui.chat.homeprofessormarichat.stop")}
+                            </span>
                           </button>
                         </div>
                       </form>
