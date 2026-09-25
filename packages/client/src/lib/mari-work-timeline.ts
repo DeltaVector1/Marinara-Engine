@@ -3,10 +3,13 @@
 import { stripProfessorMariSpeakerPrefix } from "./professor-mari-presentation";
 
 export type WorkTimelineItem<Tool> =
-  { id: string; type: "text" | "thinking" | "status"; content: string } | { id: string; type: "tool"; tool: Tool };
+  | { id: string; type: "text" | "thinking" | "status"; content: string; startedAt?: number; updatedAt?: number }
+  | { id: string; type: "tool"; tool: Tool };
 
 export type WorkTimelineBlock<Tool> =
-  | { kind: "text" | "thinking"; id: string; content: string }
+  | { kind: "text"; id: string; content: string }
+  /** `seconds` is how long she thought, when the stream timed it; at least 1 so a quick thought never reads 0s. */
+  | { kind: "thinking"; id: string; content: string; seconds: number | null }
   | { kind: "steps"; id: string; steps: Extract<WorkTimelineItem<Tool>, { type: "tool" }>[] };
 
 /**
@@ -24,8 +27,18 @@ export function buildWorkTimelineBlocks<Tool>(items: readonly WorkTimelineItem<T
       else blocks.push({ kind: "steps", id: item.id, steps: [item] });
       continue;
     }
-    const content = item.type === "text" ? stripProfessorMariSpeakerPrefix(item.content) : item.content;
-    if (content.trim()) blocks.push({ kind: item.type, id: item.id, content });
+    if (item.type === "text") {
+      const content = stripProfessorMariSpeakerPrefix(item.content);
+      if (content.trim()) blocks.push({ kind: "text", id: item.id, content });
+      continue;
+    }
+    if (!item.content.trim()) continue;
+    const { startedAt, updatedAt } = item;
+    const seconds =
+      startedAt && updatedAt && updatedAt >= startedAt
+        ? Math.max(1, Math.round((updatedAt - startedAt) / 1_000))
+        : null;
+    blocks.push({ kind: "thinking", id: item.id, content: item.content, seconds });
   }
   return blocks;
 }

@@ -1140,12 +1140,14 @@ function appendTraceText(trace: MariWorkspaceTraceItem[], delta: string) {
 
 function appendTraceThinking(trace: MariWorkspaceTraceItem[], delta: string) {
   if (!delta) return;
+  const now = Date.now();
   const last = trace[trace.length - 1];
   if (last?.type === "thinking") {
     last.content += delta;
+    last.updatedAt = now;
     return;
   }
-  trace.push({ type: "thinking", content: delta });
+  trace.push({ type: "thinking", content: delta, startedAt: now, updatedAt: now });
 }
 
 function appendTraceStatus(trace: MariWorkspaceTraceItem[], content: string) {
@@ -1180,7 +1182,7 @@ function sanitizeTraceForStorage(trace: MariWorkspaceTraceItem[]): MariWorkspace
       }
       if (item.type === "thinking") {
         const content = item.content.trimEnd();
-        return content ? { type: "thinking", content } : null;
+        return content ? { type: "thinking", content, startedAt: item.startedAt, updatedAt: item.updatedAt } : null;
       }
       if (item.type === "status") {
         const content = item.content.trim();

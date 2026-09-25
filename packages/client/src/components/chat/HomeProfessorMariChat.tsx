@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { professorMariWorkspaceStatusKeys } from "../../hooks/use-professor-mari-workspace-status";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -34,6 +35,7 @@ import {
   RefreshCw,
   Search,
   Send,
+  StopCircle,
   ShieldAlert,
   Sparkles,
   Square,
@@ -680,7 +682,7 @@ function getMessageWorkspaceActionResults(message: Message): MariWorkspaceAction
 
 type WorkspaceTimelineItem =
   | { id: string; type: "text"; content: string }
-  | { id: string; type: "thinking"; content: string }
+  | { id: string; type: "thinking"; content: string; startedAt?: number; updatedAt?: number }
   | { id: string; type: "tool"; tool: WorkspaceToolCall }
   | { id: string; type: "status"; content: string };
 
@@ -713,6 +715,15 @@ function timelineItemsFromTrace(trace: MariWorkspaceTraceItem[], message: Messag
         },
       };
     }
+    if (item.type === "thinking") {
+      return {
+        id: `${message.id}-thinking-${index}`,
+        type: "thinking",
+        content: item.content,
+        startedAt: item.startedAt,
+        updatedAt: item.updatedAt,
+      };
+    }
     return { id: `${message.id}-${item.type}-${index}`, type: item.type, content: item.content };
   });
 
@@ -731,9 +742,12 @@ function appendTextTimeline(current: WorkspaceTimelineItem[], delta: string): Wo
 
 function appendThinkingTimeline(current: WorkspaceTimelineItem[], delta: string): WorkspaceTimelineItem[] {
   if (!delta) return current;
+  const now = Date.now();
   const last = current[current.length - 1];
-  if (last?.type === "thinking") return [...current.slice(0, -1), { ...last, content: `${last.content}${delta}` }];
-  return [...current, { id: timelineId("thinking"), type: "thinking", content: delta }];
+  if (last?.type === "thinking") {
+    return [...current.slice(0, -1), { ...last, content: `${last.content}${delta}`, updatedAt: now }];
+  }
+  return [...current, { id: timelineId("thinking"), type: "thinking", content: delta, startedAt: now, updatedAt: now }];
 }
 
 function appendStatusTimeline(current: WorkspaceTimelineItem[], content: string): WorkspaceTimelineItem[] {
@@ -1528,7 +1542,18 @@ function MariAvatar({
   );
 }
 
-function MariReasoningPanel({ thinking, live, forceOpen }: { thinking: string; live?: boolean; forceOpen?: boolean }) {
+function MariReasoningPanel({
+  thinking,
+  live,
+  forceOpen,
+  seconds,
+}: {
+  thinking: string;
+  live?: boolean;
+  forceOpen?: boolean;
+  /** How long she thought, when the stream timed it. Older saved runs fall back to a line count. */
+  seconds?: number | null;
+}) {
   const { t: localizeUi } = useUiTranslation();
   const lines = thinking.trim().split(/\n+/);
   const lineCount = Math.max(1, lines.length);
@@ -1546,13 +1571,17 @@ function MariReasoningPanel({ thinking, live, forceOpen }: { thinking: string; l
           aria-hidden="true"
         />
         {live ? null : (
-          <span className="text-[var(--foreground)]">{localizeUi("ui.chat.marireasoningpanel.reasoning")}</span>
+          <span className="text-[var(--foreground)]">
+            {seconds != null
+              ? localizeUi("mari.workCard.thoughtFor", { seconds })
+              : localizeUi("ui.chat.marireasoningpanel.reasoning")}
+          </span>
         )}
         {live ? (
           <span className="mari-reasoning-panel__ticker" role="status">
             <span key={latestThought}>{latestThought || localizeUi("ui.chat.marireasoningpanel.live")}</span>
           </span>
-        ) : (
+        ) : seconds != null ? null : (
           <span className="rounded-md bg-[var(--background)]/70 px-1.5 py-0.5 text-[0.58rem] font-medium uppercase tracking-[0.12em] opacity-75">
             {localizeUi("ui.chat.marireasoningpanel.value1LineValue2", {
               value1: lineCount,
@@ -1597,8 +1626,35 @@ type WorkspaceToolItem = Extract<WorkspaceTimelineItem, { type: "tool" }>;
 
 /** A little pixel Mari. The inner span is keyed by scene, so a new scene pops in instead of cutting. */
 function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working" | "stamp" }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const reduceMotion = useReducedMotion();
+  // When the run ends, the live reply is swapped for the saved message and working Mari unmounts with it.
+  // Leave a copy where she stood that hops off in a puff. A layout cleanup still sees her in the page; if
+  // the whole transcript went away too (the omnibar closed), there is no one to wave to, so skip it.
+  useLayoutEffect(() => {
+    const node = ref.current;
+    if (role !== "working" || reduceMotion || !node) return;
+    const transcript = node.closest('[data-component="HomeProfessorMariChat.Transcript"]');
+    return () => {
+      const rect = node.getBoundingClientRect();
+      if (!rect.width) return;
+      const ghost = node.cloneNode(true) as HTMLElement;
+      ghost.classList.add("mari-sprite-ghost");
+      Object.assign(ghost.style, {
+        left: `${rect.left}px`,
+        top: `${rect.top}px`,
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+      });
+      requestAnimationFrame(() => {
+        if (!transcript?.isConnected) return;
+        document.body.append(ghost);
+        window.setTimeout(() => ghost.remove(), 900);
+      });
+    };
+  }, [role, reduceMotion]);
   return (
-    <span className="mari-live-work__sprite" data-scene={scene.id} data-role={role} aria-hidden="true">
+    <span ref={ref} className="mari-live-work__sprite" data-scene={scene.id} data-role={role} aria-hidden="true">
       <span key={scene.id} style={{ "--mari-work-sprite": `url(${scene.src})` } as CSSProperties} />
     </span>
   );
@@ -1677,7 +1733,6 @@ function MariWorkTimeline({
   character,
   lorebook,
   active = true,
-  onStop,
   messageTime,
   dateTime,
 }: {
@@ -1685,7 +1740,6 @@ function MariWorkTimeline({
   character?: CharacterPreviewModel | null;
   lorebook?: LorebookPreviewModel | null;
   active?: boolean;
-  onStop?: () => void;
   messageTime?: string | null;
   dateTime?: string;
 }) {
@@ -1761,7 +1815,12 @@ function MariWorkTimeline({
               return block.kind === "text" ? (
                 <CompactMarkdown key={block.id} content={block.content} streaming={active && block === lastBlock} />
               ) : (
-                <MariReasoningPanel key={block.id} thinking={block.content} live={active && block === lastBlock} />
+                <MariReasoningPanel
+                  key={block.id}
+                  thinking={block.content}
+                  seconds={block.seconds}
+                  live={active && block === lastBlock}
+                />
               );
             }
             return (
@@ -1856,12 +1915,6 @@ function MariWorkTimeline({
                   </span>
                 ))}
               </span>
-              {onStop ? (
-                <button type="button" onClick={onStop} className="mari-live-work__stop">
-                  <Square size="0.7rem" aria-hidden="true" />
-                  {t("ui.chat.summarypopover.stop")}
-                </button>
-              ) : null}
             </div>
           ) : null}
         </section>
@@ -4467,6 +4520,8 @@ export function HomeProfessorMariChat({
         setWorkspaceActive(false);
         useChatStore.getState().setAbortController(chat.id, null);
         useChatStore.getState().setMariPhase(chat.id, "idle");
+        // The omnibar's working rings read the status poll; refresh it now so they stop with her.
+        void qc.invalidateQueries({ queryKey: professorMariWorkspaceStatusKeys.all });
       }
       // hiddenDuringStream lets callers suppress the "no reply" toast when the
       // page's visibility history makes a false negative likely (the run may
@@ -4480,6 +4535,7 @@ export function HomeProfessorMariChat({
       effectiveConnectionId,
       handoffContext,
       invalidateActionResult,
+      qc,
       setMariChips,
       setMariPlan,
       workspaceTextThrottle,
@@ -4950,17 +5006,6 @@ export function HomeProfessorMariChat({
                 </button>
               ))}
             </nav>
-            {workspaceTimelineActive ? (
-              <button
-                type="button"
-                onClick={() => void stopWorkspace()}
-                className="mari-omnibar-header-stop"
-                aria-label={localizeUi("ui.chat.homeprofessormarichat.stopProfessorMariWorkspaceAgent")}
-                title={localizeUi("ui.chat.homeprofessormarichat.stopProfessorMariWorkspaceAgent")}
-              >
-                <Square size="0.75rem" aria-hidden="true" />
-              </button>
-            ) : null}
             <div
               ref={omnibarModeMenuRef}
               className="mari-omnibar-mode"
@@ -5580,16 +5625,6 @@ export function HomeProfessorMariChat({
                             onRemoveFocus={() => setHandoffContext(null)}
                             onViewAttachedContext={() => void handleOpenContextViewer()}
                           />
-                          {(workspaceActive || hasActiveGeneration) && (
-                            <button
-                              type="button"
-                              onClick={() => void stopWorkspace()}
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[0.6875rem] text-[var(--destructive)] transition-colors hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
-                              title={localizeUi("ui.chat.homeprofessormarichat.stopProfessorMariWorkspaceAgent")}
-                            >
-                              <Square size="0.7rem" /> {localizeUi("ui.chat.summarypopover.stop")}
-                            </button>
-                          )}
                           {visiblePendingChangeReviews.length > 0 ? (
                             <button
                               type="button"
@@ -5674,7 +5709,6 @@ export function HomeProfessorMariChat({
                                   items={workspaceTimeline}
                                   character={focusedCharacter}
                                   lorebook={focusedLorebook}
-                                  onStop={() => void stopWorkspace()}
                                 />
                               ) : null}
                               {recoveryNotice}
@@ -5925,19 +5959,31 @@ export function HomeProfessorMariChat({
                               disabled={isBusy}
                             />
                           </div>
+                          {/* Like other agents, Send turns into Stop while she works: the one Stop control. */}
                           <button
-                            type="submit"
-                            disabled={!canSubmitMessage || isBusy}
+                            type={workspaceTimelineActive ? "button" : "submit"}
+                            onClick={workspaceTimelineActive ? () => void stopWorkspace() : undefined}
+                            disabled={workspaceTimelineActive ? false : !canSubmitMessage || isBusy}
+                            data-mode={workspaceTimelineActive ? "stop" : "send"}
                             className={cn(
-                              "mari-chat-send-btn mari-workspace-composer__send flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200 sm:ml-auto sm:h-8 sm:w-8",
-                              canSubmitMessage && !isBusy
+                              "mari-chat-send-btn mari-workspace-composer__send grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-all duration-200 sm:ml-auto sm:h-8 sm:w-8",
+                              workspaceTimelineActive || (canSubmitMessage && !isBusy)
                                 ? "text-foreground/75 hover:bg-foreground/10 hover:text-foreground/90 active:scale-90"
                                 : "cursor-not-allowed text-foreground/20",
                             )}
-                            aria-label={t("home.professorMari.send")}
-                            title={t("home.professorMari.send")}
+                            aria-label={
+                              workspaceTimelineActive
+                                ? localizeUi("ui.chat.homeprofessormarichat.stopProfessorMariWorkspaceAgent")
+                                : t("home.professorMari.send")
+                            }
+                            title={
+                              workspaceTimelineActive
+                                ? localizeUi("ui.chat.homeprofessormarichat.stopProfessorMariWorkspaceAgent")
+                                : t("home.professorMari.send")
+                            }
                           >
-                            <Send size="0.9375rem" />
+                            <Send size="0.9375rem" data-icon="send" aria-hidden="true" />
+                            <StopCircle size="1rem" data-icon="stop" aria-hidden="true" />
                           </button>
                         </div>
                       </form>

@@ -60,12 +60,17 @@ assert.doesNotMatch(
   /OmnibarIntro/u,
   "The empty omnibar must not mount the long first-open intro",
 );
-// The header's icon-only Stop stays, and the card adds a labelled one next to
-// the timer so Stop sits beside the work it stops (c26a00ea2).
+// Like other agents, the composer's Send button turns into Stop while Mari works, and it is the one Stop
+// control: the header and the live work line no longer carry their own.
 assert.match(
   professorMariHomeSource,
-  /className="mari-live-work__stop"[\s\S]{0,160}ui\.chat\.summarypopover\.stop/u,
-  "The work timeline's Stop control carries a visible label",
+  /data-mode=\{workspaceTimelineActive \? "stop" : "send"\}[\s\S]{0,900}stopProfessorMariWorkspaceAgent/u,
+  "The composer's Send button must turn into a labelled Stop while Mari works",
+);
+assert.doesNotMatch(
+  professorMariHomeSource,
+  /mari-omnibar-header-stop|mari-live-work__stop/u,
+  "Stop lives only in the composer",
 );
 assert.match(
   professorMariHomeSource,
@@ -106,11 +111,6 @@ assert.match(
   professorMariHomeSource,
   /workspaceDestination === "details"[\s\S]*?latestActionResults[\s\S]*?pendingApprovalsPanel/u,
   "The details destination must show results and pending reviews",
-);
-assert.equal(
-  professorMariHomeSource.match(/className="mari-omnibar-header-stop"/gu)?.length,
-  1,
-  "The omnibar header must own the only active-work Stop control",
 );
 assert.match(
   professorMariHomeSource,
@@ -289,4 +289,16 @@ console.info("Issue sweep #5371-#5375 regression passed");
     ["text", "steps:read+search", "thinking", "steps:patch", "text"],
   );
   assert.equal(blocks[0].kind === "text" && blocks[0].content, "I'll read her card first.");
+  // A timed thought says how long it took (never 0s); an untimed one from an older saved run has no time.
+  const thoughts = buildWorkTimelineBlocks<string>([
+    { id: "k1", type: "thinking", content: "Hmm.", startedAt: 1_000, updatedAt: 5_400 },
+    { id: "t1", type: "text", content: "Ok." },
+    { id: "k2", type: "thinking", content: "Quick.", startedAt: 9_000, updatedAt: 9_100 },
+    { id: "t2", type: "text", content: "Ok." },
+    { id: "k3", type: "thinking", content: "Old run." },
+  ]);
+  assert.deepEqual(
+    thoughts.flatMap((block) => (block.kind === "thinking" ? [block.seconds] : [])),
+    [4, 1, null],
+  );
 }

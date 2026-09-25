@@ -1921,6 +1921,7 @@
   "mari.workCard.technicalActions_one": "{{count}} technical action",
   "mari.workCard.technicalActions_other": "{{count}} technical actions",
   "mari.workCard.technicalDetails": "Technical details",
+  "mari.workCard.thoughtFor": "Thought for {{seconds}}s",
   "mari.workCard.workedFor_one": "Worked for {{seconds}}s · {{count}} step",
   "mari.workCard.workedFor_other": "Worked for {{seconds}}s · {{count}} steps",
   "mari.workCard.working": "Professor Mari is working",

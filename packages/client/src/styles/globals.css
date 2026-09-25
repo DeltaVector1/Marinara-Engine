@@ -862,6 +862,51 @@
   filter: drop-shadow(0 0 0.65rem color-mix(in srgb, var(--mari-workspace-blush) 18%, transparent));
 }
 
+/* While she works, a soft glow in her logo colours turns behind her head: in the omnibar header, on the
+   floating presence button, and behind the Mari button in the omnibar's search bar. */
+.mari-workspace-portrait[data-working="true"]::before,
+[data-component="GlobalOmnibar.ProfessorMariButton"][data-working="true"]::before {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--angle),
+    var(--mari-logo-pink),
+    var(--mari-logo-orange),
+    var(--mari-logo-cyan),
+    var(--mari-logo-pink)
+  );
+  opacity: 0.75;
+  translate: -50% 0;
+  animation: gradient-rotate 2.6s linear infinite;
+}
+
+/* The portrait sprite stands top-aligned, so her head sits in the upper part of the box. */
+.mari-workspace-portrait[data-working="true"]::before {
+  top: 0;
+  z-index: -1;
+  width: 2.8rem;
+  height: 2.8rem;
+  opacity: 0.9;
+  filter: blur(0.3rem);
+}
+
+[data-component="GlobalOmnibar.ProfessorMariButton"][data-working="true"]::before {
+  top: 0.3rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  filter: blur(0.5rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-workspace-portrait[data-working="true"]::before,
+  [data-component="GlobalOmnibar.ProfessorMariButton"][data-working="true"]::before {
+    animation: none;
+  }
+}
+
 .mari-workspace-portrait img {
   position: absolute;
   top: -0.1rem;
@@ -1237,7 +1282,6 @@
   font-weight: 650;
 }
 
-.mari-omnibar-header-stop,
 .mari-omnibar-header-menu__trigger {
   display: inline-flex;
   width: 2.75rem;
@@ -1249,16 +1293,10 @@
   color: var(--muted-foreground);
 }
 
-.mari-omnibar-header-stop {
-  color: var(--destructive);
-}
-
-.mari-omnibar-header-stop:hover,
 .mari-omnibar-header-menu__trigger:hover {
   background: var(--accent);
 }
 
-.mari-omnibar-header-stop:focus-visible,
 .mari-omnibar-header-menu__trigger:focus-visible,
 .mari-omnibar-header-destinations button:focus-visible,
 .mari-omnibar-header-menu__popover button:focus-visible {
@@ -1485,7 +1523,6 @@
 }
 
 @media (min-width: 40rem) {
-  .mari-omnibar-header-stop,
   .mari-omnibar-header-menu__trigger {
     width: 2.25rem;
     height: 2.25rem;
@@ -1775,6 +1812,29 @@
   }
 }
 
+/* The run ended: a copy of working Mari hops off in a puff where she stood (see MariSprite). */
+.mari-sprite-ghost {
+  position: fixed;
+  z-index: 2147483000;
+  pointer-events: none;
+  animation: mari-sprite-bye 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mari-sprite-ghost::after {
+  display: none;
+}
+
+@keyframes mari-sprite-bye {
+  30% {
+    opacity: 1;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-1.4rem) scale(0.6);
+  }
+}
+
 /* A small gold puff each time working Mari changes scene. */
 .mari-live-work__sprite[data-role="working"] > span::before {
   position: absolute;
@@ -2043,25 +2103,22 @@
   color: var(--destructive);
 }
 
-.mari-live-work__stop {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 0.3rem;
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  border-radius: 0.4rem;
-  padding: 0.1rem 0.4rem;
-  color: var(--muted-foreground);
-  font-size: 0.65rem;
-  font-weight: 600;
+/* Send becomes Stop while she works: the arrow lifts away and the stop ring settles in its place. */
+.mari-workspace-composer__send > svg {
+  grid-area: 1 / 1;
   transition:
-    color 0.15s ease,
-    border-color 0.15s ease;
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease;
 }
 
-.mari-live-work__stop:hover {
-  border-color: color-mix(in srgb, var(--destructive) 45%, var(--border));
-  color: var(--destructive);
+.mari-workspace-composer__send[data-mode="send"] > [data-icon="stop"],
+.mari-workspace-composer__send[data-mode="stop"] > [data-icon="send"] {
+  opacity: 0;
+  transform: translateY(-0.5rem) scale(0.5);
+}
+
+.mari-workspace-composer__send[data-mode="send"] > [data-icon="stop"] {
+  transform: scale(0.4) rotate(-90deg);
 }
 
 .mari-live-work__steps {

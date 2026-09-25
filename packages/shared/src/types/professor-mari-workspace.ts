@@ -490,7 +490,8 @@ export interface MariWorkspaceToolTrace {
 
 export type MariWorkspaceTraceItem =
   | { type: "text"; content: string }
-  | { type: "thinking"; content: string }
+  /** Server clock (ms) when this thought began and last grew, so a saved run can say how long she thought. */
+  | { type: "thinking"; content: string; startedAt?: number; updatedAt?: number }
   | { type: "tool"; tool: MariWorkspaceToolTrace }
   | { type: "status"; content: string };
 

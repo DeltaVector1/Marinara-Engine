@@ -514,6 +514,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const musicPlayerEnabled = useUIStore((state) => state.musicPlayerEnabled);
   const omnibarSuggestionsEnabled = useUIStore((state) => state.omnibarSuggestionsEnabled);
   const mariWorkspaceStatus = useProfessorMariWorkspaceStatus();
+  // Her run keeps going on the server when her pane is closed; the status poll is how the omnibar knows.
+  const mariWorkingInBackground = mariWorkspaceStatus.data?.active === true;
   const asideDisclosed = useUIStore((state) => state.omnibarAsideDisclosed);
   const asideConnectionId = useUIStore((state) => state.omnibarAsideConnectionId);
   const setAsideDisclosed = useUIStore((state) => state.setOmnibarAsideDisclosed);
@@ -2510,6 +2512,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 >
                   <span
                     className="mari-workspace-portrait"
+                    data-working={mariVisualState === "thinking" || mariWorkingInBackground ? "true" : undefined}
                     data-state={mariVisualState}
                     data-conversation={mariHasConversation ? "true" : "false"}
                     aria-hidden="true"
@@ -2604,6 +2607,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 aria-label={t("commandCenter.openWork", "Ask Professor Mari")}
                 title={t("commandCenter.openWork", "Ask Professor Mari")}
                 data-component="GlobalOmnibar.ProfessorMariButton"
+                data-working={mariWorkingInBackground ? "true" : undefined}
                 className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end overflow-hidden pb-2 pl-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] max-[30rem]:w-11 max-[30rem]:pl-0"
               >
                 <img
