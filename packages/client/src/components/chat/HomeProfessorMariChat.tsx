@@ -80,9 +80,10 @@ import { buildCharacterPreviewModel, type CharacterPreviewModel } from "../../li
 import { resolveRunSeconds, resolveRunStartMs } from "../../lib/mari-work-card-timing";
 import { buildLorebookPreviewModel, type LorebookPreviewModel } from "../../lib/lorebook-preview";
 import { completeInline } from "../../lib/inline-completion";
-import { selectMariWorkAnimation } from "../../lib/mari-work-animations";
+import { selectMariWorkAnimation, type MariWorkAnimation } from "../../lib/mari-work-animations";
 import { buildWorkTimelineBlocks } from "../../lib/mari-work-timeline";
 import { resolveStepSeconds } from "../../lib/mari-step-duration";
+import { getChatInputShellClass } from "./chat-input-styles";
 import { InlineGhostText } from "../ui/InlineGhostText";
 import { lorebookKeys, useLorebooks } from "../../hooks/use-lorebooks";
 import { presetKeys, usePresets } from "../../hooks/use-presets";
@@ -1516,15 +1517,17 @@ function MariReasoningPanel({ thinking, live, forceOpen }: { thinking: string; l
   return (
     <details
       open={forceOpen || undefined}
-      className="mari-reasoning-panel group overflow-hidden rounded-lg border border-[var(--border)]/70 bg-[var(--muted)]/20 text-xs text-[var(--muted-foreground)]"
+      className="mari-reasoning-panel group text-xs text-[var(--muted-foreground)]"
       data-live={live ? "true" : "false"}
     >
-      <summary className="flex min-h-7 cursor-pointer list-none items-center gap-1.5 px-2 py-1.5 font-semibold marker:hidden [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-7 cursor-pointer list-none items-center gap-1.5 py-1 font-semibold marker:hidden [&::-webkit-details-marker]:hidden">
         <Brain
           size="0.72rem"
           className={cn("shrink-0", live ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]")}
         />
-        <span className="text-[var(--foreground)]">{localizeUi("ui.chat.marireasoningpanel.reasoning")}</span>
+        {live ? null : (
+          <span className="text-[var(--foreground)]">{localizeUi("ui.chat.marireasoningpanel.reasoning")}</span>
+        )}
         {live ? (
           <span className="mari-reasoning-panel__ticker" role="status">
             <span key={latestThought}>{latestThought || localizeUi("ui.chat.marireasoningpanel.live")}</span>
@@ -1539,7 +1542,7 @@ function MariReasoningPanel({ thinking, live, forceOpen }: { thinking: string; l
         )}
         <span className="ml-auto text-[0.65rem] opacity-60 transition-transform group-open:rotate-90">›</span>
       </summary>
-      <pre className="max-h-36 overflow-y-auto whitespace-pre-wrap break-words border-t border-[var(--border)]/50 px-2 py-2 text-[0.6875rem] leading-relaxed text-[var(--muted-foreground)]">
+      <pre className="max-h-36 overflow-y-auto whitespace-pre-wrap break-words py-1 pl-5 text-[0.6875rem] italic leading-relaxed text-[var(--muted-foreground)]">
         {thinking.trimEnd()}
       </pre>
     </details>
@@ -1571,6 +1574,15 @@ function useWorkspaceElapsedSeconds(active: boolean, startedAtMs: number | null)
 }
 
 type WorkspaceToolItem = Extract<WorkspaceTimelineItem, { type: "tool" }>;
+
+/** A little pixel Mari. The inner span is keyed by scene, so a new scene pops in instead of cutting. */
+function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working" | "stamp" }) {
+  return (
+    <span className="mari-live-work__sprite" data-scene={scene.id} data-role={role} aria-hidden="true">
+      <span key={scene.id} style={{ "--mari-work-sprite": `url(${scene.src})` } as CSSProperties} />
+    </span>
+  );
+}
 
 /**
  * What Mari is doing right now, as one line. A new phrase writes itself in letter by letter while
@@ -1653,7 +1665,18 @@ function MariWorkTimeline({
         text: t(lastBlock?.kind === "text" ? "mari.workCard.phraseReplying" : "mari.workCard.phraseThinking"),
         subject: null,
       };
-  const showHeader = active || toolItems.length > 0;
+  // While she works, one scene plays on the live line: the running step's, or a thinking one between steps.
+  const liveScene = !active
+    ? null
+    : runningTool
+      ? stepAnimation(runningTool)
+      : selectMariWorkAnimation({
+          seed: items[0]?.id ?? "mari",
+          activity: lastBlock?.kind === "text" ? "write" : "think",
+          toolNames: [],
+          disabledPacks: disabledAnimationPacks,
+        });
+  const showHeader = !active && toolItems.length > 0;
 
   return (
     <TranscriptRow marker={<MariAvatar active={active} messageTime={messageTime} dateTime={dateTime} />}>
@@ -1666,9 +1689,7 @@ function MariWorkTimeline({
       >
         {showHeader ? (
           <div className="mari-work-timeline__header">
-            {active ? (
-              <MariLiveHeadline text={headline.text} subject={headline.subject} />
-            ) : failed ? (
+            {failed ? (
               <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
             ) : (
               <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
@@ -1676,29 +1697,9 @@ function MariWorkTimeline({
                 <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
               </svg>
             )}
-            {active ? (
-              <span
-                className="mari-work-timeline__timer"
-                aria-label={t("mari.workCard.elapsed", { seconds: elapsedSeconds })}
-              >
-                {[...String(elapsedSeconds), "s"].map((char, index, chars) => (
-                  // Keyed by place and value, so only the digit that changed rolls in.
-                  <span key={`${chars.length - index}:${char}`} aria-hidden="true">
-                    {char}
-                  </span>
-                ))}
-              </span>
-            ) : (
-              <span className="mari-work-timeline__status">
-                {t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length })}
-              </span>
-            )}
-            {active && onStop ? (
-              <button type="button" onClick={onStop} className="mari-live-work__stop">
-                <Square size="0.7rem" aria-hidden="true" />
-                {t("ui.chat.summarypopover.stop")}
-              </button>
-            ) : null}
+            <span className="mari-work-timeline__status">
+              {t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length })}
+            </span>
           </div>
         ) : null}
 
@@ -1720,13 +1721,7 @@ function MariWorkTimeline({
                   const presentation = inferToolPresentation(tool);
                   const running = tool.status === "running";
                   const stepFailed = tool.status === "error";
-                  const scene = running
-                    ? runningTool?.id === id
-                      ? stepAnimation(step)
-                      : null
-                    : tool.status === "done"
-                      ? stepAnimation(step)
-                      : null;
+                  const stamp = tool.status === "done" ? stepAnimation(step) : null;
                   const stepSeconds = resolveStepSeconds({
                     running,
                     startedAt: tool.startedAt,
@@ -1760,22 +1755,9 @@ function MariWorkTimeline({
                             </svg>
                           )}
                           <span className="min-w-0 flex-1 truncate">{presentation.title}</span>
-                          {scene ? (
-                            // The working Mari glides from step to step (shared layoutId); a finished step keeps
-                            // a small, quiet copy of the Mari who did it.
-                            <motion.span
-                              layoutId={running ? "mari-work-sprite" : undefined}
-                              transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.16, 1, 0.3, 1] }}
-                              className="mari-live-work__sprite"
-                              data-scene={scene.id}
-                              data-role={running ? "working" : "stamp"}
-                              aria-hidden="true"
-                            >
-                              <span
-                                key={scene.id}
-                                style={{ "--mari-work-sprite": `url(${scene.src})` } as CSSProperties}
-                              />
-                            </motion.span>
+                          {stamp ? (
+                            // A finished step keeps a small, quiet copy of the Mari who did it.
+                            <MariSprite scene={stamp} role="stamp" />
                           ) : null}
                           <span className="mari-live-work__step-duration">
                             {stepSeconds === null ? "—" : t("mari.workCard.stepSeconds", { seconds: stepSeconds })}
@@ -1805,6 +1787,36 @@ function MariWorkTimeline({
             </ol>
           );
         })}
+
+        {active ? (
+          // The live line is always the last line. It moves down as her work grows, and working Mari
+          // stands on it, so she is never left behind on an old step or clipped by the row above.
+          <motion.div
+            layout={reduceMotion ? false : "position"}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="mari-work-timeline__live"
+          >
+            <MariLiveHeadline text={headline.text} subject={headline.subject} />
+            {liveScene ? <MariSprite scene={liveScene} role="working" /> : null}
+            <span
+              className="mari-work-timeline__timer"
+              aria-label={t("mari.workCard.elapsed", { seconds: elapsedSeconds })}
+            >
+              {[...String(elapsedSeconds), "s"].map((char, index, chars) => (
+                // Keyed by place and value, so only the digit that changed rolls in.
+                <span key={`${chars.length - index}:${char}`} aria-hidden="true">
+                  {char}
+                </span>
+              ))}
+            </span>
+            {onStop ? (
+              <button type="button" onClick={onStop} className="mari-live-work__stop">
+                <Square size="0.7rem" aria-hidden="true" />
+                {t("ui.chat.summarypopover.stop")}
+              </button>
+            ) : null}
+          </motion.div>
+        ) : null}
       </section>
     </TranscriptRow>
   );
@@ -3298,7 +3310,11 @@ export function HomeProfessorMariChat({
 
   const handleTranscriptScroll = useCallback(() => {
     const node = scrollRef.current;
-    if (node) transcriptFollowOutputRef.current = isProfessorMariTranscriptNearBottom(node);
+    if (!node) return;
+    transcriptFollowOutputRef.current = isProfessorMariTranscriptNearBottom(node);
+    // The top fade only belongs to the live, followed view. Written straight to the node: a scroll
+    // handler that re-rendered the whole workspace would cost more than the fade is worth.
+    node.dataset.following = transcriptFollowOutputRef.current ? "true" : "false";
   }, []);
 
   const displayMessages = messages;
@@ -5552,6 +5568,8 @@ export function HomeProfessorMariChat({
                         ref={setTranscriptScrollNode}
                         onScroll={handleTranscriptScroll}
                         data-component="HomeProfessorMariChat.Transcript"
+                        data-following="true"
+                        data-anchor={messages.length > 0 || workspaceTimelineActive ? "bottom" : undefined}
                         data-mari-state={mariPresentationState}
                         className={cn(
                           "min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-4 pb-5 text-left sm:px-7",
@@ -5656,11 +5674,13 @@ export function HomeProfessorMariChat({
                             setAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index))
                           }
                         />
+                        {/* Same shell as the regular chat input, so Mari's bar has its shape, spacing and buttons. */}
                         <div
-                          className={cn(
-                            "mari-professor-composer relative flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 shadow-inner shadow-black/10 focus-within:border-[var(--primary)]/50",
-                            omnibarMode && "mari-workspace-composer rounded-xl shadow-none",
-                          )}
+                          className={getChatInputShellClass({
+                            hasContent: draft.trim().length > 0 || attachments.length > 0,
+                            layout: "conversation",
+                            className: "mari-professor-composer",
+                          })}
                           data-working={workspaceTimelineActive ? "true" : undefined}
                         >
                           <div className="mari-workspace-composer__attach">
@@ -5716,7 +5736,7 @@ export function HomeProfessorMariChat({
                             type="button"
                             onClick={() => setConnectionMenuOpen((current) => !current)}
                             className={cn(
-                              "mari-workspace-composer__connection flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all",
+                              "mari-workspace-composer__connection flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90 sm:h-8 sm:w-8",
                               effectiveConnection && "mari-workspace-composer__connection--active",
                               connectionMenuOpen
                                 ? "bg-foreground/10 text-foreground/75"
@@ -5802,7 +5822,7 @@ export function HomeProfessorMariChat({
                               multiline
                               scrollLeft={composerScroll.left}
                               scrollTop={composerScroll.top}
-                              className="px-1 py-1.5 text-sm leading-normal"
+                              className="px-1 py-2 text-[1rem] leading-tight sm:px-0 sm:py-0 sm:leading-normal"
                             />
                             <textarea
                               ref={floatingTextareaRef}
@@ -5834,7 +5854,7 @@ export function HomeProfessorMariChat({
                               }}
                               rows={1}
                               placeholder={t("home.professorMari.placeholder")}
-                              className="mari-chat-input-textarea min-h-8 max-h-32 w-full resize-none overflow-y-auto bg-transparent px-1 py-1.5 text-sm leading-normal text-foreground/90 outline-hidden placeholder:text-foreground/30 disabled:cursor-not-allowed disabled:opacity-40"
+                              className="mari-chat-input-textarea max-h-32 min-h-9 w-full resize-none overflow-y-auto bg-transparent px-1 py-2 text-[1rem] leading-tight text-foreground outline-hidden placeholder:text-foreground/30 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:px-0 sm:py-0 sm:leading-normal"
                               disabled={isBusy}
                             />
                           </div>
@@ -5842,15 +5862,15 @@ export function HomeProfessorMariChat({
                             type="submit"
                             disabled={!canSubmitMessage || isBusy}
                             className={cn(
-                              "mari-chat-send-btn mari-workspace-composer__send inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-lg text-white transition-all duration-200",
+                              "mari-chat-send-btn mari-workspace-composer__send flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200 sm:ml-auto sm:h-8 sm:w-8",
                               canSubmitMessage && !isBusy
-                                ? "hover:text-white active:scale-90"
-                                : "cursor-not-allowed opacity-40",
+                                ? "text-foreground/75 hover:bg-foreground/10 hover:text-foreground/90 active:scale-90"
+                                : "cursor-not-allowed text-foreground/20",
                             )}
                             aria-label={t("home.professorMari.send")}
                             title={t("home.professorMari.send")}
                           >
-                            <Send size="0.9375rem" className={cn(canSubmitMessage && "translate-x-[1px]")} />
+                            <Send size="0.9375rem" />
                           </button>
                         </div>
                       </form>

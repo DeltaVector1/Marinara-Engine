@@ -64,7 +64,7 @@ export function MariAttachButton({
         onClick={() => setOpen((current) => !current)}
         disabled={disabled}
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90 sm:h-8 sm:w-8",
           open || attachedFileCount > 0 || attachedContextCount > 0
             ? "bg-foreground/10 text-foreground/75"
             : "text-foreground/40 hover:bg-foreground/10 hover:text-foreground/70",
