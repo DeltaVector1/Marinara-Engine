@@ -710,10 +710,11 @@
 }
 
 .mari-professor-composer[data-working="true"]::after {
-  /* Kept inside the dock's 0.75rem padding: any wider and the dock clips the glow into a box. */
-  inset: -0.4rem;
-  padding: 0.4rem;
-  filter: blur(0.3rem);
+  /* The same soft, turning glow as behind her head, kept inside the dock's 0.75rem padding: any wider
+     and the dock clips it into a box. */
+  inset: -0.45rem;
+  padding: 0.45rem;
+  filter: blur(0.35rem);
   animation:
     gradient-rotate 3.2s linear infinite,
     mari-halo-breathe 2.6s ease-in-out infinite alternate;
@@ -786,10 +787,10 @@
 
 @keyframes mari-halo-breathe {
   from {
-    opacity: 0.2;
+    opacity: 0.45;
   }
   to {
-    opacity: 0.5;
+    opacity: 0.75;
   }
 }
 
@@ -862,12 +863,21 @@
   filter: drop-shadow(0 0 0.65rem color-mix(in srgb, var(--mari-workspace-blush) 18%, transparent));
 }
 
-/* While she works, a soft glow in her logo colours turns behind her head: in the omnibar header, on the
-   floating presence button, and behind the Mari button in the omnibar's search bar. */
-.mari-workspace-portrait[data-working="true"]::before,
-[data-component="GlobalOmnibar.ProfessorMariButton"][data-working="true"]::before {
+/* While she works, one soft glow in her logo colours turns behind her head, the same everywhere she
+   appears: the omnibar header, the Mari button in the omnibar's search bar, and her floating button. It sits
+   on the element around her portrait, because the portrait crops its tall sprite and would cut it into a box. */
+[data-mari-glow] {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-mari-glow="true"]::before {
   position: absolute;
-  left: 50%;
+  top: var(--mari-glow-top, 0.3rem);
+  left: var(--mari-glow-left, 50%);
+  z-index: -1;
+  width: var(--mari-glow-size, 2.6rem);
+  height: var(--mari-glow-size, 2.6rem);
   border-radius: 50%;
   content: "";
   pointer-events: none;
@@ -879,30 +889,21 @@
     var(--mari-logo-pink)
   );
   opacity: 0.75;
+  filter: blur(0.5rem);
   translate: -50% 0;
   animation: gradient-rotate 2.6s linear infinite;
 }
 
-/* The portrait sprite stands top-aligned, so her head sits in the upper part of the box. */
-.mari-workspace-portrait[data-working="true"]::before {
-  top: 0;
-  z-index: -1;
-  width: 2.8rem;
-  height: 2.8rem;
-  opacity: 0.9;
-  filter: blur(0.3rem);
-}
-
-[data-component="GlobalOmnibar.ProfessorMariButton"][data-working="true"]::before {
-  top: 0.3rem;
-  width: 2.6rem;
-  height: 2.6rem;
-  filter: blur(0.5rem);
+/* The header portrait is small, so her hair is as wide as the box: the glow must be larger to show around it. */
+.mari-portrait-glow-anchor {
+  display: inline-flex;
+  flex: 0 0 auto;
+  --mari-glow-top: -0.4rem;
+  --mari-glow-size: 3.7rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mari-workspace-portrait[data-working="true"]::before,
-  [data-component="GlobalOmnibar.ProfessorMariButton"][data-working="true"]::before {
+  [data-mari-glow="true"]::before {
     animation: none;
   }
 }

@@ -2511,19 +2511,23 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                   className="flex min-w-0 flex-1 items-center gap-2"
                 >
                   <span
-                    className="mari-workspace-portrait"
-                    data-working={mariVisualState === "thinking" || mariWorkingInBackground ? "true" : undefined}
-                    data-state={mariVisualState}
-                    data-conversation={mariHasConversation ? "true" : "false"}
-                    aria-hidden="true"
+                    className="mari-portrait-glow-anchor"
+                    data-mari-glow={mariVisualState === "thinking" || mariWorkingInBackground ? "true" : "false"}
                   >
-                    <img src={PROFESSOR_MARI_PEEK_URL} alt="" draggable={false} data-part="idle" />
-                    <img
-                      src="/sprites/mari/generated/professor-mari-assistant-blink-v3.png"
-                      alt=""
-                      draggable={false}
-                      data-part="blink"
-                    />
+                    <span
+                      className="mari-workspace-portrait"
+                      data-state={mariVisualState}
+                      data-conversation={mariHasConversation ? "true" : "false"}
+                      aria-hidden="true"
+                    >
+                      <img src={PROFESSOR_MARI_PEEK_URL} alt="" draggable={false} data-part="idle" />
+                      <img
+                        src="/sprites/mari/generated/professor-mari-assistant-blink-v3.png"
+                        alt=""
+                        draggable={false}
+                        data-part="blink"
+                      />
+                    </span>
                   </span>
                   <span className="mari-omnibar-header-copy min-w-0 shrink-0">
                     <span className="block text-sm font-semibold leading-tight text-[var(--foreground)]">
@@ -2607,7 +2611,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 aria-label={t("commandCenter.openWork", "Ask Professor Mari")}
                 title={t("commandCenter.openWork", "Ask Professor Mari")}
                 data-component="GlobalOmnibar.ProfessorMariButton"
-                data-working={mariWorkingInBackground ? "true" : undefined}
+                data-mari-glow={mariWorkingInBackground ? "true" : "false"}
                 className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end overflow-hidden pb-2 pl-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] max-[30rem]:w-11 max-[30rem]:pl-0"
               >
                 <img

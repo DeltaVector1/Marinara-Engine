@@ -56,14 +56,14 @@ export function MariPresenceIndicator() {
 
   return (
     <div className="mari-presence-indicator" data-state={visualState}>
-      <button type="button" onClick={() => setOmnibarOpen(true)} aria-label={label} title={label}>
-        <span
-          className="mari-workspace-portrait"
-          data-state={visualState}
-          data-working={working ? "true" : undefined}
-          data-conversation="true"
-          aria-hidden="true"
-        >
+      <button
+        type="button"
+        onClick={() => setOmnibarOpen(true)}
+        aria-label={label}
+        title={label}
+        data-mari-glow={working ? "true" : "false"}
+      >
+        <span className="mari-workspace-portrait" data-state={visualState} data-conversation="true" aria-hidden="true">
           <img src={IDLE_SPRITE_URL} alt="" draggable={false} data-part="idle" />
           <img src={BLINK_SPRITE_URL} alt="" draggable={false} data-part="blink" />
         </span>
