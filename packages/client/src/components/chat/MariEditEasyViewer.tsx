@@ -72,7 +72,7 @@ function InlineTextDiff({ before, after }: { before: string; after: string }) {
         if (seg.type === "equal") return <span key={i}>{seg.value}</span>;
         if (seg.type === "added") {
           return (
-            <span key={i} className="rounded bg-emerald-500/25 text-[var(--foreground)]">
+            <span key={i} className="mari-diff-added rounded bg-emerald-500/25 text-[var(--foreground)]">
               {seg.value}
             </span>
           );
@@ -140,7 +140,7 @@ function FieldChangeView({ change }: { change: FieldChange }) {
       ) : change.kind === "changed" ? (
         <UnifiedLineDiff before={change.before} after={change.after} />
       ) : change.kind === "added" ? (
-        <p className="max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-md bg-emerald-500/10 p-1.5 text-[0.6875rem] leading-relaxed text-[var(--foreground)]">
+        <p className="mari-diff-added max-h-40 overflow-auto whitespace-pre-wrap break-words rounded-md bg-emerald-500/10 p-1.5 text-[0.6875rem] leading-relaxed text-[var(--foreground)]">
           {change.after || <EmptyValue />}
         </p>
       ) : (

@@ -3,6 +3,8 @@ export type MariWorkAnimation = {
   src: string;
   /** The pack this sprite ships in. See MARI_ANIMATION_PACKS. */
   pack: MariAnimationPackId;
+  /** Landscape scenes (a train, a boat) that need a wide frame. */
+  wide?: true;
 };
 
 /**
@@ -13,10 +15,16 @@ export type MariWorkAnimation = {
  */
 export type MariAnimationPackId = "core" | "expeditions";
 
-const animation = (id: string, filename: string, pack: MariAnimationPackId = "core"): MariWorkAnimation => ({
+const animation = (
+  id: string,
+  filename: string,
+  pack: MariAnimationPackId = "core",
+  wide?: true,
+): MariWorkAnimation => ({
   id,
   src: `/sprites/mari/generated/${filename}`,
   pack,
+  ...(wide ? { wide } : {}),
 });
 
 const ANIMATIONS = {
@@ -24,15 +32,15 @@ const ANIMATIONS = {
   detective: animation("detective", "professor-mari-work-detective.png"),
   tea: animation("tea", "professor-mari-work-idea-tea.png"),
   books: animation("books", "professor-mari-work-book-tower.png"),
-  train: animation("train", "professor-mari-work-train.png", "expeditions"),
+  train: animation("train", "professor-mari-work-train.png", "expeditions", true),
   yarn: animation("yarn", "professor-mari-work-yarn.png"),
-  deepDive: animation("deep-dive", "professor-mari-work-deep-dive.png", "expeditions"),
+  deepDive: animation("deep-dive", "professor-mari-work-deep-dive.png", "expeditions", true),
   airplane: animation("paper-airplane", "professor-mari-work-paper-airplane.png", "expeditions"),
   pixelBug: animation("pixel-bug", "professor-mari-inline-pixel-bug-sheet.png"),
   telescope: animation("telescope", "professor-mari-work-telescope.png", "expeditions"),
-  boat: animation("boat", "professor-mari-work-boat.png", "expeditions"),
+  boat: animation("boat", "professor-mari-work-boat.png", "expeditions", true),
   puzzle: animation("puzzle", "professor-mari-work-puzzle.png"),
-  spelunking: animation("spelunking", "professor-mari-work-spelunking.png", "expeditions"),
+  spelunking: animation("spelunking", "professor-mari-work-spelunking.png", "expeditions", true),
   origami: animation("origami", "professor-mari-work-origami.png"),
   constellation: animation("constellation", "professor-mari-work-constellation.png", "expeditions"),
   clockwork: animation("clockwork", "professor-mari-work-clockwork.png"),
@@ -168,4 +176,9 @@ export function selectMariWorkAnimation({
     : pool;
   const usable = allowed.length > 0 ? allowed : ALL_ANIMATIONS.filter((entry) => entry.pack === "core");
   return usable[stableHash(seed) % usable.length] ?? ANIMATIONS.assistant;
+}
+
+/** The small copy a finished step keeps. A wide scene does not fit a step row, so it stands in as plain Mari. */
+export function mariStepStamp(animation: MariWorkAnimation): MariWorkAnimation {
+  return animation.wide ? ANIMATIONS.assistant : animation;
 }
