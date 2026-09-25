@@ -102,20 +102,15 @@ assert.match(
   /className="mari-workspace-context-chip inline-flex/u,
   "One-shot context must appear as a compact composer chip",
 );
-assert.match(
+assert.doesNotMatch(
   professorMariHomeSource,
-  /id: "details"[\s\S]*?detailsDestination/u,
-  "The Mari workspace must expose a desktop details destination",
+  /id: "details"|workspaceDestination === "details"/u,
+  "Mari has no Details sidebar or destination: results and reviews live in the chat",
 );
 assert.match(
   professorMariHomeSource,
-  /workspaceDestination === "details"[\s\S]*?latestActionResults[\s\S]*?pendingApprovalsPanel/u,
-  "The details destination must show results and pending reviews",
-);
-assert.match(
-  professorMariHomeSource,
-  /<\/div>\s*\{visiblePendingChangeReviews\.length > 0(?: && workspaceDestination === "chat")? \? \(\s*<div className="mari-workspace-review-dock[\s\S]*?<form/u,
-  "Pending reviews must be pinned between the transcript scroller and composer",
+  /mari-transcript-stack[\s\S]*?\{visiblePendingChangeReviews\.length > 0 \? \(\s*<div className="space-y-3">\{pendingApprovalsPanel\}<\/div>[\s\S]*?<form/u,
+  "Pending reviews must render inline in the transcript at every width, before the composer",
 );
 assert.match(
   professorMariHomeSource,

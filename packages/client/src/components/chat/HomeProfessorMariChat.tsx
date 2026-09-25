@@ -2128,6 +2128,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   thinking,
   onDelete,
   onEdit,
+  onEditAndResend,
   onRegenerate,
   canRegenerate = false,
   onRemoveAttachment,
@@ -2142,6 +2143,8 @@ const CompactMariMessage = memo(function CompactMariMessage({
   thinking?: string | null;
   onDelete?: (messageId: string) => void;
   onEdit?: (messageId: string, content: string) => void;
+  /** Only on your latest message: save the edit and run Mari again from it, like Claude and Gemini. */
+  onEditAndResend?: (messageId: string, content: string) => void;
   onRegenerate?: (messageId: string) => void;
   canRegenerate?: boolean;
   onRemoveAttachment?: (messageId: string, attachmentIndex: number) => void;
@@ -2176,7 +2179,20 @@ const CompactMariMessage = memo(function CompactMariMessage({
               showMarkdownPreview={false}
               className="w-full"
             />
-            <div className="mt-1 flex gap-2">
+            <div className="mt-1 flex justify-end gap-2">
+              {onEditAndResend ? (
+                <button
+                  type="button"
+                  disabled={!editContent.trim()}
+                  onClick={() => {
+                    onEditAndResend(message.id, editContent);
+                    setIsEditing(false);
+                  }}
+                  className="rounded bg-[var(--primary)] px-2 py-1 text-xs text-[var(--primary-foreground)] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {localizeUi("ui.chat.homeprofessormarichat.saveAndSend")}
+                </button>
+              ) : null}
               <button
                 type="button"
                 disabled={!editContent.trim()}
@@ -2184,7 +2200,12 @@ const CompactMariMessage = memo(function CompactMariMessage({
                   onEdit?.(message.id, editContent);
                   setIsEditing(false);
                 }}
-                className="rounded bg-[var(--primary)] px-2 py-1 text-xs text-[var(--primary-foreground)] disabled:cursor-not-allowed disabled:opacity-50"
+                className={cn(
+                  "rounded px-2 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-50",
+                  onEditAndResend
+                    ? "text-[var(--foreground)] hover:bg-[var(--accent)]"
+                    : "bg-[var(--primary)] text-[var(--primary-foreground)]",
+                )}
               >
                 {localizeUi("ui.noodle.noodlehome.save")}
               </button>
@@ -3432,6 +3453,9 @@ export function HomeProfessorMariChat({
     transcriptGlideCleanupRef.current = node?.parentElement ? followTranscriptGrowth(node.parentElement, node) : null;
   }, []);
 
+  // Scrolled up to read: a small round arrow above the composer brings you back to the newest line.
+  // Same-value state updates bail out, so this re-renders only when the pill appears or leaves.
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const handleTranscriptScroll = useCallback(() => {
     const node = scrollRef.current;
     if (!node) return;
@@ -3439,9 +3463,19 @@ export function HomeProfessorMariChat({
     // The top fade only belongs to the live, followed view. Written straight to the node: a scroll
     // handler that re-rendered the whole workspace would cost more than the fade is worth.
     node.dataset.following = transcriptFollowOutputRef.current ? "true" : "false";
+    setShowJumpToLatest(!transcriptFollowOutputRef.current);
   }, []);
+  const jumpToLatest = useCallback(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    transcriptFollowOutputRef.current = true;
+    node.dataset.following = "true";
+    node.scrollTo({ top: node.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
+    setShowJumpToLatest(false);
+  }, [reduceMotion]);
 
   const displayMessages = messages;
+  const lastUserMessageId = messages.findLast((message) => message.role === "user")?.id;
   const showConnectionFirstHint = shouldShowProfessorMariConnectionHint({
     chatId,
     loadedMessagesChatId,
@@ -4682,6 +4716,66 @@ export function HomeProfessorMariChat({
     [chatId, effectiveConnectionId, isBusy, loadMessages, localizeUi, refreshAfterWorkspaceRun, sendWorkspaceMessage],
   );
 
+  const handleEditAndResend = useCallback(
+    async (messageId: string, content: string) => {
+      if (isBusy || regenerationInFlightRef.current || !chatId || !content.trim()) return;
+      if (!effectiveConnectionId) {
+        toast.error(PROFESSOR_MARI_NO_CONNECTION_TOAST);
+        setConnectionMenuOpen(true);
+        useUIStore.getState().openRightPanel("connections");
+        return;
+      }
+      const initialMessages = messagesRef.current;
+      const index = initialMessages.findIndex((message) => message.id === messageId);
+      const userMessage = initialMessages[index];
+      const later = initialMessages.slice(index + 1);
+      // Only your latest turn: Mari keeps no branches, so an older edit would silently drop later turns.
+      if (userMessage?.role !== "user" || later.some((message) => message.role === "user")) return;
+
+      regenerationInFlightRef.current = true;
+      setSending(true);
+      try {
+        if (later.length > 0) {
+          const confirmed = await showConfirmDialog({
+            title: localizeUi("ui.chat.homeprofessormarichat.editAndResendTitle"),
+            message: localizeUi("ui.chat.homeprofessormarichat.editAndResendConfirmation"),
+            confirmLabel: localizeUi("ui.chat.homeprofessormarichat.saveAndSend"),
+            tone: "destructive",
+          });
+          if (!confirmed || activeChatIdRef.current !== chatId) return;
+        }
+        messageLoadAbortRef.current?.abort();
+        const laterIds = new Set(later.map((message) => message.id));
+        setMessages((current) =>
+          current
+            .filter((message) => !laterIds.has(message.id))
+            .map((message) => (message.id === messageId ? { ...message, content } : message)),
+        );
+        await api.patch(`/chats/${chatId}/messages/${messageId}`, { content });
+        for (const message of later) await api.delete(`/chats/${chatId}/messages/${message.id}`);
+        const { received, runId, hiddenDuringStream } = await sendWorkspaceMessage(
+          { id: chatId },
+          content,
+          getProfessorMariAttachments(userMessage),
+          userMessage.id,
+          getProfessorMariMessageContext(userMessage) ?? null,
+        );
+        if (!received && !hiddenDuringStream) throw new Error("Professor Mari did not answer the edited message");
+        void refreshAfterWorkspaceRun(chatId, runId);
+      } catch (error) {
+        console.error("[Professor Mari] Failed to resend an edited message", error);
+        void loadMessages(chatId).catch(() => undefined);
+        toast.error(localizeUi("ui.chat.homeprofessormarichat.couldNotResendEdit"), {
+          description: describeProfessorMariError(error),
+        });
+      } finally {
+        regenerationInFlightRef.current = false;
+        setSending(false);
+      }
+    },
+    [chatId, effectiveConnectionId, isBusy, loadMessages, localizeUi, refreshAfterWorkspaceRun, sendWorkspaceMessage],
+  );
+
   const handleRemoveAttachment = useCallback(
     async (messageId: string, attachmentIndex: number) => {
       if (!chatId || isBusy || attachmentRemovalInFlightRef.current.has(messageId)) return;
@@ -4899,12 +4993,6 @@ export function HomeProfessorMariChat({
       label: localizeUi("ui.chat.homeprofessormarichat.contextControlLabel"),
       count: persistentContextCount,
     },
-    {
-      id: "details",
-      Icon: FileText,
-      label: localizeUi("ui.chat.homeprofessormarichat.detailsDestination"),
-      count: latestActionResults.length + visiblePendingChangeReviews.length,
-    },
   ] as const satisfies ReadonlyArray<{
     id: Exclude<ProfessorMariWorkspaceDestination, "chat">;
     Icon: typeof MessageCircle;
@@ -4913,9 +5001,7 @@ export function HomeProfessorMariChat({
   }>;
 
   const selectHeaderDestination = (destination: Exclude<ProfessorMariWorkspaceDestination, "chat">) => {
-    const desktopDetails =
-      destination === "details" && typeof window !== "undefined" && window.matchMedia("(min-width: 64rem)").matches;
-    setWorkspaceDestination(desktopDetails || workspaceDestination === destination ? "chat" : destination);
+    setWorkspaceDestination(workspaceDestination === destination ? "chat" : destination);
     setPanelMenuOpen(false);
   };
 
@@ -5174,83 +5260,6 @@ export function HomeProfessorMariChat({
     [refreshWorkspaceStatus],
   );
 
-  const detailsPanel = (
-    <>
-      <div className="shrink-0 border-b border-[var(--border)]/60 px-3 py-3">
-        <div className="flex items-center gap-2">
-          <FileText size="0.9rem" className="text-[var(--primary)]" aria-hidden="true" />
-          <div className="min-w-0">
-            <h3 className="truncate text-xs font-semibold text-[var(--foreground)]">
-              {localizeUi("ui.chat.homeprofessormarichat.detailsDestination")}
-            </h3>
-            <p className="truncate text-[0.625rem] text-[var(--muted-foreground)]">
-              {localizeUi("ui.chat.homeprofessormarichat.detailsDestinationHint")}
-            </p>
-          </div>
-        </div>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        <div className="space-y-4">
-          {visiblePendingChangeReviews.length > 0 ? (
-            <section>
-              <div className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
-                {localizeUi("commandCenter.completion.review")}
-              </div>
-              {pendingApprovalsPanel}
-            </section>
-          ) : null}
-          {focusedCharacter || focusedLorebook ? (
-            <section>
-              <div className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
-                {localizeUi("ui.chat.homeprofessormarichat.focusedResource")}
-              </div>
-              <MariResourceSubject
-                character={focusedCharacter}
-                lorebook={focusedLorebook}
-                compact={false}
-                className="w-full"
-              />
-            </section>
-          ) : null}
-          {latestActionResults.length > 0 ? (
-            <section className="mari-completed-history">
-              <div className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
-                {localizeUi("ui.chat.homeprofessormarichat.completedResults")}
-              </div>
-              <div className="space-y-1.5">
-                {latestActionResults.map((result) => (
-                  <MariWorkspaceActionResultRow
-                    key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
-                    result={result}
-                    onOpen={openActionResult}
-                    onReview={reviewActionResult}
-                    character={characterPreviewById.get(result.resource.id)}
-                    lorebook={lorebookPreviewById.get(result.resource.id)}
-                    compact
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
-          {!focusedCharacter &&
-          !focusedLorebook &&
-          latestActionResults.length === 0 &&
-          visiblePendingChangeReviews.length === 0 ? (
-            <div className="mari-details-empty rounded-xl border border-dashed border-[var(--mari-workspace-blush)]/30 bg-[var(--mari-workspace-blush)]/5 px-3 py-6 text-center">
-              <Sparkles size="1rem" className="mx-auto mb-2 text-[var(--mari-workspace-blush)]" aria-hidden="true" />
-              <p className="text-xs font-semibold text-[var(--foreground)]">
-                {localizeUi("ui.chat.homeprofessormarichat.detailsEmptyTitle", "Nothing to review yet")}
-              </p>
-              <p className="mt-1 text-[0.6875rem] leading-relaxed text-[var(--muted-foreground)]">
-                {localizeUi("ui.chat.homeprofessormarichat.detailsEmpty")}
-              </p>
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </>
-  );
-
   useEffect(() => {
     if (workspaceDestination !== "chat" || !requestedReviewId) return;
     window.requestAnimationFrame(() => {
@@ -5298,6 +5307,9 @@ export function HomeProfessorMariChat({
           thinking={message.role === "assistant" ? getMessageThinking(message) : null}
           onDelete={canManageMessage && !isBusy ? handleDeleteMessage : undefined}
           onEdit={canManageMessage && !isBusy ? handleEditMessage : undefined}
+          onEditAndResend={
+            canManageMessage && !isBusy && message.id === lastUserMessageId ? handleEditAndResend : undefined
+          }
           onRegenerate={canManageMessage ? handleRegenerateMessage : undefined}
           canRegenerate={canManageMessage && !isBusy && message.id === messages[messages.length - 1]?.id}
           onRemoveAttachment={canManageMessage && !isBusy ? handleRemoveAttachment : undefined}
@@ -5730,7 +5742,7 @@ export function HomeProfessorMariChat({
                               {recoveryNotice}
                               {workspaceStatus?.error && <WorkspaceErrorEvent message={workspaceStatus.error} />}
                               {visiblePendingChangeReviews.length > 0 ? (
-                                <div className="space-y-3 lg:hidden">{pendingApprovalsPanel}</div>
+                                <div className="space-y-3">{pendingApprovalsPanel}</div>
                               ) : null}
                               {omnibarMode && messages.length > 0 && showSuggestionPrompt && suggestionQuestion ? (
                                 <TranscriptRow layout="document" marker={null} className="mari-suggestion-turn">
@@ -5753,6 +5765,24 @@ export function HomeProfessorMariChat({
                           void handleSubmit();
                         }}
                       >
+                        <AnimatePresence>
+                          {showJumpToLatest ? (
+                            <motion.button
+                              key="jump-to-latest"
+                              type="button"
+                              onClick={jumpToLatest}
+                              className="mari-jump-to-latest"
+                              initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.9 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 8, scale: 0.9 }}
+                              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                              aria-label={localizeUi("ui.chat.homeprofessormarichat.jumpToLatest")}
+                              title={localizeUi("ui.chat.homeprofessormarichat.jumpToLatest")}
+                            >
+                              <ArrowDown size="1rem" aria-hidden="true" />
+                            </motion.button>
+                          ) : null}
+                        </AnimatePresence>
                         {showSuggestionPrompt && suggestionQuestion && (!omnibarMode || messages.length > 0) ? (
                           <div className="mari-workspace-question-dock mb-2">
                             {!omnibarMode ? (
@@ -5854,7 +5884,9 @@ export function HomeProfessorMariChat({
                             disabled={isBusy}
                             className={cn(
                               "mari-workspace-composer__connection flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90 sm:h-8 sm:w-8",
-                              effectiveConnection && "mari-workspace-composer__connection--active",
+                              effectiveConnection
+                                ? "mari-workspace-composer__connection--active"
+                                : "mari-workspace-composer__connection--missing",
                               connectionMenuOpen
                                 ? "bg-foreground/10 text-foreground/75"
                                 : "text-foreground/40 hover:bg-foreground/10 hover:text-foreground/70",
@@ -6301,82 +6333,6 @@ export function HomeProfessorMariChat({
                           />
                         </Suspense>
                       </motion.div>
-                    ) : workspaceDestination === "details" ? (
-                      <motion.section
-                        key="professor-mari-details"
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        transition={paneTransition}
-                        className={cn(
-                          MARI_PANEL_SLOT_CLASS,
-                          "flex min-h-0 flex-col bg-[var(--background)]/45 lg:hidden",
-                        )}
-                      >
-                        <div className="shrink-0 border-b border-[var(--border)]/60 px-3 py-3">
-                          <div className="flex items-center gap-2">
-                            <FileText size="0.9rem" className="text-[var(--primary)]" aria-hidden="true" />
-                            <div className="min-w-0">
-                              <h3 className="truncate text-xs font-semibold text-[var(--foreground)]">
-                                {localizeUi("ui.chat.homeprofessormarichat.detailsDestination")}
-                              </h3>
-                              <p className="truncate text-[0.625rem] text-[var(--muted-foreground)]">
-                                {localizeUi("ui.chat.homeprofessormarichat.detailsDestinationHint")}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                          <div className="space-y-4">
-                            {focusedCharacter || focusedLorebook ? (
-                              <section>
-                                <div className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
-                                  {localizeUi("ui.chat.homeprofessormarichat.focusedResource")}
-                                </div>
-                                <MariResourceSubject
-                                  character={focusedCharacter}
-                                  lorebook={focusedLorebook}
-                                  compact={false}
-                                  className="w-full"
-                                />
-                              </section>
-                            ) : null}
-                            {latestActionResults.length > 0 ? (
-                              <section>
-                                <div className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
-                                  {localizeUi("ui.chat.homeprofessormarichat.completedResults")}
-                                </div>
-                                {latestActionResults.map((result) => (
-                                  <MariWorkspaceActionResultRow
-                                    key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
-                                    result={result}
-                                    onOpen={openActionResult}
-                                    onReview={reviewActionResult}
-                                    character={characterPreviewById.get(result.resource.id)}
-                                    lorebook={lorebookPreviewById.get(result.resource.id)}
-                                  />
-                                ))}
-                              </section>
-                            ) : null}
-                            {visiblePendingChangeReviews.length > 0 ? (
-                              <section>
-                                <div className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.08em] text-[var(--muted-foreground)]">
-                                  {localizeUi("commandCenter.completion.review")}
-                                </div>
-                                {pendingApprovalsPanel}
-                              </section>
-                            ) : null}
-                            {!focusedCharacter &&
-                            !focusedLorebook &&
-                            latestActionResults.length === 0 &&
-                            visiblePendingChangeReviews.length === 0 ? (
-                              <div className="rounded-lg border border-dashed border-[var(--border)] px-3 py-8 text-center text-xs text-[var(--muted-foreground)]">
-                                {localizeUi("ui.chat.homeprofessormarichat.detailsEmpty")}
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      </motion.section>
                     ) : workspaceDestination === "context" ? (
                       <motion.section
                         key="professor-mari-context"
@@ -6494,14 +6450,6 @@ export function HomeProfessorMariChat({
                       </motion.section>
                     ) : null}
                   </AnimatePresence>
-                  <aside
-                    className={cn(
-                      "hidden h-full min-h-0 w-96 min-w-96 shrink-0 flex-col border-l border-[var(--border)]/60 bg-[var(--background)]/45",
-                      workspaceDestination === "chat" ? "lg:flex" : "lg:hidden",
-                    )}
-                  >
-                    {detailsPanel}
-                  </aside>
                 </div>
               </div>
             </motion.div>

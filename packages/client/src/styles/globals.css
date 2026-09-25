@@ -1780,16 +1780,6 @@
   font-size: 0.6875rem;
 }
 
-.mari-completed-history {
-  border-top: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
-  padding-top: 0.75rem;
-}
-
-.mari-completed-history > .space-y-1\.5 {
-  border-left: 2px solid color-mix(in srgb, var(--primary) 22%, var(--border));
-  padding-left: 0.625rem;
-}
-
 .mari-artifact-row {
   padding-block: 0.875rem;
   border-top: 1px solid var(--border);
@@ -2239,6 +2229,32 @@
   stroke-dasharray: 14;
   stroke-dashoffset: 14;
   animation: mari-stroke-draw 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+/* Her header status shimmers while she works, like Claude's thinking text. */
+.mari-status-shimmer[data-active="true"] {
+  background: linear-gradient(100deg, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%) 0
+    0 / 250% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: mari-text-shimmer 2.2s linear infinite;
+}
+
+@keyframes mari-text-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-status-shimmer[data-active="true"] {
+    animation: none;
+    background: none;
+    color: var(--muted-foreground);
+  }
 }
 
 @keyframes mari-headline-sheen {
@@ -2759,7 +2775,9 @@
   position: relative;
 }
 
-.mari-workspace-composer__connection--active::after {
+/* Connected: a quiet dot that matches the other icons. Missing: the same dot in red, so it asks for you. */
+.mari-workspace-composer__connection--active::after,
+.mari-workspace-composer__connection--missing::after {
   position: absolute;
   top: 0.15rem;
   right: 0.1rem;
@@ -2768,7 +2786,38 @@
   border: 1px solid var(--card);
   border-radius: 999px;
   content: "";
-  background: oklch(0.74 0.16 151);
+  background: color-mix(in srgb, oklch(0.74 0.16 151) 45%, var(--muted-foreground));
+}
+
+.mari-workspace-composer__connection--missing::after {
+  background: var(--destructive);
+}
+
+.mari-jump-to-latest {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 0.25rem);
+  left: 50%;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: -1.125rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  box-shadow: 0 0.35rem 1rem color-mix(in srgb, var(--background) 50%, transparent);
+  color: var(--foreground);
+  backdrop-filter: blur(8px);
+}
+
+.mari-jump-to-latest:hover {
+  background: var(--card);
+}
+
+.mari-jump-to-latest:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 @media (max-width: 30rem) {

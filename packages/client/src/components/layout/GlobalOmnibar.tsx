@@ -2533,7 +2533,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                     <span className="block text-sm font-semibold leading-tight text-[var(--foreground)]">
                       {t("omnibar.categories.professor", "Professor Mari")}
                     </span>
-                    <span className="block text-[0.6875rem] font-medium leading-tight text-[var(--muted-foreground)]">
+                    <span
+                      className="mari-status-shimmer block text-[0.6875rem] font-medium leading-tight text-[var(--muted-foreground)]"
+                      data-active={mariVisualState === "thinking" ? "true" : undefined}
+                    >
                       {mariStatusLabel ||
                         (mariVisualState === "thinking"
                           ? t("ui.chat.homeprofessormarichat.workingOnIt", "Working on it...")
