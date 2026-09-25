@@ -171,6 +171,7 @@ import { cn, copyToClipboard } from "../../lib/utils";
 import { executeStateNavigation } from "../../lib/state-navigation";
 import {
   collectMariReferencedResources,
+  selectMariReplyReferences,
   type MariReferencedResource,
   type MariReferencedResourceKind,
 } from "../../lib/mari-referenced-resources";
@@ -1221,7 +1222,9 @@ function summarizeShellCommand(command: string) {
  * different name first.
  */
 function appDataSubject(tool: WorkspaceToolCall, input: Record<string, unknown> | null): string | null {
-  const named = tool.output?.match(/"(?:name|title)"\s*:\s*"((?:[^"\\]|\\.){1,80})"/u)?.[1];
+  // A list's first record is not its subject; a list or search is only "about" what she searched for.
+  const single = typeof input?.action === "string" && /\.get(Entry)?$/u.test(input.action);
+  const named = single && tool.output?.match(/"(?:name|title)"\s*:\s*"((?:[^"\\]|\\.){1,80})"/u)?.[1];
   if (named) return named.replace(/\\(.)/gu, "$1");
   const asked = input?.query ?? input?.name ?? input?.search;
   return typeof asked === "string" && asked.trim() ? previewValue(asked, 60) : null;
@@ -2129,8 +2132,8 @@ function MariWorkspaceActionResultRow({
 }
 
 /**
- * What she looked at, as small cards under her reply: avatar and name, and a click opens the card for a
- * short description and an Open button. Asking "who is our coolest character?" shows the characters.
+ * What her answer is about, as a row of small character-card-style cards under her reply: portrait,
+ * name, a tag. Picking one opens a short sheet under the row with the description, tags and Open.
  */
 function MariReferencedResources({
   resources,
@@ -2144,6 +2147,7 @@ function MariReferencedResources({
   onOpen: (kind: MariReferencedResourceKind, id: string) => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const cards = resources.flatMap((resource) => {
     const character = resource.kind === "character" ? characterPreviews.get(resource.id) : undefined;
     const lorebook = resource.kind === "lorebook" ? lorebookPreviews.get(resource.id) : undefined;
@@ -2153,52 +2157,93 @@ function MariReferencedResources({
     return [
       {
         ...resource,
+        key: `${resource.kind}:${resource.id}`,
         name,
         src: character?.avatarSrc ?? lorebook?.imageSrc,
-        avatarCropStyle: character?.avatarCropStyle,
         description: character?.description ?? character?.summary ?? lorebook?.description,
         tags: (character?.tags ?? lorebook?.tags ?? []).slice(0, 4),
       },
     ];
   });
-  if (cards.length === 0) return null;
+  // Two records with the same name read as a glitch in a row of cards; the first one stands for both.
+  const seenNames = new Set<string>();
+  const uniqueCards = cards.filter((card) => {
+    const nameKey = `${card.kind}:${card.name.toLocaleLowerCase()}`;
+    if (seenNames.has(nameKey)) return false;
+    seenNames.add(nameKey);
+    return true;
+  });
+  if (uniqueCards.length === 0) return null;
+  const selected = uniqueCards.find((card) => card.key === selectedKey) ?? null;
   return (
     <div className="mari-ref-cards">
-      {cards.map((card) => (
-        <details key={`${card.kind}:${card.id}`} className="mari-ref-card">
-          <summary>
-            <CommandCenterMedia
-              size="row"
-              role="row"
-              icon={card.kind === "lorebook" ? BookOpen : MessageCircle}
-              src={card.src}
-              alt=""
-              kind={card.kind === "lorebook" ? "image" : "avatar"}
-              avatarCropStyle={card.avatarCropStyle}
-              className="size-8 rounded-full"
-            />
-            <span className="mari-ref-card__name">{card.name}</span>
-            <ChevronRight size="0.75rem" className="mari-ref-card__chevron" aria-hidden="true" />
-          </summary>
-          <div className="mari-ref-card__body">
-            {card.description ? <p className="mari-ref-card__description">{card.description}</p> : null}
-            {card.tags.length > 0 ? (
-              <div className="mari-ref-card__tags">
-                {card.tags.map((tag) => (
+      <div className="mari-ref-cards__row" role="list">
+        {uniqueCards.map((card) => (
+          <button
+            key={card.key}
+            type="button"
+            role="listitem"
+            className="mari-ref-card"
+            data-kind={card.kind}
+            aria-expanded={selectedKey === card.key}
+            onClick={() => setSelectedKey((current) => (current === card.key ? null : card.key))}
+          >
+            {card.src ? (
+              <CommandCenterMedia
+                size="grid"
+                role="browse"
+                icon={card.kind === "lorebook" ? BookOpen : MessageCircle}
+                src={card.src}
+                alt=""
+                kind={card.kind === "lorebook" ? "image" : "avatar"}
+                className="mari-ref-card__art"
+              />
+            ) : (
+              // No portrait yet: a monogram on a color of its own, stable for the name.
+              <span
+                className="mari-ref-card__monogram"
+                style={{ "--mari-ref-hue": stableHash(card.name) % 360 } as CSSProperties}
+                aria-hidden="true"
+              >
+                {[...card.name.trim()][0]?.toLocaleUpperCase()}
+              </span>
+            )}
+            <span className="mari-ref-card__caption">
+              <span className="mari-ref-card__name">{card.name}</span>
+              {card.tags[0] ? <span className="mari-ref-card__tag">{card.tags[0]}</span> : null}
+            </span>
+          </button>
+        ))}
+      </div>
+      <AnimatePresence initial={false}>
+        {selected ? (
+          <motion.div
+            key={selected.key}
+            className="mari-ref-sheet"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <p className="mari-ref-sheet__name">{selected.name}</p>
+            {selected.description ? <p className="mari-ref-sheet__description">{selected.description}</p> : null}
+            {selected.tags.length > 0 ? (
+              <div className="mari-ref-sheet__tags">
+                {selected.tags.map((tag) => (
                   <span key={tag}>{tag}</span>
                 ))}
               </div>
             ) : null}
             <button
               type="button"
-              onClick={() => onOpen(card.kind, card.id)}
+              onClick={() => onOpen(selected.kind, selected.id)}
               className="mari-chrome-control mari-chrome-control--compact"
             >
               {localizeUi("ui.chat.homeprofessormarichat.openResult")}
             </button>
-          </div>
-        </details>
-      ))}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -2385,8 +2430,9 @@ const CompactMariMessage = memo(function CompactMariMessage({
         <MariWorkTimeline items={traceItems} character={characterSubject} lorebook={lorebookSubject} active={false} />
         <div className="min-w-0">
           <MariReferencedResources
-            resources={collectMariReferencedResources(
-              traceItems.flatMap((item) => (item.type === "tool" ? [item.tool] : [])),
+            resources={selectMariReplyReferences(
+              collectMariReferencedResources(traceItems.flatMap((item) => (item.type === "tool" ? [item.tool] : []))),
+              content,
             ).filter(
               (resource) =>
                 !actionResults.some(
@@ -5894,6 +5940,7 @@ export function HomeProfessorMariChat({
                               {omnibarMode && messages.length > 0 && showSuggestionPrompt && suggestionQuestion ? (
                                 <TranscriptRow layout="document" marker={null} className="mari-suggestion-turn">
                                   <div className="mari-suggestion-question-turn">
+                                    <Sparkles size="0.8rem" aria-hidden="true" />
                                     <CompactMarkdown content={suggestionQuestion} />
                                   </div>
                                 </TranscriptRow>
@@ -6185,14 +6232,8 @@ export function HomeProfessorMariChat({
                             }
                           >
                             <Send size="0.9375rem" data-icon="send" aria-hidden="true" />
-                            <Square
-                              size="0.8rem"
-                              fill="currentColor"
-                              strokeWidth={0}
-                              data-icon="stop"
-                              aria-hidden="true"
-                            />
-                            <span data-icon="label" aria-hidden="true">
+                            <span data-icon="stop" aria-hidden="true">
+                              <Square size="0.7rem" fill="currentColor" strokeWidth={0} />
                               {localizeUi("ui.chat.homeprofessormarichat.stop")}
                             </span>
                           </button>
