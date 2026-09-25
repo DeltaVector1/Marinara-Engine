@@ -1913,6 +1913,8 @@
   "mari.workCard.elapsed": "{{seconds}}s elapsed",
   "mari.workCard.failed": "failed",
   "mari.workCard.label": "Professor Mari's current work",
+  "mari.workCard.phraseReplying": "Putting it into words",
+  "mari.workCard.phraseThinking": "Mulling it over",
   "mari.workCard.progress": "Work progress",
   "mari.workCard.showTechnicalDetails": "Show technical details",
   "mari.workCard.stepSeconds": "{{seconds}}s",

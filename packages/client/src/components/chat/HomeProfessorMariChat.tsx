@@ -22,7 +22,6 @@ import {
   Brain,
   Check,
   ChevronRight,
-  Circle,
   Database,
   FileText,
   Link,
@@ -1511,10 +1510,12 @@ function MariAvatar({
 
 function MariReasoningPanel({ thinking, live, forceOpen }: { thinking: string; live?: boolean; forceOpen?: boolean }) {
   const { t: localizeUi } = useUiTranslation();
-  const lineCount = Math.max(1, thinking.trim().split(/\n+/).length);
+  const lines = thinking.trim().split(/\n+/);
+  const lineCount = Math.max(1, lines.length);
+  const latestThought = lines.at(-1)?.trim() ?? "";
   return (
     <details
-      open={forceOpen || live || undefined}
+      open={forceOpen || undefined}
       className="mari-reasoning-panel group overflow-hidden rounded-lg border border-[var(--border)]/70 bg-[var(--muted)]/20 text-xs text-[var(--muted-foreground)]"
       data-live={live ? "true" : "false"}
     >
@@ -1525,11 +1526,8 @@ function MariReasoningPanel({ thinking, live, forceOpen }: { thinking: string; l
         />
         <span className="text-[var(--foreground)]">{localizeUi("ui.chat.marireasoningpanel.reasoning")}</span>
         {live ? (
-          <span className="mari-reasoning-panel__live" role="status">
-            <i />
-            <i />
-            <i />
-            <span>{localizeUi("ui.chat.marireasoningpanel.live")}</span>
+          <span className="mari-reasoning-panel__ticker" role="status">
+            <span key={latestThought}>{latestThought || localizeUi("ui.chat.marireasoningpanel.live")}</span>
           </span>
         ) : (
           <span className="rounded-md bg-[var(--background)]/70 px-1.5 py-0.5 text-[0.58rem] font-medium uppercase tracking-[0.12em] opacity-75">
@@ -1574,6 +1572,44 @@ function useWorkspaceElapsedSeconds(active: boolean, startedAtMs: number | null)
 
 type WorkspaceToolItem = Extract<WorkspaceTimelineItem, { type: "tool" }>;
 
+/**
+ * What Mari is doing right now, as one line. A new phrase writes itself in letter by letter while
+ * the old one lifts away; screen readers get the plain text once.
+ */
+function MariLiveHeadline({ text, subject }: { text: string; subject?: string | null }) {
+  const reduceMotion = useReducedMotion();
+  const letters = (value: string, offset: number) =>
+    [...value].map((char, index) => (
+      <span
+        key={index}
+        className="mari-work-timeline__char"
+        style={{ "--i": Math.min(offset + index, 40) } as CSSProperties}
+      >
+        {char}
+      </span>
+    ));
+  return (
+    <span className="mari-work-timeline__phrase" role="status">
+      <AnimatePresence initial={false}>
+        <motion.span
+          key={`${text}\u0000${subject ?? ""}`}
+          className="mari-work-timeline__line"
+          exit={reduceMotion ? undefined : { opacity: 0, y: -8, filter: "blur(4px)" }}
+          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <span className="sr-only">{subject ? `${text} ${subject}` : text}</span>
+          <span aria-hidden="true">
+            {letters(text, 0)}
+            {subject ? (
+              <span className="mari-work-timeline__subject-text">{letters(` ${subject}`, [...text].length)}</span>
+            ) : null}
+          </span>
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
 function MariWorkTimeline({
   items,
   character,
@@ -1602,16 +1638,21 @@ function MariWorkTimeline({
   const blocks = buildWorkTimelineBlocks(items);
   const lastBlock = blocks.at(-1);
   const runningTool = active ? [...toolItems].reverse().find(({ tool }) => tool.status === "running") : undefined;
-  const latestNarrative = [...items].reverse().find((item) => item.type !== "tool" && Boolean(item.content.trim())) as
-    Extract<WorkspaceTimelineItem, { content: string }> | undefined;
-  const workAnimation = runningTool
-    ? selectMariWorkAnimation({
-        seed: items[0]?.id ?? runningTool.id,
-        activity: latestNarrative?.content ?? runningTool.tool.name,
-        toolNames: [runningTool.tool.name],
-        disabledPacks: disabledAnimationPacks,
-      })
-    : null;
+  // One scene per step, so the Mari who worked a step is the one left beside it when it is done.
+  const stepAnimation = ({ id, tool }: WorkspaceToolItem) =>
+    selectMariWorkAnimation({
+      seed: id,
+      activity: inferToolPresentation(tool).title,
+      toolNames: [tool.name],
+      disabledPacks: disabledAnimationPacks,
+    });
+  const runningPresentation = runningTool ? inferToolPresentation(runningTool.tool) : null;
+  const headline = runningPresentation
+    ? { text: runningPresentation.title, subject: runningPresentation.detail }
+    : {
+        text: t(lastBlock?.kind === "text" ? "mari.workCard.phraseReplying" : "mari.workCard.phraseThinking"),
+        subject: null,
+      };
   const showHeader = active || toolItems.length > 0;
 
   return (
@@ -1626,21 +1667,32 @@ function MariWorkTimeline({
         {showHeader ? (
           <div className="mari-work-timeline__header">
             {active ? (
-              <span className="mari-live-work__activity" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </span>
+              <MariLiveHeadline text={headline.text} subject={headline.subject} />
             ) : failed ? (
               <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
             ) : (
-              <Check size="0.8rem" className="mari-live-work__complete-icon" aria-hidden="true" />
+              <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
+                <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
+                <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
+              </svg>
             )}
-            <span className="mari-work-timeline__status">
-              {active
-                ? t("mari.workCard.elapsed", { seconds: elapsedSeconds })
-                : t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length })}
-            </span>
+            {active ? (
+              <span
+                className="mari-work-timeline__timer"
+                aria-label={t("mari.workCard.elapsed", { seconds: elapsedSeconds })}
+              >
+                {[...String(elapsedSeconds), "s"].map((char, index, chars) => (
+                  // Keyed by place and value, so only the digit that changed rolls in.
+                  <span key={`${chars.length - index}:${char}`} aria-hidden="true">
+                    {char}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <span className="mari-work-timeline__status">
+                {t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length })}
+              </span>
+            )}
             {active && onStop ? (
               <button type="button" onClick={onStop} className="mari-live-work__stop">
                 <Square size="0.7rem" aria-hidden="true" />
@@ -1663,11 +1715,18 @@ function MariWorkTimeline({
           return (
             <ol key={block.id} className="mari-live-work__steps" aria-label={t("mari.workCard.progress")}>
               <AnimatePresence initial={false}>
-                {block.steps.map(({ id, tool }) => {
+                {block.steps.map((step) => {
+                  const { id, tool } = step;
                   const presentation = inferToolPresentation(tool);
                   const running = tool.status === "running";
                   const stepFailed = tool.status === "error";
-                  const Icon = stepFailed ? AlertTriangle : running ? Circle : Check;
+                  const scene = running
+                    ? runningTool?.id === id
+                      ? stepAnimation(step)
+                      : null
+                    : tool.status === "done"
+                      ? stepAnimation(step)
+                      : null;
                   const stepSeconds = resolveStepSeconds({
                     running,
                     startedAt: tool.startedAt,
@@ -1680,22 +1739,43 @@ function MariWorkTimeline({
                       layout={!reduceMotion}
                       key={id}
                       data-status={tool.status}
-                      initial={reduceMotion ? false : { opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.16, 1, 0.3, 1] }}
+                      initial={reduceMotion ? false : { opacity: 0, y: 6, filter: "blur(4px)" }}
+                      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                      transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
                     >
                       <details className="mari-live-work__step-details group">
                         <summary>
-                          <Icon size="0.75rem" className="mari-live-work__step-icon shrink-0" aria-hidden="true" />
-                          <span className="min-w-0 flex-1 truncate">{presentation.title}</span>
-                          {workAnimation && runningTool?.id === id ? (
-                            <span
-                              key={workAnimation.id}
-                              className="mari-live-work__sprite"
-                              data-scene={workAnimation.id}
-                              style={{ "--mari-work-sprite": `url(${workAnimation.src})` } as CSSProperties}
+                          {stepFailed ? (
+                            <AlertTriangle
+                              size="0.85rem"
+                              className="mari-live-work__step-icon shrink-0"
                               aria-hidden="true"
                             />
+                          ) : (
+                            <svg className="mari-live-work__step-glyph" viewBox="0 0 18 18" aria-hidden="true">
+                              <circle data-part="track" cx="9" cy="9" r="7.5" />
+                              <circle data-part="arc" cx="9" cy="9" r="7.5" />
+                              <circle data-part="fill" cx="9" cy="9" r="8.5" />
+                              <path data-part="check" d="M5.5 9.2l2.3 2.2 4.6-4.8" />
+                            </svg>
+                          )}
+                          <span className="min-w-0 flex-1 truncate">{presentation.title}</span>
+                          {scene ? (
+                            // The working Mari glides from step to step (shared layoutId); a finished step keeps
+                            // a small, quiet copy of the Mari who did it.
+                            <motion.span
+                              layoutId={running ? "mari-work-sprite" : undefined}
+                              transition={{ duration: reduceMotion ? 0 : 0.6, ease: [0.16, 1, 0.3, 1] }}
+                              className="mari-live-work__sprite"
+                              data-scene={scene.id}
+                              data-role={running ? "working" : "stamp"}
+                              aria-hidden="true"
+                            >
+                              <span
+                                key={scene.id}
+                                style={{ "--mari-work-sprite": `url(${scene.src})` } as CSSProperties}
+                              />
+                            </motion.span>
                           ) : null}
                           <span className="mari-live-work__step-duration">
                             {stepSeconds === null ? "—" : t("mari.workCard.stepSeconds", { seconds: stepSeconds })}
@@ -5581,6 +5661,7 @@ export function HomeProfessorMariChat({
                             "mari-professor-composer relative flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--card)] px-2 py-1.5 shadow-inner shadow-black/10 focus-within:border-[var(--primary)]/50",
                             omnibarMode && "mari-workspace-composer rounded-xl shadow-none",
                           )}
+                          data-working={workspaceTimelineActive ? "true" : undefined}
                         >
                           <div className="mari-workspace-composer__attach">
                             <MariAttachButton

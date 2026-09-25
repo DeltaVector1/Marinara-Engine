@@ -676,9 +676,75 @@
   }
 }
 
+/* While Mari works, her logo colours turn around the composer: a crisp ring plus a soft glow that
+   is masked to the outside, so a translucent composer never shows it through the text. */
+.mari-professor-composer[data-working="true"] {
+  border-color: transparent;
+}
+
+.mari-professor-composer[data-working="true"]::before,
+.mari-professor-composer[data-working="true"]::after {
+  position: absolute;
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--angle),
+    var(--mari-logo-pink),
+    var(--mari-logo-orange),
+    var(--mari-logo-cyan),
+    var(--mari-logo-pink)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.mari-professor-composer[data-working="true"]::before {
+  inset: -1px;
+  padding: 1.5px;
+  animation:
+    gradient-rotate 3.2s linear infinite,
+    mari-halo-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mari-professor-composer[data-working="true"]::after {
+  inset: -0.9rem;
+  padding: 0.9rem;
+  filter: blur(0.8rem);
+  animation:
+    gradient-rotate 3.2s linear infinite,
+    mari-halo-breathe 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes mari-halo-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes mari-halo-breathe {
+  from {
+    opacity: 0.2;
+  }
+  to {
+    opacity: 0.5;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mari-professor-composer {
     transition: none;
+  }
+
+  .mari-professor-composer[data-working="true"]::before,
+  .mari-professor-composer[data-working="true"]::after {
+    animation: none;
+  }
+
+  .mari-professor-composer[data-working="true"]::after {
+    opacity: 0.3;
   }
 }
 
@@ -1486,19 +1552,77 @@
   }
 }
 
+/* The little Mari at the right of a step. The outer box keeps the row height; the sprite stands on
+   the row and rises above it. The working one bobs; a finished step keeps a small, quiet copy. */
 .mari-live-work__sprite {
   position: relative;
-  display: block;
-  width: 1.6rem;
-  height: 2.25rem;
   flex: 0 0 auto;
-  margin-block: -0.25rem;
+  width: calc(2rem * var(--mari-sprite-aspect, 1));
+  height: 1.75rem;
+  pointer-events: none;
+}
+
+.mari-live-work__sprite > span {
+  position: absolute;
+  bottom: -0.15rem;
+  left: 0;
+  width: 100%;
+  height: 3rem;
   background-image: var(--mari-work-sprite);
   background-position: 0 center;
   background-repeat: no-repeat;
   background-size: 400% auto;
   image-rendering: pixelated;
-  animation: mari-live-work-sprite 3.6s step-end infinite;
+  animation:
+    mari-live-work-sprite var(--mari-sprite-cycle, 3.6s) step-end infinite,
+    mari-sprite-arrive 0.45s cubic-bezier(0.16, 1, 0.3, 1) both,
+    mari-sprite-bob 1.4s ease-in-out infinite;
+}
+
+.mari-live-work__sprite[data-role="working"]::after {
+  position: absolute;
+  right: 20%;
+  bottom: -0.2rem;
+  left: 20%;
+  height: 0.3rem;
+  border-radius: 50%;
+  content: "";
+  background: oklch(0 0 0 / 0.4);
+  filter: blur(2px);
+}
+
+.mari-live-work__sprite[data-role="stamp"] {
+  width: calc(1.25rem * var(--mari-sprite-aspect, 1));
+}
+
+.mari-live-work__sprite[data-role="stamp"] > span {
+  bottom: 0;
+  height: 1.9rem;
+  background-position: 100% center;
+  opacity: 0.6;
+  filter: saturate(0.7);
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
+  animation: mari-sprite-arrive 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mari-live-work__step-details > summary:hover .mari-live-work__sprite[data-role="stamp"] > span {
+  opacity: 1;
+  filter: none;
+}
+
+@keyframes mari-sprite-arrive {
+  from {
+    opacity: 0;
+    transform: scale(0.6) translateY(0.4rem);
+  }
+}
+
+@keyframes mari-sprite-bob {
+  50% {
+    translate: 0 -2px;
+  }
 }
 
 .mari-work-timeline {
@@ -1517,9 +1641,99 @@
   font-weight: 600;
 }
 
-.mari-work-timeline[data-active="true"] .mari-work-timeline__status {
-  color: color-mix(in srgb, var(--primary) 72%, var(--muted-foreground));
+/* The live headline: what Mari does now, written in letter by letter under a soft light sweep. */
+.mari-work-timeline__phrase {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 1.4rem;
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.mari-work-timeline__line {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(100deg, #000 38%, #0006 50%, #000 62%);
+  mask-size: 280% 100%;
+  animation: mari-headline-sheen 2.2s linear infinite;
+}
+
+.mari-work-timeline__char {
+  display: inline-block;
+  white-space: pre;
+  animation: mari-char-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 16ms);
+}
+
+.mari-work-timeline__subject-text {
+  color: var(--mari-workspace-gold, oklch(0.82 0.11 79));
+}
+
+.mari-work-timeline__timer {
+  display: inline-flex;
+  overflow: hidden;
   font-variant-numeric: tabular-nums;
+}
+
+.mari-work-timeline__timer > span {
+  display: inline-block;
+  animation: mari-digit-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mari-work-timeline__done-mark {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: oklch(0.74 0.15 154);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.mari-work-timeline__done-mark circle {
+  stroke-dasharray: 51;
+  stroke-dashoffset: 51;
+  animation: mari-stroke-draw 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mari-work-timeline__done-mark path {
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  animation: mari-stroke-draw 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+@keyframes mari-headline-sheen {
+  from {
+    mask-position: 100% 0;
+  }
+  to {
+    mask-position: -180% 0;
+  }
+}
+
+@keyframes mari-char-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) rotate(4deg);
+    filter: blur(4px);
+  }
+}
+
+@keyframes mari-digit-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes mari-stroke-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 .mari-work-timeline[data-outcome="failed"] .mari-work-timeline__status {
@@ -1542,22 +1756,22 @@
 .mari-live-work__sprite[data-scene="deep-dive"],
 .mari-live-work__sprite[data-scene="boat"],
 .mari-live-work__sprite[data-scene="spelunking"] {
-  width: 4.4rem;
-  animation-duration: 5.2s;
+  --mari-sprite-aspect: 2.75;
+  --mari-sprite-cycle: 5.2s;
 }
 
 .mari-live-work__sprite[data-scene="detective"],
 .mari-live-work__sprite[data-scene="pixel-bug"],
 .mari-live-work__sprite[data-scene="puzzle"],
 .mari-live-work__sprite[data-scene="typewriter"] {
-  animation-duration: 2.8s;
+  --mari-sprite-cycle: 2.8s;
 }
 
 .mari-live-work__sprite[data-scene="paper-airplane"],
 .mari-live-work__sprite[data-scene="telescope"],
 .mari-live-work__sprite[data-scene="clockwork"],
 .mari-live-work__sprite[data-scene="rocket"] {
-  animation-duration: 3.2s;
+  --mari-sprite-cycle: 3.2s;
 }
 
 .mari-live-work__sprite[data-scene="tea"],
@@ -1567,30 +1781,7 @@
 .mari-live-work__sprite[data-scene="constellation"],
 .mari-live-work__sprite[data-scene="images"],
 .mari-live-work__sprite[data-scene="thinking-notes"] {
-  animation-duration: 4.4s;
-}
-
-.mari-live-work__activity {
-  display: inline-flex;
-  flex: 0 0 auto;
-  gap: 0.14rem;
-  color: var(--primary);
-}
-
-.mari-live-work__activity i {
-  width: 0.22rem;
-  height: 0.22rem;
-  border-radius: 999px;
-  background: currentColor;
-  animation: mari-live-activity-dot 1.2s ease-in-out infinite;
-}
-
-.mari-live-work__activity i:nth-child(2) {
-  animation-delay: 120ms;
-}
-
-.mari-live-work__activity i:nth-child(3) {
-  animation-delay: 240ms;
+  --mari-sprite-cycle: 4.4s;
 }
 
 .mari-live-work__complete-icon {
@@ -1649,18 +1840,87 @@
   color: var(--foreground);
 }
 
-.mari-live-work__steps li[data-status="running"]::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 1px;
-  content: "";
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  background-position: -80% 0;
-  background-size: 45% 100%;
-  background-repeat: no-repeat;
-  animation: mari-tool-progress 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+.mari-live-work__steps li[data-status="running"] > details > summary {
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(
+        100deg,
+        transparent 20%,
+        color-mix(in srgb, var(--mari-workspace-gold, oklch(0.82 0.11 79)) 10%, transparent) 50%,
+        transparent 80%
+      )
+      0 0 / 250% 100% no-repeat,
+    color-mix(in srgb, var(--foreground) 4%, transparent);
+  animation: mari-step-glint 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes mari-step-glint {
+  from {
+    background-position:
+      150% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      -100% 0,
+      0 0;
+  }
+}
+
+/* Step status: a spinner arc while running, then a green disc fills and the check draws itself. */
+.mari-live-work__step-glyph {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+  overflow: visible;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.mari-live-work__step-glyph [data-part="track"] {
+  stroke: color-mix(in srgb, var(--border) 90%, var(--muted-foreground));
+}
+
+.mari-live-work__step-glyph [data-part="arc"] {
+  opacity: 0;
+  stroke: var(--mari-workspace-gold, oklch(0.82 0.11 79));
+  stroke-dasharray: 14 38;
+  transform-origin: 9px 9px;
+}
+
+.mari-live-work__steps li[data-status="running"] [data-part="arc"] {
+  opacity: 1;
+  animation: mari-step-spin 0.9s linear infinite;
+}
+
+.mari-live-work__step-glyph [data-part="fill"] {
+  fill: oklch(0.74 0.15 154);
+  stroke: none;
+  transform: scale(0);
+  transform-origin: 9px 9px;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mari-live-work__step-glyph [data-part="check"] {
+  stroke: oklch(0.22 0.03 160);
+  stroke-dasharray: 12;
+  stroke-dashoffset: 12;
+}
+
+.mari-live-work__steps li[data-status="done"] [data-part="fill"] {
+  transform: scale(1);
+}
+
+.mari-live-work__steps li[data-status="done"] [data-part="check"] {
+  animation: mari-stroke-draw 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
+}
+
+@keyframes mari-step-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .mari-live-work__step-duration {
@@ -1672,10 +1932,6 @@
 
 .mari-live-work__steps li[data-status="error"] {
   color: var(--destructive);
-}
-
-.mari-live-work__steps li[data-status="done"] .mari-live-work__step-icon {
-  animation: mari-live-work-confirm 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .mari-live-work__step-details {
@@ -1763,26 +2019,22 @@
   }
 }
 
-@keyframes mari-live-work-confirm {
-  0% {
-    opacity: 0.4;
-    transform: scale(0.65) rotate(-12deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .mari-live-work__activity i,
-  .mari-live-work__steps li .mari-live-work__step-icon,
-  .mari-live-work__steps li[data-status="running"]::after {
+  .mari-live-work__steps li[data-status="running"] > details > summary,
+  .mari-live-work__steps li[data-status="running"] [data-part="arc"],
+  .mari-live-work__sprite > span,
+  .mari-work-timeline__line,
+  .mari-work-timeline__char,
+  .mari-work-timeline__timer > span,
+  .mari-reasoning-panel__ticker > span {
     animation: none;
   }
 
-  .mari-live-work__sprite {
+  .mari-live-work__steps li[data-status="done"] [data-part="check"],
+  .mari-work-timeline__done-mark circle,
+  .mari-work-timeline__done-mark path {
     animation: none;
+    stroke-dashoffset: 0;
   }
 }
 
@@ -1794,30 +2046,31 @@
   border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
 }
 
-.mari-reasoning-panel__live {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  color: var(--primary);
-  font-size: 0.625rem;
-  font-weight: 600;
+.mari-reasoning-panel__ticker {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 1.1rem;
+  overflow: hidden;
+  font-style: italic;
+  font-weight: 400;
 }
 
-.mari-reasoning-panel__live i {
-  width: 0.2rem;
-  height: 0.2rem;
-  border-radius: 999px;
-  background: currentColor;
-  animation: mari-live-activity-dot 1.2s ease-in-out infinite;
+.mari-reasoning-panel__ticker > span {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: mari-ticker-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.mari-reasoning-panel__live i:nth-child(2) {
-  animation-delay: 120ms;
-}
-
-.mari-reasoning-panel__live i:nth-child(3) {
-  margin-right: 0.2rem;
-  animation-delay: 240ms;
+@keyframes mari-ticker-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem);
+    filter: blur(3px);
+  }
 }
 
 .mari-tool-line[data-status="running"]::after {
@@ -1839,19 +2092,6 @@
   }
   to {
     background-position: 180% 0;
-  }
-}
-
-@keyframes mari-live-activity-dot {
-  0%,
-  60%,
-  100% {
-    opacity: 0.28;
-    transform: translateY(0);
-  }
-  30% {
-    opacity: 0.9;
-    transform: translateY(-0.12rem);
   }
 }
 
@@ -2049,9 +2289,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mari-reasoning-panel__live i,
-  .mari-tool-line[data-status="running"]::after,
-  .mari-live-work__steps li[data-status="running"]::after {
+  .mari-tool-line[data-status="running"]::after {
     animation: none;
   }
 }
