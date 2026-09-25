@@ -28,5 +28,6 @@ export function resolveRunStartMs(steps: readonly RunStepTiming[]): number | nul
 export function resolveRunSeconds(steps: readonly RunStepTiming[]): number {
   const start = resolveRunStartMs(steps);
   const end = steps.reduce((latest, step) => Math.max(latest, step.updatedAt || 0), 0);
-  return start && end > start ? Math.round((end - start) / 1_000) : 0;
+  // Steps never show under 1s, so a real run never totals less than one of its own steps.
+  return start && end > start ? Math.max(1, Math.round((end - start) / 1_000)) : 0;
 }

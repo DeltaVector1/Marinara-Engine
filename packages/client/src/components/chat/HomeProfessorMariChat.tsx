@@ -22,6 +22,7 @@ import {
   BookOpen,
   Brain,
   Check,
+  Copy,
   ChevronRight,
   Database,
   FileText,
@@ -35,7 +36,6 @@ import {
   RefreshCw,
   Search,
   Send,
-  StopCircle,
   ShieldAlert,
   Sparkles,
   Square,
@@ -79,10 +79,10 @@ import { chatKeys } from "../../hooks/use-chats";
 import { characterKeys, useCharacters, usePersonas } from "../../hooks/use-characters";
 import { getCharacterDisplayIdentity } from "../../lib/character-display";
 import { buildCharacterPreviewModel, type CharacterPreviewModel } from "../../lib/character-preview";
-import { resolveRunSeconds, resolveRunStartMs } from "../../lib/mari-work-card-timing";
+import { resolveRunSeconds, resolveRunStartMs, type RunStepTiming } from "../../lib/mari-work-card-timing";
 import { buildLorebookPreviewModel, type LorebookPreviewModel } from "../../lib/lorebook-preview";
 import { completeInline } from "../../lib/inline-completion";
-import { mariStepStamp, selectMariWorkAnimation, type MariWorkAnimation } from "../../lib/mari-work-animations";
+import { selectMariWorkAnimation, stableHash, type MariWorkAnimation } from "../../lib/mari-work-animations";
 import { buildWorkTimelineBlocks } from "../../lib/mari-work-timeline";
 import { resolveStepSeconds } from "../../lib/mari-step-duration";
 import { getChatInputShellClass } from "./chat-input-styles";
@@ -167,7 +167,7 @@ import { applyInlineMarkdown, renderMarkdownBlocks } from "../../lib/markdown";
 import { useCodeBlockCopy } from "../../hooks/use-code-block-copy";
 import { rafThrottle } from "../../lib/raf-throttle";
 import { prepareImageAttachment } from "../../lib/chat-attachment-images";
-import { cn } from "../../lib/utils";
+import { cn, copyToClipboard } from "../../lib/utils";
 import { executeStateNavigation } from "../../lib/state-navigation";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { MariSuggestionChips } from "./MariSuggestionChips";
@@ -181,7 +181,6 @@ import {
 
 const MARI_AVATAR_URL = "/sprites/mari/Mari_profile.png";
 const MARI_CHIBI_URL = "/sprites/mari/chibi-professor-mari.png";
-const PROFESSOR_MARI_BOOTSTRAP_ERROR_TOAST_ID = "professor-mari-bootstrap-error";
 const PROFESSOR_MARI_DRAFT_KEY = "__home_professor_mari__";
 const MARI_CONNECTION_STORAGE_KEY = "marinara:home-professor-mari-connection-id";
 const PROFESSOR_MARI_ERROR_TOAST_DURATION_MS = 120_000;
@@ -1590,8 +1589,16 @@ function useWorkspaceElapsedSeconds(active: boolean, startedAtMs: number | null)
 
 type WorkspaceToolItem = Extract<WorkspaceTimelineItem, { type: "tool" }>;
 
+const MARI_SPRITE_REACTIONS = ["hop", "flip", "wave", "bounce"] as const;
+
+/** Sizes of the `mari.workCard.thinkingPhrases.pN` and `mari.workCard.replyingPhrases.pN` galleries in en.json. */
+const MARI_THINKING_PHRASE_COUNT = 48;
+const MARI_REPLYING_PHRASE_COUNT = 16;
+/** A new phrase every few seconds while she stays in the same phase, like Claude's rotating verbs. */
+const MARI_PHRASE_ROTATE_SECONDS = 7;
+
 /** A little pixel Mari. The inner span is keyed by scene, so a new scene pops in instead of cutting. */
-function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working" | "stamp" }) {
+function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working" }) {
   const ref = useRef<HTMLSpanElement>(null);
   const reduceMotion = useReducedMotion();
   // When the run ends, the live reply is swapped for the saved message and working Mari unmounts with it.
@@ -1606,6 +1613,8 @@ function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working"
       if (!rect.width) return;
       const ghost = node.cloneNode(true) as HTMLElement;
       ghost.classList.add("mari-sprite-ghost");
+      // A different goodbye each run, so finishing stays a small surprise.
+      ghost.dataset.reaction = MARI_SPRITE_REACTIONS[Math.floor(Math.random() * MARI_SPRITE_REACTIONS.length)];
       Object.assign(ghost.style, {
         left: `${rect.left}px`,
         top: `${rect.top}px`,
@@ -1615,7 +1624,7 @@ function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working"
       requestAnimationFrame(() => {
         if (!transcript?.isConnected) return;
         document.body.append(ghost);
-        window.setTimeout(() => ghost.remove(), 900);
+        window.setTimeout(() => ghost.remove(), 1_300);
       });
     };
   }, [role, reduceMotion]);
@@ -1709,8 +1718,12 @@ function MariWorkTimeline({
   const reduceMotion = useReducedMotion();
   const disabledAnimationPacks = useUIStore((state) => state.disabledMariAnimationPacks);
   const toolItems = items.filter((item): item is WorkspaceToolItem => item.type === "tool");
-  const liveElapsedSeconds = useWorkspaceElapsedSeconds(active, resolveRunStartMs(toolItems.map((i) => i.tool)));
-  const elapsedSeconds = active ? liveElapsedSeconds : resolveRunSeconds(toolItems.map((i) => i.tool));
+  // Her thinking is part of the run too, so it counts toward "Worked for".
+  const runTimings = items.flatMap((item): RunStepTiming[] =>
+    item.type === "tool" ? [item.tool] : item.type === "thinking" ? [item] : [],
+  );
+  const liveElapsedSeconds = useWorkspaceElapsedSeconds(active, resolveRunStartMs(runTimings));
+  const elapsedSeconds = active ? liveElapsedSeconds : resolveRunSeconds(runTimings);
   // A finished run that still holds a failed step is not a success, whatever the last step was.
   const failed = !active && toolItems.some(({ tool }) => tool.status === "error");
   const blocks = buildWorkTimelineBlocks(items);
@@ -1725,10 +1738,16 @@ function MariWorkTimeline({
       disabledPacks: disabledAnimationPacks,
     });
   const runningPresentation = runningTool ? inferToolPresentation(runningTool.tool) : null;
+  const replying = lastBlock?.kind === "text";
+  const phraseSeed = stableHash(
+    `${lastBlock?.id ?? items[0]?.id ?? "mari"}:${Math.floor(elapsedSeconds / MARI_PHRASE_ROTATE_SECONDS)}`,
+  );
   const headline = runningPresentation
     ? { text: runningPresentation.title, subject: runningPresentation.detail }
     : {
-        text: t(lastBlock?.kind === "text" ? "mari.workCard.phraseReplying" : "mari.workCard.phraseThinking"),
+        text: replying
+          ? t(`mari.workCard.replyingPhrases.p${(phraseSeed % MARI_REPLYING_PHRASE_COUNT) + 1}`)
+          : t(`mari.workCard.thinkingPhrases.p${(phraseSeed % MARI_THINKING_PHRASE_COUNT) + 1}`),
         subject: null,
       };
   // While she works, one scene plays on the live line: the running step's, or a thinking one between steps.
@@ -1743,6 +1762,110 @@ function MariWorkTimeline({
           disabledPacks: disabledAnimationPacks,
         });
   const showHeader = !active && toolItems.length > 0;
+  const renderBlock = (block: (typeof blocks)[number]) => {
+    if (block.kind !== "steps") {
+      return block.kind === "text" ? (
+        <CompactMarkdown key={block.id} content={block.content} streaming={active && block === lastBlock} />
+      ) : (
+        <MariReasoningPanel
+          key={block.id}
+          thinking={block.content}
+          seconds={block.seconds}
+          live={active && block === lastBlock}
+        />
+      );
+    }
+    return (
+      <ol key={block.id} className="mari-live-work__steps" aria-label={t("mari.workCard.progress")}>
+        <AnimatePresence initial={false}>
+          {block.steps.map((step) => {
+            const { id, tool } = step;
+            const presentation = inferToolPresentation(tool);
+            const running = tool.status === "running";
+            const stepFailed = tool.status === "error";
+            const stepSeconds = resolveStepSeconds({
+              running,
+              startedAt: tool.startedAt,
+              durationMs: tool.durationMs,
+              updatedAt: tool.updatedAt,
+              now: Date.now(),
+            });
+            return (
+              <motion.li
+                layout={!reduceMotion}
+                key={id}
+                data-status={tool.status}
+                initial={reduceMotion ? false : { opacity: 0, y: 6, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <details className="mari-live-work__step-details group">
+                  <summary>
+                    {stepFailed ? (
+                      <AlertTriangle size="0.85rem" className="mari-live-work__step-icon shrink-0" aria-hidden="true" />
+                    ) : (
+                      <svg className="mari-live-work__step-glyph" viewBox="0 0 18 18" aria-hidden="true">
+                        <circle data-part="track" cx="9" cy="9" r="7.5" />
+                        <circle data-part="arc" cx="9" cy="9" r="7.5" />
+                        <circle data-part="fill" cx="9" cy="9" r="8.5" />
+                        <path data-part="check" d="M5.5 9.2l2.3 2.2 4.6-4.8" />
+                      </svg>
+                    )}
+                    <span className="min-w-0 flex-1 truncate">{presentation.title}</span>
+                    <span className="mari-live-work__step-duration">
+                      {stepSeconds === null ? "—" : t("mari.workCard.stepSeconds", { seconds: stepSeconds })}
+                    </span>
+                    <ChevronRight size="0.7rem" className="mari-live-work__step-chevron shrink-0" aria-hidden="true" />
+                  </summary>
+                  <div className="mari-live-work__step-details-body">
+                    <div className="mari-live-work__step-details-label">
+                      <Terminal size="0.7rem" aria-hidden="true" />
+                      {t("mari.workCard.technicalDetails")}
+                    </div>
+                    <code>{formatToolName(tool.name)}</code>
+                    {tool.input !== undefined ? <pre>{previewValue(tool.input, 240)}</pre> : null}
+                    {tool.output !== null && tool.output !== undefined ? (
+                      <pre>{previewValue(tool.output, 320)}</pre>
+                    ) : null}
+                  </div>
+                </details>
+              </motion.li>
+            );
+          })}
+        </AnimatePresence>
+      </ol>
+    );
+  };
+  // Consecutive work blocks (thoughts and steps) share one rail; her words sit at full width between them.
+  const renderSegments = (list: typeof blocks) => {
+    const out: ReactNode[] = [];
+    let rail: ReactNode[] = [];
+    const flush = () => {
+      if (!rail.length) return;
+      out.push(
+        <div key={`rail-${out.length}`} className="mari-work-timeline__rail">
+          {rail}
+        </div>,
+      );
+      rail = [];
+    };
+    for (const block of list) {
+      if (block.kind === "text") {
+        flush();
+        out.push(renderBlock(block));
+      } else rail.push(renderBlock(block));
+    }
+    flush();
+    return out;
+  };
+  // A finished run folds its work behind one summary line and keeps only her answer open, like Claude.
+  // A failed run stays open, so what went wrong is in view.
+  let lastWorkIndex = -1;
+  blocks.forEach((block, index) => {
+    if (block.kind !== "text") lastWorkIndex = index;
+  });
+  const workBlocks = active ? blocks : blocks.slice(0, lastWorkIndex + 1);
+  const answerBlocks = active ? [] : blocks.slice(lastWorkIndex + 1);
 
   return (
     <TranscriptRow layout="document" marker={null}>
@@ -1754,111 +1877,31 @@ function MariWorkTimeline({
           aria-label={t("mari.workCard.label")}
           aria-busy={active}
         >
-          {showHeader ? (
-            <div className="mari-work-timeline__header">
-              {failed ? (
-                <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
-              ) : (
-                <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
-                  <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
-                  <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
-                </svg>
-              )}
-              <span className="mari-work-timeline__status">
-                {t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length })}
-              </span>
-            </div>
-          ) : null}
-
           <MariResourceSubject character={character} lorebook={lorebook} className="mari-work-timeline__subject" />
 
-          {blocks.map((block) => {
-            if (block.kind !== "steps") {
-              return block.kind === "text" ? (
-                <CompactMarkdown key={block.id} content={block.content} streaming={active && block === lastBlock} />
-              ) : (
-                <MariReasoningPanel
-                  key={block.id}
-                  thinking={block.content}
-                  seconds={block.seconds}
-                  live={active && block === lastBlock}
-                />
-              );
-            }
-            return (
-              <ol key={block.id} className="mari-live-work__steps" aria-label={t("mari.workCard.progress")}>
-                <AnimatePresence initial={false}>
-                  {block.steps.map((step) => {
-                    const { id, tool } = step;
-                    const presentation = inferToolPresentation(tool);
-                    const running = tool.status === "running";
-                    const stepFailed = tool.status === "error";
-                    const stamp = tool.status === "done" ? mariStepStamp(stepAnimation(step)) : null;
-                    const stepSeconds = resolveStepSeconds({
-                      running,
-                      startedAt: tool.startedAt,
-                      durationMs: tool.durationMs,
-                      updatedAt: tool.updatedAt,
-                      now: Date.now(),
-                    });
-                    return (
-                      <motion.li
-                        layout={!reduceMotion}
-                        key={id}
-                        data-status={tool.status}
-                        initial={reduceMotion ? false : { opacity: 0, y: 6, filter: "blur(4px)" }}
-                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                        transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
-                      >
-                        <details className="mari-live-work__step-details group">
-                          <summary>
-                            {stepFailed ? (
-                              <AlertTriangle
-                                size="0.85rem"
-                                className="mari-live-work__step-icon shrink-0"
-                                aria-hidden="true"
-                              />
-                            ) : (
-                              <svg className="mari-live-work__step-glyph" viewBox="0 0 18 18" aria-hidden="true">
-                                <circle data-part="track" cx="9" cy="9" r="7.5" />
-                                <circle data-part="arc" cx="9" cy="9" r="7.5" />
-                                <circle data-part="fill" cx="9" cy="9" r="8.5" />
-                                <path data-part="check" d="M5.5 9.2l2.3 2.2 4.6-4.8" />
-                              </svg>
-                            )}
-                            <span className="min-w-0 flex-1 truncate">{presentation.title}</span>
-                            {stamp ? (
-                              // A finished step keeps a small, quiet copy of the Mari who did it.
-                              <MariSprite scene={stamp} role="stamp" />
-                            ) : null}
-                            <span className="mari-live-work__step-duration">
-                              {stepSeconds === null ? "—" : t("mari.workCard.stepSeconds", { seconds: stepSeconds })}
-                            </span>
-                            <ChevronRight
-                              size="0.7rem"
-                              className="mari-live-work__step-chevron shrink-0"
-                              aria-hidden="true"
-                            />
-                          </summary>
-                          <div className="mari-live-work__step-details-body">
-                            <div className="mari-live-work__step-details-label">
-                              <Terminal size="0.7rem" aria-hidden="true" />
-                              {t("mari.workCard.technicalDetails")}
-                            </div>
-                            <code>{formatToolName(tool.name)}</code>
-                            {tool.input !== undefined ? <pre>{previewValue(tool.input, 240)}</pre> : null}
-                            {tool.output !== null && tool.output !== undefined ? (
-                              <pre>{previewValue(tool.output, 320)}</pre>
-                            ) : null}
-                          </div>
-                        </details>
-                      </motion.li>
-                    );
-                  })}
-                </AnimatePresence>
-              </ol>
-            );
-          })}
+          {showHeader ? (
+            <details className="mari-work-timeline__work" open={failed || undefined}>
+              <summary className="mari-work-timeline__header">
+                {failed ? (
+                  <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
+                ) : (
+                  <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
+                    <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
+                    <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
+                  </svg>
+                )}
+                <span className="mari-work-timeline__status">
+                  {t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length })}
+                </span>
+                <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />
+              </summary>
+              <div className="mari-work-timeline__work-body">{renderSegments(workBlocks)}</div>
+            </details>
+          ) : (
+            renderSegments(workBlocks)
+          )}
+
+          {renderSegments(answerBlocks)}
 
           {active ? (
             // The live line is always the last line, and working Mari leads it on the left: new work lands above
@@ -1889,6 +1932,67 @@ const MARI_MESSAGE_ACTIONS_CLASS =
   "mt-1 flex gap-1.5 opacity-100 transition-opacity [@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:group-focus-within:opacity-100 [@media(pointer:fine)]:group-hover:opacity-100";
 const MARI_MESSAGE_ACTION_BUTTON_CLASS =
   "rounded p-1 text-[var(--marinara-chat-chrome-panel-muted)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--primary)] focus-visible:text-[var(--primary)]";
+
+/** Copy, regenerate and delete under one of her replies: shown on hover with a mouse, always on touch. */
+function MariReplyActions({
+  content,
+  onRegenerate,
+  onDelete,
+}: {
+  content: string;
+  onRegenerate?: () => void;
+  onDelete?: () => void;
+}) {
+  const { t: localizeUi } = useUiTranslation();
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 1_500);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+  const copyLabel = localizeUi(copied ? "markdown.copied" : "markdown.copy");
+  return (
+    <div className={MARI_MESSAGE_ACTIONS_CLASS}>
+      {content.trim() ? (
+        <button
+          type="button"
+          onClick={() =>
+            void copyToClipboard(content).then((ok) =>
+              ok ? setCopied(true) : toast.error(localizeUi("markdown.copyFailed")),
+            )
+          }
+          className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
+          aria-label={copyLabel}
+          title={copyLabel}
+        >
+          {copied ? <Check size="0.8rem" /> : <Copy size="0.8rem" />}
+        </button>
+      ) : null}
+      {onRegenerate && (
+        <button
+          type="button"
+          onClick={onRegenerate}
+          className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
+          aria-label={localizeUi("ui.chat.chatmessage.regenerate")}
+          title={localizeUi("ui.chat.chatmessage.regenerate")}
+        >
+          <RefreshCw size="0.8rem" />
+        </button>
+      )}
+      {onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
+          aria-label={localizeUi("lorebook.editor.batch.delete")}
+          title={localizeUi("lorebook.editor.batch.delete")}
+        >
+          <Trash2 size="0.8rem" />
+        </button>
+      )}
+    </div>
+  );
+}
 
 function MariWorkspaceActionResultRow({
   result,
@@ -2140,12 +2244,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
     const traceItems = timelineItemsFromTrace(workspaceTrace, message);
     return (
       <div className="group space-y-2">
-        <MariWorkTimeline
-          items={traceItems}
-          character={characterSubject}
-          lorebook={lorebookSubject}
-          active={false}
-        />
+        <MariWorkTimeline items={traceItems} character={characterSubject} lorebook={lorebookSubject} active={false} />
         <div className="min-w-0">
           {actionResults.map((result) => (
             <MariWorkspaceActionResultRow
@@ -2158,32 +2257,11 @@ const CompactMariMessage = memo(function CompactMariMessage({
               compact
             />
           ))}
-          {(onDelete || (onRegenerate && canRegenerate)) && (
-            <div className={MARI_MESSAGE_ACTIONS_CLASS}>
-              {onRegenerate && canRegenerate && (
-                <button
-                  type="button"
-                  onClick={() => onRegenerate(message.id)}
-                  className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
-                  aria-label={localizeUi("ui.chat.chatmessage.regenerate")}
-                  title={localizeUi("ui.chat.chatmessage.regenerate")}
-                >
-                  <RefreshCw size="0.8rem" />
-                </button>
-              )}
-              {onDelete && (
-                <button
-                  type="button"
-                  onClick={() => onDelete(message.id)}
-                  className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
-                  aria-label={localizeUi("lorebook.editor.batch.delete")}
-                  title={localizeUi("lorebook.editor.batch.delete")}
-                >
-                  <Trash2 size="0.8rem" />
-                </button>
-              )}
-            </div>
-          )}
+          <MariReplyActions
+            content={stripProfessorMariSpeakerPrefix(content)}
+            onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
+            onDelete={onDelete ? () => onDelete(message.id) : undefined}
+          />
         </div>
       </div>
     );
@@ -2205,32 +2283,11 @@ const CompactMariMessage = memo(function CompactMariMessage({
             compact
           />
         ))}
-        {(onDelete || (onRegenerate && canRegenerate)) && (
-          <div className={MARI_MESSAGE_ACTIONS_CLASS}>
-            {onRegenerate && canRegenerate && (
-              <button
-                type="button"
-                onClick={() => onRegenerate(message.id)}
-                className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
-                aria-label={localizeUi("ui.chat.chatmessage.regenerate")}
-                title={localizeUi("ui.chat.chatmessage.regenerate")}
-              >
-                <RefreshCw size="0.8rem" />
-              </button>
-            )}
-            {onDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete(message.id)}
-                className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
-                aria-label={localizeUi("lorebook.editor.batch.delete")}
-                title={localizeUi("lorebook.editor.batch.delete")}
-              >
-                <Trash2 size="0.8rem" />
-              </button>
-            )}
-          </div>
-        )}
+        <MariReplyActions
+          content={stripProfessorMariSpeakerPrefix(content)}
+          onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
+          onDelete={onDelete ? () => onDelete(message.id) : undefined}
+        />
       </TranscriptRow>
       {thinking && (
         <TranscriptRow layout="document" marker={null}>
@@ -2260,6 +2317,10 @@ type ProfessorMariRecovery = {
   attachments: ProfessorMariAttachment[];
   context: ProfessorMariAskContext | null;
   kind: "provider" | "tool" | "context" | "general";
+  /** What the provider or server said, shown under the error. */
+  detail?: string;
+  /** The optimistic bubble of the failed message, replaced when you retry. */
+  localMessageId?: string;
 };
 
 function classifyProfessorMariFailure(error: unknown): ProfessorMariRecovery["kind"] {
@@ -3117,18 +3178,28 @@ export function HomeProfessorMariChat({
     localizeUi,
   ]);
 
+  // Missing workspace tools (often just no admin secret) are a calm note in the transcript, not a toast
+  // that covers her header every time she opens. Status, skills and memories all report here once.
+  const [workspaceToolsIssue, setWorkspaceToolsIssue] = useState<string | null>(null);
+  const reportWorkspaceToolsIssue = useCallback(
+    (error: unknown, fallback?: string) =>
+      setWorkspaceToolsIssue(
+        (current) =>
+          current ??
+          (error instanceof ApiError && (error.status === 401 || error.status === 403)
+            ? localizeUi("ui.chat.homeprofessormarichat.professorMariWorkspaceToolsNeedAdminAccess")
+            : (fallback ?? describeProfessorMariError(error))),
+      ),
+    [localizeUi],
+  );
   useEffect(() => {
     if (!pageActive) return;
     void refreshWorkspaceStatus().catch((error) => {
       setWorkspaceStatus((current) => current && { ...current, error: "Workspace status unavailable" });
-      toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariWorkspaceToolsAreUnavailable"), {
-        id: PROFESSOR_MARI_BOOTSTRAP_ERROR_TOAST_ID,
-        description:
-          error instanceof ApiError && (error.status === 401 || error.status === 403)
-            ? localizeUi("ui.chat.homeprofessormarichat.professorMariWorkspaceToolsNeedAdminAccess")
-            : localizeUi("ui.chat.homeprofessormarichat.workspaceImportsAndChangesMayNotShowLiveProgress"),
-        duration: 12_000,
-      });
+      reportWorkspaceToolsIssue(
+        error,
+        localizeUi("ui.chat.homeprofessormarichat.workspaceImportsAndChangesMayNotShowLiveProgress"),
+      );
     });
     const refreshVisibleWorkspaceStatus = () => {
       if (document.hidden) return;
@@ -3140,7 +3211,7 @@ export function HomeProfessorMariChat({
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", refreshVisibleWorkspaceStatus);
     };
-  }, [pageActive, refreshWorkspaceStatus, localizeUi]);
+  }, [pageActive, refreshWorkspaceStatus, localizeUi, reportWorkspaceToolsIssue]);
 
   // Recovery for runs this client is no longer attached to (#5719): if the
   // status poll watches a server-side run finish while no local send closure
@@ -3193,16 +3264,9 @@ export function HomeProfessorMariChat({
     void loadSkills().catch((error) => {
       console.error("[Professor Mari] Failed to load skills", error);
       setSkillsDiagnostics(["Professor Mari skills unavailable"]);
-      toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariWorkspaceToolsAreUnavailable"), {
-        id: PROFESSOR_MARI_BOOTSTRAP_ERROR_TOAST_ID,
-        description:
-          error instanceof ApiError && (error.status === 401 || error.status === 403)
-            ? localizeUi("ui.chat.homeprofessormarichat.professorMariWorkspaceToolsNeedAdminAccess")
-            : describeProfessorMariError(error),
-        duration: 12_000,
-      });
+      reportWorkspaceToolsIssue(error);
     });
-  }, [loadSkills, localizeUi]);
+  }, [loadSkills, reportWorkspaceToolsIssue]);
 
   useEffect(() => {
     if (!chatHistoryOpen) return;
@@ -3242,16 +3306,9 @@ export function HomeProfessorMariChat({
   useEffect(() => {
     void loadMemories().catch((error) => {
       console.error("[Professor Mari] Failed to load memories", error);
-      toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariWorkspaceToolsAreUnavailable"), {
-        id: PROFESSOR_MARI_BOOTSTRAP_ERROR_TOAST_ID,
-        description:
-          error instanceof ApiError && (error.status === 401 || error.status === 403)
-            ? localizeUi("ui.chat.homeprofessormarichat.professorMariWorkspaceToolsNeedAdminAccess")
-            : describeProfessorMariError(error),
-        duration: 12_000,
-      });
+      reportWorkspaceToolsIssue(error);
     });
-  }, [loadMemories, localizeUi]);
+  }, [loadMemories, reportWorkspaceToolsIssue]);
 
   useEffect(() => {
     const id = selectedMemory?.id ?? null;
@@ -3328,6 +3385,17 @@ export function HomeProfessorMariChat({
     hasActionResult: latestActionResults.length > 0,
     messageCount: messages.length,
   });
+  // The glow behind the composer takes her state's color: cyan while she thinks, pink while she writes,
+  // her full logo while a tool runs, gold when she waits for you, red when something broke.
+  const lastWorkItemType = workspaceTimeline.at(-1)?.type;
+  const composerGlowTone =
+    mariPresentationState !== "working"
+      ? mariPresentationState
+      : lastWorkItemType === "text"
+        ? "writing"
+        : lastWorkItemType === "tool"
+          ? "working"
+          : "thinking";
   const mariVisualState = resolveProfessorMariVisualState({
     busy: isBusy,
     hasActionResult: latestActionResults.length > 0,
@@ -3356,7 +3424,7 @@ export function HomeProfessorMariChat({
     const node = scrollRef.current;
     if (!node || !transcriptFollowOutputRef.current) return;
     scrollProfessorMariTranscriptToBottom(node);
-  }, [messages, workspaceTimeline, visiblePendingChangeReviewKey, workspaceStatus?.error]);
+  }, [messages, workspaceTimeline, visiblePendingChangeReviewKey, workspaceStatus?.error, recovery]);
 
   const transcriptGlideCleanupRef = useRef<(() => void) | null>(null);
   const setTranscriptStackNode = useCallback((node: HTMLDivElement | null) => {
@@ -4655,7 +4723,7 @@ export function HomeProfessorMariChat({
 
   const handleSubmit = async (
     overrideText?: string,
-    overrideRecovery?: Pick<ProfessorMariRecovery, "attachments" | "context">,
+    overrideRecovery?: Pick<ProfessorMariRecovery, "attachments" | "context" | "localMessageId">,
   ) => {
     const text = (overrideText ?? draft).trim();
     const submittedAttachments = overrideRecovery?.attachments ?? attachments;
@@ -4678,16 +4746,20 @@ export function HomeProfessorMariChat({
     }
 
     setSending(true);
+    let localMessageId: string | undefined;
     try {
       const chat = await ensureProfessorMariChat(effectiveConnectionId);
-      setDraft("");
+      // A retry or a chip sends its own text: leave whatever you have typed since in the composer.
+      if (overrideText === undefined) setDraft("");
       setMariChips(chat.id, []);
       clearMariPlan();
-      setAttachments([]);
+      if (!overrideRecovery) setAttachments([]);
       setHandoffContext(persistentResourceContext(submittedContext));
+      const localMessage = createLocalUserMessage(chat.id, messageText, submittedAttachments, submittedContext);
+      localMessageId = localMessage.id;
       setMessages((current) => [
-        ...current,
-        createLocalUserMessage(chat.id, messageText, submittedAttachments, submittedContext),
+        ...current.filter((message) => message.id !== overrideRecovery?.localMessageId),
+        localMessage,
       ]);
       if (messagesRef.current.length === 0 && (chat.name ?? "") === PROFESSOR_MARI_DEFAULT_CHAT_NAME) {
         const autoTitle = buildProfessorMariAutoTitle(messageText);
@@ -4717,20 +4789,18 @@ export function HomeProfessorMariChat({
       }
     } catch (error) {
       if (isProfessorMariAbortError(error)) return;
-      setDraft(text);
-      setAttachments(submittedAttachments);
+      // Like Claude: your message stays where you sent it and one error card with Retry sits under it.
+      // No toast over her header, and the text is not pushed back into the composer as a duplicate.
       setHandoffContext(submittedContext);
       setRecovery({
         text: messageText,
         attachments: submittedAttachments,
         context: submittedContext,
         kind: classifyProfessorMariFailure(error),
+        detail: describeProfessorMariError(error),
+        localMessageId,
       });
       console.error("[Professor Mari] Failed to send", error);
-      toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariCouldNotAnswerRightNow"), {
-        description: describeProfessorMariError(error),
-        duration: PROFESSOR_MARI_ERROR_TOAST_DURATION_MS,
-      });
     } finally {
       setSending(false);
     }
@@ -4778,8 +4848,6 @@ export function HomeProfessorMariChat({
 
   const retryRecovery = () => {
     if (!recovery) return;
-    setDraft(recovery.text);
-    setAttachments(recovery.attachments);
     setHandoffContext(recovery.context);
     void handleSubmit(recovery.text, recovery);
   };
@@ -5058,23 +5126,24 @@ export function HomeProfessorMariChat({
   // R43: nothing touched your data, so this is a Note, not a bordered panel - and
   // Notes belong in the transcript, in order, rather than stacked over the composer.
   const recoveryNotice = recovery ? (
-    <TranscriptRow layout="document" marker={null}>
-      <MariNote tone="danger" role="alert">
-        {localizeUi(`ui.chat.homeprofessormarichat.recovery.${recovery.kind}`)}{" "}
-        <span className="text-[var(--muted-foreground)]">
-          {localizeUi("ui.chat.homeprofessormarichat.recoveryDescription")}
-        </span>
-      </MariNote>
+    <div className="mari-error-card" role="alert">
+      <AlertTriangle size="0.9rem" className="mari-error-card__icon" aria-hidden="true" />
+      <div className="mari-error-card__body">
+        <p className="mari-error-card__title">
+          {localizeUi(`ui.chat.homeprofessormarichat.recovery.${recovery.kind}`)}
+        </p>
+        {recovery.detail ? <p className="mari-error-card__detail">{recovery.detail}</p> : null}
+      </div>
       <button
         type="button"
         onClick={retryRecovery}
         disabled={isBusy}
-        className="mari-chrome-control mari-chrome-control--compact mt-1.5"
+        className="mari-chrome-control mari-chrome-control--compact shrink-0"
       >
         <RefreshCw size="0.7rem" />
         {localizeUi("ui.chat.homeprofessormarichat.retry")}
       </button>
-    </TranscriptRow>
+    </div>
   ) : null;
 
   const openActionResult = useCallback(
@@ -5607,7 +5676,9 @@ export function HomeProfessorMariChat({
                         onScroll={handleTranscriptScroll}
                         data-component="HomeProfessorMariChat.Transcript"
                         data-following="true"
-                        data-anchor={messages.length > 0 || workspaceTimelineActive ? "bottom" : undefined}
+                        data-anchor={
+                          omnibarMode || messages.length > 0 || workspaceTimelineActive ? "bottom" : undefined
+                        }
                         data-mari-state={mariPresentationState}
                         className={cn(
                           "min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-5 text-left sm:px-7",
@@ -5621,13 +5692,20 @@ export function HomeProfessorMariChat({
                             <LoadingHistoryState />
                           ) : (
                             <>
+                              {workspaceToolsIssue ? (
+                                <MariNote role="status" className="mari-workspace-tools-note">
+                                  <AlertTriangle size="0.8rem" aria-hidden="true" />
+                                  <span>
+                                    {localizeUi(
+                                      "ui.chat.homeprofessormarichat.professorMariWorkspaceToolsAreUnavailable",
+                                    )}{" "}
+                                    <span className="text-[var(--muted-foreground)]">{workspaceToolsIssue}</span>
+                                  </span>
+                                </MariNote>
+                              ) : null}
                               {displayMessages.map(renderDisplayMessage)}
                               {omnibarMode && messages.length === 0 && !isBusy && loadedMessagesChatId === chatId ? (
                                 <div className="mari-omnibar-empty-welcome">
-                                  <div className="mari-omnibar-empty-welcome__eyebrow">
-                                    <Sparkles size="0.8rem" aria-hidden="true" />
-                                    {localizeUi("ui.chat.homeprofessormarichat.readyToHelp")}
-                                  </div>
                                   <h3>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeTitle")}</h3>
                                   <p>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeDescription")}</p>
                                   <MariSuggestionChips
@@ -5667,11 +5745,9 @@ export function HomeProfessorMariChat({
                       </div>
 
                       <form
-                        className={cn(
-                          "px-2.5 py-2.5",
-                          omnibarMode && "mari-workspace-composer-dock px-3 py-3 sm:px-7",
-                        )}
+                        className={cn("px-2.5 py-2.5", omnibarMode && "mari-workspace-composer-dock px-3 py-3 sm:px-7")}
                         data-working={workspaceTimelineActive ? "true" : composerHaloEnding ? "ending" : undefined}
+                        data-glow={composerGlowTone}
                         onSubmit={(event) => {
                           event.preventDefault();
                           void handleSubmit();
@@ -5721,6 +5797,7 @@ export function HomeProfessorMariChat({
                             layout: "conversation",
                             className: "mari-professor-composer",
                           })}
+                          data-busy={isBusy ? "true" : undefined}
                         >
                           <div className="mari-workspace-composer__attach">
                             <MariAttachButton
@@ -5774,6 +5851,7 @@ export function HomeProfessorMariChat({
                             ref={connectionButtonRef}
                             type="button"
                             onClick={() => setConnectionMenuOpen((current) => !current)}
+                            disabled={isBusy}
                             className={cn(
                               "mari-workspace-composer__connection flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90 sm:h-8 sm:w-8",
                               effectiveConnection && "mari-workspace-composer__connection--active",
@@ -5921,7 +5999,13 @@ export function HomeProfessorMariChat({
                             }
                           >
                             <Send size="0.9375rem" data-icon="send" aria-hidden="true" />
-                            <StopCircle size="1rem" data-icon="stop" aria-hidden="true" />
+                            <Square
+                              size="0.8rem"
+                              fill="currentColor"
+                              strokeWidth={0}
+                              data-icon="stop"
+                              aria-hidden="true"
+                            />
                           </button>
                         </div>
                       </form>

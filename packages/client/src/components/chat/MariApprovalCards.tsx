@@ -84,9 +84,12 @@ function formatRowPreview(row: Record<string, unknown> | null | undefined) {
 
 export function WorkspaceErrorEvent({ message }: { message: string }) {
   return (
-    <TranscriptRow marker={<AlertTriangle size="0.8rem" className="mt-1 text-[var(--destructive)]" />}>
-      <div className="py-0.5 text-xs text-[var(--destructive)]">{message}</div>
-    </TranscriptRow>
+    <div className="mari-error-card" role="alert">
+      <AlertTriangle size="0.9rem" className="mari-error-card__icon" aria-hidden="true" />
+      <div className="mari-error-card__body">
+        <p className="mari-error-card__detail">{message}</p>
+      </div>
+    </div>
   );
 }
 

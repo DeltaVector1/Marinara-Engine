@@ -20,5 +20,6 @@ assert(resolveRunStartMs([{ startedAt: 500, updatedAt: 900 }]) === 500, "a runni
 assert(resolveRunStartMs([{}, {}]) === null, "no timestamps means no anchor");
 assert(resolveRunSeconds([{}, {}]) === 0, "no timestamps means no elapsed claim");
 assert(resolveRunSeconds([{ updatedAt: 5_000, durationMs: 0 }]) === 0, "a zero-length run reports zero, not NaN");
+assert(resolveRunSeconds([{ startedAt: 1_000, updatedAt: 1_400 }]) === 1, "a sub-second run reads 1s, like its steps");
 
 console.log("mari-work-card-timing: ok");

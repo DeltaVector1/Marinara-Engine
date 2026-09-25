@@ -104,7 +104,7 @@ const LONG_RUNNING_POOL = [
   ANIMATIONS.rocket,
 ];
 
-function stableHash(value: string): number {
+export function stableHash(value: string): number {
   let hash = 2_166_136_261;
   for (let index = 0; index < value.length; index += 1) {
     hash ^= value.charCodeAt(index);
@@ -176,9 +176,4 @@ export function selectMariWorkAnimation({
     : pool;
   const usable = allowed.length > 0 ? allowed : ALL_ANIMATIONS.filter((entry) => entry.pack === "core");
   return usable[stableHash(seed) % usable.length] ?? ANIMATIONS.assistant;
-}
-
-/** The small copy a finished step keeps. A wide scene does not fit a step row, so it stands in as plain Mari. */
-export function mariStepStamp(animation: MariWorkAnimation): MariWorkAnimation {
-  return animation.wide ? ANIMATIONS.assistant : animation;
 }
