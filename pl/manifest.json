@@ -1,5 +1,6 @@
 {
   "language": "pl",
+  "sourceCommit": "f933533bbec868bfdd85f289a4eebd3b4f22dfda",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -43,8 +44,8 @@
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "d7e13804e33c2ebe2fc524c3bd1cb142c3edb89afc17d5a5f33380640694a43e",
-      "bytes": 29433
+      "sha256": "3328fc8ef537b99bed41e8fca55a2c27a632d770eff922893e825f2482422944",
+      "bytes": 33367
     },
     {
       "path": "agents/custom-agents.md",
@@ -193,8 +194,8 @@
     },
     {
       "path": "chats/slash-commands.md",
-      "sha256": "482dfed751f70387b86f12e5bf000125c1823188b0f9fa0ae1b73ad5787eb626",
-      "bytes": 10565
+      "sha256": "e4a26cef041a7c6afac2f3da75a9ad02273c8a38e4d313eee5b29b702ba007a4",
+      "bytes": 11269
     },
     {
       "path": "connections/connecting-to-a-provider.md",
@@ -383,8 +384,8 @@
     },
     {
       "path": "extending/regex-scripts.md",
-      "sha256": "5235d58f6c6cc6717061a19faf22abc391513c0436f148044623bdcee2c4d740",
-      "bytes": 14513
+      "sha256": "2d95eb66bf0b8e69accbc02e84fb26f201bb69b2282cc0b1c4e853f56bb7ab90",
+      "bytes": 15207
     },
     {
       "path": "extending/writing-personal-extensions.md",
@@ -508,8 +509,8 @@
     },
     {
       "path": "integrations/message-translation.md",
-      "sha256": "c507623fe24f21e79d5cba2a887b1d039813d5de94882d06af25873431f4fe78",
-      "bytes": 7630
+      "sha256": "b0d355dbe1640958d2c7f259953917cfbfa98f549e01568141fb905637c5a6ba",
+      "bytes": 8133
     },
     {
       "path": "lorebooks/entries.md",
@@ -553,8 +554,8 @@
     },
     {
       "path": "media/illustrator-agent.md",
-      "sha256": "86fa941714049a99a92b724412a589a5d09d2db2aa05fba90ea2a78e57aef5fb",
-      "bytes": 10544
+      "sha256": "98b4ea51c4e445810faad71c0ea34ae519f39e1da6ab15562881cf036ae7e2f2",
+      "bytes": 11680
     },
     {
       "path": "media/image-providers.md",
