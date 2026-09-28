@@ -57,7 +57,7 @@ Inutile de rouvrir un preset depuis le début pour changer tes réponses. Dans l
 
 Marinara résout de nombreuses macros intégrées, comme `{{user}}` et `{{char}}`. Ensuite, tout emplacement restant de la forme `{{NAME}}` (lettres, chiffres et tirets bas uniquement) est comparé à tes variables de preset.
 
-S'il existe une variable portant exactement ce nom, l'emplacement prend la valeur retenue. Si aucune variable ne correspond, le texte `{{NAME}}` reste exactement tel que tu l'as saisi. C'est pourquoi un emplacement inconnu ressort inchangé dans le résultat au lieu de provoquer une erreur. Pour la liste complète des macros, voir [Macros de prompt](macros.md).
+S'il existe une variable portant exactement ce nom, l'emplacement prend la valeur retenue. Si aucune ne correspond, Marinara essaie ensuite les variables du chat, affichées dans la section **Chat Variables** (variables du chat) du panneau **Chat Settings**. La variable du preset a la priorité quand les deux portent le même nom. Si aucune ne le porte, le texte `{{NAME}}` reste exactement tel que tu l'as saisi. C'est pourquoi un emplacement inconnu ressort inchangé dans le résultat au lieu de provoquer une erreur. Pour la liste complète des macros, voir [Macros de prompt](macros.md).
 
 ## Blocs de décision dans les options
 

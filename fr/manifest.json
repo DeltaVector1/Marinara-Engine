@@ -1,6 +1,6 @@
 {
   "language": "fr",
-  "sourceCommit": "f933533bbec868bfdd85f289a4eebd3b4f22dfda",
+  "sourceCommit": "0ae509df7aa76fae8b0a452420895d31b638be7a",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -144,8 +144,8 @@
     },
     {
       "path": "chats/chat-settings.md",
-      "sha256": "79c20cab1cf1a3280ce2d14e903509378ff107fb4651d2aa0a655cb2cfb9f9de",
-      "bytes": 6324
+      "sha256": "6e8abc3f557760cc8616b31eff0eb85bce9925fc652199286b5e1e5385d49c72",
+      "bytes": 7849
     },
     {
       "path": "chats/connected-chats.md",
@@ -609,13 +609,13 @@
     },
     {
       "path": "prompts/macros.md",
-      "sha256": "08330a40f991209e9e82ea100001462a9b1fe2598d956c3e1a9b6aea02899c88",
-      "bytes": 21685
+      "sha256": "3d597d85a061afe55405098cc80a53545bfd8553b786b58de4dbf3c0bd3b7d93",
+      "bytes": 23364
     },
     {
       "path": "prompts/preset-variables.md",
-      "sha256": "280381cd43d1c9d4f3cb509f55cf2cf87766ed7e1d1ac5e3b295118a165630a1",
-      "bytes": 8206
+      "sha256": "4de1542a7774d56c987e4d0ecf85c2a8c79611fdf73c2a06cc42c6f34d804a73",
+      "bytes": 8437
     },
     {
       "path": "prompts/presets.md",

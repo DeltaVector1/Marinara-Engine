@@ -205,7 +205,20 @@ Dzięki zmiennym jedna część promptu zapisuje wartość, a dalsza część mo
 
 Zmienne rozwijają się od lewej do prawej podczas budowania promptu i są zapisywane w bieżącym czacie. Wartość ustawioną wcześnie, na przykład we wpisie lorebooka stojącym na początku, da się odczytać dalej w treści tego samego promptu. Tak jak zmienne lokalne w SillyTavern, zachowuje się przez kolejne tury i restarty, ale nie przechodzi do innych czatów.
 
-Każdy zapis `{{NAME}}`, który nie jest wbudowanym makrem, Marinara traktuje jak zmienną presetu i wyszukuje po nazwie. Jeśli zmiennej o takiej nazwie nie ma, tag zostaje w tekście dokładnie tak, jak został wpisany. Sposób definiowania takich zmiennych opisuje przewodnik [Zmienne presetu](preset-variables.md).
+Każdy zapis `{{NAME}}`, który nie jest wbudowanym makrem, jest wyszukiwany po nazwie: najpierw wśród zmiennych presetu, a potem wśród zmiennych czatu. Jeśli żadna z tych grup nie zawiera tej nazwy, znacznik pozostaje w tekście dokładnie tak, jak został wpisany. Zmienna presetu ma pierwszeństwo, gdy obie grupy używają tej samej nazwy. Zmienne definiowane w presecie opisuje przewodnik [Zmienne presetu](preset-variables.md).
+
+### Zmienne czatu
+
+Nie musisz używać `{{setvar}}`, aby utworzyć zmienną. Sekcja **Chat Variables** (zmienne czatu) w panelu **Chat Settings** (ustawienia czatu) pozwala wpisać nazwę i wartość bezpośrednio, a potem używać tej nazwy wszędzie, gdzie działają makra, także we własnych wiadomościach. Dodaj `char1` o wartości `Mary`, wpisz `{{char1}} walks in.`, a AI przeczyta "Mary walks in."
+
+Pamiętaj o tych zasadach:
+
+- Nazwy mogą zawierać litery, cyfry i podkreślenia, a muszą zaczynać się od litery lub podkreślenia. Nazwy mające dokładnie 21 znaków są zarezerwowane dla odwołań do postaci. Nazwę z kropką lub łącznikiem nadal można ustawiać i odczytywać przez `{{setvar}}` i `{{getvar}}`, ale nie zostanie ona rozwiązana w samym zapisie `{{name}}`.
+- Nie można użyć nazwy wbudowanego makra. `{{char}}` zawsze oznacza postać.
+- Twoja wiadomość nadal pokazuje wpisany znacznik. Wartość jest podstawiana przy budowaniu promptu, więc jej późniejsza zmiana wpływa również na wcześniejsze fragmenty rozmowy, które jej używały.
+- Sekcja pokazuje także zmienne ustawione przez `{{setvar}}`, ponieważ korzystają z tego samego magazynu w obrębie czatu.
+
+Sam panel opisuje przewodnik [Ustawienia czatu](../chats/chat-settings.md).
 
 ## Makra formatowania
 
@@ -225,7 +238,7 @@ Te makra kształtują tekst wokół siebie.
 
 ## Jak pokazać same podwójne nawiasy klamrowe
 
-Makra nie mają znaku ucieczki. Jeśli podwójne nawiasy klamrowe mają zostać w tekście, użyj nazwy, której Marinara nie zna. Każdy nieznany zapis `{{name}}` zostaje dokładnie taki, jak został wpisany – pod warunkiem, że żadna zmienna presetu nie nosi tej nazwy. Do prywatnej notatki, która nigdy nie ma trafić do AI, użyj raczej zapisu `{{// like this}}`.
+Makra nie mają znaku ucieczki. Jeśli podwójne nawiasy klamrowe mają zostać w tekście, użyj nazwy, której Marinara nie zna. Każdy nieznany zapis `{{name}}` zostaje dokładnie taki, jak został wpisany – pod warunkiem, że ani zmienna presetu, ani zmienna czatu nie nosi tej nazwy. Do prywatnej notatki, która nigdy nie ma trafić do AI, użyj raczej zapisu `{{// like this}}`.
 
 ## Okno Macro reference i komenda /macros
 
@@ -245,6 +258,7 @@ Warunek może zapytać model decyzyjny o scenę: `{{#if decision:"The latest mes
 
 - Nie wpisuj zmiennych wewnątrz bloku `{{random::...}}`. Makro `{{setvar}}` w opcji losowania wykonuje się dla każdej opcji jeszcze przed wyborem, a nie tylko dla tej wylosowanej.
 - Nie używaj zmiennej lokalnej jak globalnej. Wartości ustawione przez `{{setvar}}` zachowują się tylko w bieżącym czacie; każdy inny czat ma własną wartość.
+- Sekcja promptu lub wpis lorebooka uruchamiający `{{setvar}}` nadpisuje zmienną czatu o tej samej nazwie, ponieważ oba korzystają z jednego magazynu dla danego czatu. Nadaj im różne nazwy, jeśli chcesz zachować obie wartości.
 - `{{prompt}}` nie jest makrem. Jeśli cała wiadomość to `{{prompt}}`, Marinara jej nie wysyła, tylko otwiera podgląd **Peek Prompt**. Zobacz [Peek Prompt](../chats/peek-prompt.md).
 - Custom Tools (narzędzia własne) nie korzystają z zapisu `{{macro}}`. Nie wklejaj `{{roll:1d20}}` do pola narzędzia z nadzieją, że się rozwinie.
 - Szablon promptu **Impersonate** przyjmuje tylko kilka symboli zastępczych, a nie pełną listę makr. Ich nazwy też się różnią, więc makro działające w karcie może tam nie zadziałać.

@@ -54,6 +54,20 @@ Los controles de perfil no aparecen en el modo Game.
 
 Marinara reserva **preset** para los presets de prompt. Un preset de prompt da forma a la estructura del system prompt y a los parámetros de generación; un perfil de ajustes agrupa la configuración de chat reutilizable enumerada arriba. Para conocer todas las reglas, consulta [Perfiles de ajustes](settings-profiles.md).
 
+## Variables del chat
+
+La sección **Chat Variables** (variables del chat) te permite dar un nombre a un fragmento de texto y reutilizarlo escribiendo ese nombre entre llaves dobles. Añade una variable llamada `char1` con el valor `Mary` y escribe `{{char1}} walks in.` en un mensaje. La IA lee "Mary walks in."
+
+Cada fila tiene un **name** (nombre) y un **value** (valor). Los nombres admiten letras, números y guiones bajos, y deben empezar con una letra o un guion bajo. Los nombres de exactamente 21 caracteres están reservados para referencias a personajes. Se rechaza el nombre de una macro integrada, como `char` o `user`, porque la macro integrada siempre tiene prioridad. Pulsa Enter o haz clic fuera de un campo para guardarlo. El botón de la papelera elimina una variable.
+
+Conviene saber tres cosas.
+
+- Tu mensaje sigue mostrando la etiqueta que escribiste. Solo la IA ve el valor. Por eso, cambiar el valor más adelante también cambia todos los turnos anteriores que usaron la etiqueta.
+- Las variables pertenecen solo a este chat. Otro chat tiene su propia lista, y la tuya se conserva tras reiniciar la app.
+- Usan el mismo almacenamiento que `{{setvar}}`. Un valor establecido por una sección del prompt o una entrada de lorebook aparece aquí como una fila editable. Una entrada que use el mismo nombre sobrescribe el valor que escribiste.
+
+Para conocer todo lo demás que puedes escribir entre llaves dobles, consulta [Macros de prompt](../prompts/macros.md).
+
 ## Otras secciones del panel
 
 El panel **Chat Settings** también alberga muchas funciones por chat. Cada una tiene su propia guía:

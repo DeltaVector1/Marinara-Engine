@@ -57,7 +57,7 @@ Não é preciso reabrir o preset do zero para mudar as respostas. No painel late
 
 Marinara resolve várias macros nativas, como `{{user}}` e `{{char}}`. Depois disso, qualquer marcador restante no formato `{{NAME}}` (só letras, números e sublinhados) é comparado com as variáveis do preset.
 
-Se existir uma variável com exatamente esse nome, o marcador vira o valor escolhido. Se nenhuma variável corresponder, o texto `{{NAME}}` fica exatamente como foi digitado. É por isso que um marcador desconhecido aparece intacto no resultado, em vez de gerar um erro. Para ver a lista completa de macros, veja [Macros de prompt](macros.md).
+Se existir uma variável com exatamente esse nome, o marcador vira o valor escolhido. Se nenhuma corresponder, Marinara procura nas variáveis do próprio chat, listadas na seção **Chat Variables** (variáveis do chat) do painel **Chat Settings**. A variável do preset tem prioridade quando as duas usam o mesmo nome. Se nenhuma tiver esse nome, o texto `{{NAME}}` fica exatamente como foi digitado. É por isso que um marcador desconhecido aparece intacto no resultado, em vez de gerar um erro. Para ver a lista completa de macros, veja [Macros de prompt](macros.md).
 
 ## Blocos de decisão nas opções
 

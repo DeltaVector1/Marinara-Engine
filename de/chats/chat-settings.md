@@ -54,6 +54,20 @@ Im Game Mode gibt es die Profil-Bedienelemente nicht.
 
 Der Begriff **preset** ist in Marinara für Prompt-Presets reserviert. Ein Prompt-Preset bestimmt den Aufbau des System-Prompts und die Generierungsparameter; ein Einstellungsprofil bündelt die oben genannte, wiederverwendbare Chat-Konfiguration. Alle Regeln dazu stehen unter [Einstellungsprofile](settings-profiles.md).
 
+## Chat-Variablen
+
+Im Abschnitt **Chat Variables** (Chat-Variablen) kannst du einem Textstück einen Namen geben und es wiederverwenden, indem du diesen Namen in doppelte geschweifte Klammern setzt. Leg eine Variable namens `char1` mit dem Wert `Mary` an und schreib dann `{{char1}} walks in.` in eine Nachricht. Die KI liest "Mary walks in."
+
+Jede Zeile hat einen **name** (Namen) und einen **value** (Wert). Namen dürfen Buchstaben, Zahlen und Unterstriche enthalten und müssen mit einem Buchstaben oder Unterstrich beginnen. Namen mit genau 21 Zeichen sind für Charakterverweise reserviert. Der Name eines eingebauten Makros, etwa `char` oder `user`, wird abgelehnt, da das eingebaute Makro immer Vorrang hat. Drück Enter oder klick außerhalb eines Feldes, um zu speichern. Der Papierkorb-Button entfernt eine Variable.
+
+Drei Dinge solltest du wissen.
+
+- Deine Nachricht zeigt weiterhin den eingegebenen Tag. Nur die KI sieht den Wert. Änderst du den Wert später, betrifft das auch alle früheren Gesprächsrunden, die den Tag verwendet haben.
+- Variablen gehören nur zu diesem Chat. Ein anderer Chat hat seine eigene Liste, und deine bleibt nach einem Neustart erhalten.
+- Sie nutzen denselben Speicher wie `{{setvar}}`. Ein Wert, den ein Prompt-Abschnitt oder Lorebook-Eintrag setzt, erscheint hier als bearbeitbare Zeile. Verwendet ein solcher Eintrag denselben Namen, überschreibt er deinen eingegebenen Wert.
+
+Was du sonst noch in doppelten geschweiften Klammern schreiben kannst, erklärt [Prompt-Makros](../prompts/macros.md).
+
 ## Weitere Abschnitte im Panel
 
 Das Panel **Chat Settings** beherbergt außerdem viele Funktionen, die jeweils nur für einen Chat gelten. Zu jeder gibt es eine eigene Anleitung:

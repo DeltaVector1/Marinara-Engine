@@ -57,7 +57,7 @@ Du musst kein Preset neu öffnen, um deine Antworten zu ändern. Im Panel der Ch
 
 Marinara löst zahlreiche eingebaute Makros auf, etwa `{{user}}` und `{{char}}`. Danach gleicht die App jeden übrig gebliebenen Platzhalter der Form `{{NAME}}` (nur Buchstaben, Ziffern und Unterstriche) mit den Preset-Variablen ab.
 
-Gibt es eine Variable mit genau diesem Namen, wird der Platzhalter zum gewählten Wert. Passt keine Variable, bleibt `{{NAME}}` unverändert stehen. Deshalb taucht ein unbekannter Platzhalter unverändert in der Ausgabe auf, statt einen Fehler auszulösen. Die vollständige Liste der Makros steht unter [Prompt-Makros](macros.md).
+Wenn eine Variable mit genau diesem Namen existiert, wird der Platzhalter durch den gewählten Wert ersetzt. Findet sich keine, prüft Marinara als Nächstes die Variablen des Chats, die im Abschnitt **Chat Variables** (Chat-Variablen) des Panels **Chat Settings** stehen. Wenn beide denselben Namen verwenden, hat die Preset-Variable Vorrang. Kommt der Name in keiner der beiden Gruppen vor, bleibt `{{NAME}}` genau so stehen, wie du es eingegeben hast. Deshalb erscheint ein unbekannter Platzhalter unverändert in der Ausgabe, statt einen Fehler auszulösen. Die vollständige Makroliste findest du unter [Prompt-Makros](macros.md).
 
 ## Decision-Blöcke in Optionen
 

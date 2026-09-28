@@ -205,7 +205,20 @@ Mit Variablen speichert eine Stelle im Prompt einen Wert, den eine spätere Stel
 
 Innerhalb eines Prompt-Aufbaus werden Variablen von links nach rechts aufgelöst und im aktuellen Chat gespeichert. Ein früh gesetzter Wert – etwa in einem Lorebook-Eintrag, der vorn steht – lässt sich später im selben Prompt auslesen. Wie bei lokalen Variablen in SillyTavern bleibt er außerdem über spätere Züge und Neustarts erhalten, ohne in andere Chats zu gelangen.
 
-Jedes `{{NAME}}`, das kein eingebautes Makro ist, gilt als Preset-Variable und wird über den Namen nachgeschlagen. Existiert keine Variable dieses Namens, bleibt das Tag exakt so im Text stehen, wie du es getippt hast. Wie du solche Variablen definierst, steht unter [Preset-Variablen](preset-variables.md).
+Jedes `{{NAME}}`, das kein eingebautes Makro ist, wird nach seinem Namen gesucht: zuerst unter den Preset-Variablen, dann unter den Variablen des Chats. Kommt der Name in keiner der beiden Gruppen vor, bleibt der Tag genau so im Text stehen, wie du ihn eingegeben hast. Wenn beide denselben Namen verwenden, hat die Preset-Variable Vorrang. Den Preset-Teil erklärt [Preset-Variablen](preset-variables.md).
+
+### Chat-Variablen
+
+Du musst keine Variable mit `{{setvar}}` anlegen. Im Abschnitt **Chat Variables** (Chat-Variablen) des Panels **Chat Settings** (Chat-Einstellungen) kannst du direkt einen Namen und einen Wert eingeben. Den Namen kannst du dann überall verwenden, wo Makros funktionieren, auch in deinen eigenen Nachrichten. Leg `char1` mit dem Wert `Mary` an und schreib `{{char1}} walks in.`. Die KI liest "Mary walks in."
+
+Diese Regeln solltest du kennen:
+
+- Namen dürfen Buchstaben, Zahlen und Unterstriche enthalten und müssen mit einem Buchstaben oder Unterstrich beginnen. Namen mit genau 21 Zeichen sind für Charakterverweise reserviert. Einen Namen mit Punkt oder Bindestrich kannst du weiterhin mit `{{setvar}}` setzen und mit `{{getvar}}` lesen, aber nicht als bloßes `{{name}}` auflösen.
+- Der Name eines eingebauten Makros ist nicht erlaubt. `{{char}}` steht immer für den Charakter.
+- Deine eigene Nachricht zeigt weiterhin den eingegebenen Tag. Der Wert wird beim Aufbau des Prompts eingesetzt. Änderst du ihn später, betrifft das auch die früheren Gesprächsrunden, die ihn verwendet haben.
+- Der Abschnitt listet auch Variablen aus `{{setvar}}` auf, da sie sich denselben Speicher pro Chat teilen.
+
+Das Panel selbst beschreibt [Chat-Einstellungen im Überblick](../chats/chat-settings.md).
 
 ## Formatierungs-Makros
 
@@ -225,7 +238,7 @@ Diese Makros formen den Text um sie herum.
 
 ## Doppelte geschweifte Klammern sichtbar lassen
 
-Ein Escape-Zeichen für Makros gibt es nicht. Sollen doppelte geschweifte Klammern im Text stehen bleiben, nimm einfach einen Namen, den Marinara nicht kennt. Jedes unbekannte `{{name}}` bleibt genau so stehen, wie du es getippt hast – solange keine Preset-Variable denselben Namen trägt. Brauchst du eine private Notiz, die nie bei der KI landet, nimm stattdessen `{{// like this}}`.
+Ein Escape-Zeichen für Makros gibt es nicht. Sollen doppelte geschweifte Klammern im Text stehen bleiben, nimm einfach einen Namen, den Marinara nicht kennt. Jedes unbekannte `{{name}}` bleibt genau so stehen, wie du es getippt hast – solange weder eine Preset-Variable noch eine Chat-Variable denselben Namen trägt. Brauchst du eine private Notiz, die nie bei der KI landet, nimm stattdessen `{{// like this}}`.
 
 ## Die Makro-Referenz und /macros
 
@@ -244,6 +257,7 @@ Eine Bedingung kann auch dein Decision-Modell zur Szene befragen: `{{#if decisio
 
 - Schreib keine Variablen in einen `{{random::...}}`-Block. Ein `{{setvar}}` in einer Zufallsoption läuft für jede Option, bevor die Wahl fällt – nicht nur für die gezogene.
 - Verwende eine lokale Variable nicht als globale Variable. Werte aus `{{setvar}}` bleiben nur im aktuellen Chat erhalten; jeder andere Chat hat einen eigenen Wert.
+- Ein Prompt-Abschnitt oder Lorebook-Eintrag, der `{{setvar}}` ausführt, überschreibt eine gleichnamige Chat-Variable, da beide denselben Speicher pro Chat nutzen. Gib ihnen unterschiedliche Namen, wenn du beide behalten möchtest.
 - `{{prompt}}` ist kein Makro. Besteht deine gesamte Nachricht aus `{{prompt}}`, öffnet Marinara stattdessen die Ansicht **Peek Prompt**, statt die Nachricht zu senden. Siehe [Peek Prompt](../chats/peek-prompt.md).
 - Custom Tools arbeiten nicht mit `{{macro}}`-Text. Füg also kein `{{roll:1d20}}` in ein Tool-Feld ein in der Erwartung, dass es aufgelöst wird.
 - Die Prompt-Vorlage **Impersonate** akzeptiert nur wenige Platzhalter, nicht die komplette Makro-Liste. Auch die Namen weichen ab – ein Makro, das auf einer Karte funktioniert, tut es dort womöglich nicht.
