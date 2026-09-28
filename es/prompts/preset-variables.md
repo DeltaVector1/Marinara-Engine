@@ -57,7 +57,7 @@ No tienes que reabrir un preset desde cero para cambiar tus respuestas. En el pa
 
 Marinara resuelve muchos macros integrados, como `{{user}}` y `{{char}}`. Después de esos, cualquier marcador de posición restante con la forma `{{NAME}}` (solo letras, números y guiones bajos) se compara con tus variables de preset.
 
-Si existe una variable con ese nombre exacto, el marcador de posición se convierte en el valor elegido. Si ninguna variable coincide, el texto `{{NAME}}` se deja exactamente como se escribió. Por eso un marcador de posición desconocido aparece sin cambios en la salida en lugar de provocar un error. Para la lista completa de macros, consulta [Prompt Macros](macros.md).
+Si existe una variable con ese nombre exacto, el marcador de posición se sustituye por el valor elegido. Si no hay ninguna coincidencia, Marinara busca entre las variables del propio chat, que aparecen en la sección **Chat Variables** (variables del chat) del panel **Chat Settings**. La variable del preset tiene prioridad cuando ambas usan el mismo nombre. Si ninguna tiene ese nombre, el texto `{{NAME}}` queda exactamente como lo escribiste. Por eso un marcador desconocido aparece sin cambios en el resultado en lugar de causar un error. Para ver la lista completa de macros, consulta [Macros de prompt](macros.md).
 
 ## Bloques de decisión en opciones
 

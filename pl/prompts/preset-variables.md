@@ -57,7 +57,7 @@ Nie trzeba otwierać presetu od zera, żeby zmienić odpowiedzi. W panelu boczny
 
 Marinara rozwiązuje wiele wbudowanych makr, na przykład `{{user}}` i `{{char}}`. Potem każdy pozostały symbol zastępczy w postaci `{{NAME}}` (tylko litery, cyfry i podkreślenia) jest porównywany ze zmiennymi presetu.
 
-Jeśli zmienna o dokładnie takiej nazwie istnieje, symbol zastępczy zmienia się w wybraną wartość. Jeśli żadna zmienna nie pasuje, tekst `{{NAME}}` zostaje dokładnie taki, jak został wpisany. Dlatego nieznany symbol zastępczy trafia do wyniku bez zmian, zamiast wywołać błąd. Pełną listę makr zawiera przewodnik [Makra promptów](macros.md).
+Jeśli zmienna o dokładnie takiej nazwie istnieje, symbol zastępczy zmienia się w wybraną wartość. Jeśli żadna nie pasuje, aplikacja Marinara Engine sprawdza następnie zmienne czatu, widoczne w sekcji **Chat Variables** (zmienne czatu) panelu **Chat Settings**. Zmienna presetu ma pierwszeństwo, gdy obie grupy używają tej samej nazwy. Jeśli nazwy nie ma w żadnej z nich, tekst `{{NAME}}` zostaje dokładnie taki, jak został wpisany. Dlatego nieznany symbol zastępczy trafia do wyniku bez zmian, zamiast wywołać błąd. Pełną listę makr zawiera przewodnik [Makra promptów](macros.md).
 
 ## Bloki decyzyjne w opcjach
 

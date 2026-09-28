@@ -205,7 +205,20 @@ Las variables permiten que una parte de tu prompt almacene un valor y que una pa
 
 Las variables se resuelven de izquierda a derecha durante el armado del prompt y se guardan en el chat actual. Un valor definido pronto, por ejemplo en una entrada de lorebook que aparece primero, puede leerse más adelante en el mismo prompt. Como las variables locales de SillyTavern, se conserva en turnos posteriores y tras reiniciar, sin filtrarse a otros chats.
 
-Cualquier `{{NAME}}` que no sea una macro integrada se trata como una variable de preset y se busca por nombre. Si no existe ninguna variable con ese nombre, la etiqueta se deja en el texto exactamente como la escribiste. Consulta [Variables de preset](preset-variables.md) para saber cómo definirlas.
+Cualquier `{{NAME}}` que no sea una macro integrada se busca por nombre: primero entre las variables del preset y después entre las del chat. Si ninguna tiene ese nombre, la etiqueta queda en el texto exactamente como la escribiste. La variable del preset tiene prioridad cuando ambas usan el mismo nombre. Consulta [Variables de preset](preset-variables.md) para conocer esa parte.
+
+### Variables del chat
+
+No necesitas usar `{{setvar}}` para crear una variable. La sección **Chat Variables** (variables del chat) del panel **Chat Settings** (ajustes del chat) te permite escribir directamente un nombre y un valor, y usar ese nombre donde funcionen las macros, incluso en tus propios mensajes. Añade `char1` con el valor `Mary`, escribe `{{char1}} walks in.` y la IA lee "Mary walks in."
+
+Ten en cuenta estas reglas:
+
+- Los nombres admiten letras, números y guiones bajos, y deben empezar con una letra o un guion bajo. Los nombres de exactamente 21 caracteres están reservados para referencias a personajes. Un nombre con un punto o un guion todavía se puede establecer y leer con `{{setvar}}` y `{{getvar}}`, pero no se resuelve con la forma directa `{{name}}`.
+- No puedes usar el nombre de una macro integrada. `{{char}}` siempre se refiere al personaje.
+- Tu mensaje sigue mostrando la etiqueta que escribiste. El valor se sustituye al construir el prompt, así que cambiarlo más adelante también cambia los turnos anteriores que lo usaron.
+- La sección también muestra las variables establecidas con `{{setvar}}`, porque comparten un mismo almacenamiento por chat.
+
+Para conocer el panel, consulta [Resumen de los ajustes del chat](../chats/chat-settings.md).
 
 ## Macros de formato
 
@@ -225,7 +238,7 @@ Estas macros dan forma al texto que las rodea.
 
 ## Mostrar llaves dobles literales
 
-No hay carácter de escape para las macros. Si quieres que las llaves dobles se queden en el texto, usa un nombre que Marinara no conozca. Cualquier `{{name}}` desconocido se deja exactamente como se escribió, siempre que ninguna variable de preset comparta ese nombre. Si necesitas una nota privada que nunca llegue a la IA, usa `{{// like this}}` en su lugar.
+No hay carácter de escape para las macros. Si quieres que las llaves dobles se queden en el texto, usa un nombre que Marinara no conozca. Cualquier `{{name}}` desconocido se deja exactamente como se escribió, siempre que ninguna variable de preset ni del chat comparta ese nombre. Si necesitas una nota privada que nunca llegue a la IA, usa `{{// like this}}` en su lugar.
 
 ## La referencia de macros y /macros
 
@@ -244,6 +257,7 @@ Una condición también puede consultar a tu Decision model sobre la escena: `{{
 
 - No escribas variables dentro de un bloque `{{random::...}}`. Un `{{setvar}}` dentro de una opción aleatoria se ejecuta para cada opción antes de hacer la elección, no solo para la elegida.
 - No uses una variable local como si fuera global. Los valores definidos con `{{setvar}}` solo persisten en el chat actual; cada otro chat tiene su propio valor.
+- Una sección del prompt o entrada de lorebook que ejecute `{{setvar}}` sobrescribe una variable del chat con el mismo nombre, porque ambas usan un mismo almacenamiento por chat. Usa nombres distintos si quieres conservar las dos.
 - `{{prompt}}` no es una macro. Si todo tu mensaje es `{{prompt}}`, Marinara abre el visor **Peek Prompt** en lugar de enviarlo. Consulta [Peek Prompt](../chats/peek-prompt.md).
 - Los Custom Tools no usan texto `{{macro}}`. No pegues `{{roll:1d20}}` en un campo de herramienta esperando que se resuelva.
 - La plantilla de prompt de **Impersonate** acepta solo unos pocos marcadores de posición, no la lista completa de macros. Sus nombres también difieren, así que una macro que funciona en una tarjeta puede no funcionar ahí.

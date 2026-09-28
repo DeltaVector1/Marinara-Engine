@@ -54,6 +54,20 @@ Les contrôles de profil n'apparaissent pas en Game Mode.
 
 Chez Marinara, le mot **preset** désigne uniquement les presets de prompt. Un preset de prompt façonne la structure du prompt système et les paramètres de génération ; un profil de réglages regroupe la configuration de chat réutilisable listée plus haut. Pour toutes les règles, va voir [Profils de réglages](settings-profiles.md).
 
+## Variables du chat
+
+La section **Chat Variables** (variables du chat) te permet de nommer un morceau de texte et de le réutiliser en écrivant son nom entre doubles accolades. Ajoute une variable nommée `char1` avec la valeur `Mary`, puis écris `{{char1}} walks in.` dans un message. L'IA lit "Mary walks in."
+
+Chaque ligne a un **name** (nom) et une **value** (valeur). Les noms acceptent les lettres, les chiffres et les tirets bas, et doivent commencer par une lettre ou un tiret bas. Les noms de 21 caractères exactement sont réservés aux références de personnages. Le nom d'une macro intégrée, comme `char` ou `user`, est refusé, car la macro intégrée a toujours la priorité. Appuie sur Entrée ou clique hors du champ pour enregistrer. Le bouton de corbeille supprime une variable.
+
+Trois points sont à connaître.
+
+- Ton message continue d'afficher la balise saisie. Seule l'IA voit la valeur. Si tu modifies cette valeur plus tard, tous les tours précédents qui utilisaient la balise changent aussi.
+- Les variables appartiennent uniquement à ce chat. Un autre chat possède sa propre liste, et la tienne est conservée après un redémarrage.
+- Elles utilisent le même stockage que `{{setvar}}`. Une valeur définie par une section du prompt ou une entrée de lorebook apparaît ici sous forme de ligne modifiable. Une entrée qui utilise le même nom remplace la valeur que tu as saisie.
+
+Pour les autres possibilités des doubles accolades, consulte [Macros de prompt](../prompts/macros.md).
+
 ## Les autres sections du panneau
 
 Le panneau **Chat Settings** héberge aussi de nombreuses fonctionnalités propres à chaque chat. Chacune a son guide :
