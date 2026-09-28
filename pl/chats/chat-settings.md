@@ -54,6 +54,20 @@ W trybie Game Mode kontrolki profili się nie pojawiają.
 
 Słowo **preset** jest w aplikacji Marinara Engine zarezerwowane dla presetów promptu. Preset promptu kształtuje strukturę promptu systemowego i parametry generowania, a profil ustawień zbiera wymienioną wyżej konfigurację czatu do ponownego użytku. Pełne zasady opisuje przewodnik [Profile ustawień](settings-profiles.md).
 
+## Zmienne czatu
+
+Sekcja **Chat Variables** (zmienne czatu) pozwala nadać nazwę fragmentowi tekstu i używać go ponownie, wpisując tę nazwę w podwójnych klamrach. Dodaj zmienną `char1` o wartości `Mary`, a potem wpisz w wiadomości `{{char1}} walks in.`. AI przeczyta "Mary walks in."
+
+Każdy wiersz ma **name** (nazwę) i **value** (wartość). Nazwy mogą zawierać litery, cyfry i podkreślenia, a muszą zaczynać się od litery lub podkreślenia. Nazwy mające dokładnie 21 znaków są zarezerwowane dla odwołań do postaci. Nazwa wbudowanego makra, na przykład `char` lub `user`, zostanie odrzucona, ponieważ wbudowane makro zawsze ma pierwszeństwo. Naciśnij Enter lub kliknij poza polem, aby zapisać zmianę. Przycisk kosza usuwa zmienną.
+
+Pamiętaj o trzech rzeczach.
+
+- Twoja wiadomość nadal pokazuje wpisany znacznik. Tylko AI widzi jego wartość. Oznacza to również, że późniejsza zmiana wartości zmienia każdy wcześniejszy fragment rozmowy, który używał tego znacznika.
+- Zmienne należą wyłącznie do tego czatu. Inny czat ma własną listę, a Twoja pozostaje po ponownym uruchomieniu aplikacji.
+- To ten sam magazyn, którego używa `{{setvar}}`. Wartość ustawiona przez sekcję promptu lub wpis lorebooka pojawia się tutaj jako edytowalny wiersz. Taki wpis nadpisze wpisaną przez Ciebie wartość, jeśli użyje tej samej nazwy.
+
+Pozostałe możliwości podwójnych klamer opisuje przewodnik [Makra promptu](../prompts/macros.md).
+
 ## Pozostałe sekcje panelu
 
 Panel **Chat Settings** jest też domem wielu funkcji działających osobno w każdym czacie. Każda ma własny przewodnik:
