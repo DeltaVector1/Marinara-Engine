@@ -5,12 +5,13 @@
 // Scope rule: only preferences that change how this panel behaves belong here. Anything wider stays
 // in the Settings panel, which the omnibar already reaches by search.
 //
-// A sheet over the omnibar card, not a separate `Modal`: it stays inside the omnibar's dialog, so
-// the omnibar's own focus trap and Escape keep working, and closing it returns you to the list.
+// A view inside the omnibar card, like Mari's: it covers the list with its own back arrow, and
+// Escape or the arrow returns to where you were. It is not a separate `Modal`, so the omnibar's
+// dialog, focus and Escape handling stay in one place.
 
 import { useEffect, useRef, type CSSProperties, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Settings2, X } from "lucide-react";
+import { ChevronLeft, Settings2 } from "lucide-react";
 import { LOCAL_SIDECAR_CONNECTION_ID } from "@marinara-engine/shared";
 
 import { useSidecarStore } from "../../../stores/sidecar.store";
@@ -85,7 +86,6 @@ export function OmnibarSettingsButton({ open, onOpen }: { open: boolean; onOpen:
     <button
       type="button"
       onClick={onOpen}
-      aria-haspopup="dialog"
       aria-expanded={open}
       aria-label={t("omnibar.settings.label", "Omnibar settings")}
       title={t("omnibar.settings.label", "Omnibar settings")}
@@ -159,31 +159,23 @@ export function OmnibarSettingsSheet({
   };
 
   return (
-    <div
-      className="omnibar-settings-sheet"
-      data-component="GlobalOmnibar.Settings"
-      onKeyDown={onKeyDown}
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
+    <div className="omnibar-settings-sheet" data-component="GlobalOmnibar.Settings" onKeyDown={onKeyDown}>
       <div
         ref={cardRef}
-        role="dialog"
-        aria-modal="true"
+        role="region"
         aria-labelledby="omnibar-settings-title"
         className="omnibar-settings-sheet__card"
       >
         <header className="omnibar-settings-sheet__header">
-          <h2 id="omnibar-settings-title">{t("omnibar.settings.label", "Omnibar settings")}</h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label={t("common.close", "Close")}
+            aria-label={t("omnibar.settings.back", "Back")}
             className="omnibar-settings-menu__trigger"
           >
-            <X size={14} />
+            <ChevronLeft size={16} />
           </button>
+          <h2 id="omnibar-settings-title">{t("omnibar.settings.label", "Omnibar settings")}</h2>
         </header>
 
         <p className="omnibar-settings-menu__heading">{t("omnibar.settings.quickAnswers.heading", "Quick answers")}</p>

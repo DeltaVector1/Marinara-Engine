@@ -5,7 +5,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 ## [Unreleased]
 
 - The omnibar opens faster the first time, because it loads in the background after the app starts. Results that arrive late, such as messages from other chats and documentation, now appear at the end of the list, so they no longer push down the row you are on.
-- The omnibar settings now open as a full sheet, where you can choose which model answers quick answers: the local model or any of your connections. Without a model, quick answers no longer fail on every search; they offer to choose one.
+- The omnibar settings now open inside the omnibar, with a back arrow, and let you choose which model answers quick answers: the local model or any of your connections. Without a model, quick answers no longer fail on every search; they offer to choose one.
 - Taking something to Professor Mari from the omnibar now follows one rule: text that asks for something is sent, and the footer says whether ⌘↵ asks or only continues. The Mari button on every result row is gone, and Continue with Mari is offered only for chats, characters, personas, lorebooks and presets.
 - Message results in the omnibar end with See all results, which opens Search All Chats with your query. The "Create lorebook from this chat" row is gone; it left an empty lorebook behind when Mari stopped, and asking Mari does the same.
 - The omnibar now finds messages in other chats with the same search as Search All Chats, including quoted phrases, and offers **Search all chats** and **Activity overview** as commands.

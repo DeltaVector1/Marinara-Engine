@@ -2526,6 +2526,7 @@
   "omnibar.settings.aside.label": "Quick answers",
   "omnibar.settings.aside.localMissingNote": "No local model is downloaded yet, so quick answers stay silent. Download one, or choose a connection.",
   "omnibar.settings.aside.remoteNote": "Each quick answer is one request to this connection and may cost money.",
+  "omnibar.settings.back": "Back",
   "omnibar.settings.editView.description": "The default view for Mari's change cards.",
   "omnibar.settings.editView.label": "Edit review opens in",
   "omnibar.settings.label": "Omnibar settings",

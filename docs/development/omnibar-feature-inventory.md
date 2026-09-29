@@ -347,7 +347,7 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   memories or the contents of the focused field, both of which an _asked_ Quick
   call does send. `quick-context-payload.test.ts` pins this.
 - Defaults to the local sidecar, so nothing is spent unasked. The answering
-  model is chosen in the omnibar settings sheet: the local model or any language
+  model is chosen in the omnibar settings view (it replaces the list inside the omnibar card, with a back arrow): the local model or any language
   connection, with a note that a connection may cost money.
 - Without a downloaded local model (and no connection chosen) it makes no call.
   A dead end shows one quiet line instead, offering "Choose a model" and "Turn
