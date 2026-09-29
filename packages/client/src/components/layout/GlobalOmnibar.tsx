@@ -1479,9 +1479,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     setExpandedChoiceId(null);
     setExpandedPreviewId(null);
   }, [deferredQuery, filter]);
-  const asideDeadEnd = results.some(
-    (result) => result.id === "ask-professor-mari" && result.group === "professor-suggested",
-  );
+  // Message and lorebook-entry hits arrive after the Ask row was promoted, so they
+  // are checked here too: when the library already answers, no model is called.
+  const asideDeadEnd =
+    results.some((result) => result.id === "ask-professor-mari" && result.group === "professor-suggested") &&
+    messageResults.length === 0 &&
+    globalMessageResults.length === 0 &&
+    lorebookEntryResults.length === 0;
   const asideConnectionName =
     languageConnections.find((connection) => connection.id === asideConnectionId)?.name ?? null;
   const asideState = useOmnibarAside({

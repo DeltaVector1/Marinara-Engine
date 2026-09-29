@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Quick answers no longer ask a model when a message or lorebook entry already matches your search.
 - A quick answer in the omnibar now offers the settings, characters, lorebooks and chats it names as buttons that open them.
 - The empty omnibar lists your most recent chats, and when a chat is open it starts on the last other one, so Cmd/Ctrl+K then Enter switches back.
 - Omnibar rows now say what Enter does: Add, Remove, Ask, Insert or Jump to, instead of Edit on a row that adds a character. The Ask Mari row shows the question it will send, short searches such as a name are no longer buried under help articles that only contain the letters inside a word, and the search field placeholder fits on phones.

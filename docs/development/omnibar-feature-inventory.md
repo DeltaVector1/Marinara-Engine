@@ -368,6 +368,9 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
 - Defaults to the local sidecar, so nothing is spent unasked. The answering
   model is chosen in the omnibar settings view (it replaces the list inside the omnibar card, with a back arrow): the local model or any language
   connection, with a note that a connection may cost money.
+- It also makes no call when message hits (this chat or others) or lorebook
+  entries match: those arrive after the Ask row was promoted, and when the
+  library already answers, no model is asked.
 - Without a downloaded local model (and no connection chosen) it makes no call.
   A dead end shows one quiet line instead, offering "Choose a model" and "Turn
   this off".
