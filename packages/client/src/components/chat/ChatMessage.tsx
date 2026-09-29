@@ -121,6 +121,7 @@ import { SwipeJumpControl } from "./SwipeJumpControl";
 import { toast } from "sonner";
 import { MessageThinkingModal } from "./MessageThinkingModal";
 import { MESSAGE_ACTION_ICON_SIZE, MessageActionButton } from "./MessageActionButton";
+import { MessageMarkIndicators, MessageMarksAction } from "./MessageMarks";
 import { RoleplayStoryboardMessageMedia } from "./RoleplayStoryboardMessageMedia";
 
 const MESSAGE_DOUBLE_TAP_MS = 320;
@@ -2034,8 +2035,13 @@ export const ChatMessage = memo(function ChatMessage({
 
   // Translation
   const { translate, translations, translationSources, translating } = useTranslate();
-  const translatedText = translations[message.id];
   const translationSource = translationSources[message.id];
+  // Translations are keyed by message, not swipe. Show one only for the text it
+  // was made from, so a new swipe or a live stream never inherits the old one.
+  const translatedText =
+    !isStreaming && (translationSource === undefined || translationSource === message.content)
+      ? translations[message.id]
+      : undefined;
   const isTranslating = !!translating[message.id];
 
   // TTS
@@ -4004,6 +4010,8 @@ export const ChatMessage = memo(function ChatMessage({
               />
             )}
 
+            <MessageMarkIndicators message={message} className="px-1" />
+
             {/* Hover actions (tap to toggle on mobile) */}
             <div
               onClickCapture={() => {
@@ -4055,6 +4063,7 @@ export const ChatMessage = memo(function ChatMessage({
                 />
               )}
               <GuidedRegenerateActionBtn onClick={() => onRegenerate?.(message.id)} />
+              <MessageMarksAction message={message} align={isUser ? "right" : "left"} />
               {onToggleConversationStart && (
                 <ConversationStartAction
                   messageId={message.id}
@@ -4428,6 +4437,8 @@ export const ChatMessage = memo(function ChatMessage({
             />
           )}
 
+          <MessageMarkIndicators message={message} className="px-3" />
+
           {/* Hover actions (tap to toggle on mobile) */}
           <div
             onClickCapture={() => {
@@ -4482,6 +4493,7 @@ export const ChatMessage = memo(function ChatMessage({
               />
             )}
             <GuidedRegenerateActionBtn onClick={() => onRegenerate?.(message.id)} />
+            <MessageMarksAction message={message} align={isUser ? "right" : "left"} />
             {onToggleConversationStart && (
               <ConversationStartAction
                 messageId={message.id}

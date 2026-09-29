@@ -694,6 +694,8 @@ interface UIState {
   noodleNavigation: NoodleNavigationState;
   /** When true, the main area shows the full-page character library */
   characterLibraryOpen: boolean;
+  /** Runtime-only flag to restore duplicate review after closing a character detail editor. */
+  characterDuplicatesOpen: boolean;
   /** Which resource collection the shared full-page card library displays */
   cardLibraryKind: CardLibraryKind;
   /** When true, the main area shows the full-page downloadable agent catalog */
@@ -793,6 +795,7 @@ interface UIState {
   queueImageGenerationRequests: boolean;
   /** When true, generated image prompts are shown for review before supported provider calls are sent. */
   reviewImagePromptsBeforeSend: boolean;
+  autoSaveGeneratedImagesToGalleries: boolean;
   imageBackgroundWidth: number;
   imageBackgroundHeight: number;
   imageIllustrationWidth: number;
@@ -830,6 +833,8 @@ interface UIState {
   confirmBeforeDelete: boolean;
   /** When true, chat exports include saved thinking/reasoning metadata. */
   includeReasoningInExports: boolean;
+  /** When true, chat exports include private message notes. */
+  includePrivateNotesInExports: boolean;
   /** Number of messages to load per page (0 = load all) */
   messagesPerPage: number;
   /** Bold quoted dialogue in chat messages; color highlighting can still remain when this is off */
@@ -1132,6 +1137,7 @@ interface UIState {
   openCharacterLibrary: (characterId?: string) => void;
   openPersonaLibrary: () => void;
   closeCharacterLibrary: () => void;
+  setCharacterDuplicatesOpen: (open: boolean) => void;
   openAgentCatalog: (packageId?: string) => void;
   closeAgentCatalog: () => void;
   openBotBrowser: () => void;
@@ -1168,6 +1174,7 @@ interface UIState {
   setGameAutoPlayDelay: (v: number) => void;
   setQueueImageGenerationRequests: (v: boolean) => void;
   setReviewImagePromptsBeforeSend: (v: boolean) => void;
+  setAutoSaveGeneratedImagesToGalleries: (v: boolean) => void;
   setImageBackgroundDimensions: (width: number, height: number) => void;
   setImageIllustrationDimensions: (width: number, height: number) => void;
   setImageGameDimensions: (width: number, height: number) => void;
@@ -1197,6 +1204,7 @@ interface UIState {
   setChatSettingsSectionExpanded: (id: string, open: boolean) => void;
   setConfirmBeforeDelete: (v: boolean) => void;
   setIncludeReasoningInExports: (v: boolean) => void;
+  setIncludePrivateNotesInExports: (v: boolean) => void;
   setMessagesPerPage: (n: number) => void;
   setBoldDialogue: (v: boolean) => void;
   setColorInlineNames: (v: boolean) => void;
@@ -1402,6 +1410,7 @@ export function pickSyncedSettings(state: UIState) {
     gameAutoPlayDelay: state.gameAutoPlayDelay,
     queueImageGenerationRequests: state.queueImageGenerationRequests,
     reviewImagePromptsBeforeSend: state.reviewImagePromptsBeforeSend,
+    autoSaveGeneratedImagesToGalleries: state.autoSaveGeneratedImagesToGalleries,
     imageBackgroundWidth: state.imageBackgroundWidth,
     imageBackgroundHeight: state.imageBackgroundHeight,
     imageIllustrationWidth: state.imageIllustrationWidth,
@@ -1435,6 +1444,7 @@ export function pickSyncedSettings(state: UIState) {
     chatSettingsExpandedSections: state.chatSettingsExpandedSections,
     confirmBeforeDelete: state.confirmBeforeDelete,
     includeReasoningInExports: state.includeReasoningInExports,
+    includePrivateNotesInExports: state.includePrivateNotesInExports,
     messagesPerPage: state.messagesPerPage,
     boldDialogue: state.boldDialogue,
     colorInlineNames: state.colorInlineNames,
@@ -1615,6 +1625,7 @@ export function pickPersistedUIState(state: UIState) {
     gameAutoPlayDelay: state.gameAutoPlayDelay,
     queueImageGenerationRequests: state.queueImageGenerationRequests,
     reviewImagePromptsBeforeSend: state.reviewImagePromptsBeforeSend,
+    autoSaveGeneratedImagesToGalleries: state.autoSaveGeneratedImagesToGalleries,
     imageBackgroundWidth: state.imageBackgroundWidth,
     imageBackgroundHeight: state.imageBackgroundHeight,
     imageIllustrationWidth: state.imageIllustrationWidth,
@@ -1648,6 +1659,7 @@ export function pickPersistedUIState(state: UIState) {
     chatSettingsExpandedSections: state.chatSettingsExpandedSections,
     confirmBeforeDelete: state.confirmBeforeDelete,
     includeReasoningInExports: state.includeReasoningInExports,
+    includePrivateNotesInExports: state.includePrivateNotesInExports,
     messagesPerPage: state.messagesPerPage,
     boldDialogue: state.boldDialogue,
     colorInlineNames: state.colorInlineNames,
@@ -1825,6 +1837,7 @@ export const useUIStore = create<UIState>()(
         noodleSelectedPersonaId: null,
         noodleNavigation: { mode: "public", view: "home" },
         characterLibraryOpen: false,
+        characterDuplicatesOpen: false,
         cardLibraryKind: "characters" as CardLibraryKind,
         agentCatalogOpen: false,
         agentCatalogInitialPackageId: null,
@@ -1871,6 +1884,7 @@ export const useUIStore = create<UIState>()(
         gameAutoPlayDelay: 3000,
         queueImageGenerationRequests: true,
         reviewImagePromptsBeforeSend: false,
+        autoSaveGeneratedImagesToGalleries: true,
         imageBackgroundWidth: 1280,
         imageBackgroundHeight: 720,
         imageIllustrationWidth: 896,
@@ -1904,6 +1918,7 @@ export const useUIStore = create<UIState>()(
         chatSettingsExpandedSections: {},
         confirmBeforeDelete: true,
         includeReasoningInExports: false,
+        includePrivateNotesInExports: false,
         messagesPerPage: 20,
         boldDialogue: true,
         colorInlineNames: false,
@@ -2485,6 +2500,7 @@ export const useUIStore = create<UIState>()(
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
           })),
         closeCharacterLibrary: () => set({ characterLibraryOpen: false, characterLibraryInitialId: null }),
+        setCharacterDuplicatesOpen: (open) => set({ characterDuplicatesOpen: open }),
         openAgentCatalog: (packageId) =>
           set((state) => ({
             agentCatalogOpen: true,
@@ -2656,6 +2672,7 @@ export const useUIStore = create<UIState>()(
         setGameAutoPlayDelay: (v) => set({ gameAutoPlayDelay: Math.max(200, Math.min(10000, Math.round(v))) }),
         setQueueImageGenerationRequests: (v) => set({ queueImageGenerationRequests: v }),
         setReviewImagePromptsBeforeSend: (v) => set({ reviewImagePromptsBeforeSend: v }),
+        setAutoSaveGeneratedImagesToGalleries: (v) => set({ autoSaveGeneratedImagesToGalleries: v }),
         setImageBackgroundDimensions: (width, height) =>
           set({
             imageBackgroundWidth: clampImageDimension(width),
@@ -2731,6 +2748,7 @@ export const useUIStore = create<UIState>()(
           })),
         setConfirmBeforeDelete: (v) => set({ confirmBeforeDelete: v }),
         setIncludeReasoningInExports: (v) => set({ includeReasoningInExports: v }),
+        setIncludePrivateNotesInExports: (v) => set({ includePrivateNotesInExports: v }),
         setMessagesPerPage: (n) => set({ messagesPerPage: n }),
         setBoldDialogue: (v) => set({ boldDialogue: v }),
         setColorInlineNames: (v) => set({ colorInlineNames: v }),
@@ -3656,6 +3674,7 @@ export const useUIStore = create<UIState>()(
         persisted.commandCenterMariEnabled = persisted.commandCenterMariEnabled !== false;
         persisted.omnibarSuggestionsEnabled = persisted.omnibarSuggestionsEnabled !== false;
         persisted.includeReasoningInExports = persisted.includeReasoningInExports === true;
+        persisted.includePrivateNotesInExports = persisted.includePrivateNotesInExports === true;
         persisted.roleplayReducedPaintEffects = persisted.roleplayReducedPaintEffects === true;
         persisted.showRoleplayThinkingInMessages = persisted.showRoleplayThinkingInMessages === true;
         persisted.keepRoleplayThinkingExpanded =

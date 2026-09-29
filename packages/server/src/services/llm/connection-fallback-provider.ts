@@ -2,7 +2,7 @@ import { allowsDefaultChatModel } from "./local-context-limit.js";
 import type { ChatCompletionResult, ChatMessage, ChatOptions, LLMUsage } from "./base-provider.js";
 import { BaseLLMProvider } from "./base-provider.js";
 import { createLLMProvider } from "./provider-registry.js";
-import { withRateLimitAwareProvider } from "./rate-limit-aware-provider.js";
+import { RateLimitAwareProvider, withRateLimitAwareProvider } from "./rate-limit-aware-provider.js";
 import { mergeCustomParameters, parseStoredGenerationParameters } from "../../routes/generate/generate-route-utils.js";
 import { logger } from "../../lib/logger.js";
 import { notifyGenerationFallback, type GenerationFallbackNotifier } from "../generation/fallback-notification.js";
@@ -20,6 +20,7 @@ type ConnectionFallbackProviderArgs = Omit<
   "primary"
 > & {
   primary: BaseLLMProvider;
+  wrapProvider?: (provider: BaseLLMProvider) => BaseLLMProvider;
 };
 
 function isEnabled(value: unknown): boolean {
@@ -334,6 +335,7 @@ export class ConnectionFallbackProvider extends BaseLLMProvider {
 
 export function withConnectionFallbackProvider({
   primary,
+  wrapProvider = (provider) => provider,
   primaryConnectionId,
   fallbackConnection,
   fallbackBaseUrl,
@@ -350,26 +352,35 @@ export function withConnectionFallbackProvider({
     // Rate-limit-aware wraps outside admission so a 429 pauses/retries this connection here too —
     // the main chat/agent path builds `primary` without a connectionId, so it is added here.
     return withRateLimitAwareProvider(
-      withConnectionAdmissionProvider(primary, primaryConnectionId, admissionMode),
+      withConnectionAdmissionProvider(wrapProvider(primary), primaryConnectionId, admissionMode),
       primaryConnectionId,
     );
   }
+  // A fallback exists, so a transient failure on the primary goes straight to it instead of
+  // waiting out a transient backoff first (PROVIDER_RETRY_TRANSIENT_ERRORS). Rate limits are
+  // unchanged. A primary that is already wrapped (createLLMProvider with a connectionId, or a
+  // capability package passing one to llm.withFallback) has its own wrapper opted out too, since
+  // admission may sit between it and the outer wrapper below.
+  const primaryLeg = primary instanceof RateLimitAwareProvider ? primary.withoutTransientRetry() : primary;
   const admittedPrimary = withRateLimitAwareProvider(
-    withConnectionAdmissionProvider(primary, primaryConnectionId, primaryMode),
+    withConnectionAdmissionProvider(wrapProvider(primaryLeg), primaryConnectionId, primaryMode),
     primaryConnectionId,
+    { transientRetry: false },
   );
   const fallback = withRateLimitAwareProvider(
     withConnectionAdmissionProvider(
-      createLLMProvider(
-        fallbackConnection.provider,
-        fallbackBaseUrl,
-        fallbackConnection.apiKey,
-        fallbackConnection.maxContext,
-        fallbackConnection.openrouterProvider,
-        fallbackConnection.maxTokensOverride,
-        isEnabled(fallbackConnection.claudeFastMode),
-        isEnabled(fallbackConnection.treatAsLocalEndpoint),
-        fallbackConnection.defaultParameters,
+      wrapProvider(
+        createLLMProvider(
+          fallbackConnection.provider,
+          fallbackBaseUrl,
+          fallbackConnection.apiKey,
+          fallbackConnection.maxContext,
+          fallbackConnection.openrouterProvider,
+          fallbackConnection.maxTokensOverride,
+          isEnabled(fallbackConnection.claudeFastMode),
+          isEnabled(fallbackConnection.treatAsLocalEndpoint),
+          fallbackConnection.defaultParameters,
+        ),
       ),
       fallbackConnection.id,
       fallbackMode,

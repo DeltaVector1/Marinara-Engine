@@ -179,9 +179,16 @@ try {
   const personalStart = await app.inject({
     method: "PATCH",
     url: `/api/chats/${cycleChat.id}/messages/${growingSource[40]!.id}/extra`,
-    payload: { conversationStartForCharacterIds: ["second"] },
+    payload: {
+      conversationStartForCharacterIds: ["second"],
+      hiddenFromAICharacterIds: ["unrelated"],
+      pinnedToContext: true,
+    },
   });
   assert.equal(personalStart.statusCode, 200, personalStart.body);
+  const personalExtra = JSON.parse((await chats.getMessage(growingSource[40]!.id))!.extra);
+  assert.deepEqual(personalExtra.hiddenFromAICharacterIds, ["unrelated"]);
+  assert.equal(personalExtra.pinnedToContext, true);
   const cutoffId = growingSource[30]!.id;
   await chats.addSwipe(cutoffId, growingSource[30]!.content);
   await chats.addSwipe(cutoffId, growingSource[30]!.content);
@@ -360,10 +367,10 @@ try {
     "globally hidden text remains part of memory",
   );
   assert(
-    !scenes.some(
+    scenes.some(
       (record) => record.audienceCharacterIds.includes("traveler") && record.messageIds.includes(source[50]!.id),
     ),
-    "character-hidden text stays out of their summaries",
+    "a partially present character retains access to the scene",
   );
   assert(
     !scenes.some(

@@ -66,6 +66,8 @@ export interface Lorebook {
   excludeFromVectorization: boolean;
   /** Recent message count used to build semantic/vector search queries. 0 = all messages. */
   vectorQueryDepth: number;
+  /** Also score recent assistant/character context separately; disabled by default. */
+  vectorIncludeAssistant?: boolean;
   /** Minimum cosine similarity required for semantic/vector entry activation. */
   vectorScoreThreshold: number;
   /** Maximum semantic/vector entries this lorebook may contribute per generation. */
@@ -135,6 +137,12 @@ export interface LorebookFolder {
   order: number;
   createdAt: string;
   updatedAt: string;
+}
+
+/** An image attached to a lorebook entry; `path` is a local server path (see LOREBOOK_ENTRY_IMAGE_PATH_PATTERN). */
+export interface LorebookEntryImage {
+  path: string;
+  caption: string;
 }
 
 /**
@@ -246,6 +254,8 @@ export interface LorebookEntry {
   decisionStatement: string;
   /** How `decisionStatement` acts on activation; `off` ignores it. */
   decisionMode: LorebookDecisionMode;
+  /** Images sent to the model whenever the entry activates. Always an array from the server; legacy rows read as []. */
+  images?: LorebookEntryImage[];
 
   /** When true, bulk vectorization skips this entry and semantic matching ignores any stored vector */
   excludeFromVectorization: boolean;

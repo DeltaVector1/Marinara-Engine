@@ -9,12 +9,12 @@
 import {
   normalizeTextForMatch,
   type Chat,
+  type GlobalChatSearchResult,
   type Lorebook,
   type MariWorkspacePendingApproval,
   type Persona,
 } from "@marinara-engine/shared";
 import type { AgentConfigRow } from "../hooks/use-agents";
-import type { GlobalMessageSearchHit } from "../hooks/use-chats";
 import type { HomeFaqItem } from "../components/chat/HomeFaq";
 import { CHOICE_SCORE_PENALTY, buildChoiceOptionResults, readChoiceOptionId } from "./omnibar-choice-rows";
 import { readNamedRow } from "./omnibar-row-readers";
@@ -152,7 +152,7 @@ export type OmnibarMessageResultsInput = {
 
 export type OmnibarGlobalMessageResultsInput = {
   activeChatId: string | null;
-  hits: readonly GlobalMessageSearchHit[];
+  hits: readonly GlobalChatSearchResult[];
   messageSearchQuery: string;
   t: OmnibarTranslate;
 };
@@ -697,7 +697,7 @@ export function buildOmnibarGlobalMessageResults({
     .map((hit, index) => ({
       id: `message:${hit.chatId}:${hit.messageNumber}`,
       action: { kind: "goto-message" as const, chatId: hit.chatId, messageNumber: hit.messageNumber },
-      title: getMessageSearchSnippet(hit.content, messageSearchQuery),
+      title: hit.snippet,
       description: t("commandCenter.messages.inChat", "{{chat}} · message {{number}}", {
         chat: hit.chatName,
         number: hit.messageNumber,

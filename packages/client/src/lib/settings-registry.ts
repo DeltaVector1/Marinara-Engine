@@ -48,6 +48,7 @@ export type SettingsSectionId =
   | "profile-marinara"
   | "sillytavern-import"
   | "admin-access"
+  | "features"
   | "updates"
   | "support-diagnostics"
   | "request-timeouts"
@@ -328,6 +329,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     label: "Admin Access",
     description: "Admin authorization for privileged actions.",
     aliases: ["admin", "secret", "access", "authorization"],
+  },
+  {
+    id: "features",
+    tab: "advanced",
+    label: "Features",
+    description: "Optional server behaviours, all off by default.",
+    aliases: ["features", "switches", "optional", "provider retry", "lorebook groups"],
   },
   {
     id: "updates",
@@ -1283,6 +1291,14 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Include reasoning in exports",
     description: "Include hidden thinking metadata in chat exports.",
     aliases: ["reasoning", "thinking", "exports"],
+    kind: "Toggle",
+  },
+  {
+    id: "include-private-notes-in-exports",
+    sectionId: "message-tools",
+    label: "Include private notes in exports",
+    description: "Include your private message notes in chat exports.",
+    aliases: ["notes", "private", "exports"],
     kind: "Toggle",
   },
   {

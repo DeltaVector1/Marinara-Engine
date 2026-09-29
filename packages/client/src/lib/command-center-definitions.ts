@@ -18,6 +18,8 @@ export type CommandCenterModal =
   | "import-persona"
   | "import-preset"
   | "keyboard-shortcuts"
+  | "global-chat-search"
+  | "activity-overview"
   | "st-bulk-import";
 
 export type CommandCenterAction =
@@ -39,6 +41,8 @@ export type CommandCenterTitleKey =
   | "documentation"
   | "help"
   | "keyboardShortcuts"
+  | "searchAllChats"
+  | "activityOverview"
   | "gameAssets"
   | "cardBrowser"
   | "characterLibrary"
@@ -70,6 +74,8 @@ export const DEFAULT_COMMAND_CENTER_LABELS: CommandCenterLabels = {
   documentation: "Documentation",
   help: "Help",
   keyboardShortcuts: "Keyboard shortcuts",
+  searchAllChats: "Search all chats",
+  activityOverview: "Activity overview",
   gameAssets: "Game assets",
   cardBrowser: "Card browser",
   characterLibrary: "Character library",

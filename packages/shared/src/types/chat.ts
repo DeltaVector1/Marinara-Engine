@@ -290,6 +290,9 @@ export interface ChatMetadata {
   automaticSummaryEnabled?: boolean;
   /** Keep recent automatic summaries in context while retrieving relevant older Conversation weeks or Roleplay entries. */
   semanticSummaryRetrievalEnabled?: boolean;
+  semanticSummaryRecentCount?: number;
+  semanticSummaryOlderCount?: number;
+  semanticSummaryMinSimilarity?: number;
   /** Last assistant message ID processed by the automatic Roleplay summary updater. */
   lastAutomaticSummaryMessageId?: string | null;
   /** Chat-scoped manual summary prompt templates. Missing or empty uses the built-in default. */
@@ -931,6 +934,12 @@ export interface MessageExtra {
   hiddenFromUser?: boolean;
   /** When true, the visible message is excluded from future AI prompt context */
   hiddenFromAI?: boolean;
+  /** User bookmark shown in chat tools. Never sent to the model. */
+  bookmark?: import("../utils/message-marks.js").MessageBookmark | null;
+  /** Keep this message in prompt context when the message limit would otherwise drop it. */
+  pinnedToContext?: boolean;
+  /** User-only note attached to this message. Never sent to the model. */
+  privateNote?: string | null;
   /** Character IDs whose generation context excludes this message. Global hiddenFromAI takes precedence. */
   hiddenFromAICharacterIds?: string[];
   /** When true, Roleplay renders this generated assistant turn as a fresh bubble instead of grouping with the previous assistant turn. */

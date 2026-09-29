@@ -1329,6 +1329,14 @@ function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
   const skillPresentation = getSkillReadPresentation(tool);
   if (skillPresentation) return skillPresentation;
 
+  if (name === "package service") {
+    const packageId = typeof input?.package === "string" && input.package.trim() ? input.package : null;
+    // With an action it runs something in a package, which the Engine cannot preview or undo.
+    return appDataAction
+      ? { eyebrow: "Package", title: `Running ${appDataAction}`, detail: packageId, tone: "write" }
+      : { eyebrow: "Package", title: "Checking package actions", detail: packageId, tone: "generic" };
+  }
+
   const detail = previewValue(
     input?.path ?? input?.pattern ?? input?.query ?? input?.url ?? input?.command ?? tool.detail,
     90,
@@ -4800,7 +4808,7 @@ export function HomeProfessorMariChat({
       // Optimistic update from local state
       setMessages((current) => current.filter((m) => m.id !== messageId));
       try {
-        await api.delete(`/chats/${chatId}/messages/${messageId}`);
+        await api.delete(`/chats/${chatId}/messages/${messageId}?trash=false`);
       } catch (error) {
         console.error("[Professor Mari] Failed to delete message", error);
         await loadMessages(chatId).catch(() => undefined);
@@ -4868,7 +4876,7 @@ export function HomeProfessorMariChat({
 
         messageLoadAbortRef.current?.abort();
         setMessages((current) => current.filter((message) => message.id !== messageId));
-        await api.delete(`/chats/${chatId}/messages/${messageId}`);
+        await api.delete(`/chats/${chatId}/messages/${messageId}?trash=false`);
         const { received, runId, hiddenDuringStream } = await sendWorkspaceMessage(
           { id: chatId },
           userMessage.content,

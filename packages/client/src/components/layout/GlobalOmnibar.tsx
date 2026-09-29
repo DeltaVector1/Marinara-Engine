@@ -45,11 +45,12 @@ import {
   useChatMessageCount,
   useChatMessagePeek,
   useChatMessageSearchSource,
-  useGlobalMessageSearch,
   useProfessorMariChats,
   useUpdateChat,
   useUpdateChatMetadata,
 } from "../../hooks/use-chats";
+import { useGlobalChatSearch } from "../../hooks/use-chat-insights";
+import { useDebouncedValue } from "../../hooks/use-debounced-value";
 import { useConnections } from "../../hooks/use-connections";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { dispatchCardAssetInsert } from "../../lib/card-asset-links";
@@ -1116,15 +1117,23 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // The other chats' transcripts are not on the client, so searching them is a
   // server read. Only asked for once the query is long enough to be selective.
   const globalMessageScoped = !queryScope || queryScope === "messages";
-  const globalMessageSearch = useGlobalMessageSearch(
-    messageSearchQuery,
-    messageSearchQuery.length >= MIN_MESSAGE_SEARCH_LENGTH && globalMessageScoped,
+  // Each request scans every chat on the server, so wait for a typing pause,
+  // with the same delay as the Search All Chats modal.
+  const globalMessageQuery = useDebouncedValue(messageSearchQuery, 300);
+  const globalMessageSearch = useGlobalChatSearch(
+    { query: globalMessageQuery },
+    globalMessageQuery.length >= MIN_MESSAGE_SEARCH_LENGTH && globalMessageScoped,
   );
   const globalMessageResults = useMemo<OmnibarResult[]>(
     () =>
       buildOmnibarGlobalMessageResults({
         activeChatId,
-        hits: globalMessageSearch.data ?? [],
+        // The query keeps the previous page while the next one loads; hits for
+        // an older query are not answers to this one.
+        hits:
+          globalMessageSearch.data?.pages[0]?.query === messageSearchQuery
+            ? globalMessageSearch.data.pages[0].results
+            : [],
         messageSearchQuery,
         t,
       }),

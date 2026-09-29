@@ -9,7 +9,7 @@ described by the previous version are gone; see section 1 and section 11.
 
 Scope: `packages/client/src/components/layout/GlobalOmnibar.tsx`, the surfaces
 under `components/layout/omnibar/`, the `lib/omnibar-*.ts` modules, and the
-server route that backs cross-chat message search.
+server global chat search the omnibar reads.
 
 Related document: `omnibar-concept.md`, the design rules this implementation
 follows. Historical build plans were removed after the implementation landed;
@@ -86,7 +86,7 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | FAQ                                                                            | `buildOmnibarSearchResults`                                                                   | Ids are `faq:<id>`; opens the FAQ viewer modal                                                                                                                                                                                                                                       |
 | Documentation                                                                  | `useDocsCommandSearchProvider`                                                                | Passage search; opens the docs viewer at the match                                                                                                                                                                                                                                   |
 | Messages in the open chat                                                      | `buildOmnibarMessageResults`                                                                  | Client-side over the shared transcript cache; 3-character minimum, 6 results                                                                                                                                                                                                         |
-| Messages in every other chat                                                   | `buildOmnibarGlobalMessageResults`                                                            | Server-backed; see section 6                                                                                                                                                                                                                                                         |
+| Messages in every other chat                                                   | `buildOmnibarGlobalMessageResults`                                                            | The shared global chat search; see section 6                                                                                                                                                                                                                                         |
 | Professor Mari's own conversations                                             | `buildOmnibarMariChatResults`                                                                 | They sit behind an internal marker and are absent from the chat list                                                                                                                                                                                                                 |
 | Slash commands                                                                 | `buildOmnibarSlashResults`                                                                    | Chat surface only. Choosing one types it into the chat input rather than running it, so arguments stay visible                                                                                                                                                                       |
 | Context rows                                                                   | `buildOmnibarContextResults`                                                                  | "What am I on?": the open editor, the current chat and everything attached to it, the last error, an unfinished creation session                                                                                                                                                     |
@@ -165,25 +165,22 @@ without one fall through to the generic open path.
 
 ## 6. Cross-chat message search
 
-- Route: `GET /api/chats/search/messages?q=&limit=` (static path, matched ahead
-  of `/:id/messages`). Query capped at 200 characters, limit clamped to 1..50,
-  default 20.
-- `collectMessageSearchHits` in `services/storage/chats.storage.ts` is pure and
-  self-checked in `chats.storage.test.ts`. It walks the whole message list in
-  order, counting a per-chat position for **every** message — system and hidden
-  rows included — because `messageNumber` is the absolute position the
-  goto-message jump takes. Only visible rows in visible chats are returned.
-- Matching is a literal, case-insensitive substring. It deliberately does not
-  use `like()`, whose `%` and `_` are wildcards.
-- The snippet is windowed around the match, not cut from the start.
-- Professor Mari's chats are excluded inside the search, before the cap, so they
-  cannot crowd out ordinary hits.
-- The client only calls it at 3 characters or more, and never for a scope other
-  than `msg:`.
+The omnibar reuses the app's global chat search; it has no search of its own.
+
+- Route: `GET /api/chat-insights/search` (`services/chat-insights/chat-insights.service.ts`),
+  read through `useGlobalChatSearch`. The same search backs the Search All Chats
+  modal, so both surfaces always agree.
+- Quoted phrases stay together, other words must all appear, and matching is
+  literal and case-insensitive. The server windows the snippet around the match
+  and stops at a time budget on large libraries.
+- `messageNumber` is the absolute position the goto-message jump takes.
+- Professor Mari's chats are excluded by the search itself.
+- The client only calls it at 3 characters or more, with no scope or with `msg:`,
+  and shows the first few hits from other chats as rows.
 - Choosing a hit in another chat opens that chat and then jumps: the goto request
   is keyed by chat id and survives the switch.
-- Known ceiling, marked `ponytail:` in the source: one full in-memory pass per
-  query. Add an index if a large library makes typing lag.
+- The full list, with filters, is the **Search all chats** command, which opens
+  the modal. **Activity overview** is a command too.
 
 ## 7. Keyboard and pointer
 

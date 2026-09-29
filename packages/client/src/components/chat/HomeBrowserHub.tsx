@@ -593,7 +593,7 @@ function HomeWidgetFrame({
         aria-label={dragLabel}
         title={dragLabel}
         className={cn(
-          "mari-home-widget__drag-handle mari-chrome-accent-text-muted absolute right-2 top-2 z-20 flex h-7 w-5 cursor-grab touch-none select-none items-center justify-center opacity-100 transition-[opacity,color,transform] hover:text-[var(--foreground)] active:cursor-grabbing active:scale-95 focus-visible:outline-none focus-visible:text-[var(--marinara-app-accent-solid)] [@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:group-focus-within:opacity-100 [@media(pointer:fine)]:group-hover:opacity-100",
+          "mari-home-widget__drag-handle mari-chrome-accent-text-muted absolute right-2 top-2 z-20 flex h-7 w-5 cursor-grab [@media(pointer:coarse)]:right-0.5 [@media(pointer:coarse)]:top-0.5 [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9 touch-none select-none items-center justify-center opacity-100 transition-[opacity,color,transform] hover:text-[var(--foreground)] active:cursor-grabbing active:scale-95 focus-visible:outline-none focus-visible:text-[var(--marinara-app-accent-solid)] [@media(pointer:fine)]:opacity-0 [@media(pointer:fine)]:group-focus-within:opacity-100 [@media(pointer:fine)]:group-hover:opacity-100",
           dragging && "!cursor-grabbing !text-[var(--marinara-app-accent-solid)]",
         )}
         onClick={(event) => event.stopPropagation()}
@@ -1036,7 +1036,7 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
   const [widgetManagerOpen, setWidgetManagerOpen] = useState(false);
   const [editingCustomWidget, setEditingCustomWidget] = useState<HomeCustomWidget | null>(null);
   const [widgetManagerAgentId, setWidgetManagerAgentId] = useState<string | null>(null);
-  const [focusedPackagePostId, setFocusedPackagePostId] = useState<string | null>(null);
+  const [focusedPackagePost, setFocusedPackagePost] = useState<{ packageId: string; postId: string } | null>(null);
   const [mobileBookmarksOpen, setMobileBookmarksOpen] = useState(false);
   const [visibleWidgets, setVisibleWidgets] = useState<HomeWidgetId[]>(readHomeWidgetVisibility);
   const [widgetLayouts, setWidgetLayouts] = useState<HomeWidgetLayouts>(() =>
@@ -1295,7 +1295,7 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
   const address = `marinara/${activeTab}`;
   const selectTab = (tab: string) => {
     setMobileBookmarksOpen(false);
-    if (tab !== "noodle") setFocusedPackagePostId(null);
+    setFocusedPackagePost((current) => (current?.packageId === tab ? current : null));
     if (tab === "professor") {
       requestProfessorMariOpen();
       return;
@@ -2072,8 +2072,9 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                 debugMode,
                 onClose: () => selectTab("home"),
                 reviewImagePromptsBeforeSend,
-                focusPostId: activeTab === "noodle" ? focusedPackagePostId : null,
-                onFocusPostHandled: () => setFocusedPackagePostId(null),
+                focusPostId: focusedPackagePost?.packageId === activeTab ? focusedPackagePost.postId : null,
+                onFocusPostHandled: () =>
+                  setFocusedPackagePost((current) => (current === focusedPackagePost ? null : current)),
               }}
             />
           ) : activeTab === "professor" ? (
@@ -2574,12 +2575,15 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                               widgetHeader: widget.header,
                               active: pageActive && activeTab === "home" && visibleWidgets.includes(widget.id),
                               onOpenPost: (postId: unknown) => {
-                                if (widget.packageId !== "noodle" || typeof postId !== "string" || postId.length > 128)
-                                  return;
-                                setFocusedPackagePostId(postId);
-                                selectTab("noodle");
+                                if (typeof postId !== "string" || postId.length > 128) return;
+                                if (!browserPackages.some((item) => item.id === widget.packageId)) return;
+                                setFocusedPackagePost({ packageId: widget.packageId!, postId });
+                                selectTab(widget.packageId!);
                               },
-                              onOpenNoodle: () => selectTab(widget.packageId!),
+                              onOpenNoodle: () => {
+                                if (browserPackages.some((item) => item.id === widget.packageId))
+                                  selectTab(widget.packageId!);
+                              },
                             }}
                           />
                         ) : widget.agentId ? (
