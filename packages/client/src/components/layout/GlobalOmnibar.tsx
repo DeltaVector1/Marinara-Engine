@@ -16,7 +16,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import type { Character, ChatMode, ProfessorMariAskContext } from "@marinara-engine/shared";
+import type { Character, Chat, ChatMode, ProfessorMariAskContext } from "@marinara-engine/shared";
 import {
   ArrowRight,
   ChevronLeft,
@@ -202,6 +202,8 @@ const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
   "agent",
 ]);
 /** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
+/** Chats the empty omnibar offers to switch back to. */
+const IDLE_RECENT_CHATS = 4;
 const MARI_EDITABLE_CATEGORIES = new Set<OmnibarCategory>(["chat", "character", "persona", "lorebook", "preset"]);
 
 /**
@@ -1338,6 +1340,21 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () => buildOmnibarContinueResult({ mariEnabled, t, workspaceStatus: mariWorkspaceStatus.data, mariFinished }),
     [mariEnabled, mariWorkspaceStatus.data, t, mariFinished],
   );
+  // The empty omnibar also offers the chats you were in last, other than the open
+  // one: switching chats is the most common trip here, and the "Recent" group
+  // otherwise only knows what was chosen through the omnibar before.
+  const recentChatResults = useMemo<OmnibarResult[]>(() => {
+    const rowById = new Map(searchableEntityResults.map((row) => [row.id, row] as const));
+    const lastActive = (chat: Chat) => chat.lastMessageAt ?? chat.updatedAt;
+    return [...(chats.data ?? [])]
+      .filter((chat) => chat.id !== activeChatId)
+      .sort((a, b) => lastActive(b).localeCompare(lastActive(a)))
+      .flatMap((chat) => {
+        const row = rowById.get(`chat:${chat.id}`);
+        return row ? [{ ...row, group: "recent" as const }] : [];
+      })
+      .slice(0, IDLE_RECENT_CHATS);
+  }, [activeChatId, chats.data, searchableEntityResults]);
   const rawResults = useMemo(
     () =>
       // A scope with nothing typed after it ("char:") is a request to browse that
@@ -1364,6 +1381,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             ]
           : [
               ...contextResults.slice(0, CHAT_CONTEXT_MAX_RESULTS),
+              ...recentChatResults,
               ...slashResults,
               ...approvalResults,
               ...(continueResult ? [continueResult] : []),
@@ -1375,6 +1393,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       addedResultIds,
       removedResultIds,
       contextResults,
+      recentChatResults,
       approvalResults,
       continueResult,
       deferredQuery,
@@ -1536,10 +1555,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const resultOrderChanged = reconciledResultIdsKeyRef.current !== resultIdsKey;
     reconciledResultIdsKeyRef.current = resultIdsKey;
-    const firstCurrentWorkId =
+    const leadingCurrentWorkId =
       !deferredQuery.trim() && presentation.groups[0]?.id === "current-work"
         ? presentation.groups[0].results[0]?.id
         : undefined;
+    // When that row is only the chat already open, Enter on it does nothing, so the
+    // empty omnibar starts on the last other chat instead: Cmd+K, Enter switches back.
+    const firstCurrentWorkId =
+      leadingCurrentWorkId && activeChatId && leadingCurrentWorkId === `chat:${activeChatId}`
+        ? (presentation.groups.find((group) => group.id === "recent")?.results[0]?.id ?? leadingCurrentWorkId)
+        : leadingCurrentWorkId;
     // A new query re-ranks everything, so the selection must follow the new top
     // row instead of sticking to whatever was highlighted before. Otherwise
     // "remove eliza" keeps the plain "Eliza" row selected from earlier
@@ -1547,11 +1572,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     const queryChanged = reconciledQueryRef.current !== deferredQuery;
     reconciledQueryRef.current = deferredQuery;
     const next = reconcileActiveResultId(
-      queryChanged ? null : resultOrderChanged && firstCurrentWorkId ? firstCurrentWorkId : activeResultId,
+      queryChanged
+        ? null
+        : // Also while nothing is selected yet: the effect can run again before the
+          // first pass's selection lands, and would fall back to the first row.
+          (resultOrderChanged || !activeResultId) && firstCurrentWorkId
+          ? firstCurrentWorkId
+          : activeResultId,
       results.map((result) => result.id),
     );
     setSession((current) => (current.activeResultId === next ? current : { ...current, activeResultId: next }));
-  }, [activeResultId, deferredQuery, presentation.groups, resultIdsKey, results]);
+  }, [activeChatId, activeResultId, deferredQuery, presentation.groups, resultIdsKey, results]);
 
   useEffect(() => {
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;

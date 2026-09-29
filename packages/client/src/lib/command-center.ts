@@ -628,7 +628,7 @@ export function presentCommandCenterResults<T extends CommandCenterPresentableRe
       if (result.group === "current-work" || result.group === "context") addToGroup("current-work", result);
       else if (result.group === "continue") addToGroup("continue", result);
       else if (pinnedIds.has(result.id)) addToGroup("pinned", result);
-      else if (recentIds.has(result.id)) addToGroup("recent", result);
+      else if (result.group === "recent" || recentIds.has(result.id)) addToGroup("recent", result);
       else if (result.control) addToGroup("quick-controls", result);
       else addToGroup("create-navigation", result);
     }
