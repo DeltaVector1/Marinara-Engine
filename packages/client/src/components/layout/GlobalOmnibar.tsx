@@ -50,13 +50,14 @@ import {
   useUpdateChatMetadata,
 } from "../../hooks/use-chats";
 import { useGlobalChatSearch } from "../../hooks/use-chat-insights";
+import { openGlobalSearch } from "../../lib/chat-insights";
 import { useDebouncedValue } from "../../hooks/use-debounced-value";
 import { useConnections } from "../../hooks/use-connections";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { dispatchCardAssetInsert } from "../../lib/card-asset-links";
 import { HOME_FAQ_ITEMS, getFaqSearchText } from "../chat/HomeFaq";
 import { useDocsCommandSearchProvider } from "../../hooks/use-docs-command-search";
-import { useCreateLorebook, useLorebooks, useLorebookEntries, useUpdateLorebook } from "../../hooks/use-lorebooks";
+import { useLorebooks, useLorebookEntries, useUpdateLorebook } from "../../hooks/use-lorebooks";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
 import { useOmnibarAside } from "../../hooks/use-omnibar-aside";
@@ -114,7 +115,6 @@ import {
   buildOmnibarApprovalResults,
   buildOmnibarContinueResult,
   buildOmnibarControlResults,
-  buildOmnibarExtractionResult,
   buildOmnibarGlobalMessageResults,
   buildOmnibarMariChatResults,
   buildOmnibarMessageResults,
@@ -125,7 +125,7 @@ import {
   buildOmnibarSearchResults,
   buildOmnibarSlashResults,
 } from "../../lib/omnibar-results";
-import { matchesOmnibarScope, omnibarScopePrefix, parseOmnibarScope } from "../../lib/omnibar-scope";
+import { isMariInstruction, matchesOmnibarScope, omnibarScopePrefix, parseOmnibarScope } from "../../lib/omnibar-scope";
 import {
   buildOmnibarAgentRows,
   buildOmnibarCharacterRows,
@@ -141,7 +141,6 @@ import {
   usePersonalExtensionCommands,
 } from "../../lib/personal-extension-contributions";
 import { omnibarCompletionActions, type OmnibarCompletionAction } from "../../lib/omnibar-completion-actions";
-import { parseChatExtraction } from "../../lib/omnibar-chat-extraction";
 import { buildProfessorMariCommandCenterContext } from "../../lib/professor-mari-command-center-context";
 import {
   consumeProfessorMariOpenRequest,
@@ -156,6 +155,7 @@ import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import { useChatStore } from "../../stores/chat.store";
 import { isMessageHiddenFromUser } from "../../lib/chat-message-visibility";
 import { normalizeTextForMatch } from "@marinara-engine/shared";
+import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
 import { CommandCenterActionValue } from "../command-center/CommandCenterActionValue";
 import { InlineGhostText } from "../ui/InlineGhostText";
@@ -170,7 +170,7 @@ import {
   type CommandCenterChatModeLabels,
 } from "../command-center/command-center-visuals";
 import type { CommandCenterPreviewFact } from "../command-center/command-result-preview.types";
-import { OmnibarSettingsMenu } from "./omnibar/OmnibarSettingsMenu";
+import { OmnibarSettingsButton, OmnibarSettingsSheet } from "./omnibar/OmnibarSettingsMenu";
 import {
   getOmnibarResourceId,
   isRichResult,
@@ -200,6 +200,8 @@ const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
   "connection",
   "agent",
 ]);
+/** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
+const MARI_EDITABLE_CATEGORIES = new Set<OmnibarCategory>(["chat", "character", "persona", "lorebook", "preset"]);
 
 /**
  * Categories that can be attached to (or detached from) the open chat, mapped to
@@ -433,6 +435,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const setFilter = (value: CommandCenterCategoryFilter) => setSessionValue("filter", value);
   const setPane = (value: OmnibarPane) => setSessionValue("pane", value);
   const setActiveResultId = (value: string | null) => setSessionValue("activeResultId", value);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [mariChatOpen, setMariChatOpen] = useState(() => session.pane === "mari");
   const [mariMounted, setMariMounted] = useState(() => session.pane === "mari");
   const [mariContext, setMariContext] = useState<ProfessorMariAskContext | null>(
@@ -507,7 +510,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const setDefaultPreset = useSetDefaultPreset();
   const updateChat = useUpdateChat();
   const updateChatMetadata = useUpdateChatMetadata();
-  const createLorebook = useCreateLorebook();
   const extensionCommands = usePersonalExtensionCommands();
   const docs = useDocsCommandSearchProvider(query, { enabled: true });
   const theme = useUIStore((state) => state.theme);
@@ -1134,6 +1136,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           globalMessageSearch.data?.pages[0]?.query === messageSearchQuery
             ? globalMessageSearch.data.pages[0].results
             : [],
+        hasMore: globalMessageSearch.data?.pages[0]?.hasMore ?? false,
         messageSearchQuery,
         t,
       }),
@@ -1281,14 +1284,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () => new Set(removalSuggestions.map((item) => item.id.replace("action:detach-from-chat:", ""))),
     [removalSuggestions],
   );
-  const chatExtraction = useMemo(
-    () => (activeChat ? parseChatExtraction(deferredQuery) : null),
-    [activeChat, deferredQuery],
-  );
-  const extractionResult = useMemo<OmnibarResult | null>(
-    () => buildOmnibarExtractionResult({ activeChat, chatExtraction, t }),
-    [activeChat, chatExtraction, t],
-  );
   // The same hook the Work pane uses, so an approval decided from a row behaves
   // and reads exactly as it does there.
   const { keepApproval, restoreApproval, pendingId: approvalPendingId } = useMariApprovals();
@@ -1328,7 +1323,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               ...addSuggestions,
               ...removalSuggestions,
               ...approvalResults,
-              ...(extractionResult ? [extractionResult] : []),
               ...messageResults,
               ...globalMessageResults,
               ...mariChatResults,
@@ -1355,7 +1349,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       approvalResults,
       continueResult,
       deferredQuery,
-      extractionResult,
       globalMessageResults,
       mariChatResults,
       messageResults,
@@ -1805,6 +1798,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         recordUse(result.id);
         onClose();
         return;
+      case "open-global-search":
+        openGlobalSearch(action.query);
+        onClose();
+        return;
     }
   };
   const choose = (result: OmnibarResult) => {
@@ -1817,10 +1814,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (runSystemAction(result)) {
       recordUse(result.id);
       onClose();
-      return;
-    }
-    if (result.id === "chat-extraction") {
-      void runChatExtraction();
       return;
     }
     // A dependency install or a sensitive file write executes on approval, so the
@@ -1957,11 +1950,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     ) {
       // Continue the selected result with Mari without opening the detail pane first.
       event.preventDefault();
-      openProfessorMari(resolveCurrentResult(activeResult));
+      askMariAbout(resolveCurrentResult(activeResult));
     } else if (pane === "results" && event.key === "Enter" && !activeResult && mariEnabled && query.trim()) {
       // Nothing ranked at all, so Enter still reaches Mari by the one door.
       event.preventDefault();
-      openProfessorMari(null);
+      askMariAbout(null);
     } else if (pane === "results" && event.key === "Enter" && activeResult) {
       event.preventDefault();
       if (chooseChoiceOption(activeResult)) return;
@@ -2116,6 +2109,15 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     enterMariPane(buildAskContext(draft, focusResult), options.submitDraft);
     if (options.reviewPending) setMariPendingReviewRequest((current) => current + 1);
   };
+  /**
+   * One rule for every "take this to Mari" door: typed text that asks for something is sent.
+   * The Ask-Mari row's title is the query itself, so it always sends; the continue row resumes
+   * work that is already running, so it never does.
+   */
+  const mariSends = (result: OmnibarResult | null) =>
+    result?.id === "ask-professor-mari" ? result.group !== "continue" : isMariInstruction(query, result?.title);
+  const askMariAbout = (result: RankedOmnibarResult | null) =>
+    openProfessorMari(result, { submitDraft: mariSends(result) });
   // A handed-off task is "finished" once Mari has been seen working and then
   // stops. Advancing the persisted status rather than detecting the edge in a ref
   // means the transition still lands when it happens between two opens.
@@ -2151,37 +2153,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }
     const result = currentResultById.get(`${resource.kind}:${resource.id}`);
     if (result) choose(result);
-  };
-
-  /**
-   * Turns the active chat into reusable world material. A lorebook gets an empty
-   * shell up front so Mari has somewhere to write; the other kinds need Mari to
-   * decide what already exists first. Mari receives a typed chat reference, not
-   * the transcript — she reads what she needs after the request.
-   */
-  const runChatExtraction = async () => {
-    if (!chatExtraction || !activeChat) return;
-    let lorebookId: string | undefined;
-    try {
-      const lorebook = await createLorebook.mutateAsync({ name: activeChat.name });
-      lorebookId = lorebook.id;
-    } catch (error) {
-      ui().setLastAppError({
-        message: error instanceof Error ? error.message : String(error),
-        action: t("commandCenter.extract.createLorebookAction", "Create lorebook"),
-      });
-    }
-    useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, chatExtraction.seed);
-    mariReturnResultIdRef.current = "chat-extraction";
-    enterMariPane(
-      buildProfessorMariCommandCenterContext(
-        chatExtraction.seed,
-        lorebookId ? { id: `lorebook:${lorebookId}`, title: activeChat.name, category: "lorebook" } : null,
-        [],
-        undefined,
-        { activeChat: { id: activeChat.id, label: activeChat.name, mode: activeChat.mode } },
-      ),
-    );
   };
 
   // Keyed by row id so the two per-row lookups below stay O(1); a linear scan
@@ -2258,15 +2229,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const previewActions = previewResult
     ? (() => {
         if (previewResult.command.availability?.status === "requires-admin") return [];
-        const mariActions = mariEnabled
-          ? [
-              {
-                label: t("commandCenter.actions.continueWithMari", "Continue with Mari"),
-                icon: Sparkles,
-                onSelect: () => openProfessorMari(previewResult),
-              },
-            ]
-          : [];
+        // Only for what she can change; a setting, a message or a doc has nothing to continue.
+        const mariActions =
+          mariEnabled && MARI_EDITABLE_CATEGORIES.has(previewResult.category) && !previewResult.action
+            ? [
+                {
+                  label: t("commandCenter.actions.continueWithMari", "Continue with Mari"),
+                  icon: Sparkles,
+                  onSelect: () => askMariAbout(previewResult),
+                },
+              ]
+            : [];
         if (previewResult.control?.type === "choice") return mariActions;
         const resourceKind = CHAT_RESOURCE_KIND[previewResult.category];
         const resourceId = resourceKind ? getOmnibarResourceId(previewResult) : "";
@@ -2352,7 +2325,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             ? {
                 label: t("commandCenter.mode.work", "Ask Mari"),
                 icon: Sparkles,
-                onSelect: () => openProfessorMari(previewResult),
+                onSelect: () => askMariAbout(previewResult),
               }
             : null;
           const contextAction = inActiveChat
@@ -2615,7 +2588,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             {!mariSurface && mariEnabled ? (
               <button
                 type="button"
-                onClick={() => openProfessorMari()}
+                onClick={() => askMariAbout(null)}
                 aria-label={t("commandCenter.openWork", "Ask Professor Mari")}
                 title={t("commandCenter.openWork", "Ask Professor Mari")}
                 data-component="GlobalOmnibar.ProfessorMariButton"
@@ -2631,7 +2604,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 />
               </button>
             ) : null}
-            {mariSurface ? <OmnibarSettingsMenu /> : null}
+            {mariSurface ? <OmnibarSettingsButton open={settingsOpen} onOpen={() => setSettingsOpen(true)} /> : null}
             <button
               type="button"
               onClick={onClose}
@@ -2830,24 +2803,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                                 </div>
                               ) : undefined
                             }
-                            mariAffordance={
-                              mariEnabled && result.command.availability?.status !== "requires-admin" ? (
-                                <button
-                                  type="button"
-                                  aria-label={t("commandCenter.actions.continueWithMari", "Continue with Mari")}
-                                  title={t("commandCenter.actions.continueWithMari", "Continue with Mari")}
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    openProfessorMari(resolveCurrentResult(result));
-                                  }}
-                                  className={`inline-flex size-7 shrink-0 items-center justify-center rounded-md text-[var(--muted-foreground)] transition-opacity hover:bg-[var(--accent)] hover:text-[var(--foreground)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)] max-md:opacity-100 ${
-                                    selected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                                  }`}
-                                >
-                                  <Sparkles className="size-3.5" aria-hidden="true" />
-                                </button>
-                              ) : undefined
-                            }
                             mediaSrc={preview?.media?.src}
                             mediaKind={preview?.media?.kind}
                             avatarCropStyle={preview?.media?.avatarCropStyle}
@@ -2929,7 +2884,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 setAsideEnabled(false);
                 setAsideDisclosed(true);
               }}
-              onEscalate={() => openProfessorMari()}
+              onEscalate={() => openProfessorMari(null, { submitDraft: true })}
+              onChooseModel={() => setSettingsOpen(true)}
             />
           </Suspense>
         ) : null}
@@ -2943,7 +2899,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               {inlineSuffix ? (
                 <span>{t("commandCenter.keyboard.complete", "⇥ Complete")}</span>
               ) : mariEnabled && pane === "results" && activeResult ? (
-                <span>{t("commandCenter.keyboard.continueMari", "Ctrl/⌘+Enter Continue with Mari")}</span>
+                // Says whether ⌘↵ sends: "Ask" sends what you typed, "Continue" only opens her.
+                <span>
+                  {mariSends(activeResult)
+                    ? t("commandCenter.keyboard.askMari", "Ctrl/⌘+Enter Ask Mari")
+                    : t("commandCenter.keyboard.continueMari", "Ctrl/⌘+Enter Continue with Mari")}
+                </span>
               ) : null}
               {pane === "results" && activeResult && isRichResult(activeResult) ? (
                 <span>
@@ -2960,9 +2921,23 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               {!idle ? (
                 <span className="hidden sm:inline">{t("commandCenter.keyboard.escape", "Esc close")}</span>
               ) : null}
-              <OmnibarSettingsMenu />
+              <OmnibarSettingsButton open={settingsOpen} onOpen={() => setSettingsOpen(true)} />
             </span>
           </footer>
+        ) : null}
+        {settingsOpen ? (
+          <OmnibarSettingsSheet
+            onClose={() => setSettingsOpen(false)}
+            connections={languageConnections}
+            onSetUpLocalModel={
+              import.meta.env.VITE_MARINARA_LITE === "true"
+                ? undefined
+                : () => {
+                    onClose();
+                    useSidecarStore.getState().setShowDownloadModal(true);
+                  }
+            }
+          />
         ) : null}
       </div>
 

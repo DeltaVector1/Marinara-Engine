@@ -20,10 +20,10 @@ Git history retains them without presenting obsolete architecture as current.
 One list, and the one surface that takes it over. The persisted `pane` holds two
 values.
 
-| Surface   | Purpose                                                          | Entered by                                                                            |
-| --------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `results` | The ranked result list. The default, and every open starts here. | Open, or Escape from a takeover                                                       |
-| `mari`    | Professor Mari's work surface.                                   | The Mari button, `⌘↵`, a row's Sparkles button, a Mari-owned row, or the Ask-Mari row |
+| Surface   | Purpose                                                          | Entered by                                                                                   |
+| --------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `results` | The ranked result list. The default, and every open starts here. | Open, or Escape from a takeover                                                              |
+| `mari`    | Professor Mari's work surface.                                   | The Mari button, `⌘↵`, a preview's Continue with Mari, a Mari-owned row, or the Ask-Mari row |
 
 Two things render **inside** the list rather than replacing it:
 
@@ -93,7 +93,6 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Idle rows                                                                      | `buildOmnibarIdleResults`                                                                     | Unfinished setup first (capped at 2), then recents, then surface commands                                                                                                                                                                                                            |
 | Verb, attach and detach suggestions                                            | `buildOmnibarVerbSuggestions`, `buildOmnibarAddSuggestions`, `buildOmnibarRemovalSuggestions` | Answer a half-typed sentence                                                                                                                                                                                                                                                         |
 | Creation proposal                                                              | `lib/omnibar-creation-proposal.ts`                                                            | Nothing is created until accepted                                                                                                                                                                                                                                                    |
-| Chat-to-world extraction                                                       | `lib/omnibar-chat-extraction.ts`                                                              | Lorebook only — see section 11                                                                                                                                                                                                                                                       |
 | Choice values                                                                  | `lib/omnibar-choice-rows.ts`                                                                  | With a query typed, every choice control's options join the searchable set, so "gpt" reaches GPT-4 without finding the Model row first. They stay out of the idle deck. Each row carries its own `chooseValue`, so a row found by typing works when its control is nowhere on screen |
 | "Ask Professor Mari" fallback                                                  | `buildOmnibarSearchResults`                                                                   | Always last unless promoted. Opens Mari's takeover. The cheap answer arrives on its own, in the aside — see section 12                                                                                                                                                               |
 | "Continue with Mari"                                                           | `buildOmnibarContinueResult`                                                                  | Only when Mari is active or has pending approvals                                                                                                                                                                                                                                    |
@@ -151,7 +150,8 @@ Typed actions (`OmnibarAction`) dispatch through `runResultAction`; results
 without one fall through to the generic open path.
 
 - `open-mari-chat`, `slash`, `goto-message`, `add-to-chat`, `detach-from-chat`,
-  `refine-query`, `personal-extension`, `open-docs`, `open-faq`.
+  `refine-query`, `personal-extension`, `open-docs`, `open-faq`,
+  `open-global-search` (the "See all results" row under message hits).
 - A row with `chooseValue` applies that value and is checked before any other
   path. It exists so a choice option works wherever it was found.
 - Direct active-chat actions: "add Eliza" with a chat open attaches instead of
@@ -161,7 +161,8 @@ without one fall through to the generic open path.
 - Every navigation passes the dirty-editor confirmation.
 - Preview actions per category: start chat, edit, add to or remove from this
   chat, activate persona, set default preset, enable or disable, resume chat,
-  open documentation, continue with Mari.
+  open documentation, and continue with Mari — the last only for chats,
+  characters, personas, lorebooks and presets, the things she can change.
 
 ## 6. Cross-chat message search
 
@@ -190,8 +191,11 @@ This is the part most likely to break silently. All of it must survive.
   there is no surface left that opts out of the keyboard model.
 - `Enter` chooses. On a toggle row it flips the toggle; on a choice row it
   expands the row's options beneath it; on an option row it applies that value.
-- `⌘↵` / `Ctrl+↵` continues the selected result with Mari, skipping the detail
-  pane. Not offered for admin-only rows.
+- `⌘↵` / `Ctrl+↵` takes the selected result to Mari. Not offered for admin-only
+  rows. Every Mari door follows one rule, `isMariInstruction`: typed text that
+  asks for something is sent; typing only the row's name opens her with the
+  draft. The footer hint says which ("Ask Mari" or "Continue with Mari"). There
+  is no per-row Mari button: it put the expensive path on every free row.
 - `→` expands a choice row's options, or a rich row's preview, in place. `←`
   collapses whichever is open, and otherwise returns focus to the input.
 - **Expanded content is inserted below the focused row, never above it.** The
@@ -295,9 +299,10 @@ Do not "fix" these; each was a decision.
   character to this chat…", whose action typed `add character ` back into the
   input. A row whose action is more typing is not an answer; the add and removal
   suggestion builders already give the real rows.
-- **Chat extraction only makes lorebooks.** Characters, locations and campaigns
-  created nothing — they handed the sentence to Mari, which is what the Ask-Mari
-  row does anyway. Only the lorebook has an empty shell worth creating up front.
+- **There is no chat-to-world row.** It created an empty lorebook before Mari
+  started, which stayed in the library whenever she failed or was stopped.
+  Without that shell the row did exactly what the Ask-Mari row does, which
+  already carries the open chat.
 - **There is no scope-hint row.** The prefixes are taught by the category chips,
   which type one, and by the idle-deck subtitle. A row that teaches is a row
   that is not what the user came for.
@@ -335,10 +340,15 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   query, and the focused resource's label. It must never carry persistent
   memories or the contents of the focused field, both of which an _asked_ Quick
   call does send. `quick-context-payload.test.ts` pins this.
-- Defaults to the local sidecar, so nothing is spent unasked.
+- Defaults to the local sidecar, so nothing is spent unasked. The answering
+  model is chosen in the omnibar settings sheet: the local model or any language
+  connection, with a note that a connection may cost money.
+- Without a downloaded local model (and no connection chosen) it makes no call.
+  A dead end shows one quiet line instead, offering "Choose a model" and "Turn
+  this off".
 - Nothing is front-loaded into onboarding. The first answer says where it came
   from and offers to turn the feature off, in place.
 - A failed call shows one quiet line and the `shrug` sprite. Never a toast — the
   user did not ask for this call — and the ranked list is never degraded by it.
-- `⌘↵` needs no special case: when the aside fires, the promoted Ask-Mari row is
-  the selection, so continuing it already opens the takeover.
+- Escalating from the aside sends the question to Mari; it does not only open
+  her with a draft.

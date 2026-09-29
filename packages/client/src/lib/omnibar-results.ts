@@ -23,7 +23,6 @@ import { deriveActiveLorebookViews, getChatActiveLorebookIds, getChatExcludedLor
 import { getChatCharacterIds } from "./chat-macros";
 import { isLanguageGenerationConnection, type ConnectionProviderLike } from "./connection-filters";
 import type { DocsCommandSearchPassage } from "./docs-command-search";
-import type { parseChatExtraction } from "./omnibar-chat-extraction";
 import type { OmnibarNamedRow, OmnibarTranslate } from "./omnibar-entity-rows";
 import {
   getUnambiguousOmnibarResult,
@@ -153,6 +152,8 @@ export type OmnibarMessageResultsInput = {
 export type OmnibarGlobalMessageResultsInput = {
   activeChatId: string | null;
   hits: readonly GlobalChatSearchResult[];
+  /** The server has more hits than this page. */
+  hasMore: boolean;
   messageSearchQuery: string;
   t: OmnibarTranslate;
 };
@@ -213,12 +214,6 @@ export type OmnibarRemovalSuggestionsInput = {
   contextResults: readonly OmnibarResult[];
   deferredQuery: string;
   omnibarSuggestionsEnabled: boolean;
-  t: OmnibarTranslate;
-};
-
-export type OmnibarExtractionResultInput = {
-  activeChat: Chat | null | undefined;
-  chatExtraction: ReturnType<typeof parseChatExtraction> | null;
   t: OmnibarTranslate;
 };
 
@@ -687,27 +682,42 @@ export function buildOmnibarMessageResults({
 export function buildOmnibarGlobalMessageResults({
   activeChatId,
   hits,
+  hasMore,
   messageSearchQuery,
   t,
 }: OmnibarGlobalMessageResultsInput): OmnibarResult[] {
-  if (messageSearchQuery.trim().length < MIN_MESSAGE_SEARCH_LENGTH) return [];
-  return hits
-    .filter((hit) => hit.chatId !== activeChatId)
-    .slice(0, MAX_GLOBAL_MESSAGE_SEARCH_RESULTS)
-    .map((hit, index) => ({
-      id: `message:${hit.chatId}:${hit.messageNumber}`,
-      action: { kind: "goto-message" as const, chatId: hit.chatId, messageNumber: hit.messageNumber },
-      title: hit.snippet,
-      description: t("commandCenter.messages.inChat", "{{chat}} · message {{number}}", {
-        chat: hit.chatName,
-        number: hit.messageNumber,
-      }),
-      category: "chat" as const,
-      group: "messages" as const,
-      score: 280 - index,
-      kind: "action" as const,
-      icon: "chats" as const,
-    }));
+  const query = messageSearchQuery.trim();
+  if (query.length < MIN_MESSAGE_SEARCH_LENGTH) return [];
+  const otherChats = hits.filter((hit) => hit.chatId !== activeChatId);
+  const rows: OmnibarResult[] = otherChats.slice(0, MAX_GLOBAL_MESSAGE_SEARCH_RESULTS).map((hit, index) => ({
+    id: `message:${hit.chatId}:${hit.messageNumber}`,
+    action: { kind: "goto-message" as const, chatId: hit.chatId, messageNumber: hit.messageNumber },
+    title: hit.snippet,
+    description: t("commandCenter.messages.inChat", "{{chat}} · message {{number}}", {
+      chat: hit.chatName,
+      number: hit.messageNumber,
+    }),
+    category: "chat" as const,
+    group: "messages" as const,
+    score: 280 - index,
+    kind: "action" as const,
+    icon: "chats" as const,
+  }));
+  // The rows above are a sample; the full list, with filters, is Search All Chats.
+  if (rows.length > 0 && (hasMore || otherChats.length > rows.length)) {
+    rows.push({
+      id: "global-search:see-all",
+      action: { kind: "open-global-search", query },
+      title: t("commandCenter.messages.seeAll", "See all results for “{{query}}”", { query }),
+      description: t("commandCenter.messages.seeAllDescription", "Opens Search All Chats, with filters."),
+      category: "chat",
+      group: "messages",
+      score: 280 - rows.length,
+      kind: "action",
+      icon: "chats",
+    });
+  }
+  return rows;
 }
 
 export function buildOmnibarSlashResults({
@@ -1103,25 +1113,6 @@ export function buildOmnibarRemovalSuggestions({
     });
   }
   return out;
-}
-
-export function buildOmnibarExtractionResult({
-  activeChat,
-  chatExtraction,
-  t,
-}: OmnibarExtractionResultInput): OmnibarResult | null {
-  if (!chatExtraction || !activeChat) return null;
-  return {
-    id: "chat-extraction",
-    title: t("commandCenter.extract.lorebook", "Create lorebook from {{chat}}", { chat: activeChat.name }),
-    description: t("commandCenter.extract.description", "From {{chat}}. Mari proposes the content for review.", {
-      chat: activeChat.name,
-    }),
-    category: "professor",
-    score: 400,
-    kind: "action",
-    icon: "professor",
-  };
 }
 
 export type OmnibarApprovalDecision = "keep" | "restore";

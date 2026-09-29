@@ -26,7 +26,6 @@ export interface CommandCenterResultRowProps {
    * taking over the panel.
    */
   expanded?: ReactNode;
-  mariAffordance?: ReactNode;
   currentChoice?: string;
   enterHint?: string;
   setupStatus?: string;
@@ -53,7 +52,6 @@ export function CommandCenterResultRow({
   accent,
   control,
   expanded,
-  mariAffordance,
   currentChoice,
   enterHint,
   setupStatus,
@@ -113,9 +111,8 @@ export function CommandCenterResultRow({
         </span>
       </button>
 
-      {control || mariAffordance || enterHint ? (
+      {control || enterHint ? (
         <div className="col-start-2 flex min-w-0 max-w-[min(48vw,16rem)] shrink-0 items-center justify-end gap-1 pr-1">
-          {mariAffordance}
           {!control && enterHint ? (
             <span className="hidden items-center gap-1 text-xs text-[var(--muted-foreground)] sm:inline-flex">
               <span className="truncate">{enterHint}</span>

@@ -41,7 +41,8 @@ export type OmnibarAction =
   | { kind: "refine-query"; query: string }
   | { kind: "personal-extension"; commandId: string }
   | { kind: "open-docs"; path?: string }
-  | { kind: "open-faq"; itemId: string };
+  | { kind: "open-faq"; itemId: string }
+  | { kind: "open-global-search"; query: string };
 
 export type OmnibarResult = {
   id: string;

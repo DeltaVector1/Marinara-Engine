@@ -29,6 +29,7 @@ import {
   searchOmnibar,
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
+import { isMariInstruction } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
   SETTINGS_SEARCHABLE_CONTROLS,
   SETTINGS_SECTIONS,
@@ -656,4 +657,13 @@ console.info("Command Center regression checks passed.");
   assert.equal(isTypingTarget({ tagName: "BUTTON", closest: () => null }), false);
   assert.equal(formatShortcutKey("Mod", true), "⌘");
   assert.equal(formatShortcutKey("Mod", false), "Ctrl");
+}
+
+{
+  // Handing typed text to Professor Mari sends it only when it asks for something.
+  assert.equal(isMariInstruction("", "Eliza"), false, "nothing typed opens her with nothing to send");
+  assert.equal(isMariInstruction("eliza", "Eliza"), false, "the row's own name is a search, not a request");
+  assert.equal(isMariInstruction("char: Eli", "Eliza"), false, "a scope prefix is not part of the request");
+  assert.equal(isMariInstruction("make eliza meaner", "Eliza"), true, "more than the name is a request");
+  assert.equal(isMariInstruction("how do lorebooks work", null), true, "with no row, any text is a request");
 }

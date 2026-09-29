@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { LOCAL_SIDECAR_CONNECTION_ID, type ProfessorMariQuickPromptRequest } from "@marinara-engine/shared";
 
 import { api } from "../lib/api-client";
+import { useSidecarStore } from "../stores/sidecar.store";
 import { useUIStore } from "../stores/ui.store";
 
 /**
@@ -16,7 +17,8 @@ export const OMNIBAR_ASIDE_DELAY_MS = 3_000;
 /** Below this the query is too short to mean anything. Matches message search. */
 const MIN_QUERY_LENGTH = 3;
 
-export type OmnibarAsideStatus = "idle" | "waiting" | "streaming" | "complete" | "error";
+/** "unavailable": the query dead-ended, but no model can answer, so nothing is called. */
+export type OmnibarAsideStatus = "idle" | "unavailable" | "waiting" | "streaming" | "complete" | "error";
 
 export interface OmnibarAsideState {
   status: OmnibarAsideStatus;
@@ -59,6 +61,11 @@ export function useOmnibarAside(params: {
   const { query, deadEnd, source, resourceLabel } = params;
   const delayMs = params.delayMs ?? OMNIBAR_ASIDE_DELAY_MS;
   const trimmed = query.trim();
+  const localModelDownloaded = useSidecarStore((state) => state.modelDownloaded);
+  const tier: OmnibarAsideState["tier"] = connectionId === LOCAL_SIDECAR_CONNECTION_ID ? "local" : "remote";
+  // Without a downloaded local model every unasked call would only fail, so the
+  // aside offers the setup instead of calling (R24: never a failure per query).
+  const available = tier === "remote" || localModelDownloaded;
   const ready = enabled && deadEnd && trimmed.length >= MIN_QUERY_LENGTH;
 
   useEffect(() => {
@@ -68,7 +75,10 @@ export function useOmnibarAside(params: {
       setState(IDLE);
       return;
     }
-    const tier: OmnibarAsideState["tier"] = connectionId === LOCAL_SIDECAR_CONNECTION_ID ? "local" : "remote";
+    if (!available) {
+      setState({ ...IDLE, status: "unavailable", query: trimmed, tier });
+      return;
+    }
     setState({ status: "waiting", answer: "", error: null, query: trimmed, tier });
 
     const timer = window.setTimeout(() => {
@@ -123,7 +133,7 @@ export function useOmnibarAside(params: {
       abortRef.current?.abort();
       abortRef.current = null;
     };
-  }, [connectionId, delayMs, ready, resourceLabel, source, trimmed]);
+  }, [available, connectionId, delayMs, ready, resourceLabel, source, tier, trimmed]);
 
   return state;
 }

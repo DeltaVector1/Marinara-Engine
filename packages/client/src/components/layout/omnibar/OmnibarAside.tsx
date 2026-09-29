@@ -12,6 +12,8 @@ export interface OmnibarAsideProps {
   onDisclose: () => void;
   onDisable: () => void;
   onEscalate: () => void;
+  /** Opens the omnibar settings, where the answering model is chosen. */
+  onChooseModel: () => void;
 }
 
 /**
@@ -28,6 +30,7 @@ export function OmnibarAside({
   onDisclose,
   onDisable,
   onEscalate,
+  onChooseModel,
 }: OmnibarAsideProps) {
   const appearance = useMariAppearancePack();
   const { t } = useTranslation();
@@ -44,7 +47,22 @@ export function OmnibarAside({
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </span>
-      {state.status !== "idle" && state.status !== "waiting" ? (
+      {state.status === "unavailable" ? (
+        <p
+          data-component="GlobalOmnibar.Aside"
+          className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-[var(--border)] px-3 py-2 text-[0.625rem] text-[var(--muted-foreground)]"
+        >
+          <span>
+            {t("omnibar.aside.needsModel", "Professor Mari can answer searches like this once she has a model.")}
+          </span>
+          <button type="button" onClick={onChooseModel} className="font-semibold underline underline-offset-2">
+            {t("omnibar.aside.chooseModel", "Choose a model")}
+          </button>
+          <button type="button" onClick={onDisable} className="font-semibold underline underline-offset-2">
+            {t("omnibar.aside.turnOff", "Turn this off")}
+          </button>
+        </p>
+      ) : state.status !== "idle" && state.status !== "waiting" ? (
         <section
           data-component="GlobalOmnibar.Aside"
           className="shrink-0 border-t border-[var(--border)] px-3 py-2"

@@ -1,3 +1,5 @@
+import { normalizeTextForMatch } from "@marinara-engine/shared";
+
 import type { OmnibarResult } from "./omnibar-search";
 
 /**
@@ -62,4 +64,15 @@ export function matchesOmnibarScope(result: Pick<OmnibarResult, "id" | "category
   if (scope === "messages") return result.group === "messages";
   if (scope === "chat") return result.category === "chat" && result.group !== "messages";
   return result.category === scope;
+}
+
+/**
+ * Whether handing the typed text to Professor Mari should send it. Typing only
+ * the name of the row you found ("eliza" on Eliza) is a search, not a request,
+ * so it opens her with the draft; anything more ("make eliza meaner") sends.
+ */
+export function isMariInstruction(rawQuery: string, rowTitle: string | null | undefined): boolean {
+  const typed = normalizeTextForMatch(parseOmnibarScope(rawQuery).query);
+  if (!typed) return false;
+  return !rowTitle || !normalizeTextForMatch(rowTitle).includes(typed);
 }
