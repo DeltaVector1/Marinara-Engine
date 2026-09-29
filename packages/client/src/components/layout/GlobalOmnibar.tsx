@@ -1,3 +1,4 @@
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
 import {
   lazy,
   Suspense,
@@ -188,7 +189,6 @@ const OmnibarMariPane = lazy(() => import("./omnibar/OmnibarMariPane").then((m) 
 const OmnibarAside = lazy(() => import("./omnibar/OmnibarAside").then((m) => ({ default: m.OmnibarAside })));
 
 const PROFESSOR_MARI_DRAFT_KEY = "__home_professor_mari__";
-const PROFESSOR_MARI_PEEK_URL = "/sprites/mari/generated/professor-mari-assistant-idle.png";
 
 /** Categories whose result rows open an editor rather than the thing itself. */
 const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
@@ -385,6 +385,7 @@ function usePreviewDetail(previewResult: RankedOmnibarResult | null): {
 }
 
 export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
+  const appearance = useMariAppearancePack();
   const { t } = useTranslation();
   const localize = useLocalizedUiText();
   const ui = useUIStore.getState;
@@ -2520,13 +2521,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                       data-conversation={mariHasConversation ? "true" : "false"}
                       aria-hidden="true"
                     >
-                      <img src={PROFESSOR_MARI_PEEK_URL} alt="" draggable={false} data-part="idle" />
-                      <img
-                        src="/sprites/mari/generated/professor-mari-assistant-blink-v3.png"
-                        alt=""
-                        draggable={false}
-                        data-part="blink"
-                      />
+                      <img src={appearance.portraits.idle} alt="" draggable={false} data-part="idle" />
+                      <img src={appearance.portraits.blink} alt="" draggable={false} data-part="blink" />
                     </span>
                   </span>
                   <span className="mari-omnibar-header-copy min-w-0 shrink-0">
@@ -2618,7 +2614,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end overflow-hidden pb-2 pl-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] max-[30rem]:w-11 max-[30rem]:pl-0"
               >
                 <img
-                  src={PROFESSOR_MARI_PEEK_URL}
+                  src={appearance.portraits.idle}
                   alt=""
                   aria-hidden="true"
                   draggable={false}

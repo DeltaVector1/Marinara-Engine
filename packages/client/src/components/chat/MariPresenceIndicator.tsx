@@ -1,3 +1,4 @@
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -5,9 +6,6 @@ import { useMariPresence } from "../../hooks/use-mari-presence";
 import { readMariSeenHistoryId, rememberMariSeenHistoryId } from "../../lib/mari-presence-seen";
 import { resolveProfessorMariVisualState } from "../../lib/professor-mari-visual-state";
 import { useUIStore } from "../../stores/ui.store";
-
-const IDLE_SPRITE_URL = "/sprites/mari/generated/professor-mari-assistant-idle.png";
-const BLINK_SPRITE_URL = "/sprites/mari/generated/professor-mari-assistant-blink-v3.png";
 
 /**
  * Professor Mari's presence outside the omnibar.
@@ -20,6 +18,7 @@ const BLINK_SPRITE_URL = "/sprites/mari/generated/professor-mari-assistant-blink
  * all, so there is no chrome to look at when she is idle.
  */
 export function MariPresenceIndicator() {
+  const appearance = useMariAppearancePack();
   const { t } = useTranslation();
   const { working, needsAttention, pendingCount, latestHistoryId } = useMariPresence();
   const omnibarOpen = useUIStore((state) => state.omnibarOpen);
@@ -64,8 +63,8 @@ export function MariPresenceIndicator() {
         data-mari-glow={working ? "true" : "false"}
       >
         <span className="mari-workspace-portrait" data-state={visualState} data-conversation="true" aria-hidden="true">
-          <img src={IDLE_SPRITE_URL} alt="" draggable={false} data-part="idle" />
-          <img src={BLINK_SPRITE_URL} alt="" draggable={false} data-part="blink" />
+          <img src={appearance.portraits.idle} alt="" draggable={false} data-part="idle" />
+          <img src={appearance.portraits.blink} alt="" draggable={false} data-part="blink" />
         </span>
         {pendingCount > 1 && <span data-part="count">{pendingCount}</span>}
       </button>

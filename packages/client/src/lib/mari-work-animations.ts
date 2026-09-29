@@ -1,108 +1,106 @@
-export type MariWorkAnimation = {
+export const MARI_STORY_STATES = [
+  "thinking",
+  "research",
+  "planning",
+  "editing",
+  "debugging",
+  "images",
+  "waiting",
+  "approval",
+  "success",
+  "retry",
+  "cancelled",
+  "idle",
+] as const;
+
+export type MariStoryState = (typeof MARI_STORY_STATES)[number];
+export type MariWorkAnimation = { id: MariStoryState; src: string };
+
+export interface MariAppearancePack {
   id: string;
-  src: string;
-  /** The pack this sprite ships in. See MARI_ANIMATION_PACKS. */
-  pack: MariAnimationPackId;
-  /** Landscape scenes (a train, a boat) that need a wide frame. */
-  wide?: true;
-};
+  label: string;
+  description: string;
+  /** Workspace, omnibar and top-bar Maris resolve the same pack. */
+  portraits: {
+    idle: string;
+    blink: string;
+    arrival: string;
+    map: string;
+    shrug: string;
+    drag: string;
+  };
+  stories: Record<MariStoryState, MariWorkAnimation>;
+}
 
-/**
- * Sprites are grouped into packs so a future drop is a new pack id plus its entries here, and the
- * omnibar's pack browser lists it without any further wiring. `core` is not disableable — every
- * selection pool falls back to it, so turning the last pack off could otherwise leave the work card
- * with no sprite at all.
- */
-export type MariAnimationPackId = "core" | "expeditions";
+const generated = (filename: string) => `/sprites/mari/generated/${filename}`;
 
-const animation = (
-  id: string,
-  filename: string,
-  pack: MariAnimationPackId = "core",
-  wide?: true,
-): MariWorkAnimation => ({
-  id,
-  src: `/sprites/mari/generated/${filename}`,
-  pack,
-  ...(wide ? { wide } : {}),
-});
+export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
+  {
+    id: "basic",
+    label: "Basic",
+    description:
+      "Mari's familiar pixel look, with a little story for every state. Shared by the workspace, omnibar and top bar.",
+    portraits: {
+      idle: generated("professor-mari-assistant-idle.png"),
+      blink: generated("professor-mari-assistant-blink-v3.png"),
+      arrival: generated("professor-mari-assistant-sheet.png"),
+      map: generated("professor-mari-assistant-map.png"),
+      shrug: generated("professor-mari-assistant-shrug.png"),
+      drag: generated("professor-mari-assistant-drag-sheet-v3.png"),
+    },
+    stories: Object.fromEntries(
+      MARI_STORY_STATES.map((id) => [
+        id,
+        {
+          id,
+          src: `/sprites/mari/basic/${id}.png`,
+        },
+      ]),
+    ) as Record<MariStoryState, MariWorkAnimation>,
+  },
+  {
+    id: "dottore",
+    label: "Mari loves Dottore",
+    description:
+      "A cyan heart pin, a Dottore plush and twelve little fangirl stories. Shared by the workspace, omnibar and top bar.",
+    portraits: {
+      idle: "/sprites/mari/dottore/portrait-idle.png",
+      blink: "/sprites/mari/dottore/portrait-blink.png",
+      arrival: "/sprites/mari/dottore/idle.png",
+      map: "/sprites/mari/dottore/portrait-map.png",
+      shrug: "/sprites/mari/dottore/portrait-shrug.png",
+      drag: "/sprites/mari/dottore/idle.png",
+    },
+    stories: Object.fromEntries(
+      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/dottore/${id}.png` }]),
+    ) as Record<MariStoryState, MariWorkAnimation>,
+  },
+];
 
-const ANIMATIONS = {
-  assistant: animation("assistant", "professor-mari-assistant-sheet.png"),
-  detective: animation("detective", "professor-mari-work-detective.png"),
-  tea: animation("tea", "professor-mari-work-idea-tea.png"),
-  books: animation("books", "professor-mari-work-book-tower.png"),
-  train: animation("train", "professor-mari-work-train.png", "expeditions", true),
-  yarn: animation("yarn", "professor-mari-work-yarn.png"),
-  deepDive: animation("deep-dive", "professor-mari-work-deep-dive.png", "expeditions", true),
-  airplane: animation("paper-airplane", "professor-mari-work-paper-airplane.png", "expeditions"),
-  pixelBug: animation("pixel-bug", "professor-mari-inline-pixel-bug-sheet.png"),
-  telescope: animation("telescope", "professor-mari-work-telescope.png", "expeditions"),
-  boat: animation("boat", "professor-mari-work-boat.png", "expeditions", true),
-  puzzle: animation("puzzle", "professor-mari-work-puzzle.png"),
-  spelunking: animation("spelunking", "professor-mari-work-spelunking.png", "expeditions", true),
-  origami: animation("origami", "professor-mari-work-origami.png"),
-  constellation: animation("constellation", "professor-mari-work-constellation.png", "expeditions"),
-  clockwork: animation("clockwork", "professor-mari-work-clockwork.png"),
-  typewriter: animation("typewriter", "professor-mari-work-typewriter.png"),
-  rocket: animation("rocket", "professor-mari-work-rocket.png", "expeditions"),
-  images: animation("images", "professor-mari-work-images.png"),
-  thinkingNotes: animation("thinking-notes", "professor-mari-work-thinking-notes.png"),
-};
+export function getMariAppearancePack(id: unknown): MariAppearancePack {
+  return MARI_APPEARANCE_PACKS.find((pack) => pack.id === id) ?? MARI_APPEARANCE_PACKS[0]!;
+}
 
-const GENERAL_POOL = [
-  ANIMATIONS.assistant,
-  ANIMATIONS.tea,
-  ANIMATIONS.yarn,
-  ANIMATIONS.airplane,
-  ANIMATIONS.boat,
-  ANIMATIONS.origami,
-  ANIMATIONS.clockwork,
-  ANIMATIONS.rocket,
-  ANIMATIONS.thinkingNotes,
-];
-const RESEARCH_POOL = [
-  ANIMATIONS.detective,
-  ANIMATIONS.books,
-  ANIMATIONS.deepDive,
-  ANIMATIONS.telescope,
-  ANIMATIONS.spelunking,
-  ANIMATIONS.constellation,
-  ANIMATIONS.thinkingNotes,
-];
-const PLANNING_POOL = [
-  ANIMATIONS.yarn,
-  ANIMATIONS.tea,
-  ANIMATIONS.airplane,
-  ANIMATIONS.telescope,
-  ANIMATIONS.puzzle,
-  ANIMATIONS.origami,
-  ANIMATIONS.constellation,
-];
-const FILE_POOL = [
-  ANIMATIONS.assistant,
-  ANIMATIONS.detective,
-  ANIMATIONS.yarn,
-  ANIMATIONS.airplane,
-  ANIMATIONS.origami,
-  ANIMATIONS.typewriter,
-];
-const DEBUG_POOL = [
-  ANIMATIONS.pixelBug,
-  ANIMATIONS.detective,
-  ANIMATIONS.deepDive,
-  ANIMATIONS.puzzle,
-  ANIMATIONS.spelunking,
-  ANIMATIONS.clockwork,
-];
-const LONG_RUNNING_POOL = [
-  ANIMATIONS.train,
-  ANIMATIONS.tea,
-  ANIMATIONS.books,
-  ANIMATIONS.boat,
-  ANIMATIONS.clockwork,
-  ANIMATIONS.rocket,
-];
+/** A completed reply alone is not evidence that a workspace change succeeded. */
+export function resolveMariRestStory({
+  working,
+  failed,
+  cancelled,
+  needsApproval,
+  hasAppliedChanges,
+}: {
+  working: boolean;
+  failed: boolean;
+  cancelled: boolean;
+  needsApproval: boolean;
+  hasAppliedChanges: boolean;
+}): MariStoryState | null {
+  if (working) return null;
+  if (failed) return "retry";
+  if (cancelled) return "cancelled";
+  if (needsApproval) return "approval";
+  return hasAppliedChanges ? "success" : null;
+}
 
 export function stableHash(value: string): number {
   let hash = 2_166_136_261;
@@ -113,67 +111,26 @@ export function stableHash(value: string): number {
   return hash >>> 0;
 }
 
-/** Pack metadata for the omnibar's pack browser. Counts are derived, never restated. */
-export interface MariAnimationPack {
-  id: MariAnimationPackId;
-  /** English name; the caller localizes through the matching `mari.animationPacks.<id>` key. */
-  label: string;
-  description: string;
-  /** True when the pack cannot be turned off, because the fallback sprite lives in it. */
-  locked: boolean;
-  animations: readonly MariWorkAnimation[];
-}
-
-const ALL_ANIMATIONS = Object.values(ANIMATIONS);
-
-export const MARI_ANIMATION_PACKS: readonly MariAnimationPack[] = [
-  {
-    id: "core",
-    label: "Core",
-    description: "Mari's everyday desk work — reading, writing, tinkering, thinking.",
-    locked: true,
-    animations: ALL_ANIMATIONS.filter((entry) => entry.pack === "core"),
-  },
-  {
-    id: "expeditions",
-    label: "Expeditions",
-    description: "Trips, dives and launches, for the long-running jobs.",
-    locked: false,
-    animations: ALL_ANIMATIONS.filter((entry) => entry.pack === "expeditions"),
-  },
-];
-
+/** Prefer a real lifecycle state; tool activity only chooses working stories. */
 export function selectMariWorkAnimation({
-  seed,
   activity,
   toolNames,
-  disabledPacks,
+  packId,
+  state,
 }: {
-  seed: string;
   activity: string;
   toolNames: string[];
-  /** Pack ids the user turned off in the omnibar's settings menu. `core` is ignored. */
-  disabledPacks?: readonly string[];
+  packId?: string;
+  state?: MariStoryState;
 }): MariWorkAnimation {
+  const stories = getMariAppearancePack(packId).stories;
+  if (state) return stories[state];
   const signal = `${activity} ${toolNames.join(" ")}`.toLowerCase();
-  let pool = GENERAL_POOL;
-  if (/image|picture|portrait|sprite|thumbnail|gallery|illustrat|crop|visual/.test(signal)) {
-    pool = [ANIMATIONS.images];
-  } else if (/error|fail|debug|repair|fix|diagnos|test/.test(signal)) {
-    pool = DEBUG_POOL;
-  } else if (/search|research|read|fetch|browse|wiki|inspect|find|grep/.test(signal)) {
-    pool = RESEARCH_POOL;
-  } else if (/plan|reason|think|map|decid|compar|analy/.test(signal)) {
-    pool = PLANNING_POOL;
-  } else if (/write|edit|patch|create|update|remove|file/.test(signal)) {
-    pool = FILE_POOL;
-  } else if (/install|build|compile|command|shell|bash|terminal|wait/.test(signal)) {
-    pool = LONG_RUNNING_POOL;
-  }
-  // A pool emptied by disabled packs falls back to core, never to nothing.
-  const allowed = disabledPacks?.length
-    ? pool.filter((entry) => entry.pack === "core" || !disabledPacks.includes(entry.pack))
-    : pool;
-  const usable = allowed.length > 0 ? allowed : ALL_ANIMATIONS.filter((entry) => entry.pack === "core");
-  return usable[stableHash(seed) % usable.length] ?? ANIMATIONS.assistant;
+  if (/image|picture|portrait|sprite|thumbnail|gallery|illustrat|crop|visual/.test(signal)) return stories.images;
+  if (/error|fail|debug|repair|fix|diagnos|test/.test(signal)) return stories.debugging;
+  if (/search|research|read|fetch|browse|wiki|inspect|find|grep/.test(signal)) return stories.research;
+  if (/plan|reason|map|decid|compar|analy/.test(signal)) return stories.planning;
+  if (/write|edit|patch|create|update|remove|file/.test(signal)) return stories.editing;
+  if (/install|build|compile|command|shell|bash|terminal|wait/.test(signal)) return stories.waiting;
+  return stories.thinking;
 }

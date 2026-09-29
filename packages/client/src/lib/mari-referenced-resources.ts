@@ -21,7 +21,7 @@ interface MariToolCallLike {
 
 const READ_ACTION = /^(character|lorebook|persona)\.(get|list|search)$/u;
 /** A list of 200 characters is not an answer; the cards are for what she picked out. */
-const MAX_REFERENCES = 8;
+const MAX_REFERENCES = 4;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
@@ -94,15 +94,26 @@ export function collectMariReferencedResources(tools: readonly MariToolCallLike[
 }
 
 /**
- * The cards worth showing for one reply: everything she read directly, plus the list results her answer
- * actually names ("Thunder is the coolest" shows Thunder, not the whole roster).
+ * The cards worth showing for one reply, in the order her answer brings them up ("Thunder is the
+ * coolest" puts Thunder first): what she read directly, plus the list results her answer names. Names
+ * she set in bold count first, so a passing mention does not crowd out the ones she is answering with.
  */
 export function selectMariReplyReferences(
   resources: readonly MariReferencedResource[],
   replyText: string,
 ): MariReferencedResource[] {
   const text = replyText.toLocaleLowerCase();
+  const bold = [...text.matchAll(/\*\*(.+?)\*\*/gu)].map((match) => match[1].trim());
+  const position = (resource: MariReferencedResource) => {
+    const name = resource.name?.toLocaleLowerCase();
+    if (!name) return -1;
+    const boldIndex = bold.indexOf(name);
+    return boldIndex >= 0 ? boldIndex : text.includes(name) ? bold.length + text.indexOf(name) : -1;
+  };
   return resources
-    .filter((resource) => !resource.fromList || (resource.name && text.includes(resource.name.toLocaleLowerCase())))
-    .slice(0, MAX_REFERENCES);
+    .map((resource) => ({ resource, at: position(resource) }))
+    .filter(({ resource, at }) => at >= 0 || !resource.fromList)
+    .sort((a, b) => (a.at < 0 ? Infinity : a.at) - (b.at < 0 ? Infinity : b.at))
+    .slice(0, MAX_REFERENCES)
+    .map(({ resource }) => resource);
 }

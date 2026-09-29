@@ -10,8 +10,9 @@ import { useTranslation } from "react-i18next";
 import { Settings2 } from "lucide-react";
 
 import { useUIStore } from "../../../stores/ui.store";
-import { MARI_ANIMATION_PACKS } from "../../../lib/mari-work-animations";
+import { MARI_APPEARANCE_PACKS } from "../../../lib/mari-work-animations";
 import { cn } from "../../../lib/utils";
+import "../../chat/mari-appearance.css";
 
 function SettingRow({
   label,
@@ -35,51 +36,40 @@ function SettingRow({
   );
 }
 
-/**
- * The pack browser. Packs come from `MARI_ANIMATION_PACKS`, so shipping a new drop of sprites is a
- * pack id plus its entries in `mari-work-animations.ts` — this list needs no edit to show it.
- */
-function AnimationPacks() {
+/** Appearance packs are exclusive: portraits and stories always switch together. */
+function AppearancePacks() {
   const { t } = useTranslation();
-  const disabled = useUIStore((state) => state.disabledMariAnimationPacks);
-  const togglePack = useUIStore((state) => state.toggleMariAnimationPack);
+  const selected = useUIStore((state) => state.mariAppearancePackId);
+  const selectPack = useUIStore((state) => state.setMariAppearancePack);
   return (
-    <div className="omnibar-settings-menu__packs">
-      {MARI_ANIMATION_PACKS.map((pack) => {
-        const enabled = pack.locked || !disabled.includes(pack.id);
-        // One sprite stands in for the pack, animated with the same 4-frame sheet the work card uses.
-        const preview = pack.animations[0];
-        return (
-          <label key={pack.id} className="omnibar-settings-menu__pack" data-enabled={enabled ? "true" : "false"}>
-            {preview ? (
-              <span
-                className="omnibar-settings-menu__pack-sprite"
-                aria-hidden="true"
-                style={{ "--mari-work-sprite": `url(${preview.src})` } as CSSProperties}
-              />
-            ) : null}
-            <span className="min-w-0">
-              <span className="omnibar-settings-menu__label">
-                {t(`mari.animationPacks.${pack.id}.label`, pack.label)}
-              </span>
-              <span className="omnibar-settings-menu__description">
-                {t(`mari.animationPacks.${pack.id}.description`, pack.description)}{" "}
-                {t("mari.animationPacks.count", "{{count}} sprites", { count: pack.animations.length })}
-              </span>
+    <div className="omnibar-settings-menu__packs" role="radiogroup" aria-label={t("mari.appearancePacks.heading")}>
+      {MARI_APPEARANCE_PACKS.map((pack) => (
+        <label
+          key={pack.id}
+          className="omnibar-settings-menu__pack"
+          data-enabled={selected === pack.id ? "true" : "false"}
+        >
+          <span
+            className="omnibar-settings-menu__pack-sprite"
+            aria-hidden="true"
+            style={{ "--mari-work-sprite": `url(${pack.stories.idle.src})` } as CSSProperties}
+          />
+          <span className="min-w-0">
+            <span className="omnibar-settings-menu__label">
+              {t(`mari.appearancePacks.${pack.id}.label`, pack.label)}
             </span>
-            {pack.locked ? (
-              <span className="omnibar-settings-menu__locked">{t("mari.animationPacks.alwaysOn", "Always on")}</span>
-            ) : (
-              <input
-                type="checkbox"
-                role="switch"
-                checked={enabled}
-                onChange={(event) => togglePack(pack.id, event.target.checked)}
-              />
-            )}
-          </label>
-        );
-      })}
+            <span className="omnibar-settings-menu__description">
+              {t(`mari.appearancePacks.${pack.id}.description`, pack.description)}
+            </span>
+          </span>
+          <input
+            type="radio"
+            name="mari-appearance-pack"
+            checked={selected === pack.id}
+            onChange={() => selectPack(pack.id)}
+          />
+        </label>
+      ))}
     </div>
   );
 }
@@ -188,8 +178,8 @@ export function OmnibarSettingsMenu() {
             </span>
           </div>
           <div role="separator" />
-          <p className="omnibar-settings-menu__heading">{t("mari.animationPacks.heading", "Mari animations")}</p>
-          <AnimationPacks />
+          <p className="omnibar-settings-menu__heading">{t("mari.appearancePacks.heading")}</p>
+          <AppearancePacks />
         </div>
       ) : null}
     </div>

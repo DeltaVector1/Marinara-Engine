@@ -4,6 +4,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Added the "Mari loves Dottore" appearance pack, with matching workspace and top-bar portraits and twelve connected fangirl stories. Engine Home Mari artwork remains unchanged.
+- Professor Mari now uses one Basic appearance pack across the omnibar, workspace portraits and presence indicators, with twelve connected pixel-art stories that play once and settle. Appearance packs select a complete look rather than mixing animation sets.
 - Professor Mari now preserves closed-surface handoffs, keeps replacement runs from reporting false completion or writing cancellation text into a newer chat, and protects Quick Mari edits from concurrent writes. Quick Mari aside requests also pass validation, and normal omnibar errors no longer show stack traces.
 - Professor Mari's omnibar workspace now keeps completed work in the transcript, shows step progress and result details, and keeps technical tool arguments behind a disclosure.
 - Professor Mari's work steps now use distinct app-data labels such as Reading chat and Reading character. The Details inspector stays out of the way when a full Chats, Skills, Memories, or Context workspace is open.

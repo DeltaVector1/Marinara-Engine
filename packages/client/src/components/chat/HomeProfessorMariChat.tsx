@@ -1,3 +1,5 @@
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import { MariStorySprite } from "./MariStorySprite";
 import {
   type CSSProperties,
   type ChangeEvent,
@@ -82,7 +84,12 @@ import { buildCharacterPreviewModel, type CharacterPreviewModel } from "../../li
 import { resolveRunSeconds, resolveRunStartMs, type RunStepTiming } from "../../lib/mari-work-card-timing";
 import { buildLorebookPreviewModel, type LorebookPreviewModel } from "../../lib/lorebook-preview";
 import { completeInline } from "../../lib/inline-completion";
-import { selectMariWorkAnimation, stableHash, type MariWorkAnimation } from "../../lib/mari-work-animations";
+import {
+  resolveMariRestStory,
+  selectMariWorkAnimation,
+  stableHash,
+  type MariWorkAnimation,
+} from "../../lib/mari-work-animations";
 import { buildWorkTimelineBlocks } from "../../lib/mari-work-timeline";
 import { resolveStepSeconds } from "../../lib/mari-step-duration";
 import { getChatInputShellClass } from "./chat-input-styles";
@@ -186,10 +193,6 @@ import {
   type ProfessorMariOpenDetail,
 } from "../../lib/professor-mari-open";
 
-const MARI_AVATAR_URL = "/sprites/mari/Mari_profile.png";
-const MARI_CHIBI_URL = "/sprites/mari/chibi-professor-mari.png";
-const MARI_HOME_IDLE_URL = "/sprites/mari/generated/professor-mari-assistant-idle.png";
-const MARI_HOME_BLINK_URL = "/sprites/mari/generated/professor-mari-assistant-blink-v3.png";
 const PROFESSOR_MARI_DRAFT_KEY = "__home_professor_mari__";
 const MARI_CONNECTION_STORAGE_KEY = "marinara:home-professor-mari-connection-id";
 const PROFESSOR_MARI_ERROR_TOAST_DURATION_MS = 120_000;
@@ -1613,8 +1616,6 @@ function useWorkspaceElapsedSeconds(active: boolean, startedAtMs: number | null)
 
 type WorkspaceToolItem = Extract<WorkspaceTimelineItem, { type: "tool" }>;
 
-const MARI_SPRITE_REACTIONS = ["hop", "flip", "wave", "bounce"] as const;
-
 /**
  * What the live line says between steps depends on where she is and how long you have waited, not on a
  * timer: a fresh start, going over what she just found (naming it when she can), a longer wait, a very
@@ -1626,38 +1627,19 @@ const MARI_VERY_LONG_WAIT_SECONDS = 45;
 
 /** A little pixel Mari. The inner span is keyed by scene, so a new scene pops in instead of cutting. */
 function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working" }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const reduceMotion = useReducedMotion();
-  // When the run ends, the live reply is swapped for the saved message and working Mari unmounts with it.
-  // Leave a copy where she stood that hops off in a puff. A layout cleanup still sees her in the page; if
-  // the whole transcript went away too (the omnibar closed), there is no one to wave to, so skip it.
-  useLayoutEffect(() => {
-    const node = ref.current;
-    if (role !== "working" || reduceMotion || !node) return;
-    const transcript = node.closest('[data-component="HomeProfessorMariChat.Transcript"]');
-    return () => {
-      const rect = node.getBoundingClientRect();
-      if (!rect.width) return;
-      const ghost = node.cloneNode(true) as HTMLElement;
-      ghost.classList.add("mari-sprite-ghost");
-      // A different goodbye each run, so finishing stays a small surprise.
-      ghost.dataset.reaction = MARI_SPRITE_REACTIONS[Math.floor(Math.random() * MARI_SPRITE_REACTIONS.length)];
-      Object.assign(ghost.style, {
-        left: `${rect.left}px`,
-        top: `${rect.top}px`,
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-      });
-      requestAnimationFrame(() => {
-        if (!transcript?.isConnected) return;
-        document.body.append(ghost);
-        window.setTimeout(() => ghost.remove(), 1_300);
-      });
-    };
-  }, [role, reduceMotion]);
+  const appearance = useMariAppearancePack();
   return (
-    <span ref={ref} className="mari-live-work__sprite" data-scene={scene.id} data-role={role} aria-hidden="true">
-      <span key={scene.id} style={{ "--mari-work-sprite": `url(${scene.src})` } as CSSProperties} />
+    <span
+      className="mari-live-work__sprite"
+      data-scene={scene.id}
+      data-role={role}
+      data-appearance-pack={appearance.id}
+      aria-hidden="true"
+    >
+      <span
+        key={`${appearance.id}:${scene.id}`}
+        style={{ "--mari-work-sprite": `url(${scene.src})` } as CSSProperties}
+      />
     </span>
   );
 }
@@ -1687,7 +1669,7 @@ function MariLiveHeadline({ text, subject }: { text: string; subject?: string | 
           exit={reduceMotion ? undefined : { opacity: 0, y: -8, filter: "blur(4px)" }}
           transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
         >
-          <span className="sr-only">{subject ? `${text} ${subject}` : text}</span>
+          <span className="sr-only">{subject ? [text, subject].join(" ") : text}</span>
           <span aria-hidden="true">
             {letters(text, 0)}
             {subject ? (
@@ -1743,7 +1725,7 @@ function MariWorkTimeline({
 }) {
   const { t } = useUiTranslation();
   const reduceMotion = useReducedMotion();
-  const disabledAnimationPacks = useUIStore((state) => state.disabledMariAnimationPacks);
+  const appearance = useMariAppearancePack();
   const toolItems = items.filter((item): item is WorkspaceToolItem => item.type === "tool");
   // Her thinking is part of the run too, so it counts toward "Worked for".
   const runTimings = items.flatMap((item): RunStepTiming[] =>
@@ -1757,12 +1739,11 @@ function MariWorkTimeline({
   const lastBlock = blocks.at(-1);
   const runningTool = active ? [...toolItems].reverse().find(({ tool }) => tool.status === "running") : undefined;
   // One scene per step, so the Mari who worked a step is the one left beside it when it is done.
-  const stepAnimation = ({ id, tool }: WorkspaceToolItem) =>
+  const stepAnimation = ({ tool }: WorkspaceToolItem) =>
     selectMariWorkAnimation({
-      seed: id,
       activity: inferToolPresentation(tool).title,
       toolNames: [tool.name],
-      disabledPacks: disabledAnimationPacks,
+      packId: appearance.id,
     });
   const runningPresentation = runningTool ? inferToolPresentation(runningTool.tool) : null;
   const replying = lastBlock?.kind === "text";
@@ -1793,11 +1774,10 @@ function MariWorkTimeline({
     : runningTool
       ? stepAnimation(runningTool)
       : selectMariWorkAnimation({
-          seed: items[0]?.id ?? "mari",
-          // A long wait gets one of her long-trip scenes; otherwise she thinks or writes.
+          // A long wait grows a seed; otherwise she thinks or edits.
           activity: replying ? "write" : elapsedSeconds >= MARI_LONG_WAIT_SECONDS ? "wait" : "think",
           toolNames: [],
-          disabledPacks: disabledAnimationPacks,
+          packId: appearance.id,
         });
   const showHeader = !active && toolItems.length > 0;
   const renderBlock = (block: (typeof blocks)[number]) => {
@@ -2132,8 +2112,8 @@ function MariWorkspaceActionResultRow({
 }
 
 /**
- * What her answer is about, as a row of small character-card-style cards under her reply: portrait,
- * name, a tag. Picking one opens a short sheet under the row with the description, tags and Open.
+ * What her answer is about, as a row of small cards under her reply: avatar on the left, name and a tag
+ * on the right. Picking one opens a short sheet under the row with the description, tags and Open.
  */
 function MariReferencedResources({
   resources,
@@ -2178,20 +2158,21 @@ function MariReferencedResources({
   return (
     <div className="mari-ref-cards">
       <div className="mari-ref-cards__row" role="list">
-        {uniqueCards.map((card) => (
+        {uniqueCards.map((card, index) => (
           <button
             key={card.key}
             type="button"
             role="listitem"
             className="mari-ref-card"
+            style={{ "--i": index } as CSSProperties}
             data-kind={card.kind}
             aria-expanded={selectedKey === card.key}
             onClick={() => setSelectedKey((current) => (current === card.key ? null : card.key))}
           >
             {card.src ? (
               <CommandCenterMedia
-                size="grid"
-                role="browse"
+                size="row"
+                role="row"
                 icon={card.kind === "lorebook" ? BookOpen : MessageCircle}
                 src={card.src}
                 alt=""
@@ -2220,10 +2201,10 @@ function MariReferencedResources({
           <motion.div
             key={selected.key}
             className="mari-ref-sheet"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="mari-ref-sheet__name">{selected.name}</p>
             {selected.description ? <p className="mari-ref-sheet__description">{selected.description}</p> : null}
@@ -2630,7 +2611,7 @@ export function ProfessorMariPixelScene({ active }: { active: boolean }) {
     <div className="mari-professor-pixel-scene" data-state={active ? "active" : "idle"} aria-hidden="true">
       <div data-part="glow" />
       <div data-part="desk" />
-      <img src={MARI_CHIBI_URL} alt="" data-part="sprite" draggable={false} />
+      <img src="/sprites/mari/chibi-professor-mari.png" alt="" data-part="sprite" draggable={false} />
       <div data-part="laptop">
         <div data-part="screen">
           <span />
@@ -2685,6 +2666,7 @@ export function HomeProfessorMariChat({
   onChatWindowExitComplete,
   onVisualStateChange,
 }: HomeProfessorMariChatProps) {
+  const appearance = useMariAppearancePack();
   const { t: localizeUi } = useUiTranslation();
   const localize = useLocalizedUiText();
   const { t } = useTranslation();
@@ -2794,6 +2776,7 @@ export function HomeProfessorMariChat({
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [loadedMessagesChatId, setLoadedMessagesChatId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [cancelledChatId, setCancelledChatId] = useState<string | null>(null);
   const [recovery, setRecovery] = useState<ProfessorMariRecovery | null>(null);
   const [connectionMenuOpen, setConnectionMenuOpen] = useState(false);
   const [permissionsMenuOpen, setPermissionsMenuOpen] = useState(false);
@@ -3559,8 +3542,8 @@ export function HomeProfessorMariChat({
     composerHaloWasActiveRef.current = workspaceTimelineActive;
     if (workspaceTimelineActive || !wasActive) return;
     setComposerHaloEnding(true);
-    // Long enough for the green glow to sink out of view (mari-glow-settle).
-    const timer = window.setTimeout(() => setComposerHaloEnding(false), 2_500);
+    // Long enough for the green glow to linger and then sink slowly out of view (mari-glow-settle).
+    const timer = window.setTimeout(() => setComposerHaloEnding(false), 7_000);
     return () => window.clearTimeout(timer);
   }, [workspaceTimelineActive]);
   const visiblePendingChangeReviews = useMemo(
@@ -3582,6 +3565,19 @@ export function HomeProfessorMariChat({
     attachmentCount: attachments.length,
     hasActionResult: latestActionResults.length > 0,
     messageCount: messages.length,
+  });
+  // Outcomes come from runtime state, never from words in the assistant's reply.
+  const latestTraceFailed = latestMessage
+    ? (getMessageWorkspaceTrace(latestMessage) ?? []).some(
+        (item) => item.type === "tool" && item.tool.status === "error",
+      )
+    : false;
+  const restingStory = resolveMariRestStory({
+    working: workspaceTimelineActive,
+    failed: Boolean(recovery || workspaceStatus?.error) || latestTraceFailed,
+    cancelled: Boolean(chatId && cancelledChatId === chatId),
+    needsApproval: visiblePendingChangeReviews.length > 0 || Boolean(pendingDeferredMutations),
+    hasAppliedChanges: latestActionResults.length > 0,
   });
   // The glow behind the composer takes her state's color: cyan while she thinks, pink while she writes,
   // her full logo while a tool runs, gold when she waits for you, red when something broke.
@@ -4037,19 +4033,21 @@ export function HomeProfessorMariChat({
   );
 
   const stopWorkspace = useCallback(async () => {
+    setCancelledChatId(chatId);
     workspaceAbortRef.current?.abort();
     clearMariChips();
     clearMariPlan();
     try {
       await api.post("/professor-mari/workspace/abort");
     } catch (error) {
+      setCancelledChatId(null);
       console.error("[Professor Mari] Failed to stop workspace task", error);
       toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariCouldNotStopTheWorkspaceTask"), {
         description: describeProfessorMariError(error),
         duration: 12_000,
       });
     }
-  }, [clearMariChips, clearMariPlan, localizeUi]);
+  }, [chatId, clearMariChips, clearMariPlan, localizeUi]);
 
   const createSkillFromContent = useCallback(
     async (input: { content: string; fileName?: string; name?: string; description?: string }) => {
@@ -4569,6 +4567,7 @@ export function HomeProfessorMariChat({
       // resolves the mode server-side, so the WHOLE shared write chain - the
       // per-chat picker AND Settings' global default - lands first.
       await awaitMariPermissionsModeWrites();
+      setCancelledChatId(null);
       const runId = ++workspaceRunIdRef.current;
       const controller = new AbortController();
       workspaceAbortRef.current = controller;
@@ -5720,7 +5719,11 @@ export function HomeProfessorMariChat({
                               {workspaceTimelineActive ? (
                                 <Sparkles size="0.9rem" aria-hidden="true" />
                               ) : (
-                                <img src={MARI_AVATAR_URL} alt="" className="h-full w-full object-cover" />
+                                <img
+                                  src={appearance.portraits.idle}
+                                  alt=""
+                                  className="h-full w-full object-cover object-top"
+                                />
                               )}
                             </span>
                             {/* At phone widths the header buttons crush this into "P. / R…" -
@@ -5904,10 +5907,8 @@ export function HomeProfessorMariChat({
                               {displayMessages.map(renderDisplayMessage)}
                               {omnibarMode && messages.length === 0 && !isBusy && loadedMessagesChatId === chatId ? (
                                 <div className="mari-omnibar-empty-welcome">
-                                  {/* The big Mari from Home greets you here too, blinking now and then. */}
-                                  <span className="mari-welcome-portrait" aria-hidden="true">
-                                    <img src={MARI_HOME_IDLE_URL} alt="" draggable={false} data-part="idle" />
-                                    <img src={MARI_HOME_BLINK_URL} alt="" draggable={false} data-part="blink" />
+                                  <span className="mari-welcome-story" aria-hidden="true">
+                                    <MariStorySprite state="idle" />
                                   </span>
                                   <div className="mari-omnibar-empty-welcome__copy">
                                     <h3>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeTitle")}</h3>
@@ -5932,12 +5933,29 @@ export function HomeProfessorMariChat({
                                   lorebook={focusedLorebook}
                                 />
                               ) : null}
+                              {restingStory ? (
+                                <div className="mari-work-timeline__live">
+                                  <MariStorySprite
+                                    key={`${chatId}:${latestMessage?.id}:${restingStory}`}
+                                    state={restingStory}
+                                  />
+                                  <span className="text-xs text-[var(--muted-foreground)]">
+                                    {t(`mari.stories.${restingStory}`)}
+                                  </span>
+                                </div>
+                              ) : null}
                               {recoveryNotice}
                               {workspaceStatus?.error && <WorkspaceErrorEvent message={workspaceStatus.error} />}
                               {visiblePendingChangeReviews.length > 0 ? (
                                 <div className="space-y-3">{pendingApprovalsPanel}</div>
                               ) : null}
-                              {omnibarMode && messages.length > 0 && showSuggestionPrompt && suggestionQuestion ? (
+                              {/* Only a real question gets a line (a guided plan step, or held changes); generic
+                                  "what next?" prompts are left to the chips, as in Claude and Gemini. */}
+                              {omnibarMode &&
+                              messages.length > 0 &&
+                              showSuggestionPrompt &&
+                              suggestionQuestion &&
+                              (guidedPlanStep || chipRowAwaitsApproval) ? (
                                 <TranscriptRow layout="document" marker={null} className="mari-suggestion-turn">
                                   <div className="mari-suggestion-question-turn">
                                     <Sparkles size="0.8rem" aria-hidden="true" />

@@ -418,14 +418,6 @@ function DatabaseWorkspaceApprovalCard({
               {localizeUi("ui.chat.databaseworkspaceapprovalcard.restore")}
             </span>
           </button>
-          {/* Mari peeks in and points at her proposal. Decorative, so it stays out of the tab order and AT. */}
-          <img
-            className="mari-decision-peek"
-            src="/sprites/mari/Mari_point_down_left.png"
-            alt=""
-            aria-hidden="true"
-            draggable={false}
-          />
         </div>
       </div>
       {promptPreview && (

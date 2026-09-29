@@ -793,14 +793,19 @@
   animation: mari-glow-drift 5.5s ease-in-out infinite alternate;
 }
 
-/* Done: green, then it slowly sinks to the bottom and goes quiet. */
+/* Done: green lingers a moment, then sinks slowly to the bottom and fades out. */
 .mari-workspace-composer-dock[data-working="ending"]::before,
 .mari-workspace-composer-dock[data-working="ending"]::after {
-  animation: mari-glow-settle 2.4s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+  animation: mari-glow-settle 6.5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
-/* Something failed or waits for you: red or gold, smaller and quieter, but it stays. */
-.mari-workspace-composer-dock:is([data-glow="broken"], [data-glow="waiting-approval"]):not([data-working])::before {
+/* Failed: red, smaller and quieter, lingers, then fades out slowly too. */
+.mari-workspace-composer-dock[data-glow="broken"]:not([data-working])::before {
+  animation: mari-glow-alert 8s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+}
+
+/* Waiting for your approval: a small, quiet gold band that stays until you answer. */
+.mari-workspace-composer-dock[data-glow="waiting-approval"]:not([data-working])::before {
   opacity: 0.35;
   scale: 1 0.55;
   animation: mari-glow-waver-soft 4s ease-in-out infinite alternate;
@@ -843,15 +848,31 @@
 
 @keyframes mari-glow-settle {
   0% {
-    opacity: 0.7;
-    scale: 1 1;
+    opacity: 0.65;
+    scale: 1 0.95;
   }
-  25% {
-    opacity: 0.75;
+  30% {
+    opacity: 0.6;
+    scale: 1 0.8;
   }
   100% {
     opacity: 0;
-    scale: 1 0.1;
+    scale: 1 0.15;
+  }
+}
+
+@keyframes mari-glow-alert {
+  0% {
+    opacity: 0.5;
+    scale: 1 0.7;
+  }
+  35% {
+    opacity: 0.4;
+    scale: 1 0.6;
+  }
+  100% {
+    opacity: 0;
+    scale: 1 0.25;
   }
 }
 
@@ -867,8 +888,8 @@
   }
 }
 
-/* What her answer is about: a row of small portrait cards (like a character card), scrolling sideways
-   when there are many. The picked card opens a short sheet under the row. */
+/* What her answer is about: small horizontal cards (avatar left, name and a tag right) that wrap onto
+   more lines. They rise in one after another; the picked card opens a sheet under the row. */
 .mari-ref-cards {
   display: grid;
   gap: 0.5rem;
@@ -876,39 +897,38 @@
 }
 
 .mari-ref-cards__row {
-  mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
   display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.15rem;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .mari-ref-card {
-  position: relative;
-  display: block;
-  width: 6.5rem;
-  flex: none;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
+  display: flex;
+  min-width: 0;
+  max-width: 14rem;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.3rem;
   border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
-  border-radius: 0.75rem;
-  background: var(--card);
-  scroll-snap-align: start;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 75%, transparent);
   text-align: left;
   transition:
-    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.18s ease;
-  animation: mari-welcome-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: mari-welcome-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
 }
 
 .mari-ref-card:hover {
-  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--card));
+  transform: translateY(-1px);
 }
 
 .mari-ref-card[aria-expanded="true"] {
-  border-color: color-mix(in srgb, var(--primary) 70%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+  background: color-mix(in srgb, var(--primary) 8%, var(--card));
 }
 
 .mari-ref-card:focus-visible {
@@ -916,54 +936,38 @@
   outline-offset: 2px;
 }
 
-.mari-ref-card__art {
-  position: absolute !important;
-  inset: 0;
-  width: 100% !important;
-  height: 100% !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-}
-
-.mari-ref-card__art img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.mari-ref-card__art,
+.mari-ref-card__monogram {
+  width: 2rem !important;
+  height: 2rem !important;
+  flex: none;
+  border-radius: 999px !important;
 }
 
 .mari-ref-card__monogram {
-  position: absolute;
-  inset: 0;
   display: grid;
-  padding-bottom: 1.4rem;
   place-items: center;
-  background:
-    radial-gradient(circle at 30% 20%, oklch(0.62 0.13 calc(var(--mari-ref-hue) * 1deg) / 0.9), transparent 70%),
-    linear-gradient(
-      160deg,
-      oklch(0.42 0.1 calc(var(--mari-ref-hue) * 1deg)),
-      oklch(0.22 0.05 calc(var(--mari-ref-hue) * 1deg + 40deg))
-    );
-  color: oklch(0.96 0.02 calc(var(--mari-ref-hue) * 1deg));
-  font-size: 2.25rem;
+  background: linear-gradient(
+    150deg,
+    oklch(0.6 0.13 calc(var(--mari-ref-hue) * 1deg)),
+    oklch(0.36 0.09 calc(var(--mari-ref-hue) * 1deg + 40deg))
+  );
+  color: oklch(0.97 0.02 calc(var(--mari-ref-hue) * 1deg));
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
 .mari-ref-card__caption {
-  position: absolute;
-  inset: auto 0 0;
   display: grid;
-  gap: 0.1rem;
-  padding: 1.5rem 0.45rem 0.4rem;
-  background: linear-gradient(to top, color-mix(in srgb, var(--background) 92%, transparent) 35%, transparent);
+  min-width: 0;
+  line-height: 1.2;
 }
 
 .mari-ref-card__name {
   overflow: hidden;
   color: var(--foreground);
-  font-size: 0.75rem;
-  font-weight: 650;
-  line-height: 1.2;
+  font-size: 0.8125rem;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -971,12 +975,13 @@
 .mari-ref-card__tag {
   overflow: hidden;
   color: var(--muted-foreground);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .mari-ref-sheet {
+  overflow: hidden;
   display: grid;
   justify-items: start;
   gap: 0.45rem;
@@ -3002,18 +3007,15 @@
   margin-bottom: 0;
 }
 
-/* Her next question stands out like on Mari Home, just smaller: a tinted callout with a sparkle. */
+/* A real next question (a plan step, held changes) reads as her last line, with a small sparkle, no box. */
 .mari-suggestion-question-turn {
   display: flex;
-  width: fit-content;
   max-width: 42rem;
   align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  gap: 0.45rem;
   color: var(--foreground);
+  font-weight: 500;
+  animation: mari-welcome-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .mari-suggestion-question-turn > svg {

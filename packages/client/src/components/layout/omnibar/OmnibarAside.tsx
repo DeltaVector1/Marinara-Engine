@@ -1,9 +1,7 @@
+import { useMariAppearancePack } from "../../../hooks/use-mari-appearance-pack";
 import { useTranslation } from "react-i18next";
 
 import type { OmnibarAsideState } from "../../../hooks/use-omnibar-aside";
-
-const IDLE_SPRITE_URL = "/sprites/mari/generated/professor-mari-assistant-idle.png";
-const SHRUG_SPRITE_URL = "/sprites/mari/generated/professor-mari-assistant-shrug.png";
 
 export interface OmnibarAsideProps {
   state: OmnibarAsideState;
@@ -31,6 +29,7 @@ export function OmnibarAside({
   onDisable,
   onEscalate,
 }: OmnibarAsideProps) {
+  const appearance = useMariAppearancePack();
   const { t } = useTranslation();
   const failed = state.status === "error";
   const tierLabel =
@@ -53,7 +52,12 @@ export function OmnibarAside({
         >
           <div className="flex min-w-0 items-start gap-2">
             <span className="mari-workspace-portrait" data-state={failed ? "shrug" : "explaining"} aria-hidden="true">
-              <img src={failed ? SHRUG_SPRITE_URL : IDLE_SPRITE_URL} alt="" draggable={false} data-part="idle" />
+              <img
+                src={failed ? appearance.portraits.shrug : appearance.portraits.idle}
+                alt=""
+                draggable={false}
+                data-part="idle"
+              />
             </span>
             <div className="min-w-0 flex-1">
               <p
