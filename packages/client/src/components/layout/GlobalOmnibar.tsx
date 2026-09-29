@@ -57,7 +57,7 @@ import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packa
 import { dispatchCardAssetInsert } from "../../lib/card-asset-links";
 import { HOME_FAQ_ITEMS, getFaqSearchText } from "../chat/HomeFaq";
 import { useDocsCommandSearchProvider } from "../../hooks/use-docs-command-search";
-import { useLorebooks, useLorebookEntries, useUpdateLorebook } from "../../hooks/use-lorebooks";
+import { useLorebookEntrySearch, useLorebooks, useLorebookEntries, useUpdateLorebook } from "../../hooks/use-lorebooks";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
 import { useOmnibarAside } from "../../hooks/use-omnibar-aside";
@@ -116,6 +116,7 @@ import {
   buildOmnibarContinueResult,
   buildOmnibarControlResults,
   buildOmnibarGlobalMessageResults,
+  buildOmnibarLorebookEntryResults,
   buildOmnibarMariChatResults,
   buildOmnibarMessageResults,
   buildOmnibarAddSuggestions,
@@ -628,6 +629,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       "create-navigation": t("commandCenter.groups.suggested", "Suggested"),
       navigation: t("commandCenter.groups.navigation", "Navigation"),
       messages: t("commandCenter.groups.messages", "Messages"),
+      "lorebook-entries": t("commandCenter.groups.lorebookEntries", "Lorebook entries"),
       chats: filterLabels.chats,
       characters: filterLabels.characters,
       personas: filterLabels.personas,
@@ -1145,6 +1147,29 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       }),
     [activeChatId, globalMessageSearch.data, messageSearchQuery, t],
   );
+  // Lorebook entries: the same typing pause as message search, with no scope or `lore:`.
+  const entrySearchScoped = !queryScope || queryScope === "lorebook";
+  const lorebookEntrySearch = useLorebookEntrySearch(
+    globalMessageQuery,
+    globalMessageQuery.length >= MIN_MESSAGE_SEARCH_LENGTH && entrySearchScoped,
+  );
+  const lorebookNameById = useMemo(
+    () => new Map((lorebooks.data ?? []).map((book) => [book.id, book.name] as const)),
+    [lorebooks.data],
+  );
+  const lorebookEntryResults = useMemo<OmnibarResult[]>(
+    () =>
+      // Only while the typed query still matches the one that was searched.
+      globalMessageQuery === messageSearchQuery
+        ? buildOmnibarLorebookEntryResults({
+            entries: lorebookEntrySearch.data ?? [],
+            lorebookNameById,
+            query: messageSearchQuery,
+            t,
+          })
+        : [],
+    [globalMessageQuery, lorebookEntrySearch.data, lorebookNameById, messageSearchQuery, t],
+  );
   // The chat input already owns a slash-command registry; the omnibar reuses it
   // so "what can I do in this chat" is answerable from one place. Choosing a row
   // types the command into the chat input instead of running it, so args and
@@ -1328,6 +1353,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               ...approvalResults,
               ...messageResults,
               ...globalMessageResults,
+              ...lorebookEntryResults,
               ...mariChatResults,
               // An explicit "Add X to this chat" row replaces the plain entity row
               // for the same thing: showing both lists every character twice, and
@@ -1353,6 +1379,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       continueResult,
       deferredQuery,
       globalMessageResults,
+      lorebookEntryResults,
       mariChatResults,
       messageResults,
       searchResults,
@@ -1807,6 +1834,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         return;
       case "open-global-search":
         openGlobalSearch(action.query);
+        onClose();
+        return;
+      case "open-lorebook-entry":
+        if (!confirmLeaveEditor()) return;
+        ui().openLorebookDetail(action.lorebookId, { initialTab: "entries", initialEntryId: action.entryId });
+        recordUse(result.id);
         onClose();
         return;
     }

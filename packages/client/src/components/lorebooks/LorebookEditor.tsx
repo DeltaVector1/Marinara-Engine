@@ -512,7 +512,7 @@ export function LorebookEditor() {
   );
   const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null);
   const newlyCreatedEntryRef = useRef<string | null>(null);
-  const { contentRef, scrollToSection } = useEditorSections(
+  const { contentRef, scrollToSection, scrollToElement } = useEditorSections(
     lorebookId,
     !isLoading,
     (useUIStore.getState().lorebookDetailInitialTab as TabId | null) ?? "overview",
@@ -1112,13 +1112,24 @@ export function LorebookEditor() {
       }
       setExpandedEntryId(entryId);
       window.requestAnimationFrame(() => {
-        contentRef.current
-          ?.querySelector<HTMLElement>(`[data-lorebook-entry-row-id="${CSS.escape(entryId)}"]`)
-          ?.scrollIntoView({ block: "start", behavior: "smooth" });
+        const row = contentRef.current?.querySelector<HTMLElement>(
+          `[data-lorebook-entry-row-id="${CSS.escape(entryId)}"]`,
+        );
+        // Anchored, so the section scroller does not pull the view back to the top
+        // of Entries while the expanded row and its images grow.
+        if (row) scrollToElement(row);
       });
     },
-    [contentRef, entries, folders, lorebookId],
+    [contentRef, entries, folders, lorebookId, scrollToElement],
   );
+  // Opened at an entry (an omnibar hit): reveal it once the entries have loaded.
+  const initialEntryIdRef = useRef(useUIStore.getState().lorebookDetailInitialEntryId);
+  useEffect(() => {
+    const entryId = initialEntryIdRef.current;
+    if (!entryId || !entries.some((entry) => entry.id === entryId)) return;
+    initialEntryIdRef.current = null;
+    jumpToEntry(entryId);
+  }, [entries, jumpToEntry]);
   const entryNameById = useMemo(() => new Map(entries.map((entry) => [entry.id, entry.name])), [entries]);
   const activeChatForTest = useMemo(
     () =>

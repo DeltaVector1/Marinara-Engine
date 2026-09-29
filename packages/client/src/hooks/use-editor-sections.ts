@@ -74,5 +74,13 @@ export function useEditorSections<T extends string>(
     };
   }, [editorKey, ready, initialSection, onSectionChange, scrollToSection]);
 
-  return { contentRef, scrollToSection };
+  /** Scroll to an element in the form and keep it anchored while content above it still loads. */
+  const scrollToElement = useCallback((target: HTMLElement) => {
+    const root = contentRef.current;
+    if (!root || !root.contains(target)) return;
+    navigationTargetRef.current = target;
+    root.scrollTo({ top: root.scrollTop + target.getBoundingClientRect().top - root.getBoundingClientRect().top - 16 });
+  }, []);
+
+  return { contentRef, scrollToSection, scrollToElement };
 }

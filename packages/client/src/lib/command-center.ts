@@ -67,6 +67,7 @@ export type CommandCenterResultGroupId =
   | "create-navigation"
   | "navigation"
   | "messages"
+  | "lorebook-entries"
   | Exclude<CommandCenterCategoryFilter, "all">
   | "professor-suggested"
   | "top-hit"
@@ -206,6 +207,7 @@ export const COMMAND_CENTER_SEARCH_GROUP_ORDER: readonly CommandCenterResultGrou
   // Message hits from other chats and docs arrive after a server round trip.
   // Last, so a late answer never pushes down a row the arrow keys are on.
   "messages",
+  "lorebook-entries",
   "docs",
   "professor-fallback",
 ];
@@ -551,6 +553,7 @@ const NEVER_TOP_HIT = new Set<CommandCenterResultGroupId>([
   "professor-suggested",
   "professor-fallback",
   "messages",
+  "lorebook-entries",
   "docs",
 ]);
 

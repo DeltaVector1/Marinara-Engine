@@ -11,6 +11,7 @@ import {
   type Chat,
   type GlobalChatSearchResult,
   type Lorebook,
+  type LorebookEntry,
   type MariWorkspacePendingApproval,
   type Persona,
 } from "@marinara-engine/shared";
@@ -718,6 +719,38 @@ export function buildOmnibarGlobalMessageResults({
     });
   }
   return rows;
+}
+
+/**
+ * Lorebook entries whose name, keys or content contain the query: the lore
+ * itself, not only the books. A server read, so these rows come last.
+ */
+export function buildOmnibarLorebookEntryResults({
+  entries,
+  lorebookNameById,
+  query,
+  t,
+}: {
+  entries: readonly LorebookEntry[];
+  lorebookNameById: ReadonlyMap<string, string>;
+  query: string;
+  t: OmnibarTranslate;
+}): OmnibarResult[] {
+  if (query.trim().length < MIN_MESSAGE_SEARCH_LENGTH) return [];
+  return entries.map((entry, index) => {
+    const book = lorebookNameById.get(entry.lorebookId) ?? t("commandCenter.entries.unknownBook", "Lorebook");
+    return {
+      id: `lorebook-entry:${entry.lorebookId}:${entry.id}`,
+      action: { kind: "open-lorebook-entry" as const, lorebookId: entry.lorebookId, entryId: entry.id },
+      title: entry.name.trim() || entry.keys.join(", ") || t("commandCenter.entries.untitled", "Untitled entry"),
+      description: `${book} · ${getMessageSearchSnippet(entry.content, query) || entry.keys.join(", ")}`,
+      category: "lorebook" as const,
+      group: "lorebook-entries" as const,
+      score: 270 - index,
+      kind: "resource" as const,
+      icon: "lorebook" as const,
+    };
+  });
 }
 
 export function buildOmnibarSlashResults({

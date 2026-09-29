@@ -1002,9 +1002,12 @@ export async function lorebooksRoutes(app: FastifyInstance) {
   // ── Search ──
 
   app.get("/search/entries", async (req) => {
-    const query = (req.query as Record<string, string>).q ?? "";
+    const { q: query = "", limit } = req.query as Record<string, string | undefined>;
     if (!query) return [];
-    return storage.searchEntries(query);
+    const matches = await storage.searchEntries(query);
+    // Optional, for callers that show a few hits (the omnibar); absent keeps every match.
+    const cap = limit ? Math.min(Math.max(parseInt(limit, 10) || 0, 1), 50) : matches.length;
+    return matches.slice(0, cap);
   });
 
   // ── Active entries (for prompt injection) ──

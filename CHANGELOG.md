@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- The omnibar now finds lorebook entries by their name, keys or content, not only the lorebooks. Choosing one opens the lorebook with that entry open.
 - The omnibar shows the best match first as a Top hit when its category would otherwise list it lower, and it stays open after you add a character or lorebook to the chat, so you can add the next one.
 - The omnibar opens faster the first time, because it loads in the background after the app starts. Results that arrive late, such as messages from other chats and documentation, now appear at the end of the list, so they no longer push down the row you are on.
 - The omnibar settings now open inside the omnibar, with a back arrow, and let you choose which model answers quick answers: the local model or any of your connections. Without a model, quick answers no longer fail on every search; they offer to choose one.
