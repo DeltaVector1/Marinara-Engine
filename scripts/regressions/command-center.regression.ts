@@ -212,6 +212,60 @@ assert.deepEqual(
   ["chat:mira", "character:mira", "message:one:1"],
 );
 
+// Top hit: the best strong match leads, even when its category renders later.
+const themeSearch = presentCommandCenterResults(
+  [
+    { id: "settings-control:theme", category: "settings", score: 305, title: "Theme" },
+    { id: "chat:theme-park", category: "chat", score: 210, title: "Theme park" },
+    { id: "docs:themes", category: "docs", score: 320, title: "Themes" },
+  ],
+  { query: "theme" },
+);
+assert.deepEqual(
+  themeSearch.groups.map((group) => group.id),
+  ["top-hit", "chats", "docs"],
+  "an exact setting beats the chat that only starts with the word",
+);
+assert.equal(themeSearch.results[0]?.id, "settings-control:theme");
+// Docs arrive late, so they never become the Top hit, however well they score.
+assert.equal(
+  themeSearch.groups[0]?.results.some((result) => result.id === "docs:themes"),
+  false,
+);
+// A weak match is not a Top hit, and a best match already on top is left alone.
+assert.deepEqual(
+  presentCommandCenterResults(
+    [
+      { id: "settings-control:theme", category: "settings", score: 120, title: "Theme" },
+      { id: "chat:theme-park", category: "chat", score: 110, title: "Theme park" },
+    ],
+    { query: "them" },
+  ).groups.map((group) => group.id),
+  ["chats", "settings"],
+);
+assert.deepEqual(
+  presentCommandCenterResults(
+    [
+      { id: "chat:eliza", category: "chat", score: 310, title: "Eliza" },
+      { id: "character:eliza", category: "character", score: 305, title: "Eliza" },
+    ],
+    { query: "eliza" },
+  ).groups.map((group) => group.id),
+  ["chats", "characters"],
+);
+
+// An alias match ranks, but it is never the Top hit: the typed text must lead the visible title.
+assert.deepEqual(
+  presentCommandCenterResults(
+    [
+      { id: "settings-control:accent", category: "settings", score: 305, title: "Accent Color" },
+      { id: "chat:theme-park", category: "chat", score: 210, title: "Theme park" },
+    ],
+    { query: "theme" },
+  ).groups.map((group) => group.id),
+  ["chats", "settings"],
+);
+
 const fuzzyFallbackResults = searchOmnibar("mira", {
   commands: [],
   chats: [{ id: "mira", name: "Mira" }],

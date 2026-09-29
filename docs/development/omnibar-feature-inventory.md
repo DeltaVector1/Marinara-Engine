@@ -137,6 +137,12 @@ shared command ranking (recency and pins) reorders it.
   setup (35), the current screen (30), pinned (25), recent (15). The winning
   reason becomes the row's context label.
 - Pins are ignored while a query is typed, so typing always beats a pin.
+- **Top hit.** Groups render in a fixed category order, so the best match could
+  sit below weaker rows of an earlier category. The best-ranked row with a
+  prefix match or better (score ≥ 200) whose visible title the query starts —
+  or starts one of its words — leads in a "Top hit" group, unless it is already
+  the first row. Alias and metadata matches still rank but never lead, and rows
+  from late sources (messages, docs) never do, so the top row stays still.
 - "Ask Professor Mari" is promoted above the hits when the query reads like a
   question, when the intent is explain, recommend or repair, or when nothing
   matched well — unless one result is a clear direct hit (score ≥ 250 with a
@@ -156,6 +162,9 @@ without one fall through to the generic open path.
   path. It exists so a choice option works wherever it was found.
 - Direct active-chat actions: "add Eliza" with a chat open attaches instead of
   opening, but only when the result is unambiguous.
+- Attaching a character or lorebook keeps the omnibar open, with the Undo
+  toast, so the next one can be added. Other kinds close it: they can ask to
+  replace the current persona, preset or connection, or open agent setup.
 - Attach and detach reuse the drag-and-drop payload and its block rules, so the
   omnibar can never make an assignment a drop would refuse.
 - Every navigation passes the dirty-editor confirmation.

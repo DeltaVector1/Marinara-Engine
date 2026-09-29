@@ -3,6 +3,7 @@ import {
   type ProfessorMariAskContext,
   type ProfessorMariCapability,
   type ProfessorMariContextResource,
+  normalizeTextForMatch,
 } from "@marinara-engine/shared";
 import type { ProfessorMariNavigationTarget } from "./professor-mari-navigation";
 
@@ -68,6 +69,7 @@ export type CommandCenterResultGroupId =
   | "messages"
   | Exclude<CommandCenterCategoryFilter, "all">
   | "professor-suggested"
+  | "top-hit"
   | "professor-fallback";
 
 export interface CommandCenterResultMetadata {
@@ -101,6 +103,10 @@ export interface CommandCenterPresentableResult {
   metadata?: readonly CommandCenterResultMetadata[];
   media?: CommandCenterResultMedia;
   group?: CommandCenterResultGroupId;
+  /** Match strength; a Top hit needs a prefix match or better (see TOP_HIT_MIN_SCORE). */
+  score?: number;
+  /** The visible name. A Top hit must match it, not a hidden alias. */
+  title?: string;
 }
 
 export interface CommandCenterResultGroup<T extends CommandCenterPresentableResult> {
@@ -187,6 +193,7 @@ export const COMMAND_CENTER_SEARCH_GROUP_ORDER: readonly CommandCenterResultGrou
   // outranked them.
   "current-work",
   "professor-suggested",
+  "top-hit",
   "navigation",
   "chats",
   "characters",
@@ -530,6 +537,52 @@ const CATEGORY_GROUP: Partial<Record<CommandCenterResultCategory, CommandCenterR
   professor: "navigation",
 };
 
+/** Prefix match or better: see the text scores in omnibar-search (exact 300+, prefix 200+). */
+const TOP_HIT_MIN_SCORE = 200;
+/**
+ * Groups a Top hit is never taken from: the ones already above it, and the ones
+ * whose rows arrive after a server round trip, which would change the top row
+ * while the arrow keys are on it.
+ */
+const NEVER_TOP_HIT = new Set<CommandCenterResultGroupId>([
+  "current-work",
+  "context",
+  "continue",
+  "professor-suggested",
+  "professor-fallback",
+  "messages",
+  "docs",
+]);
+
+/**
+ * Groups render in a fixed category order, so without this the best match could
+ * sit below weaker rows of an earlier category. The best-ranked strong match is
+ * lifted to the top, unless it is already the first row there.
+ */
+function findTopHit<T extends CommandCenterPresentableResult>(
+  ranked: readonly T[],
+  groupOf: (result: T) => CommandCenterResultGroupId,
+  query: string,
+): T | null {
+  const typed = normalizeTextForMatch(query);
+  // The typed text must start the visible title or one of its words: a row found
+  // through an alias ("theme" finding Accent Color) is a fair result but a
+  // confusing Top hit, and it would take Enter from the row the user meant.
+  const titleLeads = (title: string | undefined) => {
+    const name = normalizeTextForMatch(title);
+    return name.startsWith(typed) || name.includes(` ${typed}`);
+  };
+  const candidate = ranked.find(
+    (result) =>
+      !NEVER_TOP_HIT.has(groupOf(result)) && (result.score ?? 0) >= TOP_HIT_MIN_SCORE && titleLeads(result.title),
+  );
+  if (!candidate) return null;
+  const firstShown = COMMAND_CENTER_SEARCH_GROUP_ORDER.filter((id) => !NEVER_TOP_HIT.has(id))
+    .map((id) => ranked.find((result) => groupOf(result) === id))
+    .find(Boolean);
+  return firstShown === candidate ? null : candidate;
+}
+
 export function presentCommandCenterResults<T extends CommandCenterPresentableResult>(
   rankedResults: readonly T[],
   options: {
@@ -588,16 +641,17 @@ export function presentCommandCenterResults<T extends CommandCenterPresentableRe
     };
   }
 
+  // An explicit group wins when it is one this view renders; otherwise the
+  // result would silently vanish into a group nobody lists.
+  const groupOf = (result: T): CommandCenterResultGroupId =>
+    result.id === "ask-professor-mari"
+      ? (result.group ?? "professor-fallback")
+      : result.group && COMMAND_CENTER_SEARCH_GROUP_ORDER.includes(result.group)
+        ? result.group
+        : (CATEGORY_GROUP[result.category] ?? "navigation");
+  const topHit = findTopHit(results, groupOf, options.query);
   for (const result of results) {
-    // An explicit group wins when it is one this view renders; otherwise the
-    // result would silently vanish into a group nobody lists.
-    const group =
-      result.id === "ask-professor-mari"
-        ? (result.group ?? "professor-fallback")
-        : result.group && COMMAND_CENTER_SEARCH_GROUP_ORDER.includes(result.group)
-          ? result.group
-          : (CATEGORY_GROUP[result.category] ?? "navigation");
-    addToGroup(group, result);
+    addToGroup(result === topHit ? "top-hit" : groupOf(result), result);
   }
   const presentedGroups = COMMAND_CENTER_SEARCH_GROUP_ORDER.flatMap((id) => {
     const groupResults = groups.get(id);

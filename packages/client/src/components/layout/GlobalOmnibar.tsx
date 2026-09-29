@@ -638,6 +638,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       settings: filterLabels.settings,
       docs: filterLabels.docs,
       "professor-suggested": t("commandCenter.groups.mariSuggested", "Professor Mari"),
+      "top-hit": t("commandCenter.groups.topHit", "Top hit"),
       "professor-fallback": t("commandCenter.groups.askMari", "Ask Professor Mari"),
     }),
     [filterLabels, t],
@@ -1736,7 +1737,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }
     requestChatResourceAssignment(payload);
     recordUse(resultId);
-    onClose();
+    // A character or lorebook attaches quietly with an Undo toast, so the omnibar
+    // stays open for the next one. The others can ask to replace the current
+    // persona, preset or connection, or open agent setup, which must not open
+    // behind this dialog.
+    if (kind !== "character" && kind !== "lorebook") onClose();
     return true;
   };
   const runDirectChatAction = (result: OmnibarResult) => {

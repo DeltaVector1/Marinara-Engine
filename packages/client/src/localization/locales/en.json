@@ -929,6 +929,7 @@
   "commandCenter.groups.quickControls": "Quick controls",
   "commandCenter.groups.recent": "Recent",
   "commandCenter.groups.suggested": "Suggested",
+  "commandCenter.groups.topHit": "Top hit",
   "commandCenter.keyboard.askMari": "Ctrl/⌘+Enter Ask Mari",
   "commandCenter.keyboard.closePreview": "← Close preview",
   "commandCenter.keyboard.complete": "⇥ Complete",
