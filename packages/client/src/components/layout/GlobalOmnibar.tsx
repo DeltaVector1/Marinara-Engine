@@ -117,6 +117,7 @@ import {
   buildOmnibarControlResults,
   buildOmnibarGlobalMessageResults,
   buildOmnibarLorebookEntryResults,
+  findMentionedResults,
   buildOmnibarMariChatResults,
   buildOmnibarMessageResults,
   buildOmnibarAddSuggestions,
@@ -1489,6 +1490,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     source: "command-center",
     resourceLabel: contextResults[0]?.title ?? null,
   });
+  // The things a finished answer names, offered as one-click destinations under it.
+  const asideLinks = useMemo(
+    () => (asideState.status === "complete" ? findMentionedResults(asideState.answer, allLocalResults) : []),
+    [allLocalResults, asideState.answer, asideState.status],
+  );
   // Quick and Mari both own the whole dialog. Leaving the search input mounted
   // under them let one keystroke re-enter `results` and abort a running answer.
   const mariSurface = pane === "mari";
@@ -2995,6 +3001,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               }}
               onEscalate={() => openProfessorMari(null, { submitDraft: true })}
               onChooseModel={() => setSettingsOpen(true)}
+              links={asideLinks.map((row) => ({ id: row.id, title: row.title }))}
+              onOpenLink={(id) => {
+                const row = asideLinks.find((item) => item.id === id);
+                if (row) choose(row);
+              }}
             />
           </Suspense>
         ) : null}

@@ -2490,6 +2490,7 @@
   "omnibar.aside.escalate": "⌘↵ Continue with Professor Mari",
   "omnibar.aside.gotIt": "Got it",
   "omnibar.aside.label": "Professor Mari's answer",
+  "omnibar.aside.links": "Open from this answer",
   "omnibar.aside.needsModel": "Professor Mari can answer searches like this once she has a model.",
   "omnibar.aside.setUpLocalModel": "Set up a local model",
   "omnibar.aside.tierLocal": "Local",

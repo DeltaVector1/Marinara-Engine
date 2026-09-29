@@ -14,6 +14,9 @@ export interface OmnibarAsideProps {
   onEscalate: () => void;
   /** Opens the omnibar settings, where the answering model is chosen. */
   onChooseModel: () => void;
+  /** Things the answer names, which a click opens like their own rows. */
+  links: readonly { id: string; title: string }[];
+  onOpenLink: (id: string) => void;
 }
 
 /**
@@ -31,6 +34,8 @@ export function OmnibarAside({
   onDisable,
   onEscalate,
   onChooseModel,
+  links,
+  onOpenLink,
 }: OmnibarAsideProps) {
   const appearance = useMariAppearancePack();
   const { t } = useTranslation();
@@ -85,6 +90,23 @@ export function OmnibarAside({
               >
                 {failed ? state.error : state.answer}
               </p>
+              {!failed && links.length > 0 ? (
+                <div
+                  className="mt-1.5 flex flex-wrap gap-1.5"
+                  aria-label={t("omnibar.aside.links", "Open from this answer")}
+                >
+                  {links.map((link) => (
+                    <button
+                      key={link.id}
+                      type="button"
+                      onClick={() => onOpenLink(link.id)}
+                      className="mari-chrome-control mari-chrome-control--compact"
+                    >
+                      {link.title}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.625rem] text-[var(--muted-foreground)]">
                 <span>{tierLabel}</span>
                 {!failed && (

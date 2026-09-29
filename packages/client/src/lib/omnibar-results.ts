@@ -70,6 +70,38 @@ export function matchesAtWordStart(text: string, query: string): boolean {
   return new RegExp(`(?:^|[^\\p{L}\\p{N}])${escapeRegExp(query.trim())}`, "iu").test(text);
 }
 
+/** Shorter names ("Theme", "Tea") turn up in ordinary prose, so only distinctive ones count. */
+const MIN_MENTIONED_NAME_LENGTH = 6;
+
+/**
+ * The rows a quick answer names, in the order it names them, so the answer can
+ * lead somewhere: "turn on Streaming speed" offers the Streaming speed setting.
+ * Deterministic and local; the model is never asked for ids. Rows with an inline
+ * control are skipped, since choosing them does nothing on its own.
+ */
+export function findMentionedResults<T extends Pick<OmnibarResult, "id" | "title" | "control">>(
+  answer: string,
+  rows: readonly T[],
+  max = 3,
+): T[] {
+  const text = answer.normalize("NFKC");
+  const seenNames = new Set<string>();
+  const found: { row: T; at: number }[] = [];
+  for (const row of rows) {
+    const name = row.title.trim();
+    const key = name.toLocaleLowerCase();
+    if (row.control || name.length < MIN_MENTIONED_NAME_LENGTH || seenNames.has(key)) continue;
+    const match = new RegExp(`(?:^|[^\\p{L}\\p{N}])${escapeRegExp(name)}(?![\\p{L}\\p{N}])`, "iu").exec(text);
+    if (!match) continue;
+    seenNames.add(key);
+    found.push({ row, at: match.index });
+  }
+  return found
+    .sort((a, b) => a.at - b.at)
+    .slice(0, max)
+    .map((item) => item.row);
+}
+
 /** A one-line excerpt centred on the match, so the row shows why it matched. */
 function getMessageSearchSnippet(content: string, query: string): string {
   const text = content.replace(/\s+/gu, " ").trim();

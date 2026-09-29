@@ -377,3 +377,8 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   user did not ask for this call — and the ranked list is never degraded by it.
 - Escalating from the aside sends the question to Mari; it does not only open
   her with a draft.
+- A finished answer offers up to three things it names — a setting, a
+  character, a lorebook, a chat — as chips that open them like their rows
+  (`findMentionedResults`). It is local matching on names of six characters or
+  more, in the order the answer names them; the model is never asked for ids,
+  and rows with an inline control are never offered.

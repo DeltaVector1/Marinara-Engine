@@ -30,7 +30,7 @@ import {
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction } from "../../packages/client/src/lib/omnibar-scope.js";
-import { matchesAtWordStart } from "../../packages/client/src/lib/omnibar-results.js";
+import { findMentionedResults, matchesAtWordStart } from "../../packages/client/src/lib/omnibar-results.js";
 import {
   SETTINGS_SEARCHABLE_CONTROLS,
   SETTINGS_SECTIONS,
@@ -730,4 +730,22 @@ console.info("Command Center regression checks passed.");
   assert.equal(matchesAtWordStart("Use the (beta) mode", "beta"), true, "after punctuation");
   assert.equal(matchesAtWordStart("a+b costs", "a+b"), true, "regex characters are literal");
   assert.equal(matchesAtWordStart("Éclair", "écl"), true, "letters beyond ASCII");
+}
+
+{
+  // A quick answer offers the things it names, in the order it names them.
+  const rows = [
+    { id: "settings-control:streaming-speed", title: "Streaming speed" },
+    { id: "character:eliza", title: "Eliza Moreau" },
+    { id: "control:theme", title: "Theme", control: {} as never },
+    { id: "chat:tea", title: "Tea" },
+    { id: "settings-section:streaming-speed", title: "Streaming Speed" },
+  ];
+  assert.deepEqual(
+    findMentionedResults("Ask Eliza Moreau, then lower Streaming speed in Settings.", rows).map((row) => row.id),
+    ["character:eliza", "settings-control:streaming-speed"],
+    "answer order; one row per name",
+  );
+  assert.deepEqual(findMentionedResults("Have some tea and change the theme.", rows), [], "short names and controls never count");
+  assert.deepEqual(findMentionedResults("Try streaming speedrun mode.", rows), [], "a name inside a longer word does not count");
 }
