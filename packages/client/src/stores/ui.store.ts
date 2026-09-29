@@ -639,6 +639,8 @@ interface UIState {
   characterDetailId: string | null;
   /** When set, the main area shows the full-page lorebook editor instead of chat */
   lorebookDetailId: string | null;
+  /** In-app clipboard, intentionally not persisted or synced between devices. */
+  lorebookLinkClipboard: { characterIds: string[]; personaIds: string[] } | null;
   /** When set, the main area shows the full-page preset editor instead of chat */
   presetDetailId: string | null;
   /** One-shot tab the preset editor should open to. */
@@ -1111,6 +1113,7 @@ interface UIState {
   closeCharacterDetail: () => void;
   openLorebookDetail: (id: string, options?: { initialTab?: string }) => void;
   closeLorebookDetail: () => void;
+  setLorebookLinkClipboard: (links: NonNullable<UIState["lorebookLinkClipboard"]>) => void;
   openPresetDetail: (id: string, options?: { initialTab?: string }) => void;
   closePresetDetail: () => void;
   openConnectionDetail: (id: string) => void;
@@ -1816,6 +1819,7 @@ export const useUIStore = create<UIState>()(
         conversationBackgroundImageOpacity: DEFAULT_CONVERSATION_BACKGROUND_IMAGE_OPACITY,
         characterDetailId: null,
         lorebookDetailId: null,
+        lorebookLinkClipboard: null,
         presetDetailId: null,
         presetDetailInitialTab: null,
         connectionDetailId: null,
@@ -2209,6 +2213,7 @@ export const useUIStore = create<UIState>()(
             editorDirty: false,
             ...restoreMobileDetailReturnPanel(s.detailReturnRightPanel),
           })),
+        setLorebookLinkClipboard: (links) => set({ lorebookLinkClipboard: links }),
         openLorebookDetail: (id, options) =>
           set((s) => ({
             lorebookDetailId: id,

@@ -25,6 +25,18 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 - Completed Professor Mari changes now use compact cards and a lower completed-work history in the desktop Details sidebar.
 - Professor Mari now uses one integrated workspace across Home, FAQ, and handoff flows, with shared resource previews, review decisions, contextual suggestions, animated work scenes, and reduced-motion support.
 - The omnibar and Home Mari navigator can now find characters by saved summary, comment, description, creator, and tags, while character result previews prefer the saved summary.
+- Review cards for edits to Professor Mari's own card, saved before she was stopped from making them, now clear on the next start instead of staying in every Mari chat; they could never be restored (#6842).
+
+- Professor Mari's review cards belong to the chat she made the change in: a new chat starts clean, and deleting a chat keeps its changes and removes its cards. She can no longer edit her own built-in card, which Marinara resets on every start, an edit that changes nothing makes no card, a refused Restore explains that Keep dismisses the card, and a failed Keep or Restore says why (#6842).
+
+- Lorebook editors can copy linked characters and personas to another lorebook without repeating each selection (#6840).
+- Default muted text uses neutral colors, message marks follow chat chroma, and chat Help explains bookmarks, context pins, and private notes (#6839).
+- Lorebook vectorization uses batches of ten entries to reduce timeouts with local embedding providers (#6837).
+
+- In a Game Mode game with a ruleset, a check or save outside a fight now counts the character's conditions and what they wear or carry: a poisoned or frightened character rolls with the disadvantage the ruleset gives them, a paralyzed one fails the saves it fails without a roll, and an item can say what it does while worn or only carried, such as a creaking coat that makes Sneak harder. Advantage and disadvantage cancel out with the Game Master's own, the dice card and the saved record say what changed the check, and an item's details say what it does. The Game Master can give invented items these effects, held to what each rarity allows. Rulesets that use them need Capability API 1.53 (#6832).
+
+- In a Game Mode game whose ruleset rolls something other than one d20 (such as 2d6 or a dice pool), a check the Engine rolls during a turn is no longer rolled a second time as if nobody's sheet were read. The saved result keeps the sheet's numbers, who rolled, and any wound penalty or modifier the ruleset applied.
+
 - A Game Mode ruleset's sheet can now read the items a character holds, with a new `itemStat` value: a stat over what they wear, what they only carry, or both, added up, the highest, the lowest or counted, optionally only one slot, category or tag. The sheet on screen, checks, the Game Master's sheet summary and the start of a fight all read it. In the Ember Roads example, a worn leather coat now adds to Guard. Rulesets that use it need Capability API 1.52 (#6826).
 
 - A Game Mode ruleset with `native: false` now keeps new untyped items out of its games: the Game Master can still add more of, remove or give an item already held, but anything new it hands out must be one of the ruleset's items or one it invents, and it is told so. Fights no longer guess what items do or offer them, until the ruleset can say what they do. The player's typed-in items and what a party carries into a new session are unchanged (#6822).
