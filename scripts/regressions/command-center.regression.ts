@@ -30,6 +30,7 @@ import {
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction } from "../../packages/client/src/lib/omnibar-scope.js";
+import { matchesAtWordStart } from "../../packages/client/src/lib/omnibar-results.js";
 import {
   SETTINGS_SEARCHABLE_CONTROLS,
   SETTINGS_SECTIONS,
@@ -720,4 +721,13 @@ console.info("Command Center regression checks passed.");
   assert.equal(isMariInstruction("char: Eli", "Eliza"), false, "a scope prefix is not part of the request");
   assert.equal(isMariInstruction("make eliza meaner", "Eliza"), true, "more than the name is a request");
   assert.equal(isMariInstruction("how do lorebooks work", null), true, "with no row, any text is a request");
+}
+
+{
+  // FAQ and short docs matches need a word start, so a name search is not buried.
+  assert.equal(matchesAtWordStart("Eliza Moreau", "eli"), true);
+  assert.equal(matchesAtWordStart("One of the more reliable fixes", "eli"), false, "no match inside a word");
+  assert.equal(matchesAtWordStart("Use the (beta) mode", "beta"), true, "after punctuation");
+  assert.equal(matchesAtWordStart("a+b costs", "a+b"), true, "regex characters are literal");
+  assert.equal(matchesAtWordStart("Éclair", "écl"), true, "letters beyond ASCII");
 }

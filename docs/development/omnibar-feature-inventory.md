@@ -169,6 +169,14 @@ without one fall through to the generic open path.
 - Attach and detach reuse the drag-and-drop payload and its block rules, so the
   omnibar can never make an assignment a drop would refuse.
 - Every navigation passes the dirty-editor confirmation.
+- The Enter hint on a row names what `choose` will do for it — Add, Remove,
+  Ask, Review, Insert, Jump to, Search, Run, Read, Edit or Open — from the row's
+  action, not only its category. A row that adds a character never says Edit.
+- The Ask-Mari row's title is the text it will send (`Ask Mari: “…”`); its line
+  says what she will do with it.
+- FAQ matches, and docs matches for a single word under five characters, need
+  the query at a word start (`matchesAtWordStart`), so "eli" finds Eliza rather
+  than every answer that says "reliable".
 - Preview actions per category: start chat, edit, add to or remove from this
   chat, activate persona, set default preset, enable or disable, resume chat,
   open documentation, and continue with Mari — the last only for chats,

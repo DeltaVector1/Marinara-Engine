@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Omnibar rows now say what Enter does: Add, Remove, Ask, Insert or Jump to, instead of Edit on a row that adds a character. The Ask Mari row shows the question it will send, short searches such as a name are no longer buried under help articles that only contain the letters inside a word, and the search field placeholder fits on phones.
 - The omnibar now finds lorebook entries by their name, keys or content, not only the lorebooks. Choosing one opens the lorebook with that entry open.
 - The omnibar shows the best match first as a Top hit when its category would otherwise list it lower, and it stays open after you add a character or lorebook to the chat, so you can add the next one.
 - The omnibar opens faster the first time, because it loads in the background after the app starts. Results that arrive late, such as messages from other chats and documentation, now appear at the end of the list, so they no longer push down the row you are on.

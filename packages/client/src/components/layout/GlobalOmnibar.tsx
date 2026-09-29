@@ -2221,12 +2221,41 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
    * What Enter does, in one word. Resource rows open an editor even when the row
    * shows only a name, so "Open" alone was misleading in the context group.
    */
-  const resultEnterHint = (result: RankedOmnibarResult) =>
-    EDITOR_CATEGORIES.has(result.category)
+  // What Enter does on this row (R8), from the same dispatch `choose` runs: an
+  // "Add Eliza to this chat" row must not say Edit.
+  const resultEnterHint = (result: RankedOmnibarResult) => {
+    if (result.id === "ask-professor-mari") {
+      return result.group === "continue" ? t("commandCenter.open", "Open") : t("commandCenter.enter.ask", "Ask");
+    }
+    if (result.id.startsWith("mari-approval:")) return t("commandCenter.enter.review", "Review");
+    switch (result.action?.kind) {
+      case "add-to-chat":
+        return t("commandCenter.enter.add", "Add");
+      case "detach-from-chat":
+        return t("commandCenter.enter.remove", "Remove");
+      case "slash":
+        return t("commandCenter.enter.insert", "Insert");
+      case "goto-message":
+        return t("commandCenter.enter.jump", "Jump to");
+      case "open-docs":
+      case "open-faq":
+        return t("commandCenter.read", "Read");
+      case "open-global-search":
+        return t("commandCenter.enter.search", "Search");
+      case "personal-extension":
+        return t("commandCenter.enter.run", "Run");
+      case "open-lorebook-entry":
+        return t("commandCenter.edit", "Edit");
+    }
+    if (activeChat && CHAT_RESOURCE_KIND[result.category] && isDirectActiveChatAction(query, result, searchResults)) {
+      return t("commandCenter.enter.add", "Add");
+    }
+    return EDITOR_CATEGORIES.has(result.category)
       ? t("commandCenter.edit", "Edit")
       : result.category === "docs"
         ? t("commandCenter.read", "Read")
         : t("commandCenter.open", "Open");
+  };
   // Matched against the in-flight mutation's own id: keying on `isPending` alone
   // put a spinner on every persona row while one persona was activating.
   const resultControlPending = (result: RankedOmnibarResult) => {
@@ -2602,7 +2631,14 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                     placeholder={
                       idle
                         ? idleGreeting
-                        : t("commandCenter.placeholder", "Search everything — or narrow with faq:, docs:, msg:, char:")
+                        : // ponytail: read once per open (the dialog remounts each time); a resize
+                          // while open keeps the old text. Use a shared media hook if one lands.
+                          window.matchMedia("(min-width: 640px)").matches
+                          ? t(
+                              "commandCenter.placeholder",
+                              "Search everything — or narrow with faq:, docs:, msg:, char:",
+                            )
+                          : t("commandCenter.placeholderShort", "Search everything")
                     }
                     className="min-w-0 flex-1 bg-transparent text-base font-medium text-[var(--foreground)] outline-none placeholder:font-normal placeholder:text-[var(--muted-foreground)] [&::-webkit-search-cancel-button]:hidden"
                   />
@@ -2859,7 +2895,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                                   onValueChange={(value) => result.control?.onChange(value)}
                                   variant="compact"
                                 />
-                              ) : result.category === "preset" ? (
+                              ) : result.category === "preset" && result.control?.type === "toggle" ? (
+                                // Only the preset's own row: an "Add preset to this chat" row
+                                // showed a button that did nothing and hid its Enter hint.
                                 <CommandCenterActionValue
                                   label={t("commandCenter.actions.setDefaultPreset", "Set default preset")}
                                   icon={ArrowRight}

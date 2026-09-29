@@ -61,6 +61,15 @@ const MAX_SLASH_RESULTS = 8;
  * Everything else stays discoverable by typing "/".
  */
 const IDLE_CHAT_SLASH_COMMANDS = ["continue", "impersonate", "scene", "goto"] as const;
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** True when the query starts the text or one of its words: "eli" matches "Eliza", not "reliable". */
+export function matchesAtWordStart(text: string, query: string): boolean {
+  return new RegExp(`(?:^|[^\\p{L}\\p{N}])${escapeRegExp(query.trim())}`, "iu").test(text);
+}
+
 /** A one-line excerpt centred on the match, so the row shows why it matched. */
 function getMessageSearchSnippet(content: string, query: string): string {
   const text = content.replace(/\s+/gu, " ").trim();
@@ -485,14 +494,16 @@ export function buildOmnibarSearchResults({
 }: OmnibarSearchResultsInput): OmnibarResult[] {
   const query = deferredQuery;
   const normalizedQuery = query.trim().toLowerCase();
+  // Matched at the start of a word: a bare substring let "eli" find every FAQ
+  // whose answer says "reliable", which buried the character the user typed.
   const faqResults =
     normalizedQuery.length < 2
       ? []
       : faqItems.flatMap((item) => {
           const searchText = getFaqSearchText(item, localize);
-          if (!searchText.includes(normalizedQuery)) return [];
+          if (!matchesAtWordStart(searchText, normalizedQuery)) return [];
           const question = `${item.question} ${localize(item.question)}`.toLowerCase();
-          const score = question.includes(normalizedQuery) ? 230 : 130;
+          const score = matchesAtWordStart(question, normalizedQuery) ? 230 : 130;
           return [
             {
               id: `faq:${item.id}`,
@@ -522,19 +533,16 @@ export function buildOmnibarSearchResults({
   const trimmedQuery = query.trim();
   const capability = inferProfessorMariCommandCenterCapability(trimmedQuery);
   const intent = parseOmnibarIntent(trimmedQuery);
-  const askTitles: Partial<Record<typeof capability, string>> = {
-    repair: t("omnibar.askMari.repair", "Ask Mari to fix this"),
-    recommend: t("omnibar.askMari.recommend", "Ask Mari to compare & recommend"),
-    create: t("omnibar.askMari.create", "Ask Mari to create this"),
-    edit: t("omnibar.askMari.change", "Ask Mari to change this"),
-  };
   const askPeeks: Partial<Record<typeof capability, string>> = {
     repair: t("omnibar.askMari.peek.repair", "Mari will help troubleshoot and fix this."),
     recommend: t("omnibar.askMari.peek.recommend", "Mari will compare the options and recommend one."),
     create: t("omnibar.askMari.peek.create", "Mari will help you create this."),
     edit: t("omnibar.askMari.peek.change", "Mari will help you change this."),
   };
-  const askTitle = askTitles[capability] ?? t("omnibar.askProfessorMari", "Ask Professor Mari");
+  // The row names what it will send (R8); the line under it says what she will do.
+  const askTitle = trimmedQuery
+    ? t("omnibar.askMari.withQuery", "Ask Mari: “{{query}}”", { query: trimmedQuery })
+    : t("omnibar.askProfessorMari", "Ask Professor Mari");
   const askPeek =
     askPeeks[capability] ?? t("omnibar.askMari.peek.explain", "Mari will explain this and guide your next step.");
   // R40: with a query typed, a choice control's options join the searchable set,
@@ -601,26 +609,37 @@ export function buildOmnibarSearchResults({
   return [
     ...askResults,
     ...faqResults,
-    ...docsResults.map((result) => ({
-      ...result,
-      category: "docs" as const,
-      action: { kind: "open-docs", path: result.path } as const,
-      preview: () => ({
-        kind: "docs" as const,
-        title: result.title,
-        categoryLabel: result.source,
-        description: result.snippet,
-        facts: [
-          ...(result.source ? [{ label: t("commandCenter.preview.category", "Category"), value: result.source }] : []),
-          ...(result.path ? [{ label: t("commandCenter.preview.source", "Source"), value: result.path }] : []),
-          ...(result.line ? [{ label: t("commandCenter.preview.line", "Line"), value: result.line }] : []),
-          ...(result.snippet ? [{ label: t("commandCenter.preview.match", "Match"), value: result.snippet }] : []),
-        ],
-      }),
-      target: { kind: "window", window: "documentation" } as const,
-      kind: "resource" as const,
-      icon: "documentation" as const,
-    })),
+    ...docsResults
+      // A short single word matches inside other words ("eli" in "reliable"), so
+      // it needs a word start in the passage; longer queries keep the search's own ranking.
+      .filter(
+        (result) =>
+          normalizedQuery.length >= 5 ||
+          /\s/.test(normalizedQuery) ||
+          matchesAtWordStart(`${result.title} ${result.snippet}`, normalizedQuery),
+      )
+      .map((result) => ({
+        ...result,
+        category: "docs" as const,
+        action: { kind: "open-docs", path: result.path } as const,
+        preview: () => ({
+          kind: "docs" as const,
+          title: result.title,
+          categoryLabel: result.source,
+          description: result.snippet,
+          facts: [
+            ...(result.source
+              ? [{ label: t("commandCenter.preview.category", "Category"), value: result.source }]
+              : []),
+            ...(result.path ? [{ label: t("commandCenter.preview.source", "Source"), value: result.path }] : []),
+            ...(result.line ? [{ label: t("commandCenter.preview.line", "Line"), value: result.line }] : []),
+            ...(result.snippet ? [{ label: t("commandCenter.preview.match", "Match"), value: result.snippet }] : []),
+          ],
+        }),
+        target: { kind: "window", window: "documentation" } as const,
+        kind: "resource" as const,
+        icon: "documentation" as const,
+      })),
   ];
 }
 
