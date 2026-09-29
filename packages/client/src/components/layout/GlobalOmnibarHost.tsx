@@ -19,9 +19,8 @@ import { useUIStore } from "../../stores/ui.store";
 
 // The dialog carries the whole Command Center (search, browse, Mari panes), so it
 // stays out of the eager app shell chunk until the user actually opens it.
-const GlobalOmnibarDialog = lazy(() =>
-  import("./GlobalOmnibar").then((module) => ({ default: module.GlobalOmnibarDialog })),
-);
+const loadGlobalOmnibar = () => import("./GlobalOmnibar");
+const GlobalOmnibarDialog = lazy(() => loadGlobalOmnibar().then((module) => ({ default: module.GlobalOmnibarDialog })));
 
 /**
  * The Command Center session (pane, selected result, query) is persisted, so a
@@ -87,6 +86,18 @@ export function GlobalOmnibar() {
   // with the dialog and a task that finishes after a close is never noticed.
   // The presence indicator reads the same query.
   useMariPresence();
+
+  // Fetch the dialog's code once the app is idle, so the first ⌘K opens without
+  // waiting on the network. A failed preload is retried by the real open.
+  useEffect(() => {
+    const preload = () => void loadGlobalOmnibar().catch(() => undefined);
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(preload, { timeout: 5_000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const timer = window.setTimeout(preload, 2_000);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {

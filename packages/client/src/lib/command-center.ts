@@ -195,8 +195,10 @@ export const COMMAND_CENTER_SEARCH_GROUP_ORDER: readonly CommandCenterResultGrou
   "presets",
   "connections",
   "agents",
-  "messages",
   "settings",
+  // Message hits from other chats and docs arrive after a server round trip.
+  // Last, so a late answer never pushes down a row the arrow keys are on.
+  "messages",
   "docs",
   "professor-fallback",
 ];

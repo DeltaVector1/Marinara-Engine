@@ -9,6 +9,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -5089,40 +5090,40 @@ export function HomeProfessorMariChat({
   // the user had typed so far; a flag that was already true would deliver no change
   // at all on the next handoff, and that query would silently never send.
   const handledSubmitRequestRef = useRef(0);
+  // An effect event, so the effect runs when the request or draft changes, not on
+  // every render because handleSubmit is a new function each time.
+  const submitHandoffDraft = useEffectEvent(() => void handleSubmit());
   useEffect(() => {
     if (!omnibarMode || !submitDraftRequest || handledSubmitRequestRef.current === submitDraftRequest) return;
     // Not marked handled yet: an empty or still-busy moment must retry, not drop it.
     if (!draft.trim() || isBusy) return;
     handledSubmitRequestRef.current = submitDraftRequest;
-    void handleSubmit();
-  }, [draft, handleSubmit, isBusy, omnibarMode, submitDraftRequest]);
+    submitHandoffDraft();
+  }, [draft, isBusy, omnibarMode, submitDraftRequest]);
 
-  const handleSuggestionSelect = useCallback(
-    (chip: MariSuggestionChip) => {
-      if (chip.id === MARI_AUTHORIZATION_ACCEPT_CHIP.id || chip.id === MARI_AUTHORIZATION_DECLINE_CHIP.id) {
-        void handleSubmit(chip.prompt);
-        return;
+  const handleSuggestionSelect = (chip: MariSuggestionChip) => {
+    if (chip.id === MARI_AUTHORIZATION_ACCEPT_CHIP.id || chip.id === MARI_AUTHORIZATION_DECLINE_CHIP.id) {
+      void handleSubmit(chip.prompt);
+      return;
+    }
+    if (guidedPlanStep) {
+      const result = recordMariPlanAnswer(guidedPlanStep.fieldKey, chip.prompt);
+      if (result === "complete") {
+        const answers = useAgentStore.getState().mariPlanAnswers;
+        const summary = Object.entries(answers)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("; ");
+        clearMariPlan();
+        setDraft((current) =>
+          current.trim() ? `${current.trimEnd()} Create it - ${summary}` : `Create it - ${summary}`,
+        );
+        focusComposer();
       }
-      if (guidedPlanStep) {
-        const result = recordMariPlanAnswer(guidedPlanStep.fieldKey, chip.prompt);
-        if (result === "complete") {
-          const answers = useAgentStore.getState().mariPlanAnswers;
-          const summary = Object.entries(answers)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("; ");
-          clearMariPlan();
-          setDraft((current) =>
-            current.trim() ? `${current.trimEnd()} Create it - ${summary}` : `Create it - ${summary}`,
-          );
-          focusComposer();
-        }
-        return;
-      }
-      setDraft((current) => (current.trim() ? `${current.trimEnd()} ${chip.prompt}` : chip.prompt));
-      focusComposer();
-    },
-    [clearMariPlan, focusComposer, guidedPlanStep, handleSubmit, recordMariPlanAnswer, setDraft],
-  );
+      return;
+    }
+    setDraft((current) => (current.trim() ? `${current.trimEnd()} ${chip.prompt}` : chip.prompt));
+    focusComposer();
+  };
 
   const retryRecovery = () => {
     if (!recovery) return;

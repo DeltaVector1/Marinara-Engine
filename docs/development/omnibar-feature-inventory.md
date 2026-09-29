@@ -251,6 +251,12 @@ This is the part most likely to break silently. All of it must survive.
   is **not** the size printed in the build log — the same GameSurface chunk reads
   492 kB to the budget and 509 kB in the log. Debug budget failures with the
   budget's own numbers.
+- The dialog's chunk is lazy, and `GlobalOmnibarHost` preloads it when the app
+  is idle, so the first ⌘K does not wait on the network.
+- Results that need a server round trip — message hits from other chats and
+  docs — are the last groups, so a late answer never pushes down the row the
+  arrow keys are on. Mari's own chats are fetched when the omnibar opens, not
+  on the first keystroke, for the same reason.
 - `OmnibarDetailPane`, `OmnibarMariPane` and `OmnibarAside` are lazy and mounted
   behind `Suspense`. So are Mari's Skills and Memories panels, which most
   sessions never open.

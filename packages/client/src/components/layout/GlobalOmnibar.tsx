@@ -1088,7 +1088,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // Professor Mari's conversations live behind an internal marker, so they are
   // missing from the normal chat list. Searchable here by their auto-title.
   const [mariOpenChatId, setMariOpenChatId] = useState<string | null>(null);
-  const mariChats = useProfessorMariChats(mariEnabled && deferredQuery.trim().length > 0);
+  // Fetched on open rather than on the first keystroke, so the rows are ready
+  // before typing instead of arriving late and pushing the list down.
+  const mariChats = useProfessorMariChats(mariEnabled);
   const mariChatResults = useMemo<OmnibarResult[]>(
     () => buildOmnibarMariChatResults({ deferredQuery, mariChats: mariChats.data ?? [], t }),
     [deferredQuery, mariChats.data, t],
