@@ -109,6 +109,8 @@ Wenn **Personal Notes** unter **Roleplay Commands** aktiviert ist, kannst du `[n
 
 Der Erzähler erhält auch die Notizen eines Charakters nicht mehr, sobald dieser deaktiviert oder aus der Gruppe entfernt wird. Deaktivieren löscht die gespeicherten Notizen nicht; nach erneutem Aktivieren stehen sie wieder zur Verfügung.
 
+Du kannst auch eine Notiz zu einer einzelnen Nachricht speichern. Wähle unter der Nachricht **Bookmark, pin or note** (Lesezeichen, anheften oder Notiz) und schreibe eine **Private note** (private Notiz). Sie bleibt privat und wird nie an das Modell gesendet, solange du nicht **Show the note to the narrator character** (Notiz dem Erzählercharakter zeigen) aktivierst und einen Charakter auswählst. Nur dieser Charakter erhält die Notiz dann direkt bei der zugehörigen Nachricht, kein anderer. Zum Teilen brauchst du einen Einzelchat oder die Gruppengenerierung **Individual**, weil eine zusammengeführte Gruppenantwort für alle Charaktere zugleich geschrieben wird. **Remove note** (Notiz entfernen) beendet auch das Teilen der Notiz.
+
 ## Unterbrechungen durch Charaktere
 
 Aktiviere unter **Chat Settings → Agents → Roleplay Commands** die Option **Interruptions** (Unterbrechungen), damit Charaktere die letzte Nachricht bei einem plausiblen verbalen oder körperlichen Eingreifen abbrechen können. Die Funktion ist zunächst ausgeschaltet und benötigt keinen herunterladbaren Agenten.

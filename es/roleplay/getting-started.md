@@ -109,6 +109,8 @@ Con **Personal Notes** activado en **Roleplay Commands**, escribe `[notes: conte
 
 El narrador también deja de recibir las notas de un personaje cuando este se desactiva o se elimina del grupo. Desactivarlo no elimina las notas guardadas; volver a activarlo las hace disponibles de nuevo.
 
+También puedes guardar una nota en un solo mensaje. Elige **Bookmark, pin or note** (marcar, fijar o añadir una nota) debajo del mensaje y escribe una **Private note** (nota privada). La nota sigue siendo privada y nunca se envía al modelo a menos que actives **Show the note to the narrator character** (mostrar la nota al personaje narrador) y elijas un personaje. Solo ese personaje recibe entonces la nota junto al mensaje; ningún otro la recibe. Para compartirla necesitas un chat con un solo personaje o la generación grupal **Individual**, porque una respuesta grupal combinada se escribe para todos los personajes a la vez. **Remove note** (eliminar nota) también deja de compartirla.
+
 ## Interrupciones de personajes
 
 En **Chat Settings → Agents → Roleplay Commands**, activa **Interruptions** (interrupciones) para permitir que los personajes corten el último mensaje cuando sea plausible una intervención verbal o física. Está desactivado inicialmente y no necesita ningún agente descargable.

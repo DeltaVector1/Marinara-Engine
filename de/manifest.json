@@ -1,6 +1,6 @@
 {
   "language": "de",
-  "sourceCommit": "1aa2109546f56ab17516e13de7ec7e823beb0246",
+  "sourceCommit": "822320d354bd6abfd8cc68c4bb51094a6d3a0bb6",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -659,8 +659,8 @@
     },
     {
       "path": "roleplay/getting-started.md",
-      "sha256": "830f6b231ce7b5e953de6c607c1b1784eab51c9121a72856c16a54ef75356bfd",
-      "bytes": 17561
+      "sha256": "882a1c56cec517386bc1fcd86e97ee0d1ca951b54cdfc0954f983953a6c53f0d",
+      "bytes": 18306
     },
     {
       "path": "roleplay/hud-and-trackers.md",
