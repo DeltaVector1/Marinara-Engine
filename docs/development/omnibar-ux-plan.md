@@ -34,8 +34,9 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5)   | designer      | Todo   |        |
 | 12  | Mari composer redesign with mode + model pickers (H1-H4)     | designer      | Todo   |        |
 
-Stop after slice 12. The DB review card / MariEditEasyViewer rebuild (E6) waits
-for the maintainer to approve the mockup from slice 7.
+Paused after slice 7 by the maintainer; slices 8-12 resume later. The DB
+review card / MariEditEasyViewer rebuild (E6) waits for the maintainer to
+approve the mockup from slice 7.
 
 ## House rules for every slice
 
