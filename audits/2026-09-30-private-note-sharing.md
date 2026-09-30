@@ -12,10 +12,11 @@
   and stops being shared when removed.
 - Leave UI packs and the deferred Game Mode work (#6742 and #6813) unchanged.
 
-The source feature PR was still open at validation time, with its head unchanged
-at the commit above. This translation update depends on that English wording.
-The manifests identify this paragraph's source snapshot, not a new full-pack
-catchup audit. The earlier Game Mode exclusions still apply.
+The source feature PR merged into `staging` as
+`598606110263d3ec09488dd1796d4e0bf7ef7525`. The English guide at that merge is
+byte-identical to the source snapshot above. The manifests identify this
+paragraph's source snapshot, not a new full-pack catchup audit. The earlier
+Game Mode exclusions still apply.
 
 ## Validation
 
@@ -33,7 +34,11 @@ catchup audit. The earlier Game Mode exclusions still apply.
   `c67519cbe79eb8b55629ce692e32b37c3a583aed`. The baseline check required an
   unsandboxed retry because the sandbox blocked the context-loader subprocess.
   These are baseline checks, not execution tests of the source feature PR.
-- Local CodeRabbit review is pending.
+- Local CodeRabbit review completed against `origin/docs-i18n`, covering all
+  21 changed files at `06bc97841d157920a31f1c012bff2b8dd203f2b8`, with zero
+  findings. The first attempt was rate-limited; the retry after the free OSS
+  allowance reset completed without using paid credits. Only this validation
+  record was updated after review.
 
 Manual verification still needed: native-language proofreading and viewing the
 updated guides in the app after the source feature is available.
