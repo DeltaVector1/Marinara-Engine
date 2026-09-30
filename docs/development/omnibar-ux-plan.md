@@ -25,7 +25,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 2   | Quick answers: cheap wins (B1-B5)                            | worker        | Done   | 2b4dd9866 |
 | 3   | Quick answers: grounding in docs + setting names (B6)        | worker        | Done   | f14039aa0 |
 | 4   | Carry aside answer into Mari, show what she received (C1-C3) | worker        | Done   | 892f2acea |
-| 5   | Review of slices 1-4                                         | reviewer      | Done   | cb8c44651 |
+| 5   | Review of slices 1-4                                         | reviewer      | Done   | 532479233 |
 | 6   | Expanded row redesign (D1-D6)                                | designer      | Todo   |        |
 | 7   | Mari card mockup + MariCard primitive + notes (E1-E3)        | designer      | Todo   |        |
 | 8   | Migrate install/file/created cards to MariCard (E4-E5)       | designer      | Todo   |        |
