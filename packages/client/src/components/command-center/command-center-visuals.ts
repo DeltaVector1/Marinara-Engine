@@ -4,8 +4,6 @@ import type { OmnibarCategory } from "@/lib/omnibar-search";
 
 export type CommandCenterVisualTone = "neutral" | "cool" | "warm" | "playful" | "natural";
 
-export type CommandCenterStatusTone = "neutral" | "success" | "warning" | "danger";
-
 export interface CommandCenterVisual {
   label: string;
   tone: CommandCenterVisualTone;
@@ -59,18 +57,4 @@ export function getValidatedCommandCenterAccent(accent: string | null | undefine
   const value = accent?.trim();
   if (!value || value.length > 64 || typeof CSS === "undefined" || !CSS.supports("color", value)) return undefined;
   return value;
-}
-
-export function getCommandCenterStatusClass(tone: CommandCenterStatusTone = "neutral"): string {
-  const colors: Record<CommandCenterStatusTone, string> = {
-    neutral:
-      "text-[color-mix(in_srgb,var(--foreground)_72%,var(--muted-foreground))] bg-[color-mix(in_srgb,var(--foreground)_7%,var(--background))]",
-    success:
-      "text-[color-mix(in_srgb,var(--foreground)_72%,#3fbf78)] bg-[color-mix(in_srgb,#3fbf78_12%,var(--background))]",
-    warning:
-      "text-[color-mix(in_srgb,var(--foreground)_72%,#d49a35)] bg-[color-mix(in_srgb,#d49a35_12%,var(--background))]",
-    danger:
-      "text-[color-mix(in_srgb,var(--foreground)_72%,var(--destructive))] bg-[color-mix(in_srgb,var(--destructive)_12%,var(--background))]",
-  };
-  return colors[tone];
 }

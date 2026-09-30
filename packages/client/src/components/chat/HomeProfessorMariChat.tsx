@@ -135,14 +135,17 @@ import {
   DEFAULT_MARI_PERMISSIONS_MODE,
   MARI_PERMISSIONS_MODE_LABELS,
   MARI_PERMISSIONS_MODES,
+  type MariDependencyInstallApproval,
   type MariPermissionsMode,
+  type MariSensitiveFileApproval,
+  type MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { useChatStore } from "../../stores/chat.store";
 import { useAgentStore } from "../../stores/agent.store";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
-import { WorkspaceApprovalCard } from "./MariApprovalCards";
+import { ResolvedPromptLine, WorkspaceApprovalCard } from "./MariApprovalCards";
 import {
   MariPanelSortSelect,
   compareMariPanelItems,
@@ -2787,6 +2790,14 @@ export function HomeProfessorMariChat({
   const [sending, setSending] = useState(false);
   const [cancelledChatId, setCancelledChatId] = useState<string | null>(null);
   const [recovery, setRecovery] = useState<ProfessorMariRecovery | null>(null);
+  // Direction A: an answered install / sensitive-file prompt folds to one line until the next send.
+  const [resolvedPrompts, setResolvedPrompts] = useState<
+    Array<{
+      chatId: string | null;
+      approval: MariDependencyInstallApproval | MariSensitiveFileApproval;
+      outcome: "applied" | "discarded";
+    }>
+  >([]);
   const [connectionMenuOpen, setConnectionMenuOpen] = useState(false);
   const [permissionsMenuOpen, setPermissionsMenuOpen] = useState(false);
   // #5740: keyed by messageId so expansion never carries over when a new
@@ -5051,6 +5062,7 @@ export function HomeProfessorMariChat({
       // A retry or a chip sends its own text: leave whatever you have typed since in the composer.
       if (overrideText === undefined) setDraft("");
       setMariChips(chat.id, []);
+      setResolvedPrompts([]);
       clearMariPlan();
       if (!overrideRecovery) setAttachments([]);
       setHandoffContext(persistentResourceContext(submittedContext));
@@ -5172,15 +5184,21 @@ export function HomeProfessorMariChat({
     openPendingApprovals();
   }, [chatWindowOpen, openPendingApprovals, pendingReviewRequest]);
 
+  const answerApproval = async (approval: MariWorkspacePendingApproval, keep: boolean) => {
+    const outcome = (await (keep ? keepWorkspaceChange(approval.id) : restoreWorkspaceChange(approval.id)))?.outcome;
+    if (approval.kind !== "dependency_install" && approval.kind !== "sensitive_file") return;
+    if (outcome !== "applied" && outcome !== "discarded") return;
+    setResolvedPrompts((current) => [...current, { chatId, approval, outcome }]);
+  };
   const pendingApprovalsPanel = visiblePendingChangeReviews.map((approval) => (
     <WorkspaceApprovalCard
       key={approval.id}
       approval={approval}
       busy={approvalBusyId === approval.id}
       disabled={approvalBusyId !== null}
-      onKeep={(id) => void keepWorkspaceChange(id)}
+      onKeep={() => void answerApproval(approval, true)}
       onKeepEnable={(id) => void keepWorkspaceChange(id, { enable: true })}
-      onRestore={(id) => void restoreWorkspaceChange(id)}
+      onRestore={() => void answerApproval(approval, false)}
       onRejectRows={(id, rows) => rejectWorkspaceRows(id, rows)}
       onRenderPrompt={renderWorkspacePrompt}
     />
@@ -5980,6 +5998,17 @@ export function HomeProfessorMariChat({
                                   {workspaceStatus.error}
                                 </MariNote>
                               ) : null}
+                              {!sending && !workspaceTimelineActive
+                                ? resolvedPrompts
+                                    .filter((prompt) => prompt.chatId === chatId)
+                                    .map((prompt) => (
+                                      <ResolvedPromptLine
+                                        key={prompt.approval.id}
+                                        approval={prompt.approval}
+                                        outcome={prompt.outcome}
+                                      />
+                                    ))
+                                : null}
                               {visiblePendingChangeReviews.length > 0 ? (
                                 <div className="space-y-3">{pendingApprovalsPanel}</div>
                               ) : null}

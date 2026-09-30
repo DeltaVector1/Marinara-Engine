@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { type ReactNode, type Ref, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
 import {
   Check,
@@ -7,6 +7,7 @@ import {
   Eye,
   FileText,
   Loader2,
+  Minus,
   PackagePlus,
   RefreshCw,
   Sparkles,
@@ -25,7 +26,7 @@ import { useUIStore, type MariEditViewMode } from "../../stores/ui.store";
 import { canRenderPrompt, MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
 import { computeFieldChanges, trackListChange, trackProseChange, type FieldChange } from "../../lib/mari-edit-diff";
 import { buildCharacterPreviewModel } from "../../lib/character-preview";
-import { MariCard, MariRecordAvatar } from "./mari-primitives";
+import { MariCard, MariNote, MariRecordAvatar } from "./mari-primitives";
 import { MariPromptPreviewModal, type MariPromptRenderSide } from "./MariPromptPreviewModal";
 import { TranscriptRow } from "./MariTranscriptRow";
 import { cn } from "../../lib/utils";
@@ -167,6 +168,7 @@ function AppliedEditReview({
   onRestore,
   onShowRaw,
   onRenderRow,
+  ref,
 }: {
   approval: MariDbPendingApproval;
   busy: boolean;
@@ -175,6 +177,7 @@ function AppliedEditReview({
   onRestore: (id: string) => void;
   onShowRaw: () => void;
   onRenderRow?: (change: MariDbPendingApproval["diffPreview"][number], index: number) => void;
+  ref?: Ref<HTMLElement>;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -196,7 +199,7 @@ function AppliedEditReview({
     </>
   );
   return (
-    <section className="mari-edit mari-edit-review" aria-label={localizeUi("ui.chat.mariappliededit.label")}>
+    <section ref={ref} className="mari-edit mari-edit-review" aria-label={localizeUi("ui.chat.mariappliededit.label")}>
       {approval.diffPreview.map((change, index) => {
         const fields = computeFieldChanges(change);
         const character =
@@ -399,6 +402,7 @@ function DatabaseWorkspaceApprovalCard({
     return (
       <TranscriptRow layout="document" marker={null}>
         <AppliedEditReview
+          ref={cardRef}
           approval={approval}
           busy={busy}
           disabled={disabled}
@@ -799,6 +803,36 @@ function SensitiveFileWorkspaceApprovalCard({
         </pre>
       </TechnicalDetails>
     </MariCard>
+  );
+}
+
+/** Direction A: once answered, an install or sensitive-file prompt folds to one quiet line. */
+export function ResolvedPromptLine({
+  approval,
+  outcome,
+}: {
+  approval: MariDependencyInstallApproval | MariSensitiveFileApproval;
+  outcome: "applied" | "discarded";
+}) {
+  const { t: localizeUi } = useUiTranslation();
+  const install = approval.kind === "dependency_install";
+  const name = install ? approval.packageName : approval.path.split(/[\\/]/u).at(-1) || approval.path;
+  const title = install
+    ? localizeUi("ui.chat.dependencyworkspaceapprovalcard.title", { name })
+    : localizeUi(
+        approval.changeType === "create"
+          ? "ui.chat.sensitivefileworkspaceapprovalcard.titleCreate"
+          : "ui.chat.sensitivefileworkspaceapprovalcard.titleUpdate",
+        { file: name },
+      );
+  const Icon = outcome === "discarded" ? Minus : Check;
+  return (
+    <MariNote role="status" className="flex items-center gap-1.5">
+      <Icon size="0.8rem" aria-hidden="true" />
+      {outcome === "discarded"
+        ? localizeUi("ui.chat.mariresolvedprompt.skipped", { title })
+        : localizeUi(install ? "ui.chat.mariresolvedprompt.installed" : "ui.chat.mariresolvedprompt.saved", { name })}
+    </MariNote>
   );
 }
 

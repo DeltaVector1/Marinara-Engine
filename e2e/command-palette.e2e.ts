@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { seedUIState } from "./ui-state-fixture.js";
 
 const APP_VERSION = (
   JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }
@@ -8,19 +9,27 @@ const APP_VERSION = (
 async function prepareFreshClient(page: Page) {
   await page.addInitScript((appVersion) => {
     localStorage.setItem("marinara:whats-new:seen-version", appVersion);
-    localStorage.setItem(
-      "marinara-engine-ui",
-      JSON.stringify({
-        state: {
-          hasCompletedOnboarding: true,
-          rightPanelOpen: false,
-          sidebarOpen: false,
-        },
-        version: 65,
-      }),
-    );
   }, APP_VERSION);
+  // The Professor Mari navigation hint would take the first key press.
+  await seedUIState(page, {
+    hasCompletedOnboarding: true,
+    rightPanelOpen: false,
+    sidebarOpen: false,
+    professorMariNavigationEnabled: false,
+  });
 }
+
+async function openOmnibar(page: Page) {
+  // The shortcut needs page focus, which a fresh load or reload does not have.
+  await page
+    .locator("main")
+    .first()
+    .click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+k");
+}
+
+/** Result rows without the promoted "Ask Mari: …" row, which also contains the query. */
+const RESULT_ROWS = '[data-command-center-result-row]:not([data-result-id="ask-professor-mari"])';
 
 test.beforeEach(async ({ page }) => {
   const resetUiSettings = await page.request.put("/api/app-settings/ui", { data: { value: "" } });
@@ -32,17 +41,16 @@ test.beforeEach(async ({ page }) => {
 test("desktop shortcut opens a focused command palette with useful initial options", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "The keyboard shortcut is covered on desktop.");
 
-  await page.keyboard.press("Control+k");
+  await openOmnibar(page);
 
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   const input = omnibar.getByRole("searchbox", { name: "Search Marinara" });
   await expect(omnibar.getByRole("dialog", { name: "Search Marinara" })).toBeVisible();
   await expect(input).toBeFocused();
   await expect(input).toHaveValue("");
-  const resultRows = omnibar.locator("[data-command-center-result-row]");
-  await expect(resultRows.first()).toBeVisible();
-  expect(await resultRows.count()).toBeLessThanOrEqual(4);
-  await expect(resultRows.filter({ hasText: "Theme" })).toBeVisible();
+  // No idle deck: an empty query shows one hint and the scope chips.
+  await expect(omnibar.getByText("Search across Marinara", { exact: true })).toBeVisible();
+  await expect(omnibar.locator("[data-command-center-result-row]")).toHaveCount(0);
   await expect(omnibar.locator('[data-component="GlobalOmnibar.ProfessorMariButton"]')).toBeVisible();
   await expect(omnibar.getByRole("toolbar", { name: "Result categories" })).toBeHidden();
   await expect(omnibar.locator("[data-omnibar-scope-chip='characters']")).toBeVisible();
@@ -51,7 +59,7 @@ test("desktop shortcut opens a focused command palette with useful initial optio
 test("desktop command palette can toggle a setting without closing", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "Setting controls are covered on desktop.");
 
-  await page.keyboard.press("Control+k");
+  await openOmnibar(page);
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill("reduced effects");
   await omnibar
@@ -60,15 +68,22 @@ test("desktop command palette can toggle a setting without closing", async ({ pa
     .getByRole("button", { name: /Reduced ambient effects/ })
     .first()
     .click();
-  await expect(omnibar.getByRole("switch", { name: "Reduced ambient effects" })).toBeVisible();
-  await omnibar.getByRole("switch", { name: "Reduced ambient effects" }).click();
+  const toggle = omnibar.getByRole("switch", { name: "Reduced ambient effects" });
+  await expect(toggle).toBeVisible();
+  const wasOn = await toggle.isChecked();
+  // The switch input is visually hidden; its label takes the click.
+  await omnibar
+    .locator("label")
+    .filter({ has: page.getByRole("switch", { name: "Reduced ambient effects" }) })
+    .click();
+  await expect(toggle).toBeChecked({ checked: !wasOn });
   await expect(omnibar).toBeVisible();
 });
 
 test("desktop command result navigates directly to Appearance settings", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "Direct command navigation is covered on desktop.");
 
-  await page.keyboard.press("Control+k");
+  await openOmnibar(page);
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill("Appearance");
   await omnibar
@@ -82,53 +97,33 @@ test("desktop command result navigates directly to Appearance settings", async (
   await expect(page.getByRole("tab", { name: "Appearance", exact: true })).toHaveAttribute("aria-selected", "true");
 });
 
-test("Professor Mari header action closes the palette and preserves an unsent draft", async ({ page }, testInfo) => {
+test("Professor Mari header action opens her pane with the typed draft", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "Professor Mari command behavior is covered on desktop.");
 
   const draft = "Help me choose a character for a mystery scene";
-  await page.keyboard.press("Control+k");
+  await openOmnibar(page);
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill(draft);
   await omnibar.locator('[data-component="GlobalOmnibar.ProfessorMariButton"]').click();
 
-  await expect(omnibar).toBeHidden();
-  const professorTab = page.getByRole("tab", { name: "Professor", exact: true });
-  await expect(professorTab).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator('textarea[placeholder="Ask Professor Mari"]:visible')).toHaveValue(draft);
+  // Mari opens inside the omnibar; the typed text is her draft.
+  await expect(omnibar.locator('[data-component="GlobalOmnibar.Mari"]')).toBeVisible();
+  await expect(omnibar.locator('[data-component="GlobalOmnibar.Mari"] textarea:visible')).toHaveValue(draft);
 });
 
-test("Professor Mari header action preserves the selected Command Center result", async ({ page }, testInfo) => {
+test("Ctrl+Enter carries the selected Command Center result to Mari", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "Professor Mari result context is covered on desktop.");
 
-  await page.evaluate(() => {
-    (window as Window & { professorMariHandoff?: unknown }).professorMariHandoff = undefined;
-    window.addEventListener(
-      "marinara:home-professor-mari-open",
-      (event) => {
-        (window as Window & { professorMariHandoff?: unknown }).professorMariHandoff = (event as CustomEvent).detail;
-      },
-      { once: true },
-    );
-  });
-  await page.keyboard.press("Control+k");
+  await openOmnibar(page);
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill("Appearance");
-  const appearance = omnibar.locator("[data-command-center-result-row]").filter({ hasText: "Appearance" });
+  const appearance = omnibar.locator('[data-result-id="settings-section:appearance"]');
   await appearance.hover();
-  await expect(appearance).toHaveAttribute("data-selected", "true");
-  await omnibar.locator('[data-component="GlobalOmnibar.ProfessorMariButton"]').click();
+  await expect(appearance.locator("[data-selected='true']")).toHaveCount(1);
+  await page.keyboard.press("Control+Enter");
 
-  await expect(omnibar).toBeHidden();
-  await expect(page.locator('textarea[placeholder="Ask Professor Mari"]:visible')).toHaveValue("Appearance");
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          (window as Window & { professorMariHandoff?: { context?: { action?: string } } }).professorMariHandoff
-            ?.context?.action,
-      ),
-    )
-    .toContain("Selected Command Center result: Appearance");
+  await expect(omnibar.locator('[data-component="GlobalOmnibar.Mari"]')).toBeVisible();
+  await expect(omnibar.locator(".mari-omnibar-context-attachment")).toContainText("Appearance");
 });
 
 test("mobile keeps the command palette button and panel inside the top-bar layout", async ({ page }, testInfo) => {
@@ -162,7 +157,7 @@ test("mobile keeps the command palette button and panel inside the top-bar layou
 test("query changes reset the command category filter to All", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "Command filtering is covered on desktop.");
 
-  await page.keyboard.press("Control+k");
+  await openOmnibar(page);
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   const input = omnibar.getByRole("searchbox", { name: "Search Marinara" });
   await input.fill("theme");
@@ -175,26 +170,36 @@ test("query changes reset the command category filter to All", async ({ page }, 
   await expect(toolbar.getByRole("button", { name: "Settings", exact: true })).toBeVisible();
 });
 
-test("desktop keeps a stable shell and compact result lanes for rich results", async ({ page }, testInfo) => {
+test("desktop keeps a stable shell when a rich result expands", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "Stable Command Center geometry is covered on desktop.");
 
-  await page.keyboard.press("Control+k");
-  const omnibar = page.locator('[data-component="GlobalOmnibar"]');
-  const panel = omnibar.locator('[data-component="GlobalOmnibar.Panel"]');
-  const input = omnibar.getByRole("searchbox", { name: "Search Marinara" });
-  await input.fill("character");
-  const characterRow = omnibar.locator("[data-command-center-result-row]").first();
-  await expect(characterRow).toBeVisible();
-  const initialBox = await panel.boundingBox();
-  expect(initialBox).not.toBeNull();
-  expect(initialBox!.width).toBeCloseTo(960, -1);
-  await characterRow.hover();
-  await page.waitForTimeout(450);
-  await expect(omnibar.locator('[data-component="GlobalOmnibar.Detail"]')).toBeVisible();
-  const richBox = await panel.boundingBox();
-  expect(richBox).not.toBeNull();
-  expect(richBox!.width).toBeCloseTo(initialBox!.width, 0);
-  await expect(characterRow.getByRole("button", { name: /Pin|Unpin/ })).toHaveCSS("width", "32px");
+  const name = `Stable Shell ${Date.now()}`;
+  // A row expands only when it has something to show, such as a description.
+  const response = await page.request.post("/api/characters", {
+    data: { data: { name, description: "A character with enough to expand" } },
+  });
+  expect(response.ok()).toBeTruthy();
+  const character = (await response.json()) as { id: string };
+  try {
+    await page.reload();
+    await openOmnibar(page);
+    const omnibar = page.locator('[data-component="GlobalOmnibar"]');
+    const panel = omnibar.locator('[data-component="GlobalOmnibar.Panel"]');
+    await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill(name);
+    const characterRow = omnibar.locator(RESULT_ROWS).filter({ hasText: name });
+    await expect(characterRow).toBeVisible();
+    const initialBox = await panel.boundingBox();
+    expect(initialBox).not.toBeNull();
+    // Hover only selects; ArrowRight (or a tap) expands.
+    await characterRow.hover();
+    await page.keyboard.press("ArrowRight");
+    await expect(characterRow.locator('[data-component="GlobalOmnibar.Detail"]')).toBeVisible();
+    const richBox = await panel.boundingBox();
+    expect(richBox).not.toBeNull();
+    expect(richBox!.width).toBeCloseTo(initialBox!.width, 0);
+  } finally {
+    await page.request.delete(`/api/characters/${character.id}`);
+  }
 });
 
 test("desktop exposes inline entity controls and rich character information", async ({ page }, testInfo) => {
@@ -208,13 +213,16 @@ test("desktop exposes inline entity controls and rich character information", as
   const character = (await response.json()) as { id: string };
   try {
     await page.reload();
-    await page.keyboard.press("Control+k");
+    await openOmnibar(page);
     const omnibar = page.locator('[data-component="GlobalOmnibar"]');
     await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill(name);
-    await omnibar.locator("[data-command-center-result-row]").filter({ hasText: name }).hover();
-    await page.waitForTimeout(450);
-    const detail = omnibar.locator('[data-component="GlobalOmnibar.Detail"]');
-    await expect(detail).toContainText("A richly mapped test character");
+    const row = omnibar.locator(RESULT_ROWS).filter({ hasText: name });
+    await row.hover();
+    await page.keyboard.press("ArrowRight");
+    const detail = row.locator('[data-component="GlobalOmnibar.Detail"]');
+    // The row's own second line carries the description; the body below never repeats it.
+    await expect(row).toContainText("A richly mapped test character");
+    await expect(detail).toContainText("test-tag");
     // Enter already edits, so the expansion offers the other actions.
     await expect(detail.getByRole("button", { name: "Start chat", exact: true })).toBeVisible();
   } finally {
@@ -226,7 +234,7 @@ test("Command Center can add a character to the active chat", async ({ page, req
   const suffix = Date.now().toString(36);
   const name = `Command Chat Character ${suffix}`;
   const characterResponse = await request.post("/api/characters", {
-    data: { data: { name } },
+    data: { data: { name, description: "Joins the chat from the Command Center" } },
   });
   expect(characterResponse.ok()).toBeTruthy();
   const character = (await characterResponse.json()) as { id: string };
@@ -242,12 +250,15 @@ test("Command Center can add a character to the active chat", async ({ page, req
       module.useChatStore.getState().setActiveChatId(chatId);
     }, chat.id);
     await expect(page.locator("[data-chat-resource-drop-surface]")).toBeVisible();
-    await page.keyboard.press("Control+k");
+    await openOmnibar(page);
     const omnibar = page.locator('[data-component="GlobalOmnibar"]');
     await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill(name);
-    const row = omnibar.locator("[data-command-center-result-row]").filter({ hasText: name });
+    const row = omnibar.locator(RESULT_ROWS).filter({ hasText: name });
     if (testInfo.project.name.includes("mobile")) await row.getByRole("button", { name: new RegExp(name) }).click();
-    else await row.hover();
+    else {
+      await row.hover();
+      await page.keyboard.press("ArrowRight");
+    }
     await expect(omnibar.getByRole("button", { name: "Add to this chat", exact: true })).toBeVisible();
     await omnibar.getByRole("button", { name: "Add to this chat", exact: true }).click();
 
@@ -281,7 +292,7 @@ test("a category chip scopes the query and lists that whole kind", async ({ page
 
   try {
     await page.reload();
-    await page.keyboard.press("Control+k");
+    await openOmnibar(page);
     const omnibar = page.locator('[data-component="GlobalOmnibar"]');
     // The chip types the scope prefix; there is no separate grid surface.
     await omnibar.locator("[data-omnibar-scope-chip='characters']").click();
@@ -336,7 +347,7 @@ test("expanded results stay reachable and expose concise accessible names", asyn
     }
 
     await page.reload();
-    await page.keyboard.press("Control+k");
+    await openOmnibar(page);
     const omnibar = page.locator('[data-component="GlobalOmnibar"]');
     const input = omnibar.getByRole("searchbox", { name: "Search Marinara" });
     await input.fill(`char: Preview Reachability ${suffix}`);
@@ -417,13 +428,15 @@ test("Professor Mari consolidates privileged bootstrap failures", async ({ page 
   await page.route(/\/api\/professor-mari\/workspace\/(?:status|skills|instructions)(?:\?.*)?$/, async (route) => {
     await route.fulfill({ status: 403, contentType: "application/json", body: JSON.stringify({ error: "Forbidden" }) });
   });
-  await page.keyboard.press("Control+k");
+  await openOmnibar(page);
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   await omnibar.locator('[data-component="GlobalOmnibar.ProfessorMariButton"]').click();
 
-  const bootstrapToasts = page.locator("[data-sonner-toast]").filter({
+  // One quiet note in the transcript, not a toast per failed request.
+  const toolsNote = omnibar.locator(".mari-note").filter({
     hasText: "Some of Professor Mari's workspace tools are unavailable.",
   });
-  await expect(bootstrapToasts).toHaveCount(1);
-  await expect(bootstrapToasts).toContainText("Settings → Advanced → Admin Access");
+  await expect(toolsNote).toHaveCount(1);
+  await expect(toolsNote).toContainText("Settings → Advanced → Admin Access");
+  await expect(page.locator("[data-sonner-toast]").filter({ hasText: "workspace tools" })).toHaveCount(0);
 });

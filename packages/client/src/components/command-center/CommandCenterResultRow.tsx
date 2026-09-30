@@ -82,7 +82,9 @@ export function CommandCenterResultRow({
         type="button"
         data-selected={selected || undefined}
         onClick={onSelect}
-        aria-label={[title, metadata].filter(Boolean).join(" ")}
+        // The title names the row; the subtitle (often a long description) only describes it.
+        aria-label={title}
+        aria-describedby={metadata && id ? `${id}-metadata` : undefined}
         className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl px-2.5 text-left text-[var(--foreground)] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
       >
         <CommandCenterMedia
@@ -97,6 +99,7 @@ export function CommandCenterResultRow({
           <span className="block truncate text-sm font-semibold">{title}</span>
           {metadata ? (
             <span
+              id={id ? `${id}-metadata` : undefined}
               className={cn(
                 "mt-0.5 block text-xs text-[var(--muted-foreground)]",
                 // Expanded, the line carries the description (max two lines) so the

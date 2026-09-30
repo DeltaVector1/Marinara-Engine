@@ -1039,6 +1039,9 @@ console.info("Command Center regression checks passed.");
   assert.equal(pastTenseStepTitle("Copying file"), "Copied file");
   assert.equal(pastTenseStepTitle("Adding entry"), "Added entry");
   assert.equal(pastTenseStepTitle("Setting theme"), "Set theme");
+  assert.equal(pastTenseStepTitle("Writing file"), "Wrote file");
+  assert.equal(pastTenseStepTitle("Making changes"), "Made changes");
+  assert.equal(pastTenseStepTitle("Taking notes"), "Took notes");
   assert.equal(pastTenseStepTitle("String search"), "String search", "no vowel before -ing: not a verb");
   assert.equal(pastTenseStepTitle("docs_search"), "docs_search");
 }

@@ -45,19 +45,20 @@ export function buildWorkTimelineBlocks<Tool>(items: readonly WorkTimelineItem<T
 
 // ponytail: English-only. Step titles are English literals in inferToolPresentation; localize both
 // together if they ever move into en.json.
+// Keyed by the stem left after stripping "-ing", so silent-e verbs drop the e ("making" → "mak").
 const IRREGULAR_PAST: Record<string, string> = {
   build: "built",
   find: "found",
   get: "got",
-  make: "made",
+  mak: "made",
   put: "put",
   read: "read",
   run: "ran",
   send: "sent",
   set: "set",
-  take: "took",
+  tak: "took",
   think: "thought",
-  write: "wrote",
+  writ: "wrote",
 };
 
 /**

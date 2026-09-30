@@ -82,14 +82,17 @@ Rules that must survive:
   - Something she created or updated is a small tile (`MariWorkspaceActionResultRow`):
     portrait or monogram (`MariRecordAvatar`), name, "New" for a created record, one
     line (its description, or the changed fields), and "Open ›".
-  - Only risky prompts (delete, install, sensitive file) are a `MariCard`
+  - Risky prompts (install, sensitive file; delete from slice 13) are a `MariCard`
     (R42): one neutral hairline, a small icon tile (red-tinted only for
     danger), one primary and one quiet text secondary. No glow, no gradient
     tile, no accent frame. The dependency-install ("Install nanoid") and
     sensitive-file ("Change package.json") prompts use it: the reason and the
     risk in one line, a solid Install / Apply change, a quiet Not now, and the
     exact package, integrity hash, source, full path and content preview behind
-    one "Technical details" disclosure (`.mari-tech`).
+    one "Technical details" disclosure (`.mari-tech`). Once answered, it folds
+    to one quiet `MariNote` line with an icon (`ResolvedPromptLine`: "Installed
+    nanoid", "Skipped: Change package.json") until the next send. The delete
+    prompt still uses the older `mari-decision-surface` card until slice 13.
   - A failed send is one red line under your message with an inline Retry
     (`.mari-send-failed`), not a line of hers. A workspace-status error and
     missing workspace tools are `MariNote` lines (R43).

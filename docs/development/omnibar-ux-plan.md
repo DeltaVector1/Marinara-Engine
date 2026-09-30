@@ -321,4 +321,6 @@ Slice 8 now means E4 only (install and sensitive-file prompts in direction A)
 since E5 moved into I3. Slice 13 (E6): the DB review card and
 `MariEditEasyViewer` in direction A — neutral tracked changes by default, the
 exact diff behind a toggle, chips for toggles/keys, no nested panels, Raw as one
-disclosure.
+disclosure. The applied-edit group moves inside the turn it belongs to (today
+it renders in `pendingApprovalsPanel`, below "Worked for…" after the whole
+transcript) as part of that rebuild.
