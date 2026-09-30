@@ -315,7 +315,7 @@ balsa entre cidades, uma escada entre andares selecionados, um portal entre
 mundos ou uma passagem secreta entre cômodos de edifícios diferentes.
 
 Uma torre de 25 andares normalmente deve modelar os andares como irmãos sob uma
-única torre, e não como uma cadeia de pais com 25 níveis. O mapa aceita até 500
+única torre, e não como uma cadeia de pais com 25 níveis. O mapa aceita até 5.000
 locais e 20 níveis de hierarquia.
 
 ## Criar ou expandir um mapa com IA

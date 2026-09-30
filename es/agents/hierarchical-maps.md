@@ -175,7 +175,7 @@ Para la presentación **Map**, arrastra los hijos a su sitio o escribe posicione
 
 Los enlaces directos pueden conectar cualquier par de lugares válidos de la jerarquía: un ferri entre pueblos, unas escaleras entre pisos concretos, un portal entre mundos o un pasadizo secreto entre habitaciones de edificios distintos.
 
-Una torre de 25 pisos normalmente debería modelar los pisos como hermanos bajo una misma torre, y no como una cadena de padres de 25 niveles. Maps admite hasta 500 ubicaciones y 20 niveles de jerarquía.
+Una torre de 25 pisos normalmente debería modelar los pisos como hermanos bajo una misma torre, y no como una cadena de padres de 25 niveles. Maps admite hasta 5000 ubicaciones y 20 niveles de jerarquía.
 
 ## Redactar o ampliar un mapa con IA
 

@@ -54,8 +54,8 @@
     },
     {
       "path": "agents/hierarchical-maps.md",
-      "sha256": "1606b7cfb8d14a2ac6f59e09f10afbd574bea7cc97431bfa5872d4969dd9241b",
-      "bytes": 57054
+      "sha256": "328e03a9cf7da9059bf346935f5a3f88e68f2749d08403973b8e0a1ed2bc67d0",
+      "bytes": 57056
     },
     {
       "path": "agents/knowledge-sources.md",
