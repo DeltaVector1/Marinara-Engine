@@ -43,7 +43,7 @@ Decision 모델은 한 종류의 질문에 답합니다. 채팅의 최근 메시
 
 - **None**(없음)이 기본값입니다. 아무것도 묻지 않고 에이전트 편집기의 활성화 질문 필드도 비활성 상태로 남습니다.
 - **Local models**(로컬 모델): 이미 실행 중인 **Primary local model**(주 로컬 모델)이나 **Utility local model**(보조 로컬 모델)입니다. 추가 다운로드가 없고 정보가 컴퓨터 밖으로 나가지 않습니다. **Decision sidecar**(판정 사이드카)를 설치했다면 여기도 표시됩니다.
-- **Connections**: 직접 만든 Decision 연결이며 호스팅 서비스와 직접 운영하는 서버를 모두 포함합니다.
+- **Connections**: 생성한 Decision 연결입니다. 호스팅 서비스, 직접 실행하는 System One 서버 또는 Ollama나 LM Studio처럼 이미 실행 중인 서버의 채팅 모델을 사용할 수 있습니다.
 
 현재 답할 수 없는 항목도 이유와 함께 회색으로 남으므로 무엇을 고쳐야 하는지 확인할 수 있습니다. 선택 후 **Test**(테스트)를 클릭하세요. 테스트는 채팅이 아닌 고정 샘플을 보냅니다.
 
@@ -56,6 +56,7 @@ Decision 모델은 한 종류의 질문에 답합니다. 채팅의 최근 메시
 | 선택지 | 비용 | 필요한 것 | 적합한 대상 |
 | --- | --- | --- | --- |
 | 이미 실행하는 모델 | 추가 비용 없음 | **Local Model**(로컬 모델)의 모델 | 로컬 모델을 사용하는 대부분의 사용자 |
+| 자체 서버의 채팅 모델 | 추가 비용 없음 | 이미 실행 중인 Ollama, LM Studio, llama.cpp 또는 OpenAI 호환 서버 | Marinara 외부에서 실행하는 모델을 중복 로드하지 않으려는 경우 |
 | 호스팅된 Decision 연결 | 요청별 과금. 한 턴에 여러 번 요청할 수 있음 | API 키(TypeSafe 또는 OpenRouter) | 휴대전화와 로컬 모델을 실행하지 않는 PC |
 | 설치형 판정 모델 | 별도 디스크와 GPU 메모리. [모델 크기](#let-marinara-install-a-decision-model) 참고 | Linux x86-64와 지원되는 NVIDIA GPU | 채팅 모델 옆에서 별도 판정 모델 실행 |
 
@@ -86,20 +87,31 @@ Marinara는 예/아니요 질문 하나를 보내 토큰 하나를 생성하게 
 
 **수치 해석.** 일반 채팅 모델의 예/아니요 확률은 임계값에 사용할 수 있지만 판정 전용 모델처럼 확률을 보정하도록 훈련하지 않았습니다. 로그 확률을 반환하지 않는 런타임은 단순히 1 또는 0으로 답합니다. 기본값을 그대로 믿기보다 자신의 채팅으로 임계값을 조정하세요.
 
+<a id="on-a-server-you-already-run"></a>
+
+### 이미 실행 중인 서버에서 사용하기
+
+채팅 모델이 Ollama, LM Studio, llama.cpp 또는 다른 OpenAI 호환 서버에서 이미 실행 중이라면 Marinara에서 두 번째 사본을 로드하지 않고도 Decision에 응답할 수 있습니다.
+
+1. 해당 서버의 **Custom** 연결을 열고 **Use this model for decisions**(이 모델을 결정에 사용)를 클릭하세요. 같은 기본 URL, 모델, 키를 사용하는 **OpenAI-compatible chat model**(OpenAI 호환 채팅 모델) 소스의 Decision 연결이 생성됩니다. 직접 생성해도 됩니다. Decision 연결에서 이 소스를 선택하고 채팅 연결과 같은 기본 URL(Ollama의 경우 예: `http://localhost:11434/v1`)과 서버가 제공하는 모델 이름을 입력하세요.
+2. **Decision model**에서 선택한 뒤 **Test**를 클릭하세요. 서버가 로그 확률을 반환했는지, 모델이 먼저 추론해야 했는지도 결과에 표시됩니다.
+
+로컬 모델처럼 문마다 예/아니요 한 단어를 요청하고 그 확률에서 답을 읽습니다. 서버가 동시에 처리하는 요청 수를 알 수 없으므로 문은 하나씩 전송됩니다. 연결의 **Thinking**은 항상 **Auto**입니다. 먼저 추론해야 하는 모델은 두 번 응답에 실패하면 추론 방식으로 전환하고, **Also gate agents that run before the reply**를 켜지 않는 한 이후에는 답변 후 조건만 평가합니다. 네트워크의 다른 컴퓨터에 있는 서버도 다른 로컬 제공자처럼 `PROVIDER_LOCAL_URLS_ENABLED`가 필요합니다. [로컬 또는 자체 호스팅 모델 연결하기](local-self-hosted.md)를 참고하세요.
+
 <a id="set-up-a-decision-connection"></a>
 
 ## Decision 연결 설정하기
 
 1. **Connections**에서 제공자를 **Decision**으로 지정해 연결을 만드세요.
-2. **TypeSafe**, **OpenRouter**, **Custom System One endpoint**(사용자 지정 System One 엔드포인트) 중 하나를 고르세요. 호스팅 서비스에는 API 키가 필요합니다. Custom은 Open-Jev를 포함해 직접 실행하는 System One 서버를 받습니다. `/v1/systemone`을 뺀 기본 URL과 서버에서 지원하는 모델 이름을 입력하세요.
-3. OpenRouter는 **API key source**(API 키 소스)에서 저장된 OpenRouter 연결을 고르거나 별도 키를 입력하세요. 편집기에는 **Use this key for decisions (Jev)**(이 키를 판정에 사용)도 있습니다. 연결한 키는 나중에 변경해도 자동으로 따라갑니다. Custom 연결은 두 URL의 출처(스킴, 호스트, 포트)가 같을 때만 사용자 지정 채팅 연결의 키를 빌릴 수 있습니다.
+2. **TypeSafe**, **OpenRouter**, **Custom System One endpoint**(사용자 지정 System One 엔드포인트) 또는 **OpenAI-compatible chat model**을 선택하세요. 호스팅 소스에는 API 키가 필요합니다. Custom은 Open-Jev를 포함한 기존 System One 서버를 지원합니다. `/v1/systemone` 없는 기본 URL과 지원하는 모델 이름을 입력하세요. Ollama나 LM Studio 같은 채팅 모델 서버는 System One을 사용하지 않습니다. [이미 실행 중인 서버에서 사용하기](#on-a-server-you-already-run)에 따라 **OpenAI-compatible chat model**을 선택하세요.
+3. OpenRouter는 **API key source**(API 키 소스)에서 저장된 연결을 선택하거나 별도 키를 입력하세요. 편집기의 **Use this key for decisions (Jev)**(이 키를 결정에 사용)도 이용할 수 있습니다. 연결된 키는 이후 변경을 자동으로 반영합니다. Custom System One 및 OpenAI-compatible chat model 연결은 두 URL의 출처(스킴, 호스트, 포트)가 같을 때만 사용자 지정 채팅 연결의 키를 빌릴 수 있습니다.
 4. 저장하고 **Decision model**에서 선택한 뒤 **Test**를 클릭하세요. 성공하면 확률, 응답 시간과 연결의 시간 제한을 보여 줍니다. Test는 최소 10초를 기다리고 제한이 더 길면 그보다 5초 더 기다리므로 느린 답도 실제 시간으로 보고합니다. 제한을 넘겼다면 결과에 표시합니다. 채팅에서는 그 답을 답 없음으로 처리합니다.
 
 Decision 기본값은 채팅, 에이전트, 이미지, 동영상, 오디오 기본값과 별개입니다. **None**을 선택하면 활성화 질문이나 판정문을 삭제하지 않고 판정을 끕니다.
 
 호스팅 판정은 선택한 최근 메시지와 문장을 지정 제공자에게 보내며 비용이 발생할 수 있습니다. Smart 응답 순서는 [캐릭터 명단](#what-the-model-sees)도 포함합니다. **Recent-message token budget**(최근 메시지 토큰 예산)의 기본값은 호스팅 서비스에서 추정 토큰 30,000개, 사용자 지정 서버에서 3,500개입니다. 서버의 컨텍스트 한도가 작으면 줄이세요. Marinara는 오래된 메시지를 먼저 버린 뒤 가장 최신 메시지의 앞부분을 줄입니다. 토큰 추정치는 서버 토크나이저와 다를 수 있으며 거부되거나 예산을 넘긴 요청은 답 없음이 됩니다.
 
-**Time limit (seconds)**(시간 제한, 초)는 채팅 중 각 Decision 연결이 답을 기다리는 시간이며 0.5~30초, 기본값은 1.5초입니다. 이후의 답은 답 없음으로 처리합니다. 일부 호스팅 제공자는 때때로 1.5초보다 느려 판정이 무작위로 고장 난 것처럼 보일 수 있습니다. **Test**를 몇 번 실행하고 가장 느린 답보다 길게 설정하세요. 대신 프리셋의 판정이나 답글 전 에이전트의 활성화 질문은 최대 이 시간만큼 답글을 지연시킬 수 있습니다.
+**Time limit (seconds)**(시간 제한, 초)는 채팅 중 Decision 연결이 각 문의 응답을 기다리는 시간입니다. 범위는 0.5~30초이고 기본값은 1.5초, **OpenAI-compatible chat model** 연결은 4초입니다. 한 요청에 여러 문이 있으면 각 문에 이 시간이 주어집니다. 늦은 응답은 응답 없음으로 처리됩니다. 호스팅 제공자가 가끔 1.5초를 넘기면 Decision이 무작위로 실패하는 것처럼 보일 수 있습니다. **Test**를 여러 번 실행하고 가장 느린 응답보다 제한을 높이세요. 다만 프리셋의 Decision이나 답변 전에 실행되는 에이전트의 활성화 질문처럼 답변 전 평가되는 문은 각각 이 시간만큼 답변을 지연시킬 수 있습니다.
 
 연결한 키의 원본 연결을 삭제하면 경고가 나오고 Decision 연결에 다시 연결해야 합니다. 독립 연결 파일을 가져온 경우도 키나 링크를 복원해야 합니다. 파일에는 API 키나 빌린 연결 ID가 들어 있지 않습니다.
 
@@ -123,6 +135,8 @@ Marinara가 판정 전용 모델을 다운로드하고 실행하게 할 수도 �
 3. 모델을 고르고 크기, 하드웨어 판정과 라이선스를 확인하세요. 이 단계 전에는 다운로드하지 않습니다. **Open-Jev 2B**는 **Open-Jev 9B**보다 메모리를 훨씬 적게 사용하지만 어느 모델도 채팅에서 정답을 보장하지 않습니다.
 4. **Decision model**에서 **Decision sidecar**를 고르세요.
 
+**속도.** 모델 시작 후 첫 응답은 느리므로 Marinara는 로드 중 준비 질문을 하나 보냅니다. 성공하면 **Test**와 첫 턴에서 정상 속도가 나옵니다. 실패해도 모델은 시작되며 지연은 첫 질문에서 발생합니다. 문마다 최근 채팅을 다시 읽으므로 긴 채팅에서 문이 많은 턴은 더 오래 걸립니다. 긴 채팅에서 Open-Jev 2B는 문당 약 0.25초가 걸립니다.
+
 판정 모델의 HuggingFace 저장소를 붙여 넣을 수도 있습니다. Marinara는 해당 저장소의 매니페스트를 읽고 아티팩트 유형이 이 빌드에 포함된 런타임에 대응하는지 검사한 뒤, 설치를 제안하기 전에 받을 기본 가중치와 총크기를 보여 줍니다. 확인할 수 없는 저장소는 무작정 설치하지 않고 이유와 함께 거부합니다.
 
 NVIDIA GPU가 여러 개면 **GPU** 메뉴에서 모델을 올릴 카드를 고릅니다. 판정은 그 카드 기준이며 카드를 바꾸면 모델이 멈췄다가 새 카드에서 다시 시작합니다.
@@ -137,7 +151,7 @@ NVIDIA GPU가 여러 개면 **GPU** 메뉴에서 모델을 올릴 카드를 고�
 
 | 선택한 백엔드 | 기본 예/아니요 임계값 |
 | --- | --- |
-| Primary 또는 Utility 로컬 채팅 모델 | 0.5 |
+| Primary 또는 Utility 로컬 채팅 모델, 또는 OpenAI 호환 채팅 모델 연결 | 0.5 |
 | TypeSafe, OpenRouter 또는 Custom System One Decision 연결 | 0.5 |
 | 관리형 Decision sidecar | 모델 매니페스트 권장값. 내장 Open-Jev 2B와 9B는 0.1 |
 
@@ -151,9 +165,13 @@ NVIDIA GPU가 여러 개면 **GPU** 메뉴에서 모델을 올릴 카드를 고�
 
 시간 안에 도착하지 않은 판정은 답 없음이 됩니다. 생성은 [각 기능의 대체 동작](#where-marinara-uses-it)으로 계속하므로 프롬프트 분기나 필수 로어북 항목이 빠질 수 있습니다.
 
-- Decision 연결은 **1.5초**입니다. **Time limit**(시간 제한)을 바꾸면 달라집니다. [Decision 연결 설정하기](#set-up-a-decision-connection)를 참고하세요.
-- 로컬 모델과 판정 사이드카는 **4초**입니다. 한 턴에 많은 문장을 묻는 경우 Open-Jev 9B에는 추가 문장마다 시간이 조금 더 주어집니다.
-- 먼저 추론해야 하는 로컬 모델은 **20초**입니다.
+모든 시간 제한은 문별로 적용됩니다. 여러 문을 한 번에 묻는 요청은 각 문에 제한 시간이 주어지며, 각 Choice 답변도 하나의 문으로 셉니다. 로컬 모델은 소수의 요청만 동시에 처리하므로 문은 차례를 기다리고 모델이 처리를 시작할 때부터 시간을 계산합니다.
+
+- TypeSafe, OpenRouter 또는 Custom System One Decision 연결은 **Time limit**을 바꾸지 않는 한 문당 **1.5초**입니다. [Decision 연결 설정하기](#set-up-a-decision-connection)를 참고하세요.
+- OpenAI 호환 채팅 모델 연결은 **Time limit**을 바꾸지 않는 한 문당 **4초**입니다. 먼저 추론해야 하는 모델에는 최소 20초가 주어집니다.
+- 로컬 모델은 문당 **4초**입니다.
+- Decision 사이드카의 첫 문은 **4초**입니다. 이후 각 문에는 모델의 측정 시간이 주어집니다. Open-Jev 2B는 0.35초, Open-Jev 9B는 0.8초입니다. 저장소 주소를 붙여넣어 설치한 모델은 각 문에 4초가 주어집니다.
+- 먼저 추론해야 하는 로컬 모델은 문당 **20초**입니다.
 
 생성을 취소하면 판정 요청도 중단합니다.
 
@@ -161,7 +179,7 @@ NVIDIA GPU가 여러 개면 **GPU** 메뉴에서 모델을 올릴 카드를 고�
 
 - **Also use it to pick who speaks in Smart response order.**(Smart 응답 순서의 발언자 선택에도 사용)는 기본적으로 꺼져 있습니다. [그룹 채팅](../chats/group-chats.md#response-order-individual-only)을 참고하세요.
 - **Decision statements per turn.**(턴당 판정문 수)는 프롬프트와 로어북 판정문 계획을 제한하며 기본값 32, 최대 255입니다. 허용량은 여러 단계에 적용되며 한 턴의 모든 Decision 요청이나 지출에 대한 단일 한도가 아닙니다. 에이전트 활성화 질문과 Smart 응답 순서는 별개입니다. 범위, 일괄 처리와 우선순위 규칙은 [제한과 비용](../prompts/conditional-prompts.md#limits-and-cost)을 참고하세요.
-- 로컬 모델에는 **Also gate agents that run before the reply**와 **Thinking**이 표시됩니다. [이미 실행하는 모델 사용하기](#use-a-model-you-already-run)를 참고하세요.
+- **Also gate agents that run before the reply**와 **Thinking**은 **Primary local model**과 **Utility local model**에 표시됩니다. Decision 사이드카는 추론하지 않으므로 두 옵션 모두 없습니다. [이미 실행하는 모델 사용하기](#use-a-model-you-already-run)를 참고하세요.
 
 ## 정확도: 오답에 대비하기
 
@@ -176,11 +194,13 @@ NVIDIA GPU가 여러 개면 **GPU** 메뉴에서 모델을 올릴 카드를 고�
 ## 문제 해결
 
 - **Test 실패.** 메시지에 이유가 나옵니다. 키 거부, 제공자 속도 제한, 로컬 모델 중지, 판정 모델 미설치, 예/아니요 응답 실패 또는 시간 초과 등입니다.
+- **Test에서 서버에 해당 엔드포인트가 없다고 나옵니다.** Decision 소스와 서버가 맞지 않습니다. Ollama, LM Studio 및 다른 채팅 모델 서버에는 **OpenAI-compatible chat model**이 필요합니다. **Custom System One endpoint**는 Open-Jev 같은 System One 서버 전용입니다.
 - **Test가 시간 제한 초과를 보고하거나 판정이 일부 턴에서만 동작함.** 제공자가 적어도 일부 요청에서 연결의 **Time limit**보다 느리게 답합니다. 여러 번 시험하고 가장 느린 답보다 제한을 높이세요.
 - **활성화 질문이 있는 에이전트가 매 턴 실행됨.** Decision 모델이 설정되지 않았거나 답하지 않아 질문이 없는 것처럼 실행됩니다. **Test**를 확인하세요.
 - **프롬프트 판정 분기가 나타나지 않음.** [판정 분기가 나타나지 않을 때](../prompts/conditional-prompts.md#when-a-decision-branch-never-appears)를 참고하세요.
 - **Smart 응답 순서가 원래 AI 호출을 계속 사용함.** 스위치가 꺼져 있거나 해당 턴에 Decision 모델이 답하지 않았습니다.
-- **모든 판정문과 답을 보려면** 로그 수준을 debug로 설정하세요. [로그 수준](../CONFIGURATION.md#logging-levels)을 참고하세요.
+- **생성 중 Decision 점수와 출력을 보려면** Debug Mode를 켜거나 로그 수준을 debug로 설정하세요. 프롬프트 결정 로그에는 임계값, 결과, 응답이 재사용되거나 시간 규칙에 의해 유지되었는지가 포함됩니다. [로그 수준](../CONFIGURATION.md#logging-levels)을 참고하세요.
+- **답변을 생성하지 않고 직접 작성한 문을 테스트하려면** **Peek Prompt → Decision diagnostics → Test decisions**(Peek Prompt → Decision 진단 → Decision 테스트)를 여세요. 입력 미리보기는 모델을 호출하지 않습니다. 명시적 테스트는 선택한 모델을 호출하며 호스팅 비용이 발생할 수 있습니다. [Decision 문 테스트하기](../chats/peek-prompt.md#testing-decision-statements)를 참고하세요.
 
 ## 관련 가이드
 

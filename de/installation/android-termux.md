@@ -43,6 +43,8 @@ Dieser eine Befehl erledigt fünf Dinge:
 
 Der Starter installiert die Abhängigkeiten der App, baut Marinara direkt auf dem Gerät und startet den lokalen Server. Ist die Node.js-Version zu alt, aktualisiert er sie gleich mit. Der erste Durchlauf dauert, weil die App gebaut wird. Danach geht es deutlich schneller.
 
+Der speichersparende Build enthält alle erforderlichen Client-Dateien. Sharps WebAssembly-Ersatz für die Bildverarbeitung wird automatisch installiert und bleibt bei Updates erhalten; du musst keine separate Android-Version von Sharp installieren.
+
 Ist alles fertig, öffne diese Adresse im Android-Browser:
 
 ```

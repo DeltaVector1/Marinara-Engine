@@ -97,6 +97,8 @@ Steht **Mode** auf **Individual**, erscheint die Einstellung **Response Order** 
 
 Bei **Smart** kann die KI mehrere Charaktere in eine Warteschlange stellen. Sofort antwortet nur der erste. Wer als Nächstes spricht, wählst du über die Auswahl **Trigger Response** in der Nachrichtenleiste. Alternativ schickst du eine leere Nachricht ab, dann kommt der nächste Charakter aus der Warteschlange dran.
 
+In Roleplay mit **Individual** und der Reihenfolge **Smart** oder **Manual** heißt die erste Option der Auswahl **Smart**. Sie trägt ein Personengruppen-Symbol in deiner Akzentfarbe. Damit wählt das Modell den nächsten Sprecher für diese eine Antwort; ist die Smart-Reihenfolge für das Decision-Modell aktiviert, übernimmt dieses die Auswahl. Deine gespeicherte Antwortreihenfolge bleibt unverändert. Über die benannten Charakteroptionen kannst du weiterhin direkt auswählen.
+
 Im Modus **Individual** kommen zwei weitere Schalter dazu:
 
 - **Add Turn To Prompt** ist standardmäßig an. Der Schalter ergänzt eine kurze Anweisung, die den Charakter für diesen Zug benennt.

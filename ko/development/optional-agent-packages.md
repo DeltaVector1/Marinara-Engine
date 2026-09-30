@@ -572,6 +572,38 @@ Engine 전투와 데이터를 연결하는 기능이며 완전한 테이블톱 �
 
 첫 턴 전에 월드를 준비해야 한다면 기존 시작 준비 선언을 별도로 사용하세요. 패키지의 최소 버전으로 API 1.18을 선언하세요. 이전 호스트는 이 설정 선언을 해석하지 못합니다.
 
+<a id="capability-api-150-professor-mari-actions"></a>
+
+### Capability API 1.50: Professor Mari 동작
+
+새 `mari-actions` 권한을 가진 패키지는 이름 있는 동작을 Professor Mari에게 제공할 수 있습니다. 자체 ID 아래 서비스 하나를 등록하면 Mari의 `package_service` 도구가 동작을 나열하고 사용자 요청에 따라 실행합니다.
+
+```ts
+export async function activate({ api }) {
+  api.registerService("mari-actions:my-package", {
+    list: () => [
+      { name: "add-idea", summary: "Give a Creator an idea for a post.", inputs: { accountId: "The Creator.", text: "The idea." } },
+    ],
+    run: async (name, input, { signal }) => {
+      const parsed = schemas[name]?.safeParse(input);
+      if (!parsed?.success) return { ok: false, status: 400, error: "Invalid input." };
+      return { ok: true, value: await doIt(name, parsed.data, signal) };
+    },
+  });
+}
+```
+
+주요 규칙:
+
+- 키는 등록 패키지의 `mari-actions:<package-id>`여야 합니다. 권한이 없거나 다른 패키지 ID로 등록하면 예외가 발생하므로 Mari가 실행하는 동작은 항상 명시된 패키지 소유입니다.
+- `list()`는 `{ name, summary?, inputs? }` 항목을 반환합니다. 이름은 문자, 숫자, `.`, `_`, `-`로 된 1~80자이며 다른 항목은 표시하지 않습니다. Mari가 읽는 `summary`와 `inputs`는 쉬운 말로 작성하세요. 처음 50개 동작만 보거나 실행할 수 있습니다. Mari는 동작당 입력을 최대 40개 보고 입력 이름은 80자, 각 텍스트는 300자로 자릅니다. `list()`가 5초 내 응답하지 않으면 패키지 동작을 생략합니다.
+- `run(name, input, { signal })`은 목록에 있는 이름과 최대 64,000자의 일반 JSON 객체로만 호출됩니다. 모델에서 온 입력이므로 작업 전에 자체 스키마로 검증하세요. `{ ok: true, value }` 또는 `{ ok: false, status?, error }`를 반환하며 Mari는 오류 텍스트 앞 2,000자를 봅니다. 사용자가 Mari를 중지하거나 5분이 지나면 `signal`이 취소됩니다. Engine도 기다리지 않으므로 작업을 중지하세요.
+- Engine은 Mari가 읽기 전에 `value`의 데이터 URL을 생략하고 긴 응답을 자릅니다. 파일 대신 ID와 짧은 텍스트를 반환하세요.
+- 목록 조회는 읽기 전용입니다. 모든 실행은 Mari Permissions Mode에서 변경으로 셉니다. Plan은 거부하고 Manual은 사용자의 Accept를 기다립니다. Engine은 패키지 동작을 미리 보거나 되돌릴 수 없어 Keep/Restore 카드를 표시하지 않습니다. 되돌리기 어려운 변경에는 자체 취소 동작을 제공하세요. 이 때문에 Plan은 읽기만 하는 동작도 거부합니다.
+- 패키지를 비활성화하거나 제거하면 동작도 제거됩니다.
+
+매니페스트의 `capabilityApi`가 1.50보다 오래되면 `mari-actions`를 거부합니다.
+
 ### Capability API 1.36: 패키지 업적
 
 새로운 `achievements` 권한이 있는 패키지는 홈의 **Achievements**(업적) 패널에 배지를 추가하고, 열렸는지 확인하고, 직접 열 수 있습니다. 패널에서는 Engine 자체 배지 뒤에 패키지 이름을 제목으로 한 섹션에 표시합니다.
@@ -604,6 +636,56 @@ export async function activate({ api }) {
 - 패키지를 비활성화하거나 제거하면 배지가 숨겨집니다. Engine 자체 배지처럼 업적을 연 기록은 유지되며, 패키지가 돌아오면 다시 표시됩니다.
 
 `api.registerAchievements`와 `api.runtime.achievements`는 이 API를 지원하는 새로운 Engine에만 있으므로, 이를 사용하는 패키지는 `capabilityApi` 1.36을 선언합니다.
+
+<a id="capability-api-135-agent-home-widgets"></a>
+
+### Capability API 1.35: 에이전트 Home 위젯
+
+에이전트 패키지는 Home 위젯 그리드에 최대 세 카드를 제공할 수 있습니다. Engine이 직접 배치하지는 않습니다. 사용자가 **Widget Manager**(위젯 관리자)에서 추가, 숨기기, 복원, 재정렬하며 에이전트 아래에 묶여 표시됩니다. Engine은 그리드, 프레임, 레이아웃을 담당하고 패키지는 카드 내부를 담당합니다.
+
+`home-widget` 슬롯과 위젯 정의를 함께 선언하세요.
+
+```json
+{
+  "schemaVersion": 2,
+  "capabilityApi": { "major": 1, "minor": 35 },
+  "kind": ["agent"],
+  "permissions": ["ui"],
+  "entrypoints": { "client": "client.js" },
+  "contributions": {
+    "slots": ["home-widget"],
+    "homeWidgets": [
+      {
+        "id": "latest",
+        "label": "Latest Posts",
+        "description": "The newest posts from the feed.",
+        "size": "large",
+        "iconPath": "art/widget.png",
+        "accent": "violet",
+        "surface": "solid",
+        "header": "banner"
+      }
+    ]
+  }
+}
+```
+
+- `id`는 소문자 kebab-case이며 최대 64자, 패키지 안에서 고유해야 합니다.
+- `label`(1~80자)과 `description`(최대 200자)은 Widget Manager 텍스트입니다. 언어 팩은 `localizations.<locale>.homeWidgets.<id>.label`과 `.description`으로 바꿀 수 있습니다.
+- `size`는 `compact` 또는 `large`입니다. 큰 위젯은 그리드 공간을 더 차지합니다.
+- `icon`은 Engine 아이콘 이름(`activity`, `bell`, `calendar`, `chart`, `circle`, `clock`, `file`, `flame`, `heart`, `image`, `list`, `message`, `sparkles`, `star`, `zap`)입니다. `iconPath`는 패키지 이미지(`gif`, `jpg`, `jpeg`, `png`, `webp`)이며 `files[]`에 등록해야 합니다.
+- `accent`, `surface`, `header`는 Engine 표시 프리셋을 선택합니다.
+
+패키지가 `ui` 권한과 클라이언트 진입점이 있는 `agent`가 아니거나, 슬롯과 `homeWidgets`를 함께 선언하지 않았거나, 두 위젯 ID가 같거나, `capabilityApi`가 1.35보다 오래되면 설치를 거부합니다.
+
+Engine은 패키지 클라이언트 요소를 `view="widget"`으로 마운트합니다. 일반적인 `packageId`, `packageVersion`, `localization` 외에 `capabilityProps`에는 다음이 있습니다.
+
+- `widgetId`, `widgetLabel`, `widgetDescription`, `widgetIcon`, `widgetIconPath`, `widgetAccent`, `widgetSurface`, `widgetHeader`: 그릴 카드 정의입니다. 한 번들로 선언된 모든 위젯을 그릴 수 있습니다.
+- `active`: Home이 표시되고 카드가 보일 때만 `true`입니다. `false`이면 폴링과 애니메이션을 멈추세요.
+- `onOpenNoodle()`: 패키지 자체 Home 브라우저 탭을 엽니다. 이름과 달리 `home-browser-tab` 슬롯을 선언한 모든 패키지에서 작동합니다. 탭이 없으면 이 함수와 `onOpenPost`는 아무것도 하지 않습니다.
+- `onOpenPost(id)`: 자체 Home 탭의 항목을 엽니다. `id`는 최대 128자의 문자열이며 다른 값은 무시합니다. 탭의 `view="browser"` 요소가 `focusPostId: id`를 받습니다. 항목을 표시한 뒤 `onFocusPostHandled()`를 호출해 포커스가 반복되지 않게 하세요. 다른 탭으로 전환하면 대기 중인 포커스를 버립니다.
+
+위젯은 에이전트의 작은 화면이지 두 번째 사본이 아닙니다. 가볍게 유지하고 큰 작업은 브라우저 탭으로 안내하세요.
 
 ### Capability API 1.34: 규칙 집합 자체 형식으로 작성한 생물
 

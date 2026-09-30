@@ -30,8 +30,11 @@ rules, including the per-file English fallback that makes partial packs safe.
 ## Catchup audits
 
 [2026-09-24 catchup](audits/2026-09-24-catchup.md) records the English/translated
-last-edit comparison, resolved drift, source snapshots and validation. Audits are
-contributor records outside the downloadable packs.
+last-edit comparison, resolved drift, source snapshots and validation.
+[2026-09-30 catchup](audits/2026-09-30-catchup.md) records the next full guide
+inventory, five translation issues, four newly translated guides, and the
+explicitly deferred Game Mode work. Audits are contributor records outside the
+downloadable packs.
 
 ## UI language packs
 

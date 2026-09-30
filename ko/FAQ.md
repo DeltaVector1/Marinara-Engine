@@ -46,6 +46,14 @@ Android에서는 [최신 APK를 직접 다운로드](https://github.com/Pasta-De
 
 Android 래퍼는 앱이나 브라우저에서 자동으로 로그인합니다. 런처에서 **Open in browser**(브라우저에서 열기)를 선택하고 **Retry connection**(연결 다시 시도)을 누르세요. 서버가 멈춰 있으면 **Install / Start Marinara**를 사용하세요. 선택은 저장됩니다. 앱 안의 **Settings > General > App Behavior > Open Android launcher (app or browser)**(설정 > 일반 > 앱 동작 > Android 런처 열기(앱 또는 브라우저))에서 선택 화면으로 돌아갈 수 있습니다. 브라우저를 자동으로 인증해 열려면 APK와 Engine을 모두 업데이트하세요. 이전 APK에서는 여전히 `/android-login`으로 수동 로그인할 수 있습니다. 로컬 `mari` CLI는 런처가 관리하는 비밀값을 자동으로 읽으며, Termux 수동 설치는 일반 localhost 규칙을 따릅니다.
 
+<a id="can-i-play-with-other-people"></a>
+
+## 다른 사람과 함께 플레이할 수 있나요?
+
+선택적 멀티플레이어는 사람이나 AI 명단에 고정 상한 없이 새 공유 Conversation, Roleplay 또는 Game을 만듭니다. 각 참여자는 환경 전제 조건과 별도 Settings 스위치를 켠 뒤 자신의 신뢰할 수 있는 클라이언트에서 명시적으로 호스팅하거나 참여합니다. 게스트에게 AI 키는 필요 없으며 호스트가 생성과 입장 승인을 제어합니다. Game은 모든 필수 플레이어의 행동 또는 명시적 패스를 기다린 뒤 라운드를 처리합니다.
+
+비밀번호가 있다고 모르는 호스트가 안전해지는 것은 아닙니다. 공유 방은 텍스트만 허용하고 게스트 화면을 파일, 네이티브 통합, 로컬 API와 격리합니다. Android 네이티브 래퍼는 참여할 수 없습니다. 활성화 전에 [멀티플레이어 설정, 경고 및 제한](CONFIGURATION.md#optional-multiplayer)을 읽으세요.
+
 ## 채팅 모드 3가지는 무엇인가요?
 
 Marinara에는 채팅 모드가 3가지 있고, 채팅 목록을 열면 탭으로 표시됩니다:

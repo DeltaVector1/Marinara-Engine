@@ -11,6 +11,20 @@ Wiele problemów znika po dwóch szybkich krokach.
 
 Jeśli piszesz do zespołu po pomoc, najpierw włącz **Debug mode** (tryb diagnostyczny), żeby serwer zapisywał w logach prompt (tekst, który Marinara wysyła do AI) i odpowiedź. Zobacz sekcję Uzyskiwanie dalszej pomocy na końcu przewodnika.
 
+<a id="multiplayer-connection-or-turn-problems"></a>
+
+## Problemy z połączeniem lub turami wieloosobowymi
+
+- **Niedostępne kontrolki:** sprawdź `MULTIPLAYER_ENABLED=true` w `.env` właściwego Engine, uruchom go ponownie i osobno włącz Settings. Zapisany przełącznik nie zastępuje brakującej/niepoprawnej zmiennej. Natywna aplikacja opakowująca na Androidzie celowo nie może dołączać.
+- **Gospodarz niedostępny:** użyj osobnego osiągalnego portu HTTPS pokoju, ważnego łańcucha certyfikatu/nazwy hosta i zgodnego odcisku zaproszenia. Nie wyłączaj TLS, nie dodawaj `null` do zaufanych źródeł, nie wystawiaj zwykłego API Engine ani nie otwieraj klienta od gospodarza, by obejść błąd.
+- **Oczekiwanie na przyjęcie:** gospodarz musi zatwierdzić prośbę w Players. Wcześniej historia nie jest dostępna. Poproś o nowe zaproszenie, jeśli stare wygasło lub zostało cofnięte.
+- **Rozłączenie:** pozostaw Engine gościa uruchomiony. Klient łączy się ponownie z tym samym przypiętym gospodarzem, dopóki jawna sesja jest aktywna; niewysłane szkice zostają w bieżącym widoku. Restart unieważnia dane sesji i wymaga nowego dołączenia. Stop/Leave są dostępne także przy awarii sieci.
+- **Game czeka:** sprawdź Players. Rozłączeni nie pasują automatycznie. Gospodarz może jawnie wybrać Pass/Kick albo Pause. Wysłanie jednej z dwóch wymaganych akcji nie może uruchomić GM.
+- **Przerwane generowanie:** nie przesyłaj rundy wielokrotnie. Gospodarz powinien sprawdzić zapisaną narrację/stan i jawnie kontynuować do przodu albo zatrzymać pokój. Gra wieloosobowa nie ponawia po cichu żądania o niejasnym wyniku ani nie stosuje skutków dwukrotnie.
+- **Zablokowane polecenie lub brak multimediów:** początkowy protokół celowo przenosi tylko tekst. Sprawdź [tabelę zgodności](development/multiplayer.md#command-and-feature-compatibility); nie instaluj plików ani rozszerzeń od uczestnika jako obejścia.
+
+Zgłaszając błąd połączenia, podaj tryb, platformę, widoczny błąd i informację, czy przyjęcie się powiodło. Nie publikuj zaproszeń, haseł pokoju, tokenów sesji, prywatnych historii ani danych dostępu do dostawców.
+
 ## Problemy z instalacją i uruchamianiem
 
 ### Termux: brak pamięci podczas budowania klienta
@@ -20,6 +34,12 @@ Jeśli Vite kończy pracę z `Reached heap limit` lub `JavaScript heap out of me
 Limit wynikający z RAM jest zaokrąglany w dół do wielokrotności 128 MiB. Jeżeli połowa pamięci urządzenia jest mniejsza niż 1024 MiB, pierwszeństwo ma dolna granica 1024 MiB.
 
 Przed ponowną próbą zamknij inne aplikacje. Na urządzeniach z małą pamięcią nadal może jej zabraknąć lub Android może zatrzymać proces; do zgłoszenia dołącz pełny zapis uruchamiania. Nie usuwaj czatów ani profilu, aby naprawić błąd budowania.
+
+### Termux: brak pliku klienta gościa w trybie wieloosobowym lub niezgodna wersja Sharp
+
+Jeśli po ponownej kompilacji uruchomienie nadal zgłasza brak `packages/client/dist/multiplayer/guest.js`, zaktualizuj Engine i ponownie uruchom `./start-termux.sh`. Launcher wykonuje teraz pełną kompilację klienta dla urządzeń z małą ilością pamięci, w tym plików gościa sprawdzanych przy starcie. Nie trzeba włączać trybu wieloosobowego, aby naprawić ten błąd kompilacji.
+
+Jeśli przetwarzanie obrazów zgłasza, że Sharp nie może się załadować na Android, zaktualizuj Engine i pozwól launcherowi ponownie zainstalować zależności. Pasujący mechanizm zapasowy `@img/sharp-wasm32` jest zwykłą zależnością, więc instalacje z zablokowanymi wersjami i aktualizacje go zachowują. Nie zastępuj go niepasującą wersją Sharp. Jeśli problem nadal występuje, zachowaj pełny komunikat błędu.
 
 ### Pusta strona lub JavaScript zwracany jako HTML po aktualizacji
 

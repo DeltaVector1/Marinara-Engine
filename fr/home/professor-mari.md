@@ -87,8 +87,12 @@ Cet encart s'intitule **Review Mari's changes** (réviser les modifications de M
 
 Quelques points à connaître :
 
-- Les éléments tout neufs, comme un personnage ou un lorebook fraîchement créé, sautent en général cette étape. Rien d'existant n'a été écrasé, donc il n'y a rien à annuler.
-- Un encart de révision expire tout seul au bout de 10 minutes si tu n'y réponds pas.
+- Les nouveaux éléments, comme un personnage ou un lorebook fraîchement créé, reçoivent aussi un encart. **Restore** les supprime à nouveau.
+- Un encart appartient au chat Mari dans lequel elle a effectué la modification. Un nouveau chat démarre sans les encarts des autres chats. Supprimer un chat conserve ses modifications et retire ses encarts. Une modification effectuée avec la commande `mari` dans un terminal n'appartient à aucun chat : son encart apparaît donc dans tous les chats Mari.
+- Un encart reste jusqu'à ce que tu choisisses **Keep** ou **Restore**, pendant 14 jours au maximum. Ensuite, il se ferme tout seul et la modification est conservée.
+- Si **Restore** indique que les données ont changé depuis la modification de Mari, elles ont été retouchées entre-temps et la restauration écraserait cette version plus récente. Choisis **Keep** pour fermer l'encart ; les données actuelles restent intactes.
+- Une modification qui laisserait tout à l'identique n'est pas enregistrée et ne reçoit aucun encart.
+- Mari ne peut ni modifier ni supprimer sa propre carte de personnage. Marinara la rétablit à sa version intégrée à chaque démarrage.
 - Les personnages et les personas gardent aussi leur propre historique de versions dans leurs éditeurs. Tu peux y restaurer une version plus ancienne : c'est un deuxième filet de sécurité.
 
 Deux types de modifications, plus risquées, attendent au lieu d'être appliquées d'emblée :

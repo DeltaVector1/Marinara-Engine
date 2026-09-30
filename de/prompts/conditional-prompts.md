@@ -329,8 +329,8 @@ So prüfst du die Formulierung:
 
 1. Wähle unter **Decision model** ein Modell und klick auf **Test**. Das prüft die Verbindung mit einem festen Beispiel, weder deine Aussage noch den aktuellen Chat.
 2. Ergänze die Aussage im Prompt und sende typische Nachrichten: einige, bei denen sie wahr sein soll, und einige, bei denen sie falsch sein soll.
-3. Prüfe mit **Peek Prompt**, welcher Zweig gesendet wurde. Für Wahrscheinlichkeit und Ja/Nein-Ergebnis aktiviere [Debug-Logging](../CONFIGURATION.md#logging-levels).
-4. Passe den Text an und teste erneut. Verwende für einen neuen Fall neue Nachrichten oder ändere die Aussage: Erfolgreiche Antworten können [wiederverwendet](#answer-reuse) werden. Eine neue Peek-Prompt-Vorschau fragt das Modell nicht.
+3. Nutze **Peek Prompt**, um den gesendeten Zweig zu prüfen. Öffne **Decision diagnostics** (Entscheidungsdiagnose), um die aktuellen Entscheidungseingaben anzusehen, und wähle **Test decisions** (Entscheidungen testen), um neue Werte und den daraus entstandenen Prompt ohne Generierung einer Antwort zu prüfen. Gehostete Tests können Gebühren verursachen. Siehe [Entscheidungsaussagen testen](../chats/peek-prompt.md#testing-decision-statements).
+4. Passe die Formulierung an und teste erneut. Normale Generierungen können [Antworten wiederverwenden](#answer-reuse); ein ausdrücklicher Entscheidungstest hält seine Antworten vom laufenden Chat getrennt. Das Öffnen von Peek Prompt oder der Eingabevorschau fragt das Modell nicht. Für Ergebnisse laufender Generierungen aktiviere Debug Mode oder [Debug-Logging](../CONFIGURATION.md#logging-levels).
 
 Was die Tests zeigten: Jede Formulierung wurde an vier markierten Roleplay-Zügen geprüft, zweimal mit erwartetem ja und zweimal mit erwartetem nein, jeweils auf Open-Jev 2B, Open-Jev 9B und einem lokalen Gemma 4 E4B. Das ist eine kleine Stichprobe aus einer Szene, kein allgemeiner Genauigkeitstest und kein Test des gehosteten Jev. Die Tabelle beschreibt Beobachtungen dieser Stichprobe und verspricht kein gleiches Ergebnis bei anderen Modellen oder Chats.
 
@@ -373,7 +373,7 @@ Ein Zug kann über eine gehostete Decision-Verbindung mehrere berechnete Anfrage
 
 Ein lokales Chat-Modell kostet stattdessen Rechenzeit. Es beantwortet `decision_choice:` mit einer Ja/Nein-Frage pro Option; eine einzige Auswahl kann deshalb mehrere Generierungen brauchen.
 
-Jede Anfrage hat ein [Zeitlimit](../connections/decision-models.md#time-limits): standardmäßig 1,5 Sekunden bei einer Decision-Verbindung oder das Budget des lokalen Backends. Mehrere Anfragen können zusammen länger dauern. Ein lokales Modell, das zuerst nachdenken muss, hält sich vor der Antwort zurück, sofern **Also gate agents that run before the reply** (auch Agenten vor der Antwort prüfen) nicht aktiviert ist.
+Jede Anfrage hat ein [Zeitlimit](../connections/decision-models.md#time-limits): standardmäßig 1,5 Sekunden bei einer Decision-Verbindung (4 Sekunden bei einer Verbindung zu einem OpenAI-kompatiblen Chat-Modell) oder das Budget des lokalen Backends. Mehrere Anfragen können zusammen länger dauern. Ein lokales Modell, das zuerst nachdenken muss, hält sich vor der Antwort zurück, sofern **Also gate agents that run before the reply** (auch Agenten vor der Antwort prüfen) nicht aktiviert ist.
 
 <a id="answer-reuse"></a>
 

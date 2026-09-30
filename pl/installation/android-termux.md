@@ -43,6 +43,8 @@ To jedno polecenie robi pięć rzeczy:
 
 Program startowy instaluje zależności aplikacji, buduje Marinara na urządzeniu i uruchamia lokalny serwer. Aktualizuje też Node.js, jeśli zainstalowana wersja jest za stara. Pierwsze uruchomienie jest wolne, bo aplikacja się buduje. Kolejne idą znacznie szybciej.
 
+Kompilacja dla urządzeń z małą ilością pamięci obejmuje wszystkie wymagane pliki klienta. Zapasowy mechanizm przetwarzania obrazów Sharp oparty na WebAssembly jest instalowany automatycznie i zachowywany podczas aktualizacji; nie trzeba instalować osobnej wersji Sharp dla Android.
+
 Po zakończeniu otwórz ten adres w przeglądarce na urządzeniu z systemem Android:
 
 ```

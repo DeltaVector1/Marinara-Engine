@@ -46,6 +46,14 @@ Unter Android kannst du außerdem [die neueste APK direkt herunterladen](https:/
 
 Der Android-Wrapper meldet dich in der App oder im Browser automatisch an. Wähle im Launcher **Open in browser** (im Browser öffnen) und tippe auf **Retry connection** (Verbindung erneut versuchen). Ist der Server gestoppt, nutze **Install / Start Marinara**. Die Auswahl wird gespeichert. In der App führt **Settings > General > App Behavior > Open Android launcher (app or browser)** (Einstellungen > Allgemein > App-Verhalten > Android-Launcher öffnen (App oder Browser)) zu dieser Auswahl zurück. Aktualisiere sowohl die APK als auch die Engine für die automatische Übergabe an den Browser. Ältere APKs bieten weiterhin die manuelle Anmeldung unter `/android-login`. Die lokale `mari`-CLI liest den vom Launcher verwalteten Geheimwert automatisch; manuelle Termux-Installationen behalten die normalen localhost-Regeln.
 
+<a id="can-i-play-with-other-people"></a>
+
+## Kann ich mit anderen Menschen spielen?
+
+Der optionale Mehrspielermodus erstellt eine neue geteilte Conversation-, Roleplay- oder Game-Sitzung ohne feste Obergrenze für Menschen oder KI-Charaktere. Alle Teilnehmer aktivieren die Umgebungsvoraussetzung und den separaten Settings-Schalter und hosten oder treten ausdrücklich mit ihrem eigenen vertrauenswürdigen Client bei. Gäste brauchen keinen KI-Key; der Host kontrolliert Generierung und Aufnahme. Game wartet auf die Aktion oder das ausdrückliche Passen jedes erforderlichen Spielers, bevor eine Runde ausgewertet wird.
+
+Ein Passwort macht einen unbekannten Host nicht sicher. Geteilte Räume nehmen nur Text an und isolieren die Gastansicht von Dateien, nativen Integrationen und lokalen APIs. Der native Android-Wrapper kann nicht beitreten. Lies vor dem Aktivieren [Einrichtung, Warnungen und Grenzen des Mehrspielermodus](CONFIGURATION.md#optional-multiplayer).
+
 ## Was sind die drei Chat-Modi?
 
 Marinara hat drei Chat-Modi, die beim Öffnen der Chatliste als Tabs erscheinen:

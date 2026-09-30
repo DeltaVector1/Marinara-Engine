@@ -43,6 +43,8 @@ pkg update -y && pkg install -y git nodejs-lts && ([ -d "$HOME/Marinara-Engine/.
 
 런처는 앱의 의존성을 설치하고 기기에서 Marinara를 빌드한 뒤 로컬 서버를 시작합니다. Node.js 버전이 너무 낮으면 업데이트도 함께 처리합니다. 첫 실행은 앱을 빌드하느라 느리지만 이후 실행은 훨씬 빠릅니다.
 
+저메모리 빌드에는 필요한 모든 클라이언트 파일이 포함됩니다. Sharp의 WebAssembly 이미지 처리 대체 구현은 자동으로 설치되고 업데이트 후에도 유지됩니다. Android용 Sharp 버전을 따로 설치할 필요가 없습니다.
+
 작업이 끝나면 Android 브라우저에서 다음 주소를 여세요:
 
 ```

@@ -15,7 +15,7 @@ Le panneau compte six onglets. Le tableau ci-dessous indique ce que chacun pilot
 | **Generations** | Valeurs par défaut pour les images et les vidéos, et modèles de prompt réutilisables. |
 | **Addons** | Brouillons Personal Extension de Professor Mari, isolés en bac à sable, External Extensions débloquées en option, et thèmes personnalisés. |
 | **Imports** | Restauration de profils complets et import depuis d'autres applications. |
-| **Advanced** | Accès administrateur, mises à jour, outils de message, sauvegardes et réinitialisations destructrices. |
+| **Advanced** | Accès administrateur, interrupteurs de fonctions facultatives, mises à jour, outils de message, sauvegardes et réinitialisations destructrices. |
 
 Voici où en lire davantage sur chaque onglet :
 
@@ -24,7 +24,7 @@ Voici où en lire davantage sur chaque onglet :
 - **Generations** : voir [Profils de style](../media/style-profiles.md) et [Vidéo de scène](../media/scene-video.md).
 - **Addons** : voir [Extensions personnelles](../extending/personal-extensions.md) et [Thèmes CSS personnalisés](../appearance/custom-css-themes.md).
 - **Imports** : voir [Importer depuis SillyTavern](../data/importing-from-sillytavern.md) et [Sauvegarde et restauration](../data/backup-and-restore.md).
-- **Advanced** : voir la section **Message Tools** ci-dessous, ainsi que [Mettre à jour Marinara Engine](../UPGRADING.md), [Accès à distance](../REMOTE_ACCESS.md) et [Effacer tes données](../data/clearing-data.md).
+- **Advanced** : voir la section **Message Tools** ci-dessous, ainsi que [Mettre à jour Marinara Engine](../UPGRADING.md), [Accès à distance](../REMOTE_ACCESS.md) et [Effacer tes données](../data/clearing-data.md). [Interrupteurs de fonctions](../configuration/features.md).
 
 ## Paramètres, onglet General
 

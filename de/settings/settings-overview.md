@@ -15,7 +15,7 @@ Das Panel hat sechs Tabs. Die Tabelle zeigt, was sich in welchem Tab einstellen 
 | **Generations** | Standardwerte für Bild und Video sowie wiederverwendbare Prompt-Vorlagen. |
 | **Addons** | Professor Maris abgeschottete Entwürfe für **Personal Extensions**, optional freigeschaltete **External Extensions** und eigene Themes. |
 | **Imports** | Vollständige Profile wiederherstellen und aus anderen Apps importieren. |
-| **Advanced** | Admin-Zugang, Updates, Werkzeuge für Nachrichten, Backups und unwiderrufliche Zurücksetzungen. |
+| **Advanced** | Admin-Zugang, optionale Funktionsschalter, Updates, Werkzeuge für Nachrichten, Backups und unwiderrufliche Zurücksetzungen. |
 
 Mehr zu den einzelnen Tabs steht hier:
 
@@ -24,7 +24,7 @@ Mehr zu den einzelnen Tabs steht hier:
 - **Generations**: siehe [Stilprofile](../media/style-profiles.md) und [Szenenvideo](../media/scene-video.md).
 - **Addons**: siehe [Personal Extensions](../extending/personal-extensions.md) und [Eigene CSS-Themes](../appearance/custom-css-themes.md).
 - **Imports**: siehe [Aus SillyTavern importieren](../data/importing-from-sillytavern.md) und [Backup und Wiederherstellung](../data/backup-and-restore.md).
-- **Advanced**: siehe den Abschnitt **Message Tools** weiter unten sowie [Marinara Engine aktualisieren](../UPGRADING.md), [Fernzugriff](../REMOTE_ACCESS.md) und [Daten löschen](../data/clearing-data.md).
+- **Advanced**: siehe den Abschnitt **Message Tools** weiter unten sowie [Marinara Engine aktualisieren](../UPGRADING.md), [Fernzugriff](../REMOTE_ACCESS.md) und [Daten löschen](../data/clearing-data.md). [Funktionsschalter](../configuration/features.md).
 
 ## Einstellungen, Tab General
 

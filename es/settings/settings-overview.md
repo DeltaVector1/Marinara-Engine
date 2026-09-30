@@ -15,7 +15,7 @@ El panel tiene seis pestañas. La tabla de abajo muestra lo que controla cada pe
 | **Generations** | Valores predeterminados de imagen y video, y plantillas de prompt reutilizables. |
 | **Addons** | Borradores de Personal Extensions de Professor Mari en un entorno aislado, External Extensions desbloqueadas de forma opcional, y temas personalizados. |
 | **Imports** | Restaura perfiles completos e importa desde otras apps. |
-| **Advanced** | Acceso de administrador, actualizaciones, herramientas de mensajes, copias de seguridad y reinicios destructivos. |
+| **Advanced** | Acceso de administrador, interruptores de funciones opcionales, actualizaciones, herramientas de mensajes, copias de seguridad y reinicios destructivos. |
 
 Aquí puedes leer más sobre cada pestaña:
 
@@ -24,7 +24,7 @@ Aquí puedes leer más sobre cada pestaña:
 - **Generations**: mira [Perfiles de estilo](../media/style-profiles.md) y [Video de escena](../media/scene-video.md).
 - **Addons**: mira [Extensiones personales](../extending/personal-extensions.md) y [Temas CSS personalizados](../appearance/custom-css-themes.md).
 - **Imports**: mira [Importar desde SillyTavern](../data/importing-from-sillytavern.md) y [Copia de seguridad y restauración](../data/backup-and-restore.md).
-- **Advanced**: mira la sección **Message Tools** más abajo, además de [Actualizar Marinara Engine](../UPGRADING.md), [Acceso remoto](../REMOTE_ACCESS.md) y [Borrar tus datos](../data/clearing-data.md).
+- **Advanced**: mira la sección **Message Tools** más abajo, además de [Actualizar Marinara Engine](../UPGRADING.md), [Acceso remoto](../REMOTE_ACCESS.md) y [Borrar tus datos](../data/clearing-data.md). [Interruptores de funciones](../configuration/features.md).
 
 ## Configuración, pestaña General
 

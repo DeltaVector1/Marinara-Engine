@@ -567,6 +567,38 @@ Der `combat`-Block kann über `distance: { label, perCell }` den Wert eines Feld
 
 Wie 1.20 bis 1.27 ist dies keine weiche Schnittstelle: Unbekannte Schlüssel lassen die ganze Regelsatzdatei oder den Katalog mit einer Kreatur und zweiteiliger Reichweite scheitern. Die Installation prüft die verifizierten Bytes von `ruleset.json` und jeder deklarierten Datei `catalogs/<id>.json` und lehnt sie unter älterer Deklaration ab. Ohne Entfernungsangaben ändert sich nichts.
 
+<a id="capability-api-150-professor-mari-actions"></a>
+
+### Capability API 1.50: Aktionen für Professor Mari
+
+Ein Paket mit der neuen Berechtigung `mari-actions` kann Professor Mari benannte Aktionen anbieten. Es registriert einen Dienst unter seiner eigenen ID. Maris Tool `package_service` listet die angebotenen Aktionen auf und führt eine aus, wenn der Nutzer darum bittet.
+
+```ts
+export async function activate({ api }) {
+  api.registerService("mari-actions:my-package", {
+    list: () => [
+      { name: "add-idea", summary: "Give a Creator an idea for a post.", inputs: { accountId: "The Creator.", text: "The idea." } },
+    ],
+    run: async (name, input, { signal }) => {
+      const parsed = schemas[name]?.safeParse(input);
+      if (!parsed?.success) return { ok: false, status: 400, error: "Invalid input." };
+      return { ok: true, value: await doIt(name, parsed.data, signal) };
+    },
+  });
+}
+```
+
+Wichtige Regeln:
+
+- Der Schlüssel muss `mari-actions:<package-id>` des registrierenden Pakets sein. Ohne Berechtigung oder unter einer fremden Paket-ID schlägt die Registrierung mit einem Fehler fehl. Eine von Mari ausgeführte Aktion gehört damit immer zum genannten Paket.
+- `list()` liefert Einträge `{ name, summary?, inputs? }`. Namen bestehen aus 1 bis 80 Buchstaben, Ziffern, `.`, `_` oder `-`; andere Einträge werden nicht angezeigt. Mari liest `summary` und `inputs`, also formuliere sie verständlich. Nur die ersten 50 Aktionen sind sichtbar und ausführbar. Mari sieht höchstens 40 Eingaben pro Aktion; Eingabenamen werden bei 80 und Texte bei 300 Zeichen gekürzt. `list()` muss innerhalb von 5 Sekunden antworten, sonst werden die Aktionen des Pakets ausgelassen.
+- `run(name, input, { signal })` wird nur mit einem gelisteten Namen und einem einfachen JSON-Objekt mit höchstens 64.000 Zeichen aufgerufen. Die Eingabe stammt von einem Modell: Prüfe sie vor jeder Aktion gegen dein eigenes Schema. Antworte mit `{ ok: true, value }` oder `{ ok: false, status?, error }`; Mari sieht die ersten 2.000 Zeichen des Fehlertexts. `signal` bricht ab, wenn der Nutzer Mari stoppt oder 5 Minuten vergehen. Dann wartet die Engine nicht länger; beende auch deine Arbeit.
+- Die Engine entfernt Daten-URLs aus `value`, bevor Mari es liest, und kürzt lange Antworten. Gib IDs und kurzen Text zurück, keine Dateien.
+- Auflisten ist schreibgeschützt. Jede Ausführung gilt in Maris Permissions Mode als Änderung: Plan lehnt sie ab, Manual wartet auf Accept des Nutzers. Die Engine kann Paketaktionen weder vorschauen noch zurücknehmen, deshalb erscheint keine Keep/Restore-Karte. Biete bei schwer umkehrbaren Änderungen eine eigene Rückgängig-Aktion an. Deshalb lehnt Plan auch rein lesende Aktionen ab.
+- Deaktivieren oder Entfernen des Pakets entfernt seine Aktionen.
+
+`mari-actions` wird abgelehnt, wenn das Manifest eine `capabilityApi` vor 1.50 deklariert.
+
 ### Capability API 1.36: Errungenschaften aus Paketen
 
 Ein Paket mit der neuen Berechtigung `achievements` kann dem Panel **Achievements** (Errungenschaften) auf dem Home-Bildschirm Abzeichen hinzufügen, ihren Freischaltstatus lesen und sie freischalten. Das Panel zeigt sie nach den Engine-eigenen Abzeichen in einem Abschnitt mit dem Paketnamen als Überschrift.
@@ -599,6 +631,56 @@ Diese Regeln solltest du kennen:
 - Deaktivieren oder Entfernen des Pakets blendet seine Abzeichen aus. Freischaltungen bleiben wie bei den Engine-eigenen Abzeichen erhalten und erscheinen wieder, wenn das Paket zurückkehrt.
 
 `api.registerAchievements` und `api.runtime.achievements` gibt es erst ab dieser Engine-Version. Ein Paket, das sie nutzt, deklariert daher `capabilityApi` 1.36.
+
+<a id="capability-api-135-agent-home-widgets"></a>
+
+### Capability API 1.35: Home-Widgets für Agenten
+
+Ein Agentenpaket kann bis zu drei Karten für das Home-Widget-Raster anbieten. Die Engine platziert sie nie selbst: Nutzer fügen sie im **Widget Manager** (Widget-Verwaltung) hinzu, blenden sie aus, stellen sie wieder her und sortieren sie. Dort sind sie unter dem Agenten gruppiert. Raster, Rahmen und Layout gehören der Engine; den Karteninhalt bestimmt das Paket.
+
+Deklariere den Slot `home-widget` zusammen mit den Widget-Definitionen:
+
+```json
+{
+  "schemaVersion": 2,
+  "capabilityApi": { "major": 1, "minor": 35 },
+  "kind": ["agent"],
+  "permissions": ["ui"],
+  "entrypoints": { "client": "client.js" },
+  "contributions": {
+    "slots": ["home-widget"],
+    "homeWidgets": [
+      {
+        "id": "latest",
+        "label": "Latest Posts",
+        "description": "The newest posts from the feed.",
+        "size": "large",
+        "iconPath": "art/widget.png",
+        "accent": "violet",
+        "surface": "solid",
+        "header": "banner"
+      }
+    ]
+  }
+}
+```
+
+- `id` ist kleingeschriebener Kebab-Case mit höchstens 64 Zeichen und innerhalb des Pakets eindeutig.
+- `label` (1–80 Zeichen) und `description` (höchstens 200) sind die Texte im Widget Manager. Ein Sprachpaket kann sie über `localizations.<locale>.homeWidgets.<id>.label` und `.description` überschreiben.
+- `size` ist `compact` oder `large`. Große Widgets belegen mehr Rasterfläche.
+- `icon` ist einer der Engine-Icon-Namen (`activity`, `bell`, `calendar`, `chart`, `circle`, `clock`, `file`, `flame`, `heart`, `image`, `list`, `message`, `sparkles`, `star`, `zap`). `iconPath` ist eine Paketgrafik (`gif`, `jpg`, `jpeg`, `png`, `webp`) und muss in `files[]` stehen.
+- `accent`, `surface` und `header` wählen Darstellungsvorlagen der Engine.
+
+Die Installation wird abgelehnt, wenn das Paket kein `agent` mit `ui`-Berechtigung und Client-Einstiegspunkt ist, Slot und `homeWidgets` nicht gemeinsam deklariert sind, zwei Widgets dieselbe ID haben oder `capabilityApi` älter als 1.35 ist.
+
+Die Engine bindet das Client-Element des Pakets mit `view="widget"` ein. Neben `packageId`, `packageVersion` und `localization` enthält `capabilityProps`:
+
+- `widgetId`, `widgetLabel`, `widgetDescription`, `widgetIcon`, `widgetIconPath`, `widgetAccent`, `widgetSurface` und `widgetHeader`: die Definition der angezeigten Karte, damit ein Bundle alle seine Widgets darstellen kann.
+- `active`: nur `true`, solange Home angezeigt wird und die Karte sichtbar ist. Bei `false` Polling und Animation pausieren.
+- `onOpenNoodle()`: öffnet den eigenen Home-Browser-Tab des Pakets. Trotz des Namens funktioniert es für jedes Paket mit dem Slot `home-browser-tab`. Ohne diesen Tab tun diese Funktion und `onOpenPost` nichts.
+- `onOpenPost(id)`: öffnet den eigenen Home-Browser-Tab bei einem Eintrag. `id` ist ein String mit höchstens 128 Zeichen; alles andere wird ignoriert. Das Element mit `view="browser"` erhält dann `focusPostId: id`. Nach dem Anzeigen soll es `onFocusPostHandled()` aufrufen, damit der Fokus nicht erneut angewendet wird. Wechsel auf einen anderen Tab verwerfen ausstehenden Fokus.
+
+Ein Widget ist eine kleine Ansicht des Agenten, keine zweite Kopie. Halte es leichtgewichtig und leite größere Aufgaben in den Browser-Tab weiter.
 
 ### Capability API 1.34: eine Kreatur in den Begriffen des Regelsatzes
 

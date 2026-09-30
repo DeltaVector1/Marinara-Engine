@@ -87,8 +87,12 @@ Die Karte trägt den Titel **Review Mari's changes** (Maris Änderungen prüfen)
 
 Ein paar Dinge dazu:
 
-- Brandneue Objekte, etwa ein frischer Charakter oder ein neues Lorebook, überspringen diesen Schritt meistens. Es wurde nichts Bestehendes überschrieben, also gibt es auch nichts rückgängig zu machen.
-- Eine Prüfkarte verfällt nach 10 Minuten von selbst, wenn du nicht reagierst.
+- Neue Objekte, etwa ein frischer Charakter oder ein neues Lorebook, bekommen ebenfalls eine Prüfkarte. **Restore** entfernt sie wieder.
+- Eine Karte gehört zu dem Mari-Chat, in dem sie die Änderung vorgenommen hat. Ein neuer Chat beginnt ohne Karten anderer Chats. Wenn du einen Chat löschst, bleiben seine Änderungen erhalten, seine Karten werden entfernt. Eine Änderung über den Terminalbefehl `mari` gehört zu keinem Chat; ihre Karte erscheint deshalb in jedem Mari-Chat.
+- Eine Karte bleibt bis zu 14 Tage lang stehen, bis du **Keep** oder **Restore** wählst. Danach schließt sie sich von selbst und die Änderung bleibt erhalten.
+- Meldet **Restore**, dass die Daten nach Maris Änderung erneut geändert wurden, würde die Wiederherstellung diese neuere Fassung überschreiben. Wähle **Keep**, um die Karte zu schließen; die aktuellen Daten bleiben unverändert.
+- Eine Bearbeitung, die nichts ändern würde, wird nicht gespeichert und erhält keine Karte.
+- Mari kann ihre eigene Charakterkarte weder bearbeiten noch löschen. Marinara setzt sie bei jedem Start auf die integrierte Fassung zurück.
 - Charaktere und Personas führen zusätzlich in ihren Editoren eine eigene Versionshistorie. Dort lässt sich als zweites Sicherheitsnetz eine ältere Fassung wiederherstellen.
 
 Zwei riskantere Änderungen warten, statt zuerst angewendet zu werden:

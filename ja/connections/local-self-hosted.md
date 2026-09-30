@@ -85,10 +85,13 @@ Androidでは、この設定を指定しない場合はデフォルトでオン�
 
 どちらのテストも成功すれば、ローカルモデルをチャットで使えます。チャットを開き、その設定からこの接続を選んでください。
 
+同じモデルでエージェントの起動判定などの判断にも答えられ、Marinaraが2つ目のコピーを読み込む必要はありません。接続設定の**Use this model for decisions**(このモデルを判断に使用)をクリックしてください。[Decisionモデル](decision-models.md#on-a-server-you-already-run)を参照してください。
+
 テストが失敗したときは、まずローカルサーバーが動いているか、モデルが読み込まれているかを確かめます。次に、**Base URL**がサーバーのアドレスとポートに正確に一致しているかを確認します。別のコンピューターにあるサーバーの場合は、`PROVIDER_LOCAL_URLS_ENABLED`が設定されていること、そしてMarinaraサーバーを再起動したことを確かめてください。
 
 ## 関連ガイド
 
 - [AIプロバイダーへの接続](connecting-to-a-provider.md)
 - [Local Modelのセットアップ](local-model.md)
+- [Decisionモデル](decision-models.md)
 - [サーバー設定リファレンス](../CONFIGURATION.md)

@@ -97,6 +97,8 @@ Cuando **Mode** es **Individual**, aparece un ajuste **Response Order**. Es un i
 
 Con el orden **Smart**, la IA puede poner en cola a más de un personaje. Solo el primero responde de inmediato. Para elegir quién habla a continuación, usa el selector **Trigger Response** en la barra de mensajes. También puedes enviar un mensaje vacío para generar el siguiente personaje en cola.
 
+En Roleplay con el modo **Individual** y el orden **Smart** o **Manual**, la primera opción del selector es **Smart**, marcada con un icono de personas en tu color de acento. Pide al modelo que elija al siguiente hablante para esa respuesta y usa el modelo de decisión cuando su opción de orden Smart está activada. El orden de respuesta guardado no cambia y las opciones con nombres de personajes siguen permitiéndote elegir directamente.
+
 Aparecen dos interruptores más en el modo **Individual**:
 
 - **Add Turn To Prompt** está activado de forma predeterminada. Agrega una breve instrucción que nombra qué personaje debe responder en este turno.

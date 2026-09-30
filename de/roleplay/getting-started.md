@@ -99,6 +99,16 @@ Der Befehl lautet `[whisper: character="name" text="the secret"]`. Nenne genau e
 
 Eine Flüsternachricht bleibt an ihrer Stelle in der Nachricht. An deine Persona gerichtete Geheimnisse sind sofort sichtbar; andernfalls wähle **Reveal a secret** (Geheimnis aufdecken), um eines zu lesen. Das Aufdecken ändert nur deine Anzeige, nicht das Wissen eines Charakters. Geheimnisse folgen ihrer Nachricht und deren aktivem Swipe; sie verlassen den Prompt, wenn die Nachricht ausgeblendet wird oder außerhalb des ausgewählten Verlaufs liegt.
 
+Sobald eine Flüsternachricht sichtbar ist, wähle **Edit whisper** (Flüsternachricht bearbeiten), ändere den Text und wähle **Save** (speichern). Die Korrektur bleibt beim Swipe dieser Nachricht und wird in späteren Prompts für den ursprünglichen Empfänger und den Erzähler verwendet. **Cancel** (abbrechen) lässt den Text unverändert.
+
+Du kannst auch `[whisper: character="name" text="the secret"]` in deine eigene Roleplay-Nachricht schreiben, um einem Charakter im Chat etwas zuzuflüstern. Deine eigenen Flüsternachrichten siehst du sofort. Das funktioniert in gewöhnlichen Chats ohne aktivierten Mehrspielermodus.
+
+### Deine privaten Notizen
+
+Wenn **Personal Notes** unter **Roleplay Commands** aktiviert ist, kannst du `[notes: content="your private note"]` in deine eigene Nachricht schreiben. Diese Notizen gehören dir und werden nur dem ernannten Erzähler mitgegeben, nicht gewöhnlichen Charakteren oder gemeinsamen Agenten. Über die Befehlsdetails der Nachricht kannst du sie bearbeiten oder löschen.
+
+Der Erzähler erhält auch die Notizen eines Charakters nicht mehr, sobald dieser deaktiviert oder aus der Gruppe entfernt wird. Deaktivieren löscht die gespeicherten Notizen nicht; nach erneutem Aktivieren stehen sie wieder zur Verfügung.
+
 ## Unterbrechungen durch Charaktere
 
 Aktiviere unter **Chat Settings → Agents → Roleplay Commands** die Option **Interruptions** (Unterbrechungen), damit Charaktere die letzte Nachricht bei einem plausiblen verbalen oder körperlichen Eingreifen abbrechen können. Die Funktion ist zunächst ausgeschaltet und benötigt keinen herunterladbaren Agenten.

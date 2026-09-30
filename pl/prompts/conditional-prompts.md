@@ -330,8 +330,8 @@ Jak sprawdzić sformułowanie:
 
 1. Wybierz model w **Decision model** i kliknij **Test** (test). To sprawdza połączenie na stałym przykładzie, a nie twoje stwierdzenie ani bieżący czat.
 2. Dodaj stwierdzenie do promptu i wyślij reprezentatywne wiadomości: takie, dla których powinno być prawdziwe, i takie, dla których powinno być fałszywe.
-3. Użyj **Peek Prompt** (podgląd promptu), żeby sprawdzić wysłaną gałąź. Jeśli potrzebujesz prawdopodobieństwa i wyniku tak/nie, włącz [logowanie debug](../CONFIGURATION.md#logging-levels).
-4. Popraw sformułowanie i sprawdź ponownie. Do nowego przypadku użyj nowych wiadomości lub zmień stwierdzenie: udane odpowiedzi mogą być [używane ponownie](#answer-reuse). Otwarcie świeżego podglądu Peek Prompt nie pyta modelu.
+3. Użyj **Peek Prompt**, aby sprawdzić wysłaną gałąź. Otwórz **Decision diagnostics** (diagnostyka decyzji), aby podejrzeć bieżące dane wejściowe decyzji, a następnie **Test decisions** (testuj decyzje), aby otrzymać świeże oceny i obejrzeć wynikowy prompt bez generowania odpowiedzi. Testy hostowane mogą naliczać opłaty. Zobacz [Testowanie stwierdzeń decyzyjnych](../chats/peek-prompt.md#testing-decision-statements).
+4. Popraw sformułowanie i sprawdź ponownie. Zwykłe generowanie może [ponownie używać odpowiedzi](#answer-reuse); jawny test decyzji zachowuje swoje odpowiedzi osobno od bieżącego czatu. Otwarcie Peek Prompt lub podglądu danych wejściowych nie pyta modelu. Aby sprawdzić wyniki bieżącego generowania, włącz Debug Mode lub [logowanie debug](../CONFIGURATION.md#logging-levels).
 
 Wyniki testów. Każde sformułowanie sprawdzono na czterech oznaczonych turach roleplay (dwie z oczekiwanym tak, dwie z nie) w Open-Jev 2B, Open-Jev 9B i lokalnym Gemma 4 E4B. To mała próbka jednej sceny, a nie ogólny test dokładności ani test zdalnego Jev. Tabela zapisuje obserwacje z próbki; nie obiecuje tych samych wyników dla innego modelu lub czatu.
 
@@ -374,7 +374,7 @@ Jedna tura może wysłać kilka płatnych żądań przez zdalne połączenie Dec
 
 Lokalny model czatu dodaje czas przetwarzania zamiast zdalnych opłat. Odpowiada na `decision_choice:` osobnym pytaniem tak/nie dla każdej opcji, więc pojedynczy wybór może wymagać kilku generowań.
 
-Każde żądanie ma [limit czasu](../connections/decision-models.md#time-limits): domyślnie 1,5 sekundy dla połączenia Decision lub limit lokalnego backendu. Kilka żądań może wydłużyć łączne oczekiwanie. Lokalny model wymagający rozumowania wstrzymuje się przed odpowiedzią, chyba że włączysz **Also gate agents that run before the reply** (sprawdzaj także agentów działających przed odpowiedzią).
+Każde żądanie ma [limit czasu](../connections/decision-models.md#time-limits): domyślnie 1,5 sekundy dla połączenia Decision (4 dla połączenia z modelem czatu zgodnym z OpenAI) lub limit lokalnego backendu. Kilka żądań może wydłużyć łączne oczekiwanie. Lokalny model wymagający rozumowania wstrzymuje się przed odpowiedzią, chyba że włączysz **Also gate agents that run before the reply** (sprawdzaj także agentów działających przed odpowiedzią).
 
 <a id="answer-reuse"></a>
 

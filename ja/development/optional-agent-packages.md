@@ -572,6 +572,38 @@ API 1.26は、ロール、対象、行動枠、攻撃・能力一覧、状態、
 
 最初のターンより前にワールドを準備する必要がある場合は、既存の起動準備完了の宣言を独立して使用してください。パッケージの最低要件としてAPI 1.18を宣言します。古いホストはこの設定宣言を解釈できません。
 
+<a id="capability-api-150-professor-mari-actions"></a>
+
+### Capability API 1.50: Professor Mariのアクション
+
+新しい権限`mari-actions`を持つパッケージは、名前付きアクションをProfessor Mariに提供できます。自身のIDでサービスを1つ登録し、Mariの`package_service`ツールがアクションを一覧表示して、ユーザーの依頼で実行します。
+
+```ts
+export async function activate({ api }) {
+  api.registerService("mari-actions:my-package", {
+    list: () => [
+      { name: "add-idea", summary: "Give a Creator an idea for a post.", inputs: { accountId: "The Creator.", text: "The idea." } },
+    ],
+    run: async (name, input, { signal }) => {
+      const parsed = schemas[name]?.safeParse(input);
+      if (!parsed?.success) return { ok: false, status: 400, error: "Invalid input." };
+      return { ok: true, value: await doIt(name, parsed.data, signal) };
+    },
+  });
+}
+```
+
+主な規則：
+
+- キーは登録するパッケージの`mari-actions:<package-id>`でなければなりません。権限がない場合や別パッケージのIDでの登録は例外になるため、Mariの実行対象は常に名指しされたパッケージに属します。
+- `list()`は`{ name, summary?, inputs? }`の項目を返します。名前は1～80文字の英字、数字、`.`、`_`、`-`で、それ以外の項目は表示しません。Mariが読む`summary`と`inputs`は分かりやすく書いてください。表示・実行できるのは先頭50アクションだけです。Mariが読む入力は各アクション最大40個で、入力名は80文字、各本文は300文字で切り詰めます。`list()`が5秒以内に応答しなければ、そのパッケージのアクションを省略します。
+- `run(name, input, { signal })`は一覧にある名前と最大64,000文字の通常のJSONオブジェクトでのみ呼ばれます。モデル由来の入力なので、処理前に自分のスキーマで検証してください。`{ ok: true, value }`または`{ ok: false, status?, error }`を返します。Mariが読むエラー本文は先頭2,000文字です。ユーザーがMariを停止するか5分経つと`signal`が中断され、Engineは待機をやめるので、処理も停止してください。
+- EngineはMariが読む前に`value`のデータURLを省き、長い応答を切り詰めます。ファイルではなくIDと短い本文を返してください。
+- 一覧取得は読み取り専用です。実行はすべてMariのPermissions Modeで変更と数えます。Planは拒否し、ManualはユーザーのAcceptを待ちます。Engineはパッケージのアクションをプレビュー・取り消しできないため、Keep/Restoreカードは出ません。戻しにくい変更には独自の取り消しアクションを用意してください。このため、Planは読み取りだけのアクションも拒否します。
+- パッケージを無効化・削除するとアクションも消えます。
+
+1.50より古い`capabilityApi`を宣言したマニフェストでは`mari-actions`を拒否します。
+
 ### Capability API 1.36: パッケージの実績
 
 新しい`achievements`権限を持つパッケージは、ホームの**Achievements**(実績)パネルにバッジを追加し、解除済みかどうかを読み取り、解除できます。パネルではEngine自身のバッジの後に、パッケージ名を見出しにしたセクションで表示されます。
@@ -604,6 +636,56 @@ export async function activate({ api }) {
 - パッケージを非アクティブにするか削除すると、そのバッジは表示されなくなります。Engine自身のバッジと同様に解除の記録は残り、パッケージが戻ると再び表示されます。
 
 `api.registerAchievements`と`api.runtime.achievements`が存在するのは、このAPIに対応した新しいEngineだけです。そのため、これらを使用するパッケージは`capabilityApi` 1.36を宣言します。
+
+<a id="capability-api-135-agent-home-widgets"></a>
+
+### Capability API 1.35: エージェントのHomeウィジェット
+
+エージェントパッケージはHomeウィジェットのグリッドへ最大3枚のカードを提供できます。Engineが勝手に配置することはありません。ユーザーが**Widget Manager**(ウィジェット管理)で追加、非表示、復元、並べ替えを行い、カードはエージェントの下にまとめられます。Engineはグリッド、枠、配置を担当し、パッケージはカードの中身を担当します。
+
+`home-widget`スロットとウィジェット定義は一緒に宣言します。
+
+```json
+{
+  "schemaVersion": 2,
+  "capabilityApi": { "major": 1, "minor": 35 },
+  "kind": ["agent"],
+  "permissions": ["ui"],
+  "entrypoints": { "client": "client.js" },
+  "contributions": {
+    "slots": ["home-widget"],
+    "homeWidgets": [
+      {
+        "id": "latest",
+        "label": "Latest Posts",
+        "description": "The newest posts from the feed.",
+        "size": "large",
+        "iconPath": "art/widget.png",
+        "accent": "violet",
+        "surface": "solid",
+        "header": "banner"
+      }
+    ]
+  }
+}
+```
+
+- `id`は小文字のkebab-caseで最大64文字、パッケージ内で一意です。
+- `label`(1～80文字)と`description`(最大200文字)はWidget Managerの表示文です。言語パックは`localizations.<locale>.homeWidgets.<id>.label`と`.description`で上書きできます。
+- `size`は`compact`か`large`です。大きいウィジェットはグリッド内でより多くの場所を使います。
+- `icon`はEngineのアイコン名(`activity`、`bell`、`calendar`、`chart`、`circle`、`clock`、`file`、`flame`、`heart`、`image`、`list`、`message`、`sparkles`、`star`、`zap`)です。`iconPath`はパッケージの画像(`gif`、`jpg`、`jpeg`、`png`、`webp`)で、`files[]`への登録が必要です。
+- `accent`、`surface`、`header`はEngineの表示プリセットを選びます。
+
+パッケージが`ui`権限とクライアントエントリーポイントを持つ`agent`でない、スロットと`homeWidgets`を一緒に宣言していない、IDが重複する、または`capabilityApi`が1.35より古い場合はインストールを拒否します。
+
+Engineはパッケージのクライアント要素を`view="widget"`でマウントします。通常の`packageId`、`packageVersion`、`localization`に加え、`capabilityProps`は次を持ちます。
+
+- `widgetId`、`widgetLabel`、`widgetDescription`、`widgetIcon`、`widgetIconPath`、`widgetAccent`、`widgetSurface`、`widgetHeader`：描画するカードの定義です。1つのバンドルで宣言済みの全ウィジェットを描画できます。
+- `active`：Homeを表示し、カードも見えるときだけ`true`です。`false`ではポーリングとアニメーションを停止してください。
+- `onOpenNoodle()`：パッケージ自身のHomeブラウザータブを開きます。名前にかかわらず、`home-browser-tab`スロットを宣言したすべてのパッケージで使えます。そのタブがなければ、この関数も`onOpenPost`も何もしません。
+- `onOpenPost(id)`：自身のHomeブラウザータブで項目を開きます。`id`は最大128文字の文字列で、それ以外は無視します。タブの`view="browser"`要素に`focusPostId: id`を渡します。表示後に`onFocusPostHandled()`を呼び、フォーカスの再適用を防いでください。別タブへ切り替えると保留中のフォーカスは破棄されます。
+
+ウィジェットはエージェントの小さな表示であり、2つ目のコピーではありません。軽量に保ち、大きな操作はブラウザータブへ案内してください。
 
 ### Capability API 1.34: ルールセット自身の形式で記述するクリーチャー
 

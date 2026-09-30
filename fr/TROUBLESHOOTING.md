@@ -11,6 +11,20 @@ Beaucoup de problèmes disparaissent en deux gestes rapides.
 
 Si tu demandes de l'aide à l'équipe, active d'abord le **Debug mode** (mode débogage) pour que le serveur enregistre le prompt et la réponse dans les logs. Le prompt, c'est le texte que Marinara envoie à l'IA, et le log est le journal du serveur. Voir Obtenir de l'aide à la fin de ce guide.
 
+<a id="multiplayer-connection-or-turn-problems"></a>
+
+## Problèmes de connexion ou de tours multijoueurs
+
+- **Commandes indisponibles :** vérifie `MULTIPLAYER_ENABLED=true` dans le `.env` du bon Engine, redémarre-le, puis active Settings séparément. Un réglage enregistré ne remplace pas une variable absente/invalide. L'enveloppe Android native ne peut délibérément pas rejoindre.
+- **Hôte indisponible :** utilise un port HTTPS de salon distinct et joignable, une chaîne de certificat/un nom d'hôte valides et l'empreinte correspondante de l'invitation. Ne désactive pas TLS, n'ajoute pas `null` aux origines de confiance, n'expose pas l'API Engine ordinaire et n'ouvre pas de client fourni par l'hôte pour contourner l'erreur.
+- **En attente d'approbation :** l'hôte doit approuver dans Players. Aucun historique n'est disponible avant. Demande une nouvelle invitation si elle a expiré ou été révoquée.
+- **Déconnecté :** garde l'Engine de l'invité en marche. Le client se reconnecte au même hôte épinglé tant que la session explicite est active ; les brouillons non envoyés restent dans la vue actuelle. Un redémarrage invalide les identifiants et impose une nouvelle admission. Stop/Leave restent accessibles en cas de panne réseau.
+- **Game attend :** vérifie Players. Les participants déconnectés ne passent pas automatiquement. L'hôte peut explicitement choisir Pass/Kick ou Pause. Soumettre une seule des deux actions requises ne doit pas lancer le GM.
+- **Génération interrompue :** ne soumets pas le tour à répétition. L'hôte doit vérifier narration/état enregistrés et reprendre explicitement vers l'avant, ou arrêter le salon. Le multijoueur ne rejoue pas silencieusement une requête au résultat ambigu et n'applique pas deux fois ses effets.
+- **Commande restreinte ou média absent :** le protocole initial transporte volontairement du texte uniquement. Consulte la [matrice de compatibilité](development/multiplayer.md#command-and-feature-compatibility) ; n'installe pas de fichier ou d'extension d'un pair pour contourner cette limite.
+
+Pour signaler une erreur, indique le mode, la plateforme, le message visible et si l'admission a réussi. Ne publie pas d'invitations, mots de passe de salon, jetons de session, historiques privés ou identifiants de fournisseurs.
+
 ## Problèmes d'installation et de lancement
 
 ### Termux : mémoire insuffisante pendant la compilation du client
@@ -20,6 +34,12 @@ Si Vite s'arrête avec `Reached heap limit` ou `JavaScript heap out of memory`, 
 Le plafond lié à la RAM est arrondi vers le bas par pas de 128 MiB. Si la moitié de la RAM est inférieure à 1024 MiB, le minimum de 1024 MiB est prioritaire.
 
 Ferme les autres apps avant de réessayer. Un appareil avec peu de mémoire peut encore échouer ou Android peut arrêter le processus ; conserve toute la sortie du lanceur pour le signaler. Ne supprime ni chats ni profil pour réparer une compilation.
+
+### Termux : fichier du client invité multijoueur manquant ou Sharp incompatible
+
+Si le démarrage signale toujours l'absence de `packages/client/dist/multiplayer/guest.js` après une recompilation, mets Engine à jour et relance `./start-termux.sh`. Le lanceur effectue maintenant la compilation complète du client à faible consommation de mémoire, y compris les fichiers du client invité vérifiés au démarrage. Il n'est pas nécessaire d'activer le multijoueur pour corriger cette erreur de compilation.
+
+Si le traitement des images indique que Sharp ne peut pas se charger sur Android, mets Engine à jour et laisse le lanceur réinstaller les dépendances. La solution de repli correspondante `@img/sharp-wasm32` est une dépendance ordinaire, conservée lors des installations à versions figées et des mises à jour. Ne la remplace pas par une version de Sharp sans rapport. Conserve toute la sortie d'erreur si le problème persiste.
 
 ### Page blanche ou JavaScript renvoyé en HTML après une mise à jour
 

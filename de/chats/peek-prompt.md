@@ -14,6 +14,7 @@ Oben neben dem Titel sitzt ein Quellen-Badge. Er sagt dir, welche Version des Pr
 - **Live Preview**: eine Vorschau, die gerade eben neu erzeugt wurde.
 - **Raw Messages**: die rohe Liste der Nachrichten.
 - **Prompt Preview**: eine allgemeine Vorschau.
+- **Decision test preview**: ein Prompt mit den Antworten eines ausdrücklich gestarteten Entscheidungstests. Er wurde nicht an das Chat-Modell gesendet.
 
 Unter dem Badge liegt ein Panel mit Infos zur Generierung. Dort stehen Anbieter und Modellname, eine geschätzte Anzahl an Tokens und – sobald eine Antwort fertig ist – die echte Token-Zahl des Prompts. Ein Token ist ein kleines Textstück; Modelle zählen damit statt in Wörtern. Das Panel zeigt außerdem kleine Tags für die verwendeten Werte, etwa **Temperature**, **Max Output Tokens**, **Thinking**, **Reasoning**, **Verbosity**, **Service Tier** und **Assistant Prefill**. Auch Sampling-Werte wie **Top P**, **Top K** und **Min P** können hier auftauchen.
 
@@ -71,9 +72,28 @@ Für eine unerwartete Antwort ist Peek Prompt das beste Werkzeug. Greif darauf z
 
 Sobald du weißt, was das Modell tatsächlich bekommen hat, lässt sich die Ursache beheben. Vielleicht überarbeitest du eine Charakterkarte, passt einen Lorebook-Eintrag an oder änderst einen Wert in den Parametern für die Generierung.
 
+<a id="testing-decision-statements"></a>
+
+## Entscheidungsaussagen testen
+
+Öffne in Peek Prompt **Decision diagnostics** (Entscheidungsdiagnose), um die Prompt-Aussagen und Lorebook-Entscheidungen des aktuellen Chats zu prüfen. Das Öffnen des Panels oder **Preview inputs** (Eingaben ansehen) bereitet die Anfrageinhalte vor, ohne das Decision-Modell zu fragen oder ein lokales Modell zu starten. Klapp **Prepared request bodies** (vorbereitete Anfrageinhalte) auf, um die jüngsten Nachrichten, aufgelösten Aussagen, Optionen und das modellspezifische Anfrageformat zu sehen. Weitere Lorebook-Aussagen können erst erreichbar werden, nachdem eine frühere Entscheidung beantwortet wurde.
+
+Wähle **Test decisions** (Entscheidungen testen), um die zulässigen Fragen an dein ausgewähltes Decision-Modell zu senden. Dabei werden echte Entscheidungsanfragen gestellt, für die ein gehostetes Modell Gebühren berechnen kann. Der Test erzeugt keine Chat-Antwort, führt keine Agenten aus, verändert keinen Spielzustand und speichert weder seine Antworten noch seine Zeitsteuerung im Chat.
+
+Ein ausdrücklich gestarteter Test kann auf ein lokales Reasoning-Modell warten, selbst wenn gewöhnliche Entscheidungen vor der Antwort aufgeschoben werden. Deine Einstellung für laufende Antworten bleibt dabei erhalten; die Eingabevorschau sendet weiterhin keine Modellanfragen.
+
+Jedes Ergebnis zeigt, soweit verfügbar, seinen Wert, den Schwellenwert für eine Ja/Nein-Aussage und die daraus folgende Antwort. Gibt ein Modell nur ein Ja/Nein-Wort zurück, wird das entsprechend gekennzeichnet; seine Antwort wird nicht als Wahrscheinlichkeit dargestellt. Choice-Ergebnisse zeigen die gewählte Option. Für gehaltene, aufgeschobene, über dem Limit liegende, nicht verfügbare und fehlgeschlagene Entscheidungen gibt es eigene Erklärungen, damit eine fehlende Antwort nicht mit einem niedrigen Wert verwechselt wird.
+
+Nach einem Test verwendet der Prompt darunter dessen Antworten. Mit **Show original prompt** (ursprünglichen Prompt anzeigen) kehrst du zum ursprünglich geöffneten Inhalt zurück; **Show tested prompt** (getesteten Prompt anzeigen) wechselt wieder zur Testfassung. **Requests sent and results** (gesendete Anfragen und Ergebnisse) zeigt die tatsächlichen Entscheidungsanfragen und ihre Ergebnisse, ohne Authentifizierungsheader.
+
+Tests verwenden den aktuellen Chat und die aktuellen Einstellungen, auch wenn du Peek Prompt über eine ältere Antwort geöffnet hast. Sie rekonstruieren die ursprünglichen Entscheidungsanfragen nicht. Tests prüfen Prompt-Aussagen und Lorebook-Entscheidungen; Agentenaktivierung und Entscheidungen nach der Antwort werden nicht ausgeführt. Gewöhnliches Peek Prompt bleibt passiv, bis du ausdrücklich **Test decisions** wählst.
+
+Ist **Use Decision model (Jev)** (Decision-Modell verwenden) für Advanced Memory aktiviert, zeigt das Panel außerdem **Advanced Memory activity** (Advanced-Memory-Aktivität). Diese gespeicherten Berichte beschreiben den letzten Abruf und die letzte Prüfung auf ein Szenenende mit Modell, Zeit, Werten, Auswahl und verwendetem Ersatzverfahren. Sie können auch ohne Entscheidungsaussagen im Prompt erscheinen. Sie beschreiben tatsächlich erfolgte Aufrufe, nicht die aktuelle Vorschau oder eine Wiederholung der ausgewählten historischen Antwort. Kompatible Swipes können einen früheren Abrufbericht wiederverwenden. Pro Bericht werden bis zu 128 Ergebnisse gespeichert, ausgewählte Ergebnisse zuerst; ausgelassene Ergebnisse werden gezählt. Neue Berichte erscheinen nach dem nächsten zulässigen Jev-Aufruf. Ihre Anzeige stellt keine Modellanfragen.
+
 ## Verwandte Anleitungen
 
 - [Parameter für die Generierung](../prompts/generation-parameters.md)
 - [Preset-Editor und Prompt Manager](../prompts/presets.md)
+- [Decision-Modelle](../connections/decision-models.md)
 - [Guided Generation und Impersonate](guided-and-impersonate.md)
 - [Nachrichten-Aktionen: Bearbeiten, Löschen, Swipe, Neu generieren](messages.md)

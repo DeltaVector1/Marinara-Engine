@@ -14,6 +14,7 @@ Una insignia de origen aparece arriba, junto al título. Te dice qué versión d
 - **Live Preview**: una vista previa recién armada en este momento.
 - **Raw Messages**: la lista sin procesar de mensajes.
 - **Prompt Preview**: una vista previa general.
+- **Decision test preview**: un prompt ensamblado con las respuestas de una prueba explícita de decisiones. No se ha enviado al modelo de chat.
 
 Debajo de la insignia hay un panel de información de generación. Puede mostrar el proveedor y el nombre del modelo, un conteo estimado de tokens (un token es un fragmento de texto que los modelos cuentan en vez de palabras) y el conteo real de tokens del prompt una vez que termina una respuesta. Este panel también muestra pequeñas etiquetas con los valores usados, como **Temperature**, **Max Output Tokens**, **Thinking**, **Reasoning**, **Verbosity**, **Service Tier** y **Assistant Prefill**. Aquí también pueden aparecer valores de muestreo como **Top P**, **Top K** y **Min P**.
 
@@ -71,9 +72,28 @@ Abre la ventana **Assembled Prompt** y revisa estas cosas:
 
 Una vez que sabes lo que el modelo recibió de verdad, puedes corregir la causa. Podrías editar una tarjeta de personaje, ajustar una entrada de lorebook o cambiar un valor en tus parámetros de generación.
 
+<a id="testing-decision-statements"></a>
+
+## Probar declaraciones de decisión
+
+Abre **Decision diagnostics** (diagnóstico de decisiones) dentro de Peek Prompt para inspeccionar las declaraciones del prompt y las decisiones de lorebooks del chat actual. Abrir el panel o elegir **Preview inputs** (vista previa de entradas) prepara los cuerpos de las solicitudes sin preguntar al modelo de decisión ni iniciar un modelo local. Expande **Prepared request bodies** (cuerpos de solicitudes preparados) para ver los mensajes recientes, las declaraciones resueltas, las opciones y el formato de solicitud específico del modelo. Algunas declaraciones de lorebooks solo pueden resultar accesibles después de responder una decisión anterior.
+
+Elige **Test decisions** (probar decisiones) para enviar las preguntas permitidas al modelo de decisión seleccionado. Esto hace solicitudes reales de decisión, por las que un modelo alojado puede cobrar. No genera una respuesta de chat, ejecuta agentes, cambia el estado del juego ni guarda las respuestas o los temporizadores de la prueba en el chat.
+
+Una prueba explícita puede esperar a un modelo local de razonamiento aunque las decisiones normales anteriores a la respuesta se aplacen. Esto no cambia tu preferencia para las respuestas en curso; la vista previa de entradas sigue sin enviar solicitudes al modelo.
+
+Cada resultado muestra su puntuación cuando está disponible, el umbral usado para una declaración de sí/no y la respuesta resultante. Un modelo que solo devuelve una palabra de sí/no se indica como tal; su respuesta no se presenta como una probabilidad. Los resultados Choice muestran la opción elegida. Las decisiones mantenidas, aplazadas, por encima del límite, no disponibles y fallidas tienen explicaciones distintas para no confundir una respuesta ausente con una puntuación baja.
+
+Después de una prueba, el prompt de abajo usa sus respuestas. Usa **Show original prompt** (mostrar prompt original) para volver al contenido que abriste originalmente o **Show tested prompt** (mostrar prompt probado) para regresar a la prueba. **Requests sent and results** (solicitudes enviadas y resultados) muestra los cuerpos reales de las solicitudes de decisión y sus resultados, sin encabezados de autenticación.
+
+Las pruebas usan el chat y los ajustes actuales, incluso si abriste Peek Prompt desde una respuesta anterior. No reconstruyen las solicitudes de decisión originales. Cubren las declaraciones del prompt y las decisiones de lorebooks; no ejecutan la activación de agentes ni decisiones posteriores a la respuesta. Peek Prompt normal permanece pasivo hasta que eliges explícitamente **Test decisions**.
+
+Cuando **Use Decision model (Jev)** (usar modelo de decisión) está activado para Advanced Memory, el panel también muestra **Advanced Memory activity** (actividad de Advanced Memory). Estos informes guardados identifican la última recuperación y comprobación de fin de escena, con modelo, tiempo, puntuaciones, selecciones y estado del mecanismo de respaldo. Pueden aparecer aunque el prompt no tenga declaraciones de decisión. Describen llamadas reales anteriores, no la vista previa actual ni una repetición de la respuesta histórica seleccionada. Los swipes compatibles pueden reutilizar un informe de recuperación anterior. Se guardan hasta 128 resultados por informe, primero los seleccionados, y se cuenta cuántos se omiten. Los nuevos informes aparecen tras la siguiente llamada Jev permitida; verlos no hace solicitudes al modelo.
+
 ## Guías relacionadas
 
 - [Parámetros de generación](../prompts/generation-parameters.md)
 - [Editor de presets y Prompt Manager](../prompts/presets.md)
+- [Modelos de decisión](../connections/decision-models.md)
 - [Generación guiada y suplantación](guided-and-impersonate.md)
 - [Acciones de mensaje: editar, eliminar, swipe, regenerar](messages.md)

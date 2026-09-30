@@ -99,6 +99,16 @@ La commande est `[whisper: character="name" text="the secret"]`. Nomme exactemen
 
 Un murmure reste à sa place dans le message. Ceux adressés à ton persona sont visibles immédiatement ; sinon, choisis **Reveal a secret** (révéler un secret) pour en lire un. Le révéler change seulement ton écran, pas les connaissances des personnages. Les secrets suivent leur message et leur swipe actif, et quittent le prompt quand le message est caché ou sort de l'historique sélectionné.
 
+Une fois un murmure visible, choisis **Edit whisper** (modifier le murmure), change le texte, puis **Save** (enregistrer). La correction reste associée au swipe de ce message et sert dans les prompts suivants pour son destinataire d'origine et le narrateur. **Cancel** (annuler) le laisse intact.
+
+Tu peux aussi écrire `[whisper: character="name" text="the secret"]` dans ton propre message Roleplay pour murmurer à un personnage du chat. Tes propres murmures sont immédiatement visibles pour toi. Cela fonctionne dans les chats ordinaires sans activer le multijoueur.
+
+### Tes notes privées
+
+Avec **Personal Notes** activé dans **Roleplay Commands**, écris `[notes: content="your private note"]` dans ton propre message. Ces notes t'appartiennent et ne sont incluses que pour le narrateur désigné, pas pour les personnages ordinaires ni les agents partagés. Utilise les détails des commandes du message pour les modifier ou les supprimer.
+
+Le narrateur cesse aussi de recevoir les notes d'un personnage quand celui-ci est désactivé ou retiré du groupe. La désactivation ne supprime pas les notes enregistrées ; réactiver le personnage les rend à nouveau disponibles.
+
 ## Interruptions par les personnages
 
 Dans **Chat Settings → Agents → Roleplay Commands**, active **Interruptions** (interruptions) pour permettre aux personnages de couper le dernier message lorsqu'une intervention verbale ou physique est plausible. Cette fonction est désactivée au départ et ne nécessite aucun agent à télécharger.

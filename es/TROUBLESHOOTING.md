@@ -11,6 +11,20 @@ Muchos problemas se resuelven con dos pasos rápidos.
 
 Si le vas a pedir ayuda al equipo, activa primero **Debug mode** (Modo de depuración) para que el servidor registre el prompt (las instrucciones enviadas a la IA) y la respuesta. Revisa Cómo obtener más ayuda al final de esta guía.
 
+<a id="multiplayer-connection-or-turn-problems"></a>
+
+## Problemas de conexión o turnos multijugador
+
+- **Controles no disponibles:** confirma `MULTIPLAYER_ENABLED=true` en el `.env` del Engine correcto, reinícialo y activa Settings por separado. Un ajuste guardado no sustituye una variable ausente o inválida. El contenedor nativo de Android no puede unirse deliberadamente.
+- **Anfitrión no disponible:** usa un puerto HTTPS independiente y accesible para la sala, una cadena de certificado/nombre de host válidos y la huella correspondiente de la invitación. No desactives la validación TLS, añadas `null` a los orígenes de confianza, expongas la API normal de Engine ni abras un cliente proporcionado por el anfitrión para eludir errores.
+- **Esperando aprobación:** el anfitrión debe aprobar en Players. No hay historial antes de la aprobación. Pide otra invitación si caducó o fue revocada.
+- **Desconectado:** mantén en ejecución el Engine del invitado. El cliente se reconecta al mismo anfitrión fijado mientras la sesión explícita siga activa; los borradores sin enviar permanecen en la vista actual. Reiniciar invalida las credenciales y exige volver a unirse. Stop/Leave siguen disponibles si falla la red.
+- **Game esperando:** revisa Players. Los desconectados no pasan automáticamente. El anfitrión puede elegir explícitamente Pass/Kick o Pause. Enviar una de dos acciones requeridas no debe ejecutar el GM.
+- **Generación interrumpida:** no reenvíes la ronda repetidamente. El anfitrión debe revisar la narración/estado guardados y reanudar explícitamente hacia adelante o detener la sala. El multijugador no repite silenciosamente solicitudes de resultado ambiguo ni aplica dos veces sus efectos.
+- **Comando restringido o medios ausentes:** el protocolo inicial solo transmite texto. Consulta la [tabla de compatibilidad](development/multiplayer.md#command-and-feature-compatibility); no instales archivos o extensiones de otro participante como solución.
+
+Al reportar un error, incluye modo, plataforma, mensaje visible y si la admisión se completó. No publiques invitaciones, contraseñas de sala, tokens de sesión, historiales privados ni credenciales de proveedores.
+
 ## Problemas de instalación y arranque
 
 ### Termux: memoria insuficiente al compilar el cliente
@@ -20,6 +34,12 @@ Si Vite termina con `Reached heap limit` o `JavaScript heap out of memory`, falt
 El límite de RAM se redondea hacia abajo en pasos de 128 MiB. Si la mitad de la RAM es inferior a 1024 MiB, tiene prioridad el mínimo de 1024 MiB.
 
 Cierra otras apps antes de reintentar. Un dispositivo con poca memoria aún puede fallar o Android puede detener el proceso; conserva toda la salida del lanzador para el reporte. No borres chats ni el perfil para corregir un fallo de compilación.
+
+### Termux: falta un archivo del cliente invitado multijugador o Sharp es incompatible
+
+Si el inicio sigue indicando que falta `packages/client/dist/multiplayer/guest.js` después de recompilar, actualiza Engine y vuelve a ejecutar `./start-termux.sh`. Ahora el lanzador ejecuta la compilación completa del cliente con bajo consumo de memoria, incluidos los archivos del invitado que se comprueban al iniciar. No necesitas activar el modo multijugador para reparar este error de compilación.
+
+Si el procesamiento de imágenes indica que Sharp no puede cargarse en Android, actualiza Engine y deja que el lanzador reinstale las dependencias. La alternativa correspondiente `@img/sharp-wasm32` se incluye como dependencia normal, de modo que las instalaciones con versiones fijadas y las actualizaciones la conservan. No la sustituyas por una versión de Sharp que no corresponda. Conserva toda la salida del error si el problema continúa.
 
 ### Página en blanco o JavaScript servido como HTML después de actualizar
 
