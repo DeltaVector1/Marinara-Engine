@@ -21,7 +21,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 
 | #   | Slice                                                        | Owner profile | Status | Commit |
 | --- | ------------------------------------------------------------ | ------------- | ------ | ------ |
-| 1   | Handoff bugs (A1-A6)                                         | worker        | Todo   |        |
+| 1   | Handoff bugs (A1-A6)                                         | worker        | Done   | 2ff581eff |
 | 2   | Quick answers: cheap wins (B1-B5)                            | worker        | Todo   |        |
 | 3   | Quick answers: grounding in docs + setting names (B6)        | worker        | Todo   |        |
 | 4   | Carry aside answer into Mari, show what she received (C1-C3) | worker        | Todo   |        |
@@ -30,8 +30,9 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 7   | Mari card mockup + MariCard primitive + notes (E1-E3)        | designer      | Todo   |        |
 | 8   | Migrate install/file/created cards to MariCard (E4-E5)       | designer      | Todo   |        |
 | 9   | Review of slices 6-8                                         | reviewer      | Todo   |        |
+| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)  | designer      | Todo   |        |
 
-Stop after slice 9. The DB review card / MariEditEasyViewer rebuild (E6) waits
+Stop after slice 10. The DB review card / MariEditEasyViewer rebuild (E6) waits
 for the maintainer to approve the mockup from slice 7.
 
 ## House rules for every slice
@@ -41,6 +42,10 @@ for the maintainer to approve the mockup from slice 7.
   change that works, reuse existing helpers, delete before adding.
 - Heavy commands only through `heavy` (devbox rule): `heavy pnpm check`,
   `heavy pnpm exec playwright test ...`. One heavy job at a time.
+- Never run commands in the background and never end your turn to wait for
+  one. Background shell completions do not wake a Paseo agent. Run long
+  commands (including `heavy` ones) in the foreground with a long timeout (up
+  to 600000 ms). Only end your turn when the slice is done or truly blocked.
 - Never keep `.test.ts` files. Pure logic gets asserts in
   `scripts/regressions/command-center.regression.ts` (run with
   `heavy pnpm tsx scripts/regressions/command-center.regression.ts`).
@@ -174,3 +179,42 @@ Note has no box, one Chip, no washes).
 - E6 (NOT in this round) DB review + `MariEditEasyViewer` rebuild: neutral
   before/after by default, diff behind a toggle, chips for toggles/keys, no
   nested panels.
+
+### F. Mobile pull-to-open (slice 10) — gesture only, NO top bar icon (maintainer decision)
+
+Today the phone top bar has no omnibar button; the only bar entry is a hidden
+550 ms long-press on Home (`components/layout/TopBar.tsx`, `HOME_LONG_PRESS_MS`,
+`handleOmnibarClick`). Page overscroll is already off on phones
+(`styles/globals.css` mobile `html/body overflow:hidden; overscroll-behavior:none`),
+the Android app WebView has no pull-to-refresh, and no touch handlers sit on the
+bar. `framer-motion` is installed; no new dependency.
+
+- F1 Hook `hooks/use-pull-to-open-omnibar.ts`, bound in `TopBar` to the header
+  and to the safe-area spacer in `AppShell.tsx` (`md:hidden h-[env(safe-area-inset-top)]`).
+  Pointer events, `pointerType === "touch"` only, mobile shell only
+  (`isMobileShellViewport()`). Direction lock after 10 px (`dy > 1.5 * |dx|`,
+  down). Then `setPointerCapture`, clear the Home long-press timer, swallow the
+  next click (a pull that starts on a button must not press it). `touch-action: none`
+  on the header.
+- F2 Threshold `min(120px, 18% of innerHeight)`, at least 80px in landscape;
+  open on release past it, or on a flick (> 0.5 px/ms after ≥ 40px). Cancel when
+  moving back above the threshold, on `pointercancel`, or a second pointer.
+  Skip when `ui.modal`, `isModalOverlayOpen()`, omnibar already open, or
+  `data-mari-software-keyboard-open`.
+- F3 Indicator: a thin (4px) accent pill under the bar that grows and fills
+  with progress (`useMotionValue`/`useTransform`, no React re-render per move),
+  rubber-band resistance (`dy^0.8`, capped), snaps full at the threshold with one
+  `navigator.vibrate?.(8)`, springs back on cancel. Small, low, faint (see
+  memory rule: effects start subtle). `aria-hidden`.
+- F4 Hand-off: on open, the omnibar panel continues the downward motion (pass
+  the release velocity into the panel's initial y). Reduced motion: no
+  finger-following, static fill, open at the threshold.
+- F5 Tests: the pure recognizer (threshold, flick, direction lock, cancel) as
+  asserts in `scripts/regressions/command-center.regression.ts` or a small new
+  regression; browser proof on `mobile-chromium` (CDP `Input.dispatchTouchEvent`,
+  example in `e2e/core-flows.e2e.ts` around the touch-drag test) and
+  `mobile-webkit` (synthetic touch PointerEvents): long pull opens; short pull,
+  pull back up, and horizontal swipe do not; a pull starting on a bar button
+  does not press it; no open while a modal is open; reduced motion still opens.
+  Risk to note in the report: on iOS a pull from the very top edge may go to
+  Notification Center; only a real device can confirm.

@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Fixed several bugs in handing a question off to Professor Mari: the first message of a fresh handoff sometimes sent with no context while a later one sent the previous handoff's context, a handoff arriving before your connections finished loading could be dropped instead of retried, a draft could resend itself into the composer after you had already sent or dismissed it, "Return to results" after a finished task could leave an empty Mari pane open, a draft or auto-send request from outside the omnibar (such as an editor's "Ask Mari" button) could be dropped, and having no connection set opened the Connections panel behind the omnibar instead of the connection picker in Mari's own composer.
 - The omnibar understands a few everyday sentences: "new character Bob" opens the create window with Bob filled in, "chat with Shrek" starts a chat with Shrek, and "dark mode" or "light mode" switches the theme.
 - Quick answers no longer ask a model when a message or lorebook entry already matches your search.
 - A quick answer in the omnibar now offers the settings, characters, lorebooks and chats it names as buttons that open them.

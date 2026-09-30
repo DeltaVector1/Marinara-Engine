@@ -240,6 +240,8 @@ export interface CommandCenterMariHandoff {
   status: "pending" | "working" | "finished";
   context: ProfessorMariAskContext | null;
   draft?: string;
+  /** Set once by a cold (omnibar-closed) handoff; the dialog consumes and clears it on mount. */
+  submitDraft?: boolean;
 }
 
 export interface CommandCenterSessionState {
@@ -359,7 +361,8 @@ function normalizeMariHandoff(value: unknown): CommandCenterMariHandoff | null {
       }
     : null;
   const draft = typeof source.draft === "string" ? source.draft.slice(0, 500) : undefined;
-  return { status, context, ...(draft ? { draft } : {}) };
+  const submitDraft = source.submitDraft === true;
+  return { status, context, ...(draft ? { draft } : {}), ...(submitDraft ? { submitDraft } : {}) };
 }
 
 export function readCommandCenterSessionState(

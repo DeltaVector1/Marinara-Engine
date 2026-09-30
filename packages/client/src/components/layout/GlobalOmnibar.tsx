@@ -452,10 +452,29 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const [mariSubmitDraftRequest, setMariSubmitDraftRequest] = useState(0);
   const [mariPendingReviewRequest, setMariPendingReviewRequest] = useState(0);
   useEffect(() => {
-    if (session.mariHandoff?.draft) {
-      useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, session.mariHandoff.draft);
-    }
+    const pendingDraft = session.mariHandoff?.draft;
+    if (!pendingDraft) return;
+    useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, pendingDraft);
+    // Clear it once applied: `mariHandoff` is persisted session state, so leaving
+    // the draft in place would write it back into the composer on every future
+    // mount, overwriting whatever the user typed since.
+    setSession((current) =>
+      current.mariHandoff?.draft ? { ...current, mariHandoff: { ...current.mariHandoff, draft: undefined } } : current,
+    );
   }, [session.mariHandoff?.draft]);
+  // A cold "open Mari and send" request (fired while the omnibar itself was
+  // closed) has nobody around to bump `mariSubmitDraftRequest` directly:
+  // `GlobalOmnibarHost` wrote the flag straight into the persisted session
+  // before this dialog ever mounted. Pick it up once, then clear it.
+  useEffect(() => {
+    if (!session.mariHandoff?.submitDraft) return;
+    setMariSubmitDraftRequest((current) => current + 1);
+    setSession((current) =>
+      current.mariHandoff?.submitDraft
+        ? { ...current, mariHandoff: { ...current.mariHandoff, submitDraft: undefined } }
+        : current,
+    );
+  }, [session.mariHandoff?.submitDraft]);
   // Transient on purpose: reopening the omnibar always starts from a bare list.
   const [expandedChoiceId, setExpandedChoiceId] = useState<string | null>(null);
   // Which row has its preview open. Replaces the detail pane on narrow screens:
@@ -1657,7 +1676,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     });
   };
   /** Every route into the Work pane goes through here, so none forgets a flag. */
-  const enterMariPane = (context?: ProfessorMariAskContext, submitDraft = false) => {
+  const enterMariPane = (context?: ProfessorMariAskContext, submitDraft = false, draftOverride?: string) => {
     startFieldFlight();
     if (context) {
       setMariContext(context);
@@ -1666,7 +1685,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       setSessionValue("mariHandoff", {
         status: "pending",
         context,
-        draft: context.query,
+        draft: draftOverride ?? context.query,
       });
     }
     if (submitDraft) setMariSubmitDraftRequest((current) => current + 1);
@@ -1675,7 +1694,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     setPane("mari");
   };
   const enterRequestedMariPane = useEffectEvent((request: ProfessorMariOpenDetail) => {
-    enterMariPane(request.context);
+    // A scope prefix like "faq:" is omnibar search syntax, not part of the
+    // message text — strip it before it lands in Mari's composer.
+    const rawDraft = request.draft ?? request.context?.query ?? "";
+    enterMariPane(request.context, request.submitDraft ?? false, parseOmnibarScope(rawDraft).query);
   });
   useEffect(() => {
     const openRequestedProfessorMari = (event: Event) => {
@@ -2241,7 +2263,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const runCompletionAction = (action: OmnibarCompletionAction) => {
     setSessionValue("mariHandoff", null);
     if (action.kind === "return") {
-      setMariChatOpen(false);
+      leaveDetail();
       return;
     }
     if (action.kind === "review") {

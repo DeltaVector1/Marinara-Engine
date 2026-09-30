@@ -2744,7 +2744,7 @@ export function HomeProfessorMariChat({
   }, [draftSuffix, setDraft]);
   const [attachments, setAttachments] = useState<ProfessorMariAttachment[]>([]);
   const [composerScroll, setComposerScroll] = useState({ left: 0, top: 0 });
-  const [handoffContext, setHandoffContext] = useState<ProfessorMariAskContext | null>(null);
+  const [handoffContext, setHandoffContext] = useState<ProfessorMariAskContext | null>(() => initialAskContext ?? null);
   const characterFallbackName = t("omnibar.categories.character", "Character");
   const focusedCharacter = resolveContextCharacter(handoffContext, characterPreviewById, characterFallbackName);
   const lorebookFallbackName = t("omnibar.categories.lorebook", "Lorebook");
@@ -4843,9 +4843,10 @@ export function HomeProfessorMariChat({
     async (messageId: string) => {
       if (isBusy || regenerationInFlightRef.current || !chatId) return;
       if (!effectiveConnectionId) {
+        // Fix inside the Mari pane, not the right panel: that panel renders behind
+        // the omnibar (z-100) and would silently swallow this request.
         toast.error(PROFESSOR_MARI_NO_CONNECTION_TOAST);
         setConnectionMenuOpen(true);
-        useUIStore.getState().openRightPanel("connections");
         return;
       }
       const initialMessages = messagesRef.current;
@@ -4907,7 +4908,6 @@ export function HomeProfessorMariChat({
       if (!effectiveConnectionId) {
         toast.error(PROFESSOR_MARI_NO_CONNECTION_TOAST);
         setConnectionMenuOpen(true);
-        useUIStore.getState().openRightPanel("connections");
         return;
       }
       const initialMessages = messagesRef.current;
@@ -5003,10 +5003,15 @@ export function HomeProfessorMariChat({
   const handleSubmit = async (
     overrideText?: string,
     overrideRecovery?: Pick<ProfessorMariRecovery, "attachments" | "context" | "localMessageId">,
+    overrideContext?: ProfessorMariAskContext | null,
   ) => {
     const text = (overrideText ?? draft).trim();
     const submittedAttachments = overrideRecovery?.attachments ?? attachments;
-    const submittedContext = overrideRecovery?.context ?? handoffContext;
+    const submittedContext = overrideRecovery
+      ? overrideRecovery.context
+      : overrideContext !== undefined
+        ? overrideContext
+        : handoffContext;
     const messageText = text || (submittedAttachments.length > 0 ? "Please inspect the attached file." : "");
     if (!messageText || isBusy || regenerationInFlightRef.current || isReadingAttachments) return;
 
@@ -5020,7 +5025,6 @@ export function HomeProfessorMariChat({
     if (!effectiveConnectionId) {
       toast.error(PROFESSOR_MARI_NO_CONNECTION_TOAST);
       setConnectionMenuOpen(true);
-      useUIStore.getState().openRightPanel("connections");
       return;
     }
 
@@ -5091,15 +5095,22 @@ export function HomeProfessorMariChat({
   // at all on the next handoff, and that query would silently never send.
   const handledSubmitRequestRef = useRef(0);
   // An effect event, so the effect runs when the request or draft changes, not on
-  // every render because handleSubmit is a new function each time.
-  const submitHandoffDraft = useEffectEvent(() => void handleSubmit());
+  // every render because handleSubmit is a new function each time. The context comes
+  // in as a parameter rather than read from `handoffContext` state: the effect that
+  // seeds `handoffContext` from `initialAskContext` can run in the same commit as
+  // this one, and a state update scheduled by that effect is not visible here yet.
+  const submitHandoffDraft = useEffectEvent(
+    (context: ProfessorMariAskContext | null) => void handleSubmit(undefined, undefined, context),
+  );
   useEffect(() => {
     if (!omnibarMode || !submitDraftRequest || handledSubmitRequestRef.current === submitDraftRequest) return;
-    // Not marked handled yet: an empty or still-busy moment must retry, not drop it.
-    if (!draft.trim() || isBusy) return;
+    // Not marked handled yet: an empty, still-busy, or still-loading-connections
+    // moment must retry, not drop it — connections load asynchronously, so
+    // `effectiveConnectionId` can still be null here even once `draft` is set.
+    if (!draft.trim() || isBusy || connectionsLoading) return;
     handledSubmitRequestRef.current = submitDraftRequest;
-    submitHandoffDraft();
-  }, [draft, isBusy, omnibarMode, submitDraftRequest]);
+    submitHandoffDraft(initialAskContext);
+  }, [connectionsLoading, draft, initialAskContext, isBusy, omnibarMode, submitDraftRequest]);
 
   const handleSuggestionSelect = (chip: MariSuggestionChip) => {
     if (chip.id === MARI_AUTHORIZATION_ACCEPT_CHIP.id || chip.id === MARI_AUTHORIZATION_DECLINE_CHIP.id) {

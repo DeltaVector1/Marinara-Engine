@@ -9,6 +9,7 @@ import {
 } from "../../lib/command-center";
 import { isShortcutsHelpKey, isTypingTarget } from "../../lib/keyboard-shortcuts";
 import { isModalOverlayOpen } from "../../lib/modal-overlay-registry";
+import { parseOmnibarScope } from "../../lib/omnibar-scope";
 import {
   consumeProfessorMariOpenRequest,
   PROFESSOR_MARI_OPEN_EVENT,
@@ -131,7 +132,10 @@ export function GlobalOmnibar() {
             ? {
                 status: "pending",
                 context: request.context,
-                draft: request.draft,
+                // A scope prefix like "faq:" is omnibar search syntax, not part
+                // of the message text — strip it before it lands in the composer.
+                draft: parseOmnibarScope(request.draft ?? request.context.query ?? "").query,
+                submitDraft: request.submitDraft,
               }
             : current.mariHandoff,
         });
