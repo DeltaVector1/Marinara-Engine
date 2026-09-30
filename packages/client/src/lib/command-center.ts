@@ -163,7 +163,7 @@ export interface CommandControl {
   type: "toggle" | "choice" | "action";
   label: string;
   value?: string | boolean;
-  options?: readonly { value: string; label: string }[];
+  options?: readonly { value: string; label: string; aliases?: readonly string[] }[];
   onChange: (value: string | boolean) => void;
 }
 

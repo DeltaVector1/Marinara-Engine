@@ -122,6 +122,7 @@ import {
   buildOmnibarMessageResults,
   buildOmnibarAddSuggestions,
   buildOmnibarVerbSuggestions,
+  buildOmnibarIntentShortcuts,
   CHAT_CONTEXT_MAX_RESULTS,
   buildOmnibarRemovalSuggestions,
   buildOmnibarSearchResults,
@@ -1344,6 +1345,18 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // The empty omnibar also offers the chats you were in last, other than the open
   // one: switching chats is the most common trip here, and the "Recent" group
   // otherwise only knows what was chosen through the omnibar before.
+  // "new character Bob", "chat with Shrek": sentences the name search cannot answer.
+  const intentShortcuts = useMemo<OmnibarResult[]>(
+    () =>
+      deferredQuery.trim()
+        ? buildOmnibarIntentShortcuts({
+            query: deferredQuery,
+            characters: [...characterNameById].map(([id, name]) => ({ id, name })),
+            t,
+          })
+        : [],
+    [characterNameById, deferredQuery, t],
+  );
   const recentChatResults = useMemo<OmnibarResult[]>(() => {
     const rowById = new Map(searchableEntityResults.map((row) => [row.id, row] as const));
     const lastActive = (chat: Chat) => chat.lastMessageAt ?? chat.updatedAt;
@@ -1364,6 +1377,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         ? allLocalResults.filter((result) => matchesOmnibarScope(result, queryScope))
         : deferredQuery.trim()
           ? [
+              ...intentShortcuts,
               ...slashResults,
               ...verbSuggestions,
               ...addSuggestions,
@@ -1394,6 +1408,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       addedResultIds,
       removedResultIds,
       contextResults,
+      intentShortcuts,
       recentChatResults,
       approvalResults,
       continueResult,
@@ -1877,6 +1892,19 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         openGlobalSearch(action.query);
         onClose();
         return;
+      case "create-named":
+        ui().openModal(action.modal, { defaultName: action.name });
+        recordUse(result.id);
+        onClose();
+        return;
+      case "start-character-chat":
+        ui().openModal("start-character-chat", {
+          characterId: action.characterId,
+          characterName: action.characterName,
+        });
+        recordUse(result.id);
+        onClose();
+        return;
       case "open-lorebook-entry":
         if (!confirmLeaveEditor()) return;
         ui().openLorebookDetail(action.lorebookId, { initialTab: "entries", initialEntryId: action.entryId });
@@ -2269,6 +2297,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       return result.group === "continue" ? t("commandCenter.open", "Open") : t("commandCenter.enter.ask", "Ask");
     }
     if (result.id.startsWith("mari-approval:")) return t("commandCenter.enter.review", "Review");
+    if (result.chooseValue) return t("commandCenter.enter.choose", "Choose");
     switch (result.action?.kind) {
       case "add-to-chat":
         return t("commandCenter.enter.add", "Add");
@@ -2287,6 +2316,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         return t("commandCenter.enter.run", "Run");
       case "open-lorebook-entry":
         return t("commandCenter.edit", "Edit");
+      case "create-named":
+        return t("commandCenter.enter.create", "Create");
+      case "start-character-chat":
+        return t("commandCenter.enter.start", "Start");
     }
     if (activeChat && CHAT_RESOURCE_KIND[result.category] && isDirectActiveChatAction(query, result, searchResults)) {
       return t("commandCenter.enter.add", "Add");

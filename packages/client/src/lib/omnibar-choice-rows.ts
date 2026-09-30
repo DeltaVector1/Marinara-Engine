@@ -25,7 +25,10 @@ export function buildChoiceOptionResults<T extends OmnibarResult>(parent: T): T[
     ...parent,
     id: `${parent.id}${CHOICE_SEPARATOR}${option.value}`,
     title: option.label,
-    description: undefined,
+    // Names its control, so a bare "Dark" row reads as the theme, and matches the
+    // phrases people type for it ("dark mode").
+    description: control.label,
+    aliases: option.aliases,
     snippet: undefined,
     contextLabel: option.value === current ? control.label : undefined,
     control: undefined,

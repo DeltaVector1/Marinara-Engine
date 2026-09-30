@@ -30,7 +30,11 @@ import {
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction } from "../../packages/client/src/lib/omnibar-scope.js";
-import { findMentionedResults, matchesAtWordStart } from "../../packages/client/src/lib/omnibar-results.js";
+import {
+  buildOmnibarIntentShortcuts,
+  findMentionedResults,
+  matchesAtWordStart,
+} from "../../packages/client/src/lib/omnibar-results.js";
 import {
   SETTINGS_SEARCHABLE_CONTROLS,
   SETTINGS_SECTIONS,
@@ -746,6 +750,46 @@ console.info("Command Center regression checks passed.");
     ["character:eliza", "settings-control:streaming-speed"],
     "answer order; one row per name",
   );
-  assert.deepEqual(findMentionedResults("Have some tea and change the theme.", rows), [], "short names and controls never count");
-  assert.deepEqual(findMentionedResults("Try streaming speedrun mode.", rows), [], "a name inside a longer word does not count");
+  assert.deepEqual(
+    findMentionedResults("Have some tea and change the theme.", rows),
+    [],
+    "short names and controls never count",
+  );
+  assert.deepEqual(
+    findMentionedResults("Try streaming speedrun mode.", rows),
+    [],
+    "a name inside a longer word does not count",
+  );
+}
+
+{
+  // "new character Bob" and "chat with Shrek" become rows, with the typed casing kept.
+  const t = ((key: string, fallback: string, values?: Record<string, unknown>) =>
+    fallback.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values?.[name] ?? ""))) as never;
+  const characters = [
+    { id: "c1", name: "Shrek" },
+    { id: "c2", name: "Dottore" },
+    { id: "c3", name: "Donkey" },
+  ];
+  const created = buildOmnibarIntentShortcuts({ query: "new character Bob the Builder", characters, t });
+  assert.deepEqual(created[0]?.action, { kind: "create-named", modal: "create-character", name: "Bob the Builder" });
+  assert.equal(
+    (
+      buildOmnibarIntentShortcuts({ query: "create a lorebook called Silver Court", characters, t })[0]?.action as {
+        name?: string;
+      }
+    )?.name,
+    "Silver Court",
+  );
+  assert.deepEqual(
+    buildOmnibarIntentShortcuts({ query: "chat with shrek", characters, t }).map((row) => row.id),
+    ["shortcut:start-chat:c1"],
+  );
+  assert.deepEqual(
+    buildOmnibarIntentShortcuts({ query: "new chat do", characters, t }).map((row) => row.id),
+    ["shortcut:start-chat:c2", "shortcut:start-chat:c3"],
+    "a partial name offers every character it starts",
+  );
+  assert.deepEqual(buildOmnibarIntentShortcuts({ query: "shrek", characters, t }), [], "a bare name is a search");
+  assert.deepEqual(buildOmnibarIntentShortcuts({ query: "new character", characters, t }), [], "no name, no row");
 }

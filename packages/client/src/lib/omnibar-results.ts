@@ -359,8 +359,16 @@ export function buildOmnibarControlResults({
         label: t("commandCenter.controls.theme", "Theme"),
         value: theme,
         options: [
-          { value: "dark", label: t("commandCenter.values.dark", "Dark") },
-          { value: "light", label: t("commandCenter.values.light", "Light") },
+          {
+            value: "dark",
+            label: t("commandCenter.values.dark", "Dark"),
+            aliases: ["dark mode", "dark theme", "night mode"],
+          },
+          {
+            value: "light",
+            label: t("commandCenter.values.light", "Light"),
+            aliases: ["light mode", "light theme", "day mode"],
+          },
         ],
         onChange: (value) => setters.setTheme(String(value) as "dark" | "light"),
       },
@@ -802,6 +810,87 @@ export function buildOmnibarLorebookEntryResults({
       icon: "lorebook" as const,
     };
   });
+}
+
+const CREATE_NAMED_PATTERN =
+  /^\s*(?:create|new|make)\s+(?:an?\s+)?(character|card|persona|lorebook|world\s*book|preset)\s+(?:named\s+|called\s+)?(.+?)\s*$/i;
+const CREATE_NAMED_MODAL: Record<string, "create-character" | "create-persona" | "create-lorebook" | "create-preset"> =
+  {
+    character: "create-character",
+    card: "create-character",
+    persona: "create-persona",
+    lorebook: "create-lorebook",
+    worldbook: "create-lorebook",
+    preset: "create-preset",
+  };
+const START_CHAT_PATTERN =
+  /^\s*(?:(?:start|new|open)\s+(?:an?\s+)?chat\s+(?:with\s+)?|chat\s+with\s+|talk\s+(?:to|with)\s+|roleplay\s+with\s+)(.+?)\s*$/i;
+const MAX_START_CHAT_ROWS = 3;
+
+/**
+ * Rows for two everyday sentences the name search cannot answer: "new character
+ * Bob" opens the create window with Bob filled in (casing kept), and "chat with
+ * Shrek" / "new chat Dottore" starts a chat with a matching character. Both use
+ * the app's existing windows; nothing is created from here.
+ */
+export function buildOmnibarIntentShortcuts({
+  query,
+  characters,
+  t,
+}: {
+  query: string;
+  characters: readonly { id: string; name: string }[];
+  t: OmnibarTranslate;
+}): OmnibarResult[] {
+  const created = CREATE_NAMED_PATTERN.exec(query);
+  if (created) {
+    const kind = created[1]!.toLowerCase().replace(/\s+/g, "");
+    const modal = CREATE_NAMED_MODAL[kind];
+    const name = created[2]!.trim();
+    if (!modal || !name) return [];
+    const kindWord = modal.replace("create-", "");
+    const kindLabel = t(`commandCenter.shortcuts.kind.${kindWord}`, kindWord);
+    return [
+      {
+        id: `shortcut:${modal}`,
+        action: { kind: "create-named", modal, name },
+        title: t("commandCenter.shortcuts.createNamed", "Create {{kind}} “{{name}}”", { kind: kindLabel, name }),
+        description: t(
+          "commandCenter.shortcuts.createNamedDescription",
+          "Opens the create window with the name filled in.",
+        ),
+        category: "navigation",
+        group: "current-work",
+        score: 600,
+        kind: "action",
+        icon:
+          modal === "create-lorebook"
+            ? "lorebook"
+            : modal === "create-persona"
+              ? "persona"
+              : modal === "create-preset"
+                ? "preset"
+                : "character",
+      },
+    ];
+  }
+  const chat = START_CHAT_PATTERN.exec(query);
+  const target = chat?.[1]?.trim();
+  if (!target || target.length < 2) return [];
+  return characters
+    .filter((character) => matchesAtWordStart(character.name, target))
+    .slice(0, MAX_START_CHAT_ROWS)
+    .map((character, index) => ({
+      id: `shortcut:start-chat:${character.id}`,
+      action: { kind: "start-character-chat" as const, characterId: character.id, characterName: character.name },
+      title: t("commandCenter.shortcuts.startChat", "Start a chat with {{name}}", { name: character.name }),
+      description: t("commandCenter.shortcuts.startChatDescription", "Choose the mode, then the chat opens."),
+      category: "chat" as const,
+      group: "current-work" as const,
+      score: 600 - index,
+      kind: "action" as const,
+      icon: "chats" as const,
+    }));
 }
 
 export function buildOmnibarSlashResults({

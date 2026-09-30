@@ -43,7 +43,13 @@ export type OmnibarAction =
   | { kind: "open-docs"; path?: string }
   | { kind: "open-faq"; itemId: string }
   | { kind: "open-global-search"; query: string }
-  | { kind: "open-lorebook-entry"; lorebookId: string; entryId: string };
+  | { kind: "open-lorebook-entry"; lorebookId: string; entryId: string }
+  | {
+      kind: "create-named";
+      modal: "create-character" | "create-persona" | "create-lorebook" | "create-preset";
+      name: string;
+    }
+  | { kind: "start-character-chat"; characterId: string; characterName: string };
 
 export type OmnibarResult = {
   id: string;
@@ -69,7 +75,7 @@ export type OmnibarResult = {
     type: "toggle" | "choice";
     label: string;
     value: string | boolean;
-    options?: readonly { value: string; label: string }[];
+    options?: readonly { value: string; label: string; aliases?: readonly string[] }[];
     onChange: (value: string | boolean) => void;
   };
   /**
