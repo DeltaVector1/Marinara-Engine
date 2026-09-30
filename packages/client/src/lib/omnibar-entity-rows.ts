@@ -90,19 +90,7 @@ export function buildOmnibarChatRows({
             ? [{ label: t("commandCenter.preview.connection", "Connection"), value: connection.name }]
             : []),
           ...(persona ? [{ label: t("commandCenter.preview.persona", "Persona"), value: persona.name }] : []),
-          ...(chat.metadata?.tags?.length
-            ? [{ label: t("commandCenter.preview.tags", "Tags"), value: chat.metadata.tags.join(", ") }]
-            : []),
-          ...(chat.metadata?.enableAgents !== undefined
-            ? [
-                {
-                  label: t("commandCenter.preview.agents", "Agents"),
-                  value: chat.metadata.enableAgents
-                    ? t("commandCenter.values.enabled", "Enabled")
-                    : t("commandCenter.values.disabled", "Disabled"),
-                },
-              ]
-            : []),
+          // The lazy message count is the fourth; the expanded row's Strip holds four.
         ],
       }),
     };
@@ -443,9 +431,9 @@ export function buildOmnibarConnectionRows({ connections, categoryLabels, t }: O
                   tone: "success" as const,
                 }
               : undefined,
+          // The provider is already the row's second line.
           facts: [
             ...(model ? [{ label: t("commandCenter.preview.model", "Model"), value: model }] : []),
-            ...(provider ? [{ label: t("commandCenter.preview.provider", "Provider"), value: provider }] : []),
             ...(readString(record.context)
               ? [{ label: t("commandCenter.preview.context", "Context"), value: readString(record.context)! }]
               : []),

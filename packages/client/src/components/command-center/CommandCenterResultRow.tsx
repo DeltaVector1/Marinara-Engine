@@ -96,7 +96,16 @@ export function CommandCenterResultRow({
         <span className="min-w-0 leading-tight">
           <span className="block truncate text-sm font-semibold">{title}</span>
           {metadata ? (
-            <span className="mt-0.5 block truncate text-xs text-[var(--muted-foreground)]">{metadata}</span>
+            <span
+              className={cn(
+                "mt-0.5 block text-xs text-[var(--muted-foreground)]",
+                // Expanded, the line carries the description (max two lines) so the
+                // body below never repeats it.
+                expanded ? "line-clamp-2 break-words" : "truncate",
+              )}
+            >
+              {metadata}
+            </span>
           ) : null}
         </span>
         <span className="flex min-w-0 max-w-36 items-center justify-end gap-2 truncate text-xs text-[var(--muted-foreground)] sm:max-w-48">
@@ -114,7 +123,14 @@ export function CommandCenterResultRow({
       {control || enterHint ? (
         <div className="col-start-2 flex min-w-0 max-w-[min(48vw,16rem)] shrink-0 items-center justify-end gap-1 pr-1">
           {!control && enterHint ? (
-            <span className="hidden items-center gap-1 text-xs text-[var(--muted-foreground)] sm:inline-flex">
+            <span
+              className={cn(
+                "items-center gap-1 text-xs text-[var(--muted-foreground)]",
+                // The expansion drops the action Enter already runs, so a touch user
+                // needs to see what tapping the row again does.
+                expanded ? "inline-flex" : "hidden sm:inline-flex",
+              )}
+            >
               <span className="truncate">{enterHint}</span>
               <CornerDownLeft className="size-3.5 shrink-0" aria-hidden="true" />
             </span>
@@ -122,7 +138,15 @@ export function CommandCenterResultRow({
           {control}
         </div>
       ) : null}
-      {expanded ? <div className="col-span-2 min-w-0 px-1 pb-1">{expanded}</div> : null}
+      {expanded ? (
+        // grid-template-rows 0fr -> 1fr opens the body without measuring it; the
+        // inner padding indents it to the row's text column (media 2.25rem + gaps).
+        <div className="omnibar-row-expansion col-span-2 grid min-w-0">
+          <div className="min-h-0 overflow-hidden">
+            <div className="pb-2.5 pl-14 pr-3 pt-0.5">{expanded}</div>
+          </div>
+        </div>
+      ) : null}
     </li>
   );
 }

@@ -33,6 +33,8 @@ export interface CommandCenterPreviewData {
   metadataLine?: string;
   supportingInfo?: string;
   facts?: readonly CommandCenterPreviewFact[];
+  /** Short how-to steps (FAQ bullets), shown as a list rather than as facts. */
+  steps?: readonly string[];
 }
 
 export interface RichCommandResult extends CommandResult {
@@ -45,4 +47,6 @@ export interface CommandResultPreviewAction {
   shortcut?: string;
   onSelect: (result: RichCommandResult) => void;
   disabled?: boolean;
+  /** Removes something, so it renders with the danger tone. */
+  danger?: boolean;
 }

@@ -128,10 +128,8 @@ row does not move, so `reconcileActiveResultId` stays valid and the hover and
 arrow-key anchoring rules in inventory section 7 cannot be violated. This is the
 same constraint that pins the aside to the bottom (R9), for the same reason.
 
-The rich preview expands inline under the focused row. The wide-screen external
-panel survives as a *layout* of that same body: it never takes focus and is not
-part of the keyboard model, so it was never a pane. What disappears is `detail`
-as a pane and as a return target.
+The rich preview expands inline under the focused row, and that is its only
+rendering. What disappears is `detail` as a pane and as a return target.
 
 ## 4. The shape
 
@@ -188,11 +186,10 @@ Each line here removes something the behaviour contract records.
 - **The `quick` pane as a pane.** The cheap answer becomes the aside (R9); the
   full agent becomes the takeover. The cheap-answer-first cost decision survives;
   only its housing changes.
-- **`OmnibarDetailPane` as a separate pane.** The preview already renders in
-  three places from one `renderResultPreview` body. Inline expansion of the
-  selected row keeps one of those renderings. Choice rows — model, preset,
-  persona — must find their picker inside the expansion; this is the one item
-  here that is new work rather than deletion.
+- **`OmnibarDetailPane` as a separate pane.** It is now only the body of the
+  selected row's inline expansion, rendered from one `renderResultPreview`.
+  Choice rows — model, preset, persona — must find their picker inside the
+  expansion; this is the one item here that is new work rather than deletion.
 - **Implicit game-command routing.** Party, quest, scene and encounter requests
   become visible ranked rows under R8. The regex module survives; the silent
   dispatch does not.

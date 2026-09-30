@@ -7968,6 +7968,40 @@ strong {
   animation: omnibar-row-in 0.22s ease-out both;
 }
 
+/* An expanded omnibar row opens by its grid track, so the body never has to be
+   measured. Only the opening animates: collapsing unmounts the body. */
+@keyframes omnibar-row-expand {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+.omnibar-row-expansion {
+  grid-template-rows: 1fr;
+  animation: omnibar-row-expand 180ms ease-out both;
+}
+
+html[data-marinara-reduced-effects="true"] .omnibar-row-expansion {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omnibar-row-expansion {
+    animation: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .omnibar-row-expansion .mari-chrome-control--small {
+    min-height: 2.75rem;
+  }
+}
+
 @keyframes scale-in {
   from {
     opacity: 0;

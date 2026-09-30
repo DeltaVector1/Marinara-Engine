@@ -215,7 +215,8 @@ test("desktop exposes inline entity controls and rich character information", as
     await page.waitForTimeout(450);
     const detail = omnibar.locator('[data-component="GlobalOmnibar.Detail"]');
     await expect(detail).toContainText("A richly mapped test character");
-    await expect(detail.getByRole("button", { name: "Edit character", exact: true })).toBeVisible();
+    // Enter already edits, so the expansion offers the other actions.
+    await expect(detail.getByRole("button", { name: "Start chat", exact: true })).toBeVisible();
   } finally {
     await page.request.delete(`/api/characters/${character.id}`);
   }

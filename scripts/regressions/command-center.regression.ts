@@ -32,6 +32,7 @@ import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/om
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
   buildOmnibarIntentShortcuts,
+  buildOmnibarSearchResults,
   findMentionedResults,
   matchesAtWordStart,
 } from "../../packages/client/src/lib/omnibar-results.js";
@@ -932,4 +933,58 @@ console.info("Command Center regression checks passed.");
   assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("Backup & Export"), "a real section label is present");
   assert.ok(!QUICK_ANSWER_SETTINGS_LABELS.includes("backup-export"), "the internal section id does not leak into the prompt");
   assert.ok(QUICK_ANSWER_SETTINGS_LABELS.length < 2_000, "the settings-label hint stays compact enough for a quick-answer prompt");
+}
+
+{
+  // Slice 6: the expanded row shows FAQ steps as a short list and no doc fact that
+  // repeats the description.
+  const identity = (text: string) => text;
+  const results = buildOmnibarSearchResults({
+    chatControls: [],
+    contextLabels: {},
+    controls: [],
+    data: { commands: [], chats: [], resources: [], connections: [], askProfessorTitle: "Ask" },
+    deferredQuery: "backups",
+    docsResults: [
+      {
+        id: "doc:backups",
+        title: "Backups",
+        source: "Guides",
+        snippet: "How backups work",
+        path: "docs/BACKUPS.md",
+        line: 4,
+      } as never,
+    ],
+    faqItems: [
+      {
+        id: "backups",
+        category: "data",
+        question: "How do backups work?",
+        answer: "Automatic backups run daily.",
+        bullets: ["One", "Two", "Three", "Four", "Five"],
+      },
+    ],
+    getFaqSearchText: (item) => `${item.question} ${item.answer}`,
+    localize: identity,
+    mariEnabled: false,
+    omnibarContext: {
+      surface: "home",
+      surfaceResultIds: [],
+      editorDirty: false,
+      pinnedResultIds: [],
+      recentResultIds: [],
+      setupResultIds: [],
+    } as never,
+    t: ((_key: string, fallback?: string) => fallback ?? _key) as never,
+  });
+  const faqPreview = results.find((result) => result.id === "faq:backups")?.preview?.();
+  assert.deepEqual(faqPreview?.steps, ["One", "Two", "Three"], "FAQ steps are a short list");
+  assert.equal(faqPreview?.facts, undefined, "FAQ steps are not facts");
+  const docPreview = results.find((result) => result.id === "doc:backups")?.preview?.();
+  assert.ok(docPreview, "the doc passage is a result");
+  assert.deepEqual(
+    docPreview.facts?.map((fact) => fact.label),
+    ["Source", "Line"],
+    "no Category or Match fact repeats the path or the description",
+  );
 }

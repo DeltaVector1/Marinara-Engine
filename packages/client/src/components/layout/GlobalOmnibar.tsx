@@ -12,7 +12,6 @@ import {
   useState,
   type KeyboardEvent,
   type MouseEvent,
-  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -29,7 +28,6 @@ import {
   Clock3,
   Compass,
   Edit3,
-  FolderOpen,
   Gamepad2,
   LayoutGrid,
   Loader2,
@@ -260,7 +258,7 @@ function createModalPrefillName(modal: string, query: string): string | undefine
  */
 function usePreviewDetail(previewResult: RankedOmnibarResult | null): {
   extraFacts: CommandCenterPreviewFact[];
-  detail: ReactNode;
+  note: string | null;
   detailLoading: boolean;
 } {
   const { t } = useTranslation();
@@ -284,118 +282,50 @@ function usePreviewDetail(previewResult: RankedOmnibarResult | null): {
   // Characters are the most-used kind and had no lazy detail at all.
   const characterId = category === "character" && settled ? resourceId : null;
 
-  const peek = useChatMessagePeek(chatId, 3, !!chatId);
+  const peek = useChatMessagePeek(chatId, 1, !!chatId);
   const messageCount = useChatMessageCount(chatId);
   const entries = useLorebookEntries(lorebookId);
   const character = useCharacter(characterId);
 
   if (chatId) {
-    const messages = peek.data ?? [];
     const extraFacts: CommandCenterPreviewFact[] =
       typeof messageCount.data?.count === "number"
         ? [{ label: t("commandCenter.preview.messages", "Messages"), value: messageCount.data.count }]
         : [];
-    const detail = messages.length ? (
-      <div className="space-y-1.5">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className="rounded-lg bg-[color-mix(in_srgb,var(--foreground)_4%,var(--card))] px-2.5 py-1.5 ring-1 ring-inset ring-[var(--border)]/50"
-          >
-            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.06em] text-[var(--muted-foreground)]">
-              {message.role === "user"
-                ? t("commandCenter.preview.you", "You")
-                : t("commandCenter.preview.reply", "Reply")}
-            </div>
-            <p className="mt-0.5 line-clamp-2 break-words text-xs leading-5 text-[var(--foreground)]">
-              {message.content}
-            </p>
-          </div>
-        ))}
-      </div>
-    ) : null;
-    return { extraFacts, detail, detailLoading: peek.isLoading };
+    return { extraFacts, note: peek.data?.at(-1)?.content?.trim() || null, detailLoading: peek.isLoading };
   }
 
   if (characterId) {
-    const data = (character.data as Character | undefined)?.data;
-    const greeting = data?.first_mes?.trim();
-    const extraFacts: CommandCenterPreviewFact[] = [
-      ...(data?.alternate_greetings?.length
-        ? [
-            {
-              label: t("commandCenter.preview.greetings", "Greetings"),
-              value: data.alternate_greetings.length + 1,
-            },
-          ]
-        : []),
-    ];
+    // The route sends the card as a JSON string, so reading `.first_mes` off it directly found nothing.
+    const raw = (character.data as { data?: unknown } | undefined)?.data;
+    let data: Character["data"] | undefined;
+    try {
+      data = typeof raw === "string" ? JSON.parse(raw) : (raw as Character["data"] | undefined);
+    } catch {
+      data = undefined;
+    }
+    const extraFacts: CommandCenterPreviewFact[] = data?.alternate_greetings?.length
+      ? [{ label: t("commandCenter.preview.greetings", "Greetings"), value: data.alternate_greetings.length + 1 }]
+      : [];
     // The greeting is what the character actually opens with, so it says more
     // about them than the description does.
-    const detail = greeting ? (
-      <div className="rounded-lg bg-[color-mix(in_srgb,var(--foreground)_4%,var(--card))] px-2.5 py-1.5 ring-1 ring-inset ring-[var(--border)]/50">
-        <div className="text-[0.625rem] font-semibold uppercase tracking-[0.06em] text-[var(--muted-foreground)]">
-          {t("commandCenter.preview.openingMessage", "Opening message")}
-        </div>
-        <p className="mt-0.5 line-clamp-4 break-words text-xs leading-5 text-[var(--foreground)]">{greeting}</p>
-      </div>
-    ) : null;
-    return { extraFacts, detail, detailLoading: character.isLoading };
+    return { extraFacts, note: data?.first_mes?.trim() || null, detailLoading: character.isLoading };
   }
 
   if (lorebookId) {
-    const list = entries.data ?? [];
-    // A short table of contents says more about a lorebook than its generation
-    // limits. Keep it visually part of the preview instead of nesting cards.
-    const detail = entries.isLoading ? null : list.length ? (
-      <div>
-        <p className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.06em] text-[var(--muted-foreground)]">
-          {t("commandCenter.preview.insideLorebook", "Inside this lorebook")}
-        </p>
-        <div className="divide-y divide-[var(--border)] border-y border-[var(--border)]">
-          {list.slice(0, 3).map((entry, index) => {
-            const keys = (entry.keys ?? []).filter(Boolean).slice(0, 3);
-            return (
-              <div key={entry.id ?? `${entry.name ?? "entry"}-${index}`} className="py-2 first:pt-1.5 last:pb-1.5">
-                <div className="truncate text-xs font-semibold text-[var(--foreground)]">
-                  {entry.name?.trim() || t("commandCenter.preview.untitledEntry", "Untitled entry")}
-                </div>
-                {keys.length ? (
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {keys.map((key, keyIndex) => (
-                      <span
-                        key={`${key}-${keyIndex}`}
-                        className="rounded-full bg-[color-mix(in_srgb,var(--primary)_12%,var(--card))] px-1.5 py-0.5 text-[0.625rem] font-medium leading-4 text-[color-mix(in_srgb,var(--primary)_70%,var(--foreground))] ring-1 ring-inset ring-[color-mix(in_srgb,var(--primary)_28%,transparent)]"
-                      >
-                        {key}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-                {entry.content ? (
-                  <p className="mt-1 line-clamp-1 break-words text-xs leading-5 text-[var(--muted-foreground)]">
-                    {entry.content}
-                  </p>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-        {list.length > 3 ? (
-          <p className="px-0.5 text-[0.6875rem] text-[var(--muted-foreground)]">
-            {t("commandCenter.preview.moreEntries", "+{{count}} more", { count: list.length - 3 })}
-          </p>
-        ) : null}
-      </div>
-    ) : (
-      <p className="text-xs text-[var(--muted-foreground)]">
-        {t("commandCenter.preview.noLorebookEntries", "No entries yet")}
-      </p>
-    );
-    return { extraFacts: [], detail, detailLoading: entries.isLoading };
+    const first = entries.data?.[0];
+    const note = entries.isLoading
+      ? null
+      : first
+        ? t("commandCenter.preview.entryNote", "{{name}}: {{content}}", {
+            name: first.name?.trim() || t("commandCenter.preview.untitledEntry", "Untitled entry"),
+            content: first.content?.trim() ?? "",
+          })
+        : t("commandCenter.preview.noLorebookEntries", "No entries yet");
+    return { extraFacts: [], note, detailLoading: entries.isLoading };
   }
 
-  return { extraFacts: [], detail: null, detailLoading: false };
+  return { extraFacts: [], note: null, detailLoading: false };
 }
 
 export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
@@ -2018,7 +1948,14 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   };
   const selectResult = (result: RankedOmnibarResult) => {
     if (chooseChoiceOption(result)) return;
-    if (!result.control && isRichResult(result) && window.matchMedia("(pointer: coarse)").matches) {
+    // A first tap opens the preview; a tap on the open row runs Enter, which the
+    // preview no longer repeats as a chip.
+    if (
+      !result.control &&
+      expandedPreviewId !== result.id &&
+      isRichResult(result) &&
+      window.matchMedia("(pointer: coarse)").matches
+    ) {
       showResultDetail(result);
       return;
     }
@@ -2451,6 +2388,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const previewResult = resolveCurrentResult(activeResult ?? null);
   const previewDetail = usePreviewDetail(previewResult);
 
+  // The row already runs its Enter action, so the expansion offers only the others
+  // (D3): an "Edit character" chip under a row whose Enter edits is the same door twice.
+  const previewEnterHint = previewResult && !previewResult.control ? resultEnterHint(previewResult) : null;
   const previewActions = previewResult
     ? (() => {
         if (previewResult.command.availability?.status === "requires-admin") return [];
@@ -2509,7 +2449,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           (!rowState || rowState.canAddToChat) &&
           resolveChatResourceDropAction(payload, activeChat)?.type !== "blocked";
         const addToChatAction =
-          payload && canAddToChat
+          payload && canAddToChat && previewEnterHint !== t("commandCenter.enter.add", "Add")
             ? {
                 label: t("commandCenter.actions.addToThisChat", "Add to this chat"),
                 icon: MessageCircle,
@@ -2520,27 +2460,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 },
               }
             : null;
-        if ((previewResult.category === "persona" || previewResult.category === "preset") && !rowState?.globalAction) {
-          return [...mariActions, ...(addToChatAction ? [addToChatAction] : [])];
-        }
+        // Enter on a persona or preset row flips its toggle, which is the global action.
         if (previewResult.category === "persona" || previewResult.category === "preset") {
-          const globalAction =
-            previewResult.control?.type === "toggle"
-              ? {
-                  label: t("commandCenter.actions.setDefaultPreset", "Set default preset"),
-                  icon: ArrowRight,
-                  onSelect: () => previewResult.control?.onChange(true),
-                  disabled: resultControlPending(previewResult),
-                }
-              : null;
-          return [
-            ...mariActions,
-            ...(globalAction ? [globalAction] : []),
-            ...(addToChatAction ? [addToChatAction] : []),
-          ];
+          return [...mariActions, ...(addToChatAction ? [addToChatAction] : [])];
         }
         if (previewResult.category === "lorebook") {
           const inActiveChat = Boolean(activeChat && attachedResultIds.has(previewResult.id));
+          // Enter flips the enabled toggle here, so editing stays an action.
           const editAction = {
             label: t("commandCenter.actions.editLorebook", "Edit lorebook"),
             icon: Edit3,
@@ -2557,6 +2483,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             ? {
                 label: t("commandCenter.actions.removeFromThisChat", "Remove from this chat"),
                 icon: X,
+                danger: true,
                 onSelect: () => detachFromChat("lorebook", resourceId, previewResult.title),
               }
             : addToChatAction;
@@ -2564,27 +2491,29 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         }
         if (previewResult.category === "character") {
           const characterId = getOmnibarResourceId(previewResult);
-          const startChatAction = {
-            label: t("commandCenter.actions.startChat", "Start chat"),
-            icon: Play,
-            onSelect: () => {
-              ui().openModal("start-character-chat", { characterId, characterName: previewResult.title });
-              recordUse(previewResult.id);
-              onClose();
-            },
-          };
-          const editAction = {
-            label: t("commandCenter.actions.editCharacter", "Edit character"),
-            icon: Edit3,
-            onSelect: () => choose(previewResult),
-          };
+          const startChatAction =
+            previewEnterHint !== t("commandCenter.enter.start", "Start")
+              ? {
+                  label: t("commandCenter.actions.startChat", "Start chat"),
+                  icon: Play,
+                  onSelect: () => {
+                    ui().openModal("start-character-chat", { characterId, characterName: previewResult.title });
+                    recordUse(previewResult.id);
+                    onClose();
+                  },
+                }
+              : null;
           // Symmetric to add-to-chat: when the character is already a participant,
           // the most useful scene action is removing it from the active chat.
           const removeFromChatAction =
-            activeChat && characterId && rowState?.inActiveChat
+            activeChat &&
+            characterId &&
+            rowState?.inActiveChat &&
+            previewEnterHint !== t("commandCenter.enter.remove", "Remove")
               ? {
                   label: t("commandCenter.actions.removeFromThisChat", "Remove from this chat"),
                   icon: UserMinus,
+                  danger: true,
                   onSelect: () => {
                     void updateChat.mutateAsync({
                       id: activeChat.id,
@@ -2596,32 +2525,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 }
               : null;
           return [
-            editAction,
             ...(removeFromChatAction ? [removeFromChatAction] : addToChatAction ? [addToChatAction] : []),
-            startChatAction,
+            ...(startChatAction ? [startChatAction] : []),
           ];
         }
-        const requiresSetup = previewResult.command.availability?.status === "requires-capability";
-        const openAction =
-          previewResult.target && (!requiresSetup || previewResult.command.availability?.setupTarget)
-            ? {
-                label:
-                  previewResult.category === "chat"
-                    ? t("commandCenter.actions.resumeChat", "Resume chat")
-                    : previewResult.category === "docs"
-                      ? t("commandCenter.actions.openDocs", "Open documentation")
-                      : t("commandCenter.open", "Open"),
-                icon: previewResult.category === "chat" ? Play : FolderOpen,
-                onSelect: () => choose(previewResult),
-                disabled: resultControlPending(previewResult),
-              }
-            : null;
-        return [...mariActions, ...(openAction ? [openAction] : []), ...(addToChatAction ? [addToChatAction] : [])];
+        // Resume chat, Open documentation and Open were all Enter.
+        return [...mariActions, ...(addToChatAction ? [addToChatAction] : [])];
       })()
     : [];
 
-  // One preview body shared by both detail surfaces (inline under the row,
-  // and the external xl panel) so they never drift apart.
+  // The body of the expanded row, rendered inline under the selected row.
   const renderResultPreview = () =>
     previewResult ? (
       <Suspense fallback={null}>
@@ -2629,9 +2542,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           result={previewResult}
           actions={previewActions}
           extraFacts={previewDetail.extraFacts}
-          detail={previewDetail.detail}
+          note={previewDetail.note}
           detailLoading={previewDetail.detailLoading}
-          controlPending={resultControlPending(previewResult)}
           contextStatusLabel={
             previewResult.category === "character"
               ? activeChat?.characterIds?.includes(getOmnibarResourceId(previewResult))
@@ -3028,13 +2940,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                             selected={selected}
                             onSelect={() => selectResult(result)}
                             onMouseMove={(event) => handleResultMouseMove(result, event)}
-                            expanded={
-                              result.id === expandedPreviewId ? (
-                                <div className="rounded-lg border border-[var(--border)] bg-[var(--background)]/60">
-                                  {renderResultPreview()}
-                                </div>
-                              ) : undefined
-                            }
+                            expanded={result.id === expandedPreviewId ? renderResultPreview() : undefined}
                             mediaSrc={preview?.media?.src}
                             mediaKind={preview?.media?.kind}
                             avatarCropStyle={preview?.media?.avatarCropStyle}

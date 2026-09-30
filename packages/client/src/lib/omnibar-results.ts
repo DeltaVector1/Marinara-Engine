@@ -557,10 +557,7 @@ export function buildOmnibarSearchResults({
                 title: localize(item.question),
                 categoryLabel: t("omnibar.faq", "FAQ"),
                 description: localize(item.answer),
-                facts: (item.bullets ?? []).slice(0, 6).map((bullet) => ({
-                  label: t("omnibar.faq.step", "Useful step"),
-                  value: localize(bullet),
-                })),
+                steps: (item.bullets ?? []).slice(0, 3).map((bullet) => localize(bullet)),
               }),
               kind: "resource" as const,
               icon: "documentation" as const,
@@ -667,13 +664,10 @@ export function buildOmnibarSearchResults({
           title: result.title,
           categoryLabel: result.source,
           description: result.snippet,
+          // `source` is the path again for a passage, and the snippet is the description.
           facts: [
-            ...(result.source
-              ? [{ label: t("commandCenter.preview.category", "Category"), value: result.source }]
-              : []),
             ...(result.path ? [{ label: t("commandCenter.preview.source", "Source"), value: result.path }] : []),
             ...(result.line ? [{ label: t("commandCenter.preview.line", "Line"), value: result.line }] : []),
-            ...(result.snippet ? [{ label: t("commandCenter.preview.match", "Match"), value: result.snippet }] : []),
           ],
         }),
         target: { kind: "window", window: "documentation" } as const,

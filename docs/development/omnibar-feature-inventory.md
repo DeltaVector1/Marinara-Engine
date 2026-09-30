@@ -47,11 +47,18 @@ Rules that must survive:
 - Escape from a takeover never cancels a running answer.
 - Leaving `mari` restores focus to the row it came from (`mariReturnResultId`),
   falling back to the input.
-- The result preview renders from one `renderResultPreview` body in two places:
-  inline under the focused row, and in the external panel above 88rem.
-- The external panel only appears when the result is "rich": media, prose,
-  facts, a control, or lazily fetched detail. It never takes focus and is not
-  part of the keyboard model.
+- The result preview renders from one `renderResultPreview` body, inline under
+  the focused row and nowhere else. Only a "rich" result expands: media, prose,
+  facts, or a setup/admin requirement.
+- The expanded row has no header, card or divider of its own; the row's selected
+  state is its only frame, and the body indents to the row's text column. The
+  row's second line wraps to two lines, and the body adds only what the row does
+  not show: a description that differs from that line, one Strip of at most four
+  `.mari-chrome-control--compact` facts, FAQ steps as a short list of up to
+  three, one muted Note line (a character's greeting, a chat's last message, a
+  lorebook's first entry), and at most three `--small` action chips (`--danger`
+  for remove). It opens with a 180 ms `grid-template-rows` + opacity animation,
+  none under reduced motion or Reduce ambient effects.
 
 ## 2. Query handling
 
@@ -179,10 +186,14 @@ without one fall through to the generic open path.
 - FAQ matches, and docs matches for a single word under five characters, need
   the query at a word start (`matchesAtWordStart`), so "eli" finds Eliza rather
   than every answer that says "reliable".
-- Preview actions per category: start chat, edit, add to or remove from this
-  chat, activate persona, set default preset, enable or disable, resume chat,
-  open documentation, and continue with Mari — the last only for chats,
+- Preview actions never repeat what Enter does on the row: no Edit character,
+  Resume chat, Open documentation, Open or Set default preset, and no Add, Remove
+  or Start chip when the row's Enter already adds, removes or starts. What stays:
+  start chat, add to or remove from this chat, edit lorebook (Enter flips its
+  toggle), Ask Mari, and continue with Mari — the last only for chats,
   characters, personas, lorebooks and presets, the things she can change.
+- On a touch screen the first tap on a rich row expands it and a tap on the
+  expanded row runs Enter; the expanded row shows its Enter hint at every width.
 
 ## 6. Cross-chat message search
 
@@ -333,8 +344,8 @@ Do not "fix" these; each was a decision.
   which type one, and by the idle-deck subtitle. A row that teaches is a row
   that is not what the user came for.
 - **There is no detail pane.** A preview expands under its own row instead. The
-  pane hid the whole list on narrow screens to show one result, and on wide
-  screens the external panel already did the job without it.
+  pane hid the whole list on narrow screens to show one result. The wide-screen
+  external panel is gone too; the inline expansion is the only preview.
 - **There is no Quick pane.** The aside answers the cheap case without being
   asked, and the Ask-Mari row opens the takeover. Quick's one surviving job — a
   single-field rewrite from one model call — moved into Mari's takeover, where
