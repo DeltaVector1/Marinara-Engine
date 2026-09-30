@@ -109,6 +109,8 @@ Przy włączonym **Personal Notes** w **Roleplay Commands** wpisz `[notes: conte
 
 Narrator przestaje też otrzymywać notatki postaci, gdy jest ona wyłączona lub usunięta z grupy. Wyłączenie nie usuwa zapisanych notatek; ponowne włączenie postaci znów je udostępnia.
 
+Możesz też zapisać notatkę przy pojedynczej wiadomości. Wybierz **Bookmark, pin or note** (dodaj zakładkę, przypnij lub dodaj notatkę) pod wiadomością i wpisz **Private note** (prywatną notatkę). Pozostaje ona prywatna i nigdy nie trafia do modelu, chyba że włączysz **Show the note to the narrator character** (pokaż notatkę postaci narratora) i wybierzesz postać. Wtedy tylko ta postać otrzyma notatkę obok wiadomości; żadna inna jej nie otrzyma. Udostępnianie wymaga czatu z jedną postacią lub generowania grupowego **Individual**, ponieważ scalona odpowiedź grupy jest pisana dla wszystkich postaci naraz. **Remove note** (usuń notatkę) również kończy jej udostępnianie.
+
 ## Przerywanie wypowiedzi i działań
 
 W sekcji **Chat Settings → Agents → Roleplay Commands** włącz **Interruptions** (przerywanie), aby postacie mogły przerwać ostatnią wiadomość, gdy słowna lub fizyczna interwencja jest wiarygodna. Opcja jest domyślnie wyłączona i nie wymaga pobieranego agenta.
