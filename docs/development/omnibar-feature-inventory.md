@@ -85,8 +85,11 @@ Rules that must survive:
   - Only risky prompts (delete, install, sensitive file) are a `MariCard`
     (R42): one neutral hairline, a small icon tile (red-tinted only for
     danger), one primary and one quiet text secondary. No glow, no gradient
-    tile, no accent frame. The install and sensitive-file prompts move onto it
-    in slice 8.
+    tile, no accent frame. The dependency-install ("Install nanoid") and
+    sensitive-file ("Change package.json") prompts use it: the reason and the
+    risk in one line, a solid Install / Apply change, a quiet Not now, and the
+    exact package, integrity hash, source, full path and content preview behind
+    one "Technical details" disclosure (`.mari-tech`).
   - A failed send is one red line under your message with an inline Retry
     (`.mari-send-failed`), not a line of hers. A workspace-status error and
     missing workspace tools are `MariNote` lines (R43).

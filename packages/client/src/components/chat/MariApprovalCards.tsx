@@ -25,7 +25,7 @@ import { useUIStore, type MariEditViewMode } from "../../stores/ui.store";
 import { canRenderPrompt, MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
 import { computeFieldChanges, trackListChange, trackProseChange, type FieldChange } from "../../lib/mari-edit-diff";
 import { buildCharacterPreviewModel } from "../../lib/character-preview";
-import { MariRecordAvatar } from "./mari-primitives";
+import { MariCard, MariRecordAvatar } from "./mari-primitives";
 import { MariPromptPreviewModal, type MariPromptRenderSide } from "./MariPromptPreviewModal";
 import { TranscriptRow } from "./MariTranscriptRow";
 import { cn } from "../../lib/utils";
@@ -625,6 +625,31 @@ function DatabaseWorkspaceApprovalCard({
   );
 }
 
+/**
+ * R42 (direction A): the prompt names what happens and why; the exact package, hash and file
+ * contents sit behind one "Technical details" disclosure.
+ */
+function TechnicalDetails({ rows, children }: { rows: Array<[string, ReactNode]>; children?: ReactNode }) {
+  const { t: localizeUi } = useUiTranslation();
+  return (
+    <details className="mari-tech">
+      <summary className="mari-link -ml-2">
+        <ChevronRight size="0.8rem" aria-hidden="true" />
+        {localizeUi("ui.chat.mariapprovalcard.technicalDetails")}
+      </summary>
+      <dl>
+        {rows.map(([label, value]) => (
+          <div key={label} className="contents">
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {children}
+    </details>
+  );
+}
+
 function DependencyWorkspaceApprovalCard({
   approval,
   busy,
@@ -639,57 +664,19 @@ function DependencyWorkspaceApprovalCard({
   onDiscard: (id: string) => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
+  const dependencies = approval.directDependencies;
   return (
-    <TranscriptRow layout="document" marker={null}>
-      <div className="mari-decision-surface text-xs text-[var(--foreground)]">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="font-semibold">
-            {localizeUi("ui.chat.dependencyworkspaceapprovalcard.installThisDependency")}
-          </span>
-          <span className="rounded-full bg-[var(--primary)]/10 px-1.5 py-0.5 text-[0.625rem] text-[var(--primary)]">
-            {localizeUi("ui.chat.dependencyworkspaceapprovalcard.notInstalled")}
-          </span>
-        </div>
-        <p className="mt-1 max-w-[70ch] text-[0.6875rem] text-[var(--muted-foreground)]">
-          {localizeUi("ui.chat.dependencyworkspaceapprovalcard.professorMariRequestedAnExactPublicNpmPackageMarinara")}
-        </p>
-        <div className="mt-2 rounded-lg bg-[var(--background)]/80 p-2">
-          <div className="break-all font-mono text-[0.75rem] font-semibold text-[var(--foreground)]">
-            {approval.packageName}@{approval.version}
-          </div>
-          <div className="mt-1 text-[0.6875rem] text-[var(--muted-foreground)]">
-            {approval.target} · {approval.dependencyType}
-          </div>
-          <div className="mt-2 break-all font-mono text-[0.625rem] text-[var(--muted-foreground)]">
-            {approval.integrity}
-          </div>
-          <div className="mt-2 break-words text-[0.6875rem] text-[var(--muted-foreground)]">
-            {approval.directDependencies.length === 0
-              ? localizeUi("ui.chat.dependencyworkspaceapprovalcard.noDirectDependenciesDeclared")
-              : localizeUi("ui.chat.dependencyworkspaceapprovalcard.value1DirectValue2Value3Value4", {
-                  value1: approval.directDependencies.length,
-                  value2:
-                    approval.directDependencies.length === 1
-                      ? localizeUi("ui.chat.dependencyworkspaceapprovalcard.dependency")
-                      : localizeUi("ui.chat.dependencyworkspaceapprovalcard.dependencies"),
-                  value3: approval.directDependencies
-                    .slice(0, 6)
-                    .map((dependency) => `${dependency.name} ${dependency.range}`)
-                    .join(", "),
-                  value4:
-                    approval.directDependencies.length > 6
-                      ? localizeUi("ui.chat.dependencyworkspaceapprovalcard.andMore")
-                      : "",
-                })}
-          </div>
-        </div>
-        {approval.reason && <p className="mt-2 text-[0.6875rem] text-[var(--muted-foreground)]">{approval.reason}</p>}
-        <div className="mari-decision-actions mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    <MariCard
+      media={<PackagePlus size="1rem" aria-hidden="true" />}
+      title={localizeUi("ui.chat.dependencyworkspaceapprovalcard.title", { name: approval.packageName })}
+      meta={localizeUi("ui.chat.dependencyworkspaceapprovalcard.meta", { version: approval.version })}
+      actions={
+        <>
           <button
             type="button"
             onClick={() => onDiscard(approval.id)}
             disabled={busy || disabled}
-            className="min-h-9 rounded-md border border-[var(--border)] px-3 py-1.5 text-[0.6875rem] font-semibold text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-45"
+            className="mari-link"
           >
             {localizeUi("ui.chat.dependencyworkspaceapprovalcard.notNow")}
           </button>
@@ -697,18 +684,40 @@ function DependencyWorkspaceApprovalCard({
             type="button"
             onClick={() => onApprove(approval.id)}
             disabled={busy || disabled}
-            className="min-h-9 rounded-md bg-[var(--primary)] px-3 py-1.5 text-[0.6875rem] font-semibold text-[var(--primary-foreground)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+            className="mari-btn mari-btn--solid"
           >
-            <span className="inline-flex items-center justify-center gap-1">
-              {busy ? <Loader2 size="0.75rem" className="animate-spin" /> : <PackagePlus size="0.75rem" />}
-              {busy
-                ? localizeUi("ui.chat.dependencyworkspaceapprovalcard.installing")
-                : localizeUi("ui.agents.agentcatalogview.install")}
-            </span>
+            {busy ? <Loader2 size="0.8rem" className="animate-spin" aria-hidden="true" /> : null}
+            {busy
+              ? localizeUi("ui.chat.dependencyworkspaceapprovalcard.installing")
+              : localizeUi("ui.agents.agentcatalogview.install")}
           </button>
-        </div>
-      </div>
-    </TranscriptRow>
+        </>
+      }
+    >
+      <p>{[approval.reason, localizeUi("ui.chat.dependencyworkspaceapprovalcard.risk")].filter(Boolean).join(" ")}</p>
+      <TechnicalDetails
+        rows={[
+          [
+            localizeUi("ui.chat.dependencyworkspaceapprovalcard.package"),
+            <code>
+              {approval.packageName}@{approval.version}
+            </code>,
+          ],
+          [
+            localizeUi("ui.chat.dependencyworkspaceapprovalcard.target"),
+            `${approval.target} · ${approval.dependencyType}`,
+          ],
+          [
+            localizeUi("ui.chat.dependencyworkspaceapprovalcard.dependencies"),
+            dependencies.length === 0
+              ? localizeUi("ui.chat.dependencyworkspaceapprovalcard.none")
+              : dependencies.map((dependency) => `${dependency.name} ${dependency.range}`).join(", "),
+          ],
+          [localizeUi("ui.chat.dependencyworkspaceapprovalcard.integrity"), <code>{approval.integrity}</code>],
+          [localizeUi("ui.chat.dependencyworkspaceapprovalcard.source"), <code>{approval.tarballUrl}</code>],
+        ]}
+      />
+    </MariCard>
   );
 }
 
@@ -726,65 +735,70 @@ function SensitiveFileWorkspaceApprovalCard({
   onDiscard: (id: string) => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
+  const file = approval.path.split(/[\\/]/u).at(-1) || approval.path;
+  const created = approval.changeType === "create";
   return (
-    <TranscriptRow layout="document" marker={null}>
-      <div className="mari-decision-surface text-xs text-[var(--foreground)]">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="font-semibold">
-            {localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.applySensitiveFileChange")}
-          </span>
-          <span className="rounded-full bg-[var(--primary)]/10 px-1.5 py-0.5 text-[0.625rem] text-[var(--primary)]">
-            {localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.staged")}
-          </span>
-        </div>
-        <p className="mt-1 max-w-[70ch] text-[0.6875rem] text-[var(--muted-foreground)]">
-          {localizeUi(
-            "ui.chat.sensitivefileworkspaceapprovalcard.thisFileCanAffectDependenciesStartupInstallationOrAutomation",
-          )}
-        </p>
-        <div className="mt-2 break-all rounded-lg bg-[var(--background)]/80 p-2 font-mono text-[0.75rem] font-semibold">
-          {approval.path}
-        </div>
-        <p className="mt-1 text-[0.6875rem] text-[var(--muted-foreground)]">
-          {approval.changeType === "create"
-            ? localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.thisFileDoesNotExistYetApprovingCreatesIt")
-            : localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.thisWillOverwriteTheExistingFile")}
-        </p>
-        <details className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--background)]/60 p-2">
-          <summary className="cursor-pointer text-[0.6875rem] font-semibold">
-            {localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.reviewProposedContent")}
-          </summary>
-          <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-[0.625rem] text-[var(--muted-foreground)]">
-            {approval.preview}
-            {approval.previewTruncated ? "\n\nPreview truncated." : ""}
-          </pre>
-        </details>
-        {approval.reason && <p className="mt-2 text-[0.6875rem] text-[var(--muted-foreground)]">{approval.reason}</p>}
-        <div className="mari-decision-actions mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    <MariCard
+      media={<FileText size="1rem" aria-hidden="true" />}
+      title={localizeUi(
+        created
+          ? "ui.chat.sensitivefileworkspaceapprovalcard.titleCreate"
+          : "ui.chat.sensitivefileworkspaceapprovalcard.titleUpdate",
+        { file },
+      )}
+      meta={localizeUi(
+        created
+          ? "ui.chat.sensitivefileworkspaceapprovalcard.metaCreate"
+          : "ui.chat.sensitivefileworkspaceapprovalcard.metaUpdate",
+      )}
+      actions={
+        <>
           <button
             type="button"
             onClick={() => onDiscard(approval.id)}
             disabled={busy || disabled}
-            className="min-h-9 rounded-md border border-[var(--border)] px-3 py-1.5 text-[0.6875rem] font-semibold text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-45"
+            className="mari-link"
           >
-            {localizeUi("ui.agents.agenteditor.discard")}
+            {localizeUi("ui.chat.dependencyworkspaceapprovalcard.notNow")}
           </button>
           <button
             type="button"
             onClick={() => onApprove(approval.id)}
             disabled={busy || disabled}
-            className="min-h-9 rounded-md bg-[var(--primary)] px-3 py-1.5 text-[0.6875rem] font-semibold text-[var(--primary-foreground)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+            className="mari-btn mari-btn--solid"
           >
-            <span className="inline-flex items-center justify-center gap-1">
-              {busy ? <Loader2 size="0.75rem" className="animate-spin" /> : <Check size="0.75rem" />}
-              {busy
-                ? localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.applying")
-                : localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.applyChange")}
-            </span>
+            {busy ? <Loader2 size="0.8rem" className="animate-spin" aria-hidden="true" /> : null}
+            {busy
+              ? localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.applying")
+              : localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.applyChange")}
           </button>
-        </div>
-      </div>
-    </TranscriptRow>
+        </>
+      }
+    >
+      <p>
+        {[
+          approval.reason,
+          localizeUi(
+            "ui.chat.sensitivefileworkspaceapprovalcard.thisFileCanAffectDependenciesStartupInstallationOrAutomation",
+          ),
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      </p>
+      <TechnicalDetails
+        rows={[
+          [localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.path"), <code>{approval.path}</code>],
+          [localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.hash"), <code>{approval.afterHash}</code>],
+        ]}
+      >
+        <pre>
+          {approval.preview}
+          {approval.previewTruncated
+            ? `\n\n${localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.previewTruncated")}`
+            : ""}
+        </pre>
+      </TechnicalDetails>
+    </MariCard>
   );
 }
 

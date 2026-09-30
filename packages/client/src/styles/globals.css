@@ -1486,6 +1486,57 @@
   gap: 0.5rem;
 }
 
+/* R42: a risky prompt's exact package, hash, path or contents, behind one disclosure. */
+.mari-tech > summary {
+  width: fit-content;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mari-tech > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mari-tech > summary svg {
+  transition: transform 0.15s ease;
+}
+
+.mari-tech[open] > summary svg {
+  transform: rotate(90deg);
+}
+
+.mari-tech dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 0.2rem 1rem;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+}
+
+.mari-tech dd {
+  min-width: 0;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+.mari-tech code,
+.mari-tech pre {
+  font-family: ui-monospace, "JetBrains Mono", Consolas, monospace;
+  font-size: 0.75rem;
+}
+
+.mari-tech pre {
+  max-height: 14rem;
+  overflow: auto;
+  margin-top: 0.5rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--foreground) 5%, var(--background));
+  padding: 0.5rem 0.625rem;
+  color: var(--foreground);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 /* A record's face: a portrait, or a quiet duotone tile with its initial. */
 .mari-avatar {
   display: grid;
@@ -2335,7 +2386,7 @@
   animation: mari-review-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.mari-inline-review:has(.mari-edit-review) {
+.mari-inline-review:has(.mari-edit-review, .mari-card) {
   overflow: visible;
   border: 0;
   background: none;

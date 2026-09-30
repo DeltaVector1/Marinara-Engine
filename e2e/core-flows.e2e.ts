@@ -18189,14 +18189,18 @@ test("Professor Mari dependency and sensitive-file reviews stay explicit across 
   await page.getByRole("button", { name: "Ask Professor Mari", exact: true }).click();
 
   const window = page.locator('[data-component="HomeProfessorMariChat.Window"]');
-  await expect(window.getByText("Install this dependency?")).toBeVisible();
-  await expect(window.getByText("nanoid@5.1.11")).toBeVisible();
-  await expect(window.getByRole("button", { name: "Install" })).toBeVisible();
-  await expect(window.getByRole("button", { name: "Not now" })).toBeVisible();
-  await expect(window.getByText("Apply sensitive file change?")).toBeVisible();
-  await expect(window.getByText("package.json", { exact: true })).toBeVisible();
-  await expect(window.getByRole("button", { name: "Apply change" })).toBeVisible();
-  await expect(window.getByRole("button", { name: "Discard" })).toBeVisible();
+  const install = window.locator(".mari-card").filter({ hasText: "Install nanoid" });
+  await expect(install.getByRole("button", { name: "Install" })).toBeVisible();
+  await expect(install.getByRole("button", { name: "Not now" })).toBeVisible();
+  await expect(install.getByText("nanoid@5.1.11")).toBeHidden();
+  await install.getByText("Technical details").click();
+  await expect(install.getByText("nanoid@5.1.11")).toBeVisible();
+  await expect(install.getByText("sha512-regression-integrity")).toBeVisible();
+  const file = window.locator(".mari-card").filter({ hasText: "Change package.json" });
+  await expect(file.getByRole("button", { name: "Apply change" })).toBeVisible();
+  await expect(file.getByRole("button", { name: "Not now" })).toBeVisible();
+  await file.getByText("Technical details").click();
+  await expect(file.getByText("package.json", { exact: true })).toBeVisible();
   await expect.poll(() => window.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 });
 
