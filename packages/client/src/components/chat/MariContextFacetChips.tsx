@@ -42,7 +42,10 @@ export function MariContextFacetChips({
         return (
           <span
             key={facet.kind}
-            title={t("ui.chat.quickreplymenu.value1Value2", { value1: facetLabel[facet.kind], value2: facet.text })}
+            title={t("ui.chat.homeprofessormarichat.contextFacetTitle", {
+              label: facetLabel[facet.kind],
+              text: facet.text,
+            })}
             className="mari-workspace-context-chip inline-flex min-w-0 max-w-[10rem] shrink items-center gap-1 rounded-md border border-[var(--primary)]/25 bg-[var(--primary)]/8 px-1.5 py-0.5 text-[0.625rem] text-[var(--foreground)]"
           >
             <Icon size="0.625rem" className="shrink-0 text-[var(--primary)]" aria-hidden="true" />

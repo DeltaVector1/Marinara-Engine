@@ -25,14 +25,16 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 2   | Quick answers: cheap wins (B1-B5)                            | worker        | Done   | 2b4dd9866 |
 | 3   | Quick answers: grounding in docs + setting names (B6)        | worker        | Done   | f14039aa0 |
 | 4   | Carry aside answer into Mari, show what she received (C1-C3) | worker        | Done   | 892f2acea |
-| 5   | Review of slices 1-4                                         | reviewer      | In progress |   |
+| 5   | Review of slices 1-4                                         | reviewer      | Done   | cb8c44651 |
 | 6   | Expanded row redesign (D1-D6)                                | designer      | Todo   |        |
 | 7   | Mari card mockup + MariCard primitive + notes (E1-E3)        | designer      | Todo   |        |
 | 8   | Migrate install/file/created cards to MariCard (E4-E5)       | designer      | Todo   |        |
 | 9   | Review of slices 6-8                                         | reviewer      | Todo   |        |
 | 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)  | designer      | Todo   |        |
+| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5)   | designer      | Todo   |        |
+| 12  | Mari composer redesign with mode + model pickers (H1-H4)     | designer      | Todo   |        |
 
-Stop after slice 10. The DB review card / MariEditEasyViewer rebuild (E6) waits
+Stop after slice 12. The DB review card / MariEditEasyViewer rebuild (E6) waits
 for the maintainer to approve the mockup from slice 7.
 
 ## House rules for every slice
@@ -218,3 +220,54 @@ bar. `framer-motion` is installed; no new dependency.
   does not press it; no open while a modal is open; reduced motion still opens.
   Risk to note in the report: on iOS a pull from the very top edge may go to
   Notification Center; only a real device can confirm.
+
+
+### G. Quick answer at the top (slice 11) — after slice 6
+
+Idea (maintainer): bring the quick answer to the top and make it better.
+Constraint: R9 put the aside at the bottom so a late answer never pushes rows
+under the cursor. Solution: the answer grows INSIDE the promoted "Ask Mari: “…”"
+row, which is already first and selected on a dead end; content is only ever
+inserted below the selected row (same rule as R40 and the slice 6 expansion).
+
+- G1 Move the aside UI (waiting line, streamed answer, error with Try again /
+  Choose a model, disclosure, link chips) from `OmnibarAside` into the Ask row's
+  expansion; the bottom aside slot goes away. When the Ask row is not promoted
+  (a normal search), no call is made (unchanged dead-end rule). Update R9 in
+  `docs/development/omnibar-concept.md` and the inventory: the answer lives in
+  the Ask row, never above the selection.
+- G2 Light formatting for the answer (bold, lists, inline code via the app's
+  existing message markdown renderer if it is cheap to reuse; otherwise keep
+  plain text), and "…" when cut at the token cap.
+- G3 Small row actions: Copy, Answer again (bypasses the cache), and Enter /
+  ⌘↵ = continue with Mari carrying the answer (slice 4 behaviour).
+- G4 One follow-up line inside the row ("Ask a follow-up…") that sends a
+  second quick call with the previous answer as context; a third question goes
+  to full Mari.
+- G5 Expose the idle delay (`OMNIBAR_ASIDE_DELAY_MS`, default 3s) in the omnibar
+  settings view (R23 says it is a knob). Proof: mocked SSE answers, screenshots
+  390/1440 dark+light, no row above the Ask row moves while streaming.
+
+### H. Mari composer redesign (slice 12)
+
+Idea (maintainer): put the permissions mode (Auto / Ask / Bypass) in or above
+the chat bar like ChatGPT and Claude, and redesign the composer a bit. Today
+"Auto" is a pill in the tab row at the top of the Mari view, far from typing;
+the composer has attach, the context chip and the connection (chain) button.
+Files: `components/chat/HomeProfessorMariChat.tsx` (composer, header tab row,
+Permissions Mode pill), the permissions mode store/setting (search
+"Permissions Mode", #5725), `components/chat/ProfessorMariContextControl.tsx`.
+
+- H1 A compact toolbar row in the composer (below or above the textarea, like
+  Claude): mode menu (Auto / Ask first / Bypass, one-line explanation each,
+  current mode as the pill label), model/connection menu (replaces the bare
+  chain icon), attach. `.mari-chrome-control--compact` chips, menus as
+  popovers inside the omnibar dialog (focus + Escape handled like the settings
+  view), 44px targets on touch.
+- H2 Remove the mode pill from the tab row; the header becomes one calm row
+  (sprite + title, tabs, close).
+- H3 Keep behaviour identical: same store values, same server semantics;
+  Bypass keeps its warning wording.
+- H4 Proof: screenshots 390/768/1440 dark+light of the empty state and a
+  conversation; keyboard: the mode menu opens with Enter/Space and closes on
+  Escape without closing the omnibar.

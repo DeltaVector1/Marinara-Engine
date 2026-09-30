@@ -67,7 +67,7 @@ export const SETTINGS_TABS: readonly {
 }[] = [
   {
     id: "general",
-    label: "App Behavior",
+    label: "General",
     description: "Language, responses, input, notifications, and playback.",
     aliases: ["general", "application", "notifications", "responses", "input", "editing"],
   },

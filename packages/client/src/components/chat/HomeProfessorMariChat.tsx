@@ -6194,7 +6194,7 @@ export function HomeProfessorMariChat({
                                     type="button"
                                     onClick={() => {
                                       setConnectionMenuOpen(false);
-                                      useUIStore.getState().openRightPanel("connections");
+                                      useUIStore.getState().openModal("create-connection");
                                     }}
                                     className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
                                   >

@@ -1,4 +1,4 @@
-import type { ProfessorMariAskContext } from "@marinara-engine/shared";
+import { SETTINGS_TABS, type ProfessorMariAskContext } from "@marinara-engine/shared";
 
 export type ProfessorMariPresentationState =
   "empty" | "working" | "composing" | "history" | "completed" | "waiting-approval" | "broken";
@@ -66,7 +66,11 @@ export function professorMariContextFacets(
   if (context.resource?.label) facets.push({ kind: "resource", text: context.resource.label });
   if (context.activeChat?.label) facets.push({ kind: "chat", text: context.activeChat.label });
   if (context.field) facets.push({ kind: "field", text: context.field });
-  if (context.settingsLocation?.tab) facets.push({ kind: "settings", text: context.settingsLocation.tab });
+  if (context.settingsLocation?.tab) {
+    const tabLabel =
+      SETTINGS_TABS.find((tab) => tab.id === context.settingsLocation!.tab)?.label ?? context.settingsLocation.tab;
+    facets.push({ kind: "settings", text: tabLabel });
+  }
   if (context.error?.message) facets.push({ kind: "error", text: context.error.message });
   if (context.asideAnswer?.answer) facets.push({ kind: "asideAnswer", text: context.asideAnswer.answer });
   return facets;

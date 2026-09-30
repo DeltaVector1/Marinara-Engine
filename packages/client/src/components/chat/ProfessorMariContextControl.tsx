@@ -5,11 +5,12 @@ import type { ProfessorMariAskContext } from "@marinara-engine/shared";
 import { useTranslation } from "react-i18next";
 import type { CharacterPreviewModel } from "../../lib/character-preview";
 import type { LorebookPreviewModel } from "../../lib/lorebook-preview";
-import { professorMariContextCount } from "../../lib/professor-mari-presentation";
+import { professorMariContextCount, professorMariContextFacets } from "../../lib/professor-mari-presentation";
 import { cn } from "../../lib/utils";
 import { CharacterSubject } from "../characters/CharacterSubject";
 import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
 import { LorebookSubject } from "../lorebooks/LorebookSubject";
+import { MariContextFacetChips } from "./MariContextFacetChips";
 
 interface Props {
   context: ProfessorMariAskContext | null;
@@ -64,6 +65,7 @@ export function ProfessorMariContextControl({
     : "";
   const showCapability = Boolean(context && (context.query || context.field || context.error || context.action));
   const relatedCount = context?.relatedResources?.length ?? 0;
+  const contextFacets = professorMariContextFacets(context);
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 639px)");
@@ -197,6 +199,7 @@ export function ProfessorMariContextControl({
                   <p className="mt-1 truncate text-sm font-semibold text-[var(--foreground)]">{focusLabel}</p>
                 </>
               )}
+              {contextFacets.length > 0 && <MariContextFacetChips facets={contextFacets} className="mt-2" />}
               {context.query && (
                 <p className="mt-1 line-clamp-3 break-words text-xs text-[var(--muted-foreground)]">
                   {t("ui.chat.homeprofessormarichat.contextControlQuery", { query: context.query })}

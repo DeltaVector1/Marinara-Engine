@@ -2274,7 +2274,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     selectedResult: RankedOmnibarResult | null = null,
     options: { reviewPending?: boolean; submitDraft?: boolean } = {},
   ) => {
-    const draft = query.trim();
+    // A scope prefix like "faq:" is omnibar search syntax, not part of the
+    // message text — strip it before it lands in Mari's composer.
+    const draft = parseOmnibarScope(query.trim()).query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
     const focusResult = selectedResult ?? contextResults[0] ?? null;
     rememberMariReturn(focusResult);
@@ -2299,8 +2301,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     rememberMariReturn(focusResult);
     enterMariPane(
       buildAskContext(draft, focusResult, {
-        query: asideState.query,
-        answer: asideState.answer,
+        // Match the server's zod limits so an over-length aside can't 400 the whole send.
+        query: asideState.query.slice(0, 500),
+        answer: asideState.answer.slice(0, 4_000),
         tier: asideState.tier,
       }),
       true,

@@ -29,7 +29,7 @@ import {
   searchOmnibar,
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
-import { isMariInstruction } from "../../packages/client/src/lib/omnibar-scope.js";
+import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
   buildOmnibarIntentShortcuts,
   findMentionedResults,
@@ -696,12 +696,18 @@ assert.deepEqual(
     { kind: "resource", text: "Luna" },
     { kind: "chat", text: "Moonlit room" },
     { kind: "field", text: "Greeting" },
-    { kind: "settings", text: "appearance" },
+    { kind: "settings", text: "Appearance" },
     { kind: "error", text: "Generation failed" },
     { kind: "asideAnswer", text: "Answer text" },
   ],
 );
 assert.deepEqual(professorMariContextFacets(null), []);
+
+// A5: a typed scope prefix like "faq:" is omnibar search syntax, not message text
+// — every door into Mari (including the Ask-Mari row's own query) must strip it
+// with the same helper before it reaches the composer.
+assert.equal(parseOmnibarScope("faq: import").query, "import");
+assert.equal(parseOmnibarScope("plain question").query, "plain question");
 
 // The list and Mari are the only panes. A session persisted with a removed one
 // falls back to the list rather than resurrecting a surface that no longer exists.
@@ -922,7 +928,7 @@ console.info("Command Center regression checks passed.");
   // The unasked aside's compact Settings label list is grouped by real tab
   // labels and lists real section labels - no ids, no descriptions, no aliases -
   // so it stays small and only ever names things the user can actually see.
-  assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("App Behavior:"), "a real tab label heads its group");
+  assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("General:"), "a real tab label heads its group");
   assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("Backup & Export"), "a real section label is present");
   assert.ok(!QUICK_ANSWER_SETTINGS_LABELS.includes("backup-export"), "the internal section id does not leak into the prompt");
   assert.ok(QUICK_ANSWER_SETTINGS_LABELS.length < 2_000, "the settings-label hint stays compact enough for a quick-answer prompt");

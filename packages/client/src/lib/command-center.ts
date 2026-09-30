@@ -351,6 +351,58 @@ function normalizeMariHandoff(value: unknown): CommandCenterMariHandoff | null {
         }
       : undefined;
   const field = typeof rawContext?.field === "string" ? rawContext.field.trim().slice(0, 200) : "";
+  const fieldId = typeof rawContext?.fieldId === "string" ? rawContext.fieldId.trim().slice(0, 200) : "";
+  const action = typeof rawContext?.action === "string" ? rawContext.action.slice(0, 500) : "";
+  const rawError =
+    rawContext?.error && typeof rawContext.error === "object" && !Array.isArray(rawContext.error)
+      ? (rawContext.error as Record<string, unknown>)
+      : null;
+  const errorMessage = typeof rawError?.message === "string" ? rawError.message.slice(0, 2_000) : "";
+  const error = errorMessage
+    ? { message: errorMessage, ...(typeof rawError?.code === "string" ? { code: rawError.code.slice(0, 200) } : {}) }
+    : undefined;
+  const rawActiveChat =
+    rawContext?.activeChat && typeof rawContext.activeChat === "object" && !Array.isArray(rawContext.activeChat)
+      ? (rawContext.activeChat as Record<string, unknown>)
+      : null;
+  const activeChatId = typeof rawActiveChat?.id === "string" ? rawActiveChat.id.trim().slice(0, 256) : "";
+  const activeChat = activeChatId
+    ? {
+        id: activeChatId,
+        ...(typeof rawActiveChat?.label === "string" ? { label: rawActiveChat.label.slice(0, 200) } : {}),
+        ...(typeof rawActiveChat?.mode === "string" ? { mode: rawActiveChat.mode.slice(0, 32) } : {}),
+      }
+    : undefined;
+  const rawSettingsLocation =
+    rawContext?.settingsLocation &&
+    typeof rawContext.settingsLocation === "object" &&
+    !Array.isArray(rawContext.settingsLocation)
+      ? (rawContext.settingsLocation as Record<string, unknown>)
+      : null;
+  const settingsLocation = rawSettingsLocation
+    ? {
+        ...(typeof rawSettingsLocation.tab === "string" ? { tab: rawSettingsLocation.tab.slice(0, 64) } : {}),
+        ...(typeof rawSettingsLocation.controlId === "string"
+          ? { controlId: rawSettingsLocation.controlId.slice(0, 128) }
+          : {}),
+      }
+    : undefined;
+  const rawAsideAnswer =
+    rawContext?.asideAnswer && typeof rawContext.asideAnswer === "object" && !Array.isArray(rawContext.asideAnswer)
+      ? (rawContext.asideAnswer as Record<string, unknown>)
+      : null;
+  const asideAnswerTier: "local" | "remote" | null =
+    rawAsideAnswer?.tier === "local" || rawAsideAnswer?.tier === "remote"
+      ? (rawAsideAnswer.tier as "local" | "remote")
+      : null;
+  const asideAnswer =
+    asideAnswerTier && typeof rawAsideAnswer?.query === "string" && typeof rawAsideAnswer?.answer === "string"
+      ? {
+          query: rawAsideAnswer.query.slice(0, 500),
+          answer: rawAsideAnswer.answer.slice(0, 4_000),
+          tier: asideAnswerTier,
+        }
+      : undefined;
   const context: CommandCenterMariHandoff["context"] = capability
     ? {
         source: "command-center",
@@ -358,6 +410,12 @@ function normalizeMariHandoff(value: unknown): CommandCenterMariHandoff | null {
         query: typeof rawContext?.query === "string" ? rawContext.query.slice(0, 500) : undefined,
         ...(resource ? { resource } : {}),
         ...(field ? { field } : {}),
+        ...(fieldId ? { fieldId } : {}),
+        ...(error ? { error } : {}),
+        ...(action ? { action } : {}),
+        ...(activeChat ? { activeChat } : {}),
+        ...(settingsLocation ? { settingsLocation } : {}),
+        ...(asideAnswer ? { asideAnswer } : {}),
       }
     : null;
   const draft = typeof source.draft === "string" ? source.draft.slice(0, 500) : undefined;
