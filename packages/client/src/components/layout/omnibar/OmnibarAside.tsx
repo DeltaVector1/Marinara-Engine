@@ -1,7 +1,9 @@
 import { useMariAppearancePack } from "../../../hooks/use-mari-appearance-pack";
 import { useTranslation } from "react-i18next";
 
+import { MariStorySprite } from "../../chat/MariStorySprite";
 import type { OmnibarAsideState } from "../../../hooks/use-omnibar-aside";
+import { stripStrayMarkdown } from "../../../lib/omnibar-aside-text";
 
 export interface OmnibarAsideProps {
   state: OmnibarAsideState;
@@ -14,6 +16,8 @@ export interface OmnibarAsideProps {
   onEscalate: () => void;
   /** Opens the omnibar settings, where the answering model is chosen. */
   onChooseModel: () => void;
+  /** Re-fires the call after an error (R24: plain error, never a toast). */
+  onRetry: () => void;
   /** Things the answer names, which a click opens like their own rows. */
   links: readonly { id: string; title: string }[];
   onOpenLink: (id: string) => void;
@@ -34,6 +38,7 @@ export function OmnibarAside({
   onDisable,
   onEscalate,
   onChooseModel,
+  onRetry,
   links,
   onOpenLink,
 }: OmnibarAsideProps) {
@@ -45,7 +50,12 @@ export function OmnibarAside({
       ? t("omnibar.aside.tierLocal", "Local")
       : (connectionName ?? t("omnibar.aside.tierRemote", "Your connection"));
 
-  const announcement = state.status === "complete" ? state.answer : state.status === "error" ? (state.error ?? "") : "";
+  const announcement =
+    state.status === "complete"
+      ? stripStrayMarkdown(state.answer)
+      : state.status === "error"
+        ? (state.error ?? "")
+        : "";
 
   return (
     <>
@@ -67,6 +77,14 @@ export function OmnibarAside({
             {t("omnibar.aside.turnOff", "Turn this off")}
           </button>
         </p>
+      ) : state.status === "thinking" ? (
+        <div
+          data-component="GlobalOmnibar.Aside"
+          className="flex shrink-0 items-center gap-2 border-t border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)]"
+        >
+          <MariStorySprite state="thinking" />
+          <span>{t("omnibar.aside.thinking", "Professor Mari is thinking…")}</span>
+        </div>
       ) : state.status !== "idle" && state.status !== "waiting" ? (
         <section
           data-component="GlobalOmnibar.Aside"
@@ -88,7 +106,7 @@ export function OmnibarAside({
                   failed ? "text-[var(--muted-foreground)]" : "text-[var(--foreground)]"
                 }`}
               >
-                {failed ? state.error : state.answer}
+                {failed ? state.error : stripStrayMarkdown(state.answer)}
               </p>
               {!failed && links.length > 0 ? (
                 <div
@@ -108,11 +126,26 @@ export function OmnibarAside({
                 </div>
               ) : null}
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.625rem] text-[var(--muted-foreground)]">
-                <span>{tierLabel}</span>
-                {!failed && (
-                  <button type="button" onClick={onEscalate} className="underline-offset-2 hover:underline">
-                    {t("omnibar.aside.escalate", "⌘↵ Continue with Professor Mari")}
-                  </button>
+                {failed ? (
+                  <>
+                    <button type="button" onClick={onRetry} className="font-semibold underline underline-offset-2">
+                      {t("omnibar.aside.retry", "Try again")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onChooseModel}
+                      className="font-semibold underline underline-offset-2"
+                    >
+                      {t("omnibar.aside.chooseModel", "Choose a model")}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span>{tierLabel}</span>
+                    <button type="button" onClick={onEscalate} className="underline-offset-2 hover:underline">
+                      {t("omnibar.aside.escalate", "⌘↵ Continue with Professor Mari")}
+                    </button>
+                  </>
                 )}
               </div>
               {!disclosed && state.status === "complete" ? (

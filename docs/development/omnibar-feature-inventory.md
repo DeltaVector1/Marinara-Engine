@@ -366,6 +366,9 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   query, and the focused resource's label. It must never carry persistent
   memories or the contents of the focused field, both of which an _asked_ Quick
   call does send. `quick-context-payload.test.ts` pins this.
+- `source` and `resourceLabel` come from where the user really is —
+  `GlobalOmnibar` reads the open editor or the active chat off `omnibarContext`
+  — not a hard-coded `"command-center"`.
 - Defaults to the local sidecar, so nothing is spent unasked. The answering
   model is chosen in the omnibar settings view (it replaces the list inside the omnibar card, with a back arrow): the local model or any language
   connection, with a note that a connection may cost money.
@@ -377,8 +380,18 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   this off".
 - Nothing is front-loaded into onboarding. The first answer says where it came
   from and offers to turn the feature off, in place.
-- A failed call shows one quiet line and the `shrug` sprite. Never a toast — the
-  user did not ask for this call — and the ranked list is never degraded by it.
+- A repeat of the same connection + query within a few minutes is answered from
+  a small in-memory cache (`lib/omnibar-aside-text.ts`) instead of asking the
+  model again.
+- The idle countdown is silent; once the call actually starts, a "Professor
+  Mari is thinking…" line with the thinking sprite shows until the first token
+  (or the cached answer) arrives.
+- The answer is shown with stray markdown stripped, and the prompt itself asks
+  for plain text and exact on-screen labels. An answer cut off by the token cap
+  is marked with a trailing "…".
+- A failed call shows one quiet line and the `shrug` sprite, with "Try again"
+  and "Choose a model" actions. Never a toast — the user did not ask for this
+  call — and the ranked list is never degraded by it.
 - Escalating from the aside sends the question to Mari; it does not only open
   her with a draft.
 - A finished answer offers up to three things it names — a setting, a

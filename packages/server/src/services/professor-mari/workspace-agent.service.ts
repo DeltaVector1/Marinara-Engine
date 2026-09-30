@@ -2844,6 +2844,7 @@ export class ProfessorMariWorkspaceService {
           "You are Professor Mari answering beside Marinara Engine's search box.",
           "The user typed something and nothing in the app matched it. Say whether Marinara can do what they described and where it lives, or answer the question outright if it is small.",
           "Answer in at most three sentences. No preamble, no restating the question, no offer to help further.",
+          "Reply in plain text: no markdown, no bullet or numbered lists, no bold/italics/headings, no code fences. When you name a menu, tab, button, or setting, use its exact on-screen label.",
           "You have no tools, no history, and cannot change anything. Never claim you opened, created, edited, or applied anything.",
           "If the request needs several steps, say so in one sentence and stop. The user can escalate to Full Mari themselves.",
         ]
@@ -2937,6 +2938,12 @@ export class ProfessorMariWorkspaceService {
       }
     } else if (!streamed && result.content) {
       args.onEvent({ type: "token", data: result.content });
+    }
+    // Hitting the token cap mid-sentence reads as a finished thought unless the
+    // cut is marked; only the unasked aside sends a tight enough cap for this
+    // to happen in practice.
+    if (unasked && isLengthFinishReason(result.finishReason) && !/[…]\s*$/.test(answer)) {
+      args.onEvent({ type: "token", data: "…" });
     }
     const usage = mapUsage(result.usage);
     const fallbackUsed = Boolean(args.connectionId && args.connectionId !== connection.id);

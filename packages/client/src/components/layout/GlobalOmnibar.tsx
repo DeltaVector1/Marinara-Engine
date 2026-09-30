@@ -16,7 +16,13 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import type { Character, Chat, ChatMode, ProfessorMariAskContext } from "@marinara-engine/shared";
+import type {
+  Character,
+  Chat,
+  ChatMode,
+  ProfessorMariAskContext,
+  ProfessorMariEntryPoint,
+} from "@marinara-engine/shared";
 import {
   ArrowRight,
   ChevronLeft,
@@ -1522,11 +1528,26 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     lorebookEntryResults.length === 0;
   const asideConnectionName =
     languageConnections.find((connection) => connection.id === asideConnectionId)?.name ?? null;
+  // The real surface the user is on, not always "command-center": an open
+  // editor or the active chat is a more honest (and more useful) context for
+  // the aside's unasked call than the omnibar shell it happens to appear in.
+  const asideSource: ProfessorMariEntryPoint = omnibarContext.openResource
+    ? (`${omnibarContext.openResource.kind}-editor` as ProfessorMariEntryPoint)
+    : omnibarContext.surface === "settings"
+      ? "settings"
+      : omnibarContext.surface === "chat" && activeChat?.id === activeChatId
+        ? "character-chat"
+        : "command-center";
+  const asideResourceLabel = omnibarContext.openResource
+    ? (allLocalResults.find((result) => result.id === omnibarContext.openResource?.resultId)?.title ?? null)
+    : omnibarContext.surface === "chat" && activeChat?.id === activeChatId
+      ? activeChat.name
+      : null;
   const asideState = useOmnibarAside({
     query: deferredQuery,
     deadEnd: asideDeadEnd && pane === "results",
-    source: "command-center",
-    resourceLabel: contextResults[0]?.title ?? null,
+    source: asideSource,
+    resourceLabel: asideResourceLabel,
   });
   // The things a finished answer names, offered as one-click destinations under it.
   const asideLinks = useMemo(
@@ -3060,6 +3081,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               }}
               onEscalate={() => openProfessorMari(null, { submitDraft: true })}
               onChooseModel={() => setSettingsOpen(true)}
+              onRetry={asideState.retry}
               links={asideLinks.map((row) => ({ id: row.id, title: row.title }))}
               onOpenLink={(id) => {
                 const row = asideLinks.find((item) => item.id === id);

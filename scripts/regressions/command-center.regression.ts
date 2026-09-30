@@ -49,6 +49,7 @@ import {
   buildProfessorMariCommandCenterContext,
   inferProfessorMariCommandCenterCapability,
 } from "../../packages/client/src/lib/professor-mari-command-center-context.js";
+import { OmnibarAsideAnswerCache, stripStrayMarkdown } from "../../packages/client/src/lib/omnibar-aside-text.js";
 
 const commands: CommandDefinition[] = [
   { id: "home", title: "Home", kind: "navigation", icon: "home", target: { kind: "home" } },
@@ -810,4 +811,41 @@ console.info("Command Center regression checks passed.");
   );
   assert.deepEqual(buildOmnibarIntentShortcuts({ query: "shrek", characters, t }), [], "a bare name is a search");
   assert.deepEqual(buildOmnibarIntentShortcuts({ query: "new character", characters, t }), [], "no name, no row");
+}
+
+{
+  // The omnibar aside's answer cache: an LRU with a short TTL, keyed by connection + query.
+  const cache = new OmnibarAsideAnswerCache(2, 1_000);
+  assert.equal(cache.get("conn-a", "how do i export"), undefined, "a miss returns undefined");
+  cache.set("conn-a", "how do i export", { answer: "Settings > Export", tier: "remote" });
+  assert.deepEqual(cache.get("conn-a", "how do i export"), { answer: "Settings > Export", tier: "remote" });
+  assert.equal(
+    cache.get("conn-b", "how do i export"),
+    undefined,
+    "the same query on a different connection is a different entry",
+  );
+
+  // Over capacity evicts the least-recently-used entry, not the newest.
+  cache.set("conn-a", "second query", { answer: "second", tier: "remote" });
+  cache.get("conn-a", "how do i export"); // touch the first entry so it is now most-recently-used
+  cache.set("conn-a", "third query", { answer: "third", tier: "remote" });
+  assert.equal(cache.get("conn-a", "second query"), undefined, "the untouched entry is evicted, not the touched one");
+  assert.deepEqual(cache.get("conn-a", "how do i export"), { answer: "Settings > Export", tier: "remote" });
+  assert.deepEqual(cache.get("conn-a", "third query"), { answer: "third", tier: "remote" });
+
+  // TTL expiry.
+  const ttlCache = new OmnibarAsideAnswerCache(10, 0);
+  ttlCache.set("conn-a", "expires now", { answer: "gone", tier: "local" });
+  assert.equal(ttlCache.get("conn-a", "expires now"), undefined, "an expired entry is treated as a miss");
+}
+
+{
+  // The omnibar aside strips markdown the plain-text prompt instruction failed to prevent.
+  assert.equal(stripStrayMarkdown("**Settings** has it."), "Settings has it.");
+  assert.equal(stripStrayMarkdown("Go to *Settings* > *Export*."), "Go to Settings > Export.");
+  assert.equal(stripStrayMarkdown("Use `docs_search` first."), "Use docs_search first.");
+  assert.equal(stripStrayMarkdown("# Heading\nBody text"), "Heading\nBody text");
+  assert.equal(stripStrayMarkdown("- one\n- two"), "one\ntwo");
+  assert.equal(stripStrayMarkdown("1. first\n2. second"), "first\nsecond");
+  assert.equal(stripStrayMarkdown("Plain sentence, nothing to strip."), "Plain sentence, nothing to strip.");
 }

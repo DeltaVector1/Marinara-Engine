@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { LOCAL_SIDECAR_CONNECTION_ID, type ProfessorMariQuickPromptRequest } from "@marinara-engine/shared";
 
 import { api } from "../lib/api-client";
+import { omnibarAsideAnswerCache } from "../lib/omnibar-aside-text";
 import { useSidecarStore } from "../stores/sidecar.store";
 import { useUIStore } from "../stores/ui.store";
 
@@ -17,8 +18,12 @@ export const OMNIBAR_ASIDE_DELAY_MS = 3_000;
 /** Below this the query is too short to mean anything. Matches message search. */
 const MIN_QUERY_LENGTH = 3;
 
-/** "unavailable": the query dead-ended, but no model can answer, so nothing is called. */
-export type OmnibarAsideStatus = "idle" | "unavailable" | "waiting" | "streaming" | "complete" | "error";
+/**
+ * "waiting": idle delay is still counting down, nothing visible yet.
+ * "thinking": the call is actually in flight - this is what shows the sprite.
+ * "unavailable": the query dead-ended, but no model can answer, so nothing is called.
+ */
+export type OmnibarAsideStatus = "idle" | "unavailable" | "waiting" | "thinking" | "streaming" | "complete" | "error";
 
 export interface OmnibarAsideState {
   status: OmnibarAsideStatus;
@@ -52,7 +57,7 @@ export function useOmnibarAside(params: {
   /** Human label of the focused resource, if there is one. Never its id. */
   resourceLabel?: string | null;
   delayMs?: number;
-}): OmnibarAsideState {
+}): OmnibarAsideState & { retry: () => void } {
   const enabled = useUIStore((state) => state.omnibarAsideEnabled);
   const connectionId = useUIStore((state) => state.omnibarAsideConnectionId);
   const [state, setState] = useState<OmnibarAsideState>(IDLE);
@@ -68,6 +73,71 @@ export function useOmnibarAside(params: {
   const available = tier === "remote" || localModelDownloaded;
   const ready = enabled && deadEnd && trimmed.length >= MIN_QUERY_LENGTH;
 
+  const runQuery = useCallback(() => {
+    abortRef.current?.abort();
+    const cached = omnibarAsideAnswerCache.get(connectionId, trimmed);
+    if (cached) {
+      setState({ status: "complete", answer: cached.answer, error: null, query: trimmed, tier: cached.tier });
+      abortRef.current = null;
+      return;
+    }
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setState({ status: "thinking", answer: "", error: null, query: trimmed, tier });
+    const body: ProfessorMariQuickPromptRequest = {
+      message: trimmed,
+      connectionId,
+      unasked: true,
+      resourceLabel: resourceLabel ?? undefined,
+      context: { source, query: trimmed },
+    };
+    void (async () => {
+      let answer = "";
+      try {
+        for await (const event of api.streamEvents("/professor-mari/quick/prompt", body, controller.signal)) {
+          if (event.type === "status") {
+            // A status frame only ever precedes tokens; once streaming or
+            // settled, it has nothing left to announce.
+            setState((current) =>
+              current.status === "waiting" || current.status === "thinking"
+                ? { ...current, status: "thinking" }
+                : current,
+            );
+          } else if (event.type === "token" && typeof event.data === "string") {
+            answer += event.data;
+            setState({ status: "streaming", answer, error: null, query: trimmed, tier });
+          } else if (event.type === "complete") {
+            omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
+            setState({ status: "complete", answer, error: null, query: trimmed, tier });
+          } else if (event.type === "error") {
+            throw new Error(typeof event.data === "string" ? event.data : "Professor Mari could not answer.");
+          }
+        }
+        // A cleanly closed stream is still a completed response even if an
+        // intermediary omitted the optional terminal event.
+        if (!controller.signal.aborted) {
+          omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
+          setState((current) =>
+            current.query === trimmed && current.status === "streaming"
+              ? { status: "complete", answer, error: null, query: trimmed, tier }
+              : current,
+          );
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setState({
+          status: "error",
+          answer: "",
+          error: error instanceof Error ? error.message : String(error),
+          query: trimmed,
+          tier,
+        });
+      } finally {
+        if (abortRef.current === controller) abortRef.current = null;
+      }
+    })();
+  }, [connectionId, resourceLabel, source, tier, trimmed]);
+
   useEffect(() => {
     abortRef.current?.abort();
     abortRef.current = null;
@@ -81,59 +151,14 @@ export function useOmnibarAside(params: {
     }
     setState({ status: "waiting", answer: "", error: null, query: trimmed, tier });
 
-    const timer = window.setTimeout(() => {
-      const controller = new AbortController();
-      abortRef.current = controller;
-      const body: ProfessorMariQuickPromptRequest = {
-        message: trimmed,
-        connectionId,
-        unasked: true,
-        resourceLabel: resourceLabel ?? undefined,
-        context: { source, query: trimmed },
-      };
-      void (async () => {
-        let answer = "";
-        try {
-          for await (const event of api.streamEvents("/professor-mari/quick/prompt", body, controller.signal)) {
-            if (event.type === "token" && typeof event.data === "string") {
-              answer += event.data;
-              setState({ status: "streaming", answer, error: null, query: trimmed, tier });
-            } else if (event.type === "complete") {
-              setState({ status: "complete", answer, error: null, query: trimmed, tier });
-            } else if (event.type === "error") {
-              throw new Error(typeof event.data === "string" ? event.data : "Professor Mari could not answer.");
-            }
-          }
-          // A cleanly closed stream is still a completed response even if an
-          // intermediary omitted the optional terminal event.
-          if (!controller.signal.aborted) {
-            setState((current) =>
-              current.query === trimmed && current.status === "streaming"
-                ? { status: "complete", answer, error: null, query: trimmed, tier }
-                : current,
-            );
-          }
-        } catch (error) {
-          if (controller.signal.aborted) return;
-          setState({
-            status: "error",
-            answer: "",
-            error: error instanceof Error ? error.message : String(error),
-            query: trimmed,
-            tier,
-          });
-        } finally {
-          if (abortRef.current === controller) abortRef.current = null;
-        }
-      })();
-    }, delayMs);
+    const timer = window.setTimeout(runQuery, delayMs);
 
     return () => {
       window.clearTimeout(timer);
       abortRef.current?.abort();
       abortRef.current = null;
     };
-  }, [available, connectionId, delayMs, ready, resourceLabel, source, tier, trimmed]);
+  }, [available, delayMs, ready, runQuery, tier, trimmed]);
 
-  return state;
+  return { ...state, retry: runQuery };
 }
