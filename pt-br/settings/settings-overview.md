@@ -15,7 +15,7 @@ O painel tem seis abas. A tabela abaixo mostra o que cada aba controla.
 | **Generations** | Padrões de imagem e vídeo, além de modelos de prompt reutilizáveis. |
 | **Addons** | Rascunhos de Personal Extension da Professor Mari em ambiente isolado, External Extensions liberadas por você e temas personalizados. |
 | **Imports** | Restauração de perfis completos e importação a partir de outros aplicativos. |
-| **Advanced** | Acesso de administrador, atualizações, ferramentas de mensagem, backups e ações destrutivas. |
+| **Advanced** | Acesso de administrador, chaves de recursos opcionais, atualizações, ferramentas de mensagem, backups e ações destrutivas. |
 
 Onde ler mais sobre cada aba:
 
@@ -24,7 +24,7 @@ Onde ler mais sobre cada aba:
 - **Generations**: veja [Perfis de estilo](../media/style-profiles.md) e [Vídeo de cena](../media/scene-video.md).
 - **Addons**: veja [Extensões pessoais](../extending/personal-extensions.md) e [Temas de CSS personalizados](../appearance/custom-css-themes.md).
 - **Imports**: veja [Importando do SillyTavern](../data/importing-from-sillytavern.md) e [Fazer backup e restaurar Marinara](../data/backup-and-restore.md).
-- **Advanced**: veja a seção **Message Tools** abaixo, além de [Atualizando Marinara Engine](../UPGRADING.md), [Acesso remoto](../REMOTE_ACCESS.md) e [Limpar ou zerar os seus dados](../data/clearing-data.md).
+- **Advanced**: veja a seção **Message Tools** abaixo, além de [Atualizando Marinara Engine](../UPGRADING.md), [Acesso remoto](../REMOTE_ACCESS.md) e [Limpar ou zerar os seus dados](../data/clearing-data.md). [Chaves de recursos](../configuration/features.md).
 
 ## Settings, aba General
 

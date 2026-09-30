@@ -11,6 +11,20 @@ Muitos problemas somem com dois passos rápidos.
 
 Antes de pedir ajuda à equipe, ative o **Debug mode** (modo de depuração) para que o servidor registre o prompt (o texto que Marinara envia para a IA) e a resposta. Veja Onde buscar mais ajuda, no fim deste guia.
 
+<a id="multiplayer-connection-or-turn-problems"></a>
+
+## Problemas de conexão ou turnos multijogador
+
+- **Controles indisponíveis:** confirme `MULTIPLAYER_ENABLED=true` no `.env` do Engine correto, reinicie-o e ative Settings separadamente. Um ajuste salvo não substitui uma variável ausente/inválida. O wrapper nativo Android deliberadamente não pode entrar.
+- **Anfitrião indisponível:** use uma porta HTTPS de sala separada e acessível, cadeia de certificado/hostname válidos e a impressão digital correspondente ao convite. Não desative TLS, adicione `null` às origens confiáveis, exponha a API normal do Engine nem abra um cliente fornecido pelo anfitrião para contornar erros.
+- **Aguardando aprovação:** o anfitrião deve aprovar em Players. Nenhum histórico fica disponível antes disso. Peça novo convite se o anterior expirou ou foi revogado.
+- **Desconectado:** mantenha o Engine do convidado em execução. O cliente reconecta ao mesmo anfitrião fixado enquanto a sessão explícita estiver ativa; rascunhos não enviados ficam na visualização atual. Reiniciar invalida credenciais e exige nova entrada. Stop/Leave continuam disponíveis se a rede falhar.
+- **Game aguardando:** confira Players. Desconectados não passam automaticamente. O anfitrião pode escolher explicitamente Pass/Kick ou Pause. Enviar uma de duas ações necessárias não deve executar o GM.
+- **Geração interrompida:** não reenvie a rodada repetidamente. O anfitrião deve verificar narração/estado gravados e retomar explicitamente adiante, ou parar a sala. O multijogador não repete silenciosamente uma solicitação de resultado ambíguo nem aplica seus efeitos duas vezes.
+- **Comando restrito ou mídia ausente:** o protocolo inicial transmite intencionalmente só texto. Consulte a [matriz de compatibilidade](development/multiplayer.md#command-and-feature-compatibility); não instale arquivo ou extensão de outro participante como solução.
+
+Ao relatar um erro, inclua modo, plataforma, mensagem visível e se a admissão foi aprovada. Não publique convites, senhas de sala, tokens de sessão, históricos privados ou credenciais de provedores.
+
 ## Problemas de instalação e de inicialização
 
 ### Termux: memória insuficiente ao compilar o cliente
@@ -20,6 +34,12 @@ Se o Vite termina com `Reached heap limit` ou `JavaScript heap out of memory`, f
 O limite baseado na RAM é arredondado para baixo em passos de 128 MiB. Se a metade da RAM for menor que 1024 MiB, o piso de 1024 MiB tem prioridade.
 
 Feche outros aplicativos antes de tentar de novo. Dispositivos com pouca memória ainda podem falhar ou ter o processo encerrado pelo Android; guarde toda a saída do launcher para relatar o caso. Não exclua chats nem o perfil para corrigir uma falha de compilação.
+
+### Termux: arquivo do cliente convidado multijogador ausente ou Sharp incompatível
+
+Se a inicialização ainda informar que falta `packages/client/dist/multiplayer/guest.js` depois de recompilar, atualize o Engine e execute `./start-termux.sh` novamente. O inicializador agora executa a compilação completa do cliente com pouca memória, incluindo os arquivos do convidado verificados na inicialização. Não é preciso ativar o modo multijogador para corrigir esse erro de compilação.
+
+Se o processamento de imagens informar que o Sharp não pode ser carregado no Android, atualize o Engine e deixe o inicializador reinstalar as dependências. A alternativa correspondente `@img/sharp-wasm32` faz parte das dependências regulares, então instalações com versões fixadas e atualizações a mantêm. Evite substituí-la por uma versão incompatível do Sharp. Guarde a saída completa do erro se o problema persistir.
 
 ### Página em branco ou JavaScript servido como HTML depois de atualizar
 

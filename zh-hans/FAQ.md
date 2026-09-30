@@ -46,6 +46,14 @@ Android 上还可以[直接下载最新 APK](https://github.com/Pasta-Devs/Marin
 
 Android 包装应用会在应用内或浏览器中自动登录。在启动界面选择 **Open in browser**(在浏览器中打开)，然后点击 **Retry connection**(重试连接)；服务器停止时使用 **Install / Start Marinara**。这个选择会被记住。应用内的 **Settings > General > App Behavior > Open Android launcher (app or browser)**(设置 → 常规 → 应用行为 → 打开 Android 启动界面(应用或浏览器)) 可以返回选择界面。要使用自动认证并打开浏览器的功能，需要同时更新 APK 和 Engine。旧版 APK 仍可通过 `/android-login` 手动登录。本地 `mari` CLI 会自动读取启动脚本管理的密钥，手动安装的 Termux 则保留正常的 localhost 规则。
 
+<a id="can-i-play-with-other-people"></a>
+
+## 可以和别人一起玩吗？
+
+可选多人模式会创建全新的共享 Conversation、Roleplay 或 Game，会话没有固定的人类或 AI 角色数量上限。每位参与者先启用环境前提条件和独立的 Settings 开关，再用自己信任的客户端明确主持或加入。访客不需要 AI 密钥；房主控制生成和入场审批。Game 会等待所有必需玩家提交行动或明确跳过后再结算一轮。
+
+有密码不代表陌生房主安全。共享房间只接受文本，访客视图与文件、原生集成和本地 API 隔离。Android 原生封装不能加入。启用前请阅读[多人模式设置、警告和限制](CONFIGURATION.md#optional-multiplayer)。
+
 ## 三种聊天模式分别是什么？
 
 Marinara 有三种聊天模式，打开聊天列表时显示为三个选项卡：

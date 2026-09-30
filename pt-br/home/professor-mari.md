@@ -87,8 +87,12 @@ O card se chama **Review Mari's changes**. Ele mostra o que ela fez e quais dado
 
 Alguns pontos importantes:
 
-- Itens novos em folha, como um personagem ou um lorebook recém-criado, costumam pular essa etapa. Nada existente foi sobrescrito, então não há o que desfazer.
-- O card de revisão expira sozinho depois de 10 minutos se você não responder.
+- Itens novos, como um personagem ou lorebook recém-criado, também recebem um card. **Restore** os remove novamente.
+- O card pertence ao chat da Mari em que ela fez a alteração. Um chat novo começa sem os cards dos outros chats. Excluir um chat mantém suas alterações e remove seus cards. Uma alteração feita com o comando `mari` no terminal não pertence a nenhum chat, por isso seu card aparece em todos os chats da Mari.
+- O card permanece até você pressionar **Keep** ou **Restore**, por até 14 dias. Depois disso, ele fecha sozinho e a alteração é mantida.
+- Se **Restore** informar que os dados mudaram depois da alteração da Mari, algo os editou nesse intervalo e a restauração sobrescreveria essa versão mais recente. Pressione **Keep** para dispensar o card; os dados atuais permanecem como estão.
+- Uma edição que deixaria tudo igual não é salva e não recebe card.
+- Mari não pode editar nem excluir o próprio card de personagem. Marinara a redefine para a versão integrada a cada inicialização.
 - Personagens e personas também guardam o próprio histórico de versões dentro dos editores. Ali você restaura uma versão antiga, como uma segunda rede de proteção.
 
 Dois tipos de mudança de risco mais alto ficam esperando em vez de serem aplicados de cara:

@@ -15,7 +15,7 @@
 | **Generations** | 图像和视频的默认值，以及可复用的提示词模板。 |
 | **Addons** | Professor Mari 在沙箱里写的 Personal Extension 草稿、按需解锁的 External Extensions，还有自定义主题。 |
 | **Imports** | 恢复完整档案，以及从其他应用导入。 |
-| **Advanced** | 管理员访问、更新、消息工具、备份，以及有破坏性的重置操作。 |
+| **Advanced** | 管理员访问、可选功能开关、更新、消息工具、备份，以及有破坏性的重置操作。 |
 
 每个选项卡的详细说明分别在这些地方：
 
@@ -24,7 +24,7 @@
 - **Generations**：见[风格方案](../media/style-profiles.md)和[场景视频](../media/scene-video.md)。
 - **Addons**：见[个人扩展](../extending/personal-extensions.md)和[自定义 CSS 主题](../appearance/custom-css-themes.md)。
 - **Imports**：见[从 SillyTavern 导入](../data/importing-from-sillytavern.md)和[备份与恢复](../data/backup-and-restore.md)。
-- **Advanced**：见下面的 **Message Tools**(消息工具) 一节，以及[升级 Marinara Engine](../UPGRADING.md)、[远程访问](../REMOTE_ACCESS.md)和[清除或重置数据](../data/clearing-data.md)。
+- **Advanced**：见下面的 **Message Tools**(消息工具) 一节，以及[升级 Marinara Engine](../UPGRADING.md)、[远程访问](../REMOTE_ACCESS.md)和[清除或重置数据](../data/clearing-data.md)。 [功能开关](../configuration/features.md)。
 
 ## Settings 的 General 选项卡
 

@@ -70,6 +70,30 @@ Os rascunhos da Professor Mari continuam disponíveis sem essa opção. Eles nas
 
 O modo **Sandboxed Browser Extensions** (extensões de navegador isoladas) continua sendo o padrão. Alguns pacotes de terceiros mais antigos vêm marcados como **Full page access** (acesso total à página), porque dependem do DOM do Marinara. Nesse modo, o código aprovado roda exatamente como está dentro da página do Marinara e alcança o conteúdo da página, o armazenamento do navegador, as APIs de rede e a sessão atual de mesma origem. Ele só fica disponível para as External Extensions depois que as duas travas estão abertas e exige uma confirmação de aviso separada. Desative o modo e recarregue a página se a extensão deixar mudanças visuais ou de comportamento para trás.
 
+<a id="optional-multiplayer"></a>
+
+## Multijogador opcional
+
+O multijogador vem desativado. Enquanto qualquer uma das duas autorizações estiver desligada, não há verificações de sessões, certificados ou pares em segundo plano; o cliente consulta a disponibilidade uma vez, salvo atualização explícita de Settings. Há salas privadas em Conversation, Roleplay e Game sem limite fixo de humanos ou personagens de IA. Cada convidado usa sua própria instalação confiável do Marinara; um celular pode usar o servidor Engine confiável do seu dono. Convidados não precisam de conexão de IA. O anfitrião fornece as conexões e pode ler e guardar o conteúdo compartilhado.
+
+1. Defina `MULTIPLAYER_ENABLED=true` no `.env` de cada Engine participante e reinicie-o. Só o valor exato `true` ativa o pré-requisito; a recarga automática não o altera.
+2. Abra **Settings → Advanced → Multiplayer** (configurações → avançado → multijogador), leia o aviso e ative o ajuste separado. Isso não abre uma porta de escuta nem entra em uma sala.
+3. Para hospedar, use **Create shared session** (criar sessão compartilhada) ou **Play together** (jogar juntos) no fluxo existente de modo/configuração. Revise a configuração, seu nome de exibição e o texto exato da persona a compartilhar. Um chat existente fornece apenas seleções de configuração; seu histórico privado, notas e memórias não são copiados.
+4. Configure `SSL_CERT` e `SSL_KEY` no anfitrião com um certificado válido para o hostname da sala e confiável para o Engine convidado. Escolha um endereço HTTPS e uma porta separados, como `https://room.example.org:7861`. A ação explícita de hospedar abre essa porta. Exponha no firewall/roteador apenas a porta da sala, não a API normal do Engine. Encaminhamento de portas, conta de retransmissão ou desvios de certificado não são configurados automaticamente.
+5. Defina uma senha de sala com pelo menos 12 caracteres, diferente das credenciais do Engine/administrador. Compartilhe separadamente o convite com validade e a senha com pessoas confiáveis. O convidado revisa a impressão digital vinculada ao hostname, o nome da sala e o texto da persona no próprio cliente, consente e pede admissão. O anfitrião aprova cada pedido em **Players** (jogadores) antes de enviar qualquer histórico.
+
+TLS valida a cadeia do certificado e o hostname, além da impressão digital do certificado no convite, antes de enviar uma senha. Certificados autoassinados não são aceitos silenciosamente. Um certificado renovado ou alterado exige novo convite e revisão. Convites expiram em 30 minutos; sessões admitidas duram no máximo 12 horas. Substituir/revogar impede novas admissões por convites não usados; Kick revoga um participante admitido.
+
+O anfitrião controla respostas automáticas/manuais, um limite de geração, Pause/Resume e Stop. O padrão é de 100 turnos de geração coordenada por sessão hospedada; um turno de grupo ou a configuração de Game pode fazer várias chamadas ao modelo. É um limite de turnos, não uma estimativa de preço. Agendas de Conversation usam o agendador existente do anfitrião. Convidados nunca executam outro agendador nem comandos locais recebidos como texto.
+
+Em Game, revise o grupo humano admitido antes de Start Game. Cada humano necessário envia uma ação ou passa. O GM resolve só quando todos estão prontos. Um jogador desconectado continua necessário até voltar ou o anfitrião fazê-lo passar/removê-lo explicitamente. Novos jogadores e mudanças de persona valem na rodada seguinte. Resolução pausada/interrompida nunca repete automaticamente uma solicitação paga ou efeitos do mundo já gravados; confira o histórico antes de continuar.
+
+Stop, Leave, desativar Settings e reiniciar o servidor encerram a sessão ativa correspondente. Reiniciar nunca hospeda nem entra automaticamente. O servidor anfitrião é dono da sala; fechar seu navegador não transfere autoridade a um convidado. A suspensão de navegadores móveis pode atrasar atualizações, mas não causa outra geração.
+
+Conecte-se apenas a pessoas confiáveis. Use seu próprio cliente Marinara confiável; nunca instale cliente, extensão ou arquivo obrigatório fornecido pelo anfitrião. Ele pode ler e guardar o que você compartilha e enviar aos provedores de IA configurados. Conexões diretas revelam endereços de rede. Não compartilhe senhas, chaves de API ou informações pessoais sensíveis. Saia imediatamente se algo parecer suspeito.
+
+O conteúdo compartilhado é apenas texto de tamanho limitado. Não há transferência de arquivos/mídia entre pares, conteúdo executável, importação de pacotes, carregamento de recursos remotos ou ações nativas. Ferramentas personalizadas/de pacotes e comandos inseguros não estão disponíveis nas salas. O wrapper nativo Android não pode entrar. Consulte o [registro de compatibilidade e verificação](development/multiplayer.md) para restrições e plataformas testadas; os controles não garantem proteção contra toda vulnerabilidade de navegador/sistema operacional ou um download externo independente.
+
 ## Onde fica o arquivo .env
 
 A configuração fica em um arquivo chamado `.env`. É um arquivo de texto simples, com uma configuração por linha, no formato `KEY=value`. As linhas que começam com `#` são comentários e o servidor as ignora.
@@ -107,6 +131,7 @@ Um grupo pequeno de configurações de baixo nível fica travado no momento em q
 - `TZ`
 - `AUTO_OPEN_BROWSER`, `AUTO_UPDATE_ENABLED`, `AUTO_CREATE_DEFAULT_CONNECTION`
 - `LOG_DISABLE_REQUEST_LOGGING`
+- `STORAGE_CACHE_WINDOWS_BOOT_ID`, `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS`, `SHUTDOWN_FORCE_EXIT_ON_REPEAT`
 - As configurações de tempo limite e de consulta de imagem, vídeo, sprite e ComfyUI (`IMAGE_GEN_TIMEOUT_MS`, `VIDEO_GEN_TIMEOUT_MS`, `VIDEO_GEN_MAX_RESPONSE_BYTES`, `SPRITE_GENERATION_TIMEOUT_MS`, `SPRITE_ANIMATED_FFMPEG_TIMEOUT_MS`, `COMFYUI_GEN_TIMEOUT` e as quatro configurações `*_VIDEO_POLL_INTERVAL_MS`)
 
 Quando uma delas muda, o log avisa que o reinício é necessário. As configurações de controle de acesso e os segredos, como `BASIC_AUTH_USER`, `BASIC_AUTH_PASS`, `IP_ALLOWLIST`, `ADMIN_SECRET` e `CSRF_TRUSTED_ORIGINS`, não pedem reinício.
@@ -272,6 +297,12 @@ Ative só a opção de que você precisa para um serviço próprio hospedado em 
 
 Para conectar um modelo local ou hospedado por você, veja [Conectar um modelo local ou auto-hospedado](connections/local-self-hosted.md).
 
+<a id="feature-switches"></a>
+
+## Chaves de recursos
+
+Comportamentos opcionais do servidor, como repetir chamadas de provedor que falharam ou manter seleções estáveis de grupos do lorebook, são ativados em **Settings > Advanced > Features** (configurações > avançado > recursos). Todos vêm desligados. Alguns têm uma variável de ambiente que, quando definida, prevalece sobre a chave. Veja [Chaves de recursos](configuration/features.md) para cada opção, seu padrão e sua variável.
+
 ## Referência completa das variáveis de ambiente
 
 Esta seção lista as configurações restantes, agrupadas por finalidade. As tabelas anteriores já cobrem controle de acesso, armazenamento, log, tempos limite, ações privilegiadas e liberação de endereços locais.
@@ -319,6 +350,36 @@ Os provedores de vídeo de cena são configurados como conexões dentro do aplic
 | `SEEDANCE_VIDEO_POLL_INTERVAL_MS` | `10000` | De quanto em quanto tempo o servidor consulta uma tarefa do Seedance. |
 | `VIDEO_REFERENCE_PUBLIC_BASE_URL` | vazio | Endereço HTTPS público deste servidor, usado quando um provedor precisa buscar uma imagem de referência por URL. |
 
+<a id="lorebooks"></a>
+
+### Lorebooks
+
+Ambos os ajustes vêm desligados e valem na próxima geração após mudar `.env`. `LOREBOOK_STABLE_GROUP_WINNERS` fixa **Stable lorebook picks** em Settings > Advanced > Features: quando definida, prevalece; quando ausente, a chave decide (veja [Chaves de recursos](configuration/features.md)).
+
+| Variável | Padrão | Efeito |
+| --- | --- | --- |
+| `LOREBOOK_STABLE_GROUP_WINNERS` | `false` | Mantém o mesmo vencedor do grupo de inclusão de lorebook por chat enquanto os candidatos correspondentes não mudarem, em vez de sortear a cada geração. Mantém o prefixo do prompt estável para o cache do provedor. |
+| `LOREBOOK_COMPACT_STORED_SCANS` | `false` | Guarda o texto completo das entradas ativadas apenas na mensagem mais recente do assistente ou narrador (sua linha e seus swipes; um turno que personifica o usuário não a substitui). Mensagens antigas mantêm IDs, chaves e pontuações, reduzindo muito chats com lorebooks grandes no disco e na memória. Se mensagens novas forem apagadas, Active Context e novas tentativas de agentes mostram o texto atual salvo da entrada para a mensagem que volta a ser a mais recente. |
+
+`scripts/compact-lorebook-scans.mjs` aplica a mesma regra aos chats salvos antes da ativação. Pare o servidor primeiro; é apenas uma simulação sem `--apply`, e há backup das duas tabelas de mensagens antes da escrita.
+
+<a id="robustness"></a>
+
+### Robustez
+
+Todos estes ajustes vêm desligados para preservar o comportamento anterior, e cada um funciona de forma independente. `STORAGE_CACHE_WINDOWS_BOOT_ID`, `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS` e `SHUTDOWN_FORCE_EXIT_ON_REPEAT` são lidos na inicialização e exigem reinício; os demais valem na próxima solicitação, gravação ou parada após mudar `.env`. `PROVIDER_RETRY_TRANSIENT_ERRORS` fixa **Retry failed provider calls** em Settings > Advanced > Features: definida, prevalece; ausente, a chave decide (veja [Chaves de recursos](configuration/features.md)).
+
+| Variável | Padrão | Efeito |
+| --- | --- | --- |
+| `PROVIDER_RETRY_TRANSIENT_ERRORS` | `false` | Repete conexão recusada/inacessível ou erro de gateway 502/503 até duas vezes após breve espera aleatória (máximo 5 s, mesmo se o gateway pedir mais), somente antes de chegar texto. Nunca repete 504 ou conexão interrompida. Se houver fallback, ele é tentado imediatamente em vez disso. Timeout de conexão conta como inacessível: um host que falha devagar pode atrasar a exibição do erro em cerca de 20 s extras. |
+| `STORAGE_SKIP_UNCHANGED_WRITES` | `false` | Evita reescrever um arquivo de chat ou `manifest.json` quando o conteúdo é igual ao último gravado por este servidor e o arquivo no disco não mudou. Arquivo recém-restaurado de `.bak` sempre é reescrito. |
+| `STORAGE_YIELDING_SERIALIZE` | `false` | Prepara arquivos grandes de chat para salvar em fatias curtas, evitando que salvar um chat muito longo pause outras solicitações e streams. Os bytes gravados são iguais. |
+| `STORAGE_CACHE_WINDOWS_BOOT_ID` | `false` | Somente Windows. Memoriza até a próxima reinicialização do sistema a verificação do horário de boot feita pelo bloqueio de armazenamento a cada início (cerca de 1,5 a 2 s de PowerShell), em `.writer-boot-id.json` dentro de `DATA_DIR`. |
+| `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS` | `false` | Somente Windows. Ctrl+Break e fechar a janela de console também param o servidor corretamente, gravando salvamentos pendentes, em vez de encerrá-lo imediatamente. O fechamento do console usa prazos menores para caber nos cerca de 5 s permitidos pelo Windows. |
+| `SHUTDOWN_FORCE_EXIT_ON_REPEAT` | `false` | Pressionar Ctrl+C (ou Ctrl+Break) novamente mais de 1,5 s após a primeira vez encerra o servidor imediatamente. Gravações pendentes podem ser perdidas. Sem isso, repetições são ignoradas e vale o limite normal de encerramento de 8 s. |
+| `SHUTDOWN_EARLY_FLUSH` | `false` | Começa a gravar salvamentos pendentes assim que chega um sinal de parada (Ctrl+C, SIGTERM), enquanto conexões ainda estão fechando. O reinício em Advanced Settings não usa isso. |
+| `SHUTDOWN_RUNTIME_STOP_BUDGET_MS` | `0` | Quanto um sinal de parada espera por runtimes em segundo plano (pacotes de capacidades, extensões, sidecar) antes de fechar o armazenamento mesmo assim. O reinício em Advanced Settings continua esperando todos. `0` espera todos, como antes. Máximo `2500`, para fechar o armazenamento dentro do limite de 8 s. |
+
 ### Integrações e extras
 
 | Variável | Padrão | O que faz |
@@ -338,6 +399,7 @@ Sobre a chave do Giphy, vale lembrar: a busca de GIFs fica indisponível até vo
 
 ## Guias relacionados
 
+- [Chaves de recursos](configuration/features.md)
 - [Acesso remoto: Basic Auth e lista de IPs permitidos](REMOTE_ACCESS.md)
 - [Onde Marinara salva os seus dados](data/where-data-is-stored.md)
 - [Conectando a um provedor de IA](connections/connecting-to-a-provider.md)

@@ -550,6 +550,38 @@ API 1.26 添加可选 `combat`，定义掷骰、目标、行动预算、攻击�
 
 如果世界必须在首个回合前准备完毕，请独立使用现有的启动就绪声明。将 API 1.18 声明为包的最低要求；旧宿主无法理解此设置声明。
 
+<a id="capability-api-150-professor-mari-actions"></a>
+
+### Capability API 1.50：Professor Mari 操作
+
+拥有新权限 `mari-actions` 的包可以向 Professor Mari 提供命名操作。它以自己的 ID 注册一个服务；Mari 的 `package_service` 工具列出所有操作，并在用户要求时执行其中一个。
+
+```ts
+export async function activate({ api }) {
+  api.registerService("mari-actions:my-package", {
+    list: () => [
+      { name: "add-idea", summary: "Give a Creator an idea for a post.", inputs: { accountId: "The Creator.", text: "The idea." } },
+    ],
+    run: async (name, input, { signal }) => {
+      const parsed = schemas[name]?.safeParse(input);
+      if (!parsed?.success) return { ok: false, status: 400, error: "Invalid input." };
+      return { ok: true, value: await doIt(name, parsed.data, signal) };
+    },
+  });
+}
+```
+
+重要规则：
+
+- 键必须是注册包自身的 `mari-actions:<package-id>`。缺少权限或使用其他包的 ID 注册会抛错，确保 Mari 执行的操作始终属于它所指的包。
+- `list()` 返回 `{ name, summary?, inputs? }` 条目。名称由 1 至 80 个字母、数字、`.`、`_` 或 `-` 组成；其他条目不显示。Mari 会读取 `summary` 和 `inputs`，请用清楚的文字编写。仅前 50 个操作可见或可执行；每个操作最多向 Mari 展示 40 个输入，输入名截为 80 个字符，每段文本截为 300 个字符。`list()` 必须在 5 秒内返回，否则略过该包的操作。
+- `run(name, input, { signal })` 只会接收列表中的名称和不超过 64,000 字符的普通 JSON 对象。输入来自模型，执行前须用自己的 schema 验证。返回 `{ ok: true, value }` 或 `{ ok: false, status?, error }`；Mari 只看错误文本的前 2,000 个字符。用户停止 Mari 或经过 5 分钟后，`signal` 会中止；Engine 此时不再等待，因此也应停止工作。
+- Engine 在 Mari 读取前省略 `value` 中的数据 URL，并截断长回复。应返回 ID 和短文本，而不是文件。
+- 列表查询是只读的。每次执行在 Mari 的 Permissions Mode 中都算变更：Plan 拒绝，Manual 等待用户 Accept。Engine 无法预览或撤销包操作，所以不显示 Keep/Restore 卡片。难以恢复的变更应提供自己的撤销操作。因此，Plan 也会拒绝只读操作。
+- 停用或移除包会移除其操作。
+
+声明的 `capabilityApi` 早于 1.50 时，清单中的 `mari-actions` 会被拒绝。
+
 ### Capability API 1.36：包成就
 
 拥有新增 `achievements` 权限的包可以向主页的 **Achievements**(成就) 面板添加徽章、读取解锁状态，以及解锁徽章。面板会在 Engine 自身的徽章之后，用以包名称为标题的区块显示它们。
@@ -582,6 +614,56 @@ export async function activate({ api }) {
 - 停用或移除包会隐藏其徽章。与 Engine 自身的徽章一样，解锁记录会保留，并在包恢复后再次显示。
 
 `api.registerAchievements` 和 `api.runtime.achievements` 只存在于支持这一新版 API 的 Engine 中，因此使用它们的包需声明 `capabilityApi` 1.36。
+
+<a id="capability-api-135-agent-home-widgets"></a>
+
+### Capability API 1.35：智能体 Home 小组件
+
+智能体包可为 Home 小组件网格提供最多三张卡片。Engine 不会自行放置；用户在 **Widget Manager**(小组件管理器) 中添加、隐藏、恢复和排序，卡片按智能体分组。Engine 管理网格、边框和布局，包负责卡片内部。
+
+将 `home-widget` 插槽与小组件定义一起声明：
+
+```json
+{
+  "schemaVersion": 2,
+  "capabilityApi": { "major": 1, "minor": 35 },
+  "kind": ["agent"],
+  "permissions": ["ui"],
+  "entrypoints": { "client": "client.js" },
+  "contributions": {
+    "slots": ["home-widget"],
+    "homeWidgets": [
+      {
+        "id": "latest",
+        "label": "Latest Posts",
+        "description": "The newest posts from the feed.",
+        "size": "large",
+        "iconPath": "art/widget.png",
+        "accent": "violet",
+        "surface": "solid",
+        "header": "banner"
+      }
+    ]
+  }
+}
+```
+
+- `id` 使用小写 kebab-case，最多 64 个字符，在包内唯一。
+- `label`（1–80 字符）和 `description`（最多 200 字符）是 Widget Manager 的文本。语言包可通过 `localizations.<locale>.homeWidgets.<id>.label` 和 `.description` 覆盖。
+- `size` 为 `compact` 或 `large`。大型小组件占更多网格空间。
+- `icon` 是 Engine 图标名之一（`activity`、`bell`、`calendar`、`chart`、`circle`、`clock`、`file`、`flame`、`heart`、`image`、`list`、`message`、`sparkles`、`star`、`zap`）。`iconPath` 是包图片（`gif`、`jpg`、`jpeg`、`png`、`webp`），必须列入 `files[]`。
+- `accent`、`surface` 和 `header` 从 Engine 的显示预设中选择。
+
+如果包不是具有 `ui` 权限和客户端入口的 `agent`、插槽与 `homeWidgets` 未一起声明、两个组件共用 ID，或 `capabilityApi` 早于 1.35，安装会被拒绝。
+
+Engine 用 `view="widget"` 挂载包的客户端元素。除常见的 `packageId`、`packageVersion` 和 `localization` 外，`capabilityProps` 还包含：
+
+- `widgetId`、`widgetLabel`、`widgetDescription`、`widgetIcon`、`widgetIconPath`、`widgetAccent`、`widgetSurface` 和 `widgetHeader`：正在绘制的卡片定义，使一个 bundle 能绘制其全部组件。
+- `active`：仅当 Home 显示且卡片可见时为 `true`。为 `false` 时暂停轮询和动画。
+- `onOpenNoodle()`：打开包自己的 Home 浏览器标签页。虽然名称如此，但适用于所有声明了 `home-browser-tab` 插槽的包。没有该标签页时，它与 `onOpenPost` 都不执行任何动作。
+- `onOpenPost(id)`：打开包自己的 Home 标签页并定位一项。`id` 是最多 128 字符的字符串；其他值忽略。标签页的 `view="browser"` 元素随后收到 `focusPostId: id`。显示该项后应调用 `onFocusPostHandled()`，避免重复聚焦。切换到其他标签页会丢弃待处理的聚焦。
+
+小组件是智能体的小视图，不是第二个副本。保持轻量，更大的操作引导用户进入浏览器标签页。
 
 ### Capability API 1.34：按规则集自身术语编写生物
 

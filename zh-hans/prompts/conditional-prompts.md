@@ -329,8 +329,8 @@ Describe the new weather in a sentence.
 
 1. 在 **Decision model** 下选择模型并点击 **Test**(测试)。这使用固定样本检查连接，不会测试你的陈述或读取当前聊天。
 2. 把陈述加入提示词，发送有代表性的聊天消息，既包括应为真的情况，也包括应为假的情况。
-3. 用 **Peek Prompt** 检查发出的分支。如果需要陈述的概率和是/否结果，启用[调试日志](../CONFIGURATION.md#logging-levels)。
-4. 调整措辞后重测。测试新案例时要用新消息或修改陈述，因为成功答案可能会[复用](#answer-reuse)。打开新的 Peek Prompt 预览不会询问模型。
+3. 使用 **Peek Prompt** 检查已发送的分支。打开 **Decision diagnostics**(决策诊断) 预览当前决策输入，再选择 **Test decisions**(测试决策)，即可获得新的分数并检查生成的提示词，无需生成回复。托管测试可能收费。详见[测试 Decision 语句](../chats/peek-prompt.md#testing-decision-statements)。
+4. 调整措辞并再次测试。正常生成可能[复用答案](#answer-reuse)；明确执行的决策测试会将答案与实际聊天分开保存。打开 Peek Prompt 或预览输入不会调用模型。要检查实际生成时的结果，请启用 Debug Mode 或[调试日志](../CONFIGURATION.md#logging-levels)。
 
 关于测试结果：每种措辞都在 Open-Jev 2B、Open-Jev 9B 和 Gemma 4 E4B 本地模型上，用四个带标签的角色扮演回合测试（两个应为是，两个应为否）。这只是一个场景的小样本，不是通用准确度基准，也不是托管 Jev 的测试。表格记录样本中的观察，不保证其他模型或聊天得到相同结果。
 
@@ -373,7 +373,7 @@ Describe the new weather in a sentence.
 
 本地聊天模型增加的是处理时间，而非托管费用。它用每个选项一个是/否问题回答 `decision_choice:`，因此一次选择可能需要多次补全。
 
-每个请求都有[时限](../connections/decision-models.md#time-limits)：Decision 连接默认 1.5 秒，本地后端使用自己的预算。多个请求可能累计出更长等待。必须先推理的本地模型会暂缓回复前的判定，除非开启 **Also gate agents that run before the reply**(也判定回复前运行的智能体)。
+每个请求都有[时限](../connections/decision-models.md#time-limits)：Decision 连接默认 1.5 秒（兼容 OpenAI 的聊天模型连接为 4 秒），本地后端使用自己的预算。多个请求可能累计出更长等待。必须先推理的本地模型会暂缓回复前的判定，除非开启 **Also gate agents that run before the reply**(也判定回复前运行的智能体)。
 
 <a id="answer-reuse"></a>
 

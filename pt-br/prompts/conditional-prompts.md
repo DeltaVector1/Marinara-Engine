@@ -329,8 +329,8 @@ Para testar a redação:
 
 1. Selecione um modelo em **Decision model** e clique em **Test** (testar). Isso verifica a conexão com uma amostra fixa; não testa sua declaração nem lê o chat atual.
 2. Adicione a declaração ao prompt e envie mensagens representativas: algumas em que ela deve ser verdadeira e outras em que deve ser falsa.
-3. Use **Peek Prompt** para inspecionar o ramo enviado. Para ver a probabilidade e o resultado sim/não, ative os [logs de depuração](../CONFIGURATION.md#logging-levels).
-4. Ajuste a redação e teste novamente. Use novas mensagens ou altere a declaração para testar um novo caso: respostas bem-sucedidas podem ser [reutilizadas](#answer-reuse). Abrir uma nova prévia de Peek Prompt não consulta o modelo.
+3. Use **Peek Prompt** para inspecionar o ramo enviado. Abra **Decision diagnostics** (diagnóstico de decisões) para visualizar as entradas atuais e escolha **Test decisions** (testar decisões) para obter novas pontuações e inspecionar o prompt resultante sem gerar uma resposta. Testes hospedados podem gerar cobranças. Veja [Como testar declarações de decisão](../chats/peek-prompt.md#testing-decision-statements).
+4. Ajuste o texto e teste novamente. Gerações normais podem [reutilizar respostas](#answer-reuse); um teste explícito de decisões mantém suas respostas separadas do chat em andamento. Abrir Peek Prompt ou visualizar entradas não consulta o modelo. Para inspecionar os resultados das gerações em andamento, ative Debug Mode ou os [logs de depuração](../CONFIGURATION.md#logging-levels).
 
 O que os testes mostraram. Cada redação foi testada em quatro turnos de Roleplay rotulados (dois esperados como sim e dois como não) com Open-Jev 2B, Open-Jev 9B e um modelo local Gemma 4 E4B. É uma amostra pequena de uma cena, não uma avaliação geral de precisão nem um teste do Jev hospedado. A tabela registra observações dessa amostra, sem prometer o mesmo resultado com outro modelo ou chat.
 
@@ -373,7 +373,7 @@ Um turno pode fazer várias solicitações cobradas em uma conexão Decision hos
 
 Um modelo de chat local acrescenta processamento em vez de cobranças hospedadas. Responde a `decision_choice:` com uma pergunta sim/não por opção; uma escolha pode exigir várias gerações.
 
-Cada solicitação tem um [tempo limite](../connections/decision-models.md#time-limits): 1,5 segundo por padrão para uma conexão Decision, ou o orçamento do backend local. Várias solicitações podem somar uma espera maior. Um modelo local que precisa raciocinar antes se abstém antes da resposta, salvo se você ativar **Also gate agents that run before the reply** (avaliar também agentes que rodam antes da resposta).
+Cada solicitação tem um [tempo limite](../connections/decision-models.md#time-limits): 1,5 segundo por padrão para uma conexão Decision (4 para uma conexão de modelo de chat compatível com OpenAI), ou o orçamento do backend local. Várias solicitações podem somar uma espera maior. Um modelo local que precisa raciocinar antes se abstém antes da resposta, salvo se você ativar **Also gate agents that run before the reply** (avaliar também agentes que rodam antes da resposta).
 
 <a id="answer-reuse"></a>
 

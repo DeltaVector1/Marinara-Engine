@@ -37,7 +37,7 @@ A का प्रत्येक हिस्सा मौजूदा व्�
 
 <a id="a1-test-harness-each-regression-file-runs-in-its-own-data-folder"></a>
 
-## A1. टेस्ट व्यवस्था: हर regression फ़ाइल की अलग डेटा फ़ोल्डर
+## A1. टेस्ट व्यवस्था: हर regression फ़ाइल के लिए अलग डेटा फ़ोल्डर
 
 **मौजूदा व्यवस्था।** `scripts/run-regressions.mjs` सभी regression खोजकर `runRegression()` से एक-एक चलाता है और समय सीमा व संकेत संभालता है (`terminateActiveChild`, `releaseActiveChild`, `FILE_TIMEOUT_MS`)। हर child process को डेवलपर का पूरा `process.env` मिलता है। सर्वर पहले से `MARINARA_ENV_FILE` द्वारा `.env` का स्थान बदल सकता है (`packages/server/src/config/runtime-config.ts` में `getEnvFilePath()`); `e2e/start-servers.mjs` भी इसी तरह अलग करता है।
 
