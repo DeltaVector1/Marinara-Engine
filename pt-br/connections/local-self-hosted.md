@@ -85,10 +85,13 @@ O editor de conexão tem o cartão **Connection Tests** (testes de conexão) na 
 
 Se os dois testes passarem, o modelo local está pronto para uso em um chat. Abra um chat, abra as configurações dele e escolha esta conexão.
 
+O mesmo modelo também pode responder decisões, como perguntas de ativação de agentes, sem que Marinara carregue uma segunda cópia. Clique em **Use this model for decisions** (usar este modelo para decisões) nas configurações da conexão; veja [Modelos de decisão](decision-models.md#on-a-server-you-already-run).
+
 Se um teste falhar, confira primeiro se o servidor local continua rodando e se o modelo está carregado. Depois, confira se o campo **Base URL** bate exatamente com o endereço e a porta do servidor. No caso de um servidor em outro computador, confirme se a variável `PROVIDER_LOCAL_URLS_ENABLED` está definida e se você reiniciou o servidor Marinara.
 
 ## Guias relacionados
 
 - [Conectando a um provedor de IA](connecting-to-a-provider.md)
 - [Como configurar o Local Model](local-model.md)
+- [Modelos de decisão](decision-models.md)
 - [Referência de configuração do servidor](../CONFIGURATION.md)

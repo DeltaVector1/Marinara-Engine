@@ -99,6 +99,16 @@ Komenda to `[whisper: character="name" text="the secret"]`. Wskaż dokładnie je
 
 Szept pozostaje w swoim miejscu wiadomości. Szepty do twojej persony widać od razu; inne odczytasz przez **Reveal a secret** (ujawnij sekret). Ujawnienie zmienia tylko ekran, nie wiedzę postaci. Sekrety podążają za wiadomością i aktywnym swipe'em oraz znikają z promptu po ukryciu wiadomości lub wyjściu poza wybraną historię.
 
+Gdy szept jest już widoczny, wybierz **Edit whisper** (edytuj szept), zmień tekst, a następnie **Save** (zapisz). Poprawka pozostaje przy swipe'ie tej wiadomości i jest używana w kolejnych promptach dla pierwotnego odbiorcy oraz narratora. **Cancel** (anuluj) pozostawia tekst bez zmian.
+
+Możesz też wpisać `[whisper: character="name" text="the secret"]` we własnej wiadomości Roleplay, aby wyszeptać coś jednej postaci w czacie. Własne szepty widzisz od razu. Działa to w zwykłych czatach, bez włączania trybu wieloosobowego.
+
+### Twoje prywatne notatki
+
+Przy włączonym **Personal Notes** w **Roleplay Commands** wpisz `[notes: content="your private note"]` we własnej wiadomości. Te notatki należą do ciebie i trafiają wyłącznie do wyznaczonego narratora, nie do zwykłych postaci ani wspólnych agentów. Edytuj je lub usuwaj w szczegółach poleceń wiadomości.
+
+Narrator przestaje też otrzymywać notatki postaci, gdy jest ona wyłączona lub usunięta z grupy. Wyłączenie nie usuwa zapisanych notatek; ponowne włączenie postaci znów je udostępnia.
+
 ## Przerywanie wypowiedzi i działań
 
 W sekcji **Chat Settings → Agents → Roleplay Commands** włącz **Interruptions** (przerywanie), aby postacie mogły przerwać ostatnią wiadomość, gdy słowna lub fizyczna interwencja jest wiarygodna. Opcja jest domyślnie wyłączona i nie wymaga pobieranego agenta.

@@ -561,6 +561,38 @@ difficulty?, onSuccess: "none" | "half" } }` है: अलग रोल और 
 
 1.20–1.27 की तरह यह सॉफ़्ट इंटरफ़ेस नहीं है: अनजान कुंजियाँ पूरी नियम फ़ाइल या दो दूरी वाले जीव का कैटलॉग अस्वीकार कराती हैं। इंस्टॉल सत्यापित `ruleset.json` और सभी घोषित `catalogs/<id>.json` के बाइट पढ़कर पुरानी घोषणा अस्वीकार करता है। दूरी के बिना नियमसेट पहले जैसा चलता है।
 
+<a id="capability-api-150-professor-mari-actions"></a>
+
+### Capability API 1.50: Professor Mari की कार्रवाइयाँ
+
+नया `mari-actions` अधिकार रखने वाला पैकेज Professor Mari को नाम वाली कार्रवाइयाँ दे सकता है। वह अपनी ID के तहत एक सेवा रजिस्टर करता है; Mari का `package_service` टूल सभी कार्रवाइयाँ दिखाता और उपयोगकर्ता के कहने पर एक चलाता है।
+
+```ts
+export async function activate({ api }) {
+  api.registerService("mari-actions:my-package", {
+    list: () => [
+      { name: "add-idea", summary: "Give a Creator an idea for a post.", inputs: { accountId: "The Creator.", text: "The idea." } },
+    ],
+    run: async (name, input, { signal }) => {
+      const parsed = schemas[name]?.safeParse(input);
+      if (!parsed?.success) return { ok: false, status: 400, error: "Invalid input." };
+      return { ok: true, value: await doIt(name, parsed.data, signal) };
+    },
+  });
+}
+```
+
+ज़रूरी नियम:
+
+- कुंजी रजिस्टर करने वाले पैकेज की `mari-actions:<package-id>` होनी चाहिए। अधिकार न हो या दूसरे पैकेज की ID हो तो रजिस्ट्रेशन त्रुटि देता है, इसलिए Mari की चलाई कार्रवाई हमेशा बताए पैकेज की होती है।
+- `list()`, `{ name, summary?, inputs? }` एंट्री लौटाता है। नाम 1 से 80 अक्षर, अंक, `.`, `_` या `-` के होते हैं; दूसरी एंट्री नहीं दिखतीं। Mari `summary` और `inputs` पढ़ती है, इसलिए साफ़ भाषा में लिखें। केवल पहली 50 कार्रवाइयाँ दिख या चल सकती हैं। Mari प्रति कार्रवाई अधिकतम 40 इनपुट देखती है; इनपुट नाम 80 अक्षर और हर टेक्स्ट 300 अक्षर पर कटता है। `list()` को 5 सेकंड में जवाब देना होगा, नहीं तो पैकेज की कार्रवाइयाँ छोड़ दी जाती हैं।
+- `run(name, input, { signal })` केवल सूची के नाम और अधिकतम 64,000 अक्षर के सामान्य JSON ऑब्जेक्ट से बुलाया जाता है। इनपुट मॉडल से आता है: कुछ करने से पहले अपने स्कीमा से जाँचें। `{ ok: true, value }` या `{ ok: false, status?, error }` लौटाएँ; Mari त्रुटि के पहले 2,000 अक्षर देखती है। उपयोगकर्ता Mari रोके या 5 मिनट बीतें तो `signal` रद्द होता है; Engine इंतज़ार छोड़ देता है, इसलिए अपना काम भी रोकें।
+- Engine, Mari के पढ़ने से पहले `value` के डेटा URL छिपाता और लंबे जवाब काटता है। ID और छोटा टेक्स्ट लौटाएँ, फ़ाइल नहीं।
+- सूची केवल पढ़ती है। हर रन Mari के Permissions Mode में बदलाव है: Plan मना करता है, Manual उपयोगकर्ता के Accept की प्रतीक्षा करता है। Engine पैकेज कार्रवाई का प्रीव्यू या उसे पूर्ववत नहीं कर सकता, इसलिए Keep/Restore कार्ड नहीं आता। बदलाव वापस लेना कठिन हो तो अपनी undo कार्रवाई दें। इसी कारण Plan केवल पढ़ने वाली कार्रवाइयाँ भी मना करता है।
+- पैकेज बंद या हटाने से उसकी कार्रवाइयाँ हटती हैं।
+
+1.50 से पुरानी `capabilityApi` घोषित करने वाले मैनिफ़ेस्ट में `mari-actions` अस्वीकार होता है।
+
 ### Capability API 1.36: पैकेज के अचीवमेंट
 
 नई `achievements` परमिशन वाला पैकेज Home स्क्रीन के **Achievements** (अचीवमेंट) पैनल में बैज जोड़ सकता है, उनका अनलॉक होना जाँच सकता है और उन्हें अनलॉक कर सकता है। पैनल उन्हें Engine के अपने बैज के बाद, पैकेज के नाम वाले सेक्शन में दिखाता है।
@@ -593,6 +625,56 @@ export async function activate({ api }) {
 - पैकेज निष्क्रिय करने या हटाने पर उसके बैज छिप जाते हैं। Engine के अपने बैज की तरह, अनलॉक रिकॉर्ड रखे जाते हैं और पैकेज लौटने पर फिर दिखते हैं।
 
 `api.registerAchievements` और `api.runtime.achievements` इतने नए Engine में ही मौजूद हैं, इसलिए इन्हें इस्तेमाल करने वाला पैकेज `capabilityApi` 1.36 घोषित करता है।
+
+<a id="capability-api-135-agent-home-widgets"></a>
+
+### Capability API 1.35: एजेंट के Home विजेट
+
+एजेंट पैकेज Home विजेट ग्रिड के लिए अधिकतम तीन कार्ड दे सकता है। Engine खुद उन्हें नहीं रखता: उपयोगकर्ता **Widget Manager** (विजेट प्रबंधक) में जोड़ता, छिपाता, बहाल करता और क्रम बदलता है, जहाँ वे एजेंट के नीचे समूह में हैं। ग्रिड, फ़्रेम और लेआउट Engine के हैं; कार्ड के भीतर का हिस्सा पैकेज का है।
+
+`home-widget` स्लॉट और विजेट परिभाषाएँ साथ घोषित करें:
+
+```json
+{
+  "schemaVersion": 2,
+  "capabilityApi": { "major": 1, "minor": 35 },
+  "kind": ["agent"],
+  "permissions": ["ui"],
+  "entrypoints": { "client": "client.js" },
+  "contributions": {
+    "slots": ["home-widget"],
+    "homeWidgets": [
+      {
+        "id": "latest",
+        "label": "Latest Posts",
+        "description": "The newest posts from the feed.",
+        "size": "large",
+        "iconPath": "art/widget.png",
+        "accent": "violet",
+        "surface": "solid",
+        "header": "banner"
+      }
+    ]
+  }
+}
+```
+
+- `id` छोटे अक्षरों वाला kebab-case है, अधिकतम 64 अक्षर और पैकेज में अद्वितीय।
+- `label` (1–80 अक्षर) और `description` (अधिकतम 200) Widget Manager का टेक्स्ट हैं। भाषा पैक `localizations.<locale>.homeWidgets.<id>.label` और `.description` से बदल सकता है।
+- `size`, `compact` या `large` है। बड़ा विजेट ग्रिड में अधिक जगह लेता है।
+- `icon` Engine का आइकन नाम है (`activity`, `bell`, `calendar`, `chart`, `circle`, `clock`, `file`, `flame`, `heart`, `image`, `list`, `message`, `sparkles`, `star`, `zap`)। `iconPath` पैकेज की कला है (`gif`, `jpg`, `jpeg`, `png`, `webp`) और `files[]` में होनी चाहिए।
+- `accent`, `surface` और `header` Engine के प्रस्तुति प्रीसेट चुनते हैं।
+
+इंस्टॉल अस्वीकार होता है अगर पैकेज `ui` अधिकार और क्लाइंट एंट्रीपॉइंट वाला `agent` नहीं है, स्लॉट और `homeWidgets` साथ घोषित नहीं हैं, दो विजेट की ID समान है, या `capabilityApi` 1.35 से पुरानी है।
+
+Engine पैकेज के क्लाइंट एलिमेंट को `view="widget"` से माउंट करता है। सामान्य `packageId`, `packageVersion` और `localization` के अलावा `capabilityProps` में हैं:
+
+- `widgetId`, `widgetLabel`, `widgetDescription`, `widgetIcon`, `widgetIconPath`, `widgetAccent`, `widgetSurface` और `widgetHeader`: दिखाए कार्ड की परिभाषा, ताकि एक बंडल अपने सभी विजेट दिखा सके।
+- `active`: केवल Home खुला और कार्ड दिखता हो तो `true`। `false` होने पर पोलिंग और एनीमेशन रोकें।
+- `onOpenNoodle()`: पैकेज का अपना Home ब्राउज़र टैब खोलता है। नाम के बावजूद हर ऐसे पैकेज में काम करता है जो `home-browser-tab` स्लॉट भी घोषित करे। टैब न हो तो यह और `onOpenPost` कुछ नहीं करते।
+- `onOpenPost(id)`: अपने Home टैब में एक आइटम खोलता है। `id` अधिकतम 128 अक्षर की स्ट्रिंग है; बाकी अनदेखा होता है। टैब के `view="browser"` एलिमेंट को `focusPostId: id` मिलता है। आइटम दिखाने के बाद `onFocusPostHandled()` बुलाना चाहिए ताकि फ़ोकस फिर न दोहरे। दूसरे टैब पर जाने से लंबित फ़ोकस हटता है।
+
+विजेट एजेंट का छोटा व्यू है, दूसरी प्रति नहीं। हल्का रखें और बड़े काम के लिए उपयोगकर्ता को ब्राउज़र टैब पर भेजें।
 
 ### Capability API 1.34: नियमसेट के नियमों में लिखा जीव
 

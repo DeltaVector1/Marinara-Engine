@@ -15,7 +15,7 @@ Panel ma sześć zakładek. Poniższa tabela pokazuje, za co odpowiada każda z 
 | **Generations** | Domyślne ustawienia obrazów i wideo oraz gotowe szablony promptów. |
 | **Addons** | Szkice Personal Extension asystentki Professor Mari w piaskownicy, opcjonalnie odblokowane External Extensions oraz własne motywy. |
 | **Imports** | Przywracanie pełnych profili i import z innych aplikacji. |
-| **Advanced** | Dostęp administracyjny, aktualizacje, narzędzia wiadomości, kopie zapasowe i nieodwracalne resety. |
+| **Advanced** | Dostęp administracyjny, przełączniki opcjonalnych funkcji, aktualizacje, narzędzia wiadomości, kopie zapasowe i nieodwracalne resety. |
 
 Tutaj przeczytasz więcej o każdej zakładce:
 
@@ -24,7 +24,7 @@ Tutaj przeczytasz więcej o każdej zakładce:
 - **Generations**: zobacz [Profile stylu obrazów](../media/style-profiles.md) i [Generowanie wideo sceny](../media/scene-video.md).
 - **Addons**: zobacz [Rozszerzenia osobiste](../extending/personal-extensions.md) i [Własne motywy CSS](../appearance/custom-css-themes.md).
 - **Imports**: zobacz [Importowanie z SillyTavern](../data/importing-from-sillytavern.md) i [Kopia zapasowa i przywracanie](../data/backup-and-restore.md).
-- **Advanced**: zobacz sekcję **Message Tools** poniżej, a także [Aktualizacja aplikacji Marinara Engine](../UPGRADING.md), [Dostęp zdalny](../REMOTE_ACCESS.md) i [Czyszczenie i resetowanie danych](../data/clearing-data.md).
+- **Advanced**: zobacz sekcję **Message Tools** poniżej, a także [Aktualizacja aplikacji Marinara Engine](../UPGRADING.md), [Dostęp zdalny](../REMOTE_ACCESS.md) i [Czyszczenie i resetowanie danych](../data/clearing-data.md). [Przełączniki funkcji](../configuration/features.md).
 
 ## Ustawienia, zakładka General
 

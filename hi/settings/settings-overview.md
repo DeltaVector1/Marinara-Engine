@@ -15,7 +15,7 @@
 | **Generations** | इमेज और वीडियो की डिफ़ॉल्ट सेटिंग्स, और बार-बार इस्तेमाल होने वाले प्रॉम्प्ट टेम्पलेट। |
 | **Addons** | Professor Mari के सैंडबॉक्स में बने Personal Extension ड्राफ़्ट, चाहें तो अनलॉक किए गए External Extensions, और कस्टम थीम। |
 | **Imports** | पूरी प्रोफ़ाइल रिस्टोर करना और दूसरे ऐप से इंपोर्ट करना। |
-| **Advanced** | एडमिन एक्सेस, अपडेट, संदेश वाले टूल, बैकअप और सब कुछ मिटा देने वाले रीसेट। |
+| **Advanced** | एडमिन एक्सेस, वैकल्पिक सुविधा स्विच, अपडेट, संदेश वाले टूल, बैकअप और सब कुछ मिटा देने वाले रीसेट। |
 
 हर टैब के बारे में और पढ़ने के लिए यहाँ जाएँ:
 
@@ -24,7 +24,7 @@
 - **Generations**: देखें [स्टाइल प्रोफ़ाइल](../media/style-profiles.md) और [सीन वीडियो](../media/scene-video.md)।
 - **Addons**: देखें [पर्सनल एक्सटेंशन](../extending/personal-extensions.md) और [कस्टम CSS थीम](../appearance/custom-css-themes.md)।
 - **Imports**: देखें [SillyTavern से इंपोर्ट करना](../data/importing-from-sillytavern.md) और [बैकअप और रिस्टोर](../data/backup-and-restore.md)।
-- **Advanced**: नीचे का **Message Tools** सेक्शन देखें, साथ में [Marinara Engine को अपडेट करना](../UPGRADING.md), [रिमोट एक्सेस](../REMOTE_ACCESS.md) और [अपना डेटा मिटाना](../data/clearing-data.md)।
+- **Advanced**: नीचे का **Message Tools** सेक्शन देखें, साथ में [Marinara Engine को अपडेट करना](../UPGRADING.md), [रिमोट एक्सेस](../REMOTE_ACCESS.md) और [अपना डेटा मिटाना](../data/clearing-data.md)। [सुविधा स्विच](../configuration/features.md)।
 
 ## Settings, General टैब
 

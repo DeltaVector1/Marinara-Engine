@@ -43,7 +43,7 @@ Decision 模型回答一种特定问题。它接收聊天的最近消息及一�
 
 - **None**(无)，默认选项。不发出询问，智能体编辑器里的激活问题字段保持禁用。
 - **Local models**(本地模型)：已经运行的 **Primary local model**(主本地模型) 或 **Utility local model**(辅助本地模型)。不会额外下载，信息也不会离开电脑。安装了 **Decision sidecar**(判定辅助进程) 后，它也会列在这里。
-- **Connections**：创建的任何 Decision 连接，包括托管服务和自行运行的服务。
+- **Connections**：创建的 Decision 连接，包括托管服务、自行运行的 System One 服务器，或 Ollama、LM Studio 等现有服务器上的聊天模型。
 
 当前无法回答的条目仍会保留在列表里，以灰色显示并说明原因，方便查看需要修复什么。选择后点击 **Test**(测试)。测试发送固定样本，不会发送聊天。
 
@@ -56,6 +56,7 @@ Decision 模型回答一种特定问题。它接收聊天的最近消息及一�
 | 选项 | 成本 | 所需条件 | 适合 |
 | --- | --- | --- | --- |
 | 已经运行的模型 | 无额外成本 | **Local Model**(本地模型) 里的模型 | 大多数本地模型用户 |
+| 自己服务器上的聊天模型 | 无额外成本 | 已运行的 Ollama、LM Studio、llama.cpp 或其他 OpenAI 兼容服务器 | 模型运行在 Marinara 之外，无需重复加载 |
 | 托管 Decision 连接 | 按请求计费；一个回合可能发出多次请求 | API 密钥（TypeSafe 或 OpenRouter） | 手机，以及不运行本地模型的电脑 |
 | 可安装的判定模型 | 额外占用磁盘和显存，见[模型大小](#let-marinara-install-a-decision-model) | Linux x86-64 和受支持的 NVIDIA GPU | 在聊天模型旁运行独立判定模型 |
 
@@ -86,20 +87,31 @@ Marinara 向模型提出一个是/否问题，让它生成一个 Token，再从�
 
 **如何理解数值。** 通用聊天模型的是/否概率可以用于阈值比较，但它们没有像专用判定模型一样经过概率校准训练。不返回对数概率的运行时只会给出固定的 1 或 0。用自己的聊天调整阈值，不要直接相信默认值。
 
+<a id="on-a-server-you-already-run"></a>
+
+### 使用已运行的服务器
+
+如果聊天模型已在 Ollama、LM Studio、llama.cpp 或其他 OpenAI 兼容服务器上运行，就能回答判定问题，无需让 Marinara 加载第二份模型。
+
+1. 打开该服务器的 **Custom** 连接，点击 **Use this model for decisions**(将此模型用于判定)。这会创建来源为 **OpenAI-compatible chat model**(OpenAI 兼容聊天模型) 的 Decision 连接，使用相同的基础 URL、模型和密钥。也可以手动创建：新建 Decision 连接，选择该来源，填写聊天连接的基础 URL（例如 Ollama 的 `http://localhost:11434/v1`）和服务器提供的模型名称。
+2. 在 **Decision model** 中选中它并点击 **Test**。结果还会显示服务器是否返回对数概率，以及模型是否必须先思考。
+
+询问方式与本地模型相同：每条陈述要求一个是/否词元，并从其概率读取答案。由于 Marinara 不知道服务器能同时处理多少请求，陈述会逐条发送。连接的 **Thinking** 始终为 **Auto**，因此必须先思考的模型在两次回答失败后会切换方式，之后只回答回复后的条件判断，除非开启 **Also gate agents that run before the reply**。网络中另一台机器上的服务器也和其他本地服务商一样，需要 `PROVIDER_LOCAL_URLS_ENABLED`；见[连接本地或自托管模型](local-self-hosted.md)。
+
 <a id="set-up-a-decision-connection"></a>
 
 ## 设置 Decision 连接
 
 1. 在 **Connections** 中创建连接，将服务商设为 **Decision**。
-2. 选择 **TypeSafe**、**OpenRouter** 或 **Custom System One endpoint**(自定义 System One 端点)。托管服务需要 API 密钥。Custom 接受已经自行运行的 System One 服务器，包括 Open-Jev；输入不含 `/v1/systemone` 的基础 URL，并使用服务器支持的模型名称。
-3. 使用 OpenRouter 时，在 **API key source**(API 密钥来源) 下选择已保存的 OpenRouter 连接，或输入单独的密钥。其编辑器还提供 **Use this key for decisions (Jev)**(将此密钥用于判定)。关联密钥会自动跟随后续密钥变更。Custom 连接只有在两个 URL 同源（协议、主机和端口相同）时，才能借用自定义聊天连接的密钥。
+2. 选择 **TypeSafe**、**OpenRouter**、**Custom System One endpoint**(自定义 System One 端点) 或 **OpenAI-compatible chat model**。托管来源需要 API 密钥。Custom 接受已有的 System One 服务器，包括 Open-Jev；输入不含 `/v1/systemone` 的基础 URL 和受支持的模型名称。Ollama、LM Studio 等聊天模型服务器不使用 System One：请按[使用已运行的服务器](#on-a-server-you-already-run)选择 **OpenAI-compatible chat model**。
+3. 对于 OpenRouter，在 **API key source**(API 密钥来源) 下选择已保存的连接，或输入单独的密钥。其编辑器也提供 **Use this key for decisions (Jev)**(将此密钥用于判定)。关联的密钥会自动跟随后续更改。Custom System One 和 OpenAI-compatible chat model 连接只有在两个 URL 同源（协议、主机和端口相同）时，才能借用自定义聊天连接的密钥。
 4. 保存后在 **Decision model** 下选择它，再点击 **Test**。成功后显示概率、回答耗时和连接的时限。Test 至少等待 10 秒；时限更长时，等待时限再加 5 秒，因此慢回答也会按实际耗时报告。如果超过时限，结果会注明：在聊天中，这样的回答会视为没有答案。
 
 Decision 默认值独立于聊天、智能体、图像、视频和音频默认值。选择 **None** 会关闭判定，不会删除激活问题或判定陈述。
 
 托管判定会把选定的最近消息和陈述发给所选服务商，可能产生费用。Smart 回复顺序还会包含[角色名单](#what-the-model-sees)。**Recent-message token budget**(最近消息 Token 预算) 的默认值为托管服务估算 30,000 个 Token、自定义服务器 3,500 个。如果服务器上下文上限更小，就调低此值。Marinara 先丢弃旧消息，再裁去最新消息开头较旧的部分。Token 估算可能与服务器的分词器不同；请求被拒绝或超出预算时，按没有答案处理。
 
-**Time limit (seconds)**(时限，秒) 是聊天中每个 Decision 连接等待答案的时间，范围为 0.5 到 30 秒，默认 1.5 秒。晚于时限的答案视为没有答案。一些托管服务商偶尔会慢于 1.5 秒，使判定看起来像随机失灵。点击 **Test** 几次，把时限设得比最慢的回答更长。代价是回复前询问的陈述，例如预设里的判定或回复前智能体的激活问题，可能让回复最多等待这么长时间。
+**Time limit (seconds)**(时限，秒) 指聊天中 Decision 连接等待每条陈述答案的时间，范围为 0.5 到 30 秒，默认 1.5 秒，**OpenAI-compatible chat model** 连接则为 4 秒。一次请求中有多条陈述时，每条都获得这段时间。超时答案视为没有答案。部分托管服务商偶尔超过 1.5 秒，看起来像随机失灵；请多次点击 **Test**，把时限设在最慢答案的耗时以上。代价是回复前询问的每条陈述，例如预设中的判定或回复前智能体的激活问题，都可能让回复等待最多这么长时间。
 
 删除作为关联密钥来源的连接时，会显示警告，Decision 连接也需要重新关联。导入独立连接文件后同样需要恢复密钥或关联；这些文件从不包含 API 密钥或借用的连接 ID。
 
@@ -123,6 +135,8 @@ Marinara 也可以代为下载和运行专用判定模型。无论是否同时�
 3. 选择模型，确认大小、硬件判断和许可证。在此之前不会开始下载。**Open-Jev 2B** 比 **Open-Jev 9B** 需要的内存少得多，但两者都不保证对聊天作出正确回答。
 4. 在 **Decision model** 下选择 **Decision sidecar**。
 
+**速度。** 模型启动后的首次回答较慢，因此 Marinara 在加载时会发送一个预热问题。预热成功后，**Test** 和第一回合呈现正常速度；失败也不妨碍启动，只是延迟会落在第一个问题上。每条陈述都重新读取近期聊天，因此长聊天中包含大量陈述的回合耗时更长：Open-Jev 2B 在长聊天中每条陈述约需四分之一秒。
+
 也可以粘贴判定模型的 HuggingFace 仓库。Marinara 会读取该仓库自己的清单，检查产物类型是否对应当前构建包含的运行时，并在提出安装选项之前展示要拉取的基础权重和总大小。无法确认的仓库会附带原因拒绝安装，不会盲目尝试。
 
 机器有多块 NVIDIA GPU 时，通过 **GPU** 菜单选择加载到哪块卡。判断针对该卡；更改选择会停止模型，以便在新卡上重新启动。
@@ -137,7 +151,7 @@ Marinara 也可以代为下载和运行专用判定模型。无论是否同时�
 
 | 所选后端 | 默认是/否阈值 |
 | --- | --- |
-| Primary 或 Utility 本地聊天模型 | 0.5 |
+| Primary 或 Utility 本地聊天模型，或 OpenAI 兼容聊天模型连接 | 0.5 |
 | TypeSafe、OpenRouter 或 Custom System One Decision 连接 | 0.5 |
 | 托管的 Decision sidecar | 模型清单建议值；内置 Open-Jev 2B 和 9B 为 0.1 |
 
@@ -151,9 +165,13 @@ Marinara 也可以代为下载和运行专用判定模型。无论是否同时�
 
 未及时返回的判定视为没有答案。生成会按[各功能的备用行为](#where-marinara-uses-it)继续，这可能省略提示词分支或必需的世界书条目。
 
-- Decision 连接为 **1.5 秒**，除非更改 **Time limit**(时限)。见[设置 Decision 连接](#set-up-a-decision-connection)。
-- 本地模型或判定辅助进程为 **4 秒**。一个回合询问很多陈述时，Open-Jev 9B 每多一条会获得少量额外时间。
-- 必须先推理的本地模型为 **20 秒**。
+所有时限都按陈述计算。一次请求询问多条陈述时，每条都获得该时限；每个 Choice 答案也算一条陈述。本地模型同时只处理少量请求，所以陈述需要排队，等模型开始处理时才计时。
+
+- TypeSafe、OpenRouter 或 Custom System One Decision 连接每条陈述 **1.5 秒**，除非更改 **Time limit**。见[设置 Decision 连接](#set-up-a-decision-connection)。
+- OpenAI 兼容聊天模型连接每条陈述 **4 秒**，除非更改 **Time limit**。必须先思考的模型至少获得 20 秒。
+- 本地模型每条陈述 **4 秒**。
+- 判定辅助进程的第一条陈述为 **4 秒**。后续各条使用模型的实测时间：Open-Jev 2B 为 0.35 秒，Open-Jev 9B 为 0.8 秒。通过粘贴仓库地址安装的模型每条获得 4 秒。
+- 必须先思考的本地模型每条陈述 **20 秒**。
 
 取消生成会停止判定请求。
 
@@ -161,7 +179,7 @@ Marinara 也可以代为下载和运行专用判定模型。无论是否同时�
 
 - **Also use it to pick who speaks in Smart response order.**(也用于 Smart 回复顺序的发言者选择) 默认关闭。见[群聊](../chats/group-chats.md#response-order-individual-only)。
 - **Decision statements per turn.**(每回合判定陈述数) 限制提示词和世界书陈述的规划，默认 32，最多 255。额度在多个阶段应用，不是一个回合内所有 Decision 请求或支出的统一上限。智能体激活问题和 Smart 回复顺序独立计算。范围、批处理和优先级规则见[限制与成本](../prompts/conditional-prompts.md#limits-and-cost)。
-- 本地模型会显示 **Also gate agents that run before the reply** 和 **Thinking**。见[使用已经运行的模型](#use-a-model-you-already-run)。
+- **Also gate agents that run before the reply** 和 **Thinking** 只显示于 **Primary local model** 和 **Utility local model**。判定辅助进程从不推理，因此没有这两个选项。见[使用已经运行的模型](#use-a-model-you-already-run)。
 
 ## 准确度：为错误答案做好准备
 
@@ -176,11 +194,13 @@ Marinara 也可以代为下载和运行专用判定模型。无论是否同时�
 ## 故障排查
 
 - **Test 失败。** 消息会说明原因：密钥被拒绝、服务商限流、本地模型未运行、判定模型未安装、模型未回答是或否，或超时。
+- **Test 提示服务器没有该端点。** Decision 来源与服务器不匹配。Ollama、LM Studio 等聊天模型服务器需要 **OpenAI-compatible chat model**；**Custom System One endpoint** 仅适用于 Open-Jev 等 System One 服务器。
 - **Test 提示答案超时，或判定只是偶尔有效。** 服务商至少有时比连接的 **Time limit** 更慢。多测几次，把时限提高到最慢答案以上。
 - **有激活问题的智能体每回合都运行。** 没有设置 Decision 模型，或模型没有回答，因此智能体按没有问题的情况运行。检查 **Test**。
 - **提示词判定分支从不出现。** 见[判定分支始终不出现时](../prompts/conditional-prompts.md#when-a-decision-branch-never-appears)。
 - **Smart 回复顺序仍执行原有 AI 调用。** 开关关闭，或 Decision 模型在该回合没有回答。
-- **要查看每条陈述及其答案，**将日志级别设为 debug。见[日志级别](../CONFIGURATION.md#logging-levels)。
+- **要查看生成时的判定评分和输出，**启用 Debug Mode 或把日志级别设为 debug。提示词判定日志包含阈值、结果，以及答案是否被复用或因时序规则而保持。见[日志级别](../CONFIGURATION.md#logging-levels)。
+- **要在不生成回复的情况下测试自己的陈述，**打开 **Peek Prompt → Decision diagnostics → Test decisions**(Peek Prompt → 判定诊断 → 测试判定)。输入预览是被动的；显式测试会调用选定模型，并可能产生托管费用。见[测试判定陈述](../chats/peek-prompt.md#testing-decision-statements)。
 
 ## 相关指南
 

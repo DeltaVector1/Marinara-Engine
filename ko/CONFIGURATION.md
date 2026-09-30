@@ -70,6 +70,30 @@ Professor Mari가 만든 초안은 이 플래그 없이도 쓸 수 있습니다.
 
 기본값은 샌드박스로 격리된 Browser Extension입니다. 예전 서드파티 패키지 중 일부는 Marinara의 DOM에 의존해서 **Full page access**(페이지 전체 접근)로 표시됩니다. 이 방식은 승인된 코드를 Marinara 페이지 안에서 그대로 실행하므로 페이지 콘텐츠, 브라우저 저장소, 네트워크 API, 현재 동일 출처 세션에 접근할 수 있습니다. 두 관문이 모두 열린 External Extensions에서만 쓸 수 있고, 별도의 경고 확인도 거쳐야 합니다. 확장이 화면이나 동작에 흔적을 남긴다면 그 확장을 비활성화하고 페이지를 새로 고치세요.
 
+<a id="optional-multiplayer"></a>
+
+## 선택적 멀티플레이어
+
+멀티플레이어는 기본적으로 꺼져 있습니다. 두 활성화 조건 중 하나라도 꺼져 있으면 백그라운드 세션, 인증서 또는 상대 확인을 수행하지 않습니다. Settings를 명시적으로 새로 고치지 않는 한 클라이언트는 가용성을 한 번만 읽습니다. Conversation, Roleplay, Game의 비공개 방을 지원하며 사람이나 AI 명단에 고정 상한이 없습니다. 각 게스트는 자신의 신뢰할 수 있는 Marinara 설치를 사용합니다. 휴대전화는 소유자의 신뢰할 수 있는 Engine 서버를 사용할 수 있습니다. 게스트에게는 AI 연결이 필요 없습니다. 호스트가 AI 연결을 제공하며 공유 내용을 읽고 보관할 수 있습니다.
+
+1. 참여하는 각 Engine의 `.env`에 `MULTIPLAYER_ENABLED=true`를 설정하고 재시작하세요. 정확히 `true`인 값만 전제 조건을 활성화합니다. 즉시 다시 불러오기로는 바뀌지 않습니다.
+2. **Settings → Advanced → Multiplayer**(설정 → 고급 → 멀티플레이어)를 열고 경고를 읽은 뒤 별도 설정을 켜세요. 이것만으로 수신 포트를 열거나 방에 참여하지는 않습니다.
+3. 호스팅하려면 기존 모드/설정 흐름에서 **Create shared session**(공유 세션 만들기) 또는 **Play together**(함께 플레이)를 사용하세요. 설정, 표시 이름, 공유할 정확한 페르소나 텍스트를 검토하세요. 기존 채팅에서는 설정 선택만 가져오며 비공개 기록, 메모, 기억은 복사하지 않습니다.
+4. 호스트에 방 호스트명에 유효하고 게스트 Engine이 신뢰하는 인증서로 `SSL_CERT`와 `SSL_KEY`를 설정하세요. `https://room.example.org:7861`처럼 별도 HTTPS 방 주소와 포트를 선택하세요. 명시적 호스팅 동작이 해당 포트를 엽니다. 방화벽/공유기에는 방 수신 포트만 공개하고 일반 Engine API는 노출하지 마세요. 포트 전달, 릴레이 계정 또는 인증서 우회는 자동 구성되지 않습니다.
+5. Engine/관리자 자격 증명과 다른 12자 이상의 방 비밀번호를 정하세요. 만료되는 초대와 비밀번호는 신뢰하는 사람에게 따로 공유하세요. 게스트는 자신의 클라이언트에서 호스트명에 연결된 지문, 방 이름, 페르소나 텍스트를 검토하고 동의한 뒤 입장을 요청합니다. 호스트가 **Players**(플레이어)에서 각 요청을 승인하기 전에는 방 기록이 전송되지 않습니다.
+
+TLS는 인증서 체인과 호스트명을 검증하고 비밀번호 전송 전에 초대의 인증서 지문도 확인합니다. 자체 서명 인증서를 조용히 허용하지 않습니다. 갱신되거나 바뀐 인증서에는 새 초대와 재검토가 필요합니다. 초대는 30분 후 만료되며 승인된 세션은 최대 12시간입니다. 교체/취소는 사용하지 않은 초대의 신규 입장을 막고, Kick은 승인된 참여자의 권한을 취소합니다.
+
+호스트는 자동/수동 답변, 제한된 생성 허용량, Pause/Resume, Stop을 제어합니다. 기본 허용량은 호스팅 세션당 조정된 생성 턴 100회입니다. 그룹 턴이나 Game 설정은 모델을 여러 번 호출할 수 있습니다. 이는 턴 제한이지 가격 예상치가 아닙니다. Conversation 일정은 기존 호스트 스케줄러를 사용합니다. 게스트는 별도 스케줄러나 수신 텍스트의 로컬 명령을 실행하지 않습니다.
+
+Game에서는 Start Game 전에 승인된 사람 파티를 검토하세요. 필수 참여자마다 행동을 제출하거나 패스해야 합니다. 모두 준비되어야 GM이 라운드를 처리합니다. 연결이 끊긴 플레이어도 복귀하거나 호스트가 명시적으로 패스/제거하기 전까지 필수로 남습니다. 새 플레이어와 페르소나 변경은 다음 라운드부터 적용됩니다. 일시 정지/중단된 처리는 유료 요청이나 이미 저장된 세계 효과를 자동 반복하지 않습니다. 계속하기 전에 기록을 확인하세요.
+
+Stop, Leave, Settings 비활성화, 서버 재시작은 해당 라이브 세션을 종료합니다. 재시작해도 자동 호스팅이나 참여는 하지 않습니다. 방은 호스트 서버 소유이므로 호스트 브라우저를 닫아도 게스트에게 권한이 넘어가지 않습니다. 모바일 브라우저가 정지되면 업데이트가 지연될 수 있지만 두 번째 생성을 일으키지는 않습니다.
+
+신뢰하는 사람에게만 연결하세요. 자신의 신뢰할 수 있는 Marinara 클라이언트를 사용하고 호스트가 제공하는 클라이언트, 확장 기능, 필수 파일을 설치하지 마세요. 호스트는 공유 내용을 읽고 보관하며 설정된 AI 제공자에게 보낼 수 있습니다. 직접 연결은 네트워크 주소를 드러냅니다. 비밀번호, API 키, 민감한 개인정보는 공유하지 마세요. 의심스러우면 즉시 나가세요.
+
+공유 내용은 크기가 제한된 텍스트뿐입니다. 참여자 간 파일/미디어 전송, 실행 가능한 콘텐츠, 패키지 가져오기, 원격 자산 로드, 네이티브 동작은 없습니다. 사용자 지정/패키지 도구와 위험한 명령은 방에서 사용할 수 없습니다. Android 네이티브 래퍼는 참여할 수 없습니다. 정확한 제한과 테스트 플랫폼은 [호환성 및 검증 기록](development/multiplayer.md)을 참고하세요. 이 제어는 모든 브라우저/OS 취약점이나 별개의 외부 다운로드에 대한 안전을 보장하지 않습니다.
+
 ## .env 파일의 위치
 
 설정은 `.env`라는 파일에 들어 있습니다. 한 줄에 설정 하나씩 `KEY=value` 형태로 적는 일반 텍스트 파일입니다. `#`으로 시작하는 줄은 주석이라 서버가 무시합니다.
@@ -107,6 +131,7 @@ Marinara는 실행 중에도 `.env` 파일을 지켜봅니다. 변경 사항을 
 - `TZ`
 - `AUTO_OPEN_BROWSER`, `AUTO_UPDATE_ENABLED`, `AUTO_CREATE_DEFAULT_CONNECTION`
 - `LOG_DISABLE_REQUEST_LOGGING`
+- `STORAGE_CACHE_WINDOWS_BOOT_ID`, `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS`, `SHUTDOWN_FORCE_EXIT_ON_REPEAT`
 - 이미지, 동영상, 스프라이트, ComfyUI의 타임아웃 및 폴링 설정(`IMAGE_GEN_TIMEOUT_MS`, `VIDEO_GEN_TIMEOUT_MS`, `VIDEO_GEN_MAX_RESPONSE_BYTES`, `SPRITE_GENERATION_TIMEOUT_MS`, `SPRITE_ANIMATED_FFMPEG_TIMEOUT_MS`, `COMFYUI_GEN_TIMEOUT`, 그리고 네 가지 `*_VIDEO_POLL_INTERVAL_MS` 설정)
 
 이 중 하나가 바뀌면 로그에 재시작이 필요하다는 경고가 남습니다. `BASIC_AUTH_USER`, `BASIC_AUTH_PASS`, `IP_ALLOWLIST`, `ADMIN_SECRET`, `CSRF_TRUSTED_ORIGINS` 같은 접근 제어 설정과 비밀 값은 재시작이 필요 없습니다.
@@ -272,6 +297,12 @@ ADMIN_SECRET=replace-this-with-a-long-random-secret
 
 로컬 모델이나 직접 운영하는 모델에 연결하려면 [로컬 모델 또는 자체 호스팅 모델 연결하기](connections/local-self-hosted.md)를 참고하세요.
 
+<a id="feature-switches"></a>
+
+## 기능 스위치
+
+실패한 제공자 호출 재시도나 로어북 그룹 선택 고정 같은 선택적 서버 동작은 **Settings > Advanced > Features**(설정 > 고급 > 기능)에서 켭니다. 모두 기본적으로 꺼져 있습니다. 일부 환경 변수는 설정되어 있으면 스위치보다 우선합니다. 각 스위치, 기본값, 변수는 [기능 스위치](configuration/features.md)를 참고하세요.
+
 ## 전체 환경 변수 목록
 
 이 절에는 남은 설정을 용도별로 묶어 정리했습니다. 접근 제어, 저장 위치, 로그, 타임아웃, 권한이 필요한 동작, 로컬 주소 허용 설정은 위의 표에 이미 나와 있습니다.
@@ -319,6 +350,36 @@ Conversation 스케줄 컨트롤은 브라우저나 앱 기기가 알려 준 시
 | `SEEDANCE_VIDEO_POLL_INTERVAL_MS` | `10000` | 서버가 Seedance 작업 상태를 확인하는 주기입니다. |
 | `VIDEO_REFERENCE_PUBLIC_BASE_URL` | 비어 있음 | 이 서버의 공개 HTTPS 주소입니다. 제공자가 참조 이미지를 URL로 가져와야 할 때 씁니다. |
 
+<a id="lorebooks"></a>
+
+### 로어북
+
+두 설정 모두 기본적으로 꺼져 있으며 `.env` 변경 후 다음 생성부터 적용됩니다. `LOREBOOK_STABLE_GROUP_WINNERS`는 Settings > Advanced > Features의 **Stable lorebook picks**를 고정합니다. 변수가 설정되면 우선하고, 없으면 스위치가 결정합니다([기능 스위치](configuration/features.md) 참고).
+
+| 변수 | 기본값 | 동작 |
+| --- | --- | --- |
+| `LOREBOOK_STABLE_GROUP_WINNERS` | `false` | 일치 후보가 같은 동안 채팅별 로어북 포함 그룹의 승자를 유지하여 생성마다 다시 추첨하지 않습니다. 제공자 프롬프트 캐시를 위해 프롬프트 접두부를 안정적으로 유지합니다. |
+| `LOREBOOK_COMPACT_STORED_SCANS` | `false` | 활성화된 항목의 전체 텍스트를 채팅의 최신 어시스턴트 또는 내레이터 메시지에만 저장합니다(해당 행과 스와이프. 사용자를 대신하는 턴은 이를 대체하지 않습니다). 이전 메시지는 항목 ID, 키, 점수만 보관해 큰 로어북 채팅의 디스크와 메모리 크기를 줄입니다. 새 메시지를 삭제하면 다시 최신이 된 메시지의 Active Context와 에이전트 재시도는 항목의 현재 저장 텍스트를 표시합니다. |
+
+`scripts/compact-lorebook-scans.mjs`는 설정을 켜기 전에 저장된 채팅에도 같은 규칙을 적용합니다. 먼저 서버를 중지하세요. `--apply`가 없으면 시험 실행만 하며, 쓰기 전에 두 메시지 테이블을 백업합니다.
+
+<a id="robustness"></a>
+
+### 안정성
+
+여기의 모든 설정은 기본적으로 꺼져 기존 동작을 유지하며 각각 독립적입니다. `STORAGE_CACHE_WINDOWS_BOOT_ID`, `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS`, `SHUTDOWN_FORCE_EXIT_ON_REPEAT`는 시작 시 읽으므로 재시작이 필요합니다. 나머지는 `.env` 변경 후 다음 요청, 저장 또는 중지부터 적용됩니다. `PROVIDER_RETRY_TRANSIENT_ERRORS`는 Settings > Advanced > Features의 **Retry failed provider calls**를 고정합니다. 설정된 변수가 우선하며 없으면 스위치가 결정합니다([기능 스위치](configuration/features.md) 참고).
+
+| 변수 | 기본값 | 동작 |
+| --- | --- | --- |
+| `PROVIDER_RETRY_TRANSIENT_ERRORS` | `false` | 거부되거나 도달 불가능한 연결, 또는 게이트웨이 502/503을 짧고 무작위로 변하는 대기 후 최대 두 번 재시도합니다(게이트웨이가 더 요청해도 최대 5초). 텍스트 도착 전만 해당됩니다. 504나 끊긴 연결은 재시도하지 않습니다. 폴백이 있으면 대신 즉시 시도합니다. 연결 타임아웃도 도달 불가능으로 보므로 실패가 느린 호스트는 오류 표시가 약 20초 더 늦어질 수 있습니다. |
+| `STORAGE_SKIP_UNCHANGED_WRITES` | `false` | 채팅 파일 또는 `manifest.json` 내용이 이 서버의 마지막 쓰기와 같고 디스크 파일도 바뀌지 않았다면 다시 쓰지 않습니다. 방금 `.bak`에서 복구한 파일은 항상 다시 씁니다. |
+| `STORAGE_YIELDING_SERIALIZE` | `false` | 큰 채팅 파일 저장 준비를 짧은 조각으로 나눠 매우 긴 채팅을 저장할 때 다른 요청과 스트림을 멈추지 않습니다. 기록되는 바이트는 같습니다. |
+| `STORAGE_CACHE_WINDOWS_BOOT_ID` | `false` | Windows 전용입니다. 저장소 잠금이 시작마다 하는 OS 부팅 시간 검사(약 1.5~2초의 PowerShell)를 다음 재부팅까지 `DATA_DIR`의 `.writer-boot-id.json`에 기억합니다. |
+| `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS` | `false` | Windows 전용입니다. Ctrl+Break와 콘솔 닫기도 즉시 종료 대신 대기 중인 저장을 기록하고 정상 종료합니다. 콘솔 닫기는 Windows가 허용하는 약 5초 안에 끝내도록 짧은 기한을 사용합니다. |
+| `SHUTDOWN_FORCE_EXIT_ON_REPEAT` | `false` | 첫 Ctrl+C(또는 Ctrl+Break)로부터 1.5초가 지난 뒤 다시 누르면 서버가 즉시 종료됩니다. 아직 기록하지 않은 저장을 잃을 수 있습니다. 꺼져 있으면 반복을 무시하고 일반 8초 종료 제한을 적용합니다. |
+| `SHUTDOWN_EARLY_FLUSH` | `false` | 중지 신호(Ctrl+C, SIGTERM)가 오면 열린 연결이 아직 닫히는 중에도 대기 중인 저장을 쓰기 시작합니다. Advanced Settings의 재시작에는 적용하지 않습니다. |
+| `SHUTDOWN_RUNTIME_STOP_BUDGET_MS` | `0` | 중지 신호가 백그라운드 런타임(기능 패키지, 확장 기능, 사이드카)을 기다린 뒤 저장소를 닫는 시간입니다. Advanced Settings 재시작은 계속 모두 기다립니다. `0`은 이전처럼 모두 기다립니다. 최대 `2500`으로, 8초 종료 제한 안에 저장소가 닫히도록 합니다. |
+
 ### 연동과 기타
 
 | 변수 | 기본값 | 설명 |
@@ -338,6 +399,7 @@ Giphy 키와 관련해 한 가지 유의할 점은, `GIPHY_API_KEY`를 설정하
 
 ## 관련 가이드
 
+- [기능 스위치](configuration/features.md)
 - [원격 접근: Basic Auth와 IP 허용 목록](REMOTE_ACCESS.md)
 - [Marinara가 데이터를 저장하는 위치](data/where-data-is-stored.md)
 - [AI 제공자에 연결하기](connections/connecting-to-a-provider.md)

@@ -97,6 +97,8 @@ Quand **Mode** est réglé sur **Individual**, un réglage **Response Order** (o
 
 Avec l'ordre **Smart**, l'IA peut mettre plusieurs personnages en file d'attente. Seul le premier répond immédiatement. Pour désigner celui qui parle ensuite, utilise le sélecteur **Trigger Response** de la barre de message. Autre option : envoie un message vide pour générer le personnage suivant dans la file.
 
+En Roleplay, avec le mode **Individual** et l'ordre **Smart** ou **Manual**, la première option du sélecteur est **Smart**, signalée par une icône de personnes dans ta couleur d'accent. Elle demande au modèle de choisir qui parle ensuite pour cette réponse, en utilisant le modèle de décision lorsque son option d'ordre Smart est activée. Ton ordre de réponse enregistré reste inchangé et les options portant les noms des personnages permettent toujours de choisir directement.
+
 Deux autres interrupteurs apparaissent en mode **Individual** :
 
 - **Add Turn To Prompt** (ajouter le tour au prompt) est activé par défaut. Cette option ajoute une courte instruction précisant quel personnage doit répondre à ce tour.

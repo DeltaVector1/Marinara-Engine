@@ -15,7 +15,7 @@
 | **Generations**(생성) | 이미지와 동영상 기본값, 재사용할 수 있는 프롬프트 템플릿. |
 | **Addons**(애드온) | Professor Mari가 만든 샌드박스 격리 Personal Extension 초안, 필요할 때만 잠금을 푸는 External Extensions, 사용자 지정 테마. |
 | **Imports**(가져오기) | 전체 프로필 복원과 다른 앱에서 가져오기. |
-| **Advanced**(고급) | 관리자 접근, 업데이트, 메시지 도구, 백업, 되돌릴 수 없는 초기화. |
+| **Advanced**(고급) | 관리자 접근, 선택적 기능 스위치, 업데이트, 메시지 도구, 백업, 되돌릴 수 없는 초기화. |
 
 각 탭을 더 자세히 다루는 곳은 다음과 같습니다.
 
@@ -24,7 +24,7 @@
 - **Generations**: [이미지 스타일 프로필](../media/style-profiles.md)과 [장면 동영상 생성](../media/scene-video.md)을 참고하세요.
 - **Addons**: [개인 확장](../extending/personal-extensions.md)과 [사용자 지정 CSS 테마](../appearance/custom-css-themes.md)를 참고하세요.
 - **Imports**: [SillyTavern에서 가져오기](../data/importing-from-sillytavern.md)와 [Marinara 백업과 복원](../data/backup-and-restore.md)을 참고하세요.
-- **Advanced**: 아래 **Message Tools**(메시지 도구) 항목과 함께 [Marinara Engine 업데이트](../UPGRADING.md), [원격 접근](../REMOTE_ACCESS.md), [데이터 지우기와 초기화](../data/clearing-data.md)를 참고하세요.
+- **Advanced**: 아래 **Message Tools**(메시지 도구) 항목과 함께 [Marinara Engine 업데이트](../UPGRADING.md), [원격 접근](../REMOTE_ACCESS.md), [데이터 지우기와 초기화](../data/clearing-data.md)를 참고하세요. [기능 스위치](../configuration/features.md).
 
 ## Settings의 General 탭
 

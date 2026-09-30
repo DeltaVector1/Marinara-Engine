@@ -85,10 +85,13 @@ Na dole edytora połączenia jest karta **Connection Tests** (testy połączenia
 
 Kiedy oba testy się powiodą, model lokalny jest gotowy do użycia w czacie. Otwórz czat, otwórz jego ustawienia i wskaż to połączenie.
 
+Ten sam model może też odpowiadać na decyzje, na przykład pytania aktywacyjne agentów, bez ładowania drugiej kopii przez aplikację Marinara. Kliknij **Use this model for decisions** (używaj tego modelu do decyzji) w ustawieniach połączenia; zobacz [Modele decyzyjne](decision-models.md#on-a-server-you-already-run).
+
 Jeśli test się nie powiedzie, sprawdź najpierw, czy lokalny serwer nadal działa i czy model jest wczytany. Potem sprawdź, czy pole **Base URL** dokładnie odpowiada adresowi i portowi serwera. Przy serwerze na innym komputerze upewnij się, że zmienna `PROVIDER_LOCAL_URLS_ENABLED` jest ustawiona, a serwer Marinara został ponownie uruchomiony.
 
 ## Powiązane przewodniki
 
 - [Łączenie z dostawcą AI](connecting-to-a-provider.md)
 - [Konfiguracja modelu Local Model](local-model.md)
+- [Modele decyzyjne](decision-models.md)
 - [Konfiguracja serwera](../CONFIGURATION.md)

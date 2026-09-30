@@ -43,6 +43,8 @@ Esse comando único faz cinco coisas:
 
 O inicializador instala as dependências do aplicativo, compila Marinara no dispositivo e sobe o servidor local. Ele também atualiza o Node.js quando a versão instalada é antiga demais. A primeira execução é lenta porque compila o aplicativo. As seguintes são bem mais rápidas.
 
+A compilação com pouca memória inclui todos os arquivos necessários do cliente. A alternativa WebAssembly do Sharp para processamento de imagens é instalada automaticamente e mantida nas atualizações; não é preciso instalar uma versão separada do Sharp para Android.
+
 Quando terminar, abra este endereço no navegador do Android:
 
 ```

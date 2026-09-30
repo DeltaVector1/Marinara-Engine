@@ -46,6 +46,14 @@ No Android, também é possível [baixar diretamente o APK mais recente](https:/
 
 O aplicativo Android faz login automaticamente no próprio aplicativo ou no navegador. Selecione **Open in browser** (abrir no navegador) no inicializador e toque em **Retry connection** (tentar conectar novamente); use **Install / Start Marinara** quando o servidor estiver parado. Essa escolha fica salva. No aplicativo, **Settings > General > App Behavior > Open Android launcher (app or browser)** (configurações > geral > comportamento do aplicativo > abrir o inicializador Android (aplicativo ou navegador)) leva de volta a essa escolha. Atualize tanto o APK quanto o Engine para abrir o navegador com autenticação automática. APKs antigos continuam oferecendo login manual em `/android-login`. A CLI local `mari` lê automaticamente o segredo gerenciado pelo inicializador, e instalações manuais no Termux mantêm as regras normais de localhost.
 
+<a id="can-i-play-with-other-people"></a>
+
+## Posso jogar com outras pessoas?
+
+O multijogador opcional cria uma nova sessão compartilhada de Conversation, Roleplay ou Game sem limite fixo de humanos ou personagens de IA. Cada participante habilita o pré-requisito de ambiente e o ajuste separado de Settings, depois hospeda ou entra explicitamente pelo próprio cliente confiável. Convidados não precisam de chave de IA; o anfitrião controla geração e admissão. Game espera a ação ou o passe explícito de cada jogador necessário antes de resolver a rodada.
+
+Uma senha não torna seguro um anfitrião desconhecido. Salas aceitam apenas texto e isolam a visualização do convidado de arquivos, integrações nativas e APIs locais. O wrapper nativo Android não pode entrar. Leia a [configuração, avisos e limites do multijogador](CONFIGURATION.md#optional-multiplayer) antes de ativá-lo.
+
 ## Quais são os três modos de chat?
 
 Marinara tem três modos de chat, mostrados como abas quando você abre a lista de chats:

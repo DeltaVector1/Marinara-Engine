@@ -43,6 +43,8 @@ Cette commande unique fait cinq choses :
 
 Le lanceur installe les dépendances de l'application, compile Marinara sur l'appareil et démarre le serveur local. Il met aussi Node.js à jour si la version installée est trop ancienne. Le premier lancement est lent, car il compile l'application. Les suivants sont bien plus rapides.
 
+La compilation à faible consommation de mémoire inclut tous les fichiers nécessaires au client. La solution de repli WebAssembly de Sharp pour le traitement des images est installée automatiquement et conservée lors des mises à jour ; tu n'as pas besoin d'installer une version distincte de Sharp pour Android.
+
 Une fois terminé, ouvre cette adresse dans le navigateur Android :
 
 ```

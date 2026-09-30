@@ -15,7 +15,7 @@
 | **Generations** | Стандартные параметры генерации изображений и видео, а также шаблоны промптов для повторного использования. |
 | **Addons** | Черновики Personal Extension от ассистента Professor Mari в песочнице, дополнительно разблокированные External Extensions и свои темы оформления. |
 | **Imports** | Восстановление профилей целиком и импорт из других приложений. |
-| **Advanced** | Доступ администратора, обновления, инструменты для сообщений, резервные копии и необратимые сбросы. |
+| **Advanced** | Доступ администратора, переключатели необязательных функций, обновления, инструменты сообщений, резервные копии и необратимые сбросы. |
 
 Где читать подробнее о каждой вкладке:
 
@@ -24,7 +24,7 @@
 - **Generations**: см. [Профили стиля](../media/style-profiles.md) и [Генерация видео сцены](../media/scene-video.md).
 - **Addons**: см. [Личные расширения](../extending/personal-extensions.md) и [Собственные темы оформления на CSS (Theme Library)](../appearance/custom-css-themes.md).
 - **Imports**: см. [Импорт данных из SillyTavern](../data/importing-from-sillytavern.md) и [Резервное копирование и восстановление Marinara](../data/backup-and-restore.md).
-- **Advanced**: см. раздел **Message Tools** ниже, а также [Обновление приложения Marinara Engine](../UPGRADING.md), [Удаленный доступ](../REMOTE_ACCESS.md) и [Очистка и сброс данных](../data/clearing-data.md).
+- **Advanced**: см. раздел **Message Tools** ниже, а также [Обновление приложения Marinara Engine](../UPGRADING.md), [Удаленный доступ](../REMOTE_ACCESS.md) и [Очистка и сброс данных](../data/clearing-data.md). [Переключатели функций](../configuration/features.md).
 
 ## Настройки, вкладка General
 

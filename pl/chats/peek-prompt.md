@@ -14,6 +14,7 @@ Na górze, obok tytułu, siedzi kafelek ze źródłem. Mówi, którą wersję pr
 - **Live Preview**: świeży podgląd zbudowany w tej chwili.
 - **Raw Messages**: surowa lista wiadomości.
 - **Prompt Preview**: ogólny podgląd.
+- **Decision test preview**: prompt złożony z odpowiedzi uzyskanych w jawnie uruchomionym teście decyzji. Nie został wysłany do modelu czatu.
 
 Pod kafelkiem znajduje się panel informacji o generowaniu. Może pokazać dostawcę i nazwę modelu, szacowaną liczbę tokenów, a po zakończeniu odpowiedzi także rzeczywistą liczbę tokenów promptu. Token to mały kawałek tekstu – modele liczą właśnie tokeny, a nie słowa. Ten panel wyświetla też małe kafelki z użytymi wartościami, takimi jak **Temperature**, **Max Output Tokens**, **Thinking**, **Reasoning**, **Verbosity**, **Service Tier** i **Assistant Prefill**. Mogą się tu pojawić również wartości próbkowania: **Top P**, **Top K** i **Min P**.
 
@@ -71,9 +72,28 @@ Otwórz okno **Assembled Prompt** i sprawdź te rzeczy:
 
 Kiedy już wiadomo, co model właściwie dostał, można zabrać się za przyczynę. Czasem trzeba poprawić kartę postaci, czasem wpis w lorebooku, a czasem zmienić wartość w parametrach generowania.
 
+<a id="testing-decision-statements"></a>
+
+## Testowanie stwierdzeń decyzyjnych
+
+Otwórz **Decision diagnostics** (diagnostyka decyzji) w Peek Prompt, aby sprawdzić stwierdzenia promptu i decyzje lorebooków w bieżącym czacie. Otwarcie panelu lub wybranie **Preview inputs** (podgląd danych wejściowych) przygotowuje treść żądań bez pytania modelu decyzyjnego ani uruchamiania modelu lokalnego. Rozwiń **Prepared request bodies** (przygotowane treści żądań), aby zobaczyć ostatnie wiadomości, rozwinięte stwierdzenia, opcje i format żądania właściwy dla modelu. Kolejne stwierdzenia lorebooków mogą stać się osiągalne dopiero po odpowiedzi na wcześniejszą decyzję.
+
+Wybierz **Test decisions** (testuj decyzje), aby wysłać kwalifikujące się pytania do wybranego modelu decyzyjnego. To rzeczywiste żądania decyzyjne, więc model hostowany może naliczyć opłaty. Test nie generuje odpowiedzi czatu, nie uruchamia agentów, nie zmienia stanu gry ani nie zapisuje w czacie swoich odpowiedzi i liczników czasu.
+
+Jawnie uruchomiony test może czekać na lokalny model rozumujący, nawet gdy zwykłe decyzje przed odpowiedzią są odraczane. Nie zmienia to ustawienia dla bieżących odpowiedzi; podgląd danych wejściowych nadal nie wysyła żądań do modelu.
+
+Każdy wynik pokazuje ocenę, jeśli jest dostępna, próg użyty dla stwierdzenia tak/nie oraz wynikającą z niego odpowiedź. Model zwracający tylko słowo tak/nie jest odpowiednio oznaczony; jego odpowiedź nie jest przedstawiana jako prawdopodobieństwo. Wyniki Choice pokazują wybraną opcję. Decyzje podtrzymane, odroczone, ponad limitem, niedostępne i nieudane mają osobne wyjaśnienia, aby brak odpowiedzi nie wyglądał jak niska ocena.
+
+Po teście prompt poniżej używa jego odpowiedzi. **Show original prompt** (pokaż oryginalny prompt) przywraca pierwotnie otwartą treść, a **Show tested prompt** (pokaż testowany prompt) wraca do testu. **Requests sent and results** (wysłane żądania i wyniki) pokazuje rzeczywiste treści żądań decyzyjnych oraz otrzymane wyniki, bez nagłówków uwierzytelniania.
+
+Testy używają bieżącego czatu i aktualnych ustawień, nawet gdy Peek Prompt otwarto ze starszej odpowiedzi. Nie odtwarzają pierwotnych żądań decyzyjnych. Obejmują stwierdzenia promptu i decyzje lorebooków; nie uruchamiają aktywacji agentów ani decyzji po odpowiedzi. Zwykły Peek Prompt pozostaje pasywny, dopóki nie wybierzesz jawnie **Test decisions**.
+
+Gdy **Use Decision model (Jev)** (używaj modelu decyzyjnego) jest włączone dla Advanced Memory, panel pokazuje też **Advanced Memory activity** (aktywność Advanced Memory). Zapisane raporty wskazują ostatnie przywołanie pamięci i sprawdzenie końca sceny wraz z modelem, czasem, ocenami, wyborem oraz stanem mechanizmu zastępczego. Mogą się pojawić także bez stwierdzeń decyzyjnych w prompcie. Opisują rzeczywiste wcześniejsze wywołania, a nie bieżący podgląd czy powtórzenie wybranej historycznej odpowiedzi. Zgodne swipe'y mogą ponownie użyć wcześniejszego raportu przywołania. Każdy raport zapisuje do 128 wyników, najpierw wybrane; pominięte wyniki są zliczane. Nowe raporty pojawiają się po następnym kwalifikującym się wywołaniu Jev, a ich przeglądanie nie wysyła żądań do modelu.
+
 ## Powiązane przewodniki
 
 - [Parametry generowania](../prompts/generation-parameters.md)
 - [Edytor presetów i menedżer promptów](../prompts/presets.md)
+- [Modele decyzyjne](../connections/decision-models.md)
 - [Sterowane generowanie i Impersonate](guided-and-impersonate.md)
 - [Działania na wiadomości: edycja, usuwanie, swipe'y, ponowne generowanie](messages.md)

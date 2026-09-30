@@ -329,8 +329,8 @@ Para probar la redacción:
 
 1. Selecciona un modelo en **Decision model** y haz clic en **Test** (probar). Comprueba la conexión con una muestra fija; no prueba tu declaración ni lee tu chat actual.
 2. Añade la declaración al prompt y envía mensajes representativos: algunos en los que deba ser verdadera y otros en los que deba ser falsa.
-3. Usa **Peek Prompt** para inspeccionar la rama enviada. Si necesitas la probabilidad y el resultado de sí/no, activa el [registro de depuración](../CONFIGURATION.md#logging-levels).
-4. Ajusta la redacción y prueba de nuevo. Usa mensajes nuevos o cambia la declaración al probar un caso nuevo: las respuestas correctas pueden [reutilizarse](#answer-reuse). Abrir una vista previa nueva de Peek Prompt no pregunta al modelo.
+3. Usa **Peek Prompt** para inspeccionar la rama enviada. Abre **Decision diagnostics** (diagnóstico de decisiones) para previsualizar las entradas de decisión actuales y elige **Test decisions** (probar decisiones) para obtener puntuaciones nuevas e inspeccionar el prompt resultante sin generar una respuesta. Las pruebas alojadas pueden tener costo. Consulta [Probar declaraciones de decisión](../chats/peek-prompt.md#testing-decision-statements).
+4. Ajusta la redacción y vuelve a probar. Las generaciones normales pueden [reutilizar respuestas](#answer-reuse); una prueba explícita de decisiones mantiene sus respuestas separadas del chat activo. Abrir Peek Prompt o previsualizar entradas no pregunta al modelo. Para inspeccionar resultados de generaciones en curso, activa Debug Mode o el [registro de depuración](../CONFIGURATION.md#logging-levels).
 
 Qué mostraron las pruebas. Cada redacción se probó en cuatro turnos etiquetados de Roleplay (dos previstos como sí y dos como no) con Open-Jev 2B, Open-Jev 9B y un modelo local Gemma 4 E4B. Es una muestra pequeña de una sola escena, no una prueba general de precisión ni de Jev alojado. La tabla registra observaciones de esa muestra; no promete el mismo resultado con otro modelo o chat.
 
@@ -373,7 +373,7 @@ Un turno puede hacer varias solicitudes facturadas en una conexión Decision alo
 
 Un modelo de chat local añade tiempo de procesamiento en lugar de cargos alojados. Responde a `decision_choice:` con una pregunta de sí/no por opción, así que una sola elección puede requerir varias generaciones.
 
-Cada solicitud tiene un [límite de tiempo](../connections/decision-models.md#time-limits): 1,5 segundos de forma predeterminada para una conexión Decision o el presupuesto del backend local. Varias solicitudes pueden sumar una espera mayor. Un modelo local que debe razonar primero se abstiene antes de la respuesta salvo que actives **Also gate agents that run before the reply** (evaluar también agentes que se ejecutan antes de la respuesta).
+Cada solicitud tiene un [límite de tiempo](../connections/decision-models.md#time-limits): 1,5 segundos de forma predeterminada para una conexión Decision (4 para una conexión de modelo de chat compatible con OpenAI) o el presupuesto del backend local. Varias solicitudes pueden sumar una espera mayor. Un modelo local que debe razonar primero se abstiene antes de la respuesta salvo que actives **Also gate agents that run before the reply** (evaluar también agentes que se ejecutan antes de la respuesta).
 
 <a id="answer-reuse"></a>
 

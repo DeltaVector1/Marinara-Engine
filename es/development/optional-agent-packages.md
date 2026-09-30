@@ -563,6 +563,38 @@ Importar un archivo de configuración restaura una Experience instalada y compat
 
 Usa de forma independiente la declaración existente de disponibilidad de inicio cuando el mundo deba prepararse antes del primer turno. Declara API 1.18 como mínimo del paquete; los hosts anteriores no pueden interpretar esta declaración de configuración.
 
+<a id="capability-api-150-professor-mari-actions"></a>
+
+### Capability API 1.50: acciones de Professor Mari
+
+Un paquete con el nuevo permiso `mari-actions` puede ofrecer acciones con nombre a Professor Mari. Registra un servicio bajo su propio ID; la herramienta `package_service` de Mari enumera las acciones y ejecuta una cuando el usuario lo pide.
+
+```ts
+export async function activate({ api }) {
+  api.registerService("mari-actions:my-package", {
+    list: () => [
+      { name: "add-idea", summary: "Give a Creator an idea for a post.", inputs: { accountId: "The Creator.", text: "The idea." } },
+    ],
+    run: async (name, input, { signal }) => {
+      const parsed = schemas[name]?.safeParse(input);
+      if (!parsed?.success) return { ok: false, status: 400, error: "Invalid input." };
+      return { ok: true, value: await doIt(name, parsed.data, signal) };
+    },
+  });
+}
+```
+
+Reglas importantes:
+
+- La clave debe ser `mari-actions:<package-id>` del paquete que registra el servicio. Registrar sin permiso o bajo el ID de otro paquete lanza un error, así que la acción siempre pertenece al paquete que Mari nombra.
+- `list()` devuelve entradas `{ name, summary?, inputs? }`. Los nombres tienen de 1 a 80 letras, dígitos, `.`, `_` o `-`; las demás entradas no se muestran. Mari lee `summary` e `inputs`, así que usa lenguaje claro. Solo las primeras 50 acciones son visibles o ejecutables. Mari ve hasta 40 entradas por acción; los nombres se cortan a 80 caracteres y cada texto a 300. `list()` debe responder en 5 segundos o se omiten las acciones del paquete.
+- `run(name, input, { signal })` solo recibe un nombre listado y un objeto JSON simple de hasta 64 000 caracteres. La entrada viene de un modelo: valídala con tu propio esquema antes de actuar. Responde `{ ok: true, value }` o `{ ok: false, status?, error }`; Mari ve los primeros 2000 caracteres del error. `signal` aborta cuando el usuario detiene Mari o tras 5 minutos; Engine deja de esperar, así que detén también tu trabajo.
+- Engine omite las URL de datos de `value` antes de que Mari lo lea y trunca respuestas largas. Devuelve ID y texto breve, no archivos.
+- Listar es de solo lectura. Cada ejecución cuenta como cambio en Permissions Mode de Mari: Plan la rechaza y Manual espera el Accept del usuario. Engine no puede previsualizar ni deshacer una acción de paquete, así que no muestra tarjeta Keep/Restore. Ofrece tu propia acción de deshacer cuando sea difícil revertir cambios. Por este motivo, Plan también rechaza acciones que solo leen.
+- Desactivar o eliminar el paquete retira sus acciones.
+
+Se rechaza `mari-actions` si el manifiesto declara una `capabilityApi` anterior a 1.50.
+
 ### Capability API 1.36: logros de los paquetes
 
 Un paquete con el nuevo permiso `achievements` puede añadir insignias al panel **Achievements** (Logros) de la pantalla de inicio, consultar si están desbloqueadas y desbloquearlas. El panel las muestra en una sección cuyo encabezado es el nombre del paquete, después de las insignias propias de Engine.
@@ -595,6 +627,56 @@ Reglas que conviene conocer:
 - Desactivar o eliminar el paquete oculta sus insignias. Los desbloqueos se conservan, igual que los de las insignias propias de Engine, y vuelven a mostrarse cuando el paquete regresa.
 
 `api.registerAchievements` y `api.runtime.achievements` solo existen en un Engine de esta versión o posterior, así que un paquete que los utilice declara `capabilityApi` 1.36.
+
+<a id="capability-api-135-agent-home-widgets"></a>
+
+### Capability API 1.35: widgets Home de agentes
+
+Un paquete de agente puede ofrecer hasta tres tarjetas para la cuadrícula de widgets de Home. Engine nunca las coloca por sí solo: el usuario las añade, oculta, restaura y reordena en **Widget Manager** (administrador de widgets), agrupadas bajo el agente. Engine controla cuadrícula, marco y disposición; el paquete controla el interior de la tarjeta.
+
+Declara el slot `home-widget` junto con las definiciones:
+
+```json
+{
+  "schemaVersion": 2,
+  "capabilityApi": { "major": 1, "minor": 35 },
+  "kind": ["agent"],
+  "permissions": ["ui"],
+  "entrypoints": { "client": "client.js" },
+  "contributions": {
+    "slots": ["home-widget"],
+    "homeWidgets": [
+      {
+        "id": "latest",
+        "label": "Latest Posts",
+        "description": "The newest posts from the feed.",
+        "size": "large",
+        "iconPath": "art/widget.png",
+        "accent": "violet",
+        "surface": "solid",
+        "header": "banner"
+      }
+    ]
+  }
+}
+```
+
+- `id` usa kebab-case en minúsculas, hasta 64 caracteres y es único dentro del paquete.
+- `label` (1–80 caracteres) y `description` (hasta 200) son el texto del Widget Manager. Un paquete de idioma puede reemplazarlos mediante `localizations.<locale>.homeWidgets.<id>.label` y `.description`.
+- `size` es `compact` o `large`. Un widget grande ocupa más espacio.
+- `icon` es un nombre de icono de Engine (`activity`, `bell`, `calendar`, `chart`, `circle`, `clock`, `file`, `flame`, `heart`, `image`, `list`, `message`, `sparkles`, `star`, `zap`). `iconPath` es arte del paquete (`gif`, `jpg`, `jpeg`, `png`, `webp`) y debe estar en `files[]`.
+- `accent`, `surface` y `header` eligen presets de presentación de Engine.
+
+Se rechaza la instalación si el paquete no es un `agent` con permiso `ui` y punto de entrada de cliente, si el slot y `homeWidgets` no se declaran juntos, si dos widgets comparten ID o si `capabilityApi` es anterior a 1.35.
+
+Engine monta el elemento cliente con `view="widget"`. Además de `packageId`, `packageVersion` y `localization`, `capabilityProps` contiene:
+
+- `widgetId`, `widgetLabel`, `widgetDescription`, `widgetIcon`, `widgetIconPath`, `widgetAccent`, `widgetSurface` y `widgetHeader`: definición de la tarjeta mostrada, para que un bundle dibuje todos sus widgets.
+- `active`: `true` solo si Home está abierto y la tarjeta visible. Pausa consultas y animaciones cuando sea `false`.
+- `onOpenNoodle()`: abre la pestaña de navegador Home del paquete. Pese al nombre, sirve para cualquier paquete que declare `home-browser-tab`. Sin esa pestaña, esta función y `onOpenPost` no hacen nada.
+- `onOpenPost(id)`: abre la pestaña Home propia en un elemento. `id` es un string de hasta 128 caracteres; lo demás se ignora. El elemento `view="browser"` recibe `focusPostId: id`. Debe llamar a `onFocusPostHandled()` tras mostrarlo para no repetir el enfoque. Cambiar a otra pestaña descarta el enfoque pendiente.
+
+Un widget es una vista pequeña del agente, no otra copia. Mantenlo ligero y dirige al usuario a la pestaña de navegador para tareas mayores.
 
 ### Capability API 1.34: una criatura escrita en los términos del conjunto
 

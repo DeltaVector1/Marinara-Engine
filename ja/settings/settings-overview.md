@@ -15,7 +15,7 @@
 | **Generations** | 画像と動画のデフォルト、および使い回せるプロンプトの雛形。 |
 | **Addons** | Professor Mariが作るサンドボックス内のPersonal Extensionの下書き、必要に応じて解放するExternal Extensions、カスタムテーマ。 |
 | **Imports** | プロファイル全体の復元と、他のアプリからのインポート。 |
-| **Advanced** | 管理者アクセス、アップデート、メッセージ関連の機能、バックアップ、そして取り消せないリセット。 |
+| **Advanced** | 管理者アクセス、オプションの機能スイッチ、アップデート、メッセージ関連の機能、バックアップ、取り消せないリセット。 |
 
 各タブの詳しい説明は、以下のガイドにあります。
 
@@ -24,7 +24,7 @@
 - **Generations**: [スタイルプロファイル](../media/style-profiles.md)と[シーン動画](../media/scene-video.md)を参照してください。
 - **Addons**: [個人用拡張機能](../extending/personal-extensions.md)と[カスタムCSSテーマ](../appearance/custom-css-themes.md)を参照してください。
 - **Imports**: [SillyTavernからのインポート](../data/importing-from-sillytavern.md)と[バックアップと復元](../data/backup-and-restore.md)を参照してください。
-- **Advanced**: 以下の**Message Tools**のセクションに加えて、[Marinara Engineのアップデート](../UPGRADING.md)、[リモートアクセス](../REMOTE_ACCESS.md)、[データの消去](../data/clearing-data.md)を参照してください。
+- **Advanced**: 以下の**Message Tools**のセクションに加えて、[Marinara Engineのアップデート](../UPGRADING.md)、[リモートアクセス](../REMOTE_ACCESS.md)、[データの消去](../data/clearing-data.md)を参照してください。 [機能スイッチ](../configuration/features.md)。
 
 ## Settings、Generalタブ
 

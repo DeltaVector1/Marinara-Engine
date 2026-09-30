@@ -70,6 +70,30 @@ Professor Mari 起草的扩展不受这个开关限制。它们创建出来就�
 
 沙箱化的浏览器扩展仍是默认形态。有少数较老的第三方包标记为 **Full page access**(整页访问)，因为它们依赖 Marinara 的 DOM。这种模式会把你批准过的那份代码原样运行在 Marinara 页面内部，能够访问页面内容、浏览器存储、网络 API 和当前的同源会话。只有两道关全部打开后，外部扩展才能使用它，而且还要单独确认一次警告。如果某个扩展留下了视觉或行为上的残留，禁用它并刷新页面。
 
+<a id="optional-multiplayer"></a>
+
+## 可选多人模式
+
+多人模式默认关闭。两个启用条件中只要有一个关闭，就不会在后台检查会话、证书或对端；除非你明确刷新 Settings，客户端只读取一次可用性。它支持 Conversation、Roleplay 和 Game 的私人房间，没有固定的人类或 AI 角色数量上限。每位访客使用自己信任的 Marinara 安装；手机可以使用其所有者信任的 Engine 服务器。访客不需要 AI 连接。房主提供 AI 连接，并能阅读和保留共享内容。
+
+1. 在每个参与的 Engine 的 `.env` 中设置 `MULTIPLAYER_ENABLED=true`，然后重启。只有精确值 `true` 才启用此前提条件；热重载不会更改它。
+2. 打开 **Settings → Advanced → Multiplayer**(设置 → 高级 → 多人模式)，阅读警告并启用独立设置。这不会启动监听或加入房间。
+3. 创建房间时，在现有模式/设置流程中使用 **Create shared session**(创建共享会话) 或 **Play together**(一起游玩)。检查设置、显示名称以及即将分享的完整 persona 文本。已有聊天只提供设置选项，不会复制其私有记录、笔记或记忆。
+4. 在房主端配置 `SSL_CERT` 和 `SSL_KEY`，使用对房间主机名有效且受访客 Engine 信任的证书。选择独立的 HTTPS 房间地址和端口，例如 `https://room.example.org:7861`。明确执行主持操作后才会开放端口。防火墙/路由器只应转发房间监听端口，不要公开普通 Engine API。系统不会自动配置端口转发、中继账户或证书绕过。
+5. 设置至少 12 个字符的房间密码，且不同于 Engine/管理员凭据。将会过期的邀请和密码分别发给可信的人。访客在自己的客户端检查与主机名绑定的指纹、房间名和 persona 文本，同意后申请加入。房主必须在 **Players**(玩家) 中批准每个申请，之后才发送任何房间记录。
+
+TLS 验证证书链和主机名，并在发送密码前检查邀请中的证书指纹。不会默默接受自签名证书。证书续期或变更后，需要新邀请并重新检查。邀请在 30 分钟后过期；已获准的会话最长持续 12 小时。替换/撤销邀请可阻止未使用邀请接纳新人；Kick 会撤销已获准参与者的权限。
+
+房主控制自动/手动回复、有上限的生成额度、Pause/Resume 和 Stop。默认每次主持会话允许 100 个协调生成回合；群组回合或 Game 设置可能调用模型多次。这是回合限制，不是价格估算。Conversation 日程使用房主现有的调度器。访客不会运行第二个调度器，也不会从收到的文本执行本地命令。
+
+在 Game 中，Start Game 前请检查已获准的人类队伍。每个必需的玩家都要提交行动或跳过。所有人就绪后 GM 才结算。断线玩家仍是必需成员，直到其返回或房主明确让其跳过/将其移除。新玩家和 persona 变更从下一轮生效。暂停/中断的结算绝不会自动重复付费请求或已经提交的世界效果；继续前请检查记录。
+
+Stop、Leave、关闭 Settings 和重启服务器都会结束相应的活动会话。重启不会自动主持或加入。房间由房主服务器拥有，关闭房主浏览器不会把控制权交给访客。移动浏览器休眠可能延迟更新，但不会导致第二次生成。
+
+只连接可信的人。使用自己信任的 Marinara 客户端，绝不要安装房主提供的客户端、扩展或所谓必需文件。房主可以阅读、保留你分享的内容，并将其发送给所配置的 AI 服务商。直接连接会暴露网络地址。不要分享密码、API 密钥或敏感个人信息。发现可疑情况请立即退出。
+
+共享内容仅限有大小上限的文本。不支持对端文件/媒体传输、可执行内容、包导入、远程资源加载或原生操作。自定义/包工具和不安全命令在房间中仍不可用。Android 原生封装不能加入。具体限制与已测试平台见[兼容性与验证记录](development/multiplayer.md)；这些控制不保证能抵御所有浏览器/操作系统漏洞或独立的外部下载。
+
 ## .env 文件在哪里
 
 配置写在一个名为 `.env` 的文件里。这是纯文本文件，每行一个设置，形式为 `KEY=value`。以 `#` 开头的行是注释，服务器会忽略。
@@ -107,6 +131,7 @@ Marinara 在运行期间会盯着 `.env` 文件。保存修改后，大部分设
 - `TZ`
 - `AUTO_OPEN_BROWSER`、`AUTO_UPDATE_ENABLED`、`AUTO_CREATE_DEFAULT_CONNECTION`
 - `LOG_DISABLE_REQUEST_LOGGING`
+- `STORAGE_CACHE_WINDOWS_BOOT_ID`, `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS`, `SHUTDOWN_FORCE_EXIT_ON_REPEAT`
 - 图像、视频、立绘和 ComfyUI 的超时与轮询设置（`IMAGE_GEN_TIMEOUT_MS`、`VIDEO_GEN_TIMEOUT_MS`、`VIDEO_GEN_MAX_RESPONSE_BYTES`、`SPRITE_GENERATION_TIMEOUT_MS`、`SPRITE_ANIMATED_FFMPEG_TIMEOUT_MS`、`COMFYUI_GEN_TIMEOUT`，以及四个 `*_VIDEO_POLL_INTERVAL_MS` 设置）
 
 其中任何一项发生变化时，日志会提示需要重启。访问控制类设置和 `BASIC_AUTH_USER`、`BASIC_AUTH_PASS`、`IP_ALLOWLIST`、`ADMIN_SECRET`、`CSRF_TRUSTED_ORIGINS` 这类机密则不需要重启。
@@ -272,6 +297,12 @@ ADMIN_SECRET=replace-this-with-a-long-random-secret
 
 要连接本地或自建模型，见[连接本地或自托管模型](connections/local-self-hosted.md)。
 
+<a id="feature-switches"></a>
+
+## 功能开关
+
+重试失败的服务商调用、固定世界书组选择等可选服务器行为，可在 **Settings > Advanced > Features**(设置 > 高级 > 功能) 中开启，默认全部关闭。部分开关对应环境变量；只要设置了变量，就优先于开关。每个开关及其默认值、变量详见[功能开关](configuration/features.md)。
+
 ## 环境变量完整参考
 
 本节按用途分组列出其余设置。前面的表格已经覆盖了访问控制、存储、日志、超时、授权操作和本地地址放行开关。
@@ -319,6 +350,36 @@ Conversation 的日程控件默认使用浏览器或应用所在设备报告的�
 | `SEEDANCE_VIDEO_POLL_INTERVAL_MS` | `10000` | 服务器多久查询一次 Seedance 任务。 |
 | `VIDEO_REFERENCE_PUBLIC_BASE_URL` | 空 | 本服务器的公网 HTTPS 地址，供必须按 URL 拉取参考图的服务商使用。 |
 
+<a id="lorebooks"></a>
+
+### 世界书
+
+两项设置默认关闭，在 `.env` 变更后的下一次生成生效。`LOREBOOK_STABLE_GROUP_WINNERS` 固定 Settings > Advanced > Features 中的 **Stable lorebook picks**：设置了变量就以变量为准，未设置则由开关决定（见[功能开关](configuration/features.md)）。
+
+| 变量 | 默认值 | 作用 |
+| --- | --- | --- |
+| `LOREBOOK_STABLE_GROUP_WINNERS` | `false` | 只要匹配候选不变，就在每个聊天中保留同一个世界书包含组胜出条目，而不是每次生成重新抽选。这能稳定提示词前缀，便于服务商缓存提示词。 |
+| `LOREBOOK_COMPACT_STORED_SCANS` | `false` | 只在聊天中最新的助手或叙述者消息保存激活条目的完整文本（该行及其 swipes；模拟用户的回合不会替代它）。旧消息保留条目 ID、键和评分，让大型世界书聊天在磁盘和内存中更小。若删除新消息，Active Context 和智能体重试会为再次成为最新的消息显示条目当前保存的文本。 |
+
+`scripts/compact-lorebook-scans.mjs` 将同样规则应用于启用设置前保存的聊天。先停止服务器；未传入 `--apply` 时只是试运行，写入前会备份两个消息表。
+
+<a id="robustness"></a>
+
+### 稳健性
+
+这里的设置默认全部关闭，保持原有行为，并且互相独立。`STORAGE_CACHE_WINDOWS_BOOT_ID`、`SHUTDOWN_WINDOWS_CONSOLE_SIGNALS` 和 `SHUTDOWN_FORCE_EXIT_ON_REPEAT` 在启动时读取，需重启；其他项在 `.env` 变更后的下一次请求、保存或停止时生效。`PROVIDER_RETRY_TRANSIENT_ERRORS` 固定 Settings > Advanced > Features 中的 **Retry failed provider calls**：变量已设置就优先，否则由开关决定（见[功能开关](configuration/features.md)）。
+
+| 变量 | 默认值 | 作用 |
+| --- | --- | --- |
+| `PROVIDER_RETRY_TRANSIENT_ERRORS` | `false` | 连接被拒绝或不可达、网关 502/503 时，短暂随机等待后最多重试两次（最多等 5 秒，即使网关要求更久），且只在任何文本到达前重试。504 和中断连接绝不重试。有 fallback 时立即尝试 fallback，不使用此机制。连接超时也算不可达，因此缓慢失败的主机可能让错误晚约 20 秒显示。 |
+| `STORAGE_SKIP_UNCHANGED_WRITES` | `false` | 如果聊天文件或 `manifest.json` 的内容与本服务器上次写入相同，且磁盘文件未变，则跳过重写。刚从 `.bak` 恢复的文件始终重写。 |
+| `STORAGE_YIELDING_SERIALIZE` | `false` | 将大型聊天文件的保存准备拆成短时间片，避免保存很长的聊天时暂停其他请求和流。写入字节保持一致。 |
+| `STORAGE_CACHE_WINDOWS_BOOT_ID` | `false` | 仅 Windows。将存储锁每次启动执行的系统启动时间检查（约 1.5 至 2 秒 PowerShell）保存在 `DATA_DIR` 下的 `.writer-boot-id.json`，直到下次系统重启。 |
+| `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS` | `false` | 仅 Windows。Ctrl+Break 和关闭控制台窗口也会正常停止服务器并写入待保存内容，而非立即终止。关闭控制台采用较短期限，以适应 Windows 允许的约 5 秒。 |
+| `SHUTDOWN_FORCE_EXIT_ON_REPEAT` | `false` | 首次按 Ctrl+C（或 Ctrl+Break）超过 1.5 秒后再次按下会立即终止服务器，尚未写入的保存可能丢失。未启用时忽略重复信号，适用正常的 8 秒关闭期限。 |
+| `SHUTDOWN_EARLY_FLUSH` | `false` | 收到停止信号（Ctrl+C、SIGTERM）后立即写入待保存内容，此时连接可能仍在关闭。Advanced Settings 的重启不使用此机制。 |
+| `SHUTDOWN_RUNTIME_STOP_BUDGET_MS` | `0` | 停止信号等待后台运行时（能力包、扩展、辅助进程）多久后仍然关闭存储。Advanced Settings 的重启继续等待全部结束。`0` 与以前一样等待全部。最大 `2500`，确保在 8 秒关闭期限内关闭存储。 |
+
 ### 集成与其他
 
 | 变量 | 默认值 | 作用 |
@@ -338,6 +399,7 @@ Conversation 的日程控件默认使用浏览器或应用所在设备报告的�
 
 ## 相关指南
 
+- [功能开关](configuration/features.md)
 - [远程访问：Basic Auth 与 IP 允许列表](REMOTE_ACCESS.md)
 - [数据保存在哪里](data/where-data-is-stored.md)
 - [连接 AI 服务商](connections/connecting-to-a-provider.md)

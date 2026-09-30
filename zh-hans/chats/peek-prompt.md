@@ -14,6 +14,7 @@ Peek Prompt(查看提示词) 会原样显示 Marinara Engine 为了生成一条�
 - **Live Preview**：当场重新生成的预览。
 - **Raw Messages**：未经处理的消息列表。
 - **Prompt Preview**：一般的预览。
+- **Decision test preview**：使用一次明确执行的决策测试结果组装的提示词，尚未发送给聊天模型。
 
 角标下面是生成信息面板。这里可以显示服务商和模型名、估算的 Token 数，回复生成完毕后还会显示真实的提示词 Token 数。Token 是一小段文本，模型统计长度时数的是 Token，不是单词。面板上还会用小标签列出这次用到的取值，比如 **Temperature**(温度)、**Max Output Tokens**(最大输出 Token 数)、**Thinking**(思考)、**Reasoning**(推理)、**Verbosity**(详细度)、**Service Tier**(服务层级)、**Assistant Prefill**(助手预填)。**Top P**、**Top K**、**Min P** 这类采样取值也可能出现在这里。
 
@@ -71,9 +72,28 @@ Marinara 不会把它当成消息发出去，而是清空输入框并打开 Peek
 
 知道了模型实际收到什么，就能对症下药：改角色卡、调世界书条目，或者改一个生成参数的取值。
 
+<a id="testing-decision-statements"></a>
+
+## 测试 Decision 语句
+
+在 Peek Prompt 中打开 **Decision diagnostics**(决策诊断)，可以检查当前聊天的提示词语句和世界书决策。打开面板或选择 **Preview inputs**(预览输入) 只会准备请求正文，不会调用决策模型，也不会启动本地模型。展开 **Prepared request bodies**(已准备的请求正文)，可以查看近期消息、解析后的语句、选项及模型专用的请求格式。有些世界书语句只有在前一个决策得到回答后才会变得可达。
+
+选择 **Test decisions**(测试决策)，向选定的决策模型发送符合条件的问题。这会发出真实的决策请求，因此托管模型可能收费。测试不会生成聊天回复、运行智能体、改变游戏状态，也不会把测试的答案或计时状态保存到聊天。
+
+即使常规的回复前决策已被推迟，明确执行的测试仍可以等待本地推理模型。这不会改变实际回复的偏好设置；预览输入依然不会发送模型请求。
+
+每个结果会显示可用的分数、是/否语句使用的阈值及最终答案。只返回是/否词语的模型会被相应标明，其答案不会被当作概率显示。Choice 结果会显示选中的选项。保持中、已推迟、超出限制、不可用及失败的决策都有各自的解释，避免把缺少答案误认为低分。
+
+测试后，下方提示词会使用测试的答案。**Show original prompt**(显示原始提示词) 可以返回最初打开的内容，**Show tested prompt**(显示测试后的提示词) 可以切回测试版本。**Requests sent and results**(已发送的请求和结果) 会显示实际的决策请求正文及返回结果，不包含身份验证请求头。
+
+即使从历史回复打开 Peek Prompt，测试仍使用当前聊天和当前设置，不会还原当时的决策请求。测试涵盖提示词语句和世界书决策，不会执行智能体激活判断或回复后决策。在你明确选择 **Test decisions** 之前，普通 Peek Prompt 始终只做被动查看。
+
+在 Advanced Memory 中启用 **Use Decision model (Jev)**(使用决策模型) 后，面板还会显示 **Advanced Memory activity**(Advanced Memory 活动)。这些已保存的报告记录最近一次记忆检索和场景结束检查的模型、用时、分数、选择及备用处理状态。即使提示词没有 Decision 语句，也可能显示这些报告。它们描述实际发生过的调用，不是当前预览，也不是重放选中的历史回复。兼容的备选回复可以复用之前的检索报告。每份报告最多保存 128 个结果，选中的结果优先；被省略的结果会计数。下一次符合条件的 Jev 调用后会出现新报告，查看报告不会发送模型请求。
+
 ## 相关指南
 
 - [生成参数](../prompts/generation-parameters.md)
 - [预设编辑器与提示词管理器](../prompts/presets.md)
+- [决策模型](../connections/decision-models.md)
 - [引导生成与 Impersonate](guided-and-impersonate.md)
 - [消息操作：编辑、删除、备选回复、重新生成](messages.md)

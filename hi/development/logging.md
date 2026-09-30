@@ -1,0 +1,120 @@
+# सर्वर लॉगिंग
+
+यह पेज Marinara Engine का सर्वर लॉग पढ़ना और उपयोगी पंक्तियाँ लिखना समझाता है। यह [CONTRIBUTING.md के Logging सेक्शन](../../CONTRIBUTING.md#logging) का पूरक है, उसकी जगह नहीं लेता। साझा Pino लॉगर, पहला आर्ग्युमेंट त्रुटि ऑब्जेक्ट, फ़ॉर्मैट संकेतक और चार-स्तरीय तालिका लागू रहते हैं।
+
+<a id="what-every-line-carries"></a>
+
+## हर पंक्ति की जानकारी
+
+सभी सर्वर पंक्तियाँ एक Pino इंस्टेंस से आती हैं: `packages/server/src/lib/logger.ts` का `logger`। Fastify भी `loggerInstance` से वही इस्तेमाल करता है, इसलिए `req.log`, `reply.log` और `app.log` उसके बच्चे हैं। वे वही सीरियलाइज़र और एनवायरनमेंट वॉचर के `LOG_LEVEL` हॉट रीलोड अपनाते हैं।
+
+| फ़ील्ड | कहाँ | अर्थ |
+| --- | --- | --- |
+| `pid` | हर पंक्ति | प्रोसेस ID (Pino डिफ़ॉल्ट)। |
+| `hostname` | हर पंक्ति | होस्ट नाम (Pino डिफ़ॉल्ट)। |
+| `bootId` | हर पंक्ति | हर प्रोसेस शुरुआत पर नए 8 हेक्स अक्षर; एक लॉग फ़ाइल की अलग रन पहचानते हैं। |
+| `requestId` | अनुरोध से बनी हर पंक्ति | जवाब हेडर `x-request-id` वाला मान। `req.log` और सेवाओं के साझा `logger`, दोनों में है। |
+| `route` | बॉडी पार्स होने के बाद | मिला रूट पैटर्न, जैसे `/api/chats/:id`। कच्चा URL कभी नहीं। |
+
+<a id="request-ids"></a>
+
+### अनुरोध ID
+
+`lib/request-logging.ts` हर अनुरोध को ID देता है:
+
+- क्लाइंट `x-request-id` भेज सकता है। सर्वर `A-Z a-z 0-9 . _ : -` के 8 से 80 अक्षर रखता है; दूसरा मान बदलता है।
+- नहीं तो सर्वर UUID बनाता है। Fastify का डिफ़ॉल्ट `req-1` काउंटर हर बूट पर फिर शुरू होता था, इसलिए ID दोहरती थीं।
+- ID, CORS से उपलब्ध `x-request-id` हेडर में लौटती है। बग रिपोर्ट में इसे दें; `grep <id>` उस अनुरोध की हर पंक्ति ढूँढ़ता है।
+
+ID `AsyncLocalStorage` संदर्भ (`lib/log-context.ts`) में रहती है। Pino मिक्सिन हर पंक्ति पर कॉपी करता है। हाथ से आगे देने की ज़रूरत नहीं: सेवा के भीतर `logger.warn(err, "...")` खुद ले लेता है। बॉडी पार्स होने के बाद संदर्भ फिर सेट होता है, क्योंकि पार्सिंग HTTP पार्सर के अपने असिंक्रोनस संदर्भ में चलती है।
+
+अनुरोध के भीतर शुरू हर काम, टाइमर, लिस्नर और चाइल्ड प्रोसेस सहित, संदर्भ पाता है। अनुरोध से अधिक समय चलने वाला काम शुरू करते समय `runWithRootLogContext({}, fn)` में लपेटें, ताकि बाद की पंक्तियाँ शुरुआती अनुरोध ID न रखें। स्थानीय साइडकार llama-server और MLX के लिए ऐसा करता है; Decision और Utility साइडकार भी अपने प्रोसेस ऐसे शुरू करते हैं। बाद के अनुरोधों में साझा प्रोसेस पहली ID नहीं रखता। रूट हैंडलर के दूसरे लंबे टाइमर या पोलर उसी तरह लपेटे जाने तक उसका `requestId` बनाए रखते हैं।
+
+<a id="request-lines"></a>
+
+### अनुरोध पंक्तियाँ
+
+`RequestLogController`, Fastify का डिफ़ॉल्ट `LogController` है, इन बदलावों के साथ:
+
+- ID लेबल `requestId` है, `reqId` नहीं। `reqId` पर सेव खोज या लॉग फ़िल्टर को नया नाम चाहिए।
+- `incoming request` और `Route ... not found` पंक्तियाँ क्वेरी स्ट्रिंग हटाती हैं, क्योंकि उनमें टोकन या खोज टेक्स्ट हो सकता है। आने वाली पंक्ति बाकी `req` फ़ील्ड (`method`, `version`, `host`, `remoteAddress`, `remotePort`) रखती और `route` जोड़ती है।
+- क्लाइंट अनुरोध जल्दी बंद करे तो info पर एक `Client aborted request` पंक्ति लिखती है। Fastify यहाँ कुछ नहीं लिखता था।
+
+`LOG_DISABLE_REQUEST_LOGGING` पहले जैसा काम करता है और अब रद्द वाली पंक्ति भी बंद करता है।
+
+`pnpm dev` में pino-pretty `hostname` (उसका डिफ़ॉल्ट) और `bootId` छिपाता है। प्रोडक्शन JSON दोनों रखता है।
+
+<a id="startup-timeline"></a>
+
+## शुरुआत की समयरेखा
+
+`lib/startup-timeline.ts` हर बूट चरण का समय मापता है:
+
+```ts
+const db = await startup.phase("storage.open", () => getDB());
+```
+
+- हर पंक्ति में `event: "startup.phase"`, `stage`, `elapsedMs` (बीता वास्तविक समय) और `selfMs` (अंदर के चरण छोड़कर अपना समय) हैं। स्तर `selfMs` पर है: 1 सेकंड से कम debug, 1 से ऊपर info और 15 से ऊपर warn। डिफ़ॉल्ट `LOG_LEVEL=warn` पर सामान्य बूट, धीमी पहली रन भी, चरण पंक्तियाँ नहीं छापता।
+- चरण एक-दूसरे के भीतर होते हैं। `index.ts` का `app.build`, `buildApp` के सभी चरण घेरता है। `selfMs` के कारण धीमा अंदरूनी चरण खुद केवल एक बार रिपोर्ट होता है; `app.build` debug पर रहता है, जब तक अंदरूनी चरणों के बाहर उसका अपना काम धीमा न हो।
+- असफल चरण के अंदर त्रुटि लॉग नहीं होती। वह बिना बदले ऊपर जाती है; `index.ts` का `main().catch` चरण नाम (`startup.stageOf(err)`) के साथ एक `startup.failed` पंक्ति लिखता है।
+- सर्वर सुनने लगे तो `index.ts`, `[startup] Ready in N ms` की एक info पंक्ति लिखता है, जिसमें `event: "startup.ready"`, चरण संख्या और सबसे बड़े `selfMs` वाले पाँच चरण हैं।
+
+चरण लॉग संदर्भ में `stage` नहीं जोड़ते। चरण में शुरू सेवाएँ टाइमर रखती हैं, जो वरना प्रोसेस के पूरे जीवन में वही चरण दिखाते रहते।
+
+<a id="one-line-per-failure"></a>
+
+## हर विफलता की एक पंक्ति
+
+हर विफलता की ठीक एक पंक्ति होनी चाहिए, उस कोड से जो अगला कदम तय करता है।
+
+- **लॉग करें या फिर फेंकें, दोनों नहीं।** फिर फेंकें तो कॉलर को लॉग करने दें। उपयोगी अतिरिक्त विवरण debug पर रखें, जैसे `[agent-tools] ... failed` में टूल नाम।
+- **वह पंक्ति कहाँ हो:**
+  - अनजान 500: `middleware/error-handler.ts`
+  - एजेंट विफलता: `executeAgent` (गैर-गंभीर विफलता, warn)
+  - चैट जनरेशन विफलता: `generate.routes.ts` का मुख्य catch
+  - संबंधित प्रोवाइडर कोड फेंकता है, लॉग नहीं करता। अधिकतम मॉडल नाम और कच्ची त्रुटि वाली debug पंक्ति जोड़ता है, जैसे Grok CLI और Claude (Subscription)। Claude (Subscription) का आसान संदेश SDK त्रुटि टेक्स्ट पहले से रखता है, इसलिए SDK त्रुटि फिर `cause` में नहीं जोड़ता। चैट का SSE और एजेंट त्रुटि टेक्स्ट कारण का संदेश जोड़ते हैं, इसलिए वरना उपयोगकर्ता वही टेक्स्ट दो बार देखेगा।
+- **रद्द होना info है।** उपयोगकर्ता का स्टॉप, टैब बंद होना या सिग्नल रद्द होना अपेक्षित हैं। `lib/log-context.ts` से `failureLevel(err)` या `failureLevel(err, "warn")` लें। `isCancellation(err)` true हो तो `"info"` लौटता है। `TimeoutError` वास्तविक विफलता है, रद्द होना नहीं।
+
+  ```ts
+  logger[failureLevel(err)](err, "[agent-batch] Batch call FAILED: %s", errMsg);
+  ```
+
+- **कारण बचाएँ।** `new Error("Could not save chat", { cause: err })` में लपेटें। `err` और `error` सीरियलाइज़र कारण का संदेश और स्टैक जोड़ते हैं (`caused by: ...`)। `{ error }` के रूप में लॉग हुआ Error भी सीरियलाइज़ होता है; अब `{}` नहीं दिखता।
+
+<a id="repeating-failures"></a>
+
+## दोहराती विफलताएँ
+
+पोलर, हेल्थ चेक और प्रति-टर्न हुक हर कुछ सेकंड में समान तरह असफल हो सकते हैं। `lib/log-rate-limit.ts` का `logRateLimited` लें:
+
+```ts
+logRateLimited("warn", "autonomous-scheduler:poll", err, "[autonomous-scheduler] Poll failed");
+```
+
+कुंजी की पहली घटना लिखी जाती है। समय-खिड़की (डिफ़ॉल्ट 60 सेकंड) की अगली घटनाएँ गिनी जाती हैं और अगली पंक्ति में `suppressedRepeats` आता है। कुंजी में असफल वस्तु, जैसे पैकेज या चैट ID, रखें ताकि एक खराब वस्तु दूसरी को न छिपाए।
+
+<a id="prompt-and-model-text"></a>
+
+## प्रॉम्प्ट और मॉडल टेक्स्ट
+
+प्रॉम्प्ट, मॉडल आउटपुट, प्रोवाइडर जवाब बॉडी और पोल बॉडी **debug** पर जाएँ, warn या error पर कभी नहीं। उनमें उपयोगकर्ता की कहानी हो सकती है, और प्रोवाइडर बॉडी क्रेडेंशियल या प्रॉम्प्ट दोहरा सकती है। warn पर आकार (`rawLength`, `bodyLength`) और कारण लिखें। JSON पार्स त्रुटि संदेश असफल टेक्स्ट उद्धृत कर सकता है, इसलिए warn पर केवल त्रुटि प्रकार लिखें। असली त्रुटि और टेक्स्ट अलग debug पंक्ति में रखें:
+
+```ts
+logger.warn(
+  { errorType: err instanceof Error ? err.name : typeof err, rawLength: raw.length },
+  "[game/scene-wrap] Failed to parse LLM response as JSON",
+);
+logger.debug({ err }, "[game/scene-wrap] Unparsed LLM response: %s", raw.slice(0, 200));
+```
+
+UI का डिबग स्विच `logDebugOverride` से काम करता रहता है। `LOG_LEVEL` debug छिपाए तो प्रॉम्प्ट देखने का यही निर्धारित तरीका है।
+
+<a id="checks"></a>
+
+## जाँच
+
+`logging-request-trail`, `logging-failure-lines` और `logging-startup-timeline` रिग्रेशन इस पेज को कवर करते हैं:
+
+```sh
+node scripts/run-regressions.mjs --filter logging-
+```

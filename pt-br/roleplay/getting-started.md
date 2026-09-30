@@ -99,6 +99,16 @@ O comando é `[whisper: character="name" text="the secret"]`. Nomeie exatamente 
 
 O sussurro permanece no seu lugar na mensagem. Os dirigidos à persona ficam visíveis imediatamente; nos demais, escolha **Reveal a secret** (revelar um segredo) para ler. Revelar muda apenas sua tela, não o conhecimento dos personagens. Segredos acompanham a mensagem e o swipe ativo e saem do prompt quando a mensagem é ocultada ou fica fora do histórico selecionado.
 
+Depois que um sussurro estiver visível, escolha **Edit whisper** (editar sussurro), altere o texto e pressione **Save** (salvar). A correção fica no swipe daquela mensagem e é usada nos próximos prompts para o destinatário original e o narrador. **Cancel** (cancelar) mantém o texto inalterado.
+
+Você também pode escrever `[whisper: character="name" text="the secret"]` na própria mensagem de Roleplay para sussurrar a um personagem do chat. Seus próprios sussurros ficam visíveis para você imediatamente. Isso funciona em chats comuns sem ativar o modo multijogador.
+
+### Suas notas privadas
+
+Com **Personal Notes** ativado em **Roleplay Commands**, escreva `[notes: content="your private note"]` na própria mensagem. Essas notas pertencem a você e são incluídas apenas para o narrador designado, não para personagens comuns nem agentes compartilhados. Use os detalhes de comandos da mensagem para editá-las ou excluí-las.
+
+O narrador também deixa de receber as notas de um personagem quando ele é desativado ou removido do grupo. Desativar não exclui as notas salvas; reativar o personagem as disponibiliza novamente.
+
 ## Interrupções dos personagens
 
 Em **Chat Settings → Agents → Roleplay Commands**, ative **Interruptions** (interrupções) para permitir que personagens cortem a última mensagem quando uma intervenção verbal ou física for plausível. A função começa desativada e não exige nenhum agente baixado.

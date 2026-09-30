@@ -46,6 +46,14 @@ Sous Android, tu peux aussi [télécharger directement le dernier APK](https://g
 
 L'enveloppe Android te connecte automatiquement dans l'application ou le navigateur. Choisis **Open in browser** (ouvrir dans le navigateur) dans son lanceur et appuie sur **Retry connection** (réessayer la connexion) ; utilise **Install / Start Marinara** si le serveur est arrêté. Ce choix est mémorisé. Dans l'application, **Settings > General > App Behavior > Open Android launcher (app or browser)** (réglages > général > comportement de l'application > ouvrir le lanceur Android (application ou navigateur)) permet de revenir à ce choix. Mets à jour l'APK et Marinara Engine pour bénéficier de l'ouverture automatique du navigateur avec authentification. Les anciens APK proposent toujours la connexion manuelle à `/android-login`. La CLI locale `mari` lit automatiquement le secret géré par le lanceur, et les installations manuelles dans Termux gardent les règles habituelles de localhost.
 
+<a id="can-i-play-with-other-people"></a>
+
+## Puis-je jouer avec d'autres personnes ?
+
+Le multijoueur facultatif crée une nouvelle session partagée Conversation, Roleplay ou Game sans plafond fixe de participants humains ou IA. Chacun active le prérequis d'environnement et le réglage distinct de Settings, puis héberge ou rejoint explicitement depuis son propre client de confiance. Les invités n'ont pas besoin de clé IA ; l'hôte contrôle la génération et l'admission. Game attend l'action ou le passage explicite de chaque joueur requis avant de résoudre le tour.
+
+Un mot de passe ne rend pas un hôte inconnu sûr. Les salons n'acceptent que du texte et isolent la vue invitée des fichiers, intégrations natives et API locales. L'enveloppe Android native ne peut pas rejoindre. Lis la [configuration, les avertissements et les limites du multijoueur](CONFIGURATION.md#optional-multiplayer) avant de l'activer.
+
 ## Quels sont les trois modes de chat ?
 
 Marinara propose trois modes de chat, affichés sous forme d'onglets quand tu ouvres la liste des chats :

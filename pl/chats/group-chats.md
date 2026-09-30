@@ -97,6 +97,8 @@ Kiedy ustawienie **Mode** stoi na **Individual**, pojawia się ustawienie **Resp
 
 Przy kolejności **Smart** AI potrafi ustawić w kolejce więcej niż jedną postać. Od razu odpowiada tylko pierwsza. Kolejnego mówiącego wskaże lista **Trigger Response** na pasku wiadomości. Inna opcja: wyślij pustą wiadomość, a odezwie się następna postać z kolejki.
 
+W Roleplay w trybie **Individual** z kolejnością **Smart** lub **Manual** pierwszą opcją selektora jest **Smart**, oznaczone ikoną osób w kolorze akcentu. Prosi model o wybranie następnego rozmówcy dla tej odpowiedzi, korzystając z modelu decyzyjnego, jeśli jego opcja kolejności Smart jest włączona. Zapisana kolejność odpowiedzi nie zmienia się, a opcje z nazwami postaci nadal pozwalają wybrać je bezpośrednio.
+
 W trybie **Individual** dochodzą jeszcze dwa przełączniki:
 
 - **Add Turn To Prompt** jest domyślnie włączone. Dodaje krótką instrukcję z imieniem postaci, która ma odpowiedzieć w tej turze.

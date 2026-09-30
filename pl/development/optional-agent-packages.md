@@ -556,6 +556,38 @@ Deklarowanie `ranged`, `cover`, `opportunity` albo zasięgu broni BEZ `distance`
 
 To nie jest miękki interfejs, jak w 1.20-1.27: Engine nieznający kluczy odrzuca cały plik zasad albo katalog ze stworzeniem o podwójnym zasięgu. Instalacja czyta zweryfikowane bajty `ruleset.json` i wszystkich zadeklarowanych `catalogs/<id>.json`, odrzucając starszą deklarację. Bez zmian dla zestawu bez odległości.
 
+<a id="capability-api-150-professor-mari-actions"></a>
+
+### Capability API 1.50: akcje dla Professor Mari
+
+Pakiet z nowym uprawnieniem `mari-actions` może oferować nazwane akcje dla Professor Mari. Rejestruje jedną usługę pod własnym identyfikatorem; narzędzie `package_service` postaci Mari wyświetla akcje i wykonuje wybraną na prośbę użytkownika.
+
+```ts
+export async function activate({ api }) {
+  api.registerService("mari-actions:my-package", {
+    list: () => [
+      { name: "add-idea", summary: "Give a Creator an idea for a post.", inputs: { accountId: "The Creator.", text: "The idea." } },
+    ],
+    run: async (name, input, { signal }) => {
+      const parsed = schemas[name]?.safeParse(input);
+      if (!parsed?.success) return { ok: false, status: 400, error: "Invalid input." };
+      return { ok: true, value: await doIt(name, parsed.data, signal) };
+    },
+  });
+}
+```
+
+Ważne reguły:
+
+- Klucz musi mieć postać `mari-actions:<package-id>` dla rejestrującego pakietu. Brak uprawnienia lub identyfikator innego pakietu powoduje wyjątek, więc wykonywana akcja zawsze należy do wskazanego pakietu.
+- `list()` zwraca wpisy `{ name, summary?, inputs? }`. Nazwy mają 1–80 liter, cyfr, `.`, `_` lub `-`; pozostałe wpisy nie są wyświetlane. Mari czyta `summary` i `inputs`, więc używaj jasnego języka. Widoczne i wykonywalne jest tylko pierwszych 50 akcji. Mari widzi najwyżej 40 wejść na akcję; nazwy są obcinane do 80 znaków, każdy tekst do 300. `list()` musi odpowiedzieć w 5 sekund, inaczej akcje pakietu są pomijane.
+- `run(name, input, { signal })` dostaje wyłącznie nazwę z listy i zwykły obiekt JSON do 64 000 znaków. Wejście pochodzi od modelu: przed działaniem sprawdź je własnym schematem. Zwróć `{ ok: true, value }` lub `{ ok: false, status?, error }`; Mari widzi pierwsze 2000 znaków błędu. `signal` anuluje pracę po zatrzymaniu Mari przez użytkownika albo po 5 minutach; Engine przestaje czekać, więc też zakończ pracę.
+- Engine usuwa adresy data URL z `value` przed odczytem przez Mari i skraca długie odpowiedzi. Zwracaj identyfikatory i krótki tekst, nie pliki.
+- Wyświetlanie listy jest tylko do odczytu. Każde wykonanie liczy się jako zmiana w Permissions Mode: Plan je odrzuca, Manual czeka na Accept użytkownika. Engine nie może pokazać podglądu ani cofnąć akcji pakietu, więc nie pokazuje karty Keep/Restore. Przy trudnych do odwrócenia zmianach zapewnij własną akcję cofania. Z tego powodu Plan odrzuca również akcje tylko odczytujące.
+- Wyłączenie lub usunięcie pakietu usuwa jego akcje.
+
+`mari-actions` jest odrzucane, jeśli manifest deklaruje `capabilityApi` starsze niż 1.50.
+
 ### Capability API 1.36: osiągnięcia pakietów
 
 Pakiet z nowym uprawnieniem `achievements` może dodawać odznaki do panelu **Achievements** (osiągnięcia) na ekranie głównym, odczytywać, czy są odblokowane, i je odblokowywać. Panel pokazuje je w sekcji z nazwą pakietu w nagłówku, za odznakami samej aplikacji Marinara Engine.
@@ -588,6 +620,56 @@ Zasady, które warto znać:
 - Dezaktywacja lub usunięcie pakietu ukrywa jego odznaki. Odblokowania zostają zapisane, tak jak w przypadku własnych odznak aplikacji Marinara Engine, i pojawiają się ponownie po powrocie pakietu.
 
 `api.registerAchievements` i `api.runtime.achievements` są dostępne dopiero w tak nowej wersji aplikacji Marinara Engine, więc korzystający z nich pakiet deklaruje `capabilityApi` 1.36.
+
+<a id="capability-api-135-agent-home-widgets"></a>
+
+### Capability API 1.35: widżety Home agentów
+
+Pakiet agenta może oferować najwyżej trzy karty w siatce widżetów Home. Engine nigdy sam ich nie umieszcza: użytkownik dodaje, ukrywa, przywraca i porządkuje je w **Widget Manager** (menedżer widżetów), gdzie są zgrupowane pod agentem. Engine odpowiada za siatkę, ramkę i układ; pakiet za zawartość karty.
+
+Zadeklaruj slot `home-widget` razem z definicjami:
+
+```json
+{
+  "schemaVersion": 2,
+  "capabilityApi": { "major": 1, "minor": 35 },
+  "kind": ["agent"],
+  "permissions": ["ui"],
+  "entrypoints": { "client": "client.js" },
+  "contributions": {
+    "slots": ["home-widget"],
+    "homeWidgets": [
+      {
+        "id": "latest",
+        "label": "Latest Posts",
+        "description": "The newest posts from the feed.",
+        "size": "large",
+        "iconPath": "art/widget.png",
+        "accent": "violet",
+        "surface": "solid",
+        "header": "banner"
+      }
+    ]
+  }
+}
+```
+
+- `id` to kebab-case małymi literami, najwyżej 64 znaki, unikatowy w pakiecie.
+- `label` (1–80 znaków) i `description` (do 200) są tekstami Widget Manager. Pakiet językowy może je zastąpić przez `localizations.<locale>.homeWidgets.<id>.label` i `.description`.
+- `size` to `compact` lub `large`. Duży widżet zajmuje więcej miejsca.
+- `icon` jest nazwą ikony Engine (`activity`, `bell`, `calendar`, `chart`, `circle`, `clock`, `file`, `flame`, `heart`, `image`, `list`, `message`, `sparkles`, `star`, `zap`). `iconPath` to grafika pakietu (`gif`, `jpg`, `jpeg`, `png`, `webp`) wymieniona w `files[]`.
+- `accent`, `surface` i `header` wybierają gotowe warianty prezentacji Engine.
+
+Instalacja jest odrzucana, jeśli pakiet nie jest `agent` z uprawnieniem `ui` i punktem wejścia klienta, slot i `homeWidgets` nie występują razem, dwa widżety mają ten sam identyfikator lub `capabilityApi` jest starsze niż 1.35.
+
+Engine montuje element klienta z `view="widget"`. Oprócz `packageId`, `packageVersion` i `localization`, `capabilityProps` zawiera:
+
+- `widgetId`, `widgetLabel`, `widgetDescription`, `widgetIcon`, `widgetIconPath`, `widgetAccent`, `widgetSurface` i `widgetHeader`: definicję rysowanej karty, aby jedna paczka kodu obsłużyła wszystkie zadeklarowane widżety.
+- `active`: `true` tylko gdy Home jest pokazane, a karta widoczna. Przy `false` wstrzymaj odpytywanie i animacje.
+- `onOpenNoodle()`: otwiera własną kartę przeglądarki Home pakietu. Mimo nazwy działa dla każdego pakietu ze slotem `home-browser-tab`. Bez tej karty funkcja i `onOpenPost` nic nie robią.
+- `onOpenPost(id)`: otwiera własną kartę Home na wskazanym elemencie. `id` jest ciągiem do 128 znaków; inne wartości są ignorowane. Element `view="browser"` otrzymuje `focusPostId: id` i po pokazaniu elementu powinien wywołać `onFocusPostHandled()`, by nie powtarzać ustawienia fokusu. Przejście na inną kartę usuwa oczekujący fokus.
+
+Widżet to mały widok agenta, nie jego druga kopia. Utrzymuj go lekkim, a większe zadania kieruj do karty przeglądarki.
 
 ### Capability API 1.34: stworzenie opisane zasadami zestawu
 

@@ -329,8 +329,8 @@ Decision 모델 미설정, 시간 내 응답 실패, 처리 실패 등 답이 �
 
 1. **Decision model**에서 모델을 고르고 **Test**(테스트)를 클릭하세요. 고정 샘플로 연결을 확인하며 자신의 문장이나 현재 채팅은 시험하지 않습니다.
 2. 프롬프트에 문장을 추가하고 참이어야 할 경우와 거짓이어야 할 경우를 포함한 대표적인 채팅 메시지를 보내세요.
-3. **Peek Prompt**로 전송한 분기를 확인하세요. 문장의 확률과 예/아니요 결과가 필요하면 [디버그 로그](../CONFIGURATION.md#logging-levels)를 켜세요.
-4. 표현을 조정하고 다시 시험하세요. 성공한 답은 [재사용](#answer-reuse)될 수 있으므로 새 사례는 새 메시지나 바꾼 문장으로 시험하세요. 새 Peek Prompt 미리보기를 열어도 모델에 묻지 않습니다.
+3. **Peek Prompt**로 보낸 분기를 확인하세요. **Decision diagnostics**(Decision 진단)를 열어 현재 결정 입력을 미리 보고, **Test decisions**(결정 테스트)를 선택해 답변을 생성하지 않고 새 점수와 결과 프롬프트를 확인하세요. 호스팅 테스트에는 요금이 발생할 수 있습니다. [Decision 문 테스트](../chats/peek-prompt.md#testing-decision-statements)를 참고하세요.
+4. 문구를 조정하고 다시 테스트하세요. 일반 생성은 [답을 재사용](#answer-reuse)할 수 있지만 명시적인 결정 테스트는 답을 실제 채팅과 별도로 유지합니다. Peek Prompt를 열거나 입력을 미리 보는 것만으로 모델에 묻지 않습니다. 실제 생성 결과를 확인하려면 Debug Mode나 [디버그 로그](../CONFIGURATION.md#logging-levels)를 켜세요.
 
 테스트 결과에 관해 설명합니다. 각 표현은 예가 정답인 2턴과 아니요가 정답인 2턴, 총 4개의 라벨된 Roleplay 턴에서 Open-Jev 2B, Open-Jev 9B, Gemma 4 E4B 로컬 모델로 시험했습니다. 한 장면의 작은 표본이며 일반 정확도 벤치마크나 호스팅 Jev 테스트가 아닙니다. 표는 해당 표본의 관찰을 기록하며 다른 모델이나 채팅에서도 같은 결과를 보장하지 않습니다.
 
@@ -373,7 +373,7 @@ Decision 모델 미설정, 시간 내 응답 실패, 처리 실패 등 답이 �
 
 로컬 채팅 모델은 호스팅 비용 대신 처리 시간이 추가됩니다. `decision_choice:`는 옵션마다 예/아니요 질문 하나로 답하므로 한 선택에 여러 생성이 필요할 수 있습니다.
 
-각 요청에는 [시간 제한](../connections/decision-models.md#time-limits)이 있습니다. Decision 연결은 기본 1.5초이며 로컬은 백엔드 예산을 따릅니다. 여러 요청이 쌓이면 더 오래 기다릴 수 있습니다. 먼저 추론해야 하는 로컬 모델은 **Also gate agents that run before the reply**(답글 전에 실행되는 에이전트도 판정)를 켜지 않으면 답글 전 판정을 보류합니다.
+각 요청에는 [시간 제한](../connections/decision-models.md#time-limits)이 있습니다. Decision 연결은 기본 1.5초(OpenAI 호환 채팅 모델 연결은 4초)이며 로컬은 백엔드 예산을 따릅니다. 여러 요청이 쌓이면 더 오래 기다릴 수 있습니다. 먼저 추론해야 하는 로컬 모델은 **Also gate agents that run before the reply**(답글 전에 실행되는 에이전트도 판정)를 켜지 않으면 답글 전 판정을 보류합니다.
 
 <a id="answer-reuse"></a>
 

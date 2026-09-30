@@ -87,8 +87,12 @@ La tarjeta se titula **Review Mari's changes** (Revisar los cambios de Mari). Mu
 
 Algunas cosas que conviene saber:
 
-- Los elementos totalmente nuevos, como un personaje o un lorebook recién creados, suelen saltarse este paso. No se sobrescribió nada existente, así que no hay nada que deshacer.
-- Una tarjeta de revisión caduca por sí sola tras 10 minutos si no la respondes.
+- Los elementos nuevos, como un personaje o un lorebook recién creados, también reciben una tarjeta. **Restore** vuelve a eliminarlos.
+- Una tarjeta pertenece al chat de Mari donde hizo el cambio. Un chat nuevo empieza sin las tarjetas de otros chats. Eliminar un chat conserva sus cambios y elimina sus tarjetas. Un cambio hecho con el comando `mari` en una terminal no pertenece a ningún chat, así que su tarjeta aparece en todos los chats de Mari.
+- Una tarjeta permanece hasta que pulses **Keep** o **Restore**, durante un máximo de 14 días. Después se cierra sola y el cambio se conserva.
+- Si **Restore** indica que los datos cambiaron después de la modificación de Mari, algo los editó desde entonces y restaurarlos sobrescribiría esa versión más reciente. Pulsa **Keep** para descartar la tarjeta; los datos actuales se conservan tal como están.
+- Una edición que dejaría todo igual no se guarda ni recibe tarjeta.
+- Mari no puede editar ni eliminar su propia tarjeta de personaje. Marinara la restablece a la versión integrada en cada inicio.
 - Los personajes y las personas también conservan su propio historial de versiones dentro de sus editores. Puedes restaurar una versión más antigua ahí como una segunda red de seguridad.
 
 Dos cambios de mayor riesgo esperan en lugar de aplicarse primero:

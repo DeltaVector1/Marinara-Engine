@@ -329,8 +329,8 @@ Pour tester ta formulation :
 
 1. Sélectionne un modèle sous **Decision model**, puis clique sur **Test** (tester). Cela vérifie la connexion avec un exemple fixe, sans tester ton énoncé ni lire ton chat actuel.
 2. Ajoute l'énoncé au prompt et envoie des messages représentatifs : certains où il doit être vrai et d'autres où il doit être faux.
-3. Utilise **Peek Prompt** pour inspecter la branche envoyée. Pour voir la probabilité et le résultat oui/non, active la [journalisation de débogage](../CONFIGURATION.md#logging-levels).
-4. Ajuste la formulation et réessaie. Utilise de nouveaux messages ou modifie l'énoncé pour un nouveau cas : les réponses réussies peuvent être [réutilisées](#answer-reuse). Ouvrir un nouvel aperçu Peek Prompt n'interroge pas le modèle.
+3. Utilise **Peek Prompt** pour examiner la branche envoyée. Ouvre **Decision diagnostics** (diagnostic des décisions) pour prévisualiser les entrées actuelles, puis choisis **Test decisions** (tester les décisions) pour obtenir de nouveaux scores et examiner le prompt résultant sans générer de réponse. Les tests hébergés peuvent être facturés. Voir [Tester les déclarations de décision](../chats/peek-prompt.md#testing-decision-statements).
+4. Ajuste la formulation et teste à nouveau. Les générations normales peuvent [réutiliser des réponses](#answer-reuse) ; un test explicite conserve ses réponses séparément du chat en cours. Ouvrir Peek Prompt ou prévisualiser les entrées n'interroge pas le modèle. Pour examiner les résultats des générations en cours, active Debug Mode ou la [journalisation de débogage](../CONFIGURATION.md#logging-levels).
 
 Résultats des tests. Chaque formulation a été essayée sur quatre tours de Roleplay étiquetés (deux attendus oui, deux non), avec Open-Jev 2B, Open-Jev 9B et un modèle local Gemma 4 E4B. C'est un petit échantillon d'une seule scène, pas une mesure générale de précision ni un test de Jev hébergé. Le tableau décrit cet échantillon sans promettre le même résultat pour un autre modèle ou chat.
 
@@ -373,7 +373,7 @@ Un tour peut produire plusieurs requêtes facturées sur une connexion Decision 
 
 Un modèle de chat local ajoute du temps de calcul plutôt que des frais hébergés. Il répond à `decision_choice:` par une question oui/non par option : un choix peut donc demander plusieurs générations.
 
-Chaque requête a un [délai](../connections/decision-models.md#time-limits) : 1,5 seconde par défaut pour une connexion Decision, ou le budget du backend local. Plusieurs requêtes peuvent allonger l'attente cumulée. Un modèle local qui doit raisonner s'abstient avant la réponse, sauf si tu actives **Also gate agents that run before the reply** (évaluer aussi les agents exécutés avant la réponse).
+Chaque requête a un [délai](../connections/decision-models.md#time-limits) : 1,5 seconde par défaut pour une connexion Decision (4 pour une connexion à un modèle de chat compatible OpenAI), ou le budget du backend local. Plusieurs requêtes peuvent allonger l'attente cumulée. Un modèle local qui doit raisonner s'abstient avant la réponse, sauf si tu actives **Also gate agents that run before the reply** (évaluer aussi les agents exécutés avant la réponse).
 
 <a id="answer-reuse"></a>
 

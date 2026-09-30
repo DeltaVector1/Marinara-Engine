@@ -85,10 +85,13 @@ Android에서는 이 설정을 따로 지정하지 않으면 기본적으로 켜
 
 두 테스트가 모두 성공하면 로컬 모델을 채팅에서 쓸 수 있습니다. 채팅을 열고 그 채팅의 설정에서 이 연결을 선택하세요.
 
+같은 모델로 에이전트 활성화 질문 같은 결정에도 답할 수 있으며 Marinara가 모델을 한 번 더 불러올 필요가 없습니다. 연결 설정에서 **Use this model for decisions**(이 모델을 결정에 사용)를 클릭하세요. [Decision 모델](decision-models.md#on-a-server-you-already-run)을 참고하세요.
+
 테스트가 실패하면 먼저 로컬 서버가 계속 돌아가고 있는지, 모델이 불러와져 있는지 확인하세요. 그다음 **Base URL**이 서버의 주소와 포트에 정확히 일치하는지 확인하세요. 다른 컴퓨터의 서버라면 `PROVIDER_LOCAL_URLS_ENABLED`를 설정했는지, Marinara 서버를 다시 시작했는지도 확인하세요.
 
 ## 관련 가이드
 
 - [AI 제공자에 연결하기](connecting-to-a-provider.md)
 - [Local Model 설정](local-model.md)
+- [Decision 모델](decision-models.md)
 - [서버 설정 참고 문서](../CONFIGURATION.md)

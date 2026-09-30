@@ -87,8 +87,12 @@ Karta nosi tytuł **Review Mari's changes**. Pokazuje, co asystentka zrobiła i 
 
 Kilka rzeczy warto wiedzieć:
 
-- Zupełnie nowe elementy, na przykład świeża postać albo lorebook, zwykle pomijają ten krok. Nic istniejącego nie zostało nadpisane, więc nie ma czego cofać.
-- Karta do zatwierdzenia wygasa sama po 10 minutach bez odpowiedzi.
+- Nowe elementy, takie jak świeża postać lub lorebook, też otrzymują kartę. **Restore** usuwa je ponownie.
+- Karta należy do czatu Mari, w którym dokonała zmiany. Nowy czat zaczyna się bez kart z innych czatów. Usunięcie czatu zachowuje jego zmiany i usuwa jego karty. Zmiana wykonana poleceniem `mari` w terminalu nie należy do żadnego czatu, więc jej karta pojawia się we wszystkich czatach Mari.
+- Karta pozostaje do naciśnięcia **Keep** lub **Restore**, maksymalnie przez 14 dni. Potem zamyka się sama, a zmiana zostaje.
+- Jeśli **Restore** informuje, że dane zmieniły się po zmianie Mari, od tego czasu coś je edytowało i przywrócenie nadpisałoby nowszą wersję. Naciśnij **Keep**, aby zamknąć kartę; bieżące dane pozostaną bez zmian.
+- Edycja, która niczego by nie zmieniła, nie jest zapisywana i nie otrzymuje karty.
+- Mari nie może edytować ani usuwać własnej karty postaci. Przy każdym uruchomieniu aplikacja Marinara przywraca jej wbudowaną wersję.
 - Postacie i persony trzymają też własną historię wersji w swoich edytorach. Starszą wersję da się przywrócić właśnie tam, jako drugie zabezpieczenie.
 
 Dwie zmiany o większym ryzyku czekają na decyzję, zamiast zostać zastosowane od razu:

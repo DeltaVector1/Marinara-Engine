@@ -85,10 +85,13 @@ PROVIDER_LOCAL_URLS_ENABLED=true
 
 两项测试都通过，本地模型就可以在聊天里用了。打开一个聊天，进入它的设置，选中这个连接。
 
+同一个模型也能回答决策问题，例如智能体激活问题，不需要 Marinara 再加载一份模型。在连接设置中点击 **Use this model for decisions**(使用此模型进行决策)，详见[决策模型](decision-models.md#on-a-server-you-already-run)。
+
 某项测试失败时，先确认本地服务端还在运行、模型也已加载。然后核对 **Base URL** 是否与服务端的地址和端口完全一致。服务端在另一台电脑上时，确认 `PROVIDER_LOCAL_URLS_ENABLED` 已设置，并且已经重启了 Marinara 服务器。
 
 ## 相关指南
 
 - [连接 AI 服务商](connecting-to-a-provider.md)
 - [本地模型设置](local-model.md)
+- [决策模型](decision-models.md)
 - [服务器配置参考](../CONFIGURATION.md)

@@ -46,6 +46,14 @@ W systemie Android można też [pobrać bezpośrednio najnowszy plik APK](https:
 
 Nakładka na system Android loguje cię automatycznie w aplikacji lub w przeglądarce. Na ekranie uruchamiania wybierz **Open in browser** (otwórz w przeglądarce) i dotknij **Retry connection** (ponów połączenie). Gdy serwer jest zatrzymany, użyj **Install / Start Marinara**. Wybór jest zapamiętywany. Z aplikacji wrócisz do niego przez **Settings > General > App Behavior > Open Android launcher (app or browser)** (ustawienia > ogólne > zachowanie aplikacji > otwórz ekran uruchamiania Android (aplikacja lub przeglądarka)). Automatyczne otwieranie przeglądarki z logowaniem wymaga aktualizacji zarówno APK, jak i aplikacji Marinara Engine. Starsze pliki APK nadal pozwalają zalogować się ręcznie pod adresem `/android-login`. Lokalne narzędzie `mari` CLI automatycznie odczytuje sekret zarządzany przez program uruchamiający, a ręczne instalacje w środowisku Termux zachowują zwykłe reguły dostępu z localhost.
 
+<a id="can-i-play-with-other-people"></a>
+
+## Czy mogę grać z innymi osobami?
+
+Opcjonalna gra wieloosobowa tworzy nową wspólną sesję Conversation, Roleplay lub Game bez stałego limitu ludzi ani postaci AI. Każdy uczestnik włącza warunek środowiskowy i oddzielny przełącznik Settings, a następnie jawnie hostuje lub dołącza przez własnego zaufanego klienta. Goście nie potrzebują klucza AI; gospodarz kontroluje generowanie i przyjmowanie. Game czeka na akcję lub jawne spasowanie każdego wymaganego gracza przed rozstrzygnięciem rundy.
+
+Hasło nie czyni nieznanego gospodarza bezpiecznym. Pokoje przyjmują tylko tekst, a widok gościa jest odizolowany od plików, integracji natywnych i lokalnych API. Natywna aplikacja opakowująca na Androidzie nie może dołączać. Przed włączeniem przeczytaj [konfigurację, ostrzeżenia i ograniczenia gry wieloosobowej](CONFIGURATION.md#optional-multiplayer).
+
 ## Jakie są trzy tryby czatu?
 
 Marinara ma trzy tryby czatu, widoczne jako zakładki po otwarciu listy czatów:

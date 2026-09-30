@@ -43,6 +43,8 @@ pkg update -y && pkg install -y git nodejs-lts && ([ -d "$HOME/Marinara-Engine/.
 
 启动脚本会安装应用的依赖，在设备上构建 Marinara，然后启动本地服务器。Node.js 版本太旧时，它还会顺手升到新版。首次运行比较慢，因为要构建应用，之后再跑就快多了。
 
+低内存构建包含所有必需的客户端文件。Sharp 的 WebAssembly 图像处理备用实现会自动安装，并在更新后保留；你不需要单独安装 Android 版 Sharp。
+
 跑完之后，在 Android 浏览器里打开这个地址：
 
 ```

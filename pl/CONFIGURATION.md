@@ -70,6 +70,30 @@ Szkice od asystentki Professor Mari działają bez tej flagi. Powstają wyłącz
 
 Tryb Sandboxed Browser Extensions pozostaje domyślny. Część starszych pakietów od osób trzecich ma oznaczenie **Full page access** (pełny dostęp do strony), bo opiera się na strukturze DOM aplikacji Marinara Engine. W tym trybie kod działa wewnątrz strony aplikacji Marinara Engine, dokładnie w zatwierdzonej postaci. Ma wtedy dostęp do treści strony, pamięci przeglądarki, interfejsów sieciowych i bieżącej sesji w tym samym źródle. Dostają go wyłącznie wpisy External Extensions po otwarciu obu bram, a do tego trzeba osobno potwierdzić ostrzeżenie. Jeśli rozszerzenie zostawia po sobie zmiany w wyglądzie lub w działaniu, wyłącz ten tryb i odśwież stronę.
 
+<a id="optional-multiplayer"></a>
+
+## Opcjonalna gra wieloosobowa
+
+Gra wieloosobowa jest domyślnie wyłączona. Gdy choć jedna z dwóch zgód jest wyłączona, w tle nie ma kontroli sesji, certyfikatów ani innych uczestników; klient odczytuje dostępność raz, chyba że jawnie odświeżysz Settings. Prywatne pokoje obsługują Conversation, Roleplay i Game bez stałego limitu ludzi ani postaci AI. Każdy gość używa własnej zaufanej instalacji Marinara; telefon może korzystać z zaufanego serwera Engine właściciela. Goście nie potrzebują połączenia AI. Zapewnia je gospodarz, który może czytać i przechowywać udostępniane treści.
+
+1. Ustaw `MULTIPLAYER_ENABLED=true` w `.env` każdego uczestniczącego Engine i uruchom go ponownie. Wymagany jest dokładnie zapis `true`; przeładowanie w locie go nie zmienia.
+2. Otwórz **Settings → Advanced → Multiplayer** (ustawienia → zaawansowane → gra wieloosobowa), przeczytaj ostrzeżenie i włącz oddzielne ustawienie. Nie uruchamia to nasłuchu ani nie dołącza do pokoju.
+3. Aby hostować, użyj **Create shared session** (utwórz wspólną sesję) lub **Play together** (graj razem) w dotychczasowym wyborze trybu/konfiguracji. Sprawdź konfigurację, nazwę wyświetlaną i dokładny tekst persony do udostępnienia. Istniejący czat dostarcza tylko wybory konfiguracji; jego prywatna historia, notatki i wspomnienia nie są kopiowane.
+4. Skonfiguruj `SSL_CERT` i `SSL_KEY` u gospodarza, używając certyfikatu ważnego dla nazwy hosta pokoju i zaufanego przez Engine gościa. Wybierz oddzielny adres HTTPS i port, np. `https://room.example.org:7861`. Port otwiera dopiero jawna czynność hostowania. Przez zaporę/router udostępniaj wyłącznie nasłuch pokoju, nie zwykłe API Engine. Przekierowanie portów, konto pośrednika ani obejście certyfikatu nie są ustawiane automatycznie.
+5. Ustaw hasło pokoju mające co najmniej 12 znaków, inne niż dane Engine/administratora. Przekaż wygasające zaproszenie i hasło osobno zaufanym osobom. Gość we własnym kliencie sprawdza odcisk przypisany do nazwy hosta, nazwę pokoju i tekst persony, wyraża zgodę i prosi o przyjęcie. Gospodarz zatwierdza każdą prośbę w **Players** (gracze), zanim zostanie wysłana historia.
+
+TLS sprawdza łańcuch certyfikatu i nazwę hosta, a przed wysłaniem hasła także odcisk certyfikatu z zaproszenia. Certyfikaty samopodpisane nie są przyjmowane po cichu. Odnowiony lub zmieniony certyfikat wymaga nowego zaproszenia i ponownej weryfikacji. Zaproszenia wygasają po 30 minutach; zatwierdzone sesje trwają najwyżej 12 godzin. Zastąpienie/cofnięcie zaproszenia blokuje nowe przyjęcia przez niewykorzystane zaproszenia; Kick odbiera dostęp przyjętemu uczestnikowi.
+
+Gospodarz steruje odpowiedziami automatycznymi/ręcznymi, ograniczonym limitem generowania, Pause/Resume i Stop. Domyślny limit to 100 skoordynowanych tur generowania na sesję hostowania; tura grupowa lub konfiguracja Game może wykonać kilka wywołań modelu. To limit tur, nie wycena. Harmonogramy Conversation używają istniejącego harmonogramu gospodarza. Goście nie uruchamiają drugiego harmonogramu ani lokalnych poleceń z otrzymanego tekstu.
+
+W Game sprawdź przyjętą drużynę ludzi przed Start Game. Każdy wymagany człowiek przesyła akcję albo pasuje. GM rozstrzyga dopiero po gotowości wszystkich. Rozłączony gracz pozostaje wymagany do powrotu lub jawnego spasowania/usunięcia przez gospodarza. Nowi gracze i zmiany person obowiązują od następnej rundy. Wstrzymane/przerwane rozstrzygnięcie nigdy automatycznie nie powtarza płatnego żądania ani zapisanych skutków w świecie; sprawdź historię przed kontynuacją.
+
+Stop, Leave, wyłączenie w Settings i restart serwera kończą odpowiednią aktywną sesję. Restart nigdy automatycznie nie hostuje ani nie dołącza. Pokój należy do serwera gospodarza, więc zamknięcie jego przeglądarki nie przekazuje władzy gościowi. Uśpienie przeglądarki mobilnej może opóźnić aktualizacje, ale nie powoduje drugiego generowania.
+
+Łącz się tylko z zaufanymi osobami. Używaj własnego zaufanego klienta Marinara; nigdy nie instaluj klienta, rozszerzenia ani wymaganego pliku od gospodarza. Może on czytać i zachować udostępniane treści oraz przekazać je swoim dostawcom AI. Połączenia bezpośrednie ujawniają adresy sieciowe. Nie udostępniaj haseł, kluczy API ani wrażliwych danych osobowych. Opuść pokój od razu, jeśli coś wzbudza podejrzenia.
+
+Udostępniany jest tylko tekst o ograniczonym rozmiarze. Nie ma transferu plików/multimediów między uczestnikami, treści wykonywalnych, importu pakietów, ładowania zdalnych zasobów ani działań natywnych. Własne/pakietowe narzędzia i niebezpieczne polecenia pozostają niedostępne. Natywna aplikacja opakowująca na Androidzie nie może dołączać. Dokładne ograniczenia i testowane platformy opisuje [rejestr zgodności i weryfikacji](development/multiplayer.md); te zabezpieczenia nie gwarantują ochrony przed każdą luką przeglądarki/systemu ani niezależnym pobraniem z zewnątrz.
+
 ## Gdzie leży plik .env
 
 Konfiguracja mieści się w pliku o nazwie `.env`. To zwykły plik tekstowy z jednym ustawieniem w linii, w postaci `KEY=value`. Linie zaczynające się od `#` to komentarze, które serwer pomija.
@@ -107,6 +131,7 @@ Niewielka grupa ustawień niskopoziomowych zostaje ustalona przy starcie serwera
 - `TZ`
 - `AUTO_OPEN_BROWSER`, `AUTO_UPDATE_ENABLED`, `AUTO_CREATE_DEFAULT_CONNECTION`
 - `LOG_DISABLE_REQUEST_LOGGING`
+- `STORAGE_CACHE_WINDOWS_BOOT_ID`, `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS`, `SHUTDOWN_FORCE_EXIT_ON_REPEAT`
 - Ustawienia limitu czasu i odpytywania dla obrazów, wideo, sprite'ów oraz ComfyUI (`IMAGE_GEN_TIMEOUT_MS`, `VIDEO_GEN_TIMEOUT_MS`, `VIDEO_GEN_MAX_RESPONSE_BYTES`, `SPRITE_GENERATION_TIMEOUT_MS`, `SPRITE_ANIMATED_FFMPEG_TIMEOUT_MS`, `COMFYUI_GEN_TIMEOUT` oraz cztery ustawienia `*_VIDEO_POLL_INTERVAL_MS`)
 
 Po zmianie któregokolwiek z nich w logu pojawia się ostrzeżenie o konieczności restartu. Ustawienia kontroli dostępu i sekrety, czyli `BASIC_AUTH_USER`, `BASIC_AUTH_PASS`, `IP_ALLOWLIST`, `ADMIN_SECRET` i `CSRF_TRUSTED_ORIGINS`, restartu nie wymagają.
@@ -272,6 +297,12 @@ Włącz tylko ten przełącznik, którego naprawdę potrzebujesz dla własnej us
 
 Jak podłączyć model lokalny albo własny, opisuje przewodnik [Podłączanie modelu lokalnego lub samodzielnie hostowanego](connections/local-self-hosted.md).
 
+<a id="feature-switches"></a>
+
+## Przełączniki funkcji
+
+Opcjonalne zachowania serwera, np. ponawianie nieudanych wywołań dostawcy lub utrzymanie stałych wyborów grup lorebooka, włącza się w **Settings > Advanced > Features** (ustawienia > zaawansowane > funkcje). Wszystkie są domyślnie wyłączone. Niektóre mają zmienną środowiskową, która po ustawieniu wygrywa z przełącznikiem. Zobacz [Przełączniki funkcji](configuration/features.md), gdzie opisano każdy przełącznik, domyślną wartość i zmienną.
+
 ## Pełna lista zmiennych środowiskowych
 
 Ta sekcja wymienia pozostałe ustawienia, pogrupowane według przeznaczenia. Tabele powyżej obejmują już kontrolę dostępu, przechowywanie danych, logowanie, limity czasu, działania uprzywilejowane i zgody na adresy lokalne.
@@ -319,6 +350,36 @@ Dostawców wideo sceny konfiguruje się jako połączenia w aplikacji, a nie jak
 | `SEEDANCE_VIDEO_POLL_INTERVAL_MS` | `10000` | Jak często serwer sprawdza zadanie Seedance. |
 | `VIDEO_REFERENCE_PUBLIC_BASE_URL` | pusta | Publiczny adres HTTPS tego serwera, używany wtedy, gdy dostawca musi pobrać obraz odniesienia po adresie URL. |
 
+<a id="lorebooks"></a>
+
+### Lorebooki
+
+Oba ustawienia są domyślnie wyłączone i działają od następnego generowania po zmianie `.env`. `LOREBOOK_STABLE_GROUP_WINNERS` ustala **Stable lorebook picks** w Settings > Advanced > Features: jeśli zmienna jest ustawiona, wygrywa; w przeciwnym razie decyduje przełącznik (zobacz [Przełączniki funkcji](configuration/features.md)).
+
+| Zmienna | Domyślnie | Działanie |
+| --- | --- | --- |
+| `LOREBOOK_STABLE_GROUP_WINNERS` | `false` | Zachowuje tego samego zwycięzcę grupy włączania lorebooka w czacie, dopóki pasujący kandydaci są tacy sami, zamiast losować przy każdym generowaniu. Utrzymuje stały prefiks promptu dla pamięci podręcznej dostawcy. |
+| `LOREBOOK_COMPACT_STORED_SCANS` | `false` | Zapisuje pełny tekst aktywowanych wpisów tylko przy najnowszej wiadomości asystenta lub narratora (jej wierszu i swipe'ach; tura podszywająca się pod użytkownika jej nie zastępuje). Starsze wiadomości zachowują identyfikatory, klucze i wyniki, co znacznie zmniejsza czaty z dużymi lorebookami na dysku i w pamięci. Po usunięciu nowszych wiadomości Active Context i ponowienia agentów pokazują aktualnie zapisany tekst wpisu dla wiadomości, która znów jest najnowsza. |
+
+`scripts/compact-lorebook-scans.mjs` stosuje tę samą regułę do czatów zapisanych przed włączeniem opcji. Najpierw zatrzymaj serwer; bez `--apply` to tylko próba, a przed zapisem powstaje kopia obu tabel wiadomości.
+
+<a id="robustness"></a>
+
+### Odporność
+
+Wszystkie ustawienia są domyślnie wyłączone, zachowując wcześniejsze działanie, i każde działa niezależnie. `STORAGE_CACHE_WINDOWS_BOOT_ID`, `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS` i `SHUTDOWN_FORCE_EXIT_ON_REPEAT` są odczytywane przy starcie i wymagają restartu; pozostałe działają od następnego żądania, zapisu lub zatrzymania po zmianie `.env`. `PROVIDER_RETRY_TRANSIENT_ERRORS` ustala **Retry failed provider calls** w Settings > Advanced > Features: ustawiona zmienna wygrywa, a bez niej decyduje przełącznik (zobacz [Przełączniki funkcji](configuration/features.md)).
+
+| Zmienna | Domyślnie | Działanie |
+| --- | --- | --- |
+| `PROVIDER_RETRY_TRANSIENT_ERRORS` | `false` | Ponawia odrzucone/nieosiągalne połączenie lub błąd bramy 502/503 najwyżej dwa razy po krótkiej losowo zmienionej przerwie (maksymalnie 5 s, nawet jeśli brama żąda więcej), tylko przed otrzymaniem tekstu. Nigdy nie ponawia 504 ani zerwanego połączenia. Przy skonfigurowanym fallbacku od razu próbuje go zamiast ponowienia. Timeout połączenia oznacza nieosiągalność, więc wolno zawodzący host może opóźnić błąd o około 20 s. |
+| `STORAGE_SKIP_UNCHANGED_WRITES` | `false` | Pomija ponowny zapis pliku czatu lub `manifest.json`, jeśli zawartość jest identyczna z ostatnią zapisaną przez ten serwer i plik na dysku się nie zmienił. Plik właśnie przywrócony z `.bak` jest zawsze zapisywany ponownie. |
+| `STORAGE_YIELDING_SERIALIZE` | `false` | Przygotowuje duże pliki czatów do zapisu w krótkich porcjach, aby zapis bardzo długiego czatu nie wstrzymywał innych żądań i strumieni. Zapisane bajty są identyczne. |
+| `STORAGE_CACHE_WINDOWS_BOOT_ID` | `false` | Tylko Windows. Zapamiętuje do następnego uruchomienia systemu kontrolę czasu rozruchu wykonywaną przez blokadę magazynu przy każdym starcie (około 1,5–2 s PowerShell), w `.writer-boot-id.json` wewnątrz `DATA_DIR`. |
+| `SHUTDOWN_WINDOWS_CONSOLE_SIGNALS` | `false` | Tylko Windows. Ctrl+Break i zamknięcie konsoli również łagodnie zatrzymują serwer, zapisując oczekujące zmiany, zamiast natychmiast go kończyć. Zamknięcie konsoli ma krótsze terminy, aby zmieścić się w około 5 s przyznanych przez Windows. |
+| `SHUTDOWN_FORCE_EXIT_ON_REPEAT` | `false` | Kolejne Ctrl+C (lub Ctrl+Break), ponad 1,5 s po pierwszym, natychmiast kończy serwer. Niezapisane zmiany mogą przepaść. Bez opcji powtórzenia są ignorowane i obowiązuje zwykły limit zamykania 8 s. |
+| `SHUTDOWN_EARLY_FLUSH` | `false` | Rozpoczyna zapis oczekujących zmian natychmiast po sygnale zatrzymania (Ctrl+C, SIGTERM), gdy połączenia jeszcze się zamykają. Restart w Advanced Settings z tego nie korzysta. |
+| `SHUTDOWN_RUNTIME_STOP_BUDGET_MS` | `0` | Czas oczekiwania sygnału zatrzymania na środowiska w tle (pakiety możliwości, rozszerzenia, proces pomocniczy) przed zamknięciem magazynu mimo ich działania. Restart w Advanced Settings nadal czeka na wszystkie. `0` czeka na wszystkie jak wcześniej. Maksymalnie `2500`, by magazyn zamknął się w limicie 8 s. |
+
 ### Integracje i dodatki
 
 | Zmienna | Domyślnie | Do czego służy |
@@ -338,6 +399,7 @@ Co do klucza Giphy: wyszukiwanie plików GIF pozostaje niedostępne, dopóki nie
 
 ## Powiązane przewodniki
 
+- [Przełączniki funkcji](configuration/features.md)
 - [Dostęp zdalny: Basic Auth i lista dozwolonych adresów IP](REMOTE_ACCESS.md)
 - [Gdzie Marinara przechowuje dane](data/where-data-is-stored.md)
 - [Łączenie z dostawcą AI](connections/connecting-to-a-provider.md)

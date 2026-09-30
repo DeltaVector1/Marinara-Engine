@@ -11,6 +11,20 @@ Viele Probleme lösen sich mit zwei schnellen Schritten.
 
 Wenn du das Team um Hilfe bittest, schalte vorher den **Debug mode** (Debug-Modus) ein. Dann schreibt der Server Prompt und Antwort mit. Mehr dazu unter Weitere Hilfe bekommen am Ende dieser Anleitung.
 
+<a id="multiplayer-connection-or-turn-problems"></a>
+
+## Mehrspielerprobleme bei Verbindung oder Zügen
+
+- **Bedienelemente nicht verfügbar:** Prüfe `MULTIPLAYER_ENABLED=true` in der `.env` der richtigen Engine, starte sie neu und aktiviere Settings separat. Ein gespeicherter Schalter ersetzt kein fehlendes/ungültiges Umgebungsflag. Der native Android-Wrapper kann absichtlich nicht beitreten.
+- **Host nicht erreichbar:** Nutze einen separaten erreichbaren HTTPS-Raumport, eine gültige Zertifikatskette mit passendem Hostnamen und den passenden Einladungsfingerabdruck. Deaktiviere nicht die TLS-Prüfung, füge vertrauenswürdigen Origins kein `null` hinzu, veröffentliche nicht die normale Engine-API und öffne keinen vom Host gelieferten Client als Umgehung.
+- **Wartet auf Aufnahme:** Der Host muss die Anfrage unter Players bestätigen. Vorher ist kein Verlauf verfügbar. Bitte um eine neue Einladung, wenn die alte abgelaufen oder widerrufen ist.
+- **Verbindung getrennt:** Lass die eigene Engine des Gasts laufen. Solange die ausdrücklich gestartete Sitzung lebt, verbindet sich der Client wieder mit demselben festgelegten Host; ungesendete Entwürfe bleiben in der aktuellen Ansicht. Ein Neustart beendet die Zugangsdaten und erfordert einen neuen Beitritt. Stop/Leave bleiben bei Netzwerkausfall verfügbar.
+- **Game wartet:** Prüfe Players. Getrennte Teilnehmer passen nicht automatisch. Der Host kann ausdrücklich Pass/Kick oder Pause wählen. Eine von zwei erforderlichen Aktionen darf den GM noch nicht starten.
+- **Generierung unterbrochen:** Reiche die Runde nicht wiederholt ein. Der Host soll gespeicherte Erzählung und Zustand prüfen und ausdrücklich vorwärts fortsetzen oder den Raum stoppen. Der Mehrspielermodus wiederholt keine unklar abgeschlossene Modellanfrage stillschweigend und wendet Welteffekte nicht doppelt an.
+- **Befehl gesperrt oder Medien fehlen:** Das erste Raumprotokoll überträgt absichtlich nur Text. Nutze die [Kompatibilitätstabelle](development/multiplayer.md#command-and-feature-compatibility); installiere als Umgehung keine Datei oder Erweiterung eines Teilnehmers.
+
+Nenne bei Verbindungsfehlern Modus, Plattform, sichtbare Fehlermeldung und ob die Aufnahme gelang. Veröffentliche keine Einladungen, Raumpasswörter, Sitzungstokens, privaten Verläufe oder Anbieter-Zugangsdaten.
+
 ## Probleme bei Installation und Start
 
 ### Termux: zu wenig JavaScript-Heap beim Client-Build
@@ -20,6 +34,12 @@ Wenn Vite mit `Reached heap limit` oder `JavaScript heap out of memory` endet, r
 Die RAM-Grenze wird auf Schritte von 128 MiB abgerundet. Liegt die Hälfte des Geräte-RAMs unter 1024 MiB, hat die Untergrenze von 1024 MiB Vorrang.
 
 Schließe vor dem nächsten Versuch andere Apps. Geräte mit wenig Speicher können weiterhin scheitern oder von Android beendet werden. Heb für eine Meldung die vollständige Launcher-Ausgabe auf. Lösche weder Chats noch Profil, um einen Buildfehler zu beheben.
+
+### Termux: fehlende Mehrspieler-Gastdatei oder inkompatibles Sharp
+
+Meldet der Start nach einem erneuten Build weiterhin die fehlende Datei `packages/client/dist/multiplayer/guest.js`, aktualisiere die Engine und führe `./start-termux.sh` erneut aus. Der Launcher führt nun den vollständigen speichersparenden Client-Build aus, einschließlich der beim Start geprüften Gastdateien. Du musst den Mehrspielermodus nicht aktivieren, um diesen Build-Fehler zu beheben.
+
+Meldet die Bildverarbeitung, dass Sharp unter Android nicht geladen werden kann, aktualisiere die Engine und lass den Launcher die Abhängigkeiten neu installieren. Der passende Ersatz `@img/sharp-wasm32` ist als reguläre Abhängigkeit enthalten und bleibt so auch bei Installationen mit festgeschriebenen Versionen und bei Updates erhalten. Ersetze ihn nicht durch eine unpassende Sharp-Version. Bewahre bei anhaltenden Problemen die vollständige Fehlerausgabe auf.
 
 ### Leere Seite oder JavaScript als HTML nach einem Update
 
