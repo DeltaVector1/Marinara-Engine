@@ -21,8 +21,8 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 
 | #   | Slice                                                        | Owner profile | Status | Commit |
 | --- | ------------------------------------------------------------ | ------------- | ------ | ------ |
-| 1   | Handoff bugs (A1-A6)                                         | worker        | Done   | 2ff581eff |
-| 2   | Quick answers: cheap wins (B1-B5)                            | worker        | Todo   |        |
+| 1   | Handoff bugs (A1-A6)                                         | worker        | Done   | 7a1eef06d |
+| 2   | Quick answers: cheap wins (B1-B5)                            | worker        | In progress |   |
 | 3   | Quick answers: grounding in docs + setting names (B6)        | worker        | Todo   |        |
 | 4   | Carry aside answer into Mari, show what she received (C1-C3) | worker        | Todo   |        |
 | 5   | Review of slices 1-4                                         | reviewer      | Todo   |        |
