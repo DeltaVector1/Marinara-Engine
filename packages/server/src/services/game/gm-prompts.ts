@@ -13,6 +13,8 @@ import type {
 import {
   DEFAULT_GAME_SYSTEM_PROMPT,
   gameInventoryBagKey,
+  rulesetDefenseLabel,
+  rulesetItemStatsRead,
   wrapGameInstructions,
   type GameInventoryBearerStatus,
 } from "@marinara-engine/shared";
@@ -493,6 +495,9 @@ function wearGrammarLine(slots: boolean, bindingLabel: string | undefined): stri
 function inventGrammarLines(
   items: NonNullable<import("@marinara-engine/shared").RulesetDefinition["items"]>,
   sheet: import("@marinara-engine/shared").RulesetDefinition["sheet"],
+  /** Whether the ruleset has fights of its own, where a weapon item is an attack, the word it uses
+   *  for defense when it has one, and the item stats that defense already counts. */
+  fights: { defense?: string; counted: string[] } | undefined,
 ): string[] {
   const ids = (words: ReadonlyArray<{ id: string }> | undefined) => (words ?? []).map((word) => word.id).join(", ");
   const statKind = (stat: NonNullable<typeof items.stats>[number]): string => {
@@ -538,9 +543,10 @@ function inventGrammarLines(
     ...(items.slots?.length ? [`slots ${items.slots.map((slot) => `${slot.id} (${slot.count})`).join(", ")}`] : []),
     ...(sheet.skills.length ? [`skills ${labels(sheet.skills)}`] : []),
     ...(sheet.saves.length ? [`saves ${labels(sheet.saves)}`] : []),
+    ...(sheet.abilities.length ? [`abilities ${labels(sheet.abilities)}`] : []),
   ].join("; ");
   return [
-    `  To give an item this ruleset does not list, invent one of its items in the add: [inventory: action="add" item="New name" category="..." rarity="..." tags="a, b" stats="id=value, id=value" slots="id=count"${items.binding ? ` binds="yes|cursed"` : ""} worn="+1 Skill" summary="one line"]. Every part but item is optional. worn is what it does while worn, and carried="..." what it does while only carried: changes split by ";", each +N, -N, advantage, disadvantage, or fails (saves only), on skills or saves by name, or on checks or saves for all of them. A bonus or penalty to a skill or save always goes in worn or carried, never in stats. To start from one of the ruleset's own items, add like="that item's exact name" (leave like out otherwise); what else you give replaces its parts. The Engine keeps only what this ruleset has${caps ? " and holds each number to the most its rarity allows" : ""}; the answer's note says what it changed, and from then on that name is that item.`,
+    `  To give an item this ruleset does not list, invent one of its items in the add: [inventory: action="add" item="New name" category="..." rarity="..." tags="a, b" stats="id=value, id=value" slots="id=count"${items.binding ? ` binds="yes|cursed"` : ""} worn="+1 Skill" summary="one line"]. Every part but item is optional. worn is what it does while worn, and carried="..." what it does while only carried: changes split by ";", each +N, -N, advantage, disadvantage, or fails (saves only), on skills or saves by name, or on checks or saves for all of them; +N or -N on an ability's name raises or lowers that ability${fights ? `; in a fight, +N, -N, advantage or disadvantage on attacks, and +N or -N on ${fights.defense ? `${normalizePromptText(fights.defense)} (defense${fights.counted.length ? `; an item's ${fights.counted.join(" or ")} stat already adds to it, so give one or the other` : ""})` : "defense"}` : ""}. A bonus or penalty to a skill, save or ability always goes in worn or carried, never in stats. To start from one of the ruleset's own items, add like="that item's exact name" (leave like out otherwise); what else you give replaces its parts${fights ? ", and a weapon made like one fights like it" : ""}. The Engine keeps only what this ruleset has${caps ? " and holds each number to the most its rarity allows" : ""}; the answer's note says what it changed, and from then on that name is that item.`,
     `  Its words: ${words}.${caps ? ` The most at each rarity: ${caps}.` : ""}`,
   ];
 }
@@ -1410,7 +1416,19 @@ export function buildGmFormatReminder(
               ]
             : []),
           ...(ctx.ruleset?.items && ctx.ruleset.items.propose !== false
-            ? inventGrammarLines(ctx.ruleset.items, ctx.ruleset.sheet)
+            ? inventGrammarLines(
+                ctx.ruleset.items,
+                ctx.ruleset.sheet,
+                ctx.ruleset.combat
+                  ? {
+                      defense: rulesetDefenseLabel(ctx.ruleset),
+                      // Only a stat the Game Master is shown is named.
+                      counted: rulesetItemStatsRead(ctx.ruleset, ctx.ruleset.combat.defense).filter(
+                        (id) => ctx.ruleset!.items?.stats?.find((stat) => stat.id === id)?.promptVisible !== false,
+                      ),
+                    }
+                  : undefined,
+              )
             : []),
           ...(ctx.ruleset?.items?.carry
             ? [

@@ -32,6 +32,27 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 - Completed Professor Mari changes now use compact cards and a lower completed-work history in the desktop Details sidebar.
 - Professor Mari now uses one integrated workspace across Home, FAQ, and handoff flows, with shared resource previews, review decisions, contextual suggestions, animated work scenes, and reduced-motion support.
 - The omnibar and Home Mari navigator can now find characters by saved summary, comment, description, creator, and tags, while character result previews prefer the saved summary.
+- Roleplay group chats let you edit revealed whispers and keep the corrected text for later turns. Users can also write private whisper and notes commands in ordinary Roleplay messages. The narrator no longer receives notes from disabled or removed characters. In Individual mode with Smart or Manual response order, the response menu now starts with an accent-colored Smart option that asks the existing model or enabled Decision model to pick the next speaker without changing your saved response order.
+
+- A Game Mode ruleset's weapons can now use up what they shoot: a bow is offered in a ruleset fight only while its archer carries arrows, each shot takes one out of the bag, and half of them can be picked up after a won fight. A pistol keeps a loaded count between fights and has to be reloaded from the fight menu. What a fight shoots and loads is saved to the inventory as it happens. Rulesets that use the new keys need Capability API 1.57 (#6871).
+
+- Anthropic and Claude (Subscription) connections can select **Claude Sonnet 5.5** (`claude-sonnet-5-5`), with a 1M-token context window, 128K output and reasoning effort from low to max. Turning reasoning Off skips up-front thinking on Anthropic connections. On Claude (Subscription), OpenRouter and other compatible gateways, which cannot express that setting, it runs at low effort instead. Forced tool calls use automatic tool choice, and samplers are not sent (#6869).
+- A Game Mode ruleset's items now count in a fight too: a ring of protection, boots that slow nobody, a cloak that makes attacks against its wearer harder, or a ring of fire resistance applies while worn or carried, and armor too heavy for its wearer can cost them speed. Ruleset fights now add the sheet's own roll modifiers (`resolution.adjust`) the way checks do, and where initiative is spent as damage, a blow below the hardness of armor or a creature's stat block still lands but does no damage. Rulesets that use the new item keys or hardness need Capability API 1.56 (#6857).
+
+- OpenAI connections can select **GPT-6.1 Sol** (`gpt-6.1-sol`). It has a 1.05M-token context window and 128K output, and reasoning effort from low to max. Reasoning cannot be turned off for this model: Off is sent as low, and temperature and top-p are never sent (#6867).
+
+- The Reasoning Effort and Verbosity controls are back for GPT-6 models on OpenAI connections. Sampling controls now only appear when the model would actually use them (#6867).
+
+- Hosted image and video provider detection matches the actual URL hostname, so lookalike hosted-provider domains cannot select the wrong API. Local-tool detection still recognizes SwarmUI and ComfyUI URL markers. Game sheet command hints reject malformed pool identifiers, and tactical terrain writes reject non-integer coordinates.
+
+- In Advanced Parameters, a long "Effective" line under a parameter stays on one line with an ellipsis (the full text shows on hover) instead of wrapping and pushing that input below its neighbour (#6863).
+
+- Optional private multiplayer rooms support Conversation, Roleplay and shared Game rounds without a fixed human or AI roster cap, with reviewed personas, host-approved AI characters, invitations, admission, host-controlled generation and text-only guest views. Multiplayer requires an explicit environment flag, Settings activation and Host/Join; the Android native wrapper cannot join rooms (#6790). Disabled multiplayer stays idle through unrelated workspace refreshes, and successful Host/Join actions remain usable if a status refresh fails. Opening a missing chat clears its active selection instead of leaving the loading view open.
+
+- A Game Mode ruleset's items can now be weapons: a sword, spear or bow the character holds is offered in a ruleset fight with its own to-hit, damage, reach and range, a spear deals more with a hand free, and one put away offers nothing. A weapon the Game Master invents fights like the ruleset's weapon it is most like. A creature can resist a kind of harm except from certain weapons, such as a grave wight that only silver gets through. Rulesets that use these need Capability API 1.55 (#6855).
+
+- A Game Mode ruleset's items can now ask something of whoever wears them, such as a grave spade that needs Sinew 3 and costs a die on Dig until then, and can set or raise an ability while worn or carried, such as gauntlets that make Brawn at least 2. The sheet, checks, the Game Master and fights all read the changed ability. A condition level can also follow a value worked out from the sheet, so carrying too much can slow a character without anyone ticking a track. An item's details say what it asks and what it changes, and the Game Master can give invented items an ability bonus. Rulesets that use these need Capability API 1.54 (#6846).
+
 - Review cards for edits to Professor Mari's own card, saved before she was stopped from making them, now clear on the next start instead of staying in every Mari chat; they could never be restored (#6842).
 
 - Professor Mari's review cards belong to the chat she made the change in: a new chat starts clean, and deleting a chat keeps its changes and removes its cards. She can no longer edit her own built-in card, which Marinara resets on every start, an edit that changes nothing makes no card, a refused Restore explains that Keep dismisses the card, and a failed Keep or Restore says why (#6842).
@@ -39,6 +60,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 - Lorebook editors can copy linked characters and personas to another lorebook without repeating each selection (#6840).
 - Default muted text uses neutral colors, message marks follow chat chroma, and chat Help explains bookmarks, context pins, and private notes (#6839).
 - Lorebook vectorization uses batches of ten entries to reduce timeouts with local embedding providers (#6837).
+
+- Updated Undici, fast-uri, and ip-address dependencies to pick up upstream network and URL-handling security fixes.
 
 - In a Game Mode game with a ruleset, a check or save outside a fight now counts the character's conditions and what they wear or carry: a poisoned or frightened character rolls with the disadvantage the ruleset gives them, a paralyzed one fails the saves it fails without a roll, and an item can say what it does while worn or only carried, such as a creaking coat that makes Sneak harder. Advantage and disadvantage cancel out with the Game Master's own, the dice card and the saved record say what changed the check, and an item's details say what it does. The Game Master can give invented items these effects, held to what each rarity allows. Rulesets that use them need Capability API 1.53 (#6832).
 

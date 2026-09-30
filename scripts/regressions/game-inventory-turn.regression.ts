@@ -534,7 +534,7 @@ try {
       .join("\n");
     assert.match(
       prompt,
-      /PLAYER INVENTORY \(Body 0 of 1, Hands 0 of 2\): Road rations ×10 \[Provisions, Common; Bulk 1\]; Arrows ×4; Lamp; Arrows ×2 \[Ammunition, Common; Bulk 1\]/,
+      /PLAYER INVENTORY \(Body 0 of 1, Hands 0 of 2\): Road rations ×10 \[Provisions, Common; Bulk 1\]; Arrows ×4; Lamp; Arrows ×2 \[Ammunition, Common, Arrow; Bulk 1\]/,
     );
     assert.match(prompt, /an item named exactly as one of them becomes that item/);
 
@@ -752,7 +752,9 @@ try {
     const checked = (await chats.listMessages(road.id)).at(-1)!.content;
     assert.match(
       checked,
-      /\[skill_check: skill="Sneak" dc="8" rolls="\d+\|\d+"[^\]]* effects="-1" from="Leather coat"\]/,
+      // And 12 bulk carried is past the 10 at which the road slows anybody (#6846): a level off a
+      // derived value, with nobody ticking a track.
+      /\[skill_check: skill="Sneak" dc="8" rolls="\d+\|\d+"[^\]]* effects="-2" from="Bulk carried 10; Leather coat"\]/,
     );
     assert.match(text, /an add with who left out goes to whoever can carry it/);
     // A check the ruleset rolled with its own dice is saved as it rolled it: Bram's Scrap with his
@@ -867,6 +869,14 @@ try {
           tags: ["thrown"],
           stats: { bulk: 1, damage: "1d10", swing: "brawn", reach: "close", guard: 3 },
           slots: { hands: 1 },
+          // Made like the axe, it is a weapon that reads its own damage stat: 1d10.
+          attack: {
+            budget: "act",
+            toHit: { abilities: { stat: "swing" } },
+            damage: { dice: { stat: "damage" }, abilities: { stat: "swing" }, type: "cut" },
+            reach: 2,
+            range: { normal: 10, long: 20 },
+          },
         },
         notes: ["Guard is 3 instead of 4, the most at Storied."],
       },

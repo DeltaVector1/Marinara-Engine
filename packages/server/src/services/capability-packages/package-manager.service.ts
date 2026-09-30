@@ -862,6 +862,106 @@ function entriesCarryItems(entries: unknown): boolean {
 const CHECK_EFFECTS_ISSUE =
   "A ruleset whose items change checks while worn or carried, whose conditions or levels name skills, whose modifiers name skills, saves or a mode, or whose rarity caps hold a bonus requires schemaVersion 2 and capabilityApi 1.53 or newer";
 
+const REQUIREMENTS_ISSUE =
+  "A ruleset whose items ask something of their wearer or change an ability, or whose condition levels read a derived value, requires schemaVersion 2 and capabilityApi 1.54 or newer";
+
+/** What an item asks of its wearer, and an ability its worn or carried effect changes, which are
+ *  1.54: new keys on the strict item and its effects. */
+function entriesCarryRequirements(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const item = plainRecord(plainRecord(entry)?.item);
+      return (
+        item?.requires !== undefined ||
+        plainRecord(item?.worn)?.abilities !== undefined ||
+        plainRecord(item?.carried)?.abilities !== undefined
+      );
+    })
+  );
+}
+
+const WEAPONS_ISSUE =
+  "A ruleset whose items are weapons, or whose creatures name what gets through a resistance or an immunity, requires schemaVersion 2 and capabilityApi 1.55 or newer";
+
+/** A weapon's attack, which is 1.55 (a new key on the strict item), and a creature's resistance or
+ *  immunity written as an object with what gets through it, where a word was all there was before. */
+function entriesCarryWeapons(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const record = plainRecord(entry);
+      if (plainRecord(record?.item)?.attack !== undefined) return true;
+      const creature = plainRecord(record?.creature);
+      return (["resist", "immune"] as const).some(
+        (key) => Array.isArray(creature?.[key]) && (creature[key] as unknown[]).some((type) => plainRecord(type)),
+      );
+    })
+  );
+}
+
+const ARMOR_ISSUE =
+  "A ruleset whose items change a fight while worn or carried, or with hardness, requires schemaVersion 2 and capabilityApi 1.56 or newer";
+
+/** What an item's effect does only in a fight, which is 1.56: an effect other than a check's or a
+ *  save's, a modifier to anything but checks and saves, and the kinds of harm or conditions it keeps
+ *  off (new keys on the strict effect). */
+function effectCarriesFightParts(effect: unknown): boolean {
+  const record = plainRecord(effect);
+  if (!record) return false;
+  const checkEffects = [
+    "own-checks-advantage",
+    "own-checks-disadvantage",
+    "own-saves-advantage",
+    "own-saves-disadvantage",
+  ];
+  if (Array.isArray(record.effects) && record.effects.some((one) => !checkEffects.includes(String(one)))) return true;
+  if (
+    Array.isArray(record.modifiers) &&
+    record.modifiers.some((modifier) => !["checks", "saves"].includes(String(plainRecord(modifier)?.to)))
+  ) {
+    return true;
+  }
+  return ["resist", "vulnerable", "immune", "conditionImmunities"].some((key) => record[key] !== undefined);
+}
+
+/** An item that changes a fight, and a creature's hardness, which are 1.56. */
+function entriesCarryArmor(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const record = plainRecord(entry);
+      if (plainRecord(record?.creature)?.hardness !== undefined) return true;
+      const item = plainRecord(record?.item);
+      if (!item) return false;
+      const requires = Array.isArray(item.requires) ? item.requires : [];
+      return [item.worn, item.carried, ...requires.map((requirement) => plainRecord(requirement)?.otherwise)].some(
+        effectCarriesFightParts,
+      );
+    })
+  );
+}
+
+const AMMO_ISSUE =
+  "A ruleset whose weapons shoot ammunition or keep a loaded count requires schemaVersion 2 and capabilityApi 1.57 or newer";
+
+/** A weapon's `ammo` or `clip`, which are 1.57: new keys on the strict attack. */
+function entriesCarryAmmo(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const attack = plainRecord(plainRecord(plainRecord(entry)?.item)?.attack);
+      return attack?.ammo !== undefined || attack?.clip !== undefined;
+    })
+  );
+}
+
+/** A level that reads a derived value, which is 1.54: a new key on the strict level. */
+function rulesetCarriesDerivedLevels154(ruleset: { combat?: unknown } | undefined): boolean {
+  const levels = plainRecord(ruleset?.combat)?.levels;
+  return Array.isArray(levels) && levels.some((level) => plainRecord(level)?.derived !== undefined);
+}
+
 /** What an item does while worn or carried, which is 1.53: new keys on the strict item. */
 function entriesCarryItemEffects(entries: unknown): boolean {
   return (
@@ -1094,6 +1194,10 @@ export function getCapabilityPackageInstallIssue(
       if (entriesCarryHitMoments(header.entries) && !declaresApi(46)) return HIT_MOMENTS_ISSUE;
       if (entriesCarryCreatureSoak(header.entries) && !declaresApi(47)) return POOL_FIGHT_ISSUE;
       if (entriesCarryItemEffects(header.entries) && !declaresApi(53)) return CHECK_EFFECTS_ISSUE;
+      if (entriesCarryRequirements(header.entries) && !declaresApi(54)) return REQUIREMENTS_ISSUE;
+      if (entriesCarryWeapons(header.entries) && !declaresApi(55)) return WEAPONS_ISSUE;
+      if (entriesCarryArmor(header.entries) && !declaresApi(56)) return ARMOR_ISSUE;
+      if (entriesCarryAmmo(header.entries) && !declaresApi(57)) return AMMO_ISSUE;
       const asset = header.asset;
       if (typeof asset !== "string") continue;
       // A path that does not normalize is never a declared one, whatever else failed to normalize.
@@ -1120,6 +1224,10 @@ export function getCapabilityPackageInstallIssue(
       if (entriesCarryCreatureSoak(fileEntries) && !declaresApi(47)) return POOL_FIGHT_ISSUE;
       if (entriesCarryItems(fileEntries) && !declaresApi(49)) return ITEMS_ISSUE;
       if (entriesCarryItemEffects(fileEntries) && !declaresApi(53)) return CHECK_EFFECTS_ISSUE;
+      if (entriesCarryRequirements(fileEntries) && !declaresApi(54)) return REQUIREMENTS_ISSUE;
+      if (entriesCarryWeapons(fileEntries) && !declaresApi(55)) return WEAPONS_ISSUE;
+      if (entriesCarryArmor(fileEntries) && !declaresApi(56)) return ARMOR_ISSUE;
+      if (entriesCarryAmmo(fileEntries) && !declaresApi(57)) return AMMO_ISSUE;
     }
   }
   // The battle block lives inside the ruleset file too, so it is read the same way and for the same
@@ -1220,6 +1328,11 @@ export function getCapabilityPackageInstallIssue(
   // What items, conditions and levels do to checks outside a fight, which are 1.53's. Same file, same
   // reason; the items themselves are read with the catalogs above.
   if (!declaresApi(53) && rulesetCarriesCheckEffects153Keys(ruleset)) return CHECK_EFFECTS_ISSUE;
+  // A level that reads a derived value, which is 1.54's. Same file, same reason.
+  if (!declaresApi(54) && rulesetCarriesDerivedLevels154(ruleset)) return REQUIREMENTS_ISSUE;
+  if (!declaresApi(56) && plainRecord(plainRecord(plainRecord(ruleset?.combat)?.pool))?.hardness !== undefined) {
+    return ARMOR_ISSUE;
+  }
   // Values that read the items someone holds, which are 1.52's. Same file (and the same catalog
   // files), same reason.
   if (

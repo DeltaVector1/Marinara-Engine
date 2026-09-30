@@ -48,6 +48,7 @@ export type SettingsSectionId =
   | "profile-marinara"
   | "sillytavern-import"
   | "admin-access"
+  | "multiplayer"
   | "features"
   | "updates"
   | "support-diagnostics"
@@ -329,6 +330,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     label: "Admin Access",
     description: "Admin authorization for privileged actions.",
     aliases: ["admin", "secret", "access", "authorization"],
+  },
+  {
+    id: "multiplayer",
+    tab: "advanced",
+    label: "Multiplayer",
+    description: "Optional shared roleplay, conversation and game sessions.",
+    aliases: ["multiplayer", "host", "join", "players", "invite", "shared", "online"],
   },
   {
     id: "features",

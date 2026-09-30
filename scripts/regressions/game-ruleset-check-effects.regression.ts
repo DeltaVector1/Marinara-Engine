@@ -135,6 +135,7 @@ try {
     });
     assert.deepEqual(itemOf(emberBook, "outfitter/waystone").carried, {
       modifiers: [{ to: "checks", skills: ["sway"], flat: 1 }],
+      resist: ["burn"],
     });
     assert.deepEqual(
       ember.items?.rarityCaps?.map((cap) => cap.bonus),
@@ -154,13 +155,9 @@ try {
       "a save modifier narrowed on its own",
     );
     refused(emberText, worn({}), /An item's effect does something/, "an empty effect");
-    refused(emberText, worn({ effects: ["cannot-act"] }), /Invalid enum value/, "an effect only a fight reads");
-    refused(
-      emberText,
-      worn({ modifiers: [{ to: "defense", flat: 1 }] }),
-      /An item changes checks and saves; what it does in a fight comes with weapons and armor in a fight/,
-      "a defense modifier",
-    );
+    // What only a fight reads is an item's too since 1.56 (see the armor lane), but not an effect that
+    // needs somebody to have put it on or ends by itself.
+    refused(emberText, worn({ effects: ["ends-on-damage"] }), /Invalid enum value/, "an effect that ends by itself");
     refused(emberText, worn({ modifiers: [{ to: "checks" }] }), /or for checks and saves by a mode/, "no change");
     refused(
       emberText,
@@ -226,6 +223,27 @@ try {
 
   // ── Install gate: every 1.53 key, in the ruleset file and in a catalog file ──
   {
+    /** Less what the examples' items do in a fight, which is 1.56's and has a lane of its own. */
+    const withoutArmor = (text: string) =>
+      JSON.stringify(
+        variant(text, (doc) => {
+          for (const catalog of doc.catalogs ?? []) {
+            for (const entry of catalog.entries ?? []) {
+              for (const when of ["worn", "carried"]) {
+                const effect = entry.item?.[when];
+                if (!effect) continue;
+                for (const key of ["resist", "vulnerable", "immune", "conditionImmunities"]) delete effect[key];
+                effect.modifiers = effect.modifiers?.filter((one: { to: string }) =>
+                  ["checks", "saves"].includes(one.to),
+                );
+                if (!effect.modifiers?.length) delete effect.modifiers;
+                if (Object.keys(effect).every((key) => key === "$comment")) delete entry.item[when];
+              }
+            }
+          }
+        }),
+      );
+    const emberBefore156 = withoutArmor(emberText);
     const manifest = (minor: number, paths = ["ruleset.json"]) => ({
       schemaVersion: 2,
       capabilityApi: { major: 1, minor },
@@ -247,17 +265,29 @@ try {
       getCapabilityPackageInstallIssue(manifest(minor, paths) as any, doc, files);
     /** Ember Roads without any 1.53 key, to add one back at a time. */
     const bare = (edit: (doc: Record<string, any>) => void = () => {}) =>
-      variant(emberText, (doc) => {
+      variant(emberBefore156, (doc) => {
         for (const cap of doc.items.rarityCaps) delete cap.bonus;
-        for (const id of ["leather-coat", "waystone"]) {
-          delete itemEntry(doc, id).item.worn;
-          delete itemEntry(doc, id).item.carried;
+        for (const entry of doc.catalogs.find((each: { holds?: string }) => each.holds === "items").entries) {
+          delete entry.item.worn;
+          delete entry.item.carried;
+          // And the 1.55 weapons.
+          delete entry.item.attack;
         }
+        // And the 1.54 level off a derived value.
+        doc.combat.levels = doc.combat.levels.filter((level: { derived?: string }) => level.derived === undefined);
         edit(doc);
       });
     assert.equal(issue(52, bare()), null, "the rest of the example stays 1.52");
-    assert.match(issue(52, variant(emberText)) ?? "", gateIssue);
-    assert.equal(issue(53, variant(emberText)), null);
+    assert.match(issue(52, variant(emberBefore156)) ?? "", gateIssue);
+    // The whole example is 1.54, for its gauntlets and its level off the bulk carried; without them, 1.53.
+    const upTo153 = variant(emberBefore156, (doc) => {
+      for (const entry of doc.catalogs.find((each: { holds?: string }) => each.holds === "items").entries) {
+        delete entry.item.attack;
+      }
+      delete itemEntry(doc, "ox-hide-gauntlets").item.worn;
+      doc.combat.levels = doc.combat.levels.filter((level: { derived?: string }) => level.derived === undefined);
+    });
+    assert.equal(issue(53, upTo153), null);
     const cases: Array<[string, (doc: Record<string, any>) => void]> = [
       ["a worn effect", (doc) => (itemEntry(doc, "leather-coat").item.worn = { effects: ["own-checks-disadvantage"] })],
       ["a carried effect", (doc) => (itemEntry(doc, "waystone").item.carried = { effects: ["own-checks-advantage"] })],
@@ -642,7 +672,7 @@ try {
     const odd = invent({ worn: "+1 Juggle; lots of luck; +1" });
     assert.equal(odd.item.worn, undefined);
     assert.deepEqual(odd.notes.slice(1), [
-      'No skill or save "Juggle", so it was left out of "+1 Juggle".',
+      'No skill, save or ability "Juggle", so it was left out of "+1 Juggle".',
       '"lots of luck" is not a change such as +1, -1, advantage or fails, so it was left out.',
       '"+1" is not a change such as +1, -1, advantage or fails, so it was left out.',
     ]);
@@ -682,7 +712,7 @@ try {
     const told = (ruleset: RulesetDefinition) => buildGmFormatReminder({ ...base, ruleset });
     assert.match(
       told(ember),
-      /The engine applies each character's own worn and carried items to their checks and saves; do not add those yourself\. A check marked from="\.\.\." says what changed it, and automatic="true" a save that failed without a roll\./,
+      /The engine applies each character's own conditions and what they wear or carry to their checks and saves; do not add those yourself\. A check marked from="\.\.\." says what changed it, and automatic="true" a save that failed without a roll\./,
     );
     assert.match(told(fiveE), /The engine applies each character's own conditions to their checks and saves/);
     assert.match(
@@ -695,6 +725,8 @@ try {
         doc.catalogs = doc.catalogs.filter((catalog: { holds?: string }) => catalog.holds !== "items");
         const guard = doc.sheet.derived.find((entry: { id: string }) => entry.id === "guard");
         guard.of = guard.of.filter((ref: { itemStat?: unknown }) => ref.itemStat === undefined);
+        doc.sheet.derived = doc.sheet.derived.filter((entry: { id: string }) => entry.id !== "bulk_carried");
+        doc.combat.levels = doc.combat.levels.filter((level: { derived?: string }) => level.derived === undefined);
       }),
       "Ember Roads without items",
     );

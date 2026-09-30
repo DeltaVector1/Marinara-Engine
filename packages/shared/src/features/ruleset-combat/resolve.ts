@@ -6,8 +6,9 @@
 // `applyRulesetSheetOp`, so a fight can never write something the sheet would refuse from the
 // player or from the Game Master.
 
-import type { RulesetCombat, RulesetDefinition } from "../../schemas/ruleset.schema.js";
+import type { RulesetCombat, RulesetCreatureHideEntry, RulesetDefinition } from "../../schemas/ruleset.schema.js";
 import { readRulesetLive, type RulesetSheetOp } from "../rulesets/live-state.js";
+import { recoverRulesetAmmo, reloadRulesetClip, spendRulesetShots } from "./ammo.js";
 import { parseRulesetCombatDice, rollRulesetDice, sumOf } from "./dice.js";
 import {
   rulesetCombatIsPool,
@@ -36,6 +37,7 @@ import {
   rulesetConditionModifiers,
   rulesetMovementAllowance,
   rulesetSaveMode,
+  rulesetCombatHide,
   rulesetImmuneToCondition,
   writeRulesetSheet,
   type RulesetConditionModifier,
@@ -157,8 +159,18 @@ function begin(
   };
 }
 
-function matches(list: readonly string[] | undefined, type: string): boolean {
-  return !!list?.some((entry) => entry.trim().toLowerCase() === type);
+/** Whether a list of damage types holds this one. An entry that names what gets through it does not
+ *  hold a blow carrying any of that. */
+function matches(
+  list: readonly RulesetCreatureHideEntry[] | undefined,
+  type: string,
+  qualities: readonly string[] = [],
+): boolean {
+  return !!list?.some((entry) =>
+    typeof entry === "string"
+      ? entry.trim().toLowerCase() === type
+      : entry.type.trim().toLowerCase() === type && !entry.except.some((tag) => qualities.includes(tag)),
+  );
 }
 
 // ── Health ──
@@ -259,6 +271,8 @@ interface RulesetDamageInput {
   sourceId?: string;
   label?: string;
   damageType?: string;
+  /** What the blow carries past a resistance's exception: the tags of the weapon item it came from. */
+  qualities?: readonly string[];
   rolls: number[];
   flat: number;
   amount: number;
@@ -286,14 +300,16 @@ function applyDamage(
   const type = input.damageType?.trim().toLowerCase();
   let dealt = Math.max(0, Math.floor(input.amount));
   let adjust: "none" | "resist" | "vulnerable" | "immune" = "none";
-  if (type && target.block) {
-    if (matches(target.block.immune, type)) {
+  // A creature's own hide, and what the target's items keep off.
+  const hide = type ? rulesetCombatHide(ctx.definition, target) : undefined;
+  if (type && hide) {
+    if (matches(hide.immune, type, input.qualities)) {
       dealt = 0;
       adjust = "immune";
-    } else if (matches(target.block.resist, type)) {
+    } else if (matches(hide.resist, type, input.qualities)) {
       dealt = Math.floor(dealt / 2);
       adjust = "resist";
-    } else if (matches(target.block.vulnerable, type)) {
+    } else if (matches(hide.vulnerable, type)) {
       dealt *= 2;
       adjust = "vulnerable";
     }
@@ -737,9 +753,11 @@ function throwPool(
   who: RulesetCombatant,
   dice: number,
   mode: RulesetCombatRollMode,
+  /** A weapon's own per-die target. */
+  threshold?: number,
 ): RulesetCombatPoolThrow & { penalty: number } {
   const penalty = rulesetCombatPenalty(ctx.definition, who);
-  return { ...throwRulesetCombatPool(ctx.definition, ctx.roll, dice + penalty, mode), penalty };
+  return { ...throwRulesetCombatPool(ctx.definition, ctx.roll, dice + penalty, mode, threshold), penalty };
 }
 
 /** What an event says about one pool it threw. */
@@ -755,12 +773,19 @@ function poolRecord(thrown: RulesetCombatPoolThrow & { penalty: number }): Rules
 /** What conditions add to one roll, each rolled now: a flat number as it is, dice thrown (and taken
  *  away where the modifier says `minus`). */
 function rollBonuses(ctx: RulesetCombatContext, modifiers: RulesetConditionModifier[]): RulesetConditionBonus[] {
-  return modifiers.map(({ condition, level, modifier }) => {
+  return modifiers.map(({ condition, level, derived, item, modifier }) => {
     let value = modifier.flat ?? 0;
     const dice = modifier.dice ? parseRulesetCombatDice(modifier.dice) : null;
     const rolls = dice ? rollRulesetDice(ctx.roll, dice.count, dice.sides) : undefined;
     if (dice && rolls) value += (modifier.minus ? -1 : 1) * (sumOf(rolls) + dice.flat);
-    return { condition, ...(level !== undefined ? { level } : {}), value, ...(rolls ? { rolls } : {}) };
+    return {
+      condition,
+      ...(level !== undefined ? { level } : {}),
+      ...(derived ? { derived } : {}),
+      ...(item ? { item } : {}),
+      value,
+      ...(rolls ? { rolls } : {}),
+    };
   });
 }
 
@@ -794,7 +819,7 @@ function applyConditionId(
   applies: RulesetCombatApplies,
   extra: { sourceId?: string; difficulty?: number; concentration?: boolean } = {},
 ): void {
-  if (rulesetImmuneToCondition(target, condition)) {
+  if (rulesetImmuneToCondition(target, condition, ctx.definition)) {
     ctx.events.push({ type: "condition", targetId: target.id, condition, active: false, reason: "immune" });
     return;
   }
@@ -940,6 +965,8 @@ function pickTargets(
 /** What using an action costs the actor in its own bookkeeping: one of its uses, and, for an action
  *  that recharges, its availability until the dice bring it back. */
 function spendAvailability(ctx: RulesetCombatContext, actor: RulesetCombatant, action: RulesetCombatAction): void {
+  const shot = spendRulesetShots(actor, action);
+  if (shot) ctx.events.push(shot);
   if (action.uses) {
     const left = Math.max(0, (actor.uses[action.id] ?? 0) - 1);
     actor.uses[action.id] = left;
@@ -1099,6 +1126,14 @@ export function applyRulesetCombatChoice(
       spendAvailability(ctx, working, granted.action);
     }
     resolveStandard(ctx, working, rulesetStandardName(option.id), workingTargets[0]);
+    return finish();
+  }
+
+  // A reload fills the clip and does nothing else: no target, no roll, no window.
+  if (option.kind === "reload") {
+    const reloading = working.actions.find((entry) => entry.id === option.id);
+    const reloaded = reloading ? reloadRulesetClip(working, reloading) : null;
+    if (reloaded) ctx.events.push(reloaded);
     return finish();
   }
 
@@ -1304,6 +1339,8 @@ function noteOutcome(ctx: RulesetCombatContext): void {
  *  through here, so none of them leaves anybody crashed. */
 function pushOutcome(ctx: RulesetCombatContext, outcome: Exclude<RulesetEncounterOutcome, "ongoing">): void {
   ctx.events.push(...liftRulesetCrashes(ctx.definition, ctx.state));
+  // Only a party that won holds the field long enough to pick up what it shot.
+  if (outcome === "victory") ctx.events.push(...recoverRulesetAmmo(ctx.state));
   ctx.events.push({ type: "outcome", outcome });
 }
 
@@ -2181,7 +2218,7 @@ function resolveAction(
           ctx,
           rulesetConditionModifiers(ctx.definition, ctx.combat, actor, "attacks", ctx.state),
         );
-        const thrown = throwPool(ctx, actor, action.toHit + bonusTotal(bonuses), mode);
+        const thrown = throwPool(ctx, actor, action.toHit + bonusTotal(bonuses), mode, action.target);
         const needed = Math.max(1, guarded.defense);
         const outcome = !thrown.botch && thrown.successes >= needed ? "hit" : "miss";
         ctx.events.push({
@@ -2348,7 +2385,9 @@ function resolveAction(
         return;
       }
       before ??= healthOf(ctx, target);
-      const partDealt = applyDamage(ctx, target, part, !!woundTrack);
+      // Every part of the blow carries what the weapon does past a resistance.
+      const qualities = action.damage?.qualities;
+      const partDealt = applyDamage(ctx, target, qualities ? { ...part, qualities } : part, !!woundTrack);
       dealt += partDealt;
       // A compound hit marks once, using the most severe kind that actually landed.
       if (woundTrack && partDealt > 0) {
@@ -2358,7 +2397,19 @@ function resolveAction(
         if (kind && (!woundKind || kind.severity > woundKind.severity)) woundKind = kind;
       }
     };
-    if (pooled && action.damage && spends) {
+    if (pooled && action.damage && spends && target.hardness !== undefined && spends.number < target.hardness) {
+      // A number below the target's hardness lands and does nothing: the maker's number still goes
+      // back to the base, as it does for any spending blow that landed.
+      spends.landed = true;
+      ctx.events.push({
+        type: "hardness",
+        targetId: target.id,
+        sourceId: actor.id,
+        label: action.label,
+        hardness: target.hardness,
+        dice: Math.max(0, spends.number),
+      });
+    } else if (pooled && action.damage && spends) {
       // The maker's own number, thrown as damage dice: nothing the weapon adds, nothing the hit had
       // past its needed successes, and no soak.
       spends.landed = true;
