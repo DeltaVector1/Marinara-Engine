@@ -4,6 +4,7 @@
 // arrays) so the reviewer sees "Personality changed", not "data changed".
 
 import type { MariDbRowChange } from "@marinara-engine/shared";
+import { diffWords, type DiffSegment } from "./word-diff";
 
 export interface FieldChange {
   path: string;
@@ -219,4 +220,36 @@ export function computeFieldChanges(change: MariDbRowChange): FieldChange[] {
     return wa !== wb ? wa - wb : a.label.localeCompare(b.label);
   });
   return changes;
+}
+
+/**
+ * Tracked changes for a prose field: word by word when much of the old text survives (a greeting
+ * reworked around its lines, a sentence added), or the whole old text struck and the whole new text
+ * inserted when it was rewritten, since a word-by-word diff of a rewrite is confetti.
+ */
+export function trackProseChange(before: string, after: string): DiffSegment[] {
+  const segments = diffWords(before, after);
+  const words = (text: string) => text.replace(/\s+/g, "").length;
+  const kept = segments.reduce((sum, segment) => sum + (segment.type === "equal" ? words(segment.value) : 0), 0);
+  if (kept >= 0.4 * words(before)) return segments;
+  return [
+    ...(before ? [{ type: "removed" as const, value: before }] : []),
+    ...(before && after ? [{ type: "equal" as const, value: " " }] : []),
+    ...(after ? [{ type: "added" as const, value: after }] : []),
+  ];
+}
+
+/** A list field such as tags: every value once, in reading order, marked kept, removed or added. */
+export function trackListChange(before: string, after: string): DiffSegment[] {
+  const split = (value: string) =>
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  const oldItems = split(before);
+  const newItems = split(after);
+  return [
+    ...oldItems.map((value) => ({ type: newItems.includes(value) ? ("equal" as const) : ("removed" as const), value })),
+    ...newItems.filter((value) => !oldItems.includes(value)).map((value) => ({ type: "added" as const, value })),
+  ];
 }

@@ -494,7 +494,7 @@ function GenericRowDiff({ change, collapsed }: { change: MariDbRowChange; collap
 
 // ── Row title + action metadata ─────────────────────────────────────────────
 
-function rowTitle(change: MariDbRowChange, localizeUi: (key: string) => string): string {
+export function rowTitle(change: MariDbRowChange, localizeUi: (key: string) => string): string {
   const row = asRecord(change.after) ?? asRecord(change.before);
   if (change.table === "characters") {
     const data = asRecord(row?.data);
@@ -532,7 +532,7 @@ function actionMeta(action: MariDbRowChange["action"], localizeUi: (key: string)
 // (Mari's section delete also prunes the id from the preset's sectionOrder, so the assembler skips
 // the re-spliced section and the before/after come out identical).
 const PROMPT_RENDER_TABLES = new Set(["prompt_presets", "prompt_sections", "prompt_groups", "choice_blocks"]);
-function canRenderPrompt(change: MariDbRowChange): boolean {
+export function canRenderPrompt(change: MariDbRowChange): boolean {
   if (change.action === "delete") return false;
   return change.table === "characters" || PROMPT_RENDER_TABLES.has(change.table);
 }

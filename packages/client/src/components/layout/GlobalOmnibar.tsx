@@ -2644,7 +2644,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                       <img src={appearance.portraits.blink} alt="" draggable={false} data-part="blink" />
                     </span>
                   </span>
-                  <span className="mari-omnibar-header-copy min-w-0 shrink-0">
+                  <span className="mari-omnibar-header-copy min-w-0">
                     <span className="block text-sm font-semibold leading-tight text-[var(--foreground)]">
                       {t("omnibar.categories.professor", "Professor Mari")}
                     </span>
@@ -2656,7 +2656,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                         (mariVisualState === "thinking"
                           ? t("ui.chat.homeprofessormarichat.workingOnIt", "Working on it...")
                           : mariVisualState === "warning"
-                            ? t("mari.presence.needsYou", "Professor Mari needs your answer")
+                            ? t("mari.presence.needsYouShort", "Needs your answer")
                             : t("commandCenter.mode.work", "Ask Mari"))}
                     </span>
                   </span>

@@ -452,6 +452,11 @@ Approvals, action results, diffs and artifacts are Cards. Nothing else may carry
 a border - not her prose, not a status event, not a hint, not the working
 window. A second, quieter card weight is forbidden, because it dilutes the only
 signal the border carries.
+Direction A (slice 7b, `docs/development/mockups/mari-v3/index.html`): the border
+is one neutral hairline, never the accent, with no glow and no gradient tile. An
+applied edit is a row group that opens to tracked changes, a created record is a
+small tile, and only a risky prompt (delete, install, sensitive file) is a
+`MariCard` with one primary and one quiet text secondary.
 
 **R43 - Note.** One muted line. No border, no box, no icon of its own. Status
 events, errors, recovery notices, hints and loading states are Notes, and colour
@@ -486,6 +491,8 @@ state, and the full sprite that greets an empty transcript. Everywhere else the
 room is a quiet tool. This supersedes the background washes on the canvas, the
 header, her message bubbles and the artifact cards: the theme is an accent on
 borders, focus rings, active states and her name, never a wash.
+Direction A narrows it further: in her transcript the accent is on her name only;
+borders there are neutral hairlines.
 
 ## 11c. Stream, slot, chrome
 

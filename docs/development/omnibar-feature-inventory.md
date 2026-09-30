@@ -59,12 +59,40 @@ Rules that must survive:
   lorebook's first entry), and at most three `--small` action chips (`--danger`
   for remove). It opens with a 180 ms `grid-template-rows` + opacity animation,
   none under reduced motion or Reduce ambient effects.
-- In the `mari` pane, only things that touch your data get a border
-  (`MariCard`, R42: one accent frame on a solid `--card`, secondary action left,
-  primary right, stacked full width on phones, 44px action targets). A failed
-  send, a workspace-status error and missing workspace tools are `MariNote`
-  lines (R43): no box, no background, no icon; a failed send ends in one Retry
-  chip that is 44px on coarse pointers.
+- The `mari` pane follows direction A (`docs/development/mockups/mari-v3/index.html`):
+  text first, chrome last, and the accent only on her name.
+  - Steps are quiet one-line disclosures: a verb icon, a past-tense label
+    ("Read character Zylo Vantrell", `pastTenseStepTitle`), the duration, a
+    chevron to the technical details. Her thoughts use the same line. The
+    running step is only the live line (sprite, present-tense headline, timer);
+    it is never also a row in the list.
+  - When the run ends, the live line becomes "Worked for Ns · N steps" at the
+    bottom of the turn and folds the steps and thoughts away. On the newest
+    turn her sprite stays on it (success just after the run, then idle, or the
+    retry / stopped / approval story); older turns keep only the words.
+  - An applied edit of existing records (DB review in the Easy view, no inserts,
+    deletes or lorebook entries) is one summary row per record: avatar, name,
+    "Updated character · description, tags, first message", "N changes". It
+    opens to tracked changes: old text struck and muted, new text underlined on a
+    light tint, word by word when much of the old text survives
+    (`trackProseChange`), tags as −/+ chips (`trackListChange`). Undo and Keep
+    are small `.mari-link` / `.mari-btn` buttons (their hit area grows to 44px on
+    touch); Show raw and View as prompt
+    stay as quiet links. Other DB reviews keep the older card until slice 13.
+  - Something she created or updated is a small tile (`MariWorkspaceActionResultRow`):
+    portrait or monogram (`MariRecordAvatar`), name, "New" for a created record, one
+    line (its description, or the changed fields), and "Open ›".
+  - Only risky prompts (delete, install, sensitive file) are a `MariCard`
+    (R42): one neutral hairline, a small icon tile (red-tinted only for
+    danger), one primary and one quiet text secondary. No glow, no gradient
+    tile, no accent frame. The install and sensitive-file prompts move onto it
+    in slice 8.
+  - A failed send is one red line under your message with an inline Retry
+    (`.mari-send-failed`), not a line of hers. A workspace-status error and
+    missing workspace tools are `MariNote` lines (R43).
+  - The end-of-run glow is a small, low, faint green band that sinks within
+    3.5 s. The header status wraps to a second line on a phone instead of
+    ending in "…", and waiting on a review reads "Needs your answer".
 
 ## 2. Query handling
 
@@ -362,10 +390,13 @@ Do not "fix" these; each was a decision.
   indicator that shows state and opens her. She cannot sit beside an open
   editor; she is a place you go.
 - **Escape does not walk a pane stack.** There is one level to step back from.
-- **Her sprite does not appear on messages.** One sprite, in the header, where
-  its pose carries her state. Her transcript rows are labelled instead.
+- **Her sprite does not appear on messages.** Her pose in the header carries
+  her state; the only other sprite is on the live line while she works and on
+  the newest turn's "Worked for" line. Her transcript rows are labelled instead.
 - **A prose rewrite is not painted red and green.** That reads as
-  wrong-and-right, when it is a rewrite. Structural changes keep diff colouring.
+  wrong-and-right, when it is a rewrite. Old text is struck and muted, new text
+  is underlined on a light tint, so colour is never the only signal. Structural
+  changes outside an applied edit keep diff colouring.
 
 ## 12. The aside
 

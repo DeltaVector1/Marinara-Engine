@@ -736,9 +736,9 @@
 }
 
 .mari-workspace-composer-dock[data-working="ending"] {
-  --mari-glow-a: oklch(0.74 0.16 151);
-  --mari-glow-b: oklch(0.8 0.14 170);
-  --mari-glow-c: oklch(0.74 0.16 151);
+  --mari-glow-a: oklch(0.78 0.08 158);
+  --mari-glow-b: oklch(0.82 0.07 172);
+  --mari-glow-c: oklch(0.78 0.08 158);
 }
 
 /* A wide, low band (an ellipse, so the middle stands higher than the ends) spanning the whole window;
@@ -793,10 +793,9 @@
   animation: mari-glow-drift 5.5s ease-in-out infinite alternate;
 }
 
-/* Done: green lingers a moment, then sinks slowly to the bottom and fades out. */
-.mari-workspace-composer-dock[data-working="ending"]::before,
-.mari-workspace-composer-dock[data-working="ending"]::after {
-  animation: mari-glow-settle 6.5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+/* Done: a small, low, faint green band that sinks and fades within a few seconds; no bright spots. */
+.mari-workspace-composer-dock[data-working="ending"]::before {
+  animation: mari-glow-settle 3.5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
 /* Failed: red, smaller and quieter, lingers, then fades out slowly too. */
@@ -848,12 +847,8 @@
 
 @keyframes mari-glow-settle {
   0% {
-    opacity: 0.65;
-    scale: 1 0.95;
-  }
-  30% {
-    opacity: 0.6;
-    scale: 1 0.8;
+    opacity: 0.28;
+    scale: 1 0.5;
   }
   100% {
     opacity: 0;
@@ -1340,54 +1335,103 @@
   color: var(--destructive);
 }
 
-/* A Note may end in one Chip (Retry). Long provider errors clamp, so they never
-   push the layout sideways or bury the Chip. */
-.mari-note--action {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem 0.5rem;
-}
-
-.mari-note__text {
-  display: -webkit-box;
-  min-width: 0;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
 .mari-note__detail {
   color: var(--muted-foreground);
 }
 
+/* Direction A (docs/development/mockups/mari-v3): text first, chrome last. Neutral hairlines, never
+   the accent; the accent is only on her name. Colour is never the only signal of a change. */
+:root {
+  --mari-hairline: color-mix(in srgb, var(--foreground) 13%, transparent);
+  --mari-divider: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --mari-hover: color-mix(in srgb, var(--foreground) 6%, transparent);
+  --mari-group-bg: color-mix(in srgb, var(--foreground) 3.5%, var(--background));
+  --mari-ins-line: oklch(0.72 0.15 162);
+  --mari-ok: oklch(0.8 0.12 165);
+}
+
+[data-theme="light"] {
+  --mari-group-bg: color-mix(in srgb, var(--foreground) 1.5%, var(--background));
+  --mari-ins-line: oklch(0.55 0.13 162);
+  --mari-ok: oklch(0.5 0.12 165);
+}
+
+/* Small buttons: one hairline or solid primary, and a quiet text secondary. On touch the hit area
+   grows past the drawn edge instead of the button growing. */
+.mari-btn,
+.mari-link {
+  position: relative;
+  display: inline-flex;
+  min-height: 1.875rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.mari-btn {
+  border: 1px solid var(--mari-hairline);
+  padding-inline: 0.75rem;
+  color: var(--foreground);
+}
+
+.mari-btn--solid {
+  border-color: transparent;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mari-btn--danger {
+  border-color: transparent;
+  background: oklch(0.58 0.21 27);
+  color: #fff;
+}
+
+.mari-link {
+  padding-inline: 0.5rem;
+  color: var(--muted-foreground);
+}
+
+.mari-btn:not(.mari-btn--solid, .mari-btn--danger):hover,
+.mari-link:hover {
+  background: var(--mari-hover);
+  color: var(--foreground);
+}
+
+.mari-btn:disabled,
+.mari-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 @media (pointer: coarse) {
-  .mari-note--action > .mari-chrome-control {
-    min-height: 2.75rem;
+  .mari-btn::after,
+  .mari-link::after {
+    position: absolute;
+    inset: -0.45rem -0.125rem;
+    content: "";
   }
 }
 
-/* R42: the Card. One border weight (the accent frame) on a solid card surface,
-   and it means your data is involved. No inner borders, one action bar:
-   secondary left, primary right, stacked full width on a phone. */
+/* R42: a risky prompt. One neutral hairline, a small icon tile, the reason, then a quiet secondary and
+   one primary on the right. */
 .mari-card {
   display: grid;
   min-width: 0;
-  gap: 0.75rem;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 0.75rem;
-  background: var(--card);
-  padding: 0.875rem;
-  color: var(--foreground);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.mari-card[data-variant="danger"] {
-  border-color: color-mix(in srgb, var(--destructive) 40%, var(--border));
-  box-shadow: 0 1.125rem 2.75rem -2.125rem color-mix(in srgb, var(--destructive) 70%, transparent);
+  gap: 0.6rem;
+  border: 1px solid var(--mari-hairline);
+  border-radius: 0.875rem;
+  background: var(--mari-group-bg);
+  padding: 0.75rem 0.9rem 0.75rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
 }
 
 .mari-card__head {
@@ -1398,39 +1442,31 @@
 }
 
 .mari-card__media {
-  display: flex;
+  display: grid;
   width: 2.25rem;
   height: 2.25rem;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  place-items: center;
   border-radius: 0.625rem;
-}
-
-.mari-card__media > img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  background: color-mix(in srgb, var(--foreground) 8%, var(--background));
+  color: var(--muted-foreground);
 }
 
 .mari-card[data-variant="danger"] .mari-card__media {
-  background: color-mix(in srgb, var(--destructive) 14%, transparent);
-  color: var(--destructive);
-  box-shadow: none;
+  background: color-mix(in srgb, oklch(0.58 0.21 27) 16%, var(--background));
+  color: oklch(0.72 0.15 27);
 }
 
 .mari-card__title {
-  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.35;
   overflow-wrap: anywhere;
 }
 
 .mari-card__meta {
-  margin-top: 0.125rem;
   color: var(--muted-foreground);
   font-size: 0.75rem;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
@@ -1438,6 +1474,7 @@
   display: grid;
   min-width: 0;
   gap: 0.5rem;
+  color: var(--muted-foreground);
   overflow-wrap: anywhere;
 }
 
@@ -1445,28 +1482,325 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 0.5rem;
 }
 
-.mari-card__actions > .mari-chrome-control {
-  min-height: 2.75rem;
-  padding-inline: 0.875rem;
+/* A record's face: a portrait, or a quiet duotone tile with its initial. */
+.mari-avatar {
+  display: grid;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  flex: none;
+  place-items: center;
+  border: 0 !important;
+  border-radius: 0.625rem !important;
+  background: oklch(0.34 0.045 calc(var(--mari-avatar-hue, 0) * 1deg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 7%, transparent);
+  color: oklch(0.87 0.07 calc(var(--mari-avatar-hue, 0) * 1deg));
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+[data-theme="light"] .mari-avatar {
+  background: oklch(0.94 0.03 calc(var(--mari-avatar-hue, 0) * 1deg));
+  color: oklch(0.44 0.09 calc(var(--mari-avatar-hue, 0) * 1deg));
+}
+
+/* An applied edit: one summary line per record ("Zylo Vantrell · 3 changes") that opens to tracked
+   changes, with Undo and Keep as small buttons. */
+.mari-edit {
+  overflow: hidden;
+  border: 1px solid var(--mari-hairline);
+  border-radius: 0.875rem;
+  background: var(--mari-group-bg);
+}
+
+.mari-edit__row + .mari-edit__row,
+.mari-edit__footer {
+  border-top: 1px solid var(--mari-divider);
+}
+
+.mari-edit__head {
+  display: flex;
+  width: 100%;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.9rem 0.6rem 0.75rem;
+  text-align: start;
+  transition: background-color 0.15s ease;
+}
+
+.mari-edit__head:focus-visible {
+  outline-offset: -2px;
+}
+
+.mari-edit__head:hover {
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+}
+
+.mari-edit__text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mari-edit__title {
+  overflow: hidden;
   font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.mari-card__actions > :last-child {
+.mari-edit__meta {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mari-edit__end {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mari-edit__end > svg {
+  transition: transform 0.16s ease;
+}
+
+.mari-edit__row[data-open="true"] .mari-edit__end > svg {
+  transform: rotate(90deg);
+}
+
+.mari-edit__expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.mari-edit__expand > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mari-edit__row[data-open="true"] > .mari-edit__expand {
+  grid-template-rows: 1fr;
+}
+
+.mari-edit__body {
+  display: grid;
+  gap: 1rem;
+  padding: 0 0.9rem 0.85rem 3.75rem;
+}
+
+.mari-edit__actions,
+.mari-edit__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.mari-edit__footer {
+  padding: 0.5rem 0.9rem;
+}
+
+.mari-edit__reason {
+  max-width: 64ch;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.mari-field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.mari-field__label {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mari-field__text {
+  max-width: 64ch;
+  max-height: 18rem;
+  overflow-y: auto;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Old text is struck and muted, new text is underlined on a light tint: both marks, not just colour. */
+.mari-field__text del {
+  color: var(--muted-foreground);
+  text-decoration: line-through 1px;
+}
+
+.mari-field__text ins {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--mari-ins-line) 16%, transparent);
+  padding-inline: 1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  text-decoration: underline 1px var(--mari-ins-line);
+  text-underline-offset: 3px;
+}
+
+.mari-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mari-tag {
+  display: inline-flex;
+  height: 1.375rem;
+  align-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 8%, var(--background));
+  padding-inline: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.mari-tag--del {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--mari-hairline);
+  color: var(--muted-foreground);
+  text-decoration: line-through;
+}
+
+.mari-tag--ins {
+  background: color-mix(in srgb, var(--mari-ins-line) 16%, transparent);
+}
+
+.mari-tag--del::before,
+.mari-tag--ins::before {
+  margin-inline-end: 3px;
+  font-weight: 600;
+}
+
+.mari-tag--del::before {
+  content: "\2212";
+}
+
+.mari-tag--ins::before {
+  color: var(--mari-ok);
+  content: "+";
+}
+
+/* Something she made or changed: a small tile with its face, name, one line and Open. */
+.mari-tile {
+  display: flex;
+  width: fit-content;
+  max-width: min(100%, 26rem);
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--mari-hairline);
+  border-radius: 0.875rem;
+  background: var(--mari-group-bg);
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+}
+
+.mari-tile__text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mari-tile__name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.mari-tile__name > span:first-child,
+.mari-tile__hook {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mari-tile__hook {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.mari-new-badge {
+  flex: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mari-workspace-gold, oklch(0.82 0.11 79)) 15%, transparent);
+  padding: 0.05rem 0.4rem;
+  color: color-mix(in srgb, var(--mari-workspace-gold, oklch(0.82 0.11 79)) 70%, var(--foreground));
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* A failed send: one red line under your message, then Retry. */
+.mari-send-failed {
+  display: flex;
+  width: fit-content;
+  max-width: min(85%, 36rem);
+  align-items: center;
+  gap: 0.35rem;
   margin-inline-start: auto;
+  color: color-mix(in srgb, oklch(0.72 0.17 25) 80%, var(--foreground));
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
-@media (width < 30rem) {
-  .mari-card__actions {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
+.mari-send-failed > svg {
+  flex: none;
+}
 
-  .mari-card__actions > :last-child {
-    margin-inline-start: 0;
+.mari-send-failed__text {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.mari-send-failed .mari-link {
+  flex: none;
+  color: var(--foreground);
+  text-decoration: underline 1px var(--mari-hairline);
+  text-underline-offset: 3px;
+}
+
+@media (width < 40rem) {
+  .mari-edit__body {
+    padding-inline-start: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-edit__expand {
+    transition: none;
   }
 }
 
@@ -1617,14 +1951,17 @@
   flex: 0 0 auto;
 }
 
+/* The status may wrap to a second line on a phone rather than end in "…". */
 .mari-omnibar-header-copy {
-  max-width: 9.5rem;
+  max-width: 14rem;
 }
 
 .mari-omnibar-header-copy > span {
+  display: -webkit-box;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .mari-omnibar-header-controls {
@@ -1987,45 +2324,22 @@
   padding-bottom: 0.25rem;
 }
 
+/* R42: a held proposal sits on one neutral hairline; an applied edit brings its own row group. */
 .mari-inline-review {
   position: relative;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
-  border-radius: 0.75rem;
-  background: var(--card);
+  border: 1px solid var(--mari-hairline);
+  border-radius: 0.875rem;
+  background: var(--mari-group-bg);
   padding: 0.875rem;
-  animation: mari-review-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: mari-review-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* One gold light runs around the edge as the proposal arrives, then it rests. */
-.mari-inline-review::before {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  padding: 1px;
-  border-radius: inherit;
-  content: "";
-  pointer-events: none;
-  background: conic-gradient(
-    from var(--angle),
-    transparent 0 60%,
-    var(--mari-workspace-gold, oklch(0.82 0.11 79)),
-    var(--mari-logo-pink),
-    transparent 95%
-  );
-  mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  mask-composite: exclude;
-  animation:
-    gradient-rotate 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s 1 both,
-    mari-halo-out 0.5s ease 1.6s forwards;
-}
-
-@keyframes mari-halo-out {
-  to {
-    opacity: 0;
-  }
+.mari-inline-review:has(.mari-edit-review) {
+  overflow: visible;
+  border: 0;
+  background: none;
+  padding: 0;
 }
 
 /* New text in a proposal lights up green once as the card arrives, so the eye finds what changed. */
@@ -2061,37 +2375,6 @@
 .mari-inline-review .mari-decision-actions {
   margin-inline: -0.875rem;
   padding-inline: 0.875rem;
-}
-
-.mari-workspace-artifact--compact {
-  border-color: color-mix(in srgb, var(--border) 86%, var(--primary));
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--card) 92%, var(--background));
-}
-
-.mari-workspace-artifact--compact [data-preview-body="true"] {
-  overflow: visible;
-  flex: none;
-  padding: 0 0.75rem 0.5rem;
-}
-
-.mari-workspace-artifact--compact [data-preview-body="true"] > p:first-child {
-  display: none;
-}
-
-.mari-workspace-artifact--compact [data-preview-body="true"] ul {
-  margin-top: 0;
-}
-
-.mari-workspace-artifact--compact [data-preview-footer="true"] {
-  gap: 0.25rem;
-  padding: 0.375rem 0.5rem;
-}
-
-.mari-workspace-artifact--compact [data-preview-footer="true"] button {
-  min-height: 1.75rem;
-  padding-inline: 0.5rem;
-  font-size: 0.6875rem;
 }
 
 .mari-artifact-row {
@@ -2415,7 +2698,16 @@
   font-weight: 600;
 }
 
-/* A finished run: one summary line that opens to show the work. */
+/* A finished run: where the live line was, "Worked for Ns · N steps" folds the work away. Older turns
+   keep only the words, without her sprite. */
+.mari-work-timeline__live[data-past="true"] {
+  min-height: 2rem;
+}
+
+.mari-work-timeline[data-folded="true"] .mari-work-timeline__rail {
+  display: none;
+}
+
 .mari-work-timeline__header {
   display: flex;
   width: fit-content;
@@ -2451,33 +2743,14 @@
   transition: transform 0.16s ease;
 }
 
-.mari-work-timeline__work[open] .mari-work-timeline__chevron {
+.mari-work-timeline__header[aria-expanded="true"] .mari-work-timeline__chevron {
   transform: rotate(90deg);
 }
 
-.mari-work-timeline__work-body {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 0.35rem;
-}
-
-/* Thoughts and steps hang from one thin line, so the work reads as one ordered list. */
+/* Thoughts and steps between her words: quiet one-line disclosures, no frame. */
 .mari-work-timeline__rail {
-  position: relative;
   display: grid;
   min-width: 0;
-  gap: 0.1rem;
-  padding-inline-start: 0.9rem;
-}
-
-.mari-work-timeline__rail::before {
-  position: absolute;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  left: 0.2rem;
-  width: 1px;
-  content: "";
-  background: color-mix(in srgb, var(--foreground) 12%, transparent);
 }
 
 /* The live headline: what Mari does now, written in letter by letter under a soft light sweep. */
@@ -2664,104 +2937,25 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 0.5rem;
-  min-height: 1.75rem;
-  padding-inline: 0.25rem;
   color: var(--muted-foreground);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
 }
 
-.mari-live-work__steps li[data-status="running"] {
-  color: var(--foreground);
+/* A step that just finished flashes green once, then goes quiet. */
+.mari-live-work__step-icon {
+  animation: mari-step-done 1.4s ease both;
 }
 
-.mari-live-work__steps li[data-status="running"] > details > summary {
-  border-radius: 0.5rem;
-  background:
-    linear-gradient(
-        100deg,
-        transparent 20%,
-        color-mix(in srgb, var(--mari-workspace-gold, oklch(0.82 0.11 79)) 10%, transparent) 50%,
-        transparent 80%
-      )
-      0 0 / 250% 100% no-repeat,
-    color-mix(in srgb, var(--foreground) 4%, transparent);
-  animation: mari-step-glint 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-}
-
-@keyframes mari-step-glint {
-  from {
-    background-position:
-      150% 0,
-      0 0;
-  }
-  to {
-    background-position:
-      -100% 0,
-      0 0;
+@keyframes mari-step-done {
+  0%,
+  35% {
+    color: var(--mari-ok);
   }
 }
 
-/* Step status: a spinner arc while running, then a green disc fills and the check draws itself. */
-.mari-live-work__step-glyph {
-  width: 0.95rem;
-  height: 0.95rem;
-  flex: 0 0 auto;
-  overflow: visible;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-}
-
-.mari-live-work__step-glyph [data-part="track"] {
-  stroke: color-mix(in srgb, var(--border) 90%, var(--muted-foreground));
-}
-
-.mari-live-work__step-glyph [data-part="arc"] {
-  opacity: 0;
-  stroke: var(--mari-workspace-gold, oklch(0.82 0.11 79));
-  stroke-dasharray: 14 38;
-  transform-origin: 9px 9px;
-}
-
-.mari-live-work__steps li[data-status="running"] [data-part="arc"] {
-  opacity: 1;
-  animation: mari-step-spin 0.9s linear infinite;
-}
-
-.mari-live-work__step-glyph [data-part="fill"] {
-  fill: oklch(0.74 0.15 154);
-  stroke: none;
-  transform: scale(0);
-  transform-origin: 9px 9px;
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.mari-live-work__step-glyph [data-part="check"] {
-  stroke: oklch(0.22 0.03 160);
-  stroke-dasharray: 12;
-  stroke-dashoffset: 12;
-}
-
-.mari-live-work__steps li[data-status="done"] [data-part="fill"] {
-  transform: scale(1);
-}
-
-.mari-live-work__steps li[data-status="done"] [data-part="check"] {
-  animation: mari-stroke-draw 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.18s forwards;
-}
-
-@keyframes mari-step-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* "Reading character  Shrek": the verb stays quiet, the subject is what you scan for. */
+/* "Read character  Shrek": the verb stays quiet, the subject is what you scan for. */
 .mari-live-work__step-label {
   min-width: 0;
-  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2791,11 +2985,14 @@
 
 .mari-live-work__step-details > summary {
   display: flex;
-  min-height: 2.25rem;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 1.9rem;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
+  margin-inline-start: -0.5rem;
   padding-inline: 0.5rem;
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   color: inherit;
   cursor: pointer;
   list-style: none;
@@ -2806,6 +3003,7 @@
 }
 
 .mari-live-work__step-details > summary:hover {
+  background: var(--mari-hover);
   color: var(--foreground);
 }
 
@@ -2883,8 +3081,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mari-live-work__steps li[data-status="running"] > details > summary,
-  .mari-live-work__steps li[data-status="running"] [data-part="arc"],
+  .mari-live-work__step-icon,
   .mari-live-work__sprite > span,
   .mari-work-timeline__line,
   .mari-work-timeline__char,
@@ -2899,11 +3096,6 @@
     animation: none;
   }
 
-  .mari-inline-review::before {
-    display: none;
-  }
-
-  .mari-live-work__steps li[data-status="done"] [data-part="check"],
   .mari-work-timeline__done-mark circle,
   .mari-work-timeline__done-mark path {
     animation: none;
@@ -2961,33 +3153,6 @@
   }
   to {
     background-position: 180% 0;
-  }
-}
-
-.mari-workspace-canvas .mari-workspace-artifact {
-  border: 1px solid color-mix(in srgb, var(--mari-workspace-gold) 22%, var(--border));
-  border-radius: 0.75rem;
-  background: var(--card);
-  padding: 0;
-  box-shadow:
-    0 0.7rem 1.8rem color-mix(in srgb, var(--background) 38%, transparent),
-    inset 0 1px color-mix(in srgb, var(--foreground) 5%, transparent);
-}
-
-.mari-workspace-artifact--complete {
-  animation: mari-artifact-arrive 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes mari-artifact-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(0.375rem);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mari-workspace-artifact--complete {
-    animation: none;
   }
 }
 

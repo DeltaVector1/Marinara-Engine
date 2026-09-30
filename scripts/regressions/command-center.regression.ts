@@ -56,6 +56,8 @@ import {
   formatDocumentationGroundingExcerpts,
   type DocumentationSearchResult,
 } from "../../packages/server/src/services/professor-mari/documentation-tools.js";
+import { trackListChange, trackProseChange } from "../../packages/client/src/lib/mari-edit-diff.js";
+import { pastTenseStepTitle } from "../../packages/client/src/lib/mari-work-timeline.js";
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 
 const commands: CommandDefinition[] = [
@@ -899,16 +901,43 @@ console.info("Command Center regression checks passed.");
   // docs/**.md) - structurally it has no way to see chat, character, or other
   // user data, so a call site that never hands it anything else cannot leak.
   const results: DocumentationSearchResult[] = [
-    { path: "docs/CONFIGURATION.md", heading: "Logging Levels", excerpt: "Set LOG_LEVEL to control verbosity.", startLine: 10, score: 90 },
-    { path: "docs/FAQ.md", heading: "Export a chat", excerpt: "Use Settings > Backup & Export.", startLine: 4, score: 80 },
-    { path: "README.md", heading: "Install", excerpt: "Download the installer for your platform.", startLine: 1, score: 70 },
-    { path: "docs/TROUBLESHOOTING.md", heading: "Connection errors", excerpt: "Check the connection's base URL.", startLine: 2, score: 60 },
+    {
+      path: "docs/CONFIGURATION.md",
+      heading: "Logging Levels",
+      excerpt: "Set LOG_LEVEL to control verbosity.",
+      startLine: 10,
+      score: 90,
+    },
+    {
+      path: "docs/FAQ.md",
+      heading: "Export a chat",
+      excerpt: "Use Settings > Backup & Export.",
+      startLine: 4,
+      score: 80,
+    },
+    {
+      path: "README.md",
+      heading: "Install",
+      excerpt: "Download the installer for your platform.",
+      startLine: 1,
+      score: 70,
+    },
+    {
+      path: "docs/TROUBLESHOOTING.md",
+      heading: "Connection errors",
+      excerpt: "Check the connection's base URL.",
+      startLine: 2,
+      score: 60,
+    },
   ];
 
   const top3 = formatDocumentationGroundingExcerpts(results);
   const lines = top3.split("\n");
   assert.equal(lines.length, 3, "grounding keeps only the top 3 excerpts, not the full result set");
-  assert.ok(lines[0]!.includes("docs/CONFIGURATION.md") && lines[0]!.includes("Logging Levels"), "each line cites its source path and heading");
+  assert.ok(
+    lines[0]!.includes("docs/CONFIGURATION.md") && lines[0]!.includes("Logging Levels"),
+    "each line cites its source path and heading",
+  );
   assert.ok(!top3.includes("TROUBLESHOOTING"), "the 4th-ranked result is dropped");
 
   // An excerpt with embedded newlines (a real multi-line markdown section) is
@@ -922,7 +951,11 @@ console.info("Command Center regression checks passed.");
   assert.ok(flattened.length < longExcerpt.length, "an oversized excerpt is truncated, not passed through whole");
   assert.ok(flattened.endsWith("…"), "a truncated excerpt is marked with an ellipsis");
 
-  assert.deepEqual(formatDocumentationGroundingExcerpts([]), "", "no matches renders an empty block, not a placeholder line");
+  assert.deepEqual(
+    formatDocumentationGroundingExcerpts([]),
+    "",
+    "no matches renders an empty block, not a placeholder line",
+  );
 }
 
 {
@@ -931,8 +964,14 @@ console.info("Command Center regression checks passed.");
   // so it stays small and only ever names things the user can actually see.
   assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("General:"), "a real tab label heads its group");
   assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("Backup & Export"), "a real section label is present");
-  assert.ok(!QUICK_ANSWER_SETTINGS_LABELS.includes("backup-export"), "the internal section id does not leak into the prompt");
-  assert.ok(QUICK_ANSWER_SETTINGS_LABELS.length < 2_000, "the settings-label hint stays compact enough for a quick-answer prompt");
+  assert.ok(
+    !QUICK_ANSWER_SETTINGS_LABELS.includes("backup-export"),
+    "the internal section id does not leak into the prompt",
+  );
+  assert.ok(
+    QUICK_ANSWER_SETTINGS_LABELS.length < 2_000,
+    "the settings-label hint stays compact enough for a quick-answer prompt",
+  );
 }
 
 {
@@ -987,4 +1026,54 @@ console.info("Command Center regression checks passed.");
     ["Source", "Line"],
     "no Category or Match fact repeats the path or the description",
   );
+}
+
+// Slice 7b (I4): a finished step reads in the past tense; other titles stay as they are.
+{
+  assert.equal(pastTenseStepTitle("Reading character"), "Read character");
+  assert.equal(pastTenseStepTitle("Searching lorebooks"), "Searched lorebooks");
+  assert.equal(pastTenseStepTitle("Creating character"), "Created character");
+  assert.equal(pastTenseStepTitle("Updating preset"), "Updated preset");
+  assert.equal(pastTenseStepTitle("Running command"), "Ran command");
+  assert.equal(pastTenseStepTitle("Planning changes"), "Planned changes");
+  assert.equal(pastTenseStepTitle("Copying file"), "Copied file");
+  assert.equal(pastTenseStepTitle("Adding entry"), "Added entry");
+  assert.equal(pastTenseStepTitle("Setting theme"), "Set theme");
+  assert.equal(pastTenseStepTitle("String search"), "String search", "no vowel before -ing: not a verb");
+  assert.equal(pastTenseStepTitle("docs_search"), "docs_search");
+}
+
+// Slice 7b (I2): tracked changes keep a small edit word by word, but strike a rewrite whole.
+{
+  const greeting = trackProseChange(
+    "Zylo waves. Hello, traveler! Want to buy something?",
+    "Zylo waves. Hello, traveler. Want to buy something?",
+  );
+  assert.ok(
+    greeting.some((segment) => segment.type === "equal" && segment.value.includes("Want to buy")),
+    "a tweak keeps the shared words",
+  );
+  const greetingRework = trackProseChange(
+    "*Zylo waves.* Hello, traveler! Want to buy something?",
+    "*Zylo slides a crate lid shut with his boot.* Hello, traveler. You didn't see that. Want to buy something, or sell me your silence?",
+  );
+  assert.ok(
+    greetingRework.some((segment) => segment.type === "equal" && segment.value.includes("Want to buy")),
+    "a greeting reworked around its old lines stays word by word",
+  );
+  const rewrite = trackProseChange(
+    "Zylo is a merchant who sells things at the market.",
+    "Zylo Vantrell runs contraband under the lantern boats of the floating market.",
+  );
+  assert.deepEqual(
+    rewrite.map((segment) => segment.type),
+    ["removed", "equal", "added"],
+    "a rewrite is the old text struck whole, then the new text",
+  );
+  assert.deepEqual(trackProseChange("", "New"), [{ type: "added", value: "New" }]);
+  assert.deepEqual(trackListChange("human, merchant", "human, smuggler"), [
+    { type: "equal", value: "human" },
+    { type: "removed", value: "merchant" },
+    { type: "added", value: "smuggler" },
+  ]);
 }

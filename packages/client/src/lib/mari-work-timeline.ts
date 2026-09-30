@@ -42,3 +42,43 @@ export function buildWorkTimelineBlocks<Tool>(items: readonly WorkTimelineItem<T
   }
   return blocks;
 }
+
+// ponytail: English-only. Step titles are English literals in inferToolPresentation; localize both
+// together if they ever move into en.json.
+const IRREGULAR_PAST: Record<string, string> = {
+  build: "built",
+  find: "found",
+  get: "got",
+  make: "made",
+  put: "put",
+  read: "read",
+  run: "ran",
+  send: "sent",
+  set: "set",
+  take: "took",
+  think: "thought",
+  write: "wrote",
+};
+
+/**
+ * A finished step reads in the past tense ("Read character"), the running one in the present
+ * ("Reading character"). Only a leading "-ing" verb changes; any other title is left as it is.
+ */
+export function pastTenseStepTitle(title: string): string {
+  const match = /^([A-Za-z]+?)ing\b/.exec(title);
+  // "Thing"/"String" have no vowel before "ing": not a verb form.
+  if (!match || !/[aeiouy]/i.test(match[1]!)) return title;
+  const word = match[0];
+  let stem = match[1]!.toLowerCase();
+  const doubled = /([bdglmnprt])\1$/.test(stem);
+  const irregular = IRREGULAR_PAST[stem] ?? (doubled ? IRREGULAR_PAST[stem.slice(0, -1)] : undefined);
+  let past: string;
+  if (irregular) past = irregular;
+  else {
+    // "Planning" → "Planned", "Copying" → "Copied", "Updating" → "Updated", "Checking" → "Checked".
+    if (/[^aeiou]y$/.test(stem)) stem = `${stem.slice(0, -1)}i`;
+    past = stem.endsWith("e") ? `${stem}d` : `${stem}ed`;
+  }
+  const cased = word[0] === word[0]!.toUpperCase() ? past[0]!.toUpperCase() + past.slice(1) : past;
+  return cased + title.slice(word.length);
+}

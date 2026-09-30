@@ -1,6 +1,19 @@
 import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { Check, Database, Loader2, PackagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  Database,
+  Eye,
+  FileText,
+  Loader2,
+  PackagePlus,
+  RefreshCw,
+  Sparkles,
+  Trash2,
+  Undo2,
+  UserRound,
+} from "lucide-react";
 import type {
   MariDbPendingApproval,
   MariDependencyInstallApproval,
@@ -9,8 +22,10 @@ import type {
 } from "@marinara-engine/shared";
 
 import { useUIStore, type MariEditViewMode } from "../../stores/ui.store";
-import { MariEditEasyViewer } from "./MariEditEasyViewer";
-import { computeFieldChanges } from "../../lib/mari-edit-diff";
+import { canRenderPrompt, MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
+import { computeFieldChanges, trackListChange, trackProseChange, type FieldChange } from "../../lib/mari-edit-diff";
+import { buildCharacterPreviewModel } from "../../lib/character-preview";
+import { MariRecordAvatar } from "./mari-primitives";
 import { MariPromptPreviewModal, type MariPromptRenderSide } from "./MariPromptPreviewModal";
 import { TranscriptRow } from "./MariTranscriptRow";
 import { cn } from "../../lib/utils";
@@ -36,12 +51,15 @@ function summarizeTables(tables: Record<string, number>) {
  * comes from computeFieldChanges, which already skips noise keys, flattens nested columns and
  * ranks the labels the way the Easy viewer shows them.
  */
-function describeApprovalSubject(approval: MariDbPendingApproval): string {
-  const table = Object.keys(approval.affectedTables)[0] ?? approval.diffPreview[0]?.table ?? "";
-  const entity = table
+function describeTable(table: string): string {
+  return table
     .replace(/_/g, " ")
     .replace(/s$/, "")
     .replace(/^./, (first) => first.toUpperCase());
+}
+
+function describeApprovalSubject(approval: MariDbPendingApproval): string {
+  const entity = describeTable(Object.keys(approval.affectedTables)[0] ?? approval.diffPreview[0]?.table ?? "");
   const labels = [
     ...new Set(approval.diffPreview.flatMap((change) => computeFieldChanges(change).map((f) => f.label))),
   ];
@@ -90,6 +108,171 @@ function getScrollableAncestor(el: HTMLElement | null): HTMLElement | null {
     node = node.parentElement;
   }
   return null;
+}
+
+/**
+ * Direction A (I2): an applied edit of existing records (no inserts or deletes, no lorebook entries,
+ * which keep their own layout until slice 13) reads as one summary line per record that opens to
+ * tracked changes, with Undo and Keep.
+ */
+function isAppliedEdit(approval: MariDbPendingApproval) {
+  return (
+    approval.diffPreview.length > 0 &&
+    approval.diffPreview.every(
+      (change) => (change.action === "update" || change.action === "replace") && change.table !== "lorebook_entries",
+    )
+  );
+}
+
+function TrackedField({ field }: { field: FieldChange }) {
+  const leaf = field.path.split(".").at(-1) ?? field.path;
+  if (leaf === "tags") {
+    return (
+      <div className="mari-tags">
+        {trackListChange(field.before, field.after).map((tag) => (
+          <span
+            key={`${tag.type}:${tag.value}`}
+            className={cn(
+              "mari-tag",
+              tag.type === "removed" && "mari-tag--del",
+              tag.type === "added" && "mari-tag--ins",
+            )}
+          >
+            {tag.value}
+          </span>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <p className="mari-field__text">
+      {trackProseChange(field.before, field.after).map((segment, index) =>
+        segment.type === "removed" ? (
+          <del key={index}>{segment.value}</del>
+        ) : segment.type === "added" ? (
+          <ins key={index}>{segment.value}</ins>
+        ) : (
+          <span key={index}>{segment.value}</span>
+        ),
+      )}
+    </p>
+  );
+}
+
+function AppliedEditReview({
+  approval,
+  busy,
+  disabled,
+  onKeep,
+  onRestore,
+  onShowRaw,
+  onRenderRow,
+}: {
+  approval: MariDbPendingApproval;
+  busy: boolean;
+  disabled: boolean;
+  onKeep: (id: string) => void;
+  onRestore: (id: string) => void;
+  onShowRaw: () => void;
+  onRenderRow?: (change: MariDbPendingApproval["diffPreview"][number], index: number) => void;
+}) {
+  const { t: localizeUi } = useUiTranslation();
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const single = approval.diffPreview.length === 1;
+  const actions = (
+    <>
+      <button type="button" onClick={onShowRaw} className="mari-link -ml-2">
+        {localizeUi("ui.chat.mariappliededit.showRaw")}
+      </button>
+      <span className="flex-1" />
+      <button type="button" onClick={() => onRestore(approval.id)} disabled={busy || disabled} className="mari-link">
+        <Undo2 size="0.8rem" aria-hidden="true" />
+        {localizeUi("ui.chat.mariappliededit.undo")}
+      </button>
+      <button type="button" onClick={() => onKeep(approval.id)} disabled={busy || disabled} className="mari-btn">
+        {busy ? <Loader2 size="0.8rem" className="animate-spin" aria-hidden="true" /> : null}
+        {busy ? localizeUi("ui.noodle.stageprofileform.saving") : localizeUi("ui.chat.mariappliededit.keep")}
+      </button>
+    </>
+  );
+  return (
+    <section className="mari-edit mari-edit-review" aria-label={localizeUi("ui.chat.mariappliededit.label")}>
+      {approval.diffPreview.map((change, index) => {
+        const fields = computeFieldChanges(change);
+        const character =
+          change.table === "characters" ? buildCharacterPreviewModel(change.after ?? change.before) : null;
+        const name = character?.name ?? rowTitle(change, localizeUi);
+        const open = openIndex === index;
+        return (
+          <div key={`${index}:${change.table}:${change.id}`} className="mari-edit__row" data-open={open}>
+            <button
+              type="button"
+              className="mari-edit__head"
+              aria-expanded={open}
+              onClick={() => setOpenIndex(open ? null : index)}
+            >
+              <MariRecordAvatar
+                name={name}
+                src={character?.avatarSrc}
+                avatarCropStyle={character?.avatarCropStyle}
+                icon={character ? UserRound : FileText}
+              />
+              <span className="mari-edit__text">
+                <span className="mari-edit__title">{name}</span>
+                <span className="mari-edit__meta">
+                  {localizeUi("ui.chat.mariappliededit.meta", {
+                    entity: describeTable(change.table).toLocaleLowerCase(),
+                    fields: fields
+                      .slice(0, 3)
+                      .map((field) => field.label.toLocaleLowerCase())
+                      .join(", "),
+                  })}
+                </span>
+              </span>
+              <span className="mari-edit__end">
+                {localizeUi("ui.chat.mariappliededit.changes", { count: fields.length })}
+                <ChevronRight size="0.75rem" aria-hidden="true" />
+              </span>
+            </button>
+            <div className="mari-edit__expand">
+              <div>
+                <div className="mari-edit__body">
+                  {index === 0 && approval.reason ? <p className="mari-edit__reason">{approval.reason}</p> : null}
+                  {fields.map((field) => (
+                    <div key={field.path} className="mari-field">
+                      <span className="mari-field__label">{field.label}</span>
+                      <TrackedField field={field} />
+                    </div>
+                  ))}
+                  {onRenderRow && canRenderPrompt(change) ? (
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => onRenderRow(change, index)}
+                        disabled={busy || disabled}
+                        title={localizeUi("ui.chat.mariediteasyviewer.viewAsPromptHint")}
+                        className="mari-link -ml-2"
+                      >
+                        <Eye size="0.8rem" aria-hidden="true" />
+                        {localizeUi("ui.chat.mariediteasyviewer.viewAsPrompt")}
+                      </button>
+                    </div>
+                  ) : null}
+                  {single ? <div className="mari-edit__actions">{actions}</div> : null}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      {single ? null : <div className="mari-edit__footer">{actions}</div>}
+      {approval.diffTruncated ? (
+        <p className="mari-edit__reason border-t border-[var(--mari-divider)] px-[0.9rem] py-2">
+          {localizeUi("ui.chat.databaseworkspaceapprovalcard.thisPreviewMayNotShowEveryAffectedRow")}
+        </p>
+      ) : null}
+    </section>
+  );
 }
 
 function DatabaseWorkspaceApprovalCard({
@@ -200,6 +383,34 @@ function DatabaseWorkspaceApprovalCard({
     const after = change.after as { enabled?: unknown; persistent?: unknown } | null;
     return Number(after?.enabled) !== 1 && Number(after?.persistent) !== 1;
   });
+
+  const promptPreviewModal = promptPreview ? (
+    <MariPromptPreviewModal
+      title={localizeUi("ui.chat.maripromptpreviewmodal.title")}
+      loading={promptPreview.loading}
+      error={promptPreview.error}
+      before={promptPreview.before}
+      after={promptPreview.after}
+      onClose={closePromptPreview}
+    />
+  ) : null;
+
+  if (viewMode === "easy" && !enableableMemoryInsert && isAppliedEdit(approval)) {
+    return (
+      <TranscriptRow layout="document" marker={null}>
+        <AppliedEditReview
+          approval={approval}
+          busy={busy}
+          disabled={disabled}
+          onKeep={onKeep}
+          onRestore={onRestore}
+          onShowRaw={() => changeViewMode("raw")}
+          onRenderRow={onRenderPrompt ? handleRenderRow : undefined}
+        />
+        {promptPreviewModal}
+      </TranscriptRow>
+    );
+  }
 
   return (
     <TranscriptRow layout="document" marker={null}>
@@ -409,16 +620,7 @@ function DatabaseWorkspaceApprovalCard({
           </button>
         </div>
       </div>
-      {promptPreview && (
-        <MariPromptPreviewModal
-          title={localizeUi("ui.chat.maripromptpreviewmodal.title")}
-          loading={promptPreview.loading}
-          error={promptPreview.error}
-          before={promptPreview.before}
-          after={promptPreview.after}
-          onClose={closePromptPreview}
-        />
-      )}
+      {promptPreviewModal}
     </TranscriptRow>
   );
 }
