@@ -27,7 +27,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 4   | Carry aside answer into Mari, show what she received (C1-C3) | worker        | Done   | 892f2acea |
 | 5   | Review of slices 1-4                                         | reviewer      | Done   | 532479233 |
 | 6   | Expanded row redesign (D1-D6)                                | designer      | Done   | 2e81ef9de |
-| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)        | designer      | Todo   |        |
+| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)        | designer      | Done   | dbbf886db |
 | 8   | Migrate install/file/created cards to MariCard (E4-E5)       | designer      | Todo   |        |
 | 9   | Review of slices 6-8                                         | reviewer      | Todo   |        |
 | 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)  | designer      | Todo   |        |
