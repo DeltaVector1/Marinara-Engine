@@ -50,6 +50,7 @@ import {
   inferProfessorMariCommandCenterCapability,
 } from "../../packages/client/src/lib/professor-mari-command-center-context.js";
 import { OmnibarAsideAnswerCache, stripStrayMarkdown } from "../../packages/client/src/lib/omnibar-aside-text.js";
+import { professorMariContextFacets } from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
   type DocumentationSearchResult,
@@ -672,6 +673,35 @@ assert.deepEqual(
     settingsLocation: { tab: "appearance", controlId: "theme-mode" },
   },
 );
+// C1: escalating a live omnibar aside answer into Mari carries it along.
+assert.deepEqual(
+  buildProfessorMariCommandCenterContext("what does temperature do", undefined, [], undefined, {
+    asideAnswer: { query: "what does temperature do", answer: "It controls randomness.", tier: "local" },
+  }).asideAnswer,
+  { query: "what does temperature do", answer: "It controls randomness.", tier: "local" },
+);
+// C2: the chip lists every facet a context carries, not just the first one found.
+assert.deepEqual(
+  professorMariContextFacets({
+    source: "command-center",
+    capability: "explain",
+    resource: { kind: "character", id: "luna-id", label: "Luna" },
+    activeChat: { id: "chat-one", label: "Moonlit room" },
+    field: "Greeting",
+    settingsLocation: { tab: "appearance" },
+    error: { message: "Generation failed" },
+    asideAnswer: { query: "q", answer: "Answer text", tier: "remote" },
+  }),
+  [
+    { kind: "resource", text: "Luna" },
+    { kind: "chat", text: "Moonlit room" },
+    { kind: "field", text: "Greeting" },
+    { kind: "settings", text: "appearance" },
+    { kind: "error", text: "Generation failed" },
+    { kind: "asideAnswer", text: "Answer text" },
+  ],
+);
+assert.deepEqual(professorMariContextFacets(null), []);
 
 // The list and Mari are the only panes. A session persisted with a removed one
 // falls back to the list rather than resurrecting a surface that no longer exists.

@@ -46,6 +46,32 @@ export function professorMariContextCount(
   return Math.max(0, attachedContextCount) + (isPersistentProfessorMariContext(context) ? 1 : 0);
 }
 
+export type ProfessorMariContextFacetKind = "resource" | "chat" | "field" | "settings" | "error" | "asideAnswer";
+
+export interface ProfessorMariContextFacet {
+  kind: ProfessorMariContextFacetKind;
+  text: string;
+}
+
+/**
+ * Every facet a handoff context carries, so the composer chip and the chip
+ * left on a sent message (C2) can render the same list instead of picking
+ * one field to show.
+ */
+export function professorMariContextFacets(
+  context: ProfessorMariAskContext | null | undefined,
+): ProfessorMariContextFacet[] {
+  if (!context) return [];
+  const facets: ProfessorMariContextFacet[] = [];
+  if (context.resource?.label) facets.push({ kind: "resource", text: context.resource.label });
+  if (context.activeChat?.label) facets.push({ kind: "chat", text: context.activeChat.label });
+  if (context.field) facets.push({ kind: "field", text: context.field });
+  if (context.settingsLocation?.tab) facets.push({ kind: "settings", text: context.settingsLocation.tab });
+  if (context.error?.message) facets.push({ kind: "error", text: context.error.message });
+  if (context.asideAnswer?.answer) facets.push({ kind: "asideAnswer", text: context.asideAnswer.answer });
+  return facets;
+}
+
 export function shouldShowProfessorMariConnectionHint({
   chatId,
   loadedMessagesChatId,

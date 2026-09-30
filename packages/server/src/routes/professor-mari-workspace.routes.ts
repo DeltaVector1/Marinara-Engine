@@ -95,6 +95,13 @@ export const professorMariPromptSchema = z.object({
       settingsLocation: z
         .object({ tab: z.string().max(64).optional(), controlId: z.string().max(128).optional() })
         .optional(),
+      asideAnswer: z
+        .object({
+          query: z.string().max(500),
+          answer: z.string().max(4_000),
+          tier: z.enum(["local", "remote"]),
+        })
+        .optional(),
     })
     .optional(),
   attachments: z

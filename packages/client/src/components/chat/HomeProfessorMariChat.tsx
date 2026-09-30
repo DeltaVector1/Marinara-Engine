@@ -102,6 +102,7 @@ import { useDialogFocusScope } from "../../hooks/use-dialog-focus-scope";
 import { MariAttachButton } from "./MariAttachButton";
 import { MariChatHistoryPicker } from "./MariChatHistoryPicker";
 import { MariContextViewer } from "./MariContextViewer";
+import { MariContextFacetChips } from "./MariContextFacetChips";
 import { ProfessorMariContextControl } from "./ProfessorMariContextControl";
 import { CharacterSubject } from "../characters/CharacterSubject";
 import { LorebookSubject } from "../lorebooks/LorebookSubject";
@@ -113,6 +114,7 @@ import { resolveProfessorMariVisualState, type ProfessorMariVisualState } from "
 import {
   isPersistentProfessorMariContext,
   professorMariContextCount,
+  professorMariContextFacets,
   resolveProfessorMariPresentationState,
   shouldOfferProfessorMariStarterSuggestions,
   shouldShowProfessorMariConnectionHint,
@@ -2289,6 +2291,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   lorebookSubject,
   characterPreviews,
   lorebookPreviews,
+  messageContext,
 }: {
   message: Message;
   thinking?: string | null;
@@ -2306,6 +2309,8 @@ const CompactMariMessage = memo(function CompactMariMessage({
   lorebookSubject?: LorebookPreviewModel | null;
   characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
   lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
+  /** What was sent with this message, so its chip (C2) survives the send. */
+  messageContext?: ProfessorMariAskContext | null;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const content = message.content ?? "";
@@ -2375,6 +2380,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
             <CompactMarkdown content={content} />
           </div>
         )}
+        <MariContextFacetChips facets={professorMariContextFacets(messageContext)} className="mt-1 justify-end" />
         <ProfessorMariAttachedFiles
           attachments={attachments}
           onRemove={onRemoveAttachment ? (index) => onRemoveAttachment(message.id, index) : undefined}
@@ -2970,6 +2976,7 @@ export function HomeProfessorMariChat({
   const effectiveConnectionId = effectiveConnection?.id ?? null;
   const persistentContextCount = professorMariContextCount(attachedContext?.length ?? 0, handoffContext);
   const oneShotContext = handoffContext && !isPersistentProfessorMariContext(handoffContext) ? handoffContext : null;
+  const oneShotContextFacets = useMemo(() => professorMariContextFacets(oneShotContext), [oneShotContext]);
   const contextBudget = useMemo(
     () => resolveProfessorMariContextBudget(messages, workspaceStatus?.connection?.maxContext),
     [messages, workspaceStatus?.connection?.maxContext],
@@ -5524,6 +5531,7 @@ export function HomeProfessorMariChat({
           lorebookSubject={messageLorebook}
           characterPreviews={characterPreviewById}
           lorebookPreviews={lorebookPreviewById}
+          messageContext={messageContext}
         />
         {understoodRequest && (
           <button
@@ -6081,38 +6089,33 @@ export function HomeProfessorMariChat({
                           </div>
 
                           {oneShotContext ? (
-                            <div className="mari-omnibar-context-attachment min-w-0">
-                              <span className="mari-workspace-context-chip inline-flex min-w-0 max-w-[18rem] shrink items-center gap-1.5 rounded-md border border-[var(--primary)]/25 bg-[var(--primary)]/8 px-2 py-1 text-[0.6875rem] text-[var(--foreground)]">
-                                <Sparkles size="0.7rem" className="shrink-0 text-[var(--primary)]" aria-hidden="true" />
-                                <span className="min-w-0 truncate">
-                                  {oneShotContext.resource?.label
-                                    ? oneShotContext.field
-                                      ? localizeUi("ui.chat.homeprofessormarichat.resourceContextValue1Value2", {
-                                          value1: oneShotContext.resource.label,
-                                          value2: oneShotContext.field,
+                            <div className="mari-omnibar-context-attachment flex min-w-0 items-center gap-1">
+                              {oneShotContextFacets.length > 0 ? (
+                                <MariContextFacetChips facets={oneShotContextFacets} />
+                              ) : (
+                                <span className="mari-workspace-context-chip inline-flex min-w-0 max-w-[18rem] shrink items-center gap-1.5 rounded-md border border-[var(--primary)]/25 bg-[var(--primary)]/8 px-2 py-1 text-[0.6875rem] text-[var(--foreground)]">
+                                  <Sparkles
+                                    size="0.7rem"
+                                    className="shrink-0 text-[var(--primary)]"
+                                    aria-hidden="true"
+                                  />
+                                  <span className="min-w-0 truncate">
+                                    {oneShotContext.query
+                                      ? localizeUi("ui.chat.homeprofessormarichat.searchContextValue1", {
+                                          value1: oneShotContext.query,
                                         })
-                                      : oneShotContext.resource.label
-                                    : oneShotContext.activeChat?.label
-                                      ? oneShotContext.activeChat.label
-                                      : oneShotContext.settingsLocation?.tab
-                                        ? localizeUi("ui.chat.homeprofessormarichat.settingsContextValue1", {
-                                            value1: oneShotContext.settingsLocation.tab,
-                                          })
-                                        : oneShotContext.query
-                                          ? localizeUi("ui.chat.homeprofessormarichat.searchContextValue1", {
-                                              value1: oneShotContext.query,
-                                            })
-                                          : localizeUi("ui.chat.homeprofessormarichat.contextControlLabel")}
+                                      : localizeUi("ui.chat.homeprofessormarichat.contextControlLabel")}
+                                  </span>
                                 </span>
-                                <button
-                                  type="button"
-                                  onClick={() => setHandoffContext(null)}
-                                  className="inline-flex size-5 shrink-0 items-center justify-center rounded hover:bg-[var(--accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)]"
-                                  aria-label={localizeUi("ui.chat.homeprofessormarichat.contextControlRemoveFocus")}
-                                >
-                                  <X size="0.7rem" aria-hidden="true" />
-                                </button>
-                              </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => setHandoffContext(null)}
+                                className="inline-flex size-5 shrink-0 items-center justify-center rounded hover:bg-[var(--accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--ring)]"
+                                aria-label={localizeUi("ui.chat.homeprofessormarichat.contextControlRemoveFocus")}
+                              >
+                                <X size="0.7rem" aria-hidden="true" />
+                              </button>
                             </div>
                           ) : null}
 

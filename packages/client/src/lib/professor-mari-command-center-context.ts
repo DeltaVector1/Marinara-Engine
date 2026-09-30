@@ -55,6 +55,7 @@ export function buildProfessorMariCommandCenterContext(
     field?: string;
     fieldId?: string;
     error?: { message: string; code?: string };
+    asideAnswer?: { query: string; answer: string; tier: "local" | "remote" };
   } = {},
 ): ProfessorMariAskContext {
   const trimmedQuery = query.trim();
@@ -84,5 +85,6 @@ export function buildProfessorMariCommandCenterContext(
     ...(options.field ? { field: options.field } : {}),
     ...(options.fieldId ? { fieldId: options.fieldId } : {}),
     ...(options.error ? { error: options.error } : {}),
+    ...(options.asideAnswer ? { asideAnswer: options.asideAnswer } : {}),
   };
 }

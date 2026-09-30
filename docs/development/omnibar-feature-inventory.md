@@ -393,7 +393,14 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   and "Choose a model" actions. Never a toast — the user did not ask for this
   call — and the ranked list is never degraded by it.
 - Escalating from the aside sends the question to Mari; it does not only open
-  her with a draft.
+  her with a draft. `⌘↵` also escalates a live aside answer (streaming or
+  complete) straight into Mari when no real row is highlighted — the generic
+  Ask-Mari row does not count as one. The aside's query and answer travel
+  along as `context.asideAnswer` (`ProfessorMariAskContext`), and the context
+  chip on the sent message — which lists every facet the handoff carried
+  (resource, chat, field, settings location, error, aside answer), not just
+  one — shows it stayed attached (`professorMariContextFacets`,
+  `MariContextFacetChips.tsx`).
 - A finished answer offers up to three things it names — a setting, a
   character, a lorebook, a chat — as chips that open them like their rows
   (`findMentionedResults`). It is local matching on names of six characters or

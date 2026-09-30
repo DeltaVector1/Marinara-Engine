@@ -1549,6 +1549,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     source: asideSource,
     resourceLabel: asideResourceLabel,
   });
+  // Only these two states carry an answer worth escalating (R25); "thinking"
+  // has no text yet and "error" offers retry/choose-model instead.
+  const asideLive = asideState.status === "streaming" || asideState.status === "complete";
   // The things a finished answer names, offered as one-click destinations under it.
   const asideLinks = useMemo(
     () => (asideState.status === "complete" ? findMentionedResults(asideState.answer, allLocalResults) : []),
@@ -2097,6 +2100,18 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       pane === "results" &&
       event.key === "Enter" &&
       (event.metaKey || event.ctrlKey) &&
+      asideLive &&
+      (!activeResult || activeResult.id === "ask-professor-mari")
+    ) {
+      // No real row selected (the generic Ask-Mari row doesn't count), and the
+      // aside is answering: ⌘↵ escalates it instead of just asking again (R25).
+      event.preventDefault();
+      escalateAside();
+    } else if (
+      mariEnabled &&
+      pane === "results" &&
+      event.key === "Enter" &&
+      (event.metaKey || event.ctrlKey) &&
       activeResult &&
       activeResult.command.availability?.status !== "requires-admin"
     ) {
@@ -2233,7 +2248,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   /** Ranked rows and plain context rows both feed the Mari handoff. */
   type OmnibarAskFocus = Pick<OmnibarResult, "id" | "title" | "category"> | null;
   /** Quick and full Mari hand over the same context, so they read the same surroundings. */
-  const buildAskContext = (message: string, focusResult: OmnibarAskFocus) =>
+  const buildAskContext = (
+    message: string,
+    focusResult: OmnibarAskFocus,
+    asideAnswer?: { query: string; answer: string; tier: "local" | "remote" },
+  ) =>
     buildProfessorMariCommandCenterContext(message, focusResult, [], focusResult?.id, {
       activeChat: activeChat ? { id: activeChat.id, label: activeChat.name, mode: activeChat.mode } : undefined,
       settingsLocation:
@@ -2243,6 +2262,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       field: activeEditorField?.label,
       fieldId: activeEditorField?.id,
       error: lastAppError ? { message: lastAppError.message, code: lastAppError.code } : undefined,
+      asideAnswer,
     });
   /** Both Mari routes remember the row they left, so returning restores focus. */
   const rememberMariReturn = (focusResult: OmnibarAskFocus) => {
@@ -2270,6 +2290,22 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     result?.id === "ask-professor-mari" ? result.group !== "continue" : isMariInstruction(query, result?.title);
   const askMariAbout = (result: RankedOmnibarResult | null) =>
     openProfessorMari(result, { submitDraft: mariSends(result) });
+  /** R25: `⌘↵` with the aside answering takes its query and answer into the full agent. */
+  const escalateAside = () => {
+    if (!asideLive) return;
+    const draft = asideState.query;
+    if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
+    const focusResult = contextResults[0] ?? null;
+    rememberMariReturn(focusResult);
+    enterMariPane(
+      buildAskContext(draft, focusResult, {
+        query: asideState.query,
+        answer: asideState.answer,
+        tier: asideState.tier,
+      }),
+      true,
+    );
+  };
   // A handed-off task is "finished" once Mari has been seen working and then
   // stops. Advancing the persisted status rather than detecting the edge in a ref
   // means the transition still lands when it happens between two opens.
@@ -3079,7 +3115,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 setAsideEnabled(false);
                 setAsideDisclosed(true);
               }}
-              onEscalate={() => openProfessorMari(null, { submitDraft: true })}
+              onEscalate={escalateAside}
               onChooseModel={() => setSettingsOpen(true)}
               onRetry={asideState.retry}
               links={asideLinks.map((row) => ({ id: row.id, title: row.title }))}
