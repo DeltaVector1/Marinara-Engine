@@ -141,7 +141,7 @@ import { useChatStore } from "../../stores/chat.store";
 import { useAgentStore } from "../../stores/agent.store";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
-import { WorkspaceApprovalCard, WorkspaceErrorEvent } from "./MariApprovalCards";
+import { WorkspaceApprovalCard } from "./MariApprovalCards";
 import { CommandResultPreview } from "../command-center/CommandResultPreview";
 import type { RichCommandResult } from "../command-center/command-result-preview.types";
 import {
@@ -5079,7 +5079,7 @@ export function HomeProfessorMariChat({
       }
     } catch (error) {
       if (isProfessorMariAbortError(error)) return;
-      // Like Claude: your message stays where you sent it and one error card with Retry sits under it.
+      // Like Claude: your message stays where you sent it and one error Note with Retry sits under it.
       // No toast over her header, and the text is not pushed back into the composer as a duplicate.
       setHandoffContext(submittedContext);
       setRecovery({
@@ -5415,24 +5415,21 @@ export function HomeProfessorMariChat({
   // R43: nothing touched your data, so this is a Note, not a bordered panel - and
   // Notes belong in the transcript, in order, rather than stacked over the composer.
   const recoveryNotice = recovery ? (
-    <div className="mari-error-card" role="alert">
-      <AlertTriangle size="0.9rem" className="mari-error-card__icon" aria-hidden="true" />
-      <div className="mari-error-card__body">
-        <p className="mari-error-card__title">
-          {localizeUi(`ui.chat.homeprofessormarichat.recovery.${recovery.kind}`)}
-        </p>
-        {recovery.detail ? <p className="mari-error-card__detail">{recovery.detail}</p> : null}
-      </div>
+    <MariNote tone="danger" role="alert" className="mari-note--action">
+      <span className="mari-note__text">
+        {localizeUi(`ui.chat.homeprofessormarichat.recovery.${recovery.kind}`)}
+        {recovery.detail ? <span className="mari-note__detail"> {recovery.detail}</span> : null}
+      </span>
       <button
         type="button"
         onClick={retryRecovery}
         disabled={isBusy}
-        className="mari-chrome-control mari-chrome-control--compact shrink-0"
+        className="mari-chrome-control mari-chrome-control--compact"
       >
-        <RefreshCw size="0.7rem" />
+        <RefreshCw size="0.7rem" aria-hidden="true" />
         {localizeUi("ui.chat.homeprofessormarichat.retry")}
       </button>
-    </div>
+    </MariNote>
   ) : null;
 
   const openActionResult = useCallback(
@@ -5922,14 +5919,11 @@ export function HomeProfessorMariChat({
                           ) : (
                             <>
                               {workspaceToolsIssue ? (
-                                <MariNote role="status" className="mari-workspace-tools-note">
-                                  <AlertTriangle size="0.8rem" aria-hidden="true" />
-                                  <span>
-                                    {localizeUi(
-                                      "ui.chat.homeprofessormarichat.professorMariWorkspaceToolsAreUnavailable",
-                                    )}{" "}
-                                    <span className="text-[var(--muted-foreground)]">{workspaceToolsIssue}</span>
-                                  </span>
+                                <MariNote tone="accent" role="status">
+                                  {localizeUi(
+                                    "ui.chat.homeprofessormarichat.professorMariWorkspaceToolsAreUnavailable",
+                                  )}{" "}
+                                  <span className="mari-note__detail">{workspaceToolsIssue}</span>
                                 </MariNote>
                               ) : null}
                               {displayMessages.map(renderDisplayMessage)}
@@ -5973,7 +5967,11 @@ export function HomeProfessorMariChat({
                                 </div>
                               ) : null}
                               {recoveryNotice}
-                              {workspaceStatus?.error && <WorkspaceErrorEvent message={workspaceStatus.error} />}
+                              {workspaceStatus?.error ? (
+                                <MariNote tone="danger" role="alert">
+                                  {workspaceStatus.error}
+                                </MariNote>
+                              ) : null}
                               {visiblePendingChangeReviews.length > 0 ? (
                                 <div className="space-y-3">{pendingApprovalsPanel}</div>
                               ) : null}

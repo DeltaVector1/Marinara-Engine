@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { AlertTriangle, Check, Database, Loader2, PackagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { Check, Database, Loader2, PackagePlus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import type {
   MariDbPendingApproval,
   MariDependencyInstallApproval,
@@ -80,17 +80,6 @@ function formatRowPreview(row: Record<string, unknown> | null | undefined) {
   } catch {
     return "Row snapshot could not be displayed.";
   }
-}
-
-export function WorkspaceErrorEvent({ message }: { message: string }) {
-  return (
-    <div className="mari-error-card" role="alert">
-      <AlertTriangle size="0.9rem" className="mari-error-card__icon" aria-hidden="true" />
-      <div className="mari-error-card__body">
-        <p className="mari-error-card__detail">{message}</p>
-      </div>
-    </div>
-  );
 }
 
 function getScrollableAncestor(el: HTMLElement | null): HTMLElement | null {

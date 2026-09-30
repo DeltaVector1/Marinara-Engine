@@ -59,6 +59,12 @@ Rules that must survive:
   lorebook's first entry), and at most three `--small` action chips (`--danger`
   for remove). It opens with a 180 ms `grid-template-rows` + opacity animation,
   none under reduced motion or Reduce ambient effects.
+- In the `mari` pane, only things that touch your data get a border
+  (`MariCard`, R42: one accent frame on a solid `--card`, secondary action left,
+  primary right, stacked full width on phones, 44px action targets). A failed
+  send, a workspace-status error and missing workspace tools are `MariNote`
+  lines (R43): no box, no background, no icon; a failed send ends in one Retry
+  chip that is 44px on coarse pointers.
 
 ## 2. Query handling
 
