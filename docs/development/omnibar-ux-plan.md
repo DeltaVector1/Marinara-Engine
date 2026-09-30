@@ -19,24 +19,26 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 
 ## Status
 
-| #   | Slice                                                        | Owner profile | Status | Commit |
-| --- | ------------------------------------------------------------ | ------------- | ------ | ------ |
-| 1   | Handoff bugs (A1-A6)                                         | worker        | Done   | 7a1eef06d |
-| 2   | Quick answers: cheap wins (B1-B5)                            | worker        | Done   | 2b4dd9866 |
-| 3   | Quick answers: grounding in docs + setting names (B6)        | worker        | Done   | f14039aa0 |
-| 4   | Carry aside answer into Mari, show what she received (C1-C3) | worker        | Done   | 892f2acea |
-| 5   | Review of slices 1-4                                         | reviewer      | Done   | 532479233 |
-| 6   | Expanded row redesign (D1-D6)                                | designer      | Done   | 2e81ef9de |
-| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)        | designer      | Done   | dbbf886db |
-| 8   | Migrate install/file/created cards to MariCard (E4-E5)       | designer      | Todo   |        |
-| 9   | Review of slices 6-8                                         | reviewer      | Todo   |        |
-| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)  | designer      | Todo   |        |
-| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5)   | designer      | Todo   |        |
-| 12  | Mari composer redesign with mode + model pickers (H1-H4)     | designer      | Todo   |        |
+| #   | Slice                                                         | Owner profile | Status | Commit    |
+| --- | ------------------------------------------------------------- | ------------- | ------ | --------- |
+| 1   | Handoff bugs (A1-A6)                                          | worker        | Done   | 7a1eef06d |
+| 2   | Quick answers: cheap wins (B1-B5)                             | worker        | Done   | 2b4dd9866 |
+| 3   | Quick answers: grounding in docs + setting names (B6)         | worker        | Done   | f14039aa0 |
+| 4   | Carry aside answer into Mari, show what she received (C1-C3)  | worker        | Done   | 892f2acea |
+| 5   | Review of slices 1-4                                          | reviewer      | Done   | 532479233 |
+| 6   | Expanded row redesign (D1-D6)                                 | designer      | Done   | 2e81ef9de |
+| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)         | designer      | Done   | dbbf886db |
+| 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Todo   |           |
+| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Todo   |           |
+| 9   | Review of slices 6-8                                          | reviewer      | Todo   |           |
+| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Todo   |           |
+| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Todo   |           |
+| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Todo   |           |
+| 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Todo   |           |
+| 14  | Final review of slices 7b-13                                  | reviewer      | Todo   |           |
 
-Paused after slice 7 by the maintainer; slices 8-12 resume later. The DB
-review card / MariEditEasyViewer rebuild (E6) waits for the maintainer to
-approve the mockup from slice 7.
+Resumed 2026-09-30 after the maintainer approved direction A. Order: 7b, 8, 9,
+10, 11, 12, 13, 14. Stop after slice 14.
 
 ## House rules for every slice
 
@@ -222,7 +224,6 @@ bar. `framer-motion` is installed; no new dependency.
   Risk to note in the report: on iOS a pull from the very top edge may go to
   Notification Center; only a real device can confirm.
 
-
 ### G. Quick answer at the top (slice 11) — after slice 6
 
 Idea (maintainer): bring the quick answer to the top and make it better.
@@ -272,3 +273,52 @@ Permissions Mode pill), the permissions mode store/setting (search
 - H4 Proof: screenshots 390/768/1440 dark+light of the empty state and a
   conversation; keyboard: the mode menu opens with Enter/Space and closes on
   Escape without closing the omnibar.
+
+### I. Approved direction A (slice 7b) — the reference for every Mari output slice
+
+The maintainer rejected the first card mockup (slice 7: identical glowing
+bordered boxes, gradient icon tiles, big pink-on-pink buttons, content missing)
+and APPROVED direction A of the live demo. Reference, committed with this plan:
+`docs/development/mockups/mari-v3/index.html` (open it in a browser; it plays a
+scripted run; Replay/Pause/Light/2× at the bottom left). Direction A rules:
+text first, chrome last; tool steps as quiet one-line disclosures with an icon
+and a past-tense label; the running step is the live line itself (not also a
+row in the list); an applied edit is ONE summary line ("Updated Zylo Vantrell ·
+3 changes") that opens to tracked changes (old struck and muted, new with tint +
+underline so colour is not the only signal; tags as −/+; greeting word by
+word) with Undo / Keep as small text buttons; a created thing is a small inline
+tile (avatar/portrait, name, one-line hook, "Open ›"); only risky prompts
+(delete, install, sensitive file) get a neutral grey 1px border (not pink),
+one primary (red Delete / solid neutral Install) and a quiet text secondary,
+technical details collapsed; after an answer a prompt folds to one line; a
+failed send is one red line under the user's message with Retry; the accent
+colour only on her name; the run ends with "Worked for Ns · N steps" at the
+bottom with the sprite (success, then idle).
+
+- I1 Rework the slice 7 `MariCard`/`MariNote` (`components/chat/mari-primitives.tsx`,
+  `.mari-card` CSS) to direction A: neutral border only for risky prompts, no
+  glow, no gradient tiles, small buttons; keep the component names if possible.
+- I2 Edits: the applied-change summary line + tracked-change body with Undo/Keep
+  (replace the DB review card's default Easy view presentation for prose fields;
+  the full DB review rebuild is slice 13).
+- I3 Created/updated resources: the inline tile (replaces
+  `MariWorkspaceActionResultRow` + `CommandResultPreview` reuse) — this absorbs
+  plan item E5.
+- I4 `MariWorkTimeline`: quiet step lines; the running step only in the live
+  line; "Worked for Ns · N steps" at the bottom where the live line was; the
+  sprite stays (success → idle). Respect the appearance-pack rule unless the
+  demo's hop is cheap to allow.
+- I5 Failed send: one red line under the user's message with Retry (not a Mari
+  status line).
+- I6 Tone the end-of-run glow DOWN (maintainer rule: small, low, faint; the demo's
+  green is too strong) and fix the phone header status truncation ("Professor
+  Mari needs your a…") — shorten or wrap the status text.
+- I7 Proof: real app screenshots of a mocked run (mock the Mari workspace
+  endpoints in Playwright) at 390/1440, dark+light, side by side with the demo;
+  reduced motion.
+
+Slice 8 now means E4 only (install and sensitive-file prompts in direction A)
+since E5 moved into I3. Slice 13 (E6): the DB review card and
+`MariEditEasyViewer` in direction A — neutral tracked changes by default, the
+exact diff behind a toggle, chips for toggles/keys, no nested panels, Raw as one
+disclosure.
