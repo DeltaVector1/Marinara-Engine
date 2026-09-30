@@ -455,6 +455,33 @@ export function formatDocumentationSearch(query: string, response: Documentation
     .join("\n\n");
 }
 
+const MAX_GROUNDING_EXCERPT_CHARS = 260;
+const MAX_GROUNDING_RESULTS = 3;
+
+/**
+ * A compact, prompt-ready rendering of docs search results: one line per
+ * result, excerpt flattened and capped well below the tool-call excerpt
+ * limit. Built for a quick-answer grounding hint (bounded, not a citation
+ * block), so it does not carry the "truncated" note or numbering that
+ * {@link formatDocumentationSearch} uses for the tool-call surface.
+ */
+export function formatDocumentationGroundingExcerpts(
+  results: DocumentationSearchResult[],
+  limit = MAX_GROUNDING_RESULTS,
+): string {
+  return results
+    .slice(0, limit)
+    .map((result) => {
+      const flattened = result.excerpt.replace(/\s+/gu, " ").trim();
+      const excerpt =
+        flattened.length > MAX_GROUNDING_EXCERPT_CHARS
+          ? `${flattened.slice(0, MAX_GROUNDING_EXCERPT_CHARS - 1).trimEnd()}…`
+          : flattened;
+      return `- ${result.path} — ${result.heading}: ${excerpt}`;
+    })
+    .join("\n");
+}
+
 export function formatDocumentationRead(result: Awaited<ReturnType<typeof readCanonicalDocumentation>>) {
   return [
     `Source: ${result.path}`,

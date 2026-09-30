@@ -62,11 +62,13 @@ import { logger, logDebugOverride } from "../../lib/logger.js";
 import { tryParseJsonRecord } from "../../lib/json-repair.js";
 import { PROFESSOR_MARI_AGENT_CATALOG_KNOWLEDGE } from "./official-agent-knowledge.js";
 import {
+  formatDocumentationGroundingExcerpts,
   formatDocumentationRead,
   formatDocumentationSearch,
   readCanonicalDocumentation,
   searchCanonicalDocumentation,
 } from "./documentation-tools.js";
+import { QUICK_ANSWER_SETTINGS_LABELS } from "./quick-answer-settings-labels.js";
 import {
   GENERATION_PARAMETER_SEND_KEYS,
   findKnownModel,
@@ -2837,6 +2839,22 @@ export class ProfessorMariWorkspaceService {
       }
     }
 
+    // Docs-only grounding for the aside: the same docs_search corpus the full
+    // agent uses, never chat/character/user data (R22 stays true for unasked).
+    let docsGroundingBlock: string | null = null;
+    if (unasked) {
+      const docsQuery = args.message.trim();
+      if (docsQuery.length >= 2) {
+        try {
+          const docsResponse = await searchCanonicalDocumentation(this.workspaceRoot, docsQuery, 3);
+          if (docsResponse.results.length > 0)
+            docsGroundingBlock = formatDocumentationGroundingExcerpts(docsResponse.results);
+        } catch {
+          // Grounding is a best-effort hint; a bad/short query must not break the quick answer.
+        }
+      }
+    }
+
     const context = buildQuickContextPayload(args.context, unasked, args.resourceLabel);
     const quickEditTarget = unasked ? null : await this.readQuickEditTarget(args.context);
     const systemParts = unasked
@@ -2855,6 +2873,16 @@ export class ProfessorMariWorkspaceService {
           "Keep the answer under 300 words. If the request needs creation, execution, attachments, or multiple steps, explain that Full Mari is the right next step and prepare a short follow-up the user can review.",
         ];
     if (context) systemParts.push(`Selected workspace context (bounded):\n${context}`);
+    if (unasked) {
+      systemParts.push(
+        `Real Settings labels, grouped by tab (use the exact label if you name one):\n${QUICK_ANSWER_SETTINGS_LABELS}`,
+      );
+      if (docsGroundingBlock) {
+        systemParts.push(
+          `Documentation excerpts that may be relevant (cite by heading, do not quote at length):\n${docsGroundingBlock}`,
+        );
+      }
+    }
     if (memorySections.length > 0) {
       systemParts.push(`Persistent user memories (bounded):\n${memorySections.join("\n\n")}`);
     }

@@ -399,3 +399,14 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   (`findMentionedResults`). It is local matching on names of six characters or
   more, in the order the answer names them; the model is never asked for ids,
   and rows with an inline control are never offered.
+- The unasked call is grounded in the same docs corpus `docs_search` uses:
+  `searchCanonicalDocumentation` runs against the typed query and, if it finds
+  matches, the top three excerpts (`formatDocumentationGroundingExcerpts`,
+  documentation-tools.ts) are flattened to one capped line each and added to
+  the prompt. A compact "tab: sections" list of every real Settings label
+  (`quick-answer-settings-labels.ts`, sourced from the same
+  `SETTINGS_TABS`/`SETTINGS_SECTIONS` registry `@marinara-engine/shared` and
+  the omnibar both use) is always added, so the answer can name a real label
+  instead of guessing one. Docs and setting labels only — never chat,
+  character, or other user data — and small enough to stay a hint, not a RAG
+  pipeline.

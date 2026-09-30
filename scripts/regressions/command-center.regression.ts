@@ -50,6 +50,11 @@ import {
   inferProfessorMariCommandCenterCapability,
 } from "../../packages/client/src/lib/professor-mari-command-center-context.js";
 import { OmnibarAsideAnswerCache, stripStrayMarkdown } from "../../packages/client/src/lib/omnibar-aside-text.js";
+import {
+  formatDocumentationGroundingExcerpts,
+  type DocumentationSearchResult,
+} from "../../packages/server/src/services/professor-mari/documentation-tools.js";
+import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 
 const commands: CommandDefinition[] = [
   { id: "home", title: "Home", kind: "navigation", icon: "home", target: { kind: "home" } },
@@ -848,4 +853,47 @@ console.info("Command Center regression checks passed.");
   assert.equal(stripStrayMarkdown("- one\n- two"), "one\ntwo");
   assert.equal(stripStrayMarkdown("1. first\n2. second"), "first\nsecond");
   assert.equal(stripStrayMarkdown("Plain sentence, nothing to strip."), "Plain sentence, nothing to strip.");
+}
+
+{
+  // B6: the unasked quick-answer aside grounds its prompt in the real docs corpus
+  // and real Settings labels only. formatDocumentationGroundingExcerpts's only
+  // input is a docs_search result (path/heading/excerpt from README.md or
+  // docs/**.md) - structurally it has no way to see chat, character, or other
+  // user data, so a call site that never hands it anything else cannot leak.
+  const results: DocumentationSearchResult[] = [
+    { path: "docs/CONFIGURATION.md", heading: "Logging Levels", excerpt: "Set LOG_LEVEL to control verbosity.", startLine: 10, score: 90 },
+    { path: "docs/FAQ.md", heading: "Export a chat", excerpt: "Use Settings > Backup & Export.", startLine: 4, score: 80 },
+    { path: "README.md", heading: "Install", excerpt: "Download the installer for your platform.", startLine: 1, score: 70 },
+    { path: "docs/TROUBLESHOOTING.md", heading: "Connection errors", excerpt: "Check the connection's base URL.", startLine: 2, score: 60 },
+  ];
+
+  const top3 = formatDocumentationGroundingExcerpts(results);
+  const lines = top3.split("\n");
+  assert.equal(lines.length, 3, "grounding keeps only the top 3 excerpts, not the full result set");
+  assert.ok(lines[0]!.includes("docs/CONFIGURATION.md") && lines[0]!.includes("Logging Levels"), "each line cites its source path and heading");
+  assert.ok(!top3.includes("TROUBLESHOOTING"), "the 4th-ranked result is dropped");
+
+  // An excerpt with embedded newlines (a real multi-line markdown section) is
+  // flattened to one line per result and capped, so the grounding block stays
+  // small and bounded rather than growing into a full-document dump.
+  const longExcerpt = `First line of the section.\n${"word ".repeat(100)}`.trim();
+  const flattened = formatDocumentationGroundingExcerpts([
+    { path: "docs/FAQ.md", heading: "Long section", excerpt: longExcerpt, startLine: 1, score: 1 },
+  ]);
+  assert.equal(flattened.split("\n").length, 1, "one docs result is always rendered as exactly one line");
+  assert.ok(flattened.length < longExcerpt.length, "an oversized excerpt is truncated, not passed through whole");
+  assert.ok(flattened.endsWith("…"), "a truncated excerpt is marked with an ellipsis");
+
+  assert.deepEqual(formatDocumentationGroundingExcerpts([]), "", "no matches renders an empty block, not a placeholder line");
+}
+
+{
+  // The unasked aside's compact Settings label list is grouped by real tab
+  // labels and lists real section labels - no ids, no descriptions, no aliases -
+  // so it stays small and only ever names things the user can actually see.
+  assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("App Behavior:"), "a real tab label heads its group");
+  assert.ok(QUICK_ANSWER_SETTINGS_LABELS.includes("Backup & Export"), "a real section label is present");
+  assert.ok(!QUICK_ANSWER_SETTINGS_LABELS.includes("backup-export"), "the internal section id does not leak into the prompt");
+  assert.ok(QUICK_ANSWER_SETTINGS_LABELS.length < 2_000, "the settings-label hint stays compact enough for a quick-answer prompt");
 }
