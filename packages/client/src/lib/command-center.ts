@@ -571,14 +571,15 @@ function findTopHit<T extends CommandCenterPresentableResult>(
   // The typed text must start the visible title or one of its words: a row found
   // through an alias ("theme" finding Accent Color) is a fair result but a
   // confusing Top hit, and it would take Enter from the row the user meant.
-  const titleLeads = (title: string | undefined) => {
-    const name = normalizeTextForMatch(title);
-    return name.startsWith(typed) || name.includes(` ${typed}`);
-  };
-  const candidate = ranked.find(
-    (result) =>
-      !NEVER_TOP_HIT.has(groupOf(result)) && (result.score ?? 0) >= TOP_HIT_MIN_SCORE && titleLeads(result.title),
+  const eligible = ranked.filter(
+    (result) => !NEVER_TOP_HIT.has(groupOf(result)) && (result.score ?? 0) >= TOP_HIT_MIN_SCORE,
   );
+  const name = (result: T) => normalizeTextForMatch(result.title);
+  // A title that starts with the text beats one where only a later word does:
+  // "persona" leads with Persona library, not Show Characters in Persona Pickers.
+  const candidate =
+    eligible.find((result) => name(result).startsWith(typed)) ??
+    eligible.find((result) => name(result).includes(` ${typed}`));
   if (!candidate) return null;
   const firstShown = COMMAND_CENTER_SEARCH_GROUP_ORDER.filter((id) => !NEVER_TOP_HIT.has(id))
     .map((id) => ranked.find((result) => groupOf(result) === id))

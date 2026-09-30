@@ -259,6 +259,24 @@ assert.deepEqual(
   ["chats", "characters"],
 );
 
+// A title that starts with the text beats a stronger row where only a later word does.
+assert.equal(
+  presentCommandCenterResults(
+    [
+      {
+        id: "settings-control:persona-pickers",
+        category: "settings",
+        score: 310,
+        title: "Show Characters in Persona Pickers",
+      },
+      { id: "chat:persona-notes", category: "chat", score: 150, title: "Notes about personas" },
+      { id: "navigation:persona-library", category: "navigation", score: 207, title: "Persona library" },
+    ],
+    { query: "persona" },
+  ).groups[0]?.results[0]?.id,
+  "navigation:persona-library",
+);
+
 // An alias match ranks, but it is never the Top hit: the typed text must lead the visible title.
 assert.deepEqual(
   presentCommandCenterResults(
