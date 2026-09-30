@@ -28,6 +28,7 @@ import {
   type RefObject,
 } from "react";
 import { createPortal } from "react-dom";
+import { motion, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useUIStore } from "../../stores/ui.store";
 import { useChatStore } from "../../stores/chat.store";
@@ -36,6 +37,7 @@ import { SpotifyMiniPlayer } from "../spotify/SpotifyMiniPlayer";
 import { YouTubePlayer } from "../chat/YouTubePlayer";
 import { LocalMusicPlayer } from "../chat/LocalMusicPlayer";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
+import { usePullToOpenOmnibar } from "../../hooks/use-pull-to-open-omnibar";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import {
   activatePersonalExtensionContribution,
@@ -212,6 +214,10 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
       handleOmnibarClick();
     }, HOME_LONG_PRESS_MS);
   }, [clearHomeLongPress, handleOmnibarClick]);
+
+  const pull = usePullToOpenOmnibar({ onPullStart: clearHomeLongPress, onOpen: handleOmnibarClick });
+  const pullIndicatorWidth = useTransform(pull.fill, [0, 1], [12, 40]);
+  const pullIndicatorOpacity = useTransform(pull.fill, [0, 1], [0, 0.55]);
 
   const handleRightPanelClick = useCallback(
     (panel: Parameters<typeof toggleRightPanel>[0]) => {
@@ -415,13 +421,17 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     </button>
   );
 
-  return (
+  const header = (
     <header
       ref={headerRef}
       data-component="TopBar"
+      {...pull.handlers}
       onPointerLeave={clearTopbarHover}
       onPointerOver={handleTopbarPointerOver}
-      className="mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between bg-[var(--marinara-topbar-surface)] px-3 backdrop-blur-sm"
+      className={cn(
+        "mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between bg-[var(--marinara-topbar-surface)] px-3 backdrop-blur-sm",
+        mobileTopbarNavigation && "touch-none",
+      )}
     >
       {/* Subtle bottom border only */}
       <div className="absolute inset-x-0 bottom-0 h-px bg-[var(--marinara-topbar-border)]" />
@@ -539,6 +549,40 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
         <TopbarMoreMenu items={overflowItems} headerRef={headerRef} phoneTopbar={phoneTopbar} />
       </nav>
     </header>
+  );
+
+  return (
+    <>
+      {/* iOS safe area spacer — pushes TopBar below status bar and fills that gap with topbar bg */}
+      <div
+        {...pull.handlers}
+        className={cn(
+          "flex-shrink-0 md:hidden h-[env(safe-area-inset-top)] bg-[var(--marinara-topbar-surface)] backdrop-blur-sm",
+          mobileTopbarNavigation && "touch-none",
+        )}
+      />
+      {header}
+      {mobileTopbarNavigation &&
+        // Pull-down progress: a faint pill under the bar that follows the finger a
+        // little and fills. Portaled so page chrome under the bar cannot cover it.
+        createPortal(
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)_+_3rem)] z-[90] flex justify-center pt-1"
+          >
+            <motion.div
+              className="h-1 overflow-hidden rounded-full bg-[var(--primary)]/30"
+              style={{ y: pull.offset, width: pullIndicatorWidth, opacity: pullIndicatorOpacity }}
+            >
+              <motion.div
+                className="h-full origin-left rounded-full bg-[var(--primary)]"
+                style={{ scaleX: pull.fill }}
+              />
+            </motion.div>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 

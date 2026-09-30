@@ -1420,8 +1420,6 @@ export function AppShell() {
           shellOverlayMode && hasDetailView && "z-50",
         )}
       >
-        {/* iOS safe area spacer — pushes TopBar below status bar and fills that gap with topbar bg */}
-        <div className="flex-shrink-0 md:hidden h-[env(safe-area-inset-top)] bg-[var(--marinara-topbar-surface)] backdrop-blur-sm" />
         <TopBar mobileTopbarNavigation={shellOverlayMode} />
         <div className="mari-app-background-paint relative flex flex-1 flex-col overflow-hidden">
           {/* Browser — kept mounted once opened so state persists across close/reopen */}

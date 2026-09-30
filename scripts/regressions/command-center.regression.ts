@@ -58,6 +58,7 @@ import {
 } from "../../packages/server/src/services/professor-mari/documentation-tools.js";
 import { trackListChange, trackProseChange } from "../../packages/client/src/lib/mari-edit-diff.js";
 import { pastTenseStepTitle } from "../../packages/client/src/lib/mari-work-timeline.js";
+import { createPullRecognizer, pullOpenThreshold, rubberBand } from "../../packages/client/src/lib/pull-to-open.js";
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 
 const commands: CommandDefinition[] = [
@@ -1079,4 +1080,46 @@ console.info("Command Center regression checks passed.");
     { type: "removed", value: "merchant" },
     { type: "added", value: "smuggler" },
   ]);
+}
+
+// Slice 10: pull down on the phone top bar to open the omnibar.
+{
+  assert.equal(pullOpenThreshold(844), 120, "a tall phone caps the threshold at 120 px");
+  assert.equal(pullOpenThreshold(600), 108, "otherwise 18% of the height");
+  assert.equal(pullOpenThreshold(390), 80, "a phone in landscape still needs 80 px");
+  assert.equal(rubberBand(-5, 24), 0);
+  assert.ok(rubberBand(10, 24) < 10, "the indicator lags the finger");
+  assert.equal(rubberBand(500, 24), 24, "and stops at its cap");
+
+  // A finger down at (100, 20) at t=0, threshold 120; each point is [x, y, t].
+  const pull = (releaseAt: number, ...points: Array<[number, number, number]>) => {
+    const recognizer = createPullRecognizer(100, 20, 0, 120);
+    const steps = points.map(([x, y, t]) => recognizer.move(x, y, t));
+    return { steps, opens: recognizer.release(releaseAt) };
+  };
+
+  // Direction lock after 10 px.
+  assert.deepEqual(pull(20, [103, 26, 10]).steps, ["pending"], "under 10 px nothing is decided");
+  assert.deepEqual(pull(40, [112, 30, 20]).steps, ["rejected"], "a sideways swipe is never a pull");
+  assert.deepEqual(pull(40, [100, 8, 20]).steps, ["rejected"], "an upward swipe is never a pull");
+  assert.equal(pull(1000, [130, 60, 200], [100, 200, 800]).opens, false, "rejected stays rejected");
+  assert.deepEqual(pull(60, [105, 35, 50]).steps, ["pulling"], "down by more than 1.5× sideways locks");
+
+  // Threshold.
+  assert.equal(pull(1000, [100, 60, 400], [100, 139, 800]).opens, false, "a slow pull short of it does not open");
+  const long = pull(1000, [100, 60, 400], [100, 150, 800]);
+  assert.deepEqual(long.steps, ["pulling", "armed"]);
+  assert.equal(long.opens, true, "releasing past the threshold opens, however slowly");
+
+  // Flick.
+  assert.equal(pull(70, [100, 40, 20], [100, 70, 60]).opens, true, "a fast flick after 40 px opens early");
+  assert.equal(pull(50, [100, 40, 20], [100, 55, 40]).opens, false, "a flick under 40 px does not");
+  assert.equal(pull(400, [100, 40, 20], [100, 70, 60]).opens, false, "stopping before release is not a flick");
+
+  // Cancel.
+  const back = pull(900, [100, 60, 200], [100, 150, 500], [100, 120, 700]);
+  assert.deepEqual(back.steps, ["pulling", "armed", "cancelled"], "moving back above the threshold cancels");
+  assert.equal(back.opens, false);
+  const again = pull(900, [100, 60, 200], [100, 150, 500], [100, 120, 700], [100, 200, 800]);
+  assert.equal(again.opens, false, "a cancelled pull stays cancelled");
 }

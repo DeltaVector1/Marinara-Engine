@@ -31,7 +31,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Done   | 627bfcada |
 | 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Done   | 8aa390372 |
 | 9   | Review of slices 6-8                                          | reviewer      | Done   | ad7bfc33b |
-| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Todo   |           |
+| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | In progress |       |
 | 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Todo   |           |
 | 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Todo   |           |
 | 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Todo   |           |
@@ -214,6 +214,15 @@ bar. `framer-motion` is installed; no new dependency.
 - F4 Hand-off: on open, the omnibar panel continues the downward motion (pass
   the release velocity into the panel's initial y). Reduced motion: no
   finger-following, static fill, open at the threshold.
+- F3/F4 REVISED by the maintainer: the indicator is a FLUID DROP, not a pill.
+  The user pulls a liquid drop out of the bar's bottom edge; it stretches with a
+  neck (surface tension), follows the finger with a spring, pinches off at the
+  threshold, and on release falls, lands with a small "plop" (squash, settle)
+  and MORPHS into the omnibar (shape and radius ease into the card; the real
+  dialog takes over at the end without its own open animation playing twice).
+  Below the threshold the drop snaps back into the bar with a small wobble.
+  One SVG path driven by framer-motion motion values; no full-screen blur
+  filter; accent colour. Reduced motion: no drop, open at the threshold.
 - F5 Tests: the pure recognizer (threshold, flick, direction lock, cancel) as
   asserts in `scripts/regressions/command-center.regression.ts` or a small new
   regression; browser proof on `mobile-chromium` (CDP `Input.dispatchTouchEvent`,
