@@ -29,7 +29,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 6   | Expanded row redesign (D1-D6)                                 | designer      | Done   | 2e81ef9de |
 | 7   | Mari card mockup + MariCard primitive + notes (E1-E3)         | designer      | Done   | dbbf886db |
 | 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Done   | 627bfcada |
-| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Todo   |           |
+| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Done   | 8aa390372 |
 | 9   | Review of slices 6-8                                          | reviewer      | Todo   |           |
 | 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Todo   |           |
 | 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Todo   |           |
