@@ -33,7 +33,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 9   | Review of slices 6-8                                          | reviewer      | Done   | ad7bfc33b |
 | 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Done   | 3a04b5342 |
 | 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Done   | 18237a07a |
-| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Todo   |           |
+| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Done   | 7c9f5f8e0 |
 | 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Todo   |           |
 | 14  | Final review of slices 7b-13                                  | reviewer      | Todo   |           |
 
