@@ -8,7 +8,7 @@ import type {
   MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 
-import { describeTable } from "../../lib/mari-edit-diff";
+import { describeTable, replyFixChat } from "../../lib/mari-edit-diff";
 import { summarizeDeleteReview } from "../../lib/professor-mari-presentation";
 import { useUIStore } from "../../stores/ui.store";
 import { MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
@@ -245,7 +245,11 @@ function DatabaseWorkspaceApprovalCard({
               className="mari-link"
             >
               <Undo2 size="0.8rem" aria-hidden="true" />
-              {localizeUi("ui.chat.mariappliededit.undo")}
+              {localizeUi(
+                approval.diffPreview.some((change) => replyFixChat(change))
+                  ? "ui.chat.mariappliededit.restoreReply"
+                  : "ui.chat.mariappliededit.undo",
+              )}
             </button>
             {enableableMemoryInsert && onKeepEnable ? (
               <button

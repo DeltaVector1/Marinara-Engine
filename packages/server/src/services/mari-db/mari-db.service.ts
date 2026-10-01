@@ -7237,12 +7237,15 @@ export class MariDbService {
     const previousContent = message.content;
     const createdSwipe = await chatsStorage.addSwipe(messageId, content, false);
 
+    // L6: chatId/chatName ride along unchanged on both sides (so they never show as a field change)
+    // for the review card's "Reply · <chat name>" title and the open chat's messages refresh on Keep.
+    const label = { chatId, chatName: chat.name };
     const change: PlanChange = {
       table: "messages",
       id: messageId,
       action: "update",
-      before: { content: previousContent },
-      after: { content },
+      before: { ...label, content: previousContent },
+      after: { ...label, content },
       apply: true,
     };
     const plan: Plan = {

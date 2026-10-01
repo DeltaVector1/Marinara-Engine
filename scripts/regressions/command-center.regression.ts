@@ -74,6 +74,7 @@ import {
 import {
   computeFieldChanges,
   fieldChangeStyle,
+  replyFixChat,
   trackListChange,
   trackProseChange,
 } from "../../packages/client/src/lib/mari-edit-diff.js";
@@ -1808,6 +1809,31 @@ assert.ok(!("mariDetailId" in mariSession));
     "Mari changed Agent",
     "several records read by their kind",
   );
+
+  // L6: a reply fix names its chat and shows only the content as a change.
+  const replyChange = {
+    table: "messages",
+    id: "msg-1",
+    action: "update" as const,
+    before: { chatId: "chat-1", chatName: "Harbor Night", content: "The door creaked open and she sa" },
+    after: { chatId: "chat-1", chatName: "Harbor Night", content: "The door creaked open and she said nothing." },
+  };
+  assert.deepEqual(replyFixChat(replyChange), { id: "chat-1", name: "Harbor Night" });
+  assert.equal(replyFixChat(agentChange), null, "only a messages change is a reply fix");
+  assert.deepEqual(
+    computeFieldChanges(replyChange).map((field) => [field.path, fieldChangeStyle(field)]),
+    [["content", "text"]],
+    "the chat label never reads as a changed field",
+  );
+  const replyRow = buildOmnibarApprovalResults({
+    approvals: [
+      { id: "r2", kind: "db", diffPreview: [replyChange], affectedTables: { messages: 1 }, affectedRows: 1 } as never,
+    ],
+    t,
+    pendingId: null,
+    onDecide: () => undefined,
+  })[0];
+  assert.equal(replyRow?.title, "Mari fixed a reply in Harbor Night");
 }
 
 // L5: `chat.updateMessage` must classify as a write (never read-only), and a raw `mari db` write

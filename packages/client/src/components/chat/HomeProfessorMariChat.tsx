@@ -1323,6 +1323,7 @@ function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
     const actionTitles: Record<string, string> = {
       "chat.get": "Reading chat",
       "chat.messages": "Reading recent messages",
+      "chat.updateMessage": "Fixing a reply",
       "character.get": "Reading character",
       "instruction.get": "Reading instruction",
     };

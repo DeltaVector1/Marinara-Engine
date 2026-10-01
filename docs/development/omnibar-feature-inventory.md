@@ -90,7 +90,11 @@ Rules that must survive:
     (`agent_configs`) reads "Updated agent · …" with the agent's artwork (a
     monogram without one, like every record); its prompt
     template and description are tracked prose, and its nested `settings` JSON
-    shows only under Raw (plain setting values still show as fields). "Show exact
+    shows only under Raw (plain setting values still show as fields). A reply
+    fix (`chat.updateMessage`, a `messages` change) reads "Reply · <chat name>"
+    with meta "New swipe · old reply kept", the reply as tracked prose, and its
+    Undo reads "Put the old reply back"; Keep refetches that chat's messages so
+    an open chat shows the new swipe without a reload. "Show exact
     changes" swaps every field to the line-by-line diff and back. Raw is one disclosure (`.mari-tech`: tables,
     rows, the command and every created row's snapshot); the "Edit review opens
     in" setting opens it by default. Undo, Keep (and Keep & Enable for a new
@@ -186,7 +190,7 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Choice values                                                                  | `lib/omnibar-choice-rows.ts`                                                                  | With a query typed, every choice control's options join the searchable set, so "gpt" reaches GPT-4 without finding the Model row first. They stay out of the idle deck. Each row carries its own `chooseValue`, so a row found by typing works when its control is nowhere on screen                                             |
 | "Ask Professor Mari" fallback                                                  | `buildOmnibarSearchResults`                                                                   | Always last unless promoted. Opens Mari's takeover. The cheap answer arrives on its own, inside this row — see section 12                                                                                                                                                                                                        |
 | "Continue with Mari"                                                           | `buildOmnibarContinueResult`                                                                  | Only when Mari is active or has pending approvals                                                                                                                                                                                                                                                                                |
-| Pending Mari approvals                                                         | `buildOmnibarApprovalResults`                                                                 | A DB review is a Keep/Restore choice row titled by the one record it changed ("Mari changed Scene Critic") or by the kinds of several (`describeTable`: "Agent", "Lorebook entry"), never a raw table name; an install or file write opens the Work pane card instead |
+| Pending Mari approvals                                                         | `buildOmnibarApprovalResults`                                                                 | A DB review is a Keep/Restore choice row titled by the one record it changed ("Mari changed Scene Critic", a reply fix "Mari fixed a reply in <chat>") or by the kinds of several (`describeTable`: "Agent", "Lorebook entry"), never a raw table name; an install or file write opens the Work pane card instead |
 
 De-duplication is by result id, first source wins. Message rows from the open
 chat and from the global search share an id shape on purpose, so a hit is never

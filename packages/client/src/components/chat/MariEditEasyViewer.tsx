@@ -16,6 +16,7 @@ import {
   computeFieldChanges,
   describeTable,
   fieldChangeStyle,
+  replyFixChat,
   resolveLorebookVectorStatus,
   trackListChange,
   trackProseChange,
@@ -33,7 +34,16 @@ function stringField(row: Record<string, unknown> | null, key: string): string {
   return value === null || value === undefined ? "" : String(value);
 }
 
-export function rowTitle(change: MariDbRowChange, localizeUi: (key: string) => string): string {
+export function rowTitle(
+  change: MariDbRowChange,
+  localizeUi: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  const replyChat = replyFixChat(change);
+  if (replyChat) {
+    return replyChat.name
+      ? localizeUi("ui.chat.mariediteasyviewer.replyInChat", { chat: replyChat.name })
+      : localizeUi("ui.chat.mariediteasyviewer.reply");
+  }
   const name = changeRecordName(change);
   if (name) return name;
   if (change.table === "characters") return localizeUi("ui.chat.mariediteasyviewer.character");
@@ -250,15 +260,17 @@ export function MariEditEasyViewer({
               <span className="mari-edit__text">
                 <span className="mari-edit__title">{name}</span>
                 <span className="mari-edit__meta">
-                  {fresh
-                    ? localizeUi("ui.chat.mariappliededit.metaNew", {
-                        entity: describeTable(change.table),
-                        fields: fieldList,
-                      })
-                    : localizeUi("ui.chat.mariappliededit.meta", {
-                        entity: describeTable(change.table).toLocaleLowerCase(),
-                        fields: fieldList,
-                      })}
+                  {replyFixChat(change)
+                    ? localizeUi("ui.chat.mariediteasyviewer.replyMeta")
+                    : fresh
+                      ? localizeUi("ui.chat.mariappliededit.metaNew", {
+                          entity: describeTable(change.table),
+                          fields: fieldList,
+                        })
+                      : localizeUi("ui.chat.mariappliededit.meta", {
+                          entity: describeTable(change.table).toLocaleLowerCase(),
+                          fields: fieldList,
+                        })}
                 </span>
               </span>
               <span className="mari-edit__end">

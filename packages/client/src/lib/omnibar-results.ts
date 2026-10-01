@@ -43,7 +43,7 @@ import { getOmnibarSettingsDestinations } from "./omnibar-settings";
 import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "./omnibar-settings-toggle-bindings";
 import type { ChatResourceDragKind } from "./chat-resource-drag";
 import { getSlashCompletions } from "./slash-commands";
-import { changeRecordName, describeTable } from "./mari-edit-diff";
+import { changeRecordName, describeTable, replyFixChat } from "./mari-edit-diff";
 import { inferProfessorMariCommandCenterCapability } from "./professor-mari-command-center-context";
 
 /** Below this a message search matches most of the transcript. */
@@ -1424,9 +1424,12 @@ export function buildOmnibarApprovalResults({
       // One record reads by its name ("Mari changed Scene Critic"), several by their kinds.
       const recordName = approval.diffPreview.length === 1 ? changeRecordName(approval.diffPreview[0]!) : "";
       const subject = recordName || Object.keys(approval.affectedTables).map(describeTable).join(", ");
-      title = subject
-        ? t("commandCenter.approval.databaseTitle", "Mari changed {{tables}}", { tables: subject })
-        : t("commandCenter.approval.databaseTitleGeneric", "Mari changed your app data");
+      const replyChat = approval.diffPreview.length === 1 ? replyFixChat(approval.diffPreview[0]!) : null;
+      title = replyChat?.name
+        ? t("commandCenter.approval.replyFixTitle", "Mari fixed a reply in {{chat}}", { chat: replyChat.name })
+        : subject
+          ? t("commandCenter.approval.databaseTitle", "Mari changed {{tables}}", { tables: subject })
+          : t("commandCenter.approval.databaseTitleGeneric", "Mari changed your app data");
       description =
         reason ??
         t(
@@ -1442,7 +1445,11 @@ export function buildOmnibarApprovalResults({
       ];
       keepLabel = t("commandCenter.approval.keep", "Keep");
       restoreLabel = t("commandCenter.approval.restore", "Restore");
-      terms = [...Object.keys(approval.affectedTables), ...(recordName ? [recordName] : [])];
+      terms = [
+        ...Object.keys(approval.affectedTables),
+        ...(recordName ? [recordName] : []),
+        ...(replyChat?.name ? [replyChat.name] : []),
+      ];
     }
 
     // Approving these two executes; the row is a door to the card, not a switch.

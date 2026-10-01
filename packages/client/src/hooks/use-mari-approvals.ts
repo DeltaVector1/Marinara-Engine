@@ -4,7 +4,9 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import type { MariDbHistoryEntry, MariWorkspacePendingApproval } from "@marinara-engine/shared";
 import { api } from "../lib/api-client";
+import { replyFixChat } from "../lib/mari-edit-diff";
 import { describeProfessorMariError } from "../lib/professor-mari-errors";
+import { chatKeys } from "./use-chats";
 import { professorMariWorkspaceStatusKeys } from "./use-professor-mari-workspace-status";
 
 export type WorkspaceApprovalResponse = {
@@ -73,6 +75,15 @@ export function useMariApprovals(options: { onRefresh?: () => Promise<void> | vo
               : localizeUi("ui.chat.homeprofessormarichat.appliedProfessorMariSSensitiveFileChange"),
           );
         } else if (result.history?.status === "kept") {
+          // L6: a reply fix is already the active swipe; refetch its chat so an open chat shows it.
+          const fixedChatIds = new Set(
+            (result.approval && "diffPreview" in result.approval ? result.approval.diffPreview : [])
+              .map((change) => replyFixChat(change)?.id)
+              .filter((chatId): chatId is string => Boolean(chatId)),
+          );
+          await Promise.all(
+            [...fixedChatIds].map((chatId) => qc.invalidateQueries({ queryKey: chatKeys.messages(chatId) })),
+          );
           toast.success(localizeUi("ui.chat.homeprofessormarichat.keptMariSWorkspaceChange"));
         } else {
           toast.error(
@@ -95,7 +106,7 @@ export function useMariApprovals(options: { onRefresh?: () => Promise<void> | vo
         setPendingId((current) => (current === id ? null : current));
       }
     },
-    [invalidateWorkspaceData, localizeUi, refresh],
+    [invalidateWorkspaceData, localizeUi, qc, refresh],
   );
 
   const restoreApproval = useCallback(
