@@ -8,9 +8,10 @@ import type {
   MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 
+import { describeTable } from "../../lib/mari-edit-diff";
 import { summarizeDeleteReview } from "../../lib/professor-mari-presentation";
 import { useUIStore } from "../../stores/ui.store";
-import { describeTable, MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
+import { MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
 import { MariCard, MariNote } from "./mari-primitives";
 import { MariPromptPreviewModal, type MariPromptRenderSide } from "./MariPromptPreviewModal";
 import { TranscriptRow } from "./MariTranscriptRow";

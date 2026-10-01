@@ -32,6 +32,7 @@ import {
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
+  buildOmnibarApprovalResults,
   buildOmnibarContextResults,
   buildOmnibarControlResults,
   buildOmnibarIntentShortcuts,
@@ -70,7 +71,12 @@ import {
   formatDocumentationGroundingExcerpts,
   type DocumentationSearchResult,
 } from "../../packages/server/src/services/professor-mari/documentation-tools.js";
-import { fieldChangeStyle, trackListChange, trackProseChange } from "../../packages/client/src/lib/mari-edit-diff.js";
+import {
+  computeFieldChanges,
+  fieldChangeStyle,
+  trackListChange,
+  trackProseChange,
+} from "../../packages/client/src/lib/mari-edit-diff.js";
 import { pastTenseStepTitle } from "../../packages/client/src/lib/mari-work-timeline.js";
 import {
   createPullRecognizer,
@@ -1691,6 +1697,95 @@ assert.ok(!("mariDetailId" in mariSession));
     promptTemplate: "Do the thing.",
   });
   assert.equal(unmodifiedRow.promptOverridden, false, "a prompt matching the package default is not overridden");
+}
+
+// L3: the agent editor is Mari context. The "Editing" row leads the Improve row, so an unpinned
+// handoff carries the agent with the field; a custom agent (opened by config id) and a built-in
+// (opened by type) both get the row.
+{
+  const t = ((key: string, fallback: string, values?: Record<string, unknown>) =>
+    fallback.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values?.[name] ?? ""))) as never;
+  const agents = [
+    { id: "cfg-1", type: "my-custom-agent", name: "Scene Critic" },
+    { id: "cfg-2", type: "illustrator", name: "Illustrator" },
+  ] as never;
+  const input = {
+    activeChat: null,
+    activeChatId: null,
+    activeEditorField: { label: "Prompt Template" },
+    agents,
+    allLocalResults: [],
+    characterNameById: new Map<string, string>(),
+    connectionById: new Map(),
+    lastAppError: null,
+    lorebooks: undefined,
+    mariEnabled: true,
+    omnibarSuggestionsEnabled: true,
+    openAgentId: "cfg-1",
+    openCharacterId: null,
+    openConnectionId: null,
+    openLorebookId: null,
+    openPersonaId: null,
+    openPresetId: null,
+    personaById: new Map(),
+    personas: undefined,
+    presets: undefined,
+    surface: "editor" as const,
+    t,
+  };
+  const customRows = buildOmnibarContextResults(input);
+  assert.deepEqual(
+    customRows.map((row) => row.id),
+    ["agent:cfg-1", "suggestion:edit-focused-field"],
+    "the open custom agent leads, then the focused-field row",
+  );
+  assert.equal(customRows[0]?.title, "Editing Scene Critic");
+  assert.equal(customRows[1]?.title, "Improve Prompt Template with Mari");
+  const builtInRows = buildOmnibarContextResults({ ...input, openAgentId: "illustrator" });
+  assert.equal(builtInRows[0]?.id, "agent:illustrator", "a built-in opened by type gets its Editing row");
+
+  // An agent edit reads as tracked prose; its nested settings JSON stays behind Raw.
+  const agentFields = computeFieldChanges({
+    table: "agent_configs",
+    id: "cfg-1",
+    action: "update",
+    before: {
+      promptTemplate: "Critique",
+      settings: { activationQuestion: "Did the scene change?", promptTemplates: [{ id: "a", prompt: "x" }] },
+    },
+    after: {
+      promptTemplate: "Praise",
+      settings: { activationQuestion: "{{char}} left?", promptTemplates: [{ id: "a", prompt: "y" }] },
+    },
+  });
+  assert.deepEqual(
+    agentFields.map((field) => field.label),
+    ["Prompt Template", "Activation Question"],
+    "promptTemplate and a plain setting show; the JSON setting does not",
+  );
+  assert.equal(fieldChangeStyle(agentFields[0]!), "text", "a one-word prompt is prose, not an enum chip");
+
+  // The omnibar's waiting row names the agent, never the raw table.
+  const agentChange = {
+    table: "agent_configs",
+    id: "cfg-1",
+    action: "update" as const,
+    before: { name: "Scene Critic", promptTemplate: "Critique" },
+    after: { name: "Scene Critic", promptTemplate: "Praise" },
+  };
+  const approvalRow = (diffPreview: unknown[], affectedTables: Record<string, number>) =>
+    buildOmnibarApprovalResults({
+      approvals: [{ id: "r1", kind: "db", diffPreview, affectedTables, affectedRows: diffPreview.length } as never],
+      t,
+      pendingId: null,
+      onDecide: () => undefined,
+    })[0]?.title;
+  assert.equal(approvalRow([agentChange], { agent_configs: 1 }), "Mari changed Scene Critic");
+  assert.equal(
+    approvalRow([agentChange, { ...agentChange, id: "cfg-2" }], { agent_configs: 2 }),
+    "Mari changed Agent",
+    "several records read by their kind",
+  );
 }
 
 console.info("Command Center regression checks passed.");

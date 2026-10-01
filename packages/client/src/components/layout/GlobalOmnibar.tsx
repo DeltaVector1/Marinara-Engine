@@ -1510,7 +1510,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     ? (allLocalResults.find((result) => result.id === omnibarContext.openResource?.resultId)?.title ?? null)
     : omnibarContext.surface === "chat" && activeChat?.id === activeChatId
       ? activeChat.name
-      : null;
+      : agentCatalogOpen
+        ? t("omnibar.aside.downloadAgents", "Download Agents")
+        : null;
   const asideState = useOmnibarAside({
     query: deferredQuery,
     deadEnd: asideDeadEnd && pane === "results",
@@ -1986,6 +1988,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       openProfessorMari(null, { reviewPending: true });
       return;
     }
+    if (result.id === "suggestion:edit-focused-field") {
+      openProfessorMari(result, { submitDraft: mariSends(result) });
+      return;
+    }
     if (result.id === "ask-professor-mari") {
       if (result.group === "continue") {
         // The continue row resumes existing work, so there is nothing to submit.
@@ -2358,7 +2364,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     setSessionValue("mariReturnResultId", returnResultId);
   };
   const openProfessorMari = (
-    selectedResult: RankedOmnibarResult | null = null,
+    selectedResult: OmnibarAskFocus = null,
     options: { reviewPending?: boolean; submitDraft?: boolean } = {},
   ) => {
     // A scope prefix like "faq:" is omnibar search syntax, not part of the
@@ -2367,7 +2373,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
     const focusResult = selectedResult ?? contextResults[0] ?? null;
     rememberMariReturn(focusResult);
-    enterMariPane(buildAskContext(draft, focusResult), options.submitDraft);
+    // The focused-field row is about the open editor, so Mari gets that resource beside the field.
+    const askFocus =
+      focusResult?.id === "suggestion:edit-focused-field"
+        ? (contextResults.find((row) => row.id === omnibarContext.openResource?.resultId) ?? focusResult)
+        : focusResult;
+    enterMariPane(buildAskContext(draft, askFocus), options.submitDraft);
     if (options.reviewPending) setMariPendingReviewRequest((current) => current + 1);
   };
   /**

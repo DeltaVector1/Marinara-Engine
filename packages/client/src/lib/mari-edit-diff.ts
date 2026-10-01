@@ -39,6 +39,7 @@ const PROSE_FIELD_NAMES = new Set([
   "mesexample",
   "personality",
   "posthistoryinstructions",
+  "prompttemplate",
   "scenario",
   "summary",
   "systemprompt",
@@ -48,6 +49,25 @@ const PROSE_FIELD_NAMES = new Set([
 export function isProseField(path: string): boolean {
   const leaf = path.split(".").at(-1) ?? path;
   return PROSE_FIELD_NAMES.has(leaf.replace(/[_\-\s]/g, "").toLowerCase());
+}
+
+/** `lorebook_entries` -> `Lorebook entry`; `agent_configs` reads as the agent it is. */
+export function describeTable(table: string): string {
+  if (table === "agent_configs") return "Agent";
+  return table
+    .replace(/_/g, " ")
+    .replace(/ies$/, "y")
+    .replace(/s$/, "")
+    .replace(/^./, (first) => first.toUpperCase());
+}
+
+/** The changed record's own name (a character keeps it in `data`), or "" when it has none. */
+export function changeRecordName(change: MariDbRowChange): string {
+  const pick = (value: unknown) =>
+    value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+  const row = pick(change.after) ?? pick(change.before);
+  const name = (change.table === "characters" ? pick(row?.data) : row)?.name;
+  return typeof name === "string" ? name : "";
 }
 
 export type LorebookVectorStatus = "excluded" | "vectorized" | "notVectorized";
@@ -184,6 +204,7 @@ const FIELD_ORDER: Record<string, number> = {
   Name: 0,
   Description: 1,
   "Primary keys": 2,
+  "Prompt Template": 2,
   "Secondary keys": 3,
   Content: 4,
   Personality: 5,
@@ -201,7 +222,20 @@ function humanizeLabel(path: string): string {
     .replace(/^./, (c) => c.toUpperCase());
 }
 
-/** Diff a row change into a readable list of changed fields (skips unchanged + noise keys). */
+/** A nested object or list flattened to JSON text (not a scalar that merely starts with `{{`). */
+function isJsonText(value: string): boolean {
+  if (!/^[[{]/.test(value)) return false;
+  try {
+    return typeof JSON.parse(value) === "object";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Diff a row change into a readable list of changed fields (skips unchanged + noise keys). An
+ * agent's nested `settings` JSON is left to the review's Raw view; its plain values still show.
+ */
 export function computeFieldChanges(change: MariDbRowChange): FieldChange[] {
   const beforeMap = flattenRow(change.before ?? null);
   const afterMap = flattenRow(change.after ?? null);
@@ -211,6 +245,8 @@ export function computeFieldChanges(change: MariDbRowChange): FieldChange[] {
     const before = beforeMap.get(path) ?? "";
     const after = afterMap.get(path) ?? "";
     if (before === after) continue;
+    if (change.table === "agent_configs" && path.startsWith("settings.") && (isJsonText(before) || isJsonText(after)))
+      continue;
     const kind: FieldChange["kind"] = !beforeMap.has(path) ? "added" : !afterMap.has(path) ? "removed" : "changed";
     changes.push({ path, label: humanizeLabel(path), before, after, kind });
   }

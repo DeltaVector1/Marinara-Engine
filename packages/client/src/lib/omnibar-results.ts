@@ -43,6 +43,7 @@ import { getOmnibarSettingsDestinations } from "./omnibar-settings";
 import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "./omnibar-settings-toggle-bindings";
 import type { ChatResourceDragKind } from "./chat-resource-drag";
 import { getSlashCompletions } from "./slash-commands";
+import { changeRecordName, describeTable } from "./mari-edit-diff";
 import { inferProfessorMariCommandCenterCapability } from "./professor-mari-command-center-context";
 
 /** Below this a message search matches most of the transcript. */
@@ -1003,23 +1004,6 @@ export function buildOmnibarContextResults({
   }
 
   if (!isActiveChatSurface) {
-    if (omnibarSuggestionsEnabled && mariEnabled && activeEditorField) {
-      push({
-        id: "suggestion:edit-focused-field",
-        title: t("commandCenter.suggestions.editFocusedField", "Improve {{field}} with Mari", {
-          field: activeEditorField.label,
-        }),
-        description: t(
-          "commandCenter.suggestions.editFocusedFieldDescription",
-          "Ask Mari to suggest a useful change for the selected field.",
-        ),
-        category: "professor",
-        score: 460,
-        group: "professor-suggested",
-        kind: "action",
-        icon: "professor",
-      });
-    }
     if (openCharacterId) {
       const name = characterNameById.get(openCharacterId);
       if (name)
@@ -1039,7 +1023,9 @@ export function buildOmnibarContextResults({
       [openAgentId, "agent", agents, "agent"],
     ] as const) {
       if (!id) continue;
-      const name = listName(list, id);
+      // A custom agent's editor is opened by config id, a built-in's by type.
+      const name =
+        kind === "agent" ? agents?.find((agent) => agent.id === id || agent.type === id)?.name : listName(list, id);
       if (!name) continue;
       pushCanonical(`${kind}:${id}`, {
         id: `${kind}:${id}`,
@@ -1060,6 +1046,25 @@ export function buildOmnibarContextResults({
           score: 0,
           icon: "connection",
         });
+    }
+    // After the "Editing" rows: the first context row is what an unpinned Mari handoff focuses,
+    // and the editor resource must travel with the field.
+    if (omnibarSuggestionsEnabled && mariEnabled && activeEditorField) {
+      push({
+        id: "suggestion:edit-focused-field",
+        title: t("commandCenter.suggestions.editFocusedField", "Improve {{field}} with Mari", {
+          field: activeEditorField.label,
+        }),
+        description: t(
+          "commandCenter.suggestions.editFocusedFieldDescription",
+          "Ask Mari to suggest a useful change for the selected field.",
+        ),
+        category: "professor",
+        score: 460,
+        group: "professor-suggested",
+        kind: "action",
+        icon: "professor",
+      });
     }
   }
   if (isActiveChat && activeChat) {
@@ -1416,8 +1421,11 @@ export function buildOmnibarApprovalResults({
       terms = [approval.path, approval.changeType];
     } else {
       const tables = Object.keys(approval.affectedTables).join(", ");
-      title = tables
-        ? t("commandCenter.approval.databaseTitle", "Mari changed {{tables}}", { tables })
+      // One record reads by its name ("Mari changed Scene Critic"), several by their kinds.
+      const recordName = approval.diffPreview.length === 1 ? changeRecordName(approval.diffPreview[0]!) : "";
+      const subject = recordName || Object.keys(approval.affectedTables).map(describeTable).join(", ");
+      title = subject
+        ? t("commandCenter.approval.databaseTitle", "Mari changed {{tables}}", { tables: subject })
         : t("commandCenter.approval.databaseTitleGeneric", "Mari changed your app data");
       description =
         reason ??
@@ -1434,7 +1442,7 @@ export function buildOmnibarApprovalResults({
       ];
       keepLabel = t("commandCenter.approval.keep", "Keep");
       restoreLabel = t("commandCenter.approval.restore", "Restore");
-      terms = Object.keys(approval.affectedTables);
+      terms = [...Object.keys(approval.affectedTables), ...(recordName ? [recordName] : [])];
     }
 
     // Approving these two executes; the row is a door to the card, not a switch.

@@ -3825,7 +3825,9 @@ export class ProfessorMariWorkspaceService {
                 : candidate.kind === "connection"
                   ? await createConnectionsStorage(this.app.db).getById(candidate.id)
                   : candidate.kind === "agent"
-                    ? await createAgentsStorage(this.app.db).getByType(candidate.id)
+                    ? // A custom agent's editor and rows carry its config id; built-ins carry the type.
+                      ((await createAgentsStorage(this.app.db).getById(candidate.id)) ??
+                      (await createAgentsStorage(this.app.db).getByType(candidate.id)))
                     : candidate.kind === "setting" || candidate.kind === "game"
                       ? { name: candidate.label ?? candidate.kind }
                       : null;

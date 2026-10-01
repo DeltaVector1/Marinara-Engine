@@ -6,13 +6,15 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { BookOpen, ChevronRight, Eye, FileText, Undo2, UserRound } from "lucide-react";
+import { BookOpen, Bot, ChevronRight, Eye, FileText, Undo2, UserRound } from "lucide-react";
 import type { MariDbPendingApproval, MariDbRowChange } from "@marinara-engine/shared";
 
 import { cn } from "../../lib/utils";
 import { buildCharacterPreviewModel } from "../../lib/character-preview";
 import {
+  changeRecordName,
   computeFieldChanges,
+  describeTable,
   fieldChangeStyle,
   resolveLorebookVectorStatus,
   trackListChange,
@@ -31,25 +33,14 @@ function stringField(row: Record<string, unknown> | null, key: string): string {
   return value === null || value === undefined ? "" : String(value);
 }
 
-/** `lorebook_entries` -> `Lorebook entry`. */
-export function describeTable(table: string): string {
-  return table
-    .replace(/_/g, " ")
-    .replace(/ies$/, "y")
-    .replace(/s$/, "")
-    .replace(/^./, (first) => first.toUpperCase());
-}
-
 export function rowTitle(change: MariDbRowChange, localizeUi: (key: string) => string): string {
-  const row = asRecord(change.after) ?? asRecord(change.before);
-  if (change.table === "characters") {
-    return stringField(asRecord(row?.data), "name") || localizeUi("ui.chat.mariediteasyviewer.character");
-  }
-  const name = stringField(row, "name");
+  const name = changeRecordName(change);
   if (name) return name;
+  if (change.table === "characters") return localizeUi("ui.chat.mariediteasyviewer.character");
   if (change.table === "lorebook_entries") return localizeUi("ui.chat.mariediteasyviewer.lorebookEntry");
   if (change.table === "mari_instructions") return localizeUi("ui.chat.mariediteasyviewer.memory");
   if (change.table === "prompt_presets") return localizeUi("ui.chat.mariediteasyviewer.preset");
+  if (change.table === "agent_configs") return localizeUi("ui.chat.mariediteasyviewer.agent");
   return localizeUi("ui.chat.mariediteasyviewer.change");
 }
 
@@ -159,12 +150,23 @@ function LorebookStatus({ change }: { change: MariDbRowChange }) {
 
 function RecordFace({ change, name }: { change: MariDbRowChange; name: string }) {
   const character = change.table === "characters" ? buildCharacterPreviewModel(change.after ?? change.before) : null;
+  // An agent shows its own artwork, as its omnibar row does.
+  const agentImage =
+    change.table === "agent_configs" ? stringField(asRecord(change.after) ?? asRecord(change.before), "imagePath") : "";
   return (
     <MariRecordAvatar
       name={character?.name ?? name}
-      src={character?.avatarSrc}
+      src={character?.avatarSrc ?? (agentImage || undefined)}
       avatarCropStyle={character?.avatarCropStyle}
-      icon={character ? UserRound : change.table === "lorebook_entries" ? BookOpen : FileText}
+      icon={
+        character
+          ? UserRound
+          : change.table === "lorebook_entries"
+            ? BookOpen
+            : change.table === "agent_configs"
+              ? Bot
+              : FileText
+      }
     />
   );
 }

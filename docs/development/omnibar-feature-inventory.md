@@ -86,7 +86,11 @@ Rules that must survive:
     and switches gather into one "Switches" line ("+Case sensitive",
     "−Whole words"; `fieldChangeStyle` decides). A new record's values read
     plain, not inserted. A lorebook entry also shows its activation (Constant,
-    Selective or Normal) and vector state as two plain chips. "Show exact
+    Selective or Normal) and vector state as two plain chips. An agent edit
+    (`agent_configs`) reads "Updated agent · …" with the agent's artwork (a
+    monogram without one, like every record); its prompt
+    template and description are tracked prose, and its nested `settings` JSON
+    shows only under Raw (plain setting values still show as fields). "Show exact
     changes" swaps every field to the line-by-line diff and back. Raw is one disclosure (`.mari-tech`: tables,
     rows, the command and every created row's snapshot); the "Edit review opens
     in" setting opens it by default. Undo, Keep (and Keep & Enable for a new
@@ -182,6 +186,7 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Choice values                                                                  | `lib/omnibar-choice-rows.ts`                                                                  | With a query typed, every choice control's options join the searchable set, so "gpt" reaches GPT-4 without finding the Model row first. They stay out of the idle deck. Each row carries its own `chooseValue`, so a row found by typing works when its control is nowhere on screen                                             |
 | "Ask Professor Mari" fallback                                                  | `buildOmnibarSearchResults`                                                                   | Always last unless promoted. Opens Mari's takeover. The cheap answer arrives on its own, inside this row — see section 12                                                                                                                                                                                                        |
 | "Continue with Mari"                                                           | `buildOmnibarContinueResult`                                                                  | Only when Mari is active or has pending approvals                                                                                                                                                                                                                                                                                |
+| Pending Mari approvals                                                         | `buildOmnibarApprovalResults`                                                                 | A DB review is a Keep/Restore choice row titled by the one record it changed ("Mari changed Scene Critic") or by the kinds of several (`describeTable`: "Agent", "Lorebook entry"), never a raw table name; an install or file write opens the Work pane card instead |
 
 De-duplication is by result id, first source wins. Message rows from the open
 chat and from the global search share an id shape on purpose, so a hit is never
@@ -367,6 +372,11 @@ This is the part most likely to break silently. All of it must survive.
 - Command ranking (recency and pins) is persisted separately.
 - UI-store slots the omnibar reads: `activeEditorField`, `lastAppError`,
   `creationSession`, the open-detail ids per resource kind, the settings target.
+  `activeEditorField` is set by the character editor (per tab) and the agent
+  editor (on focus of the name, description or prompt template; the id is the
+  `agent.update` field name). It feeds the "Improve {{field}} with Mari" row,
+  which sits after the "Editing …" row so an unpinned handoff carries the
+  editor's resource beside the field; Enter on the row opens Mari with both.
 
 ## 9. Accessibility
 
@@ -497,7 +507,8 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   call does send. `quick-context-payload.test.ts` pins this.
 - `source` and `resourceLabel` come from where the user really is —
   `GlobalOmnibar` reads the open editor or the active chat off `omnibarContext`
-  — not a hard-coded `"command-center"`.
+  — not a hard-coded `"command-center"`. With Download Agents open, the label
+  is "Download Agents".
 - Defaults to the local sidecar, so nothing is spent unasked. The answering
   model is chosen in the omnibar settings view (it replaces the list inside the omnibar card, with a back arrow): the local model or any language
   connection, with a note that a connection may cost money.
