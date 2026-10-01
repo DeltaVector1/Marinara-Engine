@@ -6,15 +6,6 @@ import { omnibarAsideAnswerCache } from "../lib/omnibar-aside-text";
 import { useSidecarStore } from "../stores/sidecar.store";
 import { useUIStore } from "../stores/ui.store";
 
-/**
- * Default idle delay before the aside calls a model.
- *
- * A knob, not a constant: too short spends a call on an ordinary typing pause,
- * too long makes the feature feel absent, and the right value depends on how
- * fast the user types and how slow their model is. Tune it against real use.
- */
-export const OMNIBAR_ASIDE_DELAY_MS = 3_000;
-
 /** Below this the query is too short to mean anything. Matches message search. */
 const MIN_QUERY_LENGTH = 3;
 
@@ -35,6 +26,13 @@ export interface OmnibarAsideState {
   query: string;
   /** What answered: the local sidecar, or a connection name. */
   tier: "local" | "remote";
+  /** Set when this answer is the one follow-up: its question and the answer it continues. */
+  followUp?: OmnibarAsideFollowUp;
+}
+
+export interface OmnibarAsideFollowUp {
+  question: string;
+  previousAnswer: string;
 }
 
 const IDLE: OmnibarAsideState = { status: "idle", answer: "", error: null, query: "", tier: "local" };
@@ -56,15 +54,20 @@ export function useOmnibarAside(params: {
   source: NonNullable<ProfessorMariQuickPromptRequest["context"]>["source"];
   /** Human label of the focused resource, if there is one. Never its id. */
   resourceLabel?: string | null;
-  delayMs?: number;
-}): OmnibarAsideState & { retry: () => void } {
+}): OmnibarAsideState & {
+  retry: () => void;
+  /** Asks the same question again, past the cache. */
+  answerAgain: () => void;
+  /** The one follow-up: a second quick call with the first answer as context. */
+  askFollowUp: (question: string) => void;
+} {
   const enabled = useUIStore((state) => state.omnibarAsideEnabled);
   const connectionId = useUIStore((state) => state.omnibarAsideConnectionId);
+  const delayMs = useUIStore((state) => state.omnibarAsideDelayMs);
   const [state, setState] = useState<OmnibarAsideState>(IDLE);
   const abortRef = useRef<AbortController | null>(null);
 
   const { query, deadEnd, source, resourceLabel } = params;
-  const delayMs = params.delayMs ?? OMNIBAR_ASIDE_DELAY_MS;
   const trimmed = query.trim();
   const localModelDownloaded = useSidecarStore((state) => state.modelDownloaded);
   const tier: OmnibarAsideState["tier"] = connectionId === LOCAL_SIDECAR_CONNECTION_ID ? "local" : "remote";
@@ -73,70 +76,79 @@ export function useOmnibarAside(params: {
   const available = tier === "remote" || localModelDownloaded;
   const ready = enabled && deadEnd && trimmed.length >= MIN_QUERY_LENGTH;
 
-  const runQuery = useCallback(() => {
-    abortRef.current?.abort();
-    const cached = omnibarAsideAnswerCache.get(connectionId, trimmed);
-    if (cached) {
-      setState({ status: "complete", answer: cached.answer, error: null, query: trimmed, tier: cached.tier });
-      abortRef.current = null;
-      return;
-    }
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setState({ status: "thinking", answer: "", error: null, query: trimmed, tier });
-    const body: ProfessorMariQuickPromptRequest = {
-      message: trimmed,
-      connectionId,
-      unasked: true,
-      resourceLabel: resourceLabel ?? undefined,
-      context: { source, query: trimmed },
-    };
-    void (async () => {
-      let answer = "";
-      try {
-        for await (const event of api.streamEvents("/professor-mari/quick/prompt", body, controller.signal)) {
-          if (event.type === "status") {
-            // A status frame only ever precedes tokens; once streaming or
-            // settled, it has nothing left to announce.
+  const runQuery = useCallback(
+    (options: { followUp?: OmnibarAsideFollowUp; bypassCache?: boolean } = {}) => {
+      const { followUp } = options;
+      abortRef.current?.abort();
+      // Follow-ups are never cached: the same words mean something else after another answer.
+      const cached = followUp || options.bypassCache ? undefined : omnibarAsideAnswerCache.get(connectionId, trimmed);
+      if (cached) {
+        setState({ status: "complete", answer: cached.answer, error: null, query: trimmed, tier: cached.tier });
+        abortRef.current = null;
+        return;
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
+      setState({ status: "thinking", answer: "", error: null, query: trimmed, tier, followUp });
+      const body: ProfessorMariQuickPromptRequest = {
+        message: followUp?.question ?? trimmed,
+        connectionId,
+        unasked: true,
+        resourceLabel: resourceLabel ?? undefined,
+        context: { source, query: trimmed },
+        ...(followUp
+          ? { previous: { question: trimmed.slice(0, 500), answer: followUp.previousAnswer.slice(0, 4_000) } }
+          : {}),
+      };
+      void (async () => {
+        let answer = "";
+        try {
+          for await (const event of api.streamEvents("/professor-mari/quick/prompt", body, controller.signal)) {
+            if (event.type === "status") {
+              // A status frame only ever precedes tokens; once streaming or
+              // settled, it has nothing left to announce.
+              setState((current) =>
+                current.status === "waiting" || current.status === "thinking"
+                  ? { ...current, status: "thinking" }
+                  : current,
+              );
+            } else if (event.type === "token" && typeof event.data === "string") {
+              answer += event.data;
+              setState({ status: "streaming", answer, error: null, query: trimmed, tier, followUp });
+            } else if (event.type === "complete") {
+              if (!followUp) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
+              setState({ status: "complete", answer, error: null, query: trimmed, tier, followUp });
+            } else if (event.type === "error") {
+              throw new Error(typeof event.data === "string" ? event.data : "Professor Mari could not answer.");
+            }
+          }
+          // A cleanly closed stream is still a completed response even if an
+          // intermediary omitted the optional terminal event.
+          if (!controller.signal.aborted) {
+            if (!followUp) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
             setState((current) =>
-              current.status === "waiting" || current.status === "thinking"
-                ? { ...current, status: "thinking" }
+              current.query === trimmed && current.status === "streaming"
+                ? { status: "complete", answer, error: null, query: trimmed, tier, followUp }
                 : current,
             );
-          } else if (event.type === "token" && typeof event.data === "string") {
-            answer += event.data;
-            setState({ status: "streaming", answer, error: null, query: trimmed, tier });
-          } else if (event.type === "complete") {
-            omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
-            setState({ status: "complete", answer, error: null, query: trimmed, tier });
-          } else if (event.type === "error") {
-            throw new Error(typeof event.data === "string" ? event.data : "Professor Mari could not answer.");
           }
+        } catch (error) {
+          if (controller.signal.aborted) return;
+          setState({
+            status: "error",
+            answer: "",
+            error: error instanceof Error ? error.message : String(error),
+            query: trimmed,
+            tier,
+            followUp,
+          });
+        } finally {
+          if (abortRef.current === controller) abortRef.current = null;
         }
-        // A cleanly closed stream is still a completed response even if an
-        // intermediary omitted the optional terminal event.
-        if (!controller.signal.aborted) {
-          omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
-          setState((current) =>
-            current.query === trimmed && current.status === "streaming"
-              ? { status: "complete", answer, error: null, query: trimmed, tier }
-              : current,
-          );
-        }
-      } catch (error) {
-        if (controller.signal.aborted) return;
-        setState({
-          status: "error",
-          answer: "",
-          error: error instanceof Error ? error.message : String(error),
-          query: trimmed,
-          tier,
-        });
-      } finally {
-        if (abortRef.current === controller) abortRef.current = null;
-      }
-    })();
-  }, [connectionId, resourceLabel, source, tier, trimmed]);
+      })();
+    },
+    [connectionId, resourceLabel, source, tier, trimmed],
+  );
 
   useEffect(() => {
     abortRef.current?.abort();
@@ -151,7 +163,7 @@ export function useOmnibarAside(params: {
     }
     setState({ status: "waiting", answer: "", error: null, query: trimmed, tier });
 
-    const timer = window.setTimeout(runQuery, delayMs);
+    const timer = window.setTimeout(() => runQuery(), delayMs);
 
     return () => {
       window.clearTimeout(timer);
@@ -160,5 +172,11 @@ export function useOmnibarAside(params: {
     };
   }, [available, delayMs, ready, runQuery, tier, trimmed]);
 
-  return { ...state, retry: runQuery };
+  const { followUp, answer } = state;
+  return {
+    ...state,
+    retry: () => runQuery({ followUp }),
+    answerAgain: () => runQuery({ followUp, bypassCache: true }),
+    askFollowUp: (question) => runQuery({ followUp: { question, previousAnswer: answer } }),
+  };
 }

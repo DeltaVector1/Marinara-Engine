@@ -57,6 +57,10 @@ export const professorMariQuickPromptSchema = z
     debugMode: z.boolean().optional().default(false),
     unasked: z.boolean().optional().default(false),
     resourceLabel: z.string().trim().max(200).optional(),
+    previous: z
+      .object({ question: z.string().trim().min(1).max(500), answer: z.string().max(4_000) })
+      .strict()
+      .optional(),
   })
   .strict();
 

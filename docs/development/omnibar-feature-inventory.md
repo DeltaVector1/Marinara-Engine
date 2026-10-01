@@ -29,9 +29,10 @@ Two things render **inside** the list rather than replacing it:
 
 - **Inline expansion.** A focused row grows to show its preview, or a choice
   control's options. The row itself grows; rows above it never move.
-- **The aside.** A cheap answer pinned to the bottom of the panel, below the
-  list and above the footer. It is not a row: never ranked, never in the
-  arrow-key cycle, never the target of Enter.
+- **The aside.** A cheap answer that grows inside the promoted Ask-Mari row as
+  that row's expansion, so it only ever pushes rows below the selection and
+  nothing above the Ask row moves while it streams. It is not a row of its own:
+  never ranked, never in the arrow-key cycle.
 
 Rules that must survive:
 
@@ -144,7 +145,7 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Verb, attach and detach suggestions                                            | `buildOmnibarVerbSuggestions`, `buildOmnibarAddSuggestions`, `buildOmnibarRemovalSuggestions` | Answer a half-typed sentence                                                                                                                                                                                                                                                                                                     |
 | Creation proposal                                                              | `lib/omnibar-creation-proposal.ts`                                                            | Nothing is created until accepted                                                                                                                                                                                                                                                                                                |
 | Choice values                                                                  | `lib/omnibar-choice-rows.ts`                                                                  | With a query typed, every choice control's options join the searchable set, so "gpt" reaches GPT-4 without finding the Model row first. They stay out of the idle deck. Each row carries its own `chooseValue`, so a row found by typing works when its control is nowhere on screen                                             |
-| "Ask Professor Mari" fallback                                                  | `buildOmnibarSearchResults`                                                                   | Always last unless promoted. Opens Mari's takeover. The cheap answer arrives on its own, in the aside — see section 12                                                                                                                                                                                                           |
+| "Ask Professor Mari" fallback                                                  | `buildOmnibarSearchResults`                                                                   | Always last unless promoted. Opens Mari's takeover. The cheap answer arrives on its own, inside this row — see section 12                                                                                                                                                                                                        |
 | "Continue with Mari"                                                           | `buildOmnibarContinueResult`                                                                  | Only when Mari is active or has pending approvals                                                                                                                                                                                                                                                                                |
 
 De-duplication is by result id, first source wins. Message rows from the open
@@ -427,12 +428,20 @@ Do not "fix" these; each was a decision.
 The cheap answer, `hooks/use-omnibar-aside.ts` and
 `components/layout/omnibar/OmnibarAside.tsx`.
 
+- It renders as the expansion of the promoted Ask-Mari row (R9), through the
+  same `expanded` slot of `CommandCenterResultRow` the inline preview uses, and
+  only while that row is selected. There is no bottom slot. The answer never
+  appears above the selection, and nothing above the Ask row moves while it
+  streams.
+
 - Fires only when the Ask-Mari row is promoted — a question-shaped query, an
   `explain` / `recommend` / `repair` intent, or no direct hit at score ≥ 250 —
   and only after the input has been idle. One predicate, already tuned, read
   back from the ranked list rather than duplicated.
 - The delay is a knob, not a constant. Default 3s. Too short spends a call on an
-  ordinary typing pause; too long makes the feature feel absent.
+  ordinary typing pause; too long makes the feature feel absent. The omnibar
+  settings view offers 1, 2, 3 or 5 seconds as "Wait before answering"
+  (`omnibarAsideDelayMs`, `OMNIBAR_ASIDE_DELAY_CHOICES_MS`).
 - **The unasked call is a different call, not a trimmed one.**
   `buildQuickContextPayload` assembles it from scratch: the surface, the typed
   query, and the focused resource's label. It must never carry persistent
@@ -458,16 +467,28 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
 - The idle countdown is silent; once the call actually starts, a "Professor
   Mari is thinking…" line with the thinking sprite shows until the first token
   (or the cached answer) arrives.
-- The answer is shown with stray markdown stripped, and the prompt itself asks
-  for plain text and exact on-screen labels. An answer cut off by the token cap
-  is marked with a trailing "…".
+- The answer is shown with light formatting — bold, lists, inline code —
+  through the message renderer Mari's transcript uses (`renderMarkdownBlocks`
+  with `renderCompactInline`, `lib/markdown.tsx`), and the prompt asks for only
+  that much markdown and exact on-screen labels. Blank lines collapse. The
+  screen-reader announcement uses the text with markdown stripped. An answer
+  cut off by the token cap is marked with a trailing "…" by the server.
+- A finished answer offers Copy and "Answer again"; Answer again asks the same
+  question past the answer cache.
+- One follow-up line under the answer ("Ask a follow-up…") sends a second quick
+  call with the first question and answer as `previous`
+  (`ProfessorMariQuickPromptRequest`); follow-ups are never cached. The earlier
+  answer stays above it, muted, with the follow-up question. The next question
+  typed there goes to full Mari instead. Escape in that line returns to the
+  search input rather than closing the omnibar.
 - A failed call shows one quiet line and the `shrug` sprite, with "Try again"
   and "Choose a model" actions. Never a toast — the user did not ask for this
   call — and the ranked list is never degraded by it.
 - Escalating from the aside sends the question to Mari; it does not only open
-  her with a draft. `⌘↵` also escalates a live aside answer (streaming or
-  complete) straight into Mari when no real row is highlighted — the generic
-  Ask-Mari row does not count as one. The aside's query and answer travel
+  her with a draft. Enter or a click on the Ask row, and `⌘↵` when no real row
+  is highlighted (the generic Ask-Mari row does not count as one), escalate a
+  live answer (streaming or complete) straight into Mari. After a follow-up the
+  whole exchange travels (`omnibarAsideHandoffAnswer`). The aside's query and answer travel
   along as `context.asideAnswer` (`ProfessorMariAskContext`), and the context
   chip on the sent message — which lists every facet the handoff carried
   (resource, chat, field, settings location, error, aside answer), not just

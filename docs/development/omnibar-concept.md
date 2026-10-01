@@ -84,9 +84,12 @@ second Mari view to keep in sync.
 **R8 — Every row states itself.** Why it is here, and what Enter will do. No
 invisible actions, no implicit routing.
 
-**R9 — The cheap answer is an aside, not a row.** It occupies a fixed slot pinned
-to the bottom of the panel. It is never ranked, never in the arrow-key cycle, and
-never the target of Enter. Rows above it never move.
+**R9 — The cheap answer grows inside the Ask row, never above the selection.**
+It is the expansion of the promoted "Ask Mari: “…”" row, which is first and
+selected on a dead end, so content is only ever inserted below the selected row
+(the same rule as R40 and the inline preview). It is not a row of its own: never
+ranked and never in the arrow-key cycle. Rows above the Ask row never move while
+it streams. Enter on the Ask row continues with Mari and carries the answer.
 
 **R10 — It fires on a pause, and only when nothing deterministic is clear.** It
 reuses the existing promotion predicate — question-shaped query, `explain` /
@@ -126,7 +129,7 @@ control's existing `onChange`. They are reachable by typing — "gpt" surfaces
 **Rows are only ever inserted below the focused row, never above.** The focused
 row does not move, so `reconcileActiveResultId` stays valid and the hover and
 arrow-key anchoring rules in inventory section 7 cannot be violated. This is the
-same constraint that pins the aside to the bottom (R9), for the same reason.
+same constraint that keeps the cheap answer inside the Ask row (R9), for the same reason.
 
 The rich preview expands inline under the focused row, and that is its only
 rendering. What disappears is `detail` as a pane and as a return target.
@@ -140,13 +143,11 @@ One dialog. Four regions, only two of them always present.
 │ input                               │  always
 ├─────────────────────────────────────┤
 │ ranked list — one selection, Enter  │  always
-│                                     │
-├─────────────────────────────────────┤
-│ cheap answer aside (R9)             │  when it has something
+│   Ask row ▸ cheap answer (R9)       │  when it has something
 └─────────────────────────────────────┘
                  ↓ deliberate act
 ┌─────────────────────────────────────┐
-│ takeover: Mari / browse / proposal  │  replaces list + aside
+│ takeover: Mari / browse / proposal  │  replaces the list
 └─────────────────────────────────────┘
 ```
 
@@ -183,7 +184,7 @@ Each line here removes something the behaviour contract records.
 - **`mariReturnPane`, `mariMounted`, `mariChatOpen`, `mariTaskFinished`.**
   Replaced by the takeover slot and the server payload. `mariReturnResultId`
   survives — focus restoration stays in the contract.
-- **The `quick` pane as a pane.** The cheap answer becomes the aside (R9); the
+- **The `quick` pane as a pane.** The cheap answer grows inside the Ask row (R9); the
   full agent becomes the takeover. The cheap-answer-first cost decision survives;
   only its housing changes.
 - **`OmnibarDetailPane` as a separate pane.** It is now only the body of the
@@ -195,8 +196,9 @@ Each line here removes something the behaviour contract records.
   dispatch does not.
 - **Escape stepping back through a pane stack.** There is one level to step back
   from. The property that mattered — a streaming answer is never discarded by a
-  stray keystroke — is preserved because the aside is not focusable and Escape
-  from a takeover does not cancel the run.
+  stray keystroke — is preserved because typing only reaches the answer's
+  follow-up line on purpose, Escape there returns to the search input, and
+  Escape from a takeover does not cancel the run.
 
 ## 7. What survives untouched
 
@@ -283,7 +285,8 @@ new service. The prompt assembly must skip `memorySections` and
 (R10) is met, the aside waits for the input to be idle before calling. Default 3
 seconds. It is a knob, not a constant: too short spends money on typing pauses,
 too long makes the feature feel absent, and the right value depends on the user's
-typing speed and their model's latency.
+typing speed and their model's latency. The omnibar settings offer 1, 2, 3 or 5
+seconds ("Wait before answering").
 
 **R24 — A failed call never degrades the list.** If the sidecar is not running,
 the connection fails, or the answer is unusable, the aside says so in one quiet
@@ -297,10 +300,9 @@ answering it escalates the aside into the full agent. One key, one idea, no thir
 Enter variant to document.
 
 **R26 — Touch is a real layout, not a scaled one.** On small viewports the
-omnibar is full screen, the aside rises as a bottom sheet above the on-screen
-keyboard, and the presence indicator pins inside the safe area. See
-`ios-pwa-safe-area.md`. The inventory's existing mobile-inline preview rendering
-is the precedent for the aside sheet.
+omnibar is full screen, the cheap answer grows inside the Ask row like any
+inline preview (R9), and the presence indicator pins inside the safe area. See
+`ios-pwa-safe-area.md`.
 
 ## 10. One Mari, and the flows
 
@@ -346,8 +348,10 @@ the surface name travels, the field contents do not, unless she was asked.
 dead-ends. This is the common case and nothing above may slow it down.
 
 **Ask.** `⌘K`, type a question. Nothing matches well; after the idle delay the
-aside answers from the local tier, labelled. Escape closes; `⌘↵` escalates into
-the takeover with the question carried over.
+answer grows inside the Ask row from the local tier, labelled, with Copy,
+Answer again and one follow-up. Escape closes; Enter or `⌘↵` escalates into the
+takeover with the question and the answer carried over; a question after the one
+follow-up goes there too.
 
 **Edit a field.** Focus Eliza's description, `⌘K`, type "make this shorter". The
 handoff carries the field; the chip confirms it; she returns a field card with

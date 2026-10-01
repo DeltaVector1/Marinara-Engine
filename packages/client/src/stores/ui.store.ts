@@ -24,6 +24,7 @@ import { BASIC_PANEL_SORT_OPTIONS, normalizeBasicPanelSort, type BasicPanelSort 
 import { resetProfessorMariNavigator } from "../lib/professor-mari-navigation";
 import { DEFAULT_APP_LANGUAGE, type AppLanguage } from "../localization/locale-types";
 import { deferEditorLeave } from "../lib/editor-leave";
+import { OMNIBAR_ASIDE_DELAY_MS } from "../lib/omnibar-aside-text";
 import { UI_PERSISTENCE } from "../lib/ui-persistence";
 import type { ChatWizardDefaults, ChatWizardMode } from "../lib/chat-wizard-defaults";
 
@@ -625,6 +626,8 @@ interface UIState {
   omnibarAsideConnectionId: string;
   /** False until the aside has answered once and explained itself in place (R19). */
   omnibarAsideDisclosed: boolean;
+  /** Idle time after a dead-end query before the aside calls a model (R23). */
+  omnibarAsideDelayMs: number;
   mariEditViewMode: MariEditViewMode;
   /** One complete appearance, shared by every Professor Mari surface. */
   mariAppearancePackId: string;
@@ -1084,6 +1087,7 @@ interface UIState {
   setOmnibarAsideEnabled: (enabled: boolean) => void;
   setOmnibarAsideConnectionId: (id: string) => void;
   setOmnibarAsideDisclosed: (disclosed: boolean) => void;
+  setOmnibarAsideDelayMs: (delayMs: number) => void;
   setMariEditViewMode: (mode: MariEditViewMode) => void;
   setMariAppearancePack: (packId: string) => void;
   setChatBackground: (url: string | null) => void;
@@ -1607,6 +1611,7 @@ export function pickPersistedUIState(state: UIState) {
     omnibarAsideEnabled: state.omnibarAsideEnabled,
     omnibarAsideConnectionId: state.omnibarAsideConnectionId,
     omnibarAsideDisclosed: state.omnibarAsideDisclosed,
+    omnibarAsideDelayMs: state.omnibarAsideDelayMs,
     mariEditViewMode: state.mariEditViewMode,
     mariAppearancePackId: getMariAppearancePack(state.mariAppearancePackId).id,
     chatBackground: state.chatBackground,
@@ -1813,6 +1818,7 @@ export const useUIStore = create<UIState>()(
         omnibarAsideEnabled: true,
         omnibarAsideConnectionId: LOCAL_SIDECAR_CONNECTION_ID,
         omnibarAsideDisclosed: false,
+        omnibarAsideDelayMs: OMNIBAR_ASIDE_DELAY_MS,
         mariEditViewMode: "easy",
         mariAppearancePackId: "basic",
         chatBackground: null,
@@ -2155,6 +2161,7 @@ export const useUIStore = create<UIState>()(
         setOmnibarAsideEnabled: (enabled) => set({ omnibarAsideEnabled: enabled }),
         setOmnibarAsideConnectionId: (id) => set({ omnibarAsideConnectionId: id }),
         setOmnibarAsideDisclosed: (disclosed) => set({ omnibarAsideDisclosed: disclosed }),
+        setOmnibarAsideDelayMs: (delayMs) => set({ omnibarAsideDelayMs: delayMs }),
         setMariEditViewMode: (mode) => set({ mariEditViewMode: mode }),
         setMariAppearancePack: (packId) => set({ mariAppearancePackId: getMariAppearancePack(packId).id }),
         setChatBackground: (url) => set({ chatBackground: url }),

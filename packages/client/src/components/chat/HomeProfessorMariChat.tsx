@@ -175,7 +175,7 @@ import {
   resolveProfessorMariContextBudget,
   type ProfessorMariContextBudget,
 } from "../../lib/professor-mari-context-budget";
-import { applyInlineMarkdown, renderMarkdownBlocks } from "../../lib/markdown";
+import { renderCompactInline, renderMarkdownBlocks } from "../../lib/markdown";
 import { useCodeBlockCopy } from "../../hooks/use-code-block-copy";
 import { rafThrottle } from "../../lib/raf-throttle";
 import { prepareImageAttachment } from "../../lib/chat-attachment-images";
@@ -1364,13 +1364,6 @@ function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
     return { eyebrow: "Files", title: "Listing folder", detail, tone: "file" };
   }
   return { eyebrow: "Tool", title: name, detail, tone: "generic" };
-}
-
-function renderCompactInline(text: string, keyPrefix: string): ReactNode[] {
-  return text.split("\n").flatMap((line, index) => {
-    const nodes = applyInlineMarkdown(line, `${keyPrefix}-${index}`);
-    return index === 0 ? nodes : [<br key={`${keyPrefix}-br-${index}`} />, ...nodes];
-  });
 }
 
 /** While Mari streams, each new word mounts in its own span and blurs in; words already shown keep their key. */

@@ -50,7 +50,13 @@ import {
   buildProfessorMariCommandCenterContext,
   inferProfessorMariCommandCenterCapability,
 } from "../../packages/client/src/lib/professor-mari-command-center-context.js";
-import { OmnibarAsideAnswerCache, stripStrayMarkdown } from "../../packages/client/src/lib/omnibar-aside-text.js";
+import {
+  OMNIBAR_ASIDE_DELAY_CHOICES_MS,
+  OMNIBAR_ASIDE_DELAY_MS,
+  OmnibarAsideAnswerCache,
+  omnibarAsideHandoffAnswer,
+  stripStrayMarkdown,
+} from "../../packages/client/src/lib/omnibar-aside-text.js";
 import { professorMariContextFacets } from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
@@ -900,6 +906,21 @@ console.info("Command Center regression checks passed.");
   assert.equal(stripStrayMarkdown("- one\n- two"), "one\ntwo");
   assert.equal(stripStrayMarkdown("1. first\n2. second"), "first\nsecond");
   assert.equal(stripStrayMarkdown("Plain sentence, nothing to strip."), "Plain sentence, nothing to strip.");
+}
+
+{
+  // G4: escalating after the one follow-up carries the whole exchange, not only the last answer.
+  assert.equal(omnibarAsideHandoffAnswer("It controls randomness."), "It controls randomness.");
+  assert.equal(
+    omnibarAsideHandoffAnswer("Lower it to 0.7.", {
+      question: " what should I set it to? ",
+      previousAnswer: "It controls randomness.\n",
+    }),
+    "It controls randomness.\n\nFollow-up: what should I set it to?\nLower it to 0.7.",
+  );
+  // G5: the idle delay is a user-facing knob (R23) whose default is one of its choices.
+  assert.equal(OMNIBAR_ASIDE_DELAY_MS, 3_000);
+  assert.ok((OMNIBAR_ASIDE_DELAY_CHOICES_MS as readonly number[]).includes(OMNIBAR_ASIDE_DELAY_MS));
 }
 
 {

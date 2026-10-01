@@ -10864,6 +10864,10 @@ html[data-marinara-reduced-effects="true"] .omnibar-row-expansion {
   color: var(--primary-foreground);
 }
 
+.omnibar-settings-menu__segmented button:disabled {
+  opacity: 0.5;
+}
+
 .omnibar-settings-menu__heading {
   padding: 0.3rem 0.45rem 0.15rem;
   color: var(--muted-foreground);

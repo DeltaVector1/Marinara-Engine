@@ -65,6 +65,7 @@ import { useLorebookEntrySearch, useLorebooks, useLorebookEntries, useUpdateLore
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
 import { useOmnibarAside } from "../../hooks/use-omnibar-aside";
+import { omnibarAsideHandoffAnswer } from "../../lib/omnibar-aside-text";
 import { expandChoiceRows, readChoiceOptionId } from "../../lib/omnibar-choice-rows";
 import { useMariApprovals } from "../../hooks/use-mari-approvals";
 import { getCharacterDisplayIdentity } from "../../lib/character-display";
@@ -1487,6 +1488,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // Only these two states carry an answer worth escalating (R25); "thinking"
   // has no text yet and "error" offers retry/choose-model instead.
   const asideLive = asideState.status === "streaming" || asideState.status === "complete";
+  // The idle countdown is silent; every later state grows inside the promoted Ask row (R9).
+  const asideShown = asideState.status !== "idle" && asideState.status !== "waiting";
   // The things a finished answer names, offered as one-click destinations under it.
   const asideLinks = useMemo(
     () => (asideState.status === "complete" ? findMentionedResults(asideState.answer, allLocalResults) : []),
@@ -1918,6 +1921,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         openProfessorMari(null, {
           reviewPending: (mariWorkspaceStatus.data?.pendingApprovals.length ?? 0) > 0,
         });
+      } else if (asideLive) {
+        // The answer grew inside this row, so continuing carries it along (G3).
+        escalateAside();
       } else {
         // The row reads "Ask Mari: <your query>", so it sends. Enter always did;
         // click used to open with the text unsent, which no title promised.
@@ -2070,8 +2076,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       if (activeResult.control?.type === "toggle") activeResult.control.onChange(activeResult.control.value !== true);
       else if (activeResult.control?.type === "choice")
         setExpandedChoiceId((current) => (current === activeResult.id ? null : activeResult.id));
-      else if (mariEnabled && activeResult.id === "ask-professor-mari") openProfessorMari(null, { submitDraft: true });
-      else choose(activeResult);
+      else if (mariEnabled && activeResult.id === "ask-professor-mari") {
+        // An answer grown inside the promoted row goes along with the question (G3).
+        if (asideLive && activeResult.group !== "continue") escalateAside();
+        else openProfessorMari(null, { submitDraft: true });
+      } else choose(activeResult);
     } else if (pane === "results" && event.key === "ArrowLeft" && activeResult && expandedPreviewId) {
       event.preventDefault();
       setExpandedPreviewId(null);
@@ -2234,10 +2243,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     result?.id === "ask-professor-mari" ? result.group !== "continue" : isMariInstruction(query, result?.title);
   const askMariAbout = (result: RankedOmnibarResult | null) =>
     openProfessorMari(result, { submitDraft: mariSends(result) });
-  /** R25: `⌘↵` with the aside answering takes its query and answer into the full agent. */
-  const escalateAside = () => {
+  /**
+   * R25: `⌘↵` with the aside answering takes its query and answer into the full agent.
+   * From the follow-up line, the question typed there is what Mari is asked.
+   */
+  const escalateAside = (question?: string) => {
     if (!asideLive) return;
-    const draft = asideState.query;
+    const draft = question ?? asideState.query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
     const focusResult = contextResults[0] ?? null;
     rememberMariReturn(focusResult);
@@ -2245,7 +2257,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       buildAskContext(draft, focusResult, {
         // Match the server's zod limits so an over-length aside can't 400 the whole send.
         query: asideState.query.slice(0, 500),
-        answer: asideState.answer.slice(0, 4_000),
+        answer: omnibarAsideHandoffAnswer(asideState.answer, asideState.followUp).slice(0, 4_000),
         tier: asideState.tier,
       }),
       true,
@@ -2539,6 +2551,32 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       })()
     : [];
 
+  // The quick answer, as the expansion of the promoted Ask row: only ever below the selection (R9).
+  const renderAsideAnswer = () => (
+    <Suspense fallback={null}>
+      <OmnibarAside
+        state={asideState}
+        connectionName={asideConnectionName}
+        disclosed={asideDisclosed}
+        onDisclose={() => setAsideDisclosed(true)}
+        onDisable={() => {
+          setAsideEnabled(false);
+          setAsideDisclosed(true);
+        }}
+        onEscalate={() => escalateAside()}
+        onChooseModel={() => setSettingsOpen(true)}
+        onRetry={asideState.retry}
+        onAnswerAgain={asideState.answerAgain}
+        // One quick follow-up; the question after it goes to full Mari (G4).
+        onFollowUp={(question) => (asideState.followUp ? escalateAside(question) : asideState.askFollowUp(question))}
+        links={asideLinks.map((row) => ({ id: row.id, title: row.title }))}
+        onOpenLink={(id) => {
+          const row = asideLinks.find((item) => item.id === id);
+          if (row) choose(row);
+        }}
+      />
+    </Suspense>
+  );
   // The body of the expanded row, rendered inline under the selected row.
   const renderResultPreview = () =>
     previewResult ? (
@@ -2945,7 +2983,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                             selected={selected}
                             onSelect={() => selectResult(result)}
                             onMouseMove={(event) => handleResultMouseMove(result, event)}
-                            expanded={result.id === expandedPreviewId ? renderResultPreview() : undefined}
+                            expanded={
+                              result.id === expandedPreviewId
+                                ? renderResultPreview()
+                                : asideShown &&
+                                    selected &&
+                                    result.id === "ask-professor-mari" &&
+                                    result.group === "professor-suggested"
+                                  ? renderAsideAnswer()
+                                  : undefined
+                            }
                             mediaSrc={preview?.media?.src}
                             mediaKind={preview?.media?.kind}
                             avatarCropStyle={preview?.media?.avatarCropStyle}
@@ -3017,29 +3064,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         )}
-
-        {!mariSurface && !idle ? (
-          <Suspense fallback={null}>
-            <OmnibarAside
-              state={asideState}
-              connectionName={asideConnectionName}
-              disclosed={asideDisclosed}
-              onDisclose={() => setAsideDisclosed(true)}
-              onDisable={() => {
-                setAsideEnabled(false);
-                setAsideDisclosed(true);
-              }}
-              onEscalate={escalateAside}
-              onChooseModel={() => setSettingsOpen(true)}
-              onRetry={asideState.retry}
-              links={asideLinks.map((row) => ({ id: row.id, title: row.title }))}
-              onOpenLink={(id) => {
-                const row = asideLinks.find((item) => item.id === id);
-                if (row) choose(row);
-              }}
-            />
-          </Suspense>
-        ) : null}
 
         {!mariSurface ? (
           <footer className="flex min-h-10 shrink-0 items-center justify-between gap-3 border-t border-[var(--border)] px-3 text-[0.6875rem] text-[var(--muted-foreground)]">

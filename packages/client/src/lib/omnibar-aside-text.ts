@@ -1,8 +1,19 @@
 /**
  * Pure helpers for the omnibar aside answer: a small LRU+TTL cache so retyping
  * the same query does not pay for another call, and a light markdown strip
- * for the rare answer that ignores the plain-text instruction.
+ * for the screen-reader announcement of an answer.
  */
+
+/**
+ * Default idle delay before the aside calls a model.
+ *
+ * A knob, not a constant (R23): too short spends a call on an ordinary typing
+ * pause, too long makes the feature feel absent, and the right value depends on
+ * how fast the user types and how slow their model is. The omnibar settings
+ * offer these choices.
+ */
+export const OMNIBAR_ASIDE_DELAY_MS = 3_000;
+export const OMNIBAR_ASIDE_DELAY_CHOICES_MS = [1_000, 2_000, 3_000, 5_000] as const;
 
 export interface OmnibarAsideCacheEntry {
   answer: string;
@@ -68,4 +79,14 @@ export function stripStrayMarkdown(text: string): string {
     .replace(/`([^`]+)`/g, "$1")
     .replace(/^\s*[-*+]\s+/gm, "")
     .replace(/^\s*\d+\.\s+/gm, "");
+}
+
+/** What escalating to Mari carries: the answer, or the whole exchange once a follow-up was asked. */
+export function omnibarAsideHandoffAnswer(
+  answer: string,
+  followUp?: { question: string; previousAnswer: string },
+): string {
+  return followUp
+    ? `${followUp.previousAnswer.trim()}\n\nFollow-up: ${followUp.question.trim()}\n${answer.trim()}`
+    : answer;
 }

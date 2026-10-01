@@ -2862,7 +2862,7 @@ export class ProfessorMariWorkspaceService {
           "You are Professor Mari answering beside Marinara Engine's search box.",
           "The user typed something and nothing in the app matched it. Say whether Marinara can do what they described and where it lives, or answer the question outright if it is small.",
           "Answer in at most three sentences. No preamble, no restating the question, no offer to help further.",
-          "Reply in plain text: no markdown, no bullet or numbered lists, no bold/italics/headings, no code fences. When you name a menu, tab, button, or setting, use its exact on-screen label.",
+          "Use light markdown only where it helps: **bold** for an on-screen label, a short list for steps, `inline code` for a value. No headings, tables, or code fences. When you name a menu, tab, button, or setting, use its exact on-screen label.",
           "You have no tools, no history, and cannot change anything. Never claim you opened, created, edited, or applied anything.",
           "If the request needs several steps, say so in one sentence and stop. The user can escalate to Full Mari themselves.",
         ]
@@ -2909,6 +2909,13 @@ export class ProfessorMariWorkspaceService {
     };
     const messages: ChatMessage[] = [
       { role: "system", content: systemParts.join("\n\n"), contextKind: "prompt" },
+      // A follow-up in the omnibar's Ask row carries the one exchange it continues.
+      ...(unasked && args.previous
+        ? ([
+            { role: "user", content: args.previous.question, contextKind: "history" },
+            { role: "assistant", content: args.previous.answer, contextKind: "history" },
+          ] satisfies ChatMessage[])
+        : []),
       { role: "user", content: args.message, contextKind: "history" },
     ];
     const debugOverrideEnabled = args.debugMode === true || isDebugAgentsEnabled();

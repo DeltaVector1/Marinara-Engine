@@ -17,6 +17,7 @@ import { LOCAL_SIDECAR_CONNECTION_ID } from "@marinara-engine/shared";
 import { useSidecarStore } from "../../../stores/sidecar.store";
 import { useUIStore } from "../../../stores/ui.store";
 import { MARI_APPEARANCE_PACKS } from "../../../lib/mari-work-animations";
+import { OMNIBAR_ASIDE_DELAY_CHOICES_MS } from "../../../lib/omnibar-aside-text";
 import { cn } from "../../../lib/utils";
 import "../../chat/mari-appearance.css";
 
@@ -121,6 +122,8 @@ export function OmnibarSettingsSheet({
   const setAsideEnabled = useUIStore((state) => state.setOmnibarAsideEnabled);
   const asideConnectionId = useUIStore((state) => state.omnibarAsideConnectionId);
   const setAsideConnectionId = useUIStore((state) => state.setOmnibarAsideConnectionId);
+  const asideDelayMs = useUIStore((state) => state.omnibarAsideDelayMs);
+  const setAsideDelayMs = useUIStore((state) => state.setOmnibarAsideDelayMs);
   const editViewMode = useUIStore((state) => state.mariEditViewMode);
   const setEditViewMode = useUIStore((state) => state.setMariEditViewMode);
   const localModelDownloaded = useSidecarStore((state) => state.modelDownloaded);
@@ -241,6 +244,29 @@ export function OmnibarSettingsSheet({
             )}
           </p>
         ) : null}
+        <div className="omnibar-settings-menu__row">
+          <span className="min-w-0">
+            <span className="omnibar-settings-menu__label">
+              {t("omnibar.settings.aside.delay.label", "Wait before answering")}
+            </span>
+            <span className="omnibar-settings-menu__description">
+              {t("omnibar.settings.aside.delay.description", "How long you stop typing before Mari answers.")}
+            </span>
+          </span>
+          <span className="omnibar-settings-menu__segmented">
+            {OMNIBAR_ASIDE_DELAY_CHOICES_MS.map((delayMs) => (
+              <button
+                key={delayMs}
+                type="button"
+                aria-pressed={asideDelayMs === delayMs}
+                disabled={!asideEnabled}
+                onClick={() => setAsideDelayMs(delayMs)}
+              >
+                {t("omnibar.settings.aside.delay.seconds", "{{seconds}} s", { seconds: delayMs / 1_000 })}
+              </button>
+            ))}
+          </span>
+        </div>
 
         <div role="separator" />
         <p className="omnibar-settings-menu__heading">{t("omnibar.settings.mari.heading", "Professor Mari")}</p>

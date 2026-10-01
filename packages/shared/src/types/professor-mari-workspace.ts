@@ -146,6 +146,11 @@ export interface ProfessorMariQuickPromptRequest {
    * payload carries a label, never a kind or an id.
    */
   resourceLabel?: string;
+  /**
+   * The one earlier exchange a follow-up in the omnibar's Ask row continues.
+   * Unasked calls only; a third question goes to full Mari instead.
+   */
+  previous?: { question: string; answer: string };
 }
 
 export interface ProfessorMariQuickMetadata {
