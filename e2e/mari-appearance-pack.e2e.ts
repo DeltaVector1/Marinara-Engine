@@ -1,0 +1,81 @@
+import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { seedUIState } from "./ui-state-fixture.js";
+
+test("Golden and Safari Mari are selectable without achievements and survive reload", async ({ page }, testInfo) => {
+  const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+  await page.addInitScript((appVersion) => {
+    localStorage.setItem("marinara:whats-new:seen-version", appVersion);
+  }, version);
+  await seedUIState(
+    page,
+    {
+      hasCompletedOnboarding: true,
+      professorMariNavigationEnabled: false,
+      rightPanelOpen: false,
+      sidebarOpen: false,
+    },
+    "if-missing",
+  );
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("response", (response) => {
+    if (/\/sprites\/mari\/(golden|safari)\//.test(response.url()) && response.status() >= 400) {
+      errors.push(`${response.status()} ${response.url()}`);
+    }
+  });
+  await page.goto("/");
+  await page
+    .locator("main")
+    .first()
+    .click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+k");
+  const omnibar = page.locator('[data-component="GlobalOmnibar"]');
+  await omnibar.getByRole("button", { name: "Omnibar settings", exact: true }).click();
+  const packs = omnibar.getByRole("radiogroup", { name: "Mari appearance" });
+  await expect(packs.getByRole("radio")).toHaveCount(4);
+  const golden = packs.getByRole("radio", { name: /^Golden Mari/ });
+  await expect(golden).toBeEnabled();
+  await golden.check();
+  await expect(golden).toBeChecked();
+  const safari = packs.getByRole("radio", { name: /^Safari Mari/ });
+  await expect(safari).toBeEnabled();
+  await safari.check();
+  await expect(safari).toBeChecked();
+  for (const width of [390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await safari.scrollIntoViewIfNeeded();
+    await expect(safari).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`mari-packs-${width}.png`) });
+  }
+  await page.reload();
+  await page
+    .locator("main")
+    .first()
+    .click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+k");
+  await expect(omnibar.locator('img[src="/sprites/mari/safari/portrait-idle.png"]').first()).toBeVisible();
+  await expect(omnibar.locator('img[src="/sprites/mari/safari/portrait-idle.png"]').first()).toHaveJSProperty(
+    "naturalWidth",
+    512,
+  );
+  await omnibar.getByRole("button", { name: "Omnibar settings", exact: true }).click();
+  await expect(safari).toBeChecked();
+  await golden.check();
+  await page.reload();
+  await page
+    .locator("main")
+    .first()
+    .click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+k");
+  await expect(omnibar.locator('img[src="/sprites/mari/golden/portrait-idle.png"]').first()).toBeVisible();
+  await expect(omnibar.locator('img[src="/sprites/mari/golden/portrait-idle.png"]').first()).toHaveJSProperty(
+    "naturalWidth",
+    512,
+  );
+  await omnibar.getByRole("button", { name: "Omnibar settings", exact: true }).click();
+  await expect(golden).toBeChecked();
+  await packs.getByRole("radio", { name: /^Basic/ }).check();
+  await expect(packs.getByRole("radio", { name: /^Basic/ })).toBeChecked();
+  expect(errors).toEqual([]);
+});

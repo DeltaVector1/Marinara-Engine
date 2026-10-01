@@ -75,6 +75,40 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
       MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/dottore/${id}.png` }]),
     ) as Record<MariStoryState, MariWorkAnimation>,
   },
+  {
+    id: "golden",
+    label: "Golden Mari",
+    description:
+      "Shiny gold, a larger-than-life Chad expression and twelve golden stories. Shared by the workspace, omnibar and top bar.",
+    portraits: {
+      idle: "/sprites/mari/golden/portrait-idle.png",
+      blink: "/sprites/mari/golden/portrait-blink.png",
+      arrival: "/sprites/mari/golden/idle.png",
+      map: "/sprites/mari/golden/portrait-map.png",
+      shrug: "/sprites/mari/golden/portrait-shrug.png",
+      drag: "/sprites/mari/golden/idle.png",
+    },
+    stories: Object.fromEntries(
+      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/golden/${id}.png` }]),
+    ) as Record<MariStoryState, MariWorkAnimation>,
+  },
+  {
+    id: "safari",
+    label: "Safari Mari",
+    description:
+      "Safari gear, jungle discoveries and twelve little expeditions. Shared by the workspace, omnibar and top bar.",
+    portraits: {
+      idle: "/sprites/mari/safari/portrait-idle.png",
+      blink: "/sprites/mari/safari/portrait-blink.png",
+      arrival: "/sprites/mari/safari/idle.png",
+      map: "/sprites/mari/safari/portrait-map.png",
+      shrug: "/sprites/mari/safari/portrait-shrug.png",
+      drag: "/sprites/mari/safari/idle.png",
+    },
+    stories: Object.fromEntries(
+      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/safari/${id}.png` }]),
+    ) as Record<MariStoryState, MariWorkAnimation>,
+  },
 ];
 
 export function getMariAppearancePack(id: unknown): MariAppearancePack {
