@@ -55,6 +55,13 @@ import {
 } from "../../hooks/use-chats";
 import { useGlobalChatSearch } from "../../hooks/use-chat-insights";
 import { openGlobalSearch } from "../../lib/chat-insights";
+import {
+  requestChatLorebookEntriesOpen,
+  requestChatPeekPrompt,
+  requestChatRegenerate,
+  requestChatSearchOpen,
+  requestChatSummaryOpen,
+} from "../../lib/chat-floating-ui-events";
 import { useDebouncedValue } from "../../hooks/use-debounced-value";
 import { useConnections } from "../../hooks/use-connections";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
@@ -1894,6 +1901,31 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         ui().openLorebookDetail(action.lorebookId, { initialTab: "entries", initialEntryId: action.entryId });
         recordUse(result.id);
         onClose();
+        return;
+      case "open-chat-tool":
+        recordUse(result.id);
+        onClose();
+        // After the dialog unmounts, so the panel it opens can anchor to a button
+        // that is actually visible on screen again.
+        requestAnimationFrame(() => {
+          switch (action.tool) {
+            case "summary":
+              requestChatSummaryOpen(action.chatId);
+              return;
+            case "lorebook":
+              requestChatLorebookEntriesOpen(action.chatId);
+              return;
+            case "search":
+              requestChatSearchOpen(action.chatId);
+              return;
+            case "peek-prompt":
+              requestChatPeekPrompt(action.chatId);
+              return;
+            case "regenerate":
+              requestChatRegenerate(action.chatId);
+              return;
+          }
+        });
         return;
     }
   };

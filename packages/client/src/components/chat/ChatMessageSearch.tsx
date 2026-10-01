@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
 import { useChatMessageSearchSource } from "../../hooks/use-chats";
-import { CHAT_FLOATING_UI_DISMISS_EVENT } from "../../lib/chat-floating-ui-events";
+import { CHAT_FLOATING_UI_DISMISS_EVENT, CHAT_SEARCH_OPEN_REQUEST_EVENT } from "../../lib/chat-floating-ui-events";
 import { isMessageHiddenFromUser } from "../../lib/chat-message-visibility";
 import { cn } from "../../lib/utils";
 import { useChatStore } from "../../stores/chat.store";
@@ -91,6 +91,19 @@ export function ChatMessageSearch({ chatId }: { chatId: string }) {
     setOpen(false);
     setQuery("");
     setView("search");
+  }, [chatId]);
+
+  useLayoutEffect(() => {
+    const handleOpenRequest = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      if ((event.detail as { chatId?: unknown } | null)?.chatId !== chatId) return;
+      const button = buttonRef.current;
+      if (!button || button.getBoundingClientRect().width <= 0) return;
+      setView("search");
+      setOpen(true);
+    };
+    window.addEventListener(CHAT_SEARCH_OPEN_REQUEST_EVENT, handleOpenRequest);
+    return () => window.removeEventListener(CHAT_SEARCH_OPEN_REQUEST_EVENT, handleOpenRequest);
   }, [chatId]);
 
   useLayoutEffect(() => {

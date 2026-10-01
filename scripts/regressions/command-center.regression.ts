@@ -27,6 +27,7 @@ import {
   isDirectActiveChatAction,
   parseOmnibarIntent,
   searchOmnibar,
+  type OmnibarResult,
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
@@ -1348,4 +1349,97 @@ console.info("Command Center regression checks passed.");
   });
   const updatedFact = row?.preview().facts.find((fact) => fact.label === "Last updated");
   assert.equal(updatedFact?.value, "5m ago", "relative time, not an absolute date");
+}
+
+{
+  // K3: on the chat surface, rows reach the existing Summary, Active lorebook
+  // entries, Peek prompt, Search this chat and Regenerate UI. Continue already
+  // reaches the chat through the idle "/continue" slash row, so it gets no new
+  // row here.
+  const t = ((key: string, fallback: string) => fallback) as never;
+  const roleplayChat: Chat = {
+    id: "chat-1",
+    name: "A story so far",
+    mode: "roleplay",
+    characterIds: [],
+    groupId: null,
+    personaId: null,
+    personaCharacterId: null,
+    promptPresetId: null,
+    connectionId: null,
+    connectedChatId: null,
+    folderId: null,
+    sortOrder: 0,
+    lastMessageAt: null,
+    createdAt: "2026-09-01T00:00:00.000Z",
+    updatedAt: "2026-09-01T00:00:00.000Z",
+    metadata: { summary: null },
+  };
+  const conversationChat: Chat = { ...roleplayChat, mode: "conversation" };
+  const toolBaseInput = {
+    activeChatId: "chat-1",
+    activeEditorField: null,
+    agents: undefined,
+    allLocalResults: [],
+    characterNameById: new Map<string, string>(),
+    connectionById: new Map(),
+    lastAppError: null,
+    lorebooks: undefined,
+    mariEnabled: false,
+    omnibarSuggestionsEnabled: false,
+    openAgentId: null,
+    openCharacterId: null,
+    openConnectionId: null,
+    openLorebookId: null,
+    openPersonaId: null,
+    openPresetId: null,
+    personaById: new Map(),
+    personas: undefined,
+    presets: undefined,
+    t,
+  };
+  const toolIds = (rows: OmnibarResult[]) =>
+    rows.filter((row) => row.id.startsWith("chat-tool:")).map((row) => row.id);
+
+  const roleplayOnChatSurface = buildOmnibarContextResults({
+    ...toolBaseInput,
+    activeChat: roleplayChat,
+    surface: "chat",
+  });
+  assert.deepEqual(
+    toolIds(roleplayOnChatSurface),
+    [
+      "chat-tool:search:chat-1",
+      "chat-tool:lorebook:chat-1",
+      "chat-tool:peek-prompt:chat-1",
+      "chat-tool:summary:chat-1",
+      "chat-tool:regenerate:chat-1",
+    ],
+    "roleplay on the chat surface gets all five tool rows, Summary included",
+  );
+  const summaryRow = roleplayOnChatSurface.find((row) => row.id === "chat-tool:summary:chat-1");
+  assert.deepEqual(summaryRow?.action, { kind: "open-chat-tool", chatId: "chat-1", tool: "summary" });
+
+  const conversationOnChatSurface = buildOmnibarContextResults({
+    ...toolBaseInput,
+    activeChat: conversationChat,
+    surface: "chat",
+  });
+  assert.deepEqual(
+    toolIds(conversationOnChatSurface),
+    [
+      "chat-tool:search:chat-1",
+      "chat-tool:lorebook:chat-1",
+      "chat-tool:peek-prompt:chat-1",
+      "chat-tool:regenerate:chat-1",
+    ],
+    "conversation mode has no Summary feature, so no Summary row",
+  );
+
+  const roleplayOffChatSurface = buildOmnibarContextResults({
+    ...toolBaseInput,
+    activeChat: roleplayChat,
+    surface: "home",
+  });
+  assert.deepEqual(toolIds(roleplayOffChatSurface), [], "tool rows only show on the chat surface");
 }

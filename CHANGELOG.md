@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- While a chat is open, the omnibar now offers Search this chat, Active lorebook entries, Peek prompt, Summary (roleplay) and Regenerate reply as rows that open or run the existing chat tool directly, instead of leaving them reachable only from the chat's own toolbar.
 - A chat row's expanded omnibar preview now shows "5m ago" or "3d ago" instead of a calendar date, so you can tell how fresh a chat is at a glance.
 - A failed reply now leads the omnibar with a "Fix: Generate reply failed" row, the same as a failed connection test, and clears once the next reply succeeds; taking it to Professor Mari hands her the error, not just a generic search.
 - Professor Mari's change reviews now all read the same calm way and sit inside the reply that made them, before "Worked for", instead of after the whole conversation. Lorebook entries and new records get the one-line summary that opens to tracked changes too; keys, tags and short values show as − and + chips, and switches as one line such as "+Case sensitive −Whole words". "Show exact changes" opens the line-by-line diff, and Raw is a single toggle. A delete is now a quiet card with a red Delete and a "Put it back" link instead of a pink Keep button.

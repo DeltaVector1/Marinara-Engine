@@ -112,7 +112,12 @@ import {
 } from "../../lib/tts-autoplay";
 import { CHAT_SCROLL_TO_BOTTOM_EVENT, type ChatScrollToBottomDetail } from "../../lib/chat-scroll-events";
 import { CHAT_RESOURCE_AGENT_SETUP_EVENT } from "../../lib/chat-resource-drag";
-import { blurActiveChatFloatingUiControl, CHAT_FLOATING_UI_DISMISS_EVENT } from "../../lib/chat-floating-ui-events";
+import {
+  blurActiveChatFloatingUiControl,
+  CHAT_FLOATING_UI_DISMISS_EVENT,
+  CHAT_PEEK_PROMPT_REQUEST_EVENT,
+  CHAT_REGENERATE_REQUEST_EVENT,
+} from "../../lib/chat-floating-ui-events";
 import {
   CHAT_TOOLBAR_ACTION_EVENT,
   readAnnouncedChatToolbarPanelAction,
@@ -2364,6 +2369,27 @@ const LocalChatArea = memo(function LocalChatArea() {
     }
     return null;
   }, [messages]);
+
+  useEffect(() => {
+    if (!activeChatId) return;
+    const handlePeekPromptRequest = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      if ((event.detail as { chatId?: unknown } | null)?.chatId !== activeChatId) return;
+      handlePeekPrompt();
+    };
+    const handleRegenerateRequest = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      if ((event.detail as { chatId?: unknown } | null)?.chatId !== activeChatId) return;
+      if (!latestAssistantMessageForSwipes) return;
+      void handleRegenerate(latestAssistantMessageForSwipes.id, { skipTouchConfirm: true });
+    };
+    window.addEventListener(CHAT_PEEK_PROMPT_REQUEST_EVENT, handlePeekPromptRequest);
+    window.addEventListener(CHAT_REGENERATE_REQUEST_EVENT, handleRegenerateRequest);
+    return () => {
+      window.removeEventListener(CHAT_PEEK_PROMPT_REQUEST_EVENT, handlePeekPromptRequest);
+      window.removeEventListener(CHAT_REGENERATE_REQUEST_EVENT, handleRegenerateRequest);
+    };
+  }, [activeChatId, handlePeekPrompt, handleRegenerate, latestAssistantMessageForSwipes]);
 
   const latestMessageForEdit = useMemo(() => {
     if (!messages) return null;

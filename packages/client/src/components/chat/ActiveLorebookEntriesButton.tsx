@@ -4,7 +4,11 @@ import { BookOpen, Loader2 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useActiveLorebookEntries } from "../../hooks/use-lorebooks";
 import { useUIStore } from "../../stores/ui.store";
-import { CHAT_FLOATING_UI_DISMISS_EVENT, isDesktopShellNavigationTarget } from "../../lib/chat-floating-ui-events";
+import {
+  CHAT_FLOATING_UI_DISMISS_EVENT,
+  CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT,
+  isDesktopShellNavigationTarget,
+} from "../../lib/chat-floating-ui-events";
 import { NEUTRAL_PANEL_SCROLL_AREA, NEUTRAL_PANEL_SHELL } from "../ui/neutral-surface-styles";
 import {
   CHAT_FLOATING_PANEL_SELECTOR,
@@ -170,6 +174,20 @@ export function ActiveLorebookEntriesButton({
     window.addEventListener(CHAT_FLOATING_UI_DISMISS_EVENT, handleDismiss);
     return () => window.removeEventListener(CHAT_FLOATING_UI_DISMISS_EVENT, handleDismiss);
   }, [open]);
+
+  useLayoutEffect(() => {
+    if (!chatId) return;
+    const handleOpenRequest = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      if ((event.detail as { chatId?: unknown } | null)?.chatId !== chatId) return;
+      const button = buttonRef.current;
+      if (!button || button.getBoundingClientRect().width <= 0) return;
+      setMobileAnchor(isMobile ? readChatToolbarFloatingPanelAnchor(button) : null);
+      setOpen(true);
+    };
+    window.addEventListener(CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT, handleOpenRequest);
+    return () => window.removeEventListener(CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT, handleOpenRequest);
+  }, [chatId, isMobile]);
 
   if (!chatId) return null;
 

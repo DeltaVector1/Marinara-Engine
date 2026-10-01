@@ -58,6 +58,7 @@ import { cn } from "../../lib/utils";
 import { useRenderTimer } from "../../lib/perf-diagnostics";
 import {
   CHAT_FLOATING_UI_DISMISS_EVENT,
+  CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT,
   CHAT_SUMMARY_OPEN_REQUEST_EVENT,
   isDesktopShellNavigationTarget,
 } from "../../lib/chat-floating-ui-events";
@@ -683,6 +684,23 @@ function ActiveContextLinksButton({
     window.addEventListener(CHAT_FLOATING_UI_DISMISS_EVENT, handleDismiss);
     return () => window.removeEventListener(CHAT_FLOATING_UI_DISMISS_EVENT, handleDismiss);
   }, [open]);
+
+  useLayoutEffect(() => {
+    const chatId = chat?.id;
+    if (!chatId) return;
+    const handleOpenRequest = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      if ((event.detail as { chatId?: unknown } | null)?.chatId !== chatId) return;
+      const button = buttonRef.current;
+      if (!button || button.getBoundingClientRect().width <= 0) return;
+      const mobile = window.innerWidth < 768;
+      setMobileFrame(mobile ? getMobileFloatingPanelFrame(button, 320) : null);
+      setDesktopAnchor(mobile ? null : readChatToolbarFloatingPanelAnchor(button));
+      setOpen(true);
+    };
+    window.addEventListener(CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT, handleOpenRequest);
+    return () => window.removeEventListener(CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT, handleOpenRequest);
+  }, [chat?.id]);
 
   if (!chat) return null;
 

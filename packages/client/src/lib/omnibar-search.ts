@@ -49,7 +49,12 @@ export type OmnibarAction =
       modal: "create-character" | "create-persona" | "create-lorebook" | "create-preset";
       name: string;
     }
-  | { kind: "start-character-chat"; characterId: string; characterName: string };
+  | { kind: "start-character-chat"; characterId: string; characterName: string }
+  | {
+      kind: "open-chat-tool";
+      chatId: string;
+      tool: "summary" | "lorebook" | "peek-prompt" | "search" | "regenerate";
+    };
 
 export type OmnibarResult = {
   id: string;
