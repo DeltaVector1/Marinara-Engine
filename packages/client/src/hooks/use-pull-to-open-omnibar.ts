@@ -1,13 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent as ReactMouseEvent,
-  type PointerEvent as ReactPointerEvent,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { animate, cancelFrame, frame, motionValue, useReducedMotion, type MotionValue } from "framer-motion";
-import { isModalOverlayOpen } from "../lib/modal-overlay-registry";
 import {
   PULL_CIRCLE_MAX,
   PULL_CIRCLE_MIN,
@@ -58,12 +50,12 @@ const HANDOFF_TIMEOUT_MS = 1500;
 /** The magnifier's size in px at the circle's full radius (see `OmnibarPullDrop`). */
 export const PULL_ICON_SIZE = 26;
 
+// L8 (slice 28b) deliberately dropped slice 15's "no pull under a modal" guard:
+// the omnibar now opens ON TOP of any dialog, and Escape hands focus back to it.
 function pullBlocked() {
   const ui = useUIStore.getState();
   return (
     !isMobileShellViewport() ||
-    Boolean(ui.modal) ||
-    isModalOverlayOpen() ||
     ui.omnibarOpen ||
     document.documentElement.hasAttribute("data-mari-software-keyboard-open")
   );
@@ -85,6 +77,17 @@ function go(value: MotionValue<number>, to: number, [stiffness, damping]: Spring
     restSpeed: 0.05,
   });
 }
+
+/** What the gesture reads from a pointer event: a React one from the bar, or a native one from the document. */
+type PullPointerEvent = Pick<
+  PointerEvent,
+  "pointerId" | "pointerType" | "isPrimary" | "clientX" | "clientY" | "timeStamp"
+> & {
+  currentTarget: EventTarget | null;
+};
+
+/** Marks the bar and the safe-area strip, whose own handlers take their touches. */
+const PULL_ZONE_ATTRIBUTE = "data-mari-pull-zone";
 
 /** Elements of the overlay, filled in by `OmnibarPullDrop`. */
 export interface PullDropElements {
@@ -490,7 +493,7 @@ export function usePullToOpenOmnibar({
   );
 
   const onPointerDown = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
+    (event: PullPointerEvent) => {
       swallowClickRef.current = false;
       if (g.recognizer) {
         // A second finger is not a pull.
@@ -510,7 +513,7 @@ export function usePullToOpenOmnibar({
   );
 
   const onPointerMove = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
+    (event: PullPointerEvent) => {
       const recognizer = g.recognizer;
       if (!recognizer || g.pointerId !== event.pointerId) return;
       const before = recognizer.step;
@@ -528,7 +531,7 @@ export function usePullToOpenOmnibar({
         // From here on the gesture is ours: a pull that began on a button must
         // not press it or start the Home long-press.
         try {
-          event.currentTarget.setPointerCapture(event.pointerId);
+          if (event.currentTarget instanceof Element) event.currentTarget.setPointerCapture(event.pointerId);
         } catch {
           // The pointer is already gone (or synthetic); moves still bubble here.
         }
@@ -596,7 +599,7 @@ export function usePullToOpenOmnibar({
   );
 
   const onPointerUp = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
+    (event: PullPointerEvent) => {
       const recognizer = g.recognizer;
       if (!recognizer || g.pointerId !== event.pointerId) return;
       if (!recognizer.release(event.timeStamp)) {
@@ -617,19 +620,67 @@ export function usePullToOpenOmnibar({
   );
 
   const onPointerCancel = useCallback(
-    (event: ReactPointerEvent<HTMLElement>) => {
+    (event: PullPointerEvent) => {
       if (g.recognizer && g.pointerId === event.pointerId) snapBack();
     },
     [g, snapBack],
   );
 
-  const onClickCapture = useCallback((event: ReactMouseEvent<HTMLElement>) => {
+  const onClickCapture = useCallback((event: Pick<MouseEvent, "preventDefault" | "stopPropagation">) => {
     if (!swallowClickRef.current) return;
     swallowClickRef.current = false;
     event.preventDefault();
     event.stopPropagation();
   }, []);
 
+  // L8: a dialog or the game setup wizard covers the bar, so a pull that starts
+  // on the bar's strip lands on the overlay instead. Follow those touches on the
+  // document; touch pointers stay captured to where they started, so a pull on
+  // the bar itself never reaches these listeners.
+  useEffect(() => {
+    const covered = (event: Event) =>
+      !(event.target instanceof Element && event.target.closest(`[${PULL_ZONE_ATTRIBUTE}]`));
+    const down = (event: PointerEvent) => {
+      // Any new press ends the swallow, so a pull without a click after it never eats the next tap.
+      swallowClickRef.current = false;
+      if (event.pointerType !== "touch" || !covered(event)) return;
+      const bar = document.querySelector('[data-component="TopBar"]');
+      if (bar && event.clientY <= bar.getBoundingClientRect().bottom) onPointerDown(event);
+    };
+    const move = (event: PointerEvent) => covered(event) && onPointerMove(event);
+    const up = (event: PointerEvent) => covered(event) && onPointerUp(event);
+    const cancel = (event: PointerEvent) => covered(event) && onPointerCancel(event);
+    const click = (event: MouseEvent) => covered(event) && onClickCapture(event);
+    // The overlay would scroll under the pull and cancel the pointer.
+    const touchMove = (event: TouchEvent) => {
+      if (g.recognizer && covered(event)) event.preventDefault();
+    };
+    document.addEventListener("pointerdown", down, true);
+    document.addEventListener("pointermove", move, true);
+    document.addEventListener("pointerup", up, true);
+    document.addEventListener("pointercancel", cancel, true);
+    document.addEventListener("click", click, true);
+    document.addEventListener("touchmove", touchMove, { capture: true, passive: false });
+    return () => {
+      document.removeEventListener("pointerdown", down, true);
+      document.removeEventListener("pointermove", move, true);
+      document.removeEventListener("pointerup", up, true);
+      document.removeEventListener("pointercancel", cancel, true);
+      document.removeEventListener("click", click, true);
+      document.removeEventListener("touchmove", touchMove, true);
+    };
+  }, [g, onClickCapture, onPointerCancel, onPointerDown, onPointerMove, onPointerUp]);
+
   const visuals: PullDropVisuals = { shown, labelOnly, target, armed, els };
-  return { handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onClickCapture }, visuals };
+  return {
+    handlers: {
+      [PULL_ZONE_ATTRIBUTE]: "",
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      onClickCapture,
+    },
+    visuals,
+  };
 }

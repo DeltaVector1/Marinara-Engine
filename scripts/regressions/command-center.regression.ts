@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync, readdirSync } from "node:fs";
 import {
   COMMAND_CENTER_MAX_RESULTS,
   isOmnibarShortcut,
@@ -1857,6 +1858,62 @@ assert.ok(!("mariDetailId" in mariSession));
     () => guardRawMessageTableWrite("characters"),
     "the guard must not block writes to unrelated tables",
   );
+}
+
+// L8 (slice 28b): the omnibar and Mari sit above every app overlay through ONE layer,
+// `--mari-layer-omnibar`. No other numeric z-index in the client may reach it, except a few
+// deliberate, known exceptions above it: user extension windows/menus (they sit near 2^31 and
+// above the sonner toaster too, so outranking them would need the toaster moved as well), Mari's
+// end-of-run sprite puff, and the touch folder-drag ghost. Sonner's toaster (999999999) stays above
+// the layer so Undo toasts remain visible over the omnibar.
+{
+  const clientSource = (relativePath: string) =>
+    readFileSync(new URL(`../../packages/client/src/${relativePath}`, import.meta.url), "utf8");
+  const layer = Number(/--mari-layer-omnibar:\s*(\d+);/u.exec(clientSource("styles/globals.css"))?.[1]);
+  assert.ok(layer > 10_050, "the omnibar layer must clear the highest app overlay (the chat help overlay)");
+  assert.ok(layer < 999_999_999, "the sonner toaster (999999999) must stay above the omnibar layer");
+  const aboveLayerAllowed = new Set([
+    "components/layout/PersonalExtensionContributionsMenu.tsx",
+    "components/layout/PersonalExtensionInjector.tsx",
+    "styles/globals.css", // .mari-sprite-ghost
+    "hooks/use-touch-folder-drag.ts",
+  ]);
+  const files = readdirSync(new URL("../../packages/client/src/", import.meta.url), {
+    recursive: true,
+    encoding: "utf8",
+  }).filter((file) => /\.(tsx?|css)$/u.test(file));
+  const offenders = files.flatMap((file) => {
+    if (aboveLayerAllowed.has(file.replaceAll("\\", "/"))) return [];
+    const source = clientSource(file);
+    return [...source.matchAll(/z-\[(\d+)\]|zIndex:\s*"?(\d+)|z-index:\s*(\d+)|Z_INDEX\s*=\s*"?(\d+)/gu)]
+      .map((match) => Number(match[1] ?? match[2] ?? match[3] ?? match[4]))
+      .filter((value) => value >= layer)
+      .map((value) => `${file}: ${value}`);
+  });
+  assert.deepEqual(offenders, [], "a numeric z-index at or above the omnibar layer would cover the omnibar");
+
+  // Slice 15's "no pull under a modal" guard was dropped on purpose (L8): the pull and ⌘K now open
+  // ON TOP of a dialog. The guard must not come back.
+  const pullSource = clientSource("hooks/use-pull-to-open-omnibar.ts");
+  const pullGuard = pullSource.slice(pullSource.indexOf("function pullBlocked"), pullSource.indexOf("const clamp ="));
+  assert.ok(pullGuard.includes("ui.omnibarOpen"), "the pull guard should still be found by this check");
+  assert.doesNotMatch(pullGuard, /isModalOverlayOpen|ui\.modal/u, "the pull must open over a dialog, not stand down");
+  const hostSource = clientSource("components/layout/GlobalOmnibarHost.tsx");
+  const shortcutBranch = hostSource.slice(
+    hostSource.indexOf("if (isOmnibarShortcut(event))"),
+    hostSource.indexOf("isShortcutsHelpKey(event) &&"),
+  );
+  assert.doesNotMatch(shortcutBranch, /isModalOverlayOpen|ui\.modal\b/u, "⌘K must open over a dialog");
+
+  // R22: over the game setup wizard the handoff comes from the game-setup door with the step as a label.
+  const wizardContext = buildProfessorMariCommandCenterContext("how do I pick a model here", null, [], undefined, {
+    field: "Connection",
+    source: "game-setup",
+  });
+  assert.equal(wizardContext.source, "game-setup");
+  assert.equal(wizardContext.field, "Connection");
+  assert.equal(wizardContext.fieldId, undefined, "the wizard step travels as a label, never an id");
+  assert.equal(wizardContext.resource, undefined);
 }
 
 console.info("Command Center regression checks passed.");

@@ -145,7 +145,7 @@ export function ProfessorMariContextControl({
   const totalCount = professorMariContextCount(attachedContextCount, context);
   const panel = (
     <>
-      {mobile && <div className="fixed inset-0 z-[209] bg-black/50" aria-hidden="true" />}
+      {mobile && <div className="fixed inset-0 z-[calc(var(--mari-layer-omnibar)+1)] bg-black/50" aria-hidden="true" />}
       <div
         ref={panelRef}
         id={panelId}
@@ -154,7 +154,7 @@ export function ProfessorMariContextControl({
         aria-labelledby={titleId}
         tabIndex={-1}
         className={cn(
-          "fixed z-[210] flex max-h-[min(28rem,80vh)] flex-col overflow-hidden border border-[var(--border)] bg-[var(--card)] text-left shadow-2xl outline-none",
+          "fixed z-[calc(var(--mari-layer-omnibar)+2)] flex max-h-[min(28rem,80vh)] flex-col overflow-hidden border border-[var(--border)] bg-[var(--card)] text-left shadow-2xl outline-none",
           mobile
             ? "inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] rounded-xl"
             : "w-[min(20rem,calc(100vw-1rem))] rounded-lg",

@@ -50,7 +50,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 26  | Why a lorebook entry did not fire (L4)                          | worker        | Done    | 6991cf90d |
 | 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker        | Done    | f41a106d6 |
 | 28  | Reply-fix review card (L6)                                      | designer      | Done    | 617a47e05 |
-| 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Pending |           |
+| 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Done    |           |
 | 29  | Review of slices 23-28b (L7)                                    | reviewer      | Pending |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
@@ -572,3 +572,12 @@ L-open resolved 2026-10-01: the maintainer decided "Omnibar and Mari should be a
   wizard step as label only (R22) — no new button in the wizard (R29). Proof: e2e at 390 and 1440
   that opens ⌘K over the game setup wizard, a lightbox and a Settings dialog, Escape returns to each;
   pull-to-open over a modal now opens; screenshots dark+light; regression where pure.
+
+  Done 2026-10-02. One layer, `--mari-layer-omnibar: 100000` (`globals.css`), used by the omnibar
+  root, its error panel, the pull overlay (+1), Mari's portalled dialogs/popovers (+1/+2),
+  `HelpTooltip` (+1) and the expanded macro editor (same layer, DOM order). A `Modal` opened while
+  the omnibar is open takes the layer. NOT a slice 15 regression: the "no pull/⌘K under a modal"
+  guard was removed on purpose; covered bars are followed on the document. Skipped:
+  `PersonalExtensionContributionsMenu` (2147482000) and `PersonalExtensionInjector` windows
+  (2147483000) stay above; they already sit above sonner (999999999), so outranking them would mean
+  moving the toaster into the 2^31 range too. The regression pins both exceptions.

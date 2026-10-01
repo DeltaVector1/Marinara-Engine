@@ -57,7 +57,7 @@ function OmnibarErrorPanel({ error, onClose }: { error: unknown; onClose: () => 
     <div
       role="alertdialog"
       aria-label={t("commandCenter.error.title", "The Command Center could not open")}
-      className="fixed inset-0 z-[100] flex items-start justify-center bg-black/55 p-4 backdrop-blur-sm sm:pt-[10vh]"
+      className="fixed inset-0 z-(--mari-layer-omnibar) flex items-start justify-center bg-black/55 p-4 backdrop-blur-sm sm:pt-[10vh]"
     >
       <div className="w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--foreground)] shadow-2xl">
         <h2 className="text-base font-semibold">
@@ -102,14 +102,25 @@ export function GlobalOmnibar() {
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      // A `Modal` (a confirm dialog, say) does not set `ui.modal`, so check the
-      // overlay registry too; the omnibar itself is not a `Modal`.
       const ui = useUIStore.getState();
-      if (event.defaultPrevented || event.isComposing || ui.modal || isModalOverlayOpen()) return;
+      if (event.defaultPrevented || event.isComposing) return;
       if (isOmnibarShortcut(event)) {
+        // L8: ⌘K opens on top of any dialog or the game setup wizard. While the
+        // omnibar is open, a dialog opened above it (a confirm from Mari, say)
+        // keeps the keyboard: ⌘K there does not close the omnibar beneath it.
+        const dialog = event.target instanceof Element ? event.target.closest('[aria-modal="true"]') : null;
+        if (ui.omnibarOpen && dialog && !dialog.closest('[data-component="GlobalOmnibar"]')) return;
         event.preventDefault();
         setOpen(!ui.omnibarOpen);
-      } else if (isShortcutsHelpKey(event) && !ui.omnibarOpen && !isTypingTarget(event.target)) {
+      } else if (
+        isShortcutsHelpKey(event) &&
+        !ui.omnibarOpen &&
+        // A `Modal` (a confirm dialog, say) does not set `ui.modal`, so check
+        // the overlay registry too.
+        !ui.modal &&
+        !isModalOverlayOpen() &&
+        !isTypingTarget(event.target)
+      ) {
         event.preventDefault();
         ui.openModal("keyboard-shortcuts");
       }

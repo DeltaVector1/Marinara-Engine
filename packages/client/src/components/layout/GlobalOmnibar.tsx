@@ -354,6 +354,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // Opened by the pull-to-open gesture, whose circle pops the panel open: skip the
   // pop-in and hand the panel over before the first paint, so it can be clipped.
   const [fromPull] = useState(isPullHandoffPending);
+  // L8: opened over the game setup wizard, the surface is the game setup. The
+  // omnibar covers the wizard, so its step cannot change while this is open.
+  const [gameSetupStep] = useState(
+    () => document.querySelector("[data-game-setup-step]")?.getAttribute("data-game-setup-step") ?? null,
+  );
+  // Read before this dialog commits, so only another dialog (the wizard, a lightbox, a Modal) counts.
+  const [overDialog] = useState(() => document.querySelector('[aria-modal="true"]') !== null);
   useLayoutEffect(() => takePullHandoff()?.(dialogRef.current), []);
   // R33: how far the search field has to fall to land where Mari's composer sits.
   // Measured while the list is still up, because by the time it leaves the field
@@ -1499,20 +1506,25 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // The real surface the user is on, not always "command-center": an open
   // editor or the active chat is a more honest (and more useful) context for
   // the aside's unasked call than the omnibar shell it happens to appear in.
-  const asideSource: ProfessorMariEntryPoint = omnibarContext.openResource
-    ? (`${omnibarContext.openResource.kind}-editor` as ProfessorMariEntryPoint)
-    : omnibarContext.surface === "settings"
-      ? "settings"
+  const asideSource: ProfessorMariEntryPoint = gameSetupStep
+    ? "game-setup"
+    : omnibarContext.openResource
+      ? (`${omnibarContext.openResource.kind}-editor` as ProfessorMariEntryPoint)
+      : omnibarContext.surface === "settings"
+        ? "settings"
+        : omnibarContext.surface === "chat" && activeChat?.id === activeChatId
+          ? "character-chat"
+          : "command-center";
+  // R22: the wizard step is a label only; nothing typed into the wizard is sent.
+  const asideResourceLabel = gameSetupStep
+    ? gameSetupStep
+    : omnibarContext.openResource
+      ? (allLocalResults.find((result) => result.id === omnibarContext.openResource?.resultId)?.title ?? null)
       : omnibarContext.surface === "chat" && activeChat?.id === activeChatId
-        ? "character-chat"
-        : "command-center";
-  const asideResourceLabel = omnibarContext.openResource
-    ? (allLocalResults.find((result) => result.id === omnibarContext.openResource?.resultId)?.title ?? null)
-    : omnibarContext.surface === "chat" && activeChat?.id === activeChatId
-      ? activeChat.name
-      : agentCatalogOpen
-        ? t("omnibar.aside.downloadAgents", "Download Agents")
-        : null;
+        ? activeChat.name
+        : agentCatalogOpen
+          ? t("omnibar.aside.downloadAgents", "Download Agents")
+          : null;
   const asideState = useOmnibarAside({
     query: deferredQuery,
     deadEnd: asideDeadEnd && pane === "results",
@@ -2243,6 +2255,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }
   };
   const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    // L8: the omnibar may sit over a dialog or the game setup wizard. An Escape
+    // pressed inside it (also one a menu or row already handled) is its own, so
+    // it must not reach their document/window listeners and close them too.
+    if (event.key === "Escape" && panelRef.current?.contains(event.target as Node)) event.stopPropagation();
     if (event.defaultPrevented) return;
     if (event.key === "Escape") {
       event.preventDefault();
@@ -2343,8 +2359,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         settingsPanelVisible && (settingsTab || settingsTargetControlId)
           ? { tab: settingsTab ?? undefined, controlId: settingsTargetControlId ?? undefined }
           : undefined,
-      field: activeEditorField?.label,
-      fieldId: activeEditorField?.id,
+      field: gameSetupStep ?? activeEditorField?.label,
+      fieldId: gameSetupStep ? undefined : activeEditorField?.id,
       error: lastAppError ? { message: lastAppError.message, code: lastAppError.code } : undefined,
       // The "fix this" row built from lastAppError is the only row that opens through
       // the chat-error door (R22: unasked Mari calls carry no user content either way).
@@ -2354,7 +2370,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         focusResult?.id ===
           `${lastAppError.retry.kind === "open-agent" ? "agent" : "connection"}:${lastAppError.retry.id}`
           ? "chat-error"
-          : undefined,
+          : gameSetupStep
+            ? "game-setup"
+            : undefined,
       asideAnswer,
     });
   /** Both Mari routes remember the row they left, so returning restores focus. */
@@ -2759,9 +2777,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     <motion.div
       ref={panelRef}
       data-component="GlobalOmnibar"
+      data-over-dialog={overDialog ? "true" : undefined}
       data-pane={pane}
       data-mode={pane === "mari" ? "work" : "find"}
-      className="fixed inset-0 z-[100] flex items-start justify-center bg-black/55 backdrop-blur-sm motion-safe:transition-[padding] motion-safe:duration-300 sm:px-6 sm:pt-[var(--omnibar-top)]"
+      className="fixed inset-0 z-(--mari-layer-omnibar) flex items-start justify-center bg-black/55 backdrop-blur-sm motion-safe:transition-[padding] motion-safe:duration-300 sm:px-6 sm:pt-[var(--omnibar-top)]"
       // An empty bar sits lower, near the middle, so the hint field below it has
       // room; it rides back up as soon as results need the space.
       style={{ "--omnibar-top": idle && !mariSurface ? "26vh" : "10vh" } as React.CSSProperties}

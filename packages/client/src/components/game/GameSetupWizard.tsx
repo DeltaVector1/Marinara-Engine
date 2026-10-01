@@ -1597,6 +1597,7 @@ export function GameSetupWizard({
             ref={panelRef}
             tabIndex={-1}
             data-component="GameSetupWizard"
+            data-game-setup-step={currentStep.title}
             role="dialog"
             aria-modal="true"
             aria-labelledby="game-setup-wizard-title"

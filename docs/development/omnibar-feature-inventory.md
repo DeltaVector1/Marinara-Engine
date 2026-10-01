@@ -312,9 +312,12 @@ This is the part most likely to break silently. All of it must survive.
   as Home's "Ask Professor Mari"), with a 28 px dead zone around the middle so
   the side cannot flicker; with Mari switched off the whole bar opens search.
   Pulling back under 85% of the threshold, a second finger or `pointercancel`
-  cancels it. It never starts while a modal, a `Modal` overlay, the software
-  keyboard or the omnibar itself is open, and a pull that starts on a bar
-  button does not press it. Feedback (`OmnibarPullDrop`, painted once per
+  cancels it. It never starts while the software keyboard or the omnibar itself
+  is open, and a pull that starts on a bar button does not press it. Since L8
+  (slice 28b, deliberate) it does start over a dialog or the game setup wizard:
+  those cover the bar, so a touch that starts in the bar's strip on top of them
+  is followed on the document (the overlay's click is swallowed after a real
+  pull; a plain tap still reaches it), and the omnibar opens on top. Feedback (`OmnibarPullDrop`, painted once per
   frame from framer-motion values, no render per move) is a calm, symmetric
   sheet of the top bar's own surface (`--marinara-topbar-surface` over the app
   background, opaque at the bar, more see-through further down) pulled out of
@@ -350,7 +353,22 @@ This is the part most likely to break silently. All of it must survive.
   two rules below cannot be violated by an expansion.
 - `Tab` accepts the ghost completion when there is one; otherwise it cycles
   focus inside the dialog (the dialog traps focus).
-- `Escape` collapses an expansion, then leaves a takeover, then closes.
+- `Escape` collapses an expansion, then leaves a takeover, then closes. An
+  Escape pressed inside the omnibar never reaches a dialog beneath it.
+- Layering (L8): the omnibar, its Mari pane and Mari's own portalled
+  popovers/dialogs sit on one CSS layer, `--mari-layer-omnibar` (globals.css),
+  above every app overlay: the game setup wizard, lightboxes, `Modal`s,
+  capability screens, the chat help overlay. `⌘K` opens on top of any of them;
+  Escape closes the omnibar first, leaves the dialog intact and returns focus to
+  it. A `Modal` opened while the omnibar is open (a confirm from Mari) takes the
+  same layer and wins by DOM order; `⌘K` inside such a dialog does not close the
+  omnibar under it. Over another dialog the panel gets an opaque backing
+  (`data-over-dialog`). Only the sonner toaster (Undo stays visible) and user
+  extension windows/menus (`PersonalExtension*`, near 2^31) sit higher. The
+  command-center regression fails on any numeric z-index at or above the layer.
+- Over the game setup wizard the surface is the game setup: the quick answer
+  and the Mari handoff use the `game-setup` entry point with the wizard step
+  title as the only label (`data-game-setup-step`, R22).
 - Native browser autocomplete is off on the input, because its popup steals the
   arrow keys.
 - **Hover needs genuinely new screen coordinates.** Keyboard navigation scrolls

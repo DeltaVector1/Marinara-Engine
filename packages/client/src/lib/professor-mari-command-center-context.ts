@@ -62,7 +62,8 @@ export function buildProfessorMariCommandCenterContext(
     error?: { message: string; code?: string };
     asideAnswer?: { query: string; answer: string; tier: "local" | "remote" };
     /** R22/K1: a failed-reply "fix this" row hands off through the chat-error door, not command-center. */
-    source?: "command-center" | "chat-error";
+    /** L8: opened over the game setup wizard, the handoff comes from game-setup (the step rides in `field`). */
+    source?: "command-center" | "chat-error" | "game-setup";
   } = {},
 ): ProfessorMariAskContext {
   const trimmedQuery = query.trim();
