@@ -116,6 +116,13 @@ type Plan = {
   operationHash: string;
   reason: string | null;
   request: ParsedMutationRequest;
+  /**
+   * L5 (#chat.updateMessage): set when this plan's apply went through chat storage's
+   * addSwipe rather than the generic row engine. Restore must undo it the same way —
+   * setActiveSwipe back to the old swipe, then removeSwipe the fixed one — never the
+   * generic restorePlan() raw-row write-back, which never ran for this change.
+   */
+  chatSwipeFix?: { messageId: string; previousIndex: number; newIndex: number };
 };
 type ParsedMutationRequest = {
   kind:
@@ -668,6 +675,16 @@ function serializeRow(table: string, row: Row): Row {
     }
   }
   return out;
+}
+
+// L5: exported for the regression lane (raw mari db writes to messages/message_swipes must be
+// refused, pointing the caller at chat.updateMessage instead).
+export function guardRawMessageTableWrite(table: string | undefined): void {
+  if (table === "messages" || table === "message_swipes") {
+    throw new Error(
+      `Raw mari db writes to "${table}" are refused. Use chat.updateMessage to fix an assistant or narrator reply as a new swipe instead of editing message rows directly.`,
+    );
+  }
 }
 
 function protectPromptPresetSystemKeys(changes: PlanChange[]): void {
@@ -7139,6 +7156,9 @@ export class MariDbService {
     args: Row,
     context: { command: string; sessionId: string; cwd?: string },
   ): Promise<MariDbCommandResult> {
+    // L5: a repair write, not a read — handled on its own path (chat storage's addSwipe +
+    // a bespoke Keep/Restore review), never through the read-only CLI commands below.
+    if (sub === "updatemessage") return this.executeChatUpdateMessage(args, context);
     const argv = [sub];
     const fieldRead = Boolean(firstString(args, ["field"]));
     const addFlag = (flag: string, value: unknown) => {
@@ -7177,6 +7197,97 @@ export class MariDbService {
         returned: result.output.length,
         offset: fieldRead ? 0 : normalizeOffset(firstNumber(args, ["offset"])),
       },
+    };
+  }
+
+  /**
+   * L5: repair an assistant/narrator reply without destroying the original. Reuses chat
+   * storage's addSwipe (messages.ts / message_swipes.ts stay untouched as rows; addSwipe only
+   * inserts a new swipe row and, when not silent, flips the message's activeSwipeIndex to it —
+   * see chats.storage.ts `addSwipe`), so the old reply is always still there as another swipe.
+   * Always produces a Keep/Restore card: the caller (workspace-agent.service.ts commandAppData)
+   * is told to never set reviewPolicy "auto-keep" for this action, and this method does not
+   * consult activeReviewPolicy at all, so a caller mistake upstream can't silently skip review.
+   */
+  private async executeChatUpdateMessage(
+    args: Row,
+    context: { command: string; sessionId: string; cwd?: string },
+  ): Promise<MariDbCommandResult> {
+    const chatId = requiredString(args, ["chatId", "chat_id"], "chat id");
+    const messageId = requiredString(args, ["messageId", "message_id", "id"], "message id");
+    const content = requiredString(args, ["content"], "fixed reply content").trim();
+    if (!content) throw new Error("chat.updateMessage needs non-empty content for the fixed reply.");
+    const reason = firstString(args, ["reason"]) ?? null;
+
+    const chatsStorage = createChatsStorage(this.db);
+    const chat = await chatsStorage.getById(chatId);
+    if (!chat) throw new Error(`Chat ${chatId} not found.`);
+    if (chat.mode === "game") {
+      throw new Error("chat.updateMessage only fixes replies in non-game chats; a game chat's turns are out of scope.");
+    }
+    const message = await chatsStorage.getMessage(messageId);
+    if (!message || message.chatId !== chatId) {
+      throw new Error(`Message ${messageId} was not found in chat ${chatId}.`);
+    }
+    if (message.role !== "assistant" && message.role !== "narrator") {
+      throw new Error("chat.updateMessage can only fix an assistant or narrator reply, not a user message.");
+    }
+
+    const previousIndex = message.activeSwipeIndex ?? 0;
+    const previousContent = message.content;
+    const createdSwipe = await chatsStorage.addSwipe(messageId, content, false);
+
+    const change: PlanChange = {
+      table: "messages",
+      id: messageId,
+      action: "update",
+      before: { content: previousContent },
+      after: { content },
+      apply: true,
+    };
+    const plan: Plan = {
+      changes: [change],
+      validation: { status: "passed", errors: [], notices: [], infos: [] },
+      summary: {
+        matchedRows: 1,
+        affectedRows: 1,
+        insertedRows: 0,
+        updatedRows: 1,
+        replacedRows: 0,
+        deletedRows: 0,
+        affectedTables: { messages: 1 },
+        preview: [change],
+        truncated: false,
+      },
+      operationHash: newId(),
+      reason,
+      request: {
+        kind: "patch",
+        table: "messages",
+        id: messageId,
+        apply: true,
+        cascade: false,
+        reason,
+        cwd: context.cwd,
+      },
+      chatSwipeFix: { messageId, previousIndex, newIndex: createdSwipe.index },
+    };
+
+    const history = await this.recordHistory({
+      plan,
+      command: context.command,
+      sessionId: context.sessionId,
+      status: "approved",
+      journalPath: null,
+    });
+    const review = await this.createAppliedReview(plan, context.command, context.sessionId, null, history.id);
+    return {
+      ok: true,
+      mode: "apply",
+      command: context.command,
+      summary: plan.summary,
+      validation: plan.validation,
+      approval: { status: "pending", id: review.id, operationHash: plan.operationHash },
     };
   }
 
@@ -7439,6 +7550,11 @@ export class MariDbService {
     const apply = hasFlag(flags, "apply");
     const cascade = hasFlag(flags, "cascade");
     const reason = flagString(flags, "reason") ?? null;
+    // L5: a raw mari db write can insert/patch/replace/delete a messages or message_swipes row
+    // directly, which skips chat storage's addSwipe/setActiveSwipe entirely (no new swipe, no
+    // memory-chunk invalidation, no inventory-telling bookkeeping) and can destroy the row chat.
+    // updateMessage exists to repair non-destructively. Refuse it here, before any plan is built.
+    guardRawMessageTableWrite(positionals[0]);
     if (kind === "insert") {
       const table = positionals[0];
       if (!table) throw new Error("Usage: mari db insert <table> (--json '<row-json>' | --json-file <path>) [--apply]");
@@ -8699,6 +8815,25 @@ export class MariDbService {
   }
 
   private async restorePlan(plan: Plan): Promise<void> {
+    if (plan.chatSwipeFix) {
+      // Never a raw row restore: the apply never touched messages/message_swipes through the
+      // generic engine, so undo goes back through the same chat-storage swipe path it used to
+      // apply (setActiveSwipe to the old swipe, then removeSwipe the fixed one).
+      const { messageId, previousIndex, newIndex } = plan.chatSwipeFix;
+      const chatsStorage = createChatsStorage(this.db);
+      const message = await chatsStorage.getMessage(messageId);
+      if (!message) {
+        throw new RestoreStateChangedError(`Message ${messageId} no longer exists.`);
+      }
+      if (message.activeSwipeIndex !== newIndex) {
+        // Something else switched the active swipe since this review applied; restoring here
+        // would silently discard whatever the user has since chosen.
+        throw new RestoreStateChangedError(`Message ${messageId}'s active swipe changed since this review applied.`);
+      }
+      await chatsStorage.setActiveSwipe(messageId, previousIndex);
+      await chatsStorage.removeSwipe(messageId, newIndex);
+      return;
+    }
     const homeWidgetChange = singleHomeWidgetCatalogChange(plan);
     if (homeWidgetChange) {
       const before = homeWidgetCatalogFromPlanRow(homeWidgetChange.beforeRaw);

@@ -95,7 +95,10 @@ import {
   type Chat,
 } from "@marinara-engine/shared";
 import { OFFICIAL_AGENT_KNOWLEDGE_ENTRIES } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
-import { summarizeMergedAgentRow } from "../../packages/server/src/services/mari-db/mari-db.service.js";
+import {
+  summarizeMergedAgentRow,
+  guardRawMessageTableWrite,
+} from "../../packages/server/src/services/mari-db/mari-db.service.js";
 import { appDataActionLooksReadOnly } from "../../packages/server/src/services/professor-mari/workspace-agent.service.js";
 import type { BuiltInAgentManifest } from "@marinara-engine/shared";
 
@@ -1804,6 +1807,29 @@ assert.ok(!("mariDetailId" in mariSession));
     approvalRow([agentChange, { ...agentChange, id: "cfg-2" }], { agent_configs: 2 }),
     "Mari changed Agent",
     "several records read by their kind",
+  );
+}
+
+// L5: `chat.updateMessage` must classify as a write (never read-only), and a raw `mari db` write
+// to `messages`/`message_swipes` must be refused with a pointer to it. The full apply/Keep/Restore
+// swipe flow (addSwipe reuse, forced review in Accept-edits/Bypass, chat-storage restore) is
+// integration-level and lives in scripts/regressions/mari/chat-update-message.regression.ts, which
+// needs a real file-backed DB that this pure-logic file never sets up.
+{
+  assert.ok(!appDataActionLooksReadOnly("chat.updateMessage"), "chat.updateMessage must stay a write action");
+  assert.throws(
+    () => guardRawMessageTableWrite("messages"),
+    /chat\.updateMessage/,
+    "a raw write to messages must be refused and point at chat.updateMessage",
+  );
+  assert.throws(
+    () => guardRawMessageTableWrite("message_swipes"),
+    /chat\.updateMessage/,
+    "a raw write to message_swipes must be refused and point at chat.updateMessage",
+  );
+  assert.doesNotThrow(
+    () => guardRawMessageTableWrite("characters"),
+    "the guard must not block writes to unrelated tables",
   );
 }
 

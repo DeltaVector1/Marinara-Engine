@@ -121,6 +121,9 @@ assert.ok(
   workspaceAgent.includes(String.raw`!/\b(?:delete|forget|remove|uninstall)/iu.test(action)`),
   "the deletion carve-out must use a real " + String.raw`\b` + " word boundary",
 );
+// L5: chat.updateMessage joins the always-reviewed set too - it never deletes, but the reply it
+// swipes away as "active" has no other undo surface, same reasoning as the delete carve-out above.
+assert.match(workspaceAgent, /action\.trim\(\)\.toLowerCase\(\) !== "chat\.updatemessage"/u);
 
 assert.match(workspaceAgent, /reviewPolicy: autoKeep \? "auto-keep" : "standard"/u);
 // Per-chat override (#5725 maintainer call): the run resolves chat override

@@ -48,7 +48,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 24  | Failed agent runs feed the "fix this" row (L2)                  | worker        | Done    | 5cdebfb7e |
 | 25  | Agent editor as Mari context, agent edits as reviews (L3)       | designer      | Done    | 3535853a6 |
 | 26  | Why a lorebook entry did not fire (L4)                          | worker        | Done    | 6991cf90d |
-| 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker        | Pending |           |
+| 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker        | Done    |           |
 | 28  | Reply-fix review card (L6)                                      | designer      | Pending |           |
 | 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Pending |           |
 | 29  | Review of slices 23-28b (L7)                                    | reviewer      | Pending |           |
