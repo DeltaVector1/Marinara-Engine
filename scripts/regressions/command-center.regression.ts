@@ -78,6 +78,8 @@ import {
   pullTarget,
 } from "../../packages/client/src/lib/pull-to-open.js";
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
+import { buildOmnibarChatRows } from "../../packages/client/src/lib/omnibar-entity-rows.js";
+import type { Chat } from "@marinara-engine/shared";
 
 const commands: CommandDefinition[] = [
   { id: "home", title: "Home", kind: "navigation", icon: "home", target: { kind: "home" } },
@@ -1310,4 +1312,40 @@ console.info("Command Center regression checks passed.");
   assert.equal(fixRow?.id, "connection:conn-1", "the error row leads, same as a failed connection test");
   assert.equal(fixRow?.title, "Fix: Generate reply failed");
   assert.equal(fixRow?.description, "The connection timed out.");
+}
+
+{
+  // K2: recent-chat rows show a relative time ("5m ago") instead of an
+  // absolute date, with a fixed `now` for determinism.
+  const t = ((key: string, fallback: string) => fallback) as never;
+  const now = new Date("2026-10-01T12:00:00.000Z").getTime();
+  const chat: Chat = {
+    id: "chat-1",
+    name: "A story so far",
+    mode: "roleplay",
+    characterIds: [],
+    groupId: null,
+    personaId: null,
+    personaCharacterId: null,
+    promptPresetId: null,
+    connectionId: null,
+    connectedChatId: null,
+    folderId: null,
+    sortOrder: 0,
+    lastMessageAt: "2026-10-01T11:55:00.000Z",
+    createdAt: "2026-09-01T00:00:00.000Z",
+    updatedAt: "2026-10-01T11:55:00.000Z",
+    metadata: { summary: null },
+  };
+  const [row] = buildOmnibarChatRows({
+    chats: [chat],
+    characterById: new Map(),
+    connectionById: new Map(),
+    personaById: new Map(),
+    chatModeLabels: { conversation: "Conversation", roleplay: "Roleplay", game: "Game" },
+    t,
+    now,
+  });
+  const updatedFact = row?.preview().facts.find((fact) => fact.label === "Last updated");
+  assert.equal(updatedFact?.value, "5m ago", "relative time, not an absolute date");
 }

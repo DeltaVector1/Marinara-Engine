@@ -12,11 +12,12 @@ import type {
   CommandCenterCategoryLabels,
   CommandCenterChatModeLabels,
 } from "../components/command-center/command-center-visuals";
-import { formatDate, readNamedRow, readString } from "./omnibar-row-readers";
+import { readNamedRow, readString } from "./omnibar-row-readers";
 import { buildCharacterPreviewModel } from "./character-preview";
 import { parseCharacterDisplayData } from "./character-display";
 import { buildLorebookPreviewModel } from "./lorebook-preview";
 import { resolvePresetArtwork } from "./preset-artwork";
+import { formatRelativeContact } from "./relative-time";
 import { getAvatarCropStyle } from "./utils";
 
 const LOREBOOK_CATEGORY_FALLBACKS: Record<Lorebook["category"], string> = {
@@ -40,6 +41,8 @@ export type OmnibarChatRowsInput = {
   personaById: ReadonlyMap<string, Persona>;
   chatModeLabels: CommandCenterChatModeLabels;
   t: OmnibarTranslate;
+  /** Fixed "now" for deterministic relative-time rendering in tests; defaults to `Date.now()`. */
+  now?: number;
 };
 
 export function buildOmnibarChatRows({
@@ -49,6 +52,7 @@ export function buildOmnibarChatRows({
   personaById,
   chatModeLabels,
   t,
+  now,
 }: OmnibarChatRowsInput) {
   return chats.map((chat) => {
     const linkedCharacters = (chat.characterIds ?? []).slice(0, 2).flatMap((id) => {
@@ -63,7 +67,7 @@ export function buildOmnibarChatRows({
     const linkedDisplay = linkedCharacters[0]?.display;
     const connection = chat.connectionId ? connectionById.get(chat.connectionId) : undefined;
     const persona = chat.personaId ? personaById.get(chat.personaId) : undefined;
-    const updated = formatDate(chat.lastMessageAt ?? chat.updatedAt);
+    const updated = formatRelativeContact(chat.lastMessageAt ?? chat.updatedAt, now) ?? undefined;
     return {
       id: chat.id,
       name: chat.name,
