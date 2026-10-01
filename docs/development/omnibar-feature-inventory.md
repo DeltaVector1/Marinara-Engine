@@ -556,3 +556,13 @@ The cheap answer, `hooks/use-omnibar-aside.ts` and
   instead of guessing one. Docs and setting labels only — never chat,
   character, or other user data — and small enough to stay a hint, not a RAG
   pipeline.
+- A capability word in the typed query ("images", "music", "maps"...) is
+  matched against a small shared keyword map
+  (`matchOmnibarCapabilityAgentPackageIds`, `@marinara-engine/shared`) to up to
+  3 official Agent package ids. The server grounds the unasked prompt with
+  those entries' real catalog lines
+  (`formatCapabilityAgentGroundingLines`, `official-agent-knowledge.ts`) —
+  static catalog data only, never user content. The client runs the same
+  shared matcher on the query it already has (no extra round trip) to decide
+  whether to show a "Download Agents" chip beside the answer; clicking it
+  opens Agents → Download Agents filtered to the first matched package.

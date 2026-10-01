@@ -79,8 +79,9 @@ import {
   pullTarget,
 } from "../../packages/client/src/lib/pull-to-open.js";
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
+import { formatCapabilityAgentGroundingLines } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
 import { buildOmnibarChatRows } from "../../packages/client/src/lib/omnibar-entity-rows.js";
-import type { Chat } from "@marinara-engine/shared";
+import { matchOmnibarCapabilityAgentPackageIds, type Chat } from "@marinara-engine/shared";
 
 const commands: CommandDefinition[] = [
   { id: "home", title: "Home", kind: "navigation", icon: "home", target: { kind: "home" } },
@@ -1008,6 +1009,35 @@ console.info("Command Center regression checks passed.");
   assert.ok(
     QUICK_ANSWER_SETTINGS_LABELS.length < 2_000,
     "the settings-label hint stays compact enough for a quick-answer prompt",
+  );
+}
+
+{
+  // K4: a capability word in the typed query grounds the unasked aside with
+  // real catalog lines, and the same shared detector is what the client reads
+  // to decide whether to show the Download Agents chip - no extra data sent.
+  assert.deepEqual(matchOmnibarCapabilityAgentPackageIds("can Marinara make images?"), ["illustrator"]);
+  assert.deepEqual(matchOmnibarCapabilityAgentPackageIds("does it play music"), ["spotify"]);
+  assert.deepEqual(matchOmnibarCapabilityAgentPackageIds("world maps"), ["hierarchical-maps"]);
+  assert.deepEqual(
+    matchOmnibarCapabilityAgentPackageIds("music and images"),
+    ["spotify", "illustrator"],
+    "order follows the query; both capabilities are returned",
+  );
+  assert.deepEqual(matchOmnibarCapabilityAgentPackageIds("what's the weather"), [], "no capability word, no match");
+
+  const imagesLines = formatCapabilityAgentGroundingLines("how do I generate images");
+  assert.ok(imagesLines, "a capability query returns a grounding block");
+  assert.ok(imagesLines!.includes("Illustrator") && imagesLines!.includes("`illustrator`"));
+  assert.equal(
+    imagesLines!.split("\n").length,
+    1,
+    "one matched capability is one line, not the whole catalog",
+  );
+  assert.equal(
+    formatCapabilityAgentGroundingLines("what time is it"),
+    null,
+    "a query with no capability word grounds nothing",
   );
 }
 

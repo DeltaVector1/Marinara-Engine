@@ -22,6 +22,7 @@ import type {
   ProfessorMariAskContext,
   ProfessorMariEntryPoint,
 } from "@marinara-engine/shared";
+import { matchOmnibarCapabilityAgentPackageIds } from "@marinara-engine/shared";
 import {
   ArrowRight,
   ChevronLeft,
@@ -497,6 +498,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const asideConnectionId = useUIStore((state) => state.omnibarAsideConnectionId);
   const setAsideDisclosed = useUIStore((state) => state.setOmnibarAsideDisclosed);
   const setAsideEnabled = useUIStore((state) => state.setOmnibarAsideEnabled);
+  const openRightPanel = useUIStore((state) => state.openRightPanel);
+  const openAgentCatalog = useUIStore((state) => state.openAgentCatalog);
   const speechToTextEnabled = useUIStore((state) => state.speechToTextEnabled);
   const notificationSoundsOnlyWhenUnfocused = useUIStore((state) => state.notificationSoundsOnlyWhenUnfocused);
   const showTimestamps = useUIStore((state) => state.showTimestamps);
@@ -1501,6 +1504,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const asideLinks = useMemo(
     () => (asideState.status === "complete" ? findMentionedResults(asideState.answer, allLocalResults) : []),
     [allLocalResults, asideState.answer, asideState.status],
+  );
+  // K4: a capability word in the typed query ("images", "music", "maps"...)
+  // points at the real official Agent package, computed from the query the
+  // user already typed - no extra data leaves the device for this (R22).
+  const asideAgentPackageIds = useMemo(
+    () => (asideState.status === "complete" ? matchOmnibarCapabilityAgentPackageIds(asideState.query) : []),
+    [asideState.query, asideState.status],
   );
   // Quick and Mari both own the whole dialog. Leaving the search input mounted
   // under them let one keystroke re-enter `results` and abort a running answer.
@@ -2609,6 +2619,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         onOpenLink={(id) => {
           const row = asideLinks.find((item) => item.id === id);
           if (row) choose(row);
+        }}
+        showDownloadAgents={asideAgentPackageIds.length > 0}
+        onOpenDownloadAgents={() => {
+          openRightPanel("agents");
+          openAgentCatalog(asideAgentPackageIds[0]);
+          onClose();
         }}
       />
     </Suspense>

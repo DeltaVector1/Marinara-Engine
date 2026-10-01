@@ -29,6 +29,9 @@ export interface OmnibarAsideProps {
   /** Things the answer names, which a click opens like their own rows. */
   links: readonly { id: string; title: string }[];
   onOpenLink: (id: string) => void;
+  /** The query named a capability a real official Agent covers (K4). */
+  showDownloadAgents: boolean;
+  onOpenDownloadAgents: () => void;
 }
 
 // Small text actions (direction A); a full 44px target on touch.
@@ -73,6 +76,8 @@ export function OmnibarAside({
   onFollowUp,
   links,
   onOpenLink,
+  showDownloadAgents,
+  onOpenDownloadAgents,
 }: OmnibarAsideProps) {
   const { t } = useTranslation();
   const appearance = useMariAppearancePack();
@@ -148,7 +153,7 @@ export function OmnibarAside({
       ) : (
         <AnswerText text={state.answer} />
       )}
-      {complete && links.length > 0 ? (
+      {complete && (links.length > 0 || showDownloadAgents) ? (
         <div className="mt-1.5 flex flex-wrap gap-1.5" aria-label={t("omnibar.aside.links", "Open from this answer")}>
           {links.map((link) => (
             <button
@@ -160,6 +165,15 @@ export function OmnibarAside({
               {link.title}
             </button>
           ))}
+          {showDownloadAgents ? (
+            <button
+              type="button"
+              onClick={onOpenDownloadAgents}
+              className="mari-chrome-control mari-chrome-control--compact"
+            >
+              {t("omnibar.aside.downloadAgents", "Download Agents")}
+            </button>
+          ) : null}
         </div>
       ) : null}
       {state.status === "thinking" ? null : (

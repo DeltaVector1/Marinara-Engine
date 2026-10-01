@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- When a quick answer's query names a capability like images, music, maps or calls, it now points at the real official Agent that covers it and offers a "Download Agents" button, instead of only guessing in prose.
 - While a chat is open, the omnibar now offers Search this chat, Active lorebook entries, Peek prompt, Summary (roleplay) and Regenerate reply as rows that open or run the existing chat tool directly, instead of leaving them reachable only from the chat's own toolbar.
 - A chat row's expanded omnibar preview now shows "5m ago" or "3d ago" instead of a calendar date, so you can tell how fresh a chat is at a glance.
 - A failed reply now leads the omnibar with a "Fix: Generate reply failed" row, the same as a failed connection test, and clears once the next reply succeeds; taking it to Professor Mari hands her the error, not just a generic search.

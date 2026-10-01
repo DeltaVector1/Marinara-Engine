@@ -153,6 +153,50 @@ export interface ProfessorMariQuickPromptRequest {
   previous?: { question: string; answer: string };
 }
 
+/**
+ * Capability words mapped to the official Agent package id(s) that cover them,
+ * so "does Marinara do images/music/maps" questions can point at the real
+ * package. Shared so the server (grounding text) and the client (the
+ * "Download Agents" chip, computed from the already-typed query, no extra
+ * round trip) never drift apart.
+ */
+export const OMNIBAR_CAPABILITY_AGENT_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
+  image: ["illustrator"],
+  images: ["illustrator"],
+  picture: ["illustrator"],
+  pictures: ["illustrator"],
+  photo: ["illustrator"],
+  photos: ["illustrator"],
+  video: ["illustrator"],
+  videos: ["illustrator"],
+  music: ["spotify"],
+  song: ["spotify"],
+  songs: ["spotify"],
+  spotify: ["spotify"],
+  map: ["hierarchical-maps"],
+  maps: ["hierarchical-maps"],
+  location: ["hierarchical-maps"],
+  locations: ["hierarchical-maps"],
+  call: ["conversation-calls"],
+  calls: ["conversation-calls"],
+  chess: ["chess"],
+  poker: ["poker"],
+  uno: ["uno"],
+  combat: ["combat"],
+  battle: ["combat"],
+  haptic: ["haptic"],
+};
+
+/** Up to 3 distinct package ids the query's words name a capability for. */
+export function matchOmnibarCapabilityAgentPackageIds(query: string): string[] {
+  const words = query.toLowerCase().match(/[a-z]+/g) ?? [];
+  const ids = new Set<string>();
+  for (const word of words) {
+    for (const id of OMNIBAR_CAPABILITY_AGENT_KEYWORDS[word] ?? []) ids.add(id);
+  }
+  return [...ids].slice(0, 3);
+}
+
 export interface ProfessorMariQuickMetadata {
   connectionId: string;
   connectionName: string;

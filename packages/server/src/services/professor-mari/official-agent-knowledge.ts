@@ -1,3 +1,5 @@
+import { matchOmnibarCapabilityAgentPackageIds } from "@marinara-engine/shared";
+
 export type OfficialAgentKnowledgeCategory = "writer" | "tracker" | "misc";
 
 export interface OfficialAgentKnowledgeEntry {
@@ -273,3 +275,19 @@ export const PROFESSOR_MARI_AGENT_CATALOG_KNOWLEDGE = [
   "- Do not describe About Me Keeper as an agent. Conversation About Me and its update tool are built into Marinara Engine.",
   "</official_agent_catalog>",
 ].join("\n");
+
+/**
+ * K4: when an unasked quick-answer query names a capability ("images",
+ * "music", "maps"...), ground the answer with 2-3 real catalog lines instead
+ * of letting the model guess. Static catalog data only (R22 stays true for
+ * unasked calls).
+ */
+export function formatCapabilityAgentGroundingLines(query: string): string | null {
+  const packageIds = matchOmnibarCapabilityAgentPackageIds(query);
+  if (packageIds.length === 0) return null;
+  const entries = packageIds.flatMap((id) => OFFICIAL_AGENT_KNOWLEDGE_ENTRIES.filter((entry) => entry.id === id));
+  if (entries.length === 0) return null;
+  return entries
+    .map((entry) => `- ${entry.name} (package \`${entry.id}\`; ${entry.modes}): ${entry.summary}.`)
+    .join("\n");
+}

@@ -60,7 +60,10 @@ import { decryptApiKey } from "../../utils/crypto.js";
 import { DATA_DIR } from "../../utils/data-dir.js";
 import { logger, logDebugOverride } from "../../lib/logger.js";
 import { tryParseJsonRecord } from "../../lib/json-repair.js";
-import { PROFESSOR_MARI_AGENT_CATALOG_KNOWLEDGE } from "./official-agent-knowledge.js";
+import {
+  formatCapabilityAgentGroundingLines,
+  PROFESSOR_MARI_AGENT_CATALOG_KNOWLEDGE,
+} from "./official-agent-knowledge.js";
 import {
   formatDocumentationGroundingExcerpts,
   formatDocumentationRead,
@@ -2855,6 +2858,11 @@ export class ProfessorMariWorkspaceService {
       }
     }
 
+    // Agent-catalog grounding (K4): a capability word in the query ("images",
+    // "music", "maps"...) gets 2-3 real catalog lines instead of a guess.
+    // Static catalog data only (R22 stays true for unasked).
+    const agentGroundingBlock = unasked ? formatCapabilityAgentGroundingLines(args.message) : null;
+
     const context = buildQuickContextPayload(args.context, unasked, args.resourceLabel);
     const quickEditTarget = unasked ? null : await this.readQuickEditTarget(args.context);
     const systemParts = unasked
@@ -2880,6 +2888,11 @@ export class ProfessorMariWorkspaceService {
       if (docsGroundingBlock) {
         systemParts.push(
           `Documentation excerpts that may be relevant (cite by heading, do not quote at length):\n${docsGroundingBlock}`,
+        );
+      }
+      if (agentGroundingBlock) {
+        systemParts.push(
+          `The query names a capability these official optional Agents cover (installed separately from Agents → Download Agents; do not claim one is already installed):\n${agentGroundingBlock}`,
         );
       }
     }
