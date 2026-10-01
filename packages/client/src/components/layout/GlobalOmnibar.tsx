@@ -166,6 +166,7 @@ import {
 import type { ProfessorMariNavigationTarget } from "../../lib/professor-mari-navigation";
 import { executeStateNavigation } from "../../lib/state-navigation";
 import { isPullHandoffPending, takePullHandoff } from "../../lib/pull-to-open";
+import { measureOmnibarFirstResultPaint } from "../../lib/omnibar-open-timing";
 import { hasEditorLeaveHandler } from "../../lib/editor-leave";
 import { cn } from "../../lib/utils";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
@@ -349,6 +350,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const firstResultPaintMarked = useRef(false);
   // Opened by the pull-to-open gesture, whose circle pops the panel open: skip the
   // pop-in and hand the panel over before the first paint, so it can be clipped.
   const [fromPull] = useState(isPullHandoffPending);
@@ -1528,6 +1530,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // Quick and Mari both own the whole dialog. Leaving the search input mounted
   // under them let one keystroke re-enter `results` and abort a running answer.
   const mariSurface = pane === "mari";
+  // K6: fire once per open, the first time the results pane actually paints
+  // (opening straight into Mari's pane has no results list to time).
+  useLayoutEffect(() => {
+    if (mariSurface || firstResultPaintMarked.current) return;
+    firstResultPaintMarked.current = true;
+    measureOmnibarFirstResultPaint(useUIStore.getState().debugMode);
+  }, [mariSurface]);
   useLayoutEffect(() => {
     if (mariSurface) return;
     const dialog = dialogRef.current;

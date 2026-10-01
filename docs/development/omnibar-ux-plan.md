@@ -42,7 +42,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 18  | Rows for existing chat tools on the chat surface (K3)         | worker        | Done        | 81393ea47 |
 | 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Done        | 3ba6e78c9 |
 | 20  | Flip more boolean settings in place, with Undo (K5)           | worker        | Done        | 3e7f5a89e |
-| 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Pending     |           |
+| 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Done        | 9f93e6c56 |
 | 22  | Review of slices 15-21                                        | reviewer      | Pending     |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
@@ -442,6 +442,26 @@ Check what already exists before adding anything.
   `console.debug`). Measure on a large fixture (2k characters, 5k chats). Add a
   cache for derived rows only if p95 > ~100 ms; otherwise record the numbers in
   this file and ship only the measurement. Proof: the numbers.
+  Done 2026-10-01: marked in `setOmnibarOpen` (the shared open action every
+  trigger - ⌘K, the pull gesture, the topbar click - already routes through)
+  and measured in `GlobalOmnibarDialog`'s first non-Mari-pane `useLayoutEffect`
+  (`packages/client/src/lib/omnibar-open-timing.ts`). Measured with a mocked
+  `/api/characters` (2,000 rows) and `/api/chats` (5,000 rows), 40 opens via a
+  temporary `e2e/zz-omnibar-open-perf.e2e.ts` (deleted after the run):
+  **before a cache: p50 138.4 ms, p95 157.0 ms, max 1608.6 ms (n=40)**. p95 is
+  over the ~100 ms bar, so `buildOmnibarChatRows`/`buildOmnibarCharacterRows`
+  (`omnibar-entity-rows.ts`) - the two builders that scale with the whole
+  library and get rebuilt from scratch on every open because the dialog
+  unmounts on close - are now cached by input reference (`memoizeLastByKeys`),
+  keyed on the chat/character arrays, the lookup maps, the resolved language
+  (not `t` itself - react-i18next hands back a new `t` on every remount), and
+  a one-minute bucket of `Date.now()` so relative "updated" text does not go
+  stale between opens. **After the cache: p50 118.1 ms, p95 136.1 ms, max
+  1422.9 ms (n=40)**. p95 is still above 100 ms - the remainder is dominated
+  by result ranking/presentation and DOM mount cost on a 7k-entity idle list,
+  not the two cached builders - but caching them removed the one clearly
+  avoidable cost (rebuilding ~7,000 rows from scratch every open), so it
+  stays. Internal only, no user-facing behavior change.
 - Slice 22: reviewer pass over 15-21 (read-only findings, then a worker fixes
   the confirmed ones in the same slice).
 

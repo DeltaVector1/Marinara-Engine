@@ -19,6 +19,34 @@ import { buildLorebookPreviewModel } from "./lorebook-preview";
 import { resolvePresetArtwork } from "./preset-artwork";
 import { formatRelativeContact } from "./relative-time";
 import { getAvatarCropStyle } from "./utils";
+import { i18n } from "../localization/i18n";
+
+/**
+ * K6: the omnibar dialog unmounts on close, so every `useMemo` built from it
+ * (including the chat/character row builders below) is thrown away and
+ * rebuilt from scratch on the next open. Chats and characters are the two
+ * sets that scale with the user's whole library, so their builders are kept
+ * here instead, keyed on the inputs that actually change the output - not on
+ * `t` itself, whose reference react-i18next does not keep stable across a
+ * remount, and not on wall-clock time beyond a one-minute bucket, so relative
+ * "updated" text does not go stale between opens.
+ */
+function memoizeLastByKeys<Input, Output>(
+  getKeys: (input: Input) => readonly unknown[],
+  compute: (input: Input) => Output,
+): (input: Input) => Output {
+  let lastKeys: readonly unknown[] | null = null;
+  let lastOutput: Output | undefined;
+  return (input: Input): Output => {
+    const keys = getKeys(input);
+    if (lastKeys && keys.length === lastKeys.length && keys.every((key, i) => Object.is(key, lastKeys![i]))) {
+      return lastOutput as Output;
+    }
+    lastOutput = compute(input);
+    lastKeys = keys;
+    return lastOutput;
+  };
+}
 
 const LOREBOOK_CATEGORY_FALLBACKS: Record<Lorebook["category"], string> = {
   world: "World",
@@ -45,7 +73,19 @@ export type OmnibarChatRowsInput = {
   now?: number;
 };
 
-export function buildOmnibarChatRows({
+export const buildOmnibarChatRows = memoizeLastByKeys<OmnibarChatRowsInput, ReturnType<typeof computeOmnibarChatRows>>(
+  (input) => [
+    input.chats,
+    input.characterById,
+    input.connectionById,
+    input.personaById,
+    i18n.resolvedLanguage,
+    Math.floor(Date.now() / 60_000),
+  ],
+  computeOmnibarChatRows,
+);
+
+function computeOmnibarChatRows({
   chats,
   characterById,
   connectionById,
@@ -108,7 +148,12 @@ export type OmnibarCharacterRowsInput = {
   t: OmnibarTranslate;
 };
 
-export function buildOmnibarCharacterRows({
+export const buildOmnibarCharacterRows = memoizeLastByKeys<
+  OmnibarCharacterRowsInput,
+  ReturnType<typeof computeOmnibarCharacterRows>
+>((input) => [input.characters, input.lorebookNamesByCharacter, i18n.resolvedLanguage], computeOmnibarCharacterRows);
+
+function computeOmnibarCharacterRows({
   characters,
   lorebookNamesByCharacter,
   categoryLabels,

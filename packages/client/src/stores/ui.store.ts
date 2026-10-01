@@ -25,6 +25,7 @@ import { resetProfessorMariNavigator } from "../lib/professor-mari-navigation";
 import { DEFAULT_APP_LANGUAGE, type AppLanguage } from "../localization/locale-types";
 import { deferEditorLeave } from "../lib/editor-leave";
 import { OMNIBAR_ASIDE_DELAY_MS } from "../lib/omnibar-aside-text";
+import { markOmnibarOpenStart } from "../lib/omnibar-open-timing";
 import { UI_PERSISTENCE } from "../lib/ui-persistence";
 import type { ChatWizardDefaults, ChatWizardMode } from "../lib/chat-wizard-defaults";
 
@@ -2668,7 +2669,12 @@ export const useUIStore = create<UIState>()(
               token: (state.chatModeShortcutRequest?.token ?? 0) + 1,
             },
           })),
-        setOmnibarOpen: (open) => set({ omnibarOpen: open }),
+        setOmnibarOpen: (open) => {
+          // K6: mark the start of every real open (any trigger routes through
+          // here) so the first-result-paint effect can measure against it.
+          if (open && !get().omnibarOpen && get().debugMode) markOmnibarOpenStart();
+          set({ omnibarOpen: open });
+        },
 
         // Settings actions
         setFontSize: (size) => set({ fontSize: size }),
