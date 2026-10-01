@@ -19,23 +19,23 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 
 ## Status
 
-| #   | Slice                                                         | Owner profile | Status       | Commit                           |
-| --- | ------------------------------------------------------------- | ------------- | ------------ | -------------------------------- |
-| 1   | Handoff bugs (A1-A6)                                          | worker        | Done         | 7a1eef06d                        |
-| 2   | Quick answers: cheap wins (B1-B5)                             | worker        | Done         | 2b4dd9866                        |
-| 3   | Quick answers: grounding in docs + setting names (B6)         | worker        | Done         | f14039aa0                        |
-| 4   | Carry aside answer into Mari, show what she received (C1-C3)  | worker        | Done         | 892f2acea                        |
-| 5   | Review of slices 1-4                                          | reviewer      | Done         | 532479233                        |
-| 6   | Expanded row redesign (D1-D6)                                 | designer      | Done         | 2e81ef9de                        |
-| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)         | designer      | Done         | dbbf886db                        |
-| 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Done         | 627bfcada                        |
-| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Done         | 8aa390372                        |
-| 9   | Review of slices 6-8                                          | reviewer      | Done         | ad7bfc33b                        |
-| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Paused (WIP) | wip/omnibar-slice-10 @ 88e297d68 |
-| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Todo         |                                  |
-| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Todo         |                                  |
-| 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Todo         |                                  |
-| 14  | Final review of slices 7b-13                                  | reviewer      | Todo         |                                  |
+| #   | Slice                                                         | Owner profile | Status | Commit    |
+| --- | ------------------------------------------------------------- | ------------- | ------ | --------- |
+| 1   | Handoff bugs (A1-A6)                                          | worker        | Done   | 7a1eef06d |
+| 2   | Quick answers: cheap wins (B1-B5)                             | worker        | Done   | 2b4dd9866 |
+| 3   | Quick answers: grounding in docs + setting names (B6)         | worker        | Done   | f14039aa0 |
+| 4   | Carry aside answer into Mari, show what she received (C1-C3)  | worker        | Done   | 892f2acea |
+| 5   | Review of slices 1-4                                          | reviewer      | Done   | 532479233 |
+| 6   | Expanded row redesign (D1-D6)                                 | designer      | Done   | 2e81ef9de |
+| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)         | designer      | Done   | dbbf886db |
+| 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Done   | 627bfcada |
+| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Done   | 8aa390372 |
+| 9   | Review of slices 6-8                                          | reviewer      | Done   | ad7bfc33b |
+| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Done   | 3a04b5342 |
+| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Todo   |           |
+| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Todo   |           |
+| 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Todo   |           |
+| 14  | Final review of slices 7b-13                                  | reviewer      | Todo   |           |
 
 PAUSED 2026-09-30 by the maintainer during slice 10. Slices 1-9 are done and
 deployed to prod (2d999a330 is slices 1-8; slice 9 fixes are c4f88b4ce, not yet
