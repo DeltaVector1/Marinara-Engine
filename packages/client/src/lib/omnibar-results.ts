@@ -40,6 +40,7 @@ import {
   type OmnibarSurface,
 } from "./omnibar-search";
 import { getOmnibarSettingsDestinations } from "./omnibar-settings";
+import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "./omnibar-settings-toggle-bindings";
 import type { ChatResourceDragKind } from "./chat-resource-drag";
 import { getSlashCompletions } from "./slash-commands";
 import { inferProfessorMariCommandCenterCapability } from "./professor-mari-command-center-context";
@@ -133,6 +134,13 @@ export type OmnibarControlResultsInput = {
   /** Localizes the settings registry's English copy, as the Settings panel search does. */
   localize: (englishText: string) => string;
   mariEnabled: boolean;
+  /**
+   * Current value of every `OMNIBAR_SETTINGS_TOGGLE_BINDINGS` id, read via a
+   * reactive store subscription by the caller so a flip re-renders the row.
+   * `buildOmnibarControlResults` itself stays a pure function with no store
+   * access of its own.
+   */
+  settingsToggleValues: Readonly<Record<string, boolean>>;
   musicPlayerEnabled: boolean;
   notificationSoundsOnlyWhenUnfocused: boolean;
   omnibarSuggestionsEnabled: boolean;
@@ -274,6 +282,7 @@ export function buildOmnibarControlResults({
   notificationSoundsOnlyWhenUnfocused,
   omnibarSuggestionsEnabled,
   reduceAmbientEffects,
+  settingsToggleValues,
   setters,
   showModelName,
   showTimestamps,
@@ -330,23 +339,36 @@ export function buildOmnibarControlResults({
     ["showModelName", "commandCenter.controls.modelName", "Model name", showModelName, setters.setShowModelName],
     ["showTokenUsage", "commandCenter.controls.tokenUsage", "Token usage", showTokenUsage, setters.setShowTokenUsage],
   ] as const;
-  const settingsDestinations = getOmnibarSettingsDestinations().map((setting) => ({
-    id: setting.id,
-    title: localize(setting.title),
-    category: "settings" as const,
-    // A named control outranks the section and tab rows that contain it.
-    score: setting.controlId ? 165 : setting.sectionId ? 160 : 155,
-    aliases: setting.aliases.map(localize),
-    target: {
+  const settingsDestinations = getOmnibarSettingsDestinations().map((setting) => {
+    const binding = setting.controlId ? OMNIBAR_SETTINGS_TOGGLE_BINDINGS[setting.controlId] : undefined;
+    const title = localize(setting.title);
+    return {
+      id: setting.id,
+      title,
+      category: "settings" as const,
+      // A named control outranks the section and tab rows that contain it.
+      score: setting.controlId ? 165 : setting.sectionId ? 160 : 155,
+      aliases: setting.aliases.map(localize),
+      target: {
+        kind: "settings" as const,
+        tab: setting.tab,
+        controlId: setting.controlId,
+        sectionId: setting.sectionId,
+      },
+      description: `${localize(setting.sectionLabel)} · ${localize(setting.description)}`,
       kind: "settings" as const,
-      tab: setting.tab,
-      controlId: setting.controlId,
-      sectionId: setting.sectionId,
-    },
-    description: `${localize(setting.sectionLabel)} · ${localize(setting.description)}`,
-    kind: "settings" as const,
-    icon: "settings" as const,
-  }));
+      icon: "settings" as const,
+      // Bound toggles flip in place instead of only navigating to the tab (K5).
+      control: binding
+        ? {
+            type: "toggle" as const,
+            label: title,
+            value: settingsToggleValues[setting.controlId as string] ?? false,
+            onChange: (next: string | boolean) => binding.set(next === true),
+          }
+        : undefined,
+    };
+  });
   return [
     ...settingsDestinations,
     {

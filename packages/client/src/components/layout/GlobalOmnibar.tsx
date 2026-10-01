@@ -174,6 +174,8 @@ import { isMessageHiddenFromUser } from "../../lib/chat-message-visibility";
 import { normalizeTextForMatch } from "@marinara-engine/shared";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
+import { useShallow } from "zustand/react/shallow";
+import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "../../lib/omnibar-settings-toggle-bindings";
 import { CommandCenterActionValue } from "../command-center/CommandCenterActionValue";
 import { InlineGhostText } from "../ui/InlineGhostText";
 import { CommandCenterResultRow } from "../command-center/CommandCenterResultRow";
@@ -505,6 +507,15 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const showTimestamps = useUIStore((state) => state.showTimestamps);
   const showModelName = useUIStore((state) => state.showModelName);
   const showTokenUsage = useUIStore((state) => state.showTokenUsage);
+  // One shallow-compared subscription for every settings-registry toggle the
+  // omnibar can flip in place, so adding a binding never means adding a hook.
+  const settingsToggleValues = useUIStore(
+    useShallow((state) => {
+      const values: Record<string, boolean> = {};
+      for (const id in OMNIBAR_SETTINGS_TOGGLE_BINDINGS) values[id] = OMNIBAR_SETTINGS_TOGGLE_BINDINGS[id].get(state);
+      return values;
+    }),
+  );
   const userStatus = useUIStore((state) => state.userStatus);
   const activeChat = useChatStore((state) => state.activeChat);
   const activeChatId = useChatStore((state) => state.activeChatId);
@@ -785,6 +796,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         notificationSoundsOnlyWhenUnfocused,
         omnibarSuggestionsEnabled,
         reduceAmbientEffects,
+        settingsToggleValues,
         setters: useUIStore.getState(),
         showModelName,
         showTimestamps,
@@ -801,6 +813,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       musicPlayerEnabled,
       notificationSoundsOnlyWhenUnfocused,
       reduceAmbientEffects,
+      settingsToggleValues,
       showModelName,
       showTimestamps,
       showTokenUsage,
@@ -1999,6 +2012,33 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (parentId && presentation.results.some((row) => row.id === parentId)) setActiveResultId(parentId);
     return true;
   };
+  // A settings-registry toggle (K5) gets an Undo toast, same pattern as the
+  // chat-resource attach/remove toasts below; the hand-built control rows
+  // (theme, presence, the original 9 toggles) keep their plain immediate flip.
+  const flipToggleControl = (result: RankedOmnibarResult, nextValue: boolean) => {
+    const control = result.control;
+    if (!control || control.type !== "toggle") return;
+    if (!result.id.startsWith("settings-control:")) {
+      control.onChange(nextValue);
+      return;
+    }
+    const previousValue = control.value === true;
+    control.onChange(nextValue);
+    toast.success(
+      t("commandCenter.actions.settingToggled", "{{label}}: {{state}}", {
+        label: result.title,
+        state: nextValue
+          ? t("commandCenter.values.enabled", "Enabled")
+          : t("commandCenter.values.disabled", "Disabled"),
+      }),
+      {
+        action: {
+          label: t("ui.chat.chatresourcedropoverlay.undo", "Undo"),
+          onClick: () => control.onChange(previousValue),
+        },
+      },
+    );
+  };
   const selectResult = (result: RankedOmnibarResult) => {
     if (chooseChoiceOption(result)) return;
     // A first tap opens the preview; a tap on the open row runs Enter, which the
@@ -2013,7 +2053,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       return;
     }
     setActiveResultId(result.id);
-    if (result.control?.type === "toggle") result.control.onChange(result.control.value !== true);
+    if (result.control?.type === "toggle") flipToggleControl(result, result.control.value !== true);
     else if (result.control?.type === "choice")
       setExpandedChoiceId((current) => (current === result.id ? null : result.id));
     else choose(result);
@@ -2115,7 +2155,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     } else if (pane === "results" && event.key === "Enter" && activeResult) {
       event.preventDefault();
       if (chooseChoiceOption(activeResult)) return;
-      if (activeResult.control?.type === "toggle") activeResult.control.onChange(activeResult.control.value !== true);
+      if (activeResult.control?.type === "toggle") flipToggleControl(activeResult, activeResult.control.value !== true);
       else if (activeResult.control?.type === "choice")
         setExpandedChoiceId((current) => (current === activeResult.id ? null : activeResult.id));
       else if (mariEnabled && activeResult.id === "ask-professor-mari") {
@@ -3096,7 +3136,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                                       ? t("commandCenter.values.enabled", "Enabled")
                                       : t("commandCenter.values.disabled", "Disabled")
                                   }
-                                  onCheckedChange={(value) => result.control?.onChange(value)}
+                                  onCheckedChange={(value) => flipToggleControl(result, value)}
                                   disabled={resultControlPending(result)}
                                   loading={resultControlPending(result)}
                                   variant="compact"

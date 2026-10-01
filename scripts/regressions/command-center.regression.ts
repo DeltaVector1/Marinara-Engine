@@ -33,11 +33,13 @@ import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/om
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
   buildOmnibarContextResults,
+  buildOmnibarControlResults,
   buildOmnibarIntentShortcuts,
   buildOmnibarSearchResults,
   findMentionedResults,
   matchesAtWordStart,
 } from "../../packages/client/src/lib/omnibar-results.js";
+import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "../../packages/client/src/lib/omnibar-settings-toggle-bindings.js";
 import {
   SETTINGS_SEARCHABLE_CONTROLS,
   SETTINGS_SECTIONS,
@@ -1472,4 +1474,75 @@ console.info("Command Center regression checks passed.");
     surface: "home",
   });
   assert.deepEqual(toolIds(roleplayOffChatSurface), [], "tool rows only show on the chat surface");
+}
+
+{
+  // K5: every `OMNIBAR_SETTINGS_TOGGLE_BINDINGS` id must name a real `Toggle`
+  // control in the registry — a stale or mistyped id would silently never
+  // render (buildOmnibarControlResults only attaches a control when
+  // `getOmnibarSettingsDestinations` produces a matching controlId) rather
+  // than fail loudly, so this checks the binding map against the registry
+  // directly.
+  const toggleControlIds = new Set(
+    SETTINGS_SEARCHABLE_CONTROLS.filter((control) => control.kind === "Toggle").map((control) => control.id),
+  );
+  for (const id of Object.keys(OMNIBAR_SETTINGS_TOGGLE_BINDINGS)) {
+    assert.ok(toggleControlIds.has(id), `bound settings toggle id "${id}" is not a Toggle control in the registry`);
+  }
+
+  // A bound id's settings-control row gets a toggle control, wired to the
+  // value the caller passed in (a reactive store read happens outside this
+  // pure builder); an unbound id keeps navigating instead.
+  const t = ((key: string, fallback: string) => fallback) as never;
+  const boundId = "debug-mode";
+  assert.ok(OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId], "debug-mode should stay bound for this assertion to mean anything");
+  const settingsToggleValues: Record<string, boolean> = {};
+  for (const id of Object.keys(OMNIBAR_SETTINGS_TOGGLE_BINDINGS)) settingsToggleValues[id] = id === boundId;
+  const controlResults = buildOmnibarControlResults({
+    localize: (text) => text,
+    mariEnabled: false,
+    musicPlayerEnabled: false,
+    notificationSoundsOnlyWhenUnfocused: false,
+    omnibarSuggestionsEnabled: false,
+    reduceAmbientEffects: false,
+    settingsToggleValues,
+    setters: {
+      setTheme: () => {},
+      setUserStatusManual: () => {},
+      setCommandCenterMariEnabled: () => {},
+      setOmnibarSuggestionsEnabled: () => {},
+      setReduceAmbientEffects: () => {},
+      setMusicPlayerEnabled: () => {},
+      setSpeechToTextEnabled: () => {},
+      setNotificationSoundsOnlyWhenUnfocused: () => {},
+      setShowTimestamps: () => {},
+      setShowModelName: () => {},
+      setShowTokenUsage: () => {},
+    },
+    showModelName: false,
+    showTimestamps: false,
+    showTokenUsage: false,
+    speechToTextEnabled: false,
+    t,
+    theme: "dark",
+    userStatus: "active",
+  });
+  const debugModeRow = controlResults.find((row) => row.id === "settings-control:debug-mode");
+  assert.ok(debugModeRow, "debug-mode settings-control row should exist");
+  assert.equal(debugModeRow?.control?.type, "toggle", "a bound registry id gets a toggle control, not navigation only");
+  assert.equal(debugModeRow?.control?.value, true, "the toggle reflects the value the caller passed in");
+  let flippedTo: boolean | undefined;
+  const originalSet = OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId].set;
+  OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId].set = (value: boolean) => {
+    flippedTo = value;
+  };
+  try {
+    debugModeRow?.control?.onChange(false);
+    assert.equal(flippedTo, false, "picking the row calls the binding's set, not a different setter");
+  } finally {
+    OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId].set = originalSet;
+  }
+
+  const sectionRow = controlResults.find((row) => row.id === "settings-section-detail:application");
+  assert.equal(sectionRow?.control, undefined, "a row with no bound controlId still just navigates");
 }

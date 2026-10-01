@@ -4,6 +4,9 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Added the Safari Mari appearance pack, with jungle explorer gear, matching portraits and twelve expedition stories, available in omnibar settings.
+- Many more settings now flip right in the omnibar instead of only opening the Settings tab: things like Confirm before deleting, Mini Mari surprise visits, Enable streaming, Tracker Panel, swipe menus, the appearance toggles and more now show a switch you can flip without leaving the search list.
+- Added the Golden Mari appearance pack, with shiny gold artwork, a confident Chad expression and matching portraits and twelve activity stories. Available normally in omnibar settings, with no achievement requirement.
 - When a quick answer's query names a capability like images, music, maps or calls, it now points at the real official Agent that covers it and offers a "Download Agents" button, instead of only guessing in prose.
 - While a chat is open, the omnibar now offers Search this chat, Active lorebook entries, Peek prompt, Summary (roleplay) and Regenerate reply as rows that open or run the existing chat tool directly, instead of leaving them reachable only from the chat's own toolbar.
 - A chat row's expanded omnibar preview now shows "5m ago" or "3d ago" instead of a calendar date, so you can tell how fresh a chat is at a glance.
