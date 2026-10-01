@@ -115,6 +115,7 @@ import { api, ApiError, getPrivilegedActionErrorMessage, isPassiveStreamDisconne
 import { describeProfessorMariError } from "../../lib/professor-mari-errors";
 import { resolveProfessorMariVisualState, type ProfessorMariVisualState } from "../../lib/professor-mari-visual-state";
 import {
+  assignReviewsToTurns,
   isPersistentProfessorMariContext,
   professorMariContextCount,
   professorMariContextFacets,
@@ -2277,6 +2278,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   lorebookPreviews,
   messageContext,
   restStory = null,
+  reviews,
 }: {
   message: Message;
   thinking?: string | null;
@@ -2298,6 +2300,8 @@ const CompactMariMessage = memo(function CompactMariMessage({
   messageContext?: ProfessorMariAskContext | null;
   /** Only on the newest finished turn: the story Mari plays on its "Worked for" line. */
   restStory?: MariStoryState | null;
+  /** The reviews this turn is waiting on, after what she made and before the "Worked for" line. */
+  reviews?: ReactNode;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const content = message.content ?? "";
@@ -2447,6 +2451,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
               onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
               onDelete={onDelete ? () => onDelete(message.id) : undefined}
             />
+            {reviews ? <div className="mt-3 space-y-3">{reviews}</div> : null}
           </div>
         </MariWorkTimeline>
       </div>
@@ -2479,6 +2484,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
           <MariReasoningPanel thinking={thinking} />
         </TranscriptRow>
       )}
+      {reviews ? <div className="mt-3 space-y-3">{reviews}</div> : null}
     </>
   );
 });
@@ -5192,7 +5198,9 @@ export function HomeProfessorMariChat({
     if (outcome !== "applied" && outcome !== "discarded") return;
     setResolvedPrompts((current) => [...current, { chatId, approval, outcome }]);
   };
-  const pendingApprovalsPanel = visiblePendingChangeReviews.map((approval) => (
+  // Slice 13: a review renders inside the turn that asked for it, not after the whole transcript.
+  const reviewsByTurn = assignReviewsToTurns(displayMessages, visiblePendingChangeReviews);
+  const renderApprovalCard = (approval: MariWorkspacePendingApproval) => (
     <WorkspaceApprovalCard
       key={approval.id}
       approval={approval}
@@ -5204,7 +5212,7 @@ export function HomeProfessorMariChat({
       onRejectRows={(id, rows) => rejectWorkspaceRows(id, rows)}
       onRenderPrompt={renderWorkspacePrompt}
     />
-  ));
+  );
   const headerDestinations = [
     { id: "chats", Icon: MessageCircle, label: localizeUi("navigation.common.chats"), count: 0 },
     {
@@ -5520,6 +5528,7 @@ export function HomeProfessorMariChat({
           lorebookPreviews={lorebookPreviewById}
           messageContext={messageContext}
           restStory={message.id === latestMessage?.id ? latestTurnRestStory : null}
+          reviews={reviewsByTurn.byMessageId.get(message.id)?.map(renderApprovalCard)}
         />
         {recovery?.localMessageId === message.id ? sendFailedLine : null}
         {understoodRequest && (
@@ -5949,8 +5958,8 @@ export function HomeProfessorMariChat({
                                       />
                                     ))
                                 : null}
-                              {visiblePendingChangeReviews.length > 0 ? (
-                                <div className="space-y-3">{pendingApprovalsPanel}</div>
+                              {reviewsByTurn.unassigned.length > 0 ? (
+                                <div className="space-y-3">{reviewsByTurn.unassigned.map(renderApprovalCard)}</div>
                               ) : null}
                               {/* Only a real question gets a line (a guided plan step, or held changes); generic
                                   "what next?" prompts are left to the chips, as in Claude and Gemini. */}

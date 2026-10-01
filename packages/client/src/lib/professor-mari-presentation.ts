@@ -103,3 +103,31 @@ export function shouldOfferProfessorMariStarterSuggestions({
 }): boolean {
   return chatId !== null && loadedMessagesChatId === chatId && messageCount === 0 && !busy;
 }
+
+/**
+ * Which assistant turn a held review belongs to: the last reply between the user message sent
+ * before the review was requested and the next user message. A review whose turn has no reply (or
+ * an unreadable time) stays unassigned, and the caller shows it after the transcript.
+ */
+export function assignReviewsToTurns<R extends { requestedAt: string }>(
+  messages: ReadonlyArray<{ id: string; role: string; createdAt: string }>,
+  reviews: ReadonlyArray<R>,
+): { byMessageId: Map<string, R[]>; unassigned: R[] } {
+  const byMessageId = new Map<string, R[]>();
+  const unassigned: R[] = [];
+  for (const review of reviews) {
+    const requestedAt = Date.parse(review.requestedAt);
+    let turnStart = -1;
+    messages.forEach((message, index) => {
+      if (message.role === "user" && Date.parse(message.createdAt) <= requestedAt) turnStart = index;
+    });
+    let replyId: string | null = null;
+    for (let index = turnStart + 1; turnStart >= 0 && index < messages.length; index++) {
+      if (messages[index]!.role === "user") break;
+      if (messages[index]!.role === "assistant") replyId = messages[index]!.id;
+    }
+    if (replyId) byMessageId.set(replyId, [...(byMessageId.get(replyId) ?? []), review]);
+    else unassigned.push(review);
+  }
+  return { byMessageId, unassigned };
+}

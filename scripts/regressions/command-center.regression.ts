@@ -57,12 +57,15 @@ import {
   omnibarAsideHandoffAnswer,
   stripStrayMarkdown,
 } from "../../packages/client/src/lib/omnibar-aside-text.js";
-import { professorMariContextFacets } from "../../packages/client/src/lib/professor-mari-presentation.js";
+import {
+  assignReviewsToTurns,
+  professorMariContextFacets,
+} from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
   type DocumentationSearchResult,
 } from "../../packages/server/src/services/professor-mari/documentation-tools.js";
-import { trackListChange, trackProseChange } from "../../packages/client/src/lib/mari-edit-diff.js";
+import { fieldChangeStyle, trackListChange, trackProseChange } from "../../packages/client/src/lib/mari-edit-diff.js";
 import { pastTenseStepTitle } from "../../packages/client/src/lib/mari-work-timeline.js";
 import {
   createPullRecognizer,
@@ -1163,4 +1166,48 @@ console.info("Command Center regression checks passed.");
     "the morph starts on the landed drop",
   );
   assert.equal(omnibarPanelClip(390, 844), "inset(0px 0px 0px 0px round 0px / 0px)", "and ends full screen on a phone");
+}
+
+{
+  // Slice 13: lists, switches and one-word values read as chips; names and prose as tracked text.
+  const field = (path: string, before: string, after: string) =>
+    ({ path, label: path, before, after, kind: "changed" }) as const;
+  assert.equal(fieldChangeStyle(field("keys", "market", "market, bazaar")), "list");
+  assert.equal(fieldChangeStyle(field("data.tags", "a", "b")), "list");
+  assert.equal(fieldChangeStyle(field("caseSensitive", "off", "on")), "toggle");
+  assert.equal(fieldChangeStyle(field("selectiveLogic", "and_any", "not_all")), "enum");
+  assert.equal(fieldChangeStyle(field("probability", "100", "50")), "enum");
+  assert.equal(fieldChangeStyle(field("name", "Zylo", "Zyla")), "text", "a rename is tracked text");
+  assert.equal(fieldChangeStyle(field("content", "old", "new")), "text", "prose is never chips");
+  assert.equal(fieldChangeStyle(field("position", "before char", "after")), "text", "spaces mean text");
+
+  // A review belongs to the reply of the turn it was requested in, never the transcript's end.
+  const at = (minute: number) => `2026-10-01T10:${String(minute).padStart(2, "0")}:00.000Z`;
+  const messages = [
+    { id: "u1", role: "user", createdAt: at(0) },
+    { id: "a1", role: "assistant", createdAt: at(2) },
+    { id: "u2", role: "user", createdAt: at(5) },
+    { id: "a2", role: "assistant", createdAt: at(5) },
+    { id: "u3", role: "user", createdAt: at(9) },
+  ];
+  const turns = assignReviewsToTurns(messages, [
+    { id: "r1", requestedAt: at(1) },
+    { id: "r2", requestedAt: at(6) },
+    { id: "r3", requestedAt: at(10) },
+    { id: "r4", requestedAt: "not a date" },
+  ]);
+  assert.deepEqual(
+    turns.byMessageId.get("a1")?.map((review) => review.id),
+    ["r1"],
+  );
+  assert.deepEqual(
+    turns.byMessageId.get("a2")?.map((review) => review.id),
+    ["r2"],
+    "the reply may predate it",
+  );
+  assert.deepEqual(
+    turns.unassigned.map((review) => review.id),
+    ["r3", "r4"],
+    "a turn with no reply, or an unreadable time, stays after the transcript",
+  );
 }

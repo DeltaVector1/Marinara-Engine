@@ -75,19 +75,32 @@ Rules that must survive:
     bottom of the turn and folds the steps and thoughts away. On the newest
     turn her sprite stays on it (success just after the run, then idle, or the
     retry / stopped / approval story); older turns keep only the words.
-  - An applied edit of existing records (DB review in the Easy view, no inserts,
-    deletes or lorebook entries) is one summary row per record: avatar, name,
-    "Updated character · description, tags, first message", "N changes". It
-    opens to tracked changes: old text struck and muted, new text underlined on a
-    light tint, word by word when much of the old text survives
-    (`trackProseChange`), tags as −/+ chips (`trackListChange`). Undo and Keep
-    are small `.mari-link` / `.mari-btn` buttons (their hit area grows to 44px on
-    touch); Show raw and View as prompt
-    stay as quiet links. Other DB reviews keep the older card until slice 13.
+  - An applied DB edit (`MariEditEasyViewer`: updates, inserts and lorebook
+    entries alike) is one summary row per record: avatar or monogram, name,
+    "Updated character · description, tags, first message" and "N changes", or
+    "Lorebook entry · …" and "New" for a created record. It opens to tracked
+    changes: old text struck and muted, new text underlined on a light tint,
+    word by word when much of the old text survives (`trackProseChange`).
+    Lists (tags, primary and secondary keys) are −/+ chips (`trackListChange`),
+    one-word values (selective logic, probability) are a − old and a + new chip,
+    and switches gather into one "Switches" line ("+Case sensitive",
+    "−Whole words"; `fieldChangeStyle` decides). A new record's values read
+    plain, not inserted. A lorebook entry also shows its activation (Constant,
+    Selective or Normal) and vector state as two plain chips. "Show exact
+    changes" swaps every field to the line-by-line diff and back. Raw is one disclosure (`.mari-tech`: tables,
+    rows, the command and every created row's snapshot); the "Edit review opens
+    in" setting opens it by default. Undo, Keep (and Keep & Enable for a new
+    memory) are small `.mari-link` / `.mari-btn` buttons (their hit area grows
+    to 44px on touch); View as prompt and a multi-row lorebook entry's Reject
+    stay as quiet links. No panel sits inside another.
+  - A review renders inside the turn that asked for it, after her answer and
+    before "Worked for" (`assignReviewsToTurns`: the reply between the user
+    message before `requestedAt` and the next one). One whose turn has no reply
+    stays after the transcript.
   - Something she created or updated is a small tile (`MariWorkspaceActionResultRow`):
     portrait or monogram (`MariRecordAvatar`), name, "New" for a created record, one
     line (its description, or the changed fields), and "Open ›".
-  - Risky prompts (install, sensitive file; delete from slice 13) are a `MariCard`
+  - Risky prompts (install, sensitive file, delete) are a `MariCard`
     (R42): one neutral hairline, a small icon tile (red-tinted only for
     danger), one primary and one quiet text secondary. No glow, no gradient
     tile, no accent frame. The dependency-install ("Install nanoid") and
@@ -96,8 +109,11 @@ Rules that must survive:
     exact package, integrity hash, source, full path and content preview behind
     one "Technical details" disclosure (`.mari-tech`). Once answered, it folds
     to one quiet `MariNote` line with an icon (`ResolvedPromptLine`: "Installed
-    nanoid", "Skipped: Change package.json") until the next send. The delete
-    prompt still uses the older `mari-decision-surface` card until slice 13.
+    nanoid", "Skipped: Change package.json") until the next send. A DB review
+    that deletes is the `danger` variant: "Delete Old market rumor", the record
+    type, the reason plus that she already removed it for now, a quiet "Put it
+    back" and a red Delete, with Raw (the command and the removed row) behind
+    one disclosure.
   - A failed send is one red line under your message with an inline Retry
     (`.mari-send-failed`), not a line of hers. A workspace-status error and
     missing workspace tools are `MariNote` lines (R43).

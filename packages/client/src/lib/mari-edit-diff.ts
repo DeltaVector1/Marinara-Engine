@@ -253,3 +253,19 @@ export function trackListChange(before: string, after: string): DiffSegment[] {
     ...newItems.filter((value) => !oldItems.includes(value)).map((value) => ({ type: "added" as const, value })),
   ];
 }
+
+const LIST_FIELD_NAMES = new Set(["tags", "keys", "secondaryKeys"]);
+
+/**
+ * How a changed field reads in the review: a list (tags, lorebook keys) and an enum (a short
+ * one-word value such as "and_any" or "50") as −/+ chips, a switch as one chip with its label, and
+ * everything else as tracked text.
+ */
+export function fieldChangeStyle(field: FieldChange): "list" | "toggle" | "enum" | "text" {
+  const leaf = field.path.split(".").at(-1) ?? field.path;
+  if (LIST_FIELD_NAMES.has(leaf)) return "list";
+  if (BOOLEAN_LEAF_KEYS.has(leaf)) return "toggle";
+  const word = (value: string) => value.length <= 32 && /^[\w.:-]*$/u.test(value);
+  if (leaf !== "name" && !isProseField(field.path) && word(field.before) && word(field.after)) return "enum";
+  return "text";
+}
