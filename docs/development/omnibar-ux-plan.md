@@ -19,29 +19,29 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 
 ## Status
 
-| #   | Slice                                                         | Owner profile | Status | Commit    |
-| --- | ------------------------------------------------------------- | ------------- | ------ | --------- |
-| 1   | Handoff bugs (A1-A6)                                          | worker        | Done   | 7a1eef06d |
-| 2   | Quick answers: cheap wins (B1-B5)                             | worker        | Done   | 2b4dd9866 |
-| 3   | Quick answers: grounding in docs + setting names (B6)         | worker        | Done   | f14039aa0 |
-| 4   | Carry aside answer into Mari, show what she received (C1-C3)  | worker        | Done   | 892f2acea |
-| 5   | Review of slices 1-4                                          | reviewer      | Done   | 532479233 |
-| 6   | Expanded row redesign (D1-D6)                                 | designer      | Done   | 2e81ef9de |
-| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)         | designer      | Done   | dbbf886db |
-| 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Done   | 627bfcada |
-| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Done   | 8aa390372 |
-| 9   | Review of slices 6-8                                          | reviewer      | Done   | ad7bfc33b |
-| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Done   | 3a04b5342 |
-| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Done   | 18237a07a |
-| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Done   | 7c9f5f8e0 |
-| 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Done   | ff125a4ad |
-| 14  | Final review of slices 7b-13                                  | reviewer      | Done   | daddf5a02 |
+| #   | Slice                                                         | Owner profile | Status      | Commit    |
+| --- | ------------------------------------------------------------- | ------------- | ----------- | --------- |
+| 1   | Handoff bugs (A1-A6)                                          | worker        | Done        | 7a1eef06d |
+| 2   | Quick answers: cheap wins (B1-B5)                             | worker        | Done        | 2b4dd9866 |
+| 3   | Quick answers: grounding in docs + setting names (B6)         | worker        | Done        | f14039aa0 |
+| 4   | Carry aside answer into Mari, show what she received (C1-C3)  | worker        | Done        | 892f2acea |
+| 5   | Review of slices 1-4                                          | reviewer      | Done        | 532479233 |
+| 6   | Expanded row redesign (D1-D6)                                 | designer      | Done        | 2e81ef9de |
+| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)         | designer      | Done        | dbbf886db |
+| 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Done        | 627bfcada |
+| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Done        | 8aa390372 |
+| 9   | Review of slices 6-8                                          | reviewer      | Done        | ad7bfc33b |
+| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Done        | 3a04b5342 |
+| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Done        | 18237a07a |
+| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Done        | 7c9f5f8e0 |
+| 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Done        | ff125a4ad |
+| 14  | Final review of slices 7b-13                                  | reviewer      | Done        | daddf5a02 |
+| 15  | Slime pull-to-open from the approved drop prototype (J1-J5)   | designer      | In progress |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Remaining order: 11, 12, 13,
-14. Stop after 14.
+slice 9 fixes are c4f88b4ce, not yet deployed). Remaining order: 11, 12, 13, 14. Stop after 14.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
@@ -350,3 +350,41 @@ exact diff behind a toggle, chips for toggles/keys, no nested panels, Raw as one
 disclosure. The applied-edit group moves inside the turn it belongs to (today
 it renders in `pendingApprovalsPanel`, below "Worked for…" after the whole
 transcript) as part of that rebuild.
+
+### J. Slime pull-to-open (slice 15) — approved by the maintainer 2026-10-01
+
+Reference: the approved interactive prototype `.tmp/omnibar-ux/drop/index.html`
+(served at http://10.0.0.127:8799/drop/; constants at the top of its script).
+It replaces the slice 10 drop/pill visuals; the slice 10 recognizer, guards and
+tests stay where they still fit.
+
+- J1 Gesture: start anywhere on the phone top bar (touch only, phone shell
+  only, existing guards); after the pull starts the finger steers; at release
+  the left half opens the omnibar, the right half opens Mari (omnibar in the
+  Mari pane); a dead zone with hysteresis in the middle; when Mari is disabled
+  the whole bar opens the omnibar. Threshold 30% of the viewport height
+  (min 160px, max 280px), flick opens early, pulling back cancels.
+- J2 Shape: one smooth, symmetric, calm sheet pulled out of the bar's bottom
+  edge (wide base, gentle taper, no string, no bumps, bar edge straight outside
+  the pulled area), ending in a circle with a small bar under it; circle shows
+  the magnifier (left) or Mari's pixel portrait from the active appearance pack
+  (right); small bar reads "Search" / "Ask Mari", at the threshold "Release to
+  search" / "Release to ask Mari" (localized keys). Circle and small bar sit
+  ABOVE the fingertip.
+- J3 Colour: exactly the top bar surface (`--marinara-topbar-surface` over the
+  app background, same blur) at the join, opaque at the top to more transparent
+  at the bottom; no accent in the sheet, only a faint glow around the circle
+  when armed. Dark and light.
+- J4 Motion: viscous follow, slight sag, stretch; at the threshold the sheet
+  thins and releases the circle, the sheet snaps back into the bar, the circle
+  pops open into the omnibar search field or the Mari view (portrait flies to
+  the header, title fades in after it); below the threshold everything slurps
+  back. One SVG path / clip path driven by framer-motion motion values, no
+  React re-render per move, 60fps. Reduced motion: no sheet, only the label
+  near the finger, opens at the threshold.
+- J5 Proof: regression asserts for the pure parts (threshold, side/dead zone,
+  flick, cancel); browser tests on mobile-chromium and mobile-webkit (long pull
+  left opens the omnibar, right opens Mari, short pull and pull-back do not, a
+  pull starting on a bar button does not press it, no open under a modal);
+  screenshots dark+light compared with the prototype; CHANGELOG and inventory
+  updated; `heavy pnpm check` exit 0.
