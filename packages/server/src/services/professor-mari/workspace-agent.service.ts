@@ -349,6 +349,7 @@ export const PROFESSOR_MARI_APP_DATA_ACTIONS = [
   "lorebook.entries",
   "lorebook.getEntry",
   "lorebook.search",
+  "lorebook.testScan",
   "lorebook.create",
   "lorebook.update",
   "lorebook.addEntry",
@@ -866,7 +867,7 @@ Field rules:
 ${MARI_GUIDED_SEQUENCES}
 
 \`app_data\` quick reference:
-- Reads: \`chat.list|get|messages|search\`, \`character.list|get|search|folder.list\`, \`persona.list|get|search\`, \`lorebook.list|get|entries|getEntry|search|folder.list|libraryFolder.list\`, \`theme.list|active|get\`, \`personal_extension.list|get|search\`, \`agent.list|get|search|runs\`, \`preset.list|get|search|sections|getSection|groups|getGroup|choiceBlocks|getChoiceBlock\`, \`home_widget.list|get\`, \`skill.list|get\`, \`instruction.list|get\`.
+- Reads: \`chat.list|get|messages|search\`, \`character.list|get|search|folder.list\`, \`persona.list|get|search\`, \`lorebook.list|get|entries|getEntry|search|testScan|folder.list|libraryFolder.list\`, \`theme.list|active|get\`, \`personal_extension.list|get|search\`, \`agent.list|get|search|runs\`, \`preset.list|get|search|sections|getSection|groups|getGroup|choiceBlocks|getChoiceBlock\`, \`home_widget.list|get\`, \`skill.list|get\`, \`instruction.list|get\`.
 - Chat reading: use \`chat.messages\` with \`chatId\`; preserve user-requested bounds with \`last\` or \`afterPost\`, and page only inside that range with \`limit\` and \`offset\`.
 - Oversized chat ranges elide \`messages\`; re-read one post with \`last: 1\` or \`afterPost\`, \`field: "messages[0].content"\`, and \`offset\`/\`limit\` content windows.
 - Writes: \`character.create|update|moveToFolder\`, \`persona.create|update\`, \`lorebook.create|update|addEntry|updateEntry|deleteEntry|folder.create|libraryFolder.create\`, \`theme.create|update|setActive\`, \`personal_extension.create|update\`, \`agent.create|update\`, \`preset.create|update|addSection|updateSection|deleteSection|addGroup|updateGroup|deleteGroup|addChoiceBlock|updateChoiceBlock|deleteChoiceBlock\`, \`home_widget.create|update|delete\`, \`instruction.remember|update|forget\`.
@@ -890,6 +891,7 @@ ${MARI_GUIDED_SEQUENCES}
   - Unsure what a field does? \`docs_read docs/lorebooks/entries.md\` at the heading "Entry types: Normal, Constant, Selective" or "Keyword matching rules".
 - Lorebook fidelity pass: after creating a lorebook, OFFER the user a second-pass review (do not run it unprompted). If they accept, read the entries back (\`lorebook.entries\` then \`lorebook.getEntry\`) and fix weak spots with \`lorebook.updateEntry\`: narrow an over-broad key or add \`matchWholeWords\`, mark always-relevant lore \`constant\`, group alternates, or fill a missing \`description\`.
 - Lorebook reading: \`lorebook.entries\` is a compact index with entry IDs and content previews. Call \`lorebook.getEntry\` with each relevant \`entryId\` before reviewing or rewriting its full content.
+- Why an entry did or did not fire: call \`lorebook.testScan\` with \`lorebookId\` and, if the user is in a chat, \`chatId\` (use the chat from \`activeChat\` in your context) to run the real scanner and get every entry's \`activated\`/\`blocked\` status with keys and the gate reason - never the scanned chat text. When the context came from a lorebook-entry row, \`resource.id\` is that entry's \`lorebookId\` and \`resource.label\` is the entry's name - find that name in the \`activated\`/\`blocked\` lists the full scan returns, or pass its \`entryId\` (look it up with \`lorebook.entries\` if you need it) to check just that one entry (it comes back \`activated\`, \`blocked\` with a reason, or \`no_match\` - "no key matched in the scanned messages"). Blocked reasons and the fix each one names: \`secondary_keys\` (loosen \`secondaryKeys\`/\`selectiveLogic\` or turn off \`selective\`), \`filters\` (the character/tag/trigger filters exclude this chat), \`conditions\` (a gate did not clear - say which), \`group\` (another entry in the same \`group\` already won), \`probability\` (raise \`probability\`, it is below 100), \`recursion_only\` (\`delayUntilRecursion\` is on and nothing recursive matched yet), \`folder_disabled\` (the entry's folder is disabled). Answer with the exact reason and the exact setting to change; only call \`lorebook.updateEntry\` to fix it if the user asks you to.
 - Deleting a lorebook entry: use \`lorebook.deleteEntry\` with the entry's \`entryId\` and \`apply:true\` — it removes that one entry and shows a Keep/Restore card. NEVER delete a lorebook entry with a raw \`mari db delete\`: its \`--where\` selector can match and permanently remove far more rows than you intend. If a raw \`mari db delete\` is ever unavoidable, dry-run it first (\`apply:false\`) and confirm the exact affected-row count before applying.
 - For \`preset.create\`, put prompt sections in \`data.sections\` and preset variables in \`data.choiceBlocks\`. Each choice block needs \`variableName\`, \`question\`, and \`options\` with \`label\`/\`value\` pairs. A choice block does nothing on its own: its picked value only reaches the model where a section's \`content\` references it with the \`{{variableName}}\` macro. So whenever you define a variable you MUST also drop its \`{{variableName}}\` into at least one section's content (see the tone example below), or the user gets a picker in the preset UI that changes nothing. When you add a variable to an EXISTING preset with \`addChoiceBlock\`, also \`updateSection\` to weave \`{{variableName}}\` into a section's content for the same reason.
 - Editing part of a preset: \`preset.sections\` is a compact index (section IDs, names, content previews); call \`preset.getSection\` before rewriting one. To add a line at a specific spot, read the section's full content with \`preset.getSection\`, splice your change into it, then \`preset.updateSection\` with the whole new content — the section is the finest editable unit (there is no line/offset addressing). \`preset.addSection\`/\`addGroup\` place the new item and wire it into the preset's order; \`preset.deleteGroup\` keeps the group's member sections (they just lose the grouping).
@@ -1867,14 +1869,15 @@ function packageServiceInput(args: Record<string, unknown>): Record<string, unkn
   return isRecord(input) ? input : null;
 }
 
-// Exported for the regression lane (L1: `agent.runs` must classify as read-only).
+// Exported for the regression lane (L1: `agent.runs` must classify as read-only;
+// L4: `lorebook.testScan` must classify as read-only too).
 export function appDataActionLooksReadOnly(action: unknown): boolean {
   if (typeof action !== "string") return false;
   const normalized = action
     .trim()
     .toLowerCase()
     .replace(/[-_\s]+/g, "");
-  return /\.(list|get|getentry|search|active|entries|messages|sections|getsection|groups|getgroup|choiceblocks|getchoiceblock|runs)$/.test(
+  return /\.(list|get|getentry|search|active|entries|messages|sections|getsection|groups|getgroup|choiceblocks|getchoiceblock|runs|testscan)$/.test(
     normalized,
   );
 }

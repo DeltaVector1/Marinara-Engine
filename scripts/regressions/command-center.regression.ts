@@ -1650,6 +1650,25 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.ok(!appDataActionLooksReadOnly("agent.update"), "agent.update must stay a write action");
 }
 
+// L4: `lorebook.testScan` must be classified read-only, and `buildProfessorMariCommandCenterContext`
+// must resolve a lorebook-entry row's id to the lorebookId (not the lorebookId:entryId pair glued
+// together) - the existing lorebook-attachment UI resolves `resource.id` as a lorebookId and shows
+// "no longer available" otherwise. The entry's own name still travels as `resource.label`.
+{
+  assert.ok(appDataActionLooksReadOnly("lorebook.testScan"), "lorebook.testScan should be read-only");
+  assert.ok(!appDataActionLooksReadOnly("lorebook.updateEntry"), "lorebook.updateEntry must stay a write action");
+
+  const entryContext = buildProfessorMariCommandCenterContext(
+    "why didn't Harbor fire",
+    { id: "lorebook-entry:book-1:entry-7", title: "Harbor", category: "lorebook" },
+  );
+  assert.deepEqual(
+    entryContext.resource,
+    { kind: "lorebook", id: "book-1", label: "Harbor" },
+    "a lorebook-entry row's resource id is the lorebookId, not the lorebookId:entryId pair",
+  );
+}
+
 // L1: the merged agent list surfaces a type from the installed registry that has no
 // agent_configs row (never configured) and keeps a custom agent that has no registry entry.
 {

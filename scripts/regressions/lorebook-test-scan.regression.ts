@@ -157,6 +157,54 @@ try {
   assert.ok(chatIds.includes(filtered.id), "the chat's character tags open the tag gate");
   assert.ok(chatIds.includes(unrelated.id));
   assert.ok(chatResult.scannedMessages >= 1);
+
+  // L4: the Mari-facing `lorebook.testScan` app_data action wraps the same scanner for a
+  // secondary-key block and a "no key matched" absent entry, and never carries chat text.
+  const { MariDbService } = await import("../../packages/server/src/services/mari-db/mari-db.service.js");
+  const mariDb = new MariDbService(db);
+  const scanChat = await chats.create({ name: "Harbor trip", mode: "roleplay", characterIds: [] } as never);
+  await chats.createMessage({
+    chatId: scanChat!.id,
+    role: "user",
+    characterId: null,
+    content: "We rode to Valdenmoor by the harbor.",
+  });
+  const blockedScan = await mariDb.executeAction({
+    action: "lorebook.testScan",
+    lorebookId: book.id,
+    chatId: scanChat!.id,
+    entryId: gated.id,
+    sessionId: "test",
+  } as never);
+  assert.equal(blockedScan.ok, true);
+  assert.equal((blockedScan.output as any).status, "blocked");
+  assert.equal((blockedScan.output as any).reason, "secondary_keys");
+  assert.deepEqual((blockedScan.output as any).matchedKeys, ["harbor"]);
+  assert.ok(
+    !JSON.stringify(blockedScan.output).includes("We rode to Valdenmoor"),
+    "the scanned message text never leaves this action",
+  );
+
+  const noMatchScan = await mariDb.executeAction({
+    action: "lorebook.testScan",
+    lorebookId: book.id,
+    chatId: scanChat!.id,
+    entryId: unrelated.id,
+    sessionId: "test",
+  } as never);
+  assert.equal(noMatchScan.ok, true);
+  assert.equal((noMatchScan.output as any).status, "no_match");
+  assert.equal((noMatchScan.output as any).reason, "no key matched in the scanned messages");
+
+  const fullScan = await mariDb.executeAction({
+    action: "lorebook.testScan",
+    lorebookId: book.id,
+    chatId: scanChat!.id,
+    sessionId: "test",
+  } as never);
+  assert.equal(fullScan.ok, true);
+  assert.ok(Array.isArray((fullScan.output as any).activated));
+  assert.ok(Array.isArray((fullScan.output as any).blocked));
 } finally {
   await app?.close();
   await db?._fileStore.close();

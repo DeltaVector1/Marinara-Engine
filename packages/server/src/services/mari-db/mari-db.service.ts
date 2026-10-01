@@ -21,6 +21,9 @@ import { getFileStorageDir, getMonorepoRoot, isCustomToolScriptEnabled } from ".
 import { logger } from "../../lib/logger.js";
 import { chatIdForMariSession } from "../professor-mari/mari-session.js";
 import { createCharactersStorage } from "../storage/characters.storage.js";
+import { createChatsStorage } from "../storage/chats.storage.js";
+import { createLorebooksStorage } from "../storage/lorebooks.storage.js";
+import { runLorebookTestScan } from "../lorebook/test-scan.js";
 import { createAgentsStorage } from "../storage/agents.storage.js";
 import {
   clearCharacterEmbeddedLorebook,
@@ -68,6 +71,9 @@ import {
   parseLorebookDecisionActivation,
   BUILT_IN_AGENT_MANIFESTS,
   type BuiltInAgentManifest,
+  type Lorebook,
+  type LorebookEntry,
+  type LorebookFolder,
 } from "@marinara-engine/shared";
 import { guardMariDecisionWrites, MARI_DECISION_STATE_KEY } from "../professor-mari/decision-authoring.js";
 import { computePersonalExtensionHash } from "../extensions/personal-extension-hash.js";
@@ -3614,6 +3620,112 @@ export class MariDbService {
           .slice(0, limit)
           .map(summarizeLorebookRow);
         return { ok: true, mode: "read", command: context.command, output: rows };
+      }
+      // L4: why an entry did or did not fire. Wraps the same scanner the editor's
+      // test tool and real generations use (`runLorebookTestScan`), so Mari's
+      // answer cannot drift from what actually happens. Only keys and gate
+      // reasons leave this call - never the scanned message text.
+      case "testscan": {
+        const lorebookId = requiredString(args, ["lorebookId", "id"], "lorebook id");
+        const chatId = firstString(args, ["chatId"]);
+        const entryId = firstString(args, ["entryId"]);
+        const lorebooksStorage = createLorebooksStorage(this.db);
+        const lorebook = (await lorebooksStorage.getById(lorebookId)) as unknown as Lorebook | null;
+        if (!lorebook) {
+          return { ok: false, mode: "read", command: context.command, error: `Lorebook ${lorebookId} not found` };
+        }
+        let messages: Array<{ role: string; content: string }> = [];
+        let activeCharacterIds: string[] = [];
+        let activeCharacterTags: string[] = [];
+        let generationTriggers = ["chat"];
+        if (chatId) {
+          const chatsStorage = createChatsStorage(this.db);
+          const chat = await chatsStorage.getById(chatId);
+          if (!chat) return { ok: false, mode: "read", command: context.command, error: `Chat ${chatId} not found` };
+          messages = (await chatsStorage.listMessages(chatId)).map((message) => ({
+            role: message.role === "narrator" ? "system" : String(message.role),
+            content: typeof message.content === "string" ? message.content : "",
+          }));
+          activeCharacterIds = Array.isArray(chat.characterIds) ? chat.characterIds.map(String) : [];
+          const characterRows = await createCharactersStorage(this.db).getByIds(activeCharacterIds);
+          activeCharacterTags = characterRows.flatMap((row) => {
+            let data: Record<string, unknown> = {};
+            if (typeof row.data === "string") {
+              try {
+                data = JSON.parse(row.data) as Record<string, unknown>;
+              } catch {
+                data = {};
+              }
+            } else if (row.data && typeof row.data === "object") {
+              data = row.data as Record<string, unknown>;
+            }
+            return Array.isArray(data.tags) ? data.tags.filter((tag): tag is string => typeof tag === "string") : [];
+          });
+          const modeTrigger =
+            chat.mode === "game"
+              ? "game"
+              : typeof chat.mode === "string" && chat.mode.trim()
+                ? chat.mode.trim()
+                : "roleplay";
+          generationTriggers = [...new Set([modeTrigger, "chat"])];
+        }
+        const [entries, folders] = await Promise.all([
+          lorebooksStorage.listEntries(lorebookId),
+          lorebooksStorage.listFolders(lorebookId),
+        ]);
+        const result = runLorebookTestScan({
+          lorebook,
+          entries: entries as unknown as LorebookEntry[],
+          folders: folders as unknown as LorebookFolder[],
+          messages,
+          activeCharacterIds,
+          activeCharacterTags,
+          generationTriggers,
+        });
+        if (entryId) {
+          const entryName = (entries as unknown as LorebookEntry[]).find((entry) => entry.id === entryId)?.name;
+          const activated = result.activated.find((entry) => entry.entryId === entryId);
+          if (activated) {
+            return {
+              ok: true,
+              mode: "read",
+              command: context.command,
+              output: { status: "activated", ...activated },
+            };
+          }
+          const blocked = result.blocked.find((entry) => entry.entryId === entryId);
+          if (blocked) {
+            return {
+              ok: true,
+              mode: "read",
+              command: context.command,
+              output: { status: "blocked", ...blocked },
+            };
+          }
+          return {
+            ok: true,
+            mode: "read",
+            command: context.command,
+            output: {
+              entryId,
+              name: entryName ?? null,
+              status: "no_match",
+              reason: "no key matched in the scanned messages",
+              scannedMessages: result.scannedMessages,
+            },
+          };
+        }
+        return {
+          ok: true,
+          mode: "read",
+          command: context.command,
+          output: {
+            activated: result.activated,
+            blocked: result.blocked,
+            recursive: result.recursive,
+            scannedMessages: result.scannedMessages,
+          },
+        };
       }
       case "folder.list": {
         const lorebookId = requiredString(args, ["lorebookId", "id"], "lorebook id");
