@@ -103,6 +103,8 @@ Gdy szept jest już widoczny, wybierz **Edit whisper** (edytuj szept), zmień te
 
 Możesz też wpisać `[whisper: character="name" text="the secret"]` we własnej wiadomości Roleplay, aby wyszeptać coś jednej postaci w czacie. Własne szepty widzisz od razu. Działa to w zwykłych czatach, bez włączania trybu wieloosobowego.
 
+Ta sama komenda działa też wtedy, gdy edytujesz wiadomość postaci lub narratora: po zapisaniu staje się szeptem tej wiadomości. Tekst szeptu może zajmować kilka wierszy i zawierać wypowiedzi w cudzysłowie bez zmian, na przykład `text=""I love you.""`.
+
 ### Twoje prywatne notatki
 
 Przy włączonym **Personal Notes** w **Roleplay Commands** wpisz `[notes: content="your private note"]` we własnej wiadomości. Te notatki należą do ciebie i trafiają wyłącznie do wyznaczonego narratora, nie do zwykłych postaci ani wspólnych agentów. Edytuj je lub usuwaj w szczegółach poleceń wiadomości.

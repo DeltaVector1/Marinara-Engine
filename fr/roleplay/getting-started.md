@@ -103,6 +103,8 @@ Une fois un murmure visible, choisis **Edit whisper** (modifier le murmure), cha
 
 Tu peux aussi écrire `[whisper: character="name" text="the secret"]` dans ton propre message Roleplay pour murmurer à un personnage du chat. Tes propres murmures sont immédiatement visibles pour toi. Cela fonctionne dans les chats ordinaires sans activer le multijoueur.
 
+La même commande fonctionne quand tu modifies le message d'un personnage ou du narrateur : dès que tu enregistres, elle devient le murmure de ce message. Le texte du murmure peut s'étendre sur plusieurs lignes et contenir des dialogues entre guillemets tels quels, par exemple `text=""I love you.""`.
+
 ### Tes notes privées
 
 Avec **Personal Notes** activé dans **Roleplay Commands**, écris `[notes: content="your private note"]` dans ton propre message. Ces notes t'appartiennent et ne sont incluses que pour le narrateur désigné, pas pour les personnages ordinaires ni les agents partagés. Utilise les détails des commandes du message pour les modifier ou les supprimer.

@@ -111,6 +111,8 @@ Narrative Director 在输入框上方有一个 **Push Story** 按钮，按下后
 
 你也可以在自己的 Roleplay 消息中写入 `[whisper: character="name" text="the secret"]`，向聊天中的一个角色发送耳语。自己的耳语会立即对你可见。普通聊天也能使用，不需要启用多人模式。
 
+编辑角色或旁白的消息时，也可以使用同一个命令：保存后，它会成为这条消息的耳语。耳语文本可以写成多行，也可以原样引用带引号的对白，例如 `text=""I love you.""`。
+
 ### 你的私人笔记
 
 在 **Roleplay Commands** 下启用 **Personal Notes** 后，在自己的消息中写入 `[notes: content="your private note"]`。这些笔记属于你，只会提供给指定旁白，不会提供给普通角色或共享智能体。通过消息的命令详情可以编辑或删除它们。

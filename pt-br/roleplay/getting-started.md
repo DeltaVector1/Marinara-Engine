@@ -103,6 +103,8 @@ Depois que um sussurro estiver visível, escolha **Edit whisper** (editar sussur
 
 Você também pode escrever `[whisper: character="name" text="the secret"]` na própria mensagem de Roleplay para sussurrar a um personagem do chat. Seus próprios sussurros ficam visíveis para você imediatamente. Isso funciona em chats comuns sem ativar o modo multijogador.
 
+O mesmo comando funciona quando você edita a mensagem de um personagem ou do narrador: ao salvar, ele vira o sussurro dessa mensagem. O texto do sussurro pode ocupar várias linhas e incluir falas entre aspas do jeito que estão, por exemplo `text=""I love you.""`.
+
 ### Suas notas privadas
 
 Com **Personal Notes** ativado em **Roleplay Commands**, escreva `[notes: content="your private note"]` na própria mensagem. Essas notas pertencem a você e são incluídas apenas para o narrador designado, não para personagens comuns nem agentes compartilhados. Use os detalhes de comandos da mensagem para editá-las ou excluí-las.

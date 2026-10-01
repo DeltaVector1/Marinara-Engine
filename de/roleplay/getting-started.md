@@ -103,6 +103,8 @@ Sobald eine Flüsternachricht sichtbar ist, wähle **Edit whisper** (Flüsternac
 
 Du kannst auch `[whisper: character="name" text="the secret"]` in deine eigene Roleplay-Nachricht schreiben, um einem Charakter im Chat etwas zuzuflüstern. Deine eigenen Flüsternachrichten siehst du sofort. Das funktioniert in gewöhnlichen Chats ohne aktivierten Mehrspielermodus.
 
+Derselbe Befehl funktioniert auch, wenn du die Nachricht eines Charakters oder des Erzählers bearbeitest: Nach dem Speichern wird daraus eine Flüsternachricht, die zu dieser Nachricht gehört. Der Text einer Flüsternachricht darf sich über mehrere Zeilen ziehen und wörtliche Rede unverändert zitieren, zum Beispiel `text=""I love you.""`.
+
 ### Deine privaten Notizen
 
 Wenn **Personal Notes** unter **Roleplay Commands** aktiviert ist, kannst du `[notes: content="your private note"]` in deine eigene Nachricht schreiben. Diese Notizen gehören dir und werden nur dem ernannten Erzähler mitgegeben, nicht gewöhnlichen Charakteren oder gemeinsamen Agenten. Über die Befehlsdetails der Nachricht kannst du sie bearbeiten oder löschen.
