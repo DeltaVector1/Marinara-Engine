@@ -965,7 +965,9 @@ function presetDataFromFlags(flags: Map<string, string | boolean>): Row {
   return data;
 }
 
-function normalizeAppDataActionName(action: string): string {
+// Exported so callers outside this module (workspace-agent.service.ts's autoKeep gate) can compare
+// against the same normalized action name the dispatch table itself uses.
+export function normalizeAppDataActionName(action: string): string {
   let key = action
     .trim()
     .toLowerCase()
@@ -2393,8 +2395,10 @@ export function summarizeMergedAgentRow(manifest: BuiltInAgentManifest | undefin
   );
   const configPrompt = typeof configRow?.promptTemplate === "string" ? configRow.promptTemplate : "";
   return {
+    id: configRow?.id ?? null,
     type: manifest?.id ?? String(configRow?.type ?? ""),
     name: (typeof configRow?.name === "string" && configRow.name) || manifest?.name || "",
+    description: typeof configRow?.description === "string" ? truncateStr(configRow.description, 120) : "",
     packageId: manifest?.packageId ?? null,
     phase: typeof configRow?.phase === "string" ? configRow.phase : (manifest?.phase ?? null),
     category: manifest?.category ?? null,
@@ -4569,8 +4573,7 @@ export class MariDbService {
           return { ok: false, mode: "read", command: context.command, error: "Provide an agent id or type." };
         }
         const agentsStorage = createAgentsStorage(this.db);
-        const row =
-          (id ? await agentsStorage.getById(id) : null) ?? (type ? await agentsStorage.getByType(type) : null);
+        const row = (id ? await agentsStorage.getById(id) : null) ?? (await agentsStorage.getByType(type ?? id!));
         return {
           ok: Boolean(row),
           mode: "read",
@@ -7215,9 +7218,13 @@ export class MariDbService {
   ): Promise<MariDbCommandResult> {
     const chatId = requiredString(args, ["chatId", "chat_id"], "chat id");
     const messageId = requiredString(args, ["messageId", "message_id", "id"], "message id");
-    const content = requiredString(args, ["content"], "fixed reply content").trim();
-    if (!content) throw new Error("chat.updateMessage needs non-empty content for the fixed reply.");
+    // Validate against the trimmed form, but store the reply as given — unlike requiredString's
+    // trim-before-return, a fixed reply's own leading/trailing whitespace is content, not noise.
+    const rawContent = typeof args.content === "string" ? args.content : "";
+    if (!rawContent.trim()) throw new Error("chat.updateMessage needs non-empty content for the fixed reply.");
+    const content = rawContent;
     const reason = firstString(args, ["reason"]) ?? null;
+    const apply = firstBoolean(args, ["apply"]) === true;
 
     const chatsStorage = createChatsStorage(this.db);
     const chat = await chatsStorage.getById(chatId);
@@ -7235,7 +7242,6 @@ export class MariDbService {
 
     const previousIndex = message.activeSwipeIndex ?? 0;
     const previousContent = message.content;
-    const createdSwipe = await chatsStorage.addSwipe(messageId, content, false);
 
     // L6: chatId/chatName ride along unchanged on both sides (so they never show as a field change)
     // for the review card's "Reply · <chat name>" title and the open chat's messages refresh on Keep.
@@ -7246,7 +7252,7 @@ export class MariDbService {
       action: "update",
       before: { ...label, content: previousContent },
       after: { ...label, content },
-      apply: true,
+      apply,
     };
     const plan: Plan = {
       changes: [change],
@@ -7268,13 +7274,34 @@ export class MariDbService {
         kind: "patch",
         table: "messages",
         id: messageId,
-        apply: true,
+        apply,
         cascade: false,
         reason,
         cwd: context.cwd,
       },
-      chatSwipeFix: { messageId, previousIndex, newIndex: createdSwipe.index },
     };
+
+    if (!apply) {
+      // Mirrors executeMutation's dry-run branch: no addSwipe, no review, no history beyond the preview.
+      await this.recordHistory({
+        plan,
+        command: context.command,
+        sessionId: context.sessionId,
+        status: "dry-run",
+        journalPath: null,
+      });
+      return {
+        ok: true,
+        mode: "dry-run",
+        command: context.command,
+        summary: plan.summary,
+        validation: plan.validation,
+        approval: { status: "not_required", operationHash: plan.operationHash },
+      };
+    }
+
+    const createdSwipe = await chatsStorage.addSwipe(messageId, content, false);
+    plan.chatSwipeFix = { messageId, previousIndex, newIndex: createdSwipe.index };
 
     const history = await this.recordHistory({
       plan,
@@ -8400,6 +8427,11 @@ export class MariDbService {
     const cwd = request.cwd ? resolve(request.cwd) : process.cwd();
     const scriptPath = resolve(cwd, String(request.scriptPath));
     const tables = request.table === "all" ? [...FILE_BACKED_TABLES] : [String(request.table)];
+    // L5/L7: parseMutation only guards positionals[0], which for `transform all <script>` is the
+    // literal string "all", not a real table name - "all" then expands to every FILE_BACKED_TABLES
+    // entry right here, including messages/message_swipes. Guard the expanded list before the
+    // untrusted script ever runs, so a transform can't patch/insert/delete message rows that way.
+    for (const table of tables) guardRawMessageTableWrite(table);
     const allParsed = new Map<string, Row[]>();
     const allRaw = new Map<string, Row[]>();
     for (const table of tables) {

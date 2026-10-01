@@ -2352,8 +2352,19 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     message: string,
     focusResult: OmnibarAskFocus,
     asideAnswer?: { query: string; answer: string; tier: "local" | "remote" },
-  ) =>
-    buildProfessorMariCommandCenterContext(message, focusResult, [], focusResult?.id, {
+  ) => {
+    // The "fix this" row built from lastAppError is the only row that opens through
+    // the chat-error door (R22: unasked Mari calls carry no user content either way).
+    // L2: the row can point at a connection or, for a failed agent run, the agent.
+    const source =
+      lastAppError?.retry &&
+      focusResult?.id ===
+        `${lastAppError.retry.kind === "open-agent" ? "agent" : "connection"}:${lastAppError.retry.id}`
+        ? ("chat-error" as const)
+        : gameSetupStep
+          ? ("game-setup" as const)
+          : undefined;
+    return buildProfessorMariCommandCenterContext(message, focusResult, [], focusResult?.id, {
       activeChat: activeChat ? { id: activeChat.id, label: activeChat.name, mode: activeChat.mode } : undefined,
       settingsLocation:
         settingsPanelVisible && (settingsTab || settingsTargetControlId)
@@ -2361,20 +2372,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           : undefined,
       field: gameSetupStep ?? activeEditorField?.label,
       fieldId: gameSetupStep ? undefined : activeEditorField?.id,
-      error: lastAppError ? { message: lastAppError.message, code: lastAppError.code } : undefined,
-      // The "fix this" row built from lastAppError is the only row that opens through
-      // the chat-error door (R22: unasked Mari calls carry no user content either way).
-      // L2: the row can point at a connection or, for a failed agent run, the agent.
-      source:
-        lastAppError?.retry &&
-        focusResult?.id ===
-          `${lastAppError.retry.kind === "open-agent" ? "agent" : "connection"}:${lastAppError.retry.id}`
-          ? "chat-error"
-          : gameSetupStep
-            ? "game-setup"
-            : undefined,
+      // Only the deliberate "fix this" handoff actually needs lastAppError's text; every other
+      // Mari call (R22) must not carry it along just because an unrelated error happens to be live.
+      error:
+        source === "chat-error" && lastAppError
+          ? { message: lastAppError.message, code: lastAppError.code }
+          : undefined,
+      source,
       asideAnswer,
     });
+  };
   /** Both Mari routes remember the row they left, so returning restores focus. */
   const rememberMariReturn = (focusResult: OmnibarAskFocus) => {
     const returnResultId = focusResult?.id ?? activeResultId;

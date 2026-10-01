@@ -98,6 +98,55 @@ try {
     assert.equal(swipesAfterRestore.length, 1, "Restore removes the fixed swipe through chat storage, not a raw row restore");
     assert.equal(swipesAfterRestore[0]?.content, "The storm rolled in ac");
 
+    // #L7 review finding #1: a missing/false `apply` must stay a dry-run preview, even in
+    // Permissions Mode Plan (where isPreviewOnlyAppDataCommand treats apply:false as non-mutating
+    // and lets it through the Plan-mode floor) - the message and its swipes must be untouched.
+    const thirdBroken = await chats.createMessage({
+      chatId: chat.id,
+      role: "assistant",
+      content: "The lantern flickered onc",
+    });
+    const thirdMessageId = thirdBroken!.id;
+    const dryRun = await mari.executeAction({
+      action: "chat.updateMessage",
+      chatId: chat.id,
+      messageId: thirdMessageId,
+      content: "The lantern flickered once and died.",
+      apply: false,
+    });
+    assert.equal(dryRun.ok, true, "a dry-run chat.updateMessage should still report ok");
+    assert.equal(dryRun.mode, "dry-run", "apply:false must report dry-run, not apply");
+    assert.equal(dryRun.approval?.status, "not_required", "a dry-run never stages a review");
+    const afterDryRun = await chats.getMessage(thirdMessageId);
+    assert.equal(afterDryRun?.content, "The lantern flickered onc", "a dry-run must not change the message content");
+    const swipesAfterDryRun = await chats.getSwipes(thirdMessageId);
+    assert.equal(swipesAfterDryRun.length, 1, "a dry-run must not add a new swipe");
+
+    const missingApplyRun = await mari.executeAction({
+      action: "chat.updateMessage",
+      chatId: chat.id,
+      messageId: thirdMessageId,
+      content: "The lantern flickered once and died.",
+    });
+    assert.equal(missingApplyRun.mode, "dry-run", "a missing apply must default to dry-run, like every other app_data write");
+    assert.equal((await chats.getSwipes(thirdMessageId)).length, 1, "a missing apply must not add a new swipe either");
+
+    // #L7 review finding #2: `mari db transform all <script>` expands "all" to every
+    // FILE_BACKED_TABLES entry, including messages/message_swipes - parseMutation's guard only
+    // checked the literal positional ("all" itself), so the guard must also run after expansion,
+    // before the (untrusted, sandboxed) script ever executes - a nonexistent script path is enough
+    // to prove the refusal happens first.
+    const transformAllResult = await mari.executeCli({
+      argv: ["db", "transform", "all", join(dir, "does-not-exist.mjs"), "--apply"],
+    });
+    assert.equal(transformAllResult.ok, false, "transform all must be refused when it would touch messages");
+    assert.match(String(transformAllResult.error), /chat\.updateMessage/);
+    assert.equal(
+      (await chats.getMessage(messageId))?.content,
+      "The door creaked open and she said nothing.",
+      "transform all must not have touched the messages table",
+    );
+
     // Guard rails: user messages, and game chats, are out of scope. executeAction never rejects -
     // it catches and reports failure through the result (ok:false + error), same as every other
     // app_data action - so these assert on the returned result, not a thrown rejection.

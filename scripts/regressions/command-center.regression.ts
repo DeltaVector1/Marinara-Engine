@@ -1694,11 +1694,13 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(registryOnlyRow.enabled, true, "an unconfigured registry agent falls back to enabledByDefault");
   assert.deepEqual(registryOnlyRow.settingKeys, ["exampleKey"], "setting keys come from the manifest default, names only");
   assert.ok(!("settings" in registryOnlyRow), "setting values are never exposed, only key names");
+  assert.equal(registryOnlyRow.id, null, "an unconfigured registry agent has no config id to update with");
 
   const customConfigRow = {
     id: "cfg-1",
     type: "my-custom-agent",
     name: "My Custom Agent",
+    description: "Reviews scenes for tone drift.",
     phase: "parallel",
     enabled: "true",
     promptTemplate: "Custom prompt.",
@@ -1708,6 +1710,10 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(customRow.custom, true, "a type absent from the registry is a custom agent");
   assert.equal(customRow.packageId, null, "a custom agent has no package");
   assert.deepEqual(customRow.settingKeys, ["secretApiKey"], "setting keys, not values, are reported for a custom agent");
+  // #L7 review: agent.update requires an id - a merged row with no id breaks the list-then-edit
+  // flow (L3) because there is nothing to call agent.update with.
+  assert.equal(customRow.id, "cfg-1", "a configured agent's config id must survive into the merged row");
+  assert.equal(customRow.description, "Reviews scenes for tone drift.", "the config row's description must survive too");
 
   const overriddenRow = summarizeMergedAgentRow(registryOnlyManifest, {
     ...customConfigRow,
@@ -1875,19 +1881,23 @@ assert.ok(!("mariDetailId" in mariSession));
   const aboveLayerAllowed = new Set([
     "components/layout/PersonalExtensionContributionsMenu.tsx",
     "components/layout/PersonalExtensionInjector.tsx",
-    "styles/globals.css", // .mari-sprite-ghost
     "hooks/use-touch-folder-drag.ts",
   ]);
+  // globals.css is huge and shared by everything, so it keeps no blanket file exemption: only the
+  // exact known .mari-sprite-ghost value is allowed through, not any future z-index someone adds.
+  const aboveLayerValueAllowed = new Map<string, Set<number>>([["styles/globals.css", new Set([2_147_483_000])]]);
   const files = readdirSync(new URL("../../packages/client/src/", import.meta.url), {
     recursive: true,
     encoding: "utf8",
   }).filter((file) => /\.(tsx?|css)$/u.test(file));
   const offenders = files.flatMap((file) => {
-    if (aboveLayerAllowed.has(file.replaceAll("\\", "/"))) return [];
+    const normalizedFile = file.replaceAll("\\", "/");
+    if (aboveLayerAllowed.has(normalizedFile)) return [];
+    const allowedValues = aboveLayerValueAllowed.get(normalizedFile);
     const source = clientSource(file);
     return [...source.matchAll(/z-\[(\d+)\]|zIndex:\s*"?(\d+)|z-index:\s*(\d+)|Z_INDEX\s*=\s*"?(\d+)/gu)]
       .map((match) => Number(match[1] ?? match[2] ?? match[3] ?? match[4]))
-      .filter((value) => value >= layer)
+      .filter((value) => value >= layer && !allowedValues?.has(value))
       .map((value) => `${file}: ${value}`);
   });
   assert.deepEqual(offenders, [], "a numeric z-index at or above the omnibar layer would cover the omnibar");

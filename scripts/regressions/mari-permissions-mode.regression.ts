@@ -123,7 +123,9 @@ assert.ok(
 );
 // L5: chat.updateMessage joins the always-reviewed set too - it never deletes, but the reply it
 // swipes away as "active" has no other undo surface, same reasoning as the delete carve-out above.
-assert.match(workspaceAgent, /action\.trim\(\)\.toLowerCase\(\) !== "chat\.updatemessage"/u);
+// #L7 review: the comparison normalizes with the same helper the app_data dispatch table uses
+// (normalizeAppDataActionName), so "chat.update_message"/"Chat.UpdateMessage" etc. still match.
+assert.match(workspaceAgent, /normalizeAppDataActionName\(action\) !== "chat\.updatemessage"/u);
 
 assert.match(workspaceAgent, /reviewPolicy: autoKeep \? "auto-keep" : "standard"/u);
 // Per-chat override (#5725 maintainer call): the run resolves chat override

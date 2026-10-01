@@ -366,6 +366,9 @@ This is the part most likely to break silently. All of it must survive.
   (`data-over-dialog`). Only the sonner toaster (Undo stays visible) and user
   extension windows/menus (`PersonalExtension*`, near 2^31) sit higher. The
   command-center regression fails on any numeric z-index at or above the layer.
+  Two more deliberate exceptions sit at or above it: Mari's end-of-run sprite
+  puff (`.mari-sprite-ghost`, globals.css, scoped to its exact value) and the
+  touch folder-drag ghost (`use-touch-folder-drag.ts`, equal to the layer).
 - Over the game setup wizard the surface is the game setup: the quick answer
   and the Mari handoff use the `game-setup` entry point with the wizard step
   title as the only label (`data-game-setup-step`, R22).
@@ -399,6 +402,11 @@ This is the part most likely to break silently. All of it must survive.
   `agent.update` field name). It feeds the "Improve {{field}} with Mari" row,
   which sits after the "Editing …" row so an unpinned handoff carries the
   editor's resource beside the field; Enter on the row opens Mari with both.
+- Mari can read the installed agent catalog (`agent.list`, merging the
+  built-in/package registry with each type's `agent_configs` row), fetch one
+  agent (`agent.get`, by id or type) and its recent runs (`agent.runs`) through
+  the mari-db service — grounding for the agent editor handoff (L3) and the
+  "fix this" row for a failed agent run (L2).
 
 ## 9. Accessibility
 
