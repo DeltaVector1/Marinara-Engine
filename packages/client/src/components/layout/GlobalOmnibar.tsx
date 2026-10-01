@@ -339,10 +339,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  // Opened by the pull-to-open drop, which has already grown into the panel's
-  // shape: skip the pop-in and let the drop's layer fade out underneath.
+  // Opened by the pull-to-open gesture, whose circle pops the panel open: skip the
+  // pop-in and hand the panel over before the first paint, so it can be clipped.
   const [fromPull] = useState(isPullHandoffPending);
-  useEffect(() => takePullHandoff()?.(), []);
+  useLayoutEffect(() => takePullHandoff()?.(dialogRef.current), []);
   // R33: how far the search field has to fall to land where Mari's composer sits.
   // Measured while the list is still up, because by the time it leaves the field
   // is gone. 0 means "do not travel" - reduced motion, or a phone, where the
@@ -2661,7 +2661,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 <ChevronLeft size={18} />
               </button>
             ) : (
-              <Search size={19} aria-hidden="true" className="shrink-0 text-[var(--primary)]" />
+              <Search
+                size={19}
+                aria-hidden="true"
+                data-mari-pull-target="search"
+                className="shrink-0 text-[var(--primary)]"
+              />
             )}
             <AnimatePresence initial={false} mode="wait">
               {mariSurface ? (
@@ -2679,6 +2684,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                   >
                     <span
                       className="mari-workspace-portrait"
+                      data-mari-pull-target="mari"
                       data-state={mariVisualState}
                       data-conversation={mariHasConversation ? "true" : "false"}
                       aria-hidden="true"

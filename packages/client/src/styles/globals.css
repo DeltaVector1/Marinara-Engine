@@ -8062,6 +8062,194 @@ strong {
   animation: omnibar-in 0.16s ease-out;
 }
 
+/* Pull-to-open (slice 15): a sheet of the top bar's own surface pulled down to a
+   circle with a small bar under it. `use-pull-to-open-omnibar` paints the
+   geometry, the clip path and the background every frame. Above the omnibar (z 100). */
+.mari-pull-overlay {
+  --mari-pull-edge: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --mari-pull-ring: color-mix(in srgb, var(--foreground) 22%, transparent);
+  --mari-pull-shadow: rgb(0 0 0 / 0.4);
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  pointer-events: none;
+}
+
+[data-theme="light"] .mari-pull-overlay {
+  --mari-pull-shadow: rgb(40 20 80 / 0.16);
+}
+
+.mari-pull-overlay > * {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.mari-pull-glass {
+  will-change: transform;
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(10px) saturate(120%);
+}
+
+.mari-pull-rim {
+  overflow: visible;
+  will-change: transform;
+}
+
+.mari-pull-rim-edge {
+  fill: none;
+  stroke: var(--mari-pull-edge);
+  stroke-width: 1;
+}
+
+.mari-pull-rim-hair {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.mari-pull-rim-ring {
+  fill: none;
+  stroke: var(--mari-pull-ring);
+  stroke-width: 1;
+}
+
+.mari-pull-shadow {
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.mari-pull-lay {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.mari-pull-icon {
+  color: var(--foreground);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.35));
+}
+
+.mari-pull-icon svg {
+  display: block;
+}
+
+/* Mari floats in the circle: the head of her portrait, its edge dissolving into the rim. */
+.mari-pull-portrait {
+  width: 72px;
+  height: 72px;
+  overflow: hidden;
+  border-radius: 50%;
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 60%, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 60%, transparent 72%);
+}
+
+.mari-pull-portrait img {
+  position: absolute;
+  top: -9%;
+  left: 50%;
+  width: 150%;
+  max-width: none;
+  transform: translateX(-46%);
+  image-rendering: pixelated;
+}
+
+.mari-pull-tag,
+.mari-pull-chip {
+  display: grid;
+  height: 30px;
+  place-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    inset 0 0 0 1px var(--mari-pull-edge),
+    0 6px 16px var(--mari-pull-shadow);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  backdrop-filter: blur(12px) saturate(160%);
+}
+
+.mari-pull-tag-side,
+.mari-pull-tag-side > span {
+  grid-area: 1 / 1;
+}
+
+.mari-pull-tag-side {
+  display: grid;
+  justify-items: center;
+}
+
+.mari-pull-tag-side > span {
+  transition:
+    opacity 180ms ease,
+    transform 240ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.mari-pull-tag-side > [data-part="armed"],
+[data-armed="true"] .mari-pull-tag-side > [data-part="idle"] {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+[data-armed="true"] .mari-pull-tag-side > [data-part="armed"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Reduced motion: only the label above the finger, with a progress line. */
+.mari-pull-chip {
+  display: flex;
+  height: 32px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.mari-pull-chip::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--mari-pull-progress, 0) * 100%);
+  height: 2px;
+  background: var(--primary);
+  content: "";
+}
+
+.mari-pull-chip svg {
+  color: var(--primary);
+}
+
+.mari-pull-chip-portrait {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 12%;
+  image-rendering: pixelated;
+}
+
+.mari-pull-fadeout {
+  opacity: 0 !important;
+  transition: opacity 220ms ease-out !important;
+}
+
+/* While the circle docks in the opened dialog, what it lands on stays hidden,
+   and Mari's title waits for her portrait to arrive. */
+html[data-mari-pull-landing] [data-mari-pull-target],
+html[data-mari-pull-landing] [data-mari-pull-target] * {
+  visibility: hidden !important;
+}
+
+.mari-omnibar-header-copy {
+  transition: opacity 180ms ease-out;
+}
+
+html[data-mari-pull-landing="mari"] .mari-omnibar-header-copy {
+  opacity: 0;
+}
+
 @keyframes omnibar-row-in {
   from {
     opacity: 0;

@@ -1,39 +1,114 @@
+import { useId } from "react";
 import { createPortal } from "react-dom";
-import { motion } from "framer-motion";
-import type { PullDropVisuals } from "../../hooks/use-pull-to-open-omnibar";
+import { useTranslation } from "react-i18next";
+import { Search } from "lucide-react";
+import { PULL_ICON_SIZE, type PullDropVisuals } from "../../hooks/use-pull-to-open-omnibar";
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
 
 /**
- * The pull-to-open drop and the layer it morphs into. Decorative only: the
- * gesture lives on the top bar and the omnibar takes focus when it opens.
+ * The pull-to-open sheet, its circle and small bar. Decorative only: the gesture
+ * lives on the top bar and the opened dialog takes focus. The hook paints every
+ * frame straight into these elements through `visuals.els`.
  */
 export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
+  const { t } = useTranslation();
+  const appearance = useMariAppearancePack();
+  const id = useId();
+  const { els, target, armed } = visuals;
+  if (!visuals.shown) return null;
+  const label =
+    target === "mari"
+      ? armed
+        ? t("omnibar.pull.releaseToAskMari", "Release to ask Mari")
+        : t("omnibar.pull.askMari", "Ask Mari")
+      : armed
+        ? t("omnibar.pull.releaseToSearch", "Release to search")
+        : t("omnibar.pull.search", "Search");
+
+  if (visuals.labelOnly) {
+    return createPortal(
+      <div aria-hidden="true" className="mari-pull-overlay">
+        <div ref={(el) => void (els.chip = el)} className="mari-pull-lay mari-pull-chip">
+          {target === "mari" ? (
+            <img src={appearance.portraits.idle} alt="" draggable={false} className="mari-pull-chip-portrait" />
+          ) : (
+            <Search size={16} />
+          )}
+          <span>{label}</span>
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
+  const tagLabel = (side: "search" | "mari") =>
+    side === "mari"
+      ? [t("omnibar.pull.askMari", "Ask Mari"), t("omnibar.pull.releaseToAskMari", "Release to ask Mari")]
+      : [t("omnibar.pull.search", "Search"), t("omnibar.pull.releaseToSearch", "Release to search")];
+
   return createPortal(
-    <>
-      {visuals.dropShown && (
-        <motion.svg
-          aria-hidden="true"
-          data-pull-drop
-          className="pointer-events-none fixed left-0 z-[90] h-[100dvh] w-full overflow-hidden"
-          style={{ top: visuals.originY }}
-        >
-          <motion.path d={visuals.path} className="fill-[var(--primary)]" />
-          <motion.path d={visuals.highlight} className="fill-white/30" />
-        </motion.svg>
-      )}
-      {visuals.morphing && (
-        <motion.div
-          aria-hidden="true"
-          data-pull-morph
-          className="pointer-events-none fixed inset-0 z-[95]"
-          style={{ opacity: visuals.overlayOpacity }}
-        >
-          <motion.div className="absolute inset-0 bg-black/55" style={{ opacity: visuals.dim }} />
-          <motion.div className="absolute inset-0 bg-[var(--card)]" style={{ clipPath: visuals.clip }}>
-            <motion.div className="absolute inset-0 bg-[var(--primary)]" style={{ opacity: visuals.accent }} />
-          </motion.div>
-        </motion.div>
-      )}
-    </>,
+    <div aria-hidden="true" className="mari-pull-overlay" data-armed={armed ? "true" : "false"}>
+      <div ref={(el) => void (els.shadow = el)} className="mari-pull-shadow" />
+      <div ref={(el) => void (els.glass = el)} className="mari-pull-glass" />
+      <svg ref={(el) => void (els.rim = el)} className="mari-pull-rim">
+        <defs>
+          <clipPath id={`${id}clip`}>
+            <path ref={(el) => void (els.rimClip = el)} />
+          </clipPath>
+          <linearGradient ref={(el) => void (els.rimGrad = el)} id={`${id}rim`} gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.2" />
+            <stop offset="0.45" stopColor="#fff" stopOpacity="0.75" />
+            <stop offset="0.7" stopColor="#fff" stopOpacity="0.15" />
+            <stop offset="1" stopColor="#fff" stopOpacity="0.45" />
+          </linearGradient>
+          {/* The rim fades in below the bar, so the sheet leaves the bar without a seam. */}
+          <linearGradient
+            ref={(el) => void (els.edgeGrad = el)}
+            id={`${id}fade`}
+            gradientUnits="userSpaceOnUse"
+            x1="0"
+            x2="0"
+          >
+            <stop offset="0" stopColor="#000" />
+            <stop offset="1" stopColor="#fff" />
+          </linearGradient>
+          <mask id={`${id}mask`} maskUnits="userSpaceOnUse" x="-20" y="-20" width="4000" height="4000">
+            <rect x="-20" y="-20" width="4000" height="4000" fill={`url(#${id}fade)`} />
+          </mask>
+        </defs>
+        <g mask={`url(#${id}mask)`}>
+          <path ref={(el) => void (els.rimEdge = el)} className="mari-pull-rim-edge" />
+          <path
+            ref={(el) => void (els.rimHair = el)}
+            clipPath={`url(#${id}clip)`}
+            stroke={`url(#${id}rim)`}
+            className="mari-pull-rim-hair"
+          />
+          <ellipse ref={(el) => void (els.ring = el)} className="mari-pull-rim-ring" />
+        </g>
+      </svg>
+      <div ref={(el) => void (els.icon = el)} className="mari-pull-lay mari-pull-icon">
+        <Search size={PULL_ICON_SIZE} strokeWidth={2.2} />
+      </div>
+      <div ref={(el) => void (els.portrait = el)} className="mari-pull-lay mari-pull-portrait">
+        <img src={appearance.portraits.idle} alt="" draggable={false} />
+      </div>
+      <div ref={(el) => void (els.tag = el)} className="mari-pull-lay mari-pull-tag">
+        {(["search", "mari"] as const).map((side) => {
+          const [idle, release] = tagLabel(side);
+          return (
+            <span
+              key={side}
+              ref={(el) => void (side === "mari" ? (els.tagMari = el) : (els.tagSearch = el))}
+              className="mari-pull-tag-side"
+            >
+              <span data-part="idle">{idle}</span>
+              <span data-part="armed">{release}</span>
+            </span>
+          );
+        })}
+      </div>
+    </div>,
     document.body,
   );
 }

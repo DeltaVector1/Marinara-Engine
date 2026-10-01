@@ -295,22 +295,33 @@ This is the part most likely to break silently. All of it must survive.
 
 - Opening: `⌘K` / `Ctrl+K`; on the phone shell a long press on Home, or a
   pull down on the top bar (and the safe-area strip above it). The pull is
-  touch only, locks after 10 px when it is mostly downward, and opens on
-  release past `min(120 px, 18% of the height)` (at least 80 px) or on a flick
-  (> 0.5 px/ms after 40 px). Moving back above the threshold, a second finger
-  or `pointercancel` cancels it. It never starts while a modal, a `Modal`
-  overlay, the software keyboard or the omnibar itself is open, and a pull
-  that starts on a bar button does not press it. Feedback is a fluid drop
-  (`OmnibarPullDrop`, one SVG path driven by motion values): it stretches out
-  of the bar's edge on a neck that thins with the pull, pinches off at the
-  threshold (one 8 ms vibration), and below it springs back into the bar.
-  On open it falls, squashes on landing, and a card layer clipped to the drop
-  grows into the panel's resting rect; the dialog then skips its own pop-in
-  (`takePullHandoff`) and the layer fades out under it. The layer is removed
-  even if the dialog never mounts. The recognizer and the drop geometry are
-  pure (`lib/pull-to-open.ts`) and pinned by the command-center regression.
-  Under reduced motion there is no drop and the omnibar opens at the
-  threshold.
+  touch only, locks after 10 px when it is at least 45° downward, and opens on
+  release past 30% of the height (160-280 px) or on a flick (> 0.5 px/ms after
+  40 px). Where the finger is at release picks the target: the left half opens
+  the omnibar on search, the right half opens it in Mari's pane (the same door
+  as Home's "Ask Professor Mari"), with a 28 px dead zone around the middle so
+  the side cannot flicker; with Mari switched off the whole bar opens search.
+  Pulling back under 85% of the threshold, a second finger or `pointercancel`
+  cancels it. It never starts while a modal, a `Modal` overlay, the software
+  keyboard or the omnibar itself is open, and a pull that starts on a bar
+  button does not press it. Feedback (`OmnibarPullDrop`, painted once per
+  frame from framer-motion values, no render per move) is a calm, symmetric
+  sheet of the top bar's own surface (`--marinara-topbar-surface` over the app
+  background, opaque at the bar, more see-through further down) pulled out of
+  the bar's edge, ending in a circle with a small bar under it, both above the
+  fingertip. The circle shows the magnifier or Mari's portrait from the active
+  appearance pack; the small bar reads "Search" / "Ask Mari", and "Release to
+  search" / "Release to ask Mari" once armed. At the threshold (one 8 ms
+  vibration; 6 ms when the side changes) the sheet thins, lets go of the circle
+  and draws back into the bar. On release the circle pops the dialog open
+  (`takePullHandoff` hands over the panel, clipped to the circle before its
+  first paint; the dialog skips its own pop-in) and the magnifier or portrait
+  docks onto the search icon or Mari's header portrait, whose title fades in
+  after it. The overlay is removed even if the dialog never mounts. The
+  recognizer, the target choice and the sheet geometry are pure
+  (`lib/pull-to-open.ts`) and pinned by the command-center regression. Under
+  reduced motion there is no sheet: a label above the finger, and the target
+  opens at the threshold.
 - `↑`/`↓` move the selection; `Home`/`End` jump to the ends. No exceptions:
   there is no surface left that opts out of the keyboard model.
 - `Enter` chooses. On a toggle row it flips the toggle; on a choice row it

@@ -70,11 +70,11 @@ import { fieldChangeStyle, trackListChange, trackProseChange } from "../../packa
 import { pastTenseStepTitle } from "../../packages/client/src/lib/mari-work-timeline.js";
 import {
   createPullRecognizer,
-  dropClip,
-  dropNeckWidth,
-  dropPath,
-  omnibarPanelClip,
+  pullCircleTarget,
   pullOpenThreshold,
+  pullSheetBase,
+  pullSheetPath,
+  pullTarget,
 } from "../../packages/client/src/lib/pull-to-open.js";
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 
@@ -1114,29 +1114,29 @@ console.info("Command Center regression checks passed.");
   ]);
 }
 
-// Slice 10: pull down on the phone top bar to open the omnibar.
+// Slices 10 and 15: pull down on the phone top bar to open the omnibar or Mari.
 {
-  assert.equal(pullOpenThreshold(844), 120, "a tall phone caps the threshold at 120 px");
-  assert.equal(pullOpenThreshold(600), 108, "otherwise 18% of the height");
-  assert.equal(pullOpenThreshold(390), 80, "a phone in landscape still needs 80 px");
+  assert.equal(pullOpenThreshold(844), 253.2, "30% of a phone's height");
+  assert.equal(pullOpenThreshold(1200), 280, "capped at 280 px");
+  assert.equal(pullOpenThreshold(390), 160, "a phone in landscape still needs 160 px");
 
-  // A finger down at (100, 20) at t=0, threshold 120; each point is [x, y, t].
+  // A finger down at (100, 20) at t=0, threshold 200; each point is [x, y, t].
   const pull = (releaseAt: number, ...points: Array<[number, number, number]>) => {
-    const recognizer = createPullRecognizer(100, 20, 0, 120);
+    const recognizer = createPullRecognizer(100, 20, 0, 200);
     const steps = points.map(([x, y, t]) => recognizer.move(x, y, t));
     return { steps, opens: recognizer.release(releaseAt) };
   };
 
-  // Direction lock after 10 px.
+  // Direction lock after 10 px; 45° down is enough, so a pull can aim diagonally at Mari.
   assert.deepEqual(pull(20, [103, 26, 10]).steps, ["pending"], "under 10 px nothing is decided");
   assert.deepEqual(pull(40, [112, 30, 20]).steps, ["rejected"], "a sideways swipe is never a pull");
   assert.deepEqual(pull(40, [100, 8, 20]).steps, ["rejected"], "an upward swipe is never a pull");
-  assert.equal(pull(1000, [130, 60, 200], [100, 200, 800]).opens, false, "rejected stays rejected");
-  assert.deepEqual(pull(60, [105, 35, 50]).steps, ["pulling"], "down by more than 1.5× sideways locks");
+  assert.equal(pull(1000, [140, 50, 200], [100, 300, 800]).opens, false, "rejected stays rejected");
+  assert.deepEqual(pull(60, [109, 31, 50]).steps, ["pulling"], "down by more than sideways locks");
 
   // Threshold.
-  assert.equal(pull(1000, [100, 60, 400], [100, 139, 800]).opens, false, "a slow pull short of it does not open");
-  const long = pull(1000, [100, 60, 400], [100, 150, 800]);
+  assert.equal(pull(1000, [100, 60, 400], [100, 210, 800]).opens, false, "a slow pull short of it does not open");
+  const long = pull(1000, [100, 60, 400], [100, 230, 800]);
   assert.deepEqual(long.steps, ["pulling", "armed"]);
   assert.equal(long.opens, true, "releasing past the threshold opens, however slowly");
 
@@ -1145,28 +1145,48 @@ console.info("Command Center regression checks passed.");
   assert.equal(pull(50, [100, 40, 20], [100, 55, 40]).opens, false, "a flick under 40 px does not");
   assert.equal(pull(400, [100, 40, 20], [100, 70, 60]).opens, false, "stopping before release is not a flick");
 
-  // Cancel.
-  const back = pull(900, [100, 60, 200], [100, 150, 500], [100, 120, 700]);
-  assert.deepEqual(back.steps, ["pulling", "armed", "cancelled"], "moving back above the threshold cancels");
+  // Cancel, with room for a jitter: an armed pull holds down to 85% of the threshold.
+  const jitter = pull(900, [100, 60, 200], [100, 230, 500], [100, 205, 700]);
+  assert.deepEqual(jitter.steps, ["pulling", "armed", "armed"], "a small slip back stays armed");
+  assert.equal(jitter.opens, true);
+  const back = pull(900, [100, 60, 200], [100, 230, 500], [100, 180, 700]);
+  assert.deepEqual(back.steps, ["pulling", "armed", "cancelled"], "pulling back under 85% cancels");
   assert.equal(back.opens, false);
-  const again = pull(900, [100, 60, 200], [100, 150, 500], [100, 120, 700], [100, 200, 800]);
+  const again = pull(900, [100, 60, 200], [100, 230, 500], [100, 180, 700], [100, 300, 800]);
   assert.equal(again.opens, false, "a cancelled pull stays cancelled");
 
-  // The drop: a neck that thins with the pull, gone once it pinches off.
-  const drop = { anchorX: 100, headX: 100, headY: 40, pull: 0.5, detached: false, squash: 0, remnant: 0 };
-  assert.ok(dropNeckWidth(0.9, 13) < dropNeckWidth(0.2, 13), "the neck thins as the pull grows");
-  assert.ok(dropNeckWidth(1, 13) <= 1, "and is a thread at the threshold");
-  assert.match(dropPath(drop), /^M83\.4 0C.*A.*Z$/, "attached: rooted on the bar edge, neck, then the head");
-  assert.equal(dropPath({ ...drop, headY: 0 }), "", "nothing shows before the pull starts");
-  const free = dropPath({ ...drop, pull: 1, detached: true });
-  assert.ok(!/[CQ]/.test(free), "detached: no neck, and no bump on the bar once it has settled");
-  assert.match(dropPath({ ...drop, pull: 1, detached: true, remnant: 6 }), /^M.*Q100 12 /, "the neck's root bobs");
-  assert.equal(
-    dropClip(100, 60, 13, 13, 390, 844),
-    "inset(47px 277px 771px 87px round 13px / 13px)",
-    "the morph starts on the landed drop",
+  // Target: left half search, right half Mari, a 28 px dead zone around the middle.
+  assert.equal(pullTarget(null, 100, 390, true), "search");
+  assert.equal(pullTarget(null, 300, 390, true), "mari");
+  assert.equal(pullTarget("search", 215, 390, true), "search", "inside the dead zone the side holds");
+  assert.equal(pullTarget("search", 224, 390, true), "mari", "past it the side switches");
+  assert.equal(pullTarget("mari", 175, 390, true), "mari");
+  assert.equal(pullTarget("mari", 166, 390, true), "search");
+  assert.equal(pullTarget(null, 300, 390, false), "search", "without Mari the whole bar is search");
+
+  // The circle sits above the fingertip and never above the bar edge.
+  const early = pullCircleTarget(20, 0.1);
+  assert.ok(early.centerY - early.radius >= -early.radius * 0.25, "early on it grows out of the bar edge");
+  assert.equal(early.tag, 0, "no small bar before there is room for it");
+  const full = pullCircleTarget(230, 1);
+  assert.equal(full.radius, 40);
+  assert.equal(full.tag, 1);
+  assert.ok(full.centerY + full.radius + 8 + 30 <= 230 - 32, "the small bar ends 32 px above the touch point");
+  assert.ok(pullSheetBase(40, 1, 390) > pullSheetBase(40, 0.3, 390), "the sheet widens with the pull");
+
+  // The sheet: one symmetric outline from the bar edge to the circle, no bumps.
+  const sheet = { cx: 195, cy: 120, rx: 40, ry: 40, base: 160, pinch: 0, sag: 0 };
+  const { d } = pullSheetPath(sheet);
+  assert.match(d, /^M35 -3L355 -3L355 0C.*A40 40 0 0 1 .*Z$/, "a stretch of the bar edge, two sides and the arc");
+  const xs = [...d.replace(/A[\d.]+ [\d.]+ 0 0 1 /, "L").matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map((m) => Number(m[1]));
+  assert.ok(
+    xs.every((x) => x >= 35 && x <= 355),
+    "nothing reaches past the sheet's base on the bar",
   );
-  assert.equal(omnibarPanelClip(390, 844), "inset(0px 0px 0px 0px round 0px / 0px)", "and ends full screen on a phone");
+  const mirrored = pullSheetPath({ ...sheet, cx: 200 }).d;
+  assert.notEqual(mirrored, d);
+  const pinched = pullSheetPath({ ...sheet, pinch: 1 });
+  assert.ok(pinched.waistY > 0 && pinched.waistY < 120, "it lets go between the bar and the circle");
 }
 
 {

@@ -37,6 +37,8 @@ import { YouTubePlayer } from "../chat/YouTubePlayer";
 import { LocalMusicPlayer } from "../chat/LocalMusicPlayer";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { usePullToOpenOmnibar } from "../../hooks/use-pull-to-open-omnibar";
+import type { PullTarget } from "../../lib/pull-to-open";
+import { requestProfessorMariOpen } from "../../lib/professor-mari-open";
 import { OmnibarPullDrop } from "./OmnibarPullDrop";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import {
@@ -215,7 +217,17 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     }, HOME_LONG_PRESS_MS);
   }, [clearHomeLongPress, handleOmnibarClick]);
 
-  const pull = usePullToOpenOmnibar({ onPullStart: clearHomeLongPress, onOpen: handleOmnibarClick });
+  const handlePullOpen = useCallback(
+    (target: PullTarget) => {
+      if (target === "search") return handleOmnibarClick();
+      // The same door as Home's "Ask Professor Mari": the omnibar, straight in Mari's pane.
+      prepareMobileTopbarNavigation();
+      requestProfessorMariOpen();
+    },
+    [handleOmnibarClick, prepareMobileTopbarNavigation],
+  );
+
+  const pull = usePullToOpenOmnibar({ onPullStart: clearHomeLongPress, onOpen: handlePullOpen });
 
   const handleRightPanelClick = useCallback(
     (panel: Parameters<typeof toggleRightPanel>[0]) => {

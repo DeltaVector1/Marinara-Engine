@@ -1,24 +1,29 @@
-// Pure pull-down recognizer for the phone top bar. No DOM, so the regression
-// script can drive it with plain numbers.
+// Pull-to-open on the phone top bar: the pure parts. No DOM, so the regression
+// script can drive them with plain numbers. The look and feel is ported from the
+// approved prototype (.tmp/omnibar-ux/drop/index.html, slice 15).
 
 /** Movement before the gesture decides whether it is a pull at all. */
 export const PULL_LOCK_DISTANCE = 10;
+/** Down must beat sideways by this much; 1 (45°) lets a pull aim diagonally at Mari. */
+const PULL_LOCK_RATIO = 1;
 /** A flick opens early, but only after this much travel. */
 export const PULL_FLICK_MIN_DISTANCE = 40;
 /** px/ms. */
 export const PULL_FLICK_VELOCITY = 0.5;
 /** A release this long after the last move is not a flick. */
 const PULL_VELOCITY_STALE_MS = 100;
+/** An armed pull cancels only once it is back under 85% of the threshold, so a jitter cannot. */
+const PULL_CANCEL_AT = 0.85;
 
-/** `min(120, 18% of the height)`, never under 80 px (a phone in landscape). */
+/** 30% of the height, 160-280 px: the sheet has room to stretch and the circle room above the finger. */
 export function pullOpenThreshold(viewportHeight: number) {
-  return Math.max(80, Math.min(120, viewportHeight * 0.18));
+  return Math.max(160, Math.min(280, viewportHeight * 0.3));
 }
 
 /**
  * `pending` until the finger has moved {@link PULL_LOCK_DISTANCE}; then `rejected`
  * (sideways or up) or `pulling`; `armed` past the threshold; `cancelled` if an
- * armed pull goes back above it. `rejected` and `cancelled` are final.
+ * armed pull goes back under 85% of it. `rejected` and `cancelled` are final.
  */
 export type PullStep = "pending" | "pulling" | "armed" | "rejected" | "cancelled";
 
@@ -41,7 +46,7 @@ export function createPullRecognizer(startX: number, startY: number, startTime: 
       distance = y - startY;
       if (step === "pending") {
         if (Math.hypot(dx, distance) < PULL_LOCK_DISTANCE) return step;
-        step = distance > 1.5 * Math.abs(dx) ? "pulling" : "rejected";
+        step = distance > PULL_LOCK_RATIO * Math.abs(dx) ? "pulling" : "rejected";
         if (step === "rejected") return step;
       }
       if (time > lastTime) {
@@ -49,7 +54,7 @@ export function createPullRecognizer(startX: number, startY: number, startTime: 
         lastY = y;
         lastTime = time;
       }
-      if (step === "armed" && distance < threshold) step = "cancelled";
+      if (step === "armed" && distance < threshold * PULL_CANCEL_AT) step = "cancelled";
       else if (step === "pulling" && distance >= threshold) step = "armed";
       return step;
     },
@@ -68,106 +73,181 @@ export function createPullRecognizer(startX: number, startY: number, startTime: 
 
 export type PullRecognizer = ReturnType<typeof createPullRecognizer>;
 
-// ── The drop ───────────────────────────────────────────────────────────────
-// Path coordinates: x in viewport px, y in px below the bar's bottom edge.
+// ── Target ─────────────────────────────────────────────────────────────────
 
-export interface DropShape {
-  /** Where the finger went down; the neck stays rooted here. */
-  anchorX: number;
-  headX: number;
-  /** Head centre below the bar edge. */
-  headY: number;
-  /** 0-1: how far the pull is towards the threshold. */
-  pull: number;
-  /** Pinched off at the threshold: a free drop with no neck. */
-  detached: boolean;
-  /** 1 = flattened on landing, negative = stretched. */
-  squash: number;
-  /** Height of the bump left on the bar edge after the pinch; springs back to 0. */
-  remnant: number;
+export type PullTarget = "search" | "mari";
+
+/** px each side of the middle: once chosen, a side holds until the finger crosses the far edge. */
+export const PULL_SIDE_DEAD_ZONE = 28;
+/** The side is chosen from 35% of the threshold on. */
+export const PULL_SIDE_FROM = 0.35;
+
+/**
+ * The target for a finger at `x` on a bar `width` wide: left half search, right
+ * half Mari, with a dead zone around the middle so it cannot flicker. Without
+ * Mari the whole bar is search.
+ */
+export function pullTarget(current: PullTarget | null, x: number, width: number, mariEnabled: boolean): PullTarget {
+  if (!mariEnabled) return "search";
+  const middle = width / 2;
+  if (current === "search") return x > middle + PULL_SIDE_DEAD_ZONE ? "mari" : "search";
+  if (current === "mari") return x < middle - PULL_SIDE_DEAD_ZONE ? "search" : "mari";
+  return x < middle ? "search" : "mari";
 }
 
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+// ── The sheet ──────────────────────────────────────────────────────────────
+// Path coordinates: x in viewport px, y in px below the bar's bottom edge,
+// shifted by `origin` into the box of the element they clip.
+
+export const PULL_CIRCLE_MIN = 12;
+export const PULL_CIRCLE_MAX = 40;
+/** The small bar under the circle, and the gap between them. */
+export const PULL_TAG_HEIGHT = 30;
+export const PULL_TAG_GAP = 8;
+/** The small bar's bottom edge sits this far above the touch point; the thumb comes from below. */
+export const PULL_FINGER_GAP = 32;
+/** Half-width of the sheet on the bar at the threshold, as a share of the bar's width. */
+const PULL_BASE_SHARE = 0.42;
+/** How far below the circle's equator (rad) the sheet's sides flow into it. */
+const PULL_SIDE_ANGLE = 0.5;
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const clamp01 = (value: number) => clamp(value, 0, 1);
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const smooth = (t: number) => {
+  const c = clamp01(t);
+  return c * c * (3 - 2 * c);
+};
 const px = (value: number) => Math.round(value * 10) / 10;
+const norm = (x: number, y: number): [number, number] => {
+  const length = Math.hypot(x, y) || 1;
+  return [x / length, y / length];
+};
+type Point = [number, number];
+const mid = (a: Point, b: Point): Point => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 
-/** More liquid is pulled out as the pull grows. */
-export function dropRadius(pull: number) {
-  return 5 + 8 * clamp01(pull);
+/**
+ * Where the circle wants to be for a finger `fingerY` px below the bar after a
+ * pull of `pull` (share of the threshold): above the fingertip, under the small
+ * bar once there is room for it, never above the bar edge.
+ */
+export function pullCircleTarget(fingerY: number, pull: number) {
+  const gap = PULL_FINGER_GAP;
+  const want = lerp(PULL_CIRCLE_MIN, PULL_CIRCLE_MAX, smooth(pull / 0.85));
+  // The small bar appears once there is room for it and a real circle above the finger.
+  const room = fingerY - gap - (PULL_TAG_HEIGHT + PULL_TAG_GAP) - 2 * PULL_CIRCLE_MIN * 1.6;
+  const tag = smooth(room / 24) * smooth((pull - PULL_SIDE_FROM) / 0.25);
+  const bottom = fingerY - gap - (PULL_TAG_HEIGHT + PULL_TAG_GAP) * tag;
+  const radius = clamp(bottom / 2, PULL_CIRCLE_MIN, want);
+  return { radius, centerY: Math.max(bottom - radius, radius * 0.75), tag };
 }
 
-/** Head radii, squashed wide and low on landing. */
-export function dropHeadRadii(pull: number, squash: number) {
-  const r = dropRadius(pull);
-  return { rx: r * (1 + 0.35 * squash), ry: r * (1 - 0.3 * squash) };
+/** The sheet's half-width on the bar: a little wider than the circle at first, most of the bar at the threshold. */
+export function pullSheetBase(radius: number, pull: number, width: number) {
+  return lerp(radius + 18, width * PULL_BASE_SHARE, smooth(pull));
 }
 
-/** Half-width of the neck where it meets the head: wide at first, a thread near the threshold. */
-export function dropNeckWidth(pull: number, rx: number) {
-  return Math.min(rx * 0.98, Math.max(0.5, rx * (0.95 - 0.9 * clamp01(pull))));
+export interface PullSheet {
+  cx: number;
+  cy: number;
+  rx: number;
+  ry: number;
+  /** Half-width on the bar. */
+  base: number;
+  /** 0-1: how far the sheet has thinned towards letting go of the circle. */
+  pinch: number;
+  /** 0-1: a slight sag while it is being pulled down fast. */
+  sag: number;
 }
 
-function ellipse(cx: number, cy: number, rx: number, ry: number) {
-  return `M${px(cx - rx)} ${px(cy)}a${px(rx)} ${px(ry)} 0 1 0 ${px(2 * rx)} 0a${px(rx)} ${px(ry)} 0 1 0 ${px(-2 * rx)} 0Z`;
+// One side of the sheet as a single cubic, top to bottom: it leaves the bar edge
+// level (so the bar stays straight outside it) and arrives on the circle along
+// the circle's own tangent (so there is no bump where they meet).
+function sideCurve(sign: 1 | -1, { cx, cy, rx, ry, base, sag }: PullSheet): Point[] {
+  const sb = Math.sin(PULL_SIDE_ANGLE);
+  const cb = Math.cos(PULL_SIDE_ANGLE);
+  const start: Point = [cx + sign * base, 0];
+  const end: Point = [cx + sign * rx * cb, cy + ry * sb];
+  const [dx, dy] = norm(-sign * rx * sb, ry * cb);
+  const h = Math.abs(start[0] - end[0]) * 0.55;
+  const k = end[1] * (0.5 + 0.12 * sag);
+  return [start, [start[0] - sign * h, 0], [end[0] - dx * k, end[1] - dy * k], end];
 }
 
-/** One path: a meniscus on the bar edge, a neck thinning with the pull, and the head. */
-export function dropPath({ anchorX, headX, headY, pull, detached, squash, remnant }: DropShape) {
-  const { rx, ry } = dropHeadRadii(pull, squash);
-  // Squashing keeps the bottom of the drop where it landed.
-  const cy = headY + dropRadius(pull) - ry;
-  let d = "";
-  if (Math.abs(remnant) > 0.25) {
-    const w = 6 + rx;
-    d += `M${px(anchorX - w)} 0Q${px(anchorX)} ${px(2 * remnant)} ${px(anchorX + w)} 0Z`;
+// Split a cubic in half (exactly), so the pinch can pull its middle in without changing the rest.
+function halves(curve: Point[]): Point[] {
+  const p01 = mid(curve[0], curve[1]);
+  const p12 = mid(curve[1], curve[2]);
+  const p23 = mid(curve[2], curve[3]);
+  const p012 = mid(p01, p12);
+  const p123 = mid(p12, p23);
+  return [p01, p012, mid(p012, p123), p123, p23];
+}
+
+/**
+ * One clockwise outline, symmetric around the circle: a stretch of the bar edge,
+ * two calm sides, the circle's lower arc. `waistY` is where the sheet lets go.
+ */
+export function pullSheetPath(sheet: PullSheet, origin: Point = [0, 0]) {
+  const P = ([x, y]: Point) => `${px(x - origin[0])} ${px(y - origin[1])}`;
+  const right = sideCurve(1, sheet);
+  const left = sideCurve(-1, sheet);
+  const r = halves(right);
+  const l = halves(left);
+  for (const h of [r, l]) {
+    const dx = (sheet.cx - h[2][0]) * clamp01(sheet.pinch);
+    for (const i of [1, 2, 3]) h[i] = [h[i][0] + dx, h[i][1]];
   }
-  if (detached) return d + ellipse(headX, cy, rx, ry);
-  if (headY <= 0) return d;
-  const n = dropNeckWidth(pull, rx);
-  const joinY = cy - ry * Math.sqrt(1 - (n / rx) ** 2);
-  const base = 4 + 1.4 * rx;
-  const bend = Math.max(0, joinY) * 0.5;
+  const { cx, base, rx, ry } = sheet;
+  const d =
+    `M${P([cx - base, -3])}L${P([cx + base, -3])}L${P(right[0])}` +
+    `C${P(r[0])} ${P(r[1])} ${P(r[2])}C${P(r[3])} ${P(r[4])} ${P(right[3])}` +
+    `A${px(rx)} ${px(ry)} 0 0 1 ${P(left[3])}` +
+    `C${P(l[4])} ${P(l[3])} ${P(l[2])}C${P(l[1])} ${P(l[0])} ${P(left[0])}Z`;
+  return { d, waistY: r[2][1] };
+}
+
+/** The freed circle, with a short tail at its top while it pulls it in. */
+export function pullCirclePath(cx: number, cy: number, rx: number, ry: number, tail: number, origin: Point = [0, 0]) {
+  const P = ([x, y]: Point) => `${px(x - origin[0])} ${px(y - origin[1])}`;
+  if (tail < 0.5)
+    return `M${P([cx, cy - ry])}A${px(rx)} ${px(ry)} 0 1 1 ${P([cx, cy + ry])}A${px(rx)} ${px(ry)} 0 1 1 ${P([cx, cy - ry])}Z`;
+  const a = 0.6;
+  const right: Point = [cx + rx * Math.sin(a), cy - ry * Math.cos(a)];
+  const left: Point = [cx - rx * Math.sin(a), cy - ry * Math.cos(a)];
+  const [rdx, rdy] = norm(rx * Math.cos(a), ry * Math.sin(a));
+  const [ldx, ldy] = norm(rx * Math.cos(a), -ry * Math.sin(a));
+  const tip = cy - ry - tail;
+  const k = Math.min(tail * 0.6, rx * 0.5);
   return (
-    d +
-    `M${px(anchorX - base)} 0C${px(anchorX - 0.35 * base)} 0 ${px(headX - n)} ${px(joinY - bend)} ${px(headX - n)} ${px(joinY)}` +
-    `A${px(rx)} ${px(ry)} 0 1 0 ${px(headX + n)} ${px(joinY)}` +
-    `C${px(headX + n)} ${px(joinY - bend)} ${px(anchorX + 0.35 * base)} 0 ${px(anchorX + base)} 0Z`
+    `M${P([cx, tip])}C${P([cx + 1.5, tip + tail * 0.45])} ${P([right[0] - rdx * k, right[1] - rdy * k])} ${P(right)}` +
+    `A${px(rx)} ${px(ry)} 0 1 1 ${P(left)}` +
+    `C${P([left[0] + ldx * k, left[1] + ldy * k])} ${P([cx - 1.5, tip + tail * 0.45])} ${P([cx, tip])}Z`
   );
 }
 
-/** A small, faint highlight on the head's upper left. */
-export function dropHighlightPath({ headX, headY, pull, squash }: DropShape) {
-  const { rx, ry } = dropHeadRadii(pull, squash);
-  const cy = headY + dropRadius(pull) - ry;
-  return cy - ry * 0.4 <= 0 ? "" : ellipse(headX - rx * 0.35, cy - ry * 0.4, rx * 0.3, ry * 0.2);
+/** What is left on the bar after it lets go: a smooth sag that draws back up. */
+export function pullRemnantPath(x: number, halfWidth: number, depth: number, origin: Point = [0, 0]) {
+  const P = ([x0, y0]: Point) => `${px(x0 - origin[0])} ${px(y0 - origin[1])}`;
+  const d = Math.max(0, depth);
+  const w = halfWidth;
+  return (
+    `M${P([x - w, -3])}L${P([x + w, -3])}L${P([x + w, 0])}C${P([x + w * 0.45, 0])} ${P([x + w * 0.3, d])} ${P([x, d])}` +
+    `C${P([x - w * 0.3, d])} ${P([x - w * 0.45, 0])} ${P([x - w, 0])}Z`
+  );
 }
 
-/** `clip-path` that cuts a full-screen layer down to the landed drop. */
-export function dropClip(cx: number, cy: number, rx: number, ry: number, width: number, height: number) {
-  return `inset(${px(cy - ry)}px ${px(width - cx - rx)}px ${px(height - cy - ry)}px ${px(cx - rx)}px round ${px(rx)}px / ${px(ry)}px)`;
-}
+// ── Hand-off to the dialog ─────────────────────────────────────────────────
+// The omnibar dialog is lazy and mounts after the release. It calls this with its
+// panel once it is on screen, so the circle can pop it open and dock in it.
 
-/** Where the morph ends: the omnibar panel's resting rect. */
-export function omnibarPanelClip(width: number, height: number) {
-  // A phone shows the panel full screen and square.
-  if (width < 640) return "inset(0px 0px 0px 0px round 0px / 0px)";
-  // ponytail: on a tablet the idle panel's height depends on its content, so the
-  // morph lands on its search row (26vh down, 44rem wide) and the dialog's own
-  // fade covers the rest. Measure the mounted panel if that ever looks off.
-  const w = Math.min(704, width - 48);
-  const left = (width - w) / 2;
-  const top = height * 0.26;
-  return `inset(${px(top)}px ${px(width - left - w)}px ${px(height - top - 72)}px ${px(left)}px round 16px / 16px)`;
-}
+let pullHandoff: ((panel: HTMLElement | null) => void) | null = null;
 
-// The omnibar dialog is lazy and mounts after the morph ends. It calls this once
-// it is on screen, so the morph layer fades out underneath it.
-let pullHandoff: (() => void) | null = null;
-
-export function setPullHandoff(reveal: (() => void) | null) {
+export function setPullHandoff(reveal: ((panel: HTMLElement | null) => void) | null) {
   pullHandoff = reveal;
 }
 
-/** True when this open came from the drop; the dialog then skips its own pop-in. */
+/** True when this open came from the pull; the dialog then skips its own pop-in. */
 export function isPullHandoffPending() {
   return pullHandoff !== null;
 }
