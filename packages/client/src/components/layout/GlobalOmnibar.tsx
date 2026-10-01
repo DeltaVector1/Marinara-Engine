@@ -2342,8 +2342,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       error: lastAppError ? { message: lastAppError.message, code: lastAppError.code } : undefined,
       // The "fix this" row built from lastAppError is the only row that opens through
       // the chat-error door (R22: unasked Mari calls carry no user content either way).
+      // L2: the row can point at a connection or, for a failed agent run, the agent.
       source:
-        lastAppError?.retry && focusResult?.id === `connection:${lastAppError.retry.id}` ? "chat-error" : undefined,
+        lastAppError?.retry &&
+        focusResult?.id ===
+          `${lastAppError.retry.kind === "open-agent" ? "agent" : "connection"}:${lastAppError.retry.id}`
+          ? "chat-error"
+          : undefined,
       asideAnswer,
     });
   /** Both Mari routes remember the row they left, so returning restores focus. */

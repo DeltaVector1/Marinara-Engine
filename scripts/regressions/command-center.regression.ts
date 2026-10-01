@@ -1354,13 +1354,55 @@ assert.ok(!("mariDetailId" in mariSession));
     lastAppError: {
       message: "The connection timed out.",
       action: "Generate reply",
-      retry: { id: "conn-1" },
+      retry: { kind: "open-connection", id: "conn-1" },
     },
   });
   const fixRow = withGenerateFailure[0];
   assert.equal(fixRow?.id, "connection:conn-1", "the error row leads, same as a failed connection test");
   assert.equal(fixRow?.title, "Fix: Generate reply failed");
   assert.equal(fixRow?.description, "The connection timed out.");
+}
+
+{
+  // L2: a failed agent run feeds the same "fix this" context row, but keyed on
+  // "agent:<type>" so Enter opens the agent editor instead of a connection.
+  const t = ((key: string, fallback: string, values?: Record<string, unknown>) =>
+    fallback.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values?.[name] ?? ""))) as never;
+  const baseInput = {
+    activeChat: null,
+    activeChatId: null,
+    activeEditorField: null,
+    agents: undefined,
+    allLocalResults: [],
+    characterNameById: new Map<string, string>(),
+    connectionById: new Map(),
+    lorebooks: undefined,
+    mariEnabled: false,
+    omnibarSuggestionsEnabled: false,
+    openAgentId: null,
+    openCharacterId: null,
+    openConnectionId: null,
+    openLorebookId: null,
+    openPersonaId: null,
+    openPresetId: null,
+    personaById: new Map(),
+    personas: undefined,
+    presets: undefined,
+    surface: "home" as const,
+    t,
+  };
+  const withAgentFailure = buildOmnibarContextResults({
+    ...baseInput,
+    lastAppError: {
+      message: "Illustrator failed: Timeout: the request took too long.",
+      action: "Run Illustrator",
+      retry: { kind: "open-agent", id: "illustrator" },
+    },
+  });
+  const agentFixRow = withAgentFailure[0];
+  assert.equal(agentFixRow?.id, "agent:illustrator", "keyed on the agent type, not a connection id");
+  assert.equal(agentFixRow?.category, "agent");
+  assert.equal(agentFixRow?.title, "Fix: Run Illustrator failed");
 }
 
 {

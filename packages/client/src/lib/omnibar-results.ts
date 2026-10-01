@@ -223,7 +223,14 @@ export type OmnibarContextResultsInput = {
   allLocalResults: readonly OmnibarResult[];
   characterNameById: ReadonlyMap<string, string>;
   connectionById: ReadonlyMap<string, OmnibarNamedRow>;
-  lastAppError: { message: string; action?: string; retry?: { id: string } | null } | null | undefined;
+  lastAppError:
+    | {
+        message: string;
+        action?: string;
+        retry?: { kind: "open-connection"; id: string } | { kind: "open-agent"; id: string } | null;
+      }
+    | null
+    | undefined;
   lorebooks: Lorebook[] | undefined;
   mariEnabled: boolean;
   omnibarSuggestionsEnabled: boolean;
@@ -980,15 +987,18 @@ export function buildOmnibarContextResults({
   // id must stay the real connection id so the existing connection branch in
   // choose() opens the right editor (and still honours the dirty-editor guard).
   if (lastAppError?.retry) {
-    pushCanonical(`connection:${lastAppError.retry.id}`, {
-      id: `connection:${lastAppError.retry.id}`,
+    const retry = lastAppError.retry;
+    const isAgentRetry = retry.kind === "open-agent";
+    const rowId = `${isAgentRetry ? "agent" : "connection"}:${retry.id}`;
+    pushCanonical(rowId, {
+      id: rowId,
       title: lastAppError.action
         ? t("commandCenter.context.fixFailed", "Fix: {{action}} failed", { action: lastAppError.action })
         : t("commandCenter.context.fixError", "Fix the last error"),
       description: lastAppError.message,
-      category: "connection",
+      category: isAgentRetry ? "agent" : "connection",
       score: 0,
-      icon: "connection",
+      icon: isAgentRetry ? "agent" : "connection",
     });
   }
 

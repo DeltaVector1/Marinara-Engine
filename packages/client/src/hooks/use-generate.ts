@@ -131,8 +131,25 @@ function setGenerateReplyError(formattedMessage: string, chatId: string, qc: Que
   });
 }
 
+/**
+ * L2: a failed agent run feeds the omnibar's "fix this" row too, pointing at the
+ * agent editor instead of a connection. Never steps on a live "Generate reply"
+ * error (K1) — that failure is the more actionable one to show first.
+ */
+function setAgentFailureError(failures: AgentFailure[]) {
+  if (failures.length === 0) return;
+  if (useUIStore.getState().lastAppError?.action === "Generate reply") return;
+  const failure = failures[0]!;
+  useUIStore.getState().setLastAppError({
+    message: formatAgentFailuresToast(failures),
+    action: `Run ${failure.agentName}`,
+    retry: { kind: "open-agent", id: failure.agentType },
+  });
+}
+
 function showAgentFailuresError(failures: AgentFailure[], onRetry?: () => void) {
   const hasIllustratorFailure = failures.some((failure) => failure.agentType === "illustrator");
+  setAgentFailureError(failures);
   showError(
     formatAgentFailuresToast(failures),
     hasIllustratorFailure && onRetry
@@ -2962,6 +2979,10 @@ export function useGenerate() {
                   ? []
                   : failureState.failedAgentFailures;
               setFailedAgentFailures(mergeAgentFailures(existingFailures, [failure]), params.chatId);
+              // An agent failure can still end in a "done" event (the main reply
+              // succeeded), so this stream's completion must not wipe the "fix
+              // this" error it just set (L2).
+              generationErrorSeen = true;
               showAgentFailuresError([failure], () => {
                 void retryAgentsRef.current?.(
                   params.chatId,
@@ -3184,6 +3205,7 @@ export function useGenerate() {
               }>;
               const failures = failedList.map(toAgentFailure);
               setFailedAgentFailures(failures, params.chatId);
+              generationErrorSeen = true;
               showAgentFailuresError(failures, () => {
                 void retryAgentsRef.current?.(
                   params.chatId,
@@ -4037,6 +4059,7 @@ export function useGenerate() {
             }
           }
         }
+        if (!hasError) useUIStore.getState().setLastAppError(null);
         if (!hasError && !imagePromptReviewRequested) {
           if (customLorebookBackfillEmpty) {
             // The status event already explained that there was no work to do.

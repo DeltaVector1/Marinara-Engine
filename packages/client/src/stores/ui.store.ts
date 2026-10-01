@@ -670,7 +670,7 @@ interface UIState {
     message: string;
     code?: string;
     action?: string;
-    retry?: { kind: "open-connection"; id: string };
+    retry?: { kind: "open-connection"; id: string } | { kind: "open-agent"; id: string };
   } | null;
   /** When set, the main area shows the hierarchical map editor for this chat */
   spatialMapDetailChatId: string | null;
