@@ -37,7 +37,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Done        | ff125a4ad |
 | 14  | Final review of slices 7b-13                                  | reviewer      | Done        | daddf5a02 |
 | 15  | Slime pull-to-open from the approved drop prototype (J1-J5)   | designer      | Done        | bb4f786d0 |
-| 16  | Failed replies feed the "fix this" context row (K1)           | worker        | Done        | 6e4629d0a |
+| 16  | Failed replies feed the "fix this" context row (K1)           | worker        | Done        | a74161ca4 |
 | 17  | Relative time on recent-chat rows (K2)                        | worker        | Pending     |           |
 | 18  | Rows for existing chat tools on the chat surface (K3)         | worker        | Pending     |           |
 | 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Pending     |           |
