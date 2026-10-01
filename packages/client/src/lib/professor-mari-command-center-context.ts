@@ -56,6 +56,8 @@ export function buildProfessorMariCommandCenterContext(
     fieldId?: string;
     error?: { message: string; code?: string };
     asideAnswer?: { query: string; answer: string; tier: "local" | "remote" };
+    /** R22/K1: a failed-reply "fix this" row hands off through the chat-error door, not command-center. */
+    source?: "command-center" | "chat-error";
   } = {},
 ): ProfessorMariAskContext {
   const trimmedQuery = query.trim();
@@ -70,7 +72,7 @@ export function buildProfessorMariCommandCenterContext(
   });
 
   return {
-    source: "command-center",
+    source: options.source ?? "command-center",
     capability: inferProfessorMariCommandCenterCapability(trimmedQuery),
     query: trimmedQuery || undefined,
     resource:

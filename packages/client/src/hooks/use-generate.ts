@@ -110,6 +110,14 @@ function showError(msg: string, options?: Pick<ExternalToast, "action" | "id">) 
   const formatted = formatGenerationParameterError(msg);
   console.error("[Generation]", msg);
   toast.error(formatted, { duration: 15000, ...options });
+  // So the omnibar's "fix this" context row can answer for a failed reply too
+  // (today it only hears about failed connection tests).
+  const connectionId = useChatStore.getState().activeChat?.connectionId ?? null;
+  useUIStore.getState().setLastAppError({
+    message: formatted,
+    action: "Generate reply",
+    ...(connectionId ? { retry: { kind: "open-connection" as const, id: connectionId } } : {}),
+  });
 }
 
 function showAgentFailuresError(failures: AgentFailure[], onRetry?: () => void) {
@@ -1495,6 +1503,7 @@ export function useGenerate() {
       let receivedThinking = false; // Whether provider-native thinking chunks were received
       let gameTurnLoadedSoundPlayed = false;
       let sawDoneEvent = false;
+      let generationErrorSeen = false;
       let illustrationQueued = false;
       let illustrationSettled = false;
       let passiveStreamRecovered = false;
@@ -3150,6 +3159,7 @@ export function useGenerate() {
               flushTypewriterBuffer();
               setProcessingRun(agentProcessingRunId, false, params.chatId);
               clearMariPhaseForThisChat();
+              generationErrorSeen = true;
               showError((event.data as string) || "Generation failed");
               window.dispatchEvent(new CustomEvent("marinara:generation-error", { detail: { chatId: params.chatId } }));
               break;
@@ -3294,6 +3304,7 @@ export function useGenerate() {
           }
         }
         const msg = error instanceof Error ? error.message : "Generation failed";
+        generationErrorSeen = true;
         showError(msg);
         window.dispatchEvent(new CustomEvent("marinara:generation-error", { detail: { chatId: params.chatId } }));
         return await confirmDurableSubmittedUserTurn();
@@ -3338,6 +3349,7 @@ export function useGenerate() {
             refetchType: "active",
           });
         }
+        if (sawDoneEvent && !generationErrorSeen) useUIStore.getState().setLastAppError(null);
         if (stillOwnerAtCleanupStart) {
           if (sawDoneEvent || passiveStreamSettled) publishVnReply(latestAssistantMessage(persistedMessages.values()));
           useChatStore.getState().clearPerChatState(params.chatId);

@@ -31,6 +31,7 @@ import {
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
+  buildOmnibarContextResults,
   buildOmnibarIntentShortcuts,
   buildOmnibarSearchResults,
   findMentionedResults,
@@ -1261,4 +1262,52 @@ console.info("Command Center regression checks passed.");
     ["prompt_sections", 1, 0],
   );
   assert.equal(summarizeDeleteReview({ affectedRows: 1, diffPreview: [{ table: "x", action: "update" }] }), null);
+}
+
+{
+  // K1: a failed generate reply feeds the same "fix this" context row as a
+  // failed connection test, so ⌘K surfaces it and ⌘↵ can hand it to Mari.
+  const t = ((key: string, fallback: string, values?: Record<string, unknown>) =>
+    fallback.replace(/\{\{(\w+)\}\}/g, (_, name) => String(values?.[name] ?? ""))) as never;
+  const baseInput = {
+    activeChat: null,
+    activeChatId: null,
+    activeEditorField: null,
+    agents: undefined,
+    allLocalResults: [],
+    characterNameById: new Map<string, string>(),
+    connectionById: new Map(),
+    lorebooks: undefined,
+    mariEnabled: false,
+    omnibarSuggestionsEnabled: false,
+    openAgentId: null,
+    openCharacterId: null,
+    openConnectionId: null,
+    openLorebookId: null,
+    openPersonaId: null,
+    openPresetId: null,
+    personaById: new Map(),
+    personas: undefined,
+    presets: undefined,
+    surface: "home" as const,
+    t,
+  };
+  const withoutError = buildOmnibarContextResults({ ...baseInput, lastAppError: null });
+  assert.equal(
+    withoutError.some((row) => row.id === "connection:conn-1"),
+    false,
+    "no failure, no fix-this row",
+  );
+  const withGenerateFailure = buildOmnibarContextResults({
+    ...baseInput,
+    lastAppError: {
+      message: "The connection timed out.",
+      action: "Generate reply",
+      retry: { id: "conn-1" },
+    },
+  });
+  const fixRow = withGenerateFailure[0];
+  assert.equal(fixRow?.id, "connection:conn-1", "the error row leads, same as a failed connection test");
+  assert.equal(fixRow?.title, "Fix: Generate reply failed");
+  assert.equal(fixRow?.description, "The connection timed out.");
 }
