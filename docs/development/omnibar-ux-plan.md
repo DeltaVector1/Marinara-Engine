@@ -43,7 +43,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Done        | 3ba6e78c9 |
 | 20  | Flip more boolean settings in place, with Undo (K5)           | worker        | Done        | 3e7f5a89e |
 | 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Done        | f138ad970 |
-| 22  | Review of slices 15-21                                        | reviewer      | Done        | 77ce131fd |
+| 22  | Review of slices 15-21                                        | reviewer      | Done        | ee502bf2d |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
