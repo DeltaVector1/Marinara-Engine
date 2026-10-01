@@ -40,7 +40,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 16  | Failed replies feed the "fix this" context row (K1)           | worker        | Done        | a74161ca4 |
 | 17  | Relative time on recent-chat rows (K2)                        | worker        | Done        | 117cb21b8 |
 | 18  | Rows for existing chat tools on the chat surface (K3)         | worker        | Done        | 81393ea47 |
-| 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Done        | fbcd34f3a |
+| 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Done        | 3ba6e78c9 |
 | 20  | Flip more boolean settings in place, with Undo (K5)           | worker        | Pending     |           |
 | 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Pending     |           |
 | 22  | Review of slices 15-21                                        | reviewer      | Pending     |           |
