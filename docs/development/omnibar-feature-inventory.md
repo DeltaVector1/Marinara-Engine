@@ -45,8 +45,8 @@ Rules that must survive:
   would break every "open Mari" hand-off from Home, the FAQ and error recovery.
 - Escape collapses an expansion if one is open; otherwise it leaves a takeover;
   otherwise it closes. One level, so Escape and the back arrow always agree.
-- A view or menu inside the dialog (the settings sheet, Mari's mode and
-  connection menus) takes focus when it opens, keeps Tab inside, and handles
+- A view or menu inside the dialog (the settings sheet, Mari's mode,
+  connection and paperclip menus, her header ⋮ menu) takes focus when it opens, keeps Tab inside, and handles
   Escape itself (`useInDialogFocusScope`); the dialog's own Escape needs a
   second press.
 - Escape from a takeover never cancels a running answer.
@@ -92,7 +92,8 @@ Rules that must survive:
     in" setting opens it by default. Undo, Keep (and Keep & Enable for a new
     memory) are small `.mari-link` / `.mari-btn` buttons (their hit area grows
     to 44px on touch); View as prompt and a multi-row lorebook entry's Reject
-    stay as quiet links. No panel sits inside another.
+    stay as quiet links. No panel sits inside another. A folded row's content
+    is `inert`, so its hidden buttons leave the Tab order.
   - A review renders inside the turn that asked for it, after her answer and
     before "Worked for" (`assignReviewsToTurns`: the reply between the user
     message before `requestedAt` and the next one). One whose turn has no reply
@@ -109,11 +110,13 @@ Rules that must survive:
     exact package, integrity hash, source, full path and content preview behind
     one "Technical details" disclosure (`.mari-tech`). Once answered, it folds
     to one quiet `MariNote` line with an icon (`ResolvedPromptLine`: "Installed
-    nanoid", "Skipped: Change package.json") until the next send. A DB review
-    that deletes is the `danger` variant: "Delete Old market rumor", the record
-    type, the reason plus that she already removed it for now, a quiet "Put it
-    back" and a red Delete, with Raw (the command and the removed row) behind
-    one disclosure.
+    nanoid", "Skipped: Change package.json") in the same place until the next
+    send. A DB review that deletes is the `danger` variant: "Delete Old market
+    rumor", the record type (plus "· 120 linked items" for its cascade, counted
+    from `affectedRows` because the preview stops at 50 rows;
+    `summarizeDeleteReview`), the reason plus that she already removed it for
+    now, a note when the preview is truncated, a quiet "Put it back" and a red
+    Delete, with Raw (the command and the removed row) behind one disclosure.
   - A failed send is one red line under your message with an inline Retry
     (`.mari-send-failed`), not a line of hers. A workspace-status error and
     missing workspace tools are `MariNote` lines (R43).

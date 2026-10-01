@@ -2169,7 +2169,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     ).filter(
       (element) =>
         !element.hasAttribute("disabled") &&
-        !element.closest('[aria-hidden="true"]') &&
+        !element.closest('[aria-hidden="true"], [inert]') &&
         element.getClientRects().length > 0,
     );
     if (focusable.length === 0) return;

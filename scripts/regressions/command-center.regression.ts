@@ -60,6 +60,7 @@ import {
 import {
   assignReviewsToTurns,
   professorMariContextFacets,
+  summarizeDeleteReview,
 } from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
@@ -1210,4 +1211,34 @@ console.info("Command Center regression checks passed.");
     ["r3", "r4"],
     "a turn with no reply, or an unreadable time, stays after the transcript",
   );
+}
+
+{
+  // A 120-entry lorebook delete: the preview stops at 50 rows, the card still names the lorebook
+  // and counts every entry.
+  const lorebookDelete = summarizeDeleteReview({
+    affectedRows: 121,
+    diffPreview: [
+      { table: "lorebooks", action: "delete" },
+      ...Array.from({ length: 49 }, () => ({ table: "lorebook_entries", action: "delete" })),
+    ],
+  });
+  assert.equal(lorebookDelete?.parent.table, "lorebooks");
+  assert.deepEqual(
+    [lorebookDelete?.selected.length, lorebookDelete?.count, lorebookDelete?.linkedCount],
+    [1, 121, 120],
+  );
+  // A section delete also edits the preset first: the edit is not a deleted row.
+  const sectionDelete = summarizeDeleteReview({
+    affectedRows: 2,
+    diffPreview: [
+      { table: "prompt_presets", action: "update" },
+      { table: "prompt_sections", action: "delete" },
+    ],
+  });
+  assert.deepEqual(
+    [sectionDelete?.parent.table, sectionDelete?.count, sectionDelete?.linkedCount],
+    ["prompt_sections", 1, 0],
+  );
+  assert.equal(summarizeDeleteReview({ affectedRows: 1, diffPreview: [{ table: "x", action: "update" }] }), null);
 }

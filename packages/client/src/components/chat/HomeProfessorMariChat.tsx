@@ -2830,6 +2830,7 @@ export function HomeProfessorMariChat({
   const connectionButtonRef = useRef<HTMLButtonElement>(null);
   const connectionMenuRef = useRef<HTMLDivElement>(null);
   const headerMenuRef = useRef<HTMLDivElement>(null);
+  const headerPopoverRef = useRef<HTMLDivElement>(null);
   const skillFileInputRef = useRef<HTMLInputElement>(null);
   const memoryFileInputRef = useRef<HTMLInputElement>(null);
   const lastSyncedMemoryIdRef = useRef<string | null>(null);
@@ -3747,8 +3748,8 @@ export function HomeProfessorMariChat({
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [permissionsMenuOpen]);
 
-  // The composer's mode and connection menus sit inside the omnibar dialog: Escape closes the menu
-  // first, and only a second Escape reaches the dialog.
+  // The composer's mode and connection menus and the header menu sit inside the omnibar dialog:
+  // Escape closes the menu first, and only a second Escape reaches the dialog.
   const onPermissionsMenuKeyDown = useInDialogFocusScope(
     permissionsMenuRef,
     () => setPermissionsMenuOpen(false),
@@ -3759,6 +3760,7 @@ export function HomeProfessorMariChat({
     () => setConnectionMenuOpen(false),
     connectionMenuOpen,
   );
+  const onHeaderMenuKeyDown = useInDialogFocusScope(headerPopoverRef, () => setPanelMenuOpen(false), panelMenuOpen);
 
   // #5725: the server-authoritative Permissions Mode. Display rides the status
   // payload; writes go through the dedicated validated PUT. The change applies
@@ -5198,21 +5200,37 @@ export function HomeProfessorMariChat({
     if (outcome !== "applied" && outcome !== "discarded") return;
     setResolvedPrompts((current) => [...current, { chatId, approval, outcome }]);
   };
-  // Slice 13: a review renders inside the turn that asked for it, not after the whole transcript.
-  const reviewsByTurn = assignReviewsToTurns(displayMessages, visiblePendingChangeReviews);
-  const renderApprovalCard = (approval: MariWorkspacePendingApproval) => (
-    <WorkspaceApprovalCard
-      key={approval.id}
-      approval={approval}
-      busy={approvalBusyId === approval.id}
-      disabled={approvalBusyId !== null}
-      onKeep={() => void answerApproval(approval, true)}
-      onKeepEnable={(id) => void keepWorkspaceChange(id, { enable: true })}
-      onRestore={() => void answerApproval(approval, false)}
-      onRejectRows={(id, rows) => rejectWorkspaceRows(id, rows)}
-      onRenderPrompt={renderWorkspacePrompt}
-    />
+  // Slice 13: a review renders inside the turn that asked for it, not after the whole transcript, and
+  // an answered install / file prompt folds to its line in the same place.
+  const reviewsByTurn = assignReviewsToTurns(
+    displayMessages,
+    [
+      ...visiblePendingChangeReviews.map((approval) => ({
+        requestedAt: approval.requestedAt,
+        approval,
+        outcome: null,
+      })),
+      ...(sending || workspaceTimelineActive ? [] : resolvedPrompts)
+        .filter((prompt) => prompt.chatId === chatId)
+        .map(({ approval, outcome }) => ({ requestedAt: approval.requestedAt, approval, outcome })),
+    ].sort((a, b) => Date.parse(a.requestedAt) - Date.parse(b.requestedAt)),
   );
+  const renderTurnPrompt = ({ approval, outcome }: (typeof reviewsByTurn.unassigned)[number]) =>
+    outcome ? (
+      <ResolvedPromptLine key={`resolved:${approval.id}`} approval={approval} outcome={outcome} />
+    ) : (
+      <WorkspaceApprovalCard
+        key={approval.id}
+        approval={approval}
+        busy={approvalBusyId === approval.id}
+        disabled={approvalBusyId !== null}
+        onKeep={() => void answerApproval(approval, true)}
+        onKeepEnable={(id) => void keepWorkspaceChange(id, { enable: true })}
+        onRestore={() => void answerApproval(approval, false)}
+        onRejectRows={(id, rows) => rejectWorkspaceRows(id, rows)}
+        onRenderPrompt={renderWorkspacePrompt}
+      />
+    );
   const headerDestinations = [
     { id: "chats", Icon: MessageCircle, label: localizeUi("navigation.common.chats"), count: 0 },
     {
@@ -5348,16 +5366,7 @@ export function HomeProfessorMariChat({
             >
               <Plus size="0.85rem" aria-hidden="true" />
             </button>
-            <div
-              ref={headerMenuRef}
-              className="mari-omnibar-header-menu"
-              onKeyDown={(event) => {
-                if (event.key !== "Escape") return;
-                event.stopPropagation();
-                setPanelMenuOpen(false);
-                event.currentTarget.querySelector<HTMLButtonElement>(".mari-omnibar-header-menu__trigger")?.focus();
-              }}
-            >
+            <div ref={headerMenuRef} className="mari-omnibar-header-menu">
               <button
                 type="button"
                 onClick={() => setPanelMenuOpen((open) => !open)}
@@ -5368,7 +5377,11 @@ export function HomeProfessorMariChat({
                 <EllipsisVertical size="0.9rem" aria-hidden="true" />
               </button>
               {panelMenuOpen ? (
-                <div className="mari-omnibar-header-menu__popover">
+                <div
+                  ref={headerPopoverRef}
+                  className="mari-omnibar-header-menu__popover"
+                  onKeyDown={onHeaderMenuKeyDown}
+                >
                   <div className="mari-omnibar-header-menu__destinations">
                     {headerDestinations.map(({ id, Icon, label, count }) => (
                       <button
@@ -5528,7 +5541,7 @@ export function HomeProfessorMariChat({
           lorebookPreviews={lorebookPreviewById}
           messageContext={messageContext}
           restStory={message.id === latestMessage?.id ? latestTurnRestStory : null}
-          reviews={reviewsByTurn.byMessageId.get(message.id)?.map(renderApprovalCard)}
+          reviews={reviewsByTurn.byMessageId.get(message.id)?.map(renderTurnPrompt)}
         />
         {recovery?.localMessageId === message.id ? sendFailedLine : null}
         {understoodRequest && (
@@ -5947,19 +5960,8 @@ export function HomeProfessorMariChat({
                                   {workspaceStatus.error}
                                 </MariNote>
                               ) : null}
-                              {!sending && !workspaceTimelineActive
-                                ? resolvedPrompts
-                                    .filter((prompt) => prompt.chatId === chatId)
-                                    .map((prompt) => (
-                                      <ResolvedPromptLine
-                                        key={prompt.approval.id}
-                                        approval={prompt.approval}
-                                        outcome={prompt.outcome}
-                                      />
-                                    ))
-                                : null}
                               {reviewsByTurn.unassigned.length > 0 ? (
-                                <div className="space-y-3">{reviewsByTurn.unassigned.map(renderApprovalCard)}</div>
+                                <div className="space-y-3">{reviewsByTurn.unassigned.map(renderTurnPrompt)}</div>
                               ) : null}
                               {/* Only a real question gets a line (a guided plan step, or held changes); generic
                                   "what next?" prompts are left to the chips, as in Claude and Gemini. */}

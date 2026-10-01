@@ -1,10 +1,11 @@
 // #5073: the composer attach control for Professor Mari — a paperclip that opens a small menu
 // (like Claude's "+") instead of jumping straight to the file picker. Shared by both the floating
 // and docked composers so the menu can't drift between them. Mirrors the adjacent connection popover
-// (anchored div + outside-click), matching the surrounding composer code.
+// (anchored div + outside-click + in-dialog focus scope), matching the surrounding composer code.
 import { useEffect, useRef, useState } from "react";
 import { Loader2, MessageSquareText, Paperclip, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useInDialogFocusScope } from "../../hooks/use-in-dialog-focus-scope";
 import { cn } from "../../lib/utils";
 
 interface Props {
@@ -40,16 +41,11 @@ export function MariAttachButton({
       if (buttonRef.current?.contains(target) || menuRef.current?.contains(target)) return;
       setOpen(false);
     };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
     document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("mousedown", onMouseDown);
   }, [open]);
+  // Escape closes only this menu; a second Escape reaches the omnibar.
+  const onMenuKeyDown = useInDialogFocusScope(menuRef, () => setOpen(false), open);
 
   const run = (action: () => void) => {
     setOpen(false);
@@ -82,6 +78,7 @@ export function MariAttachButton({
         <div
           ref={menuRef}
           role="menu"
+          onKeyDown={onMenuKeyDown}
           className="absolute bottom-full left-0 z-20 mb-2 flex min-w-[15rem] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] p-1 text-left shadow-2xl"
         >
           <button

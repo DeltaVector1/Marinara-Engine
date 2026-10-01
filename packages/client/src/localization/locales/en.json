@@ -6369,6 +6369,8 @@
   "ui.chat.mariapprovalcard.technicalDetails": "Technical details",
   "ui.chat.marideleteprompt.delete": "Delete",
   "ui.chat.marideleteprompt.deleting": "Deleting…",
+  "ui.chat.marideleteprompt.metaLinked_one": "{{type}} · 1 linked item",
+  "ui.chat.marideleteprompt.metaLinked_other": "{{type}} · {{count}} linked items",
   "ui.chat.marideleteprompt.restore_one": "Put it back",
   "ui.chat.marideleteprompt.restore_other": "Put them back",
   "ui.chat.marideleteprompt.risk_one": "She already removed it for now. Delete makes that final, and Put it back restores the saved copy.",

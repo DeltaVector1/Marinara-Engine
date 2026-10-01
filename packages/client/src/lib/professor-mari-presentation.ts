@@ -131,3 +131,20 @@ export function assignReviewsToTurns<R extends { requestedAt: string }>(
   }
   return { byMessageId, unassigned };
 }
+
+/**
+ * A delete review's main record and totals. The planner lists the selected rows first, their cascade
+ * children after, and any side-effect updates before the deletes, while diffPreview stops at 50 rows:
+ * so the total comes from affectedRows, not the preview length.
+ */
+export function summarizeDeleteReview<C extends { table: string; action: string }>(review: {
+  affectedRows: number;
+  diffPreview: ReadonlyArray<C>;
+}) {
+  const deleted = review.diffPreview.filter((change) => change.action === "delete");
+  const parent = deleted[0];
+  if (!parent) return null;
+  const count = review.affectedRows - (review.diffPreview.length - deleted.length);
+  const selected = deleted.filter((change) => change.table === parent.table);
+  return { parent, selected, count, linkedCount: count - selected.length };
+}

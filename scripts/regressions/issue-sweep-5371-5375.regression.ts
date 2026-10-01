@@ -109,8 +109,23 @@ assert.doesNotMatch(
 );
 assert.match(
   professorMariHomeSource,
-  /mari-transcript-stack[\s\S]*?\{visiblePendingChangeReviews\.length > 0 \? \(\s*<div className="space-y-3">\{pendingApprovalsPanel\}<\/div>[\s\S]*?<form/u,
-  "Pending reviews must render inline in the transcript at every width, before the composer",
+  /const reviewsByTurn = assignReviewsToTurns\(\s*displayMessages,\s*\[\s*\.\.\.visiblePendingChangeReviews\.map/u,
+  "Every visible pending review must be placed in the transcript",
+);
+assert.match(
+  professorMariHomeSource,
+  /reviews=\{reviewsByTurn\.byMessageId\.get\(message\.id\)\?\.map\(renderTurnPrompt\)\}/u,
+  "A pending review must render inside the turn that asked for it",
+);
+assert.match(
+  professorMariHomeSource,
+  /\{reviews \? <div className="mt-3 space-y-3">\{reviews\}<\/div> : null\}/u,
+  "A Mari turn must render the reviews assigned to it",
+);
+assert.match(
+  professorMariHomeSource,
+  /mari-transcript-stack[\s\S]*?\{reviewsByTurn\.unassigned\.length > 0 \? \(\s*<div className="space-y-3">\{reviewsByTurn\.unassigned\.map\(renderTurnPrompt\)\}<\/div>[\s\S]*?<form/u,
+  "A pending review without a reply turn must still render inline in the transcript, before the composer",
 );
 assert.match(
   professorMariHomeSource,

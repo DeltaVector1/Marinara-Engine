@@ -8,6 +8,7 @@ import type {
   MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 
+import { summarizeDeleteReview } from "../../lib/professor-mari-presentation";
 import { useUIStore } from "../../stores/ui.store";
 import { describeTable, MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
 import { MariCard, MariNote } from "./mari-primitives";
@@ -140,7 +141,7 @@ function DatabaseWorkspaceApprovalCard({
   const raw = (
     <RawDetails approval={approval} open={rawOpen} onToggle={(open) => setDefaultViewMode(open ? "raw" : "easy")} />
   );
-  const deletedRows = approval.diffPreview.filter((change) => change.action === "delete");
+  const deleteReview = summarizeDeleteReview(approval);
   // #4851: a saved memory lands disabled; offer "Keep & Enable" to keep AND switch it on.
   // Gated to mari_instructions inserts (matches the server-side guard), and only for
   // NON-persistent ones, because enabling a Persistent memory injects its full body every turn, a
@@ -163,25 +164,31 @@ function DatabaseWorkspaceApprovalCard({
   ) : null;
 
   // R42: a delete is a risky prompt. Mari already removed the rows; Delete keeps them gone.
-  // ponytail: a batch that deletes AND edits shows only its deletions here (the edits stay in Raw);
-  // split the card if Mari starts mixing them.
-  if (deletedRows.length > 0) {
-    const names = deletedRows.map((change) => rowTitle(change, localizeUi));
-    const count = deletedRows.length;
+  // ponytail: a preset section or group delete also edits the preset (and orphans the group's
+  // sections); those automatic side-effect updates show only in Raw's command and table counts, not
+  // as rows here. Split the card if Mari ever mixes deletes with edits the user should judge.
+  if (deleteReview) {
+    const { parent, selected, count, linkedCount } = deleteReview;
+    const names = selected.map((change) => rowTitle(change, localizeUi));
     return (
       <TranscriptRow layout="document" marker={null}>
         <MariCard
           variant="danger"
           media={<Trash2 size="1rem" aria-hidden="true" />}
           title={
-            count === 1
+            selected.length === 1
               ? localizeUi("ui.chat.marideleteprompt.title", { name: names[0] })
               : localizeUi("ui.chat.marideleteprompt.titleMany", { count })
           }
           meta={
-            count === 1
-              ? describeTable(deletedRows[0]!.table)
-              : `${names.slice(0, 3).join(", ")}${count > 3 ? ", …" : ""}`
+            selected.length === 1
+              ? linkedCount > 0
+                ? localizeUi("ui.chat.marideleteprompt.metaLinked", {
+                    type: describeTable(parent.table),
+                    count: linkedCount,
+                  })
+                : describeTable(parent.table)
+              : `${names.slice(0, 3).join(", ")}${selected.length > 3 ? ", …" : ""}`
           }
           actions={
             <>
@@ -206,6 +213,9 @@ function DatabaseWorkspaceApprovalCard({
           }
         >
           <p>{[approval.reason, localizeUi("ui.chat.marideleteprompt.risk", { count })].filter(Boolean).join(" ")}</p>
+          {approval.diffTruncated ? (
+            <p>{localizeUi("ui.chat.databaseworkspaceapprovalcard.thisPreviewMayNotShowEveryAffectedRow")}</p>
+          ) : null}
           {raw}
         </MariCard>
       </TranscriptRow>

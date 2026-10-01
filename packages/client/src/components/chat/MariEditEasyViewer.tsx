@@ -268,7 +268,8 @@ export function MariEditEasyViewer({
                 <ChevronRight size="0.75rem" aria-hidden="true" />
               </span>
             </button>
-            <div className="mari-edit__expand">
+            {/* Collapsed rows keep their content for the height animation; inert keeps it out of Tab. */}
+            <div className="mari-edit__expand" inert={!open}>
               <div>
                 <div className="mari-edit__body">
                   {index === 0 && approval.reason ? <p className="mari-edit__reason">{approval.reason}</p> : null}
