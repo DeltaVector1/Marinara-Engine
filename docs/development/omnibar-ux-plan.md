@@ -37,9 +37,11 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Todo   |           |
 | 14  | Final review of slices 7b-13                                  | reviewer      | Todo   |           |
 
-PAUSED 2026-09-30 by the maintainer during slice 10. Slices 1-9 are done and
-deployed to prod (2d999a330 is slices 1-8; slice 9 fixes are c4f88b4ce, not yet
-deployed). Remaining order when resumed: 10, 11, 12, 13, 14. Stop after 14.
+Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
+revised from the original pill design per maintainer feedback). Slices 1-9
+were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
+slice 9 fixes are c4f88b4ce, not yet deployed). Remaining order: 11, 12, 13,
+14. Stop after 14.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
