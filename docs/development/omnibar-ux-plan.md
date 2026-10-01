@@ -19,36 +19,43 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 
 ## Status
 
-| #   | Slice                                                         | Owner profile | Status      | Commit    |
-| --- | ------------------------------------------------------------- | ------------- | ----------- | --------- |
-| 1   | Handoff bugs (A1-A6)                                          | worker        | Done        | 7a1eef06d |
-| 2   | Quick answers: cheap wins (B1-B5)                             | worker        | Done        | 2b4dd9866 |
-| 3   | Quick answers: grounding in docs + setting names (B6)         | worker        | Done        | f14039aa0 |
-| 4   | Carry aside answer into Mari, show what she received (C1-C3)  | worker        | Done        | 892f2acea |
-| 5   | Review of slices 1-4                                          | reviewer      | Done        | 532479233 |
-| 6   | Expanded row redesign (D1-D6)                                 | designer      | Done        | 2e81ef9de |
-| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)         | designer      | Done        | dbbf886db |
-| 7b  | Rework Mari output to the approved direction A (I1-I7)        | designer      | Done        | 627bfcada |
-| 8   | Migrate install/file/created cards to MariCard (E4-E5)        | designer      | Done        | 8aa390372 |
-| 9   | Review of slices 6-8                                          | reviewer      | Done        | ad7bfc33b |
-| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)   | designer      | Done        | 3a04b5342 |
-| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5) | designer      | Done        | 18237a07a |
-| 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Done        | 7c9f5f8e0 |
-| 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Done        | ff125a4ad |
-| 14  | Final review of slices 7b-13                                  | reviewer      | Done        | daddf5a02 |
-| 15  | Slime pull-to-open from the approved drop prototype (J1-J5)   | designer      | Done        | bb4f786d0 |
-| 16  | Failed replies feed the "fix this" context row (K1)           | worker        | Done        | a74161ca4 |
-| 17  | Relative time on recent-chat rows (K2)                        | worker        | Done        | 117cb21b8 |
-| 18  | Rows for existing chat tools on the chat surface (K3)         | worker        | Done        | 81393ea47 |
-| 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Done        | 3ba6e78c9 |
-| 20  | Flip more boolean settings in place, with Undo (K5)           | worker        | Done        | 3e7f5a89e |
-| 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Done        | f138ad970 |
-| 22  | Review of slices 15-21                                        | reviewer      | Done        | ee502bf2d |
+| #   | Slice                                                           | Owner profile | Status  | Commit    |
+| --- | --------------------------------------------------------------- | ------------- | ------- | --------- |
+| 1   | Handoff bugs (A1-A6)                                            | worker        | Done    | 7a1eef06d |
+| 2   | Quick answers: cheap wins (B1-B5)                               | worker        | Done    | 2b4dd9866 |
+| 3   | Quick answers: grounding in docs + setting names (B6)           | worker        | Done    | f14039aa0 |
+| 4   | Carry aside answer into Mari, show what she received (C1-C3)    | worker        | Done    | 892f2acea |
+| 5   | Review of slices 1-4                                            | reviewer      | Done    | 532479233 |
+| 6   | Expanded row redesign (D1-D6)                                   | designer      | Done    | 2e81ef9de |
+| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)           | designer      | Done    | dbbf886db |
+| 7b  | Rework Mari output to the approved direction A (I1-I7)          | designer      | Done    | 627bfcada |
+| 8   | Migrate install/file/created cards to MariCard (E4-E5)          | designer      | Done    | 8aa390372 |
+| 9   | Review of slices 6-8                                            | reviewer      | Done    | ad7bfc33b |
+| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)     | designer      | Done    | 3a04b5342 |
+| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5)   | designer      | Done    | 18237a07a |
+| 12  | Mari composer redesign with mode + model pickers (H1-H4)        | designer      | Done    | 7c9f5f8e0 |
+| 13  | DB review card + MariEditEasyViewer in direction A (E6)         | designer      | Done    | ff125a4ad |
+| 14  | Final review of slices 7b-13                                    | reviewer      | Done    | daddf5a02 |
+| 15  | Slime pull-to-open from the approved drop prototype (J1-J5)     | designer      | Done    | bb4f786d0 |
+| 16  | Failed replies feed the "fix this" context row (K1)             | worker        | Done    | a74161ca4 |
+| 17  | Relative time on recent-chat rows (K2)                          | worker        | Done    | 117cb21b8 |
+| 18  | Rows for existing chat tools on the chat surface (K3)           | worker        | Done    | 81393ea47 |
+| 19  | Agent-catalog grounding for the quick answer (K4)               | worker        | Done    | 3ba6e78c9 |
+| 20  | Flip more boolean settings in place, with Undo (K5)             | worker        | Done    | 3e7f5a89e |
+| 21  | Measure omnibar open time; cache only if needed (K6)            | worker        | Done    | f138ad970 |
+| 22  | Review of slices 15-21                                          | reviewer      | Done    | ee502bf2d |
+| 23  | Mari reads installed agents and their runs (L1)                 | worker        | Pending |           |
+| 24  | Failed agent runs feed the "fix this" row (L2)                  | worker        | Pending |           |
+| 25  | Agent editor as Mari context, agent edits as reviews (L3)       | designer      | Pending |           |
+| 26  | Why a lorebook entry did not fire (L4)                          | worker        | Pending |           |
+| 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker        | Pending |           |
+| 28  | Reply-fix review card (L6)                                      | designer      | Pending |           |
+| 29  | Review of slices 23-28 (L7)                                     | reviewer      | Pending |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Remaining order: 16-22 (section K). Stop after 22.
+slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Remaining order: 23-29 (section L). Stop after 29.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
@@ -408,7 +415,7 @@ Check what already exists before adding anything.
 - K1 Fix what just broke: today `lastAppError` is set only by connection tests
   (`hooks/use-connections.ts`). In `hooks/use-generate.ts` (`showError` and the
   agent-failure path) also call `setLastAppError({ message, action: "Generate
-  reply", retry: { kind: "open-connection", id: <active connection> } })`;
+reply", retry: { kind: "open-connection", id: <active connection> } })`;
   clear it on the next successful generation. The context row and the
   `chat-error` Mari handoff exist already. Error text goes to Mari only on ⌘↵.
   Proof: regression assert on `buildOmnibarContextResults` with a generation
@@ -472,5 +479,81 @@ Check what already exists before adding anything.
   the confirmed ones in the same slice).
 
 Needs the maintainer's decision, NOT in this round: batch review for library
-chores, lorebook health check placement, Mari editing chat history, Mari in the
+chores, lorebook health check placement, Mari in the
 game setup wizard.
+
+### L. Mari in chats and in agents (slices 23-29) — maintainer decision 2026-10-01
+
+Decision: Mari helps inside and outside chats, inside the agent surfaces, and knows the agents.
+In scope: #6 (why an entry did not fire), #9 (fix a broken reply as a review), agents. Out: batch
+library writes, lorebook health check, game setup (L-open). K's rules hold for every item: unasked =
+query + surface + resource label + docs/settings labels (R22); chat text, error text, prompts and
+field values go to Mari only after Enter/⌘↵ and show as `MariContextFacetChips` facets; every write is
+a review (R5); a deterministic row beats a Mari run; no new buttons in editors or chat (R29) — the doors
+are ⌘K, the top bar and existing rows. Repo boundary (AGENTS.md): only Engine host code here.
+
+- L1 Mari reads agents (server only). `executeAgentAction` (`mari-db.service.ts:4381`): `list` merges
+  the installed registry (`agent-registry.ts`, the same source as `GET /capability-packages/agents`,
+  `capability-packages.routes.ts:110`) with `agent_configs`: name, type, packageId, phase, category,
+  modes, enabled, custom/package, prompt overridden yes/no, setting keys (names only, no values);
+  `get` accepts an id or a type (`getById ?? getByType`, `agents.storage.ts:119/124`). New read
+  `agent.runs { type, chatId?, limit≤10 }` from `getLastRunByType`/`listRunsByTypeForChat`
+  (`agents.storage.ts:475/568`): success, error, durationMs, createdAt. Add `runs` to the read regex
+  `appDataActionLooksReadOnly` (`workspace-agent.service.ts:1869`) and the action enum (`:328`).
+  Prompt (`:772` block): before "which agent fits" check `agent.list` installed, then the catalog,
+  then link Agents → Download Agents; never claim an uninstalled agent is active. Proof: regression
+  asserts that `agent.runs` is read-only and that the merged list includes a registry-only agent.
+- L2 Failed agent runs feed "fix this". `lastAppError.retry` (`ui.store.ts:669`) gains
+  `{ kind: "open-agent"; id: agentType }`. Set it where `agent_error`/`agents_retry_failed` land
+  (`use-generate.ts:2948/3180`, from `toAgentFailure`, `lib/agent-failures.ts:64`) with action
+  "Run <agent name>"; never overwrite a current "Generate reply" error; clear on the next clean run.
+  `buildOmnibarContextResults` (`omnibar-results.ts:982`) keys the row on `retry.kind` (connection row
+  or `agent:<type>` row, Enter opens the agent editor); `buildAskContext` (`GlobalOmnibar.tsx:2345`)
+  sends `source: "chat-error"` + `resource { kind: "agent", id: type }` for either row; Mari then calls
+  `agent.runs`. Proof: regression on the context rows with an agent error; e2e mocks an `agent_error`
+  SSE frame, ⌘K shows "Fix: Run Illustrator failed" first, ⌘↵ shows the error + agent facets.
+- L3 Agent editor as Mari context (designer). `AgentEditor.tsx` (prompt `:1016`, name, description)
+  sets `activeEditorField` on focus exactly like `CharacterEditor`; the existing "Improve {{field}}
+  with Mari" row (`omnibar-results.ts:997`) and field facet then work with no new UI. Fix custom agents:
+  `resolveResource` resolves `agent` by id then type (`workspace-agent.service.ts:3825`), so ⌘↵ on
+  "Editing <custom agent>" no longer says "no longer available". Prompt edits go through
+  `agent.update` → applied review: `MariEditEasyViewer` (`rowTitle :43`, icon `:167`) labels
+  `agent_configs` "Agent" with the agent icon, `promptTemplate`/description render as prose
+  (`trackProseChange`), `settings` JSON stays behind Raw. With the catalog open, `asideResourceLabel`
+  is "Download Agents" (`GlobalOmnibar.tsx:1502`). Proof: e2e edit a custom agent's prompt via a mocked
+  Mari review, Keep and Restore; screenshots 390/1440 dark+light of the agent review row.
+- L4 Why an entry did (not) fire. "Did fire" is already deterministic (matched keys in
+  `ActiveLorebookEntriesPanel`, `ChatRoleplayPanels.tsx:375`; K3 row) — no Mari. New read
+  `lorebook.testScan { lorebookId, chatId, entryId? }` wrapping the `POST /lorebooks/:id/test` logic
+  (`lorebooks.routes.ts:1335` → `runLorebookTestScan`): returns activated/blocked with reasons, plus
+  "no key matched in the scanned messages" for an absent entry. Mari gets keys and reasons, not the
+  scanned text. Door: ⌘↵ on a lorebook-entry row while a chat is active sends the lorebook resource +
+  `activeChat` (facets: lorebook, chat); typed "why didn't X fire" works too. Prompt line: answer with
+  the reason and the exact setting to change, offer `lorebook.updateEntry` (review) only if asked.
+  Proof: regression on the result shape for a secondary-key block and a no-match; e2e mocked answer.
+- L5 `chat.updateMessage` (server). New write `chat.updateMessage { chatId, messageId, content, reason }`
+  for assistant/narrator messages in non-game chats only. It never overwrites: it adds the fixed text
+  as a new swipe and makes it active (reuse chat storage `addSwipe` and the active-swipe path behind
+  `chats.routes.ts:3881/4010`), so the old reply is kept. Always a review card, also in Accept-edits/Bypass (like deletes, `mari-db.service.ts:7427`);
+  Restore sets the old swipe active and removes the new one through chat storage, never a raw row
+  restore. Guard: raw `mari db` writes to `messages`/`message_swipes` (`file-backed-store.ts:362`) are
+  refused with a pointer to `chat.updateMessage`. Prompt: repair only (cut-off end, OOC lines, broken
+  formatting), keep the voice, never continue or rewrite the scene. Door: typed "fix the last reply" on
+  the chat surface, or ⌘↵ on a message hit (`commandCenterResultId` carries the message id; print it in
+  `buildHandoffContextPrompt`, `:3805`). Proof: regression on the guard and on read-only/write
+  classification; e2e Keep and Restore keep both texts as swipes.
+- L6 Reply-fix review card (designer). `MariEditEasyViewer`: a `messages` change reads "Reply ·
+  <chat name>", content as tracked prose, Restore wording "Put the old reply back". After Keep, the
+  open chat shows the new swipe without reload (invalidate the chat messages query). Proof: screenshots
+  390/1440 dark+light; e2e the chat shows the fixed text and swipe 2/2.
+- L7 Reviewer pass over 23-28 (read-only findings, then a worker fixes the confirmed ones). Check R22
+  on every new payload, that no write skips a review, and the inventory/CHANGELOG.
+
+Belongs in Pasta-Devs/Marinara-Agents, not here: per-setting help text for each agent (manifests
+have only an untyped `defaultSettings`; Mari can name keys, not explain them), better error text from a
+package agent, Mari inside feature-package UIs (`FeatureAgentDetailHost` content), catalog
+descriptions (`official-agent-knowledge.ts` mirrors them; refresh it when the catalog changes).
+
+L-open (blocks only #13): the game setup wizard is a `z-[10000]` overlay (`GameSetupWizard.tsx:1590`,
+opened at `GameSurface.tsx:11505`), so ⌘K opens under it. Mari there needs either the omnibar above
+the wizard or a door inside it (R29). Maintainer: which, or leave game setup out?
