@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- On a phone, pulling down on the top bar now opens the omnibar. You draw a drop of accent colour out of the bar's edge; it stretches on a thinning neck, pinches off when you have pulled far enough, and when you let go it falls, lands with a small plop and grows into the omnibar. Let go earlier, or push back up, and it springs back into the bar. A flick down also opens it, a pull that starts on a top-bar button no longer presses that button, and with reduced motion there is no drop: the omnibar opens as soon as you have pulled far enough.
 - After you answer Professor Mari's install or sensitive-file request, it folds to one quiet line ("Installed nanoid", "Skipped: Change package.json") until your next message instead of disappearing. Finished steps also read correctly in the past tense ("Wrote file", not "Writed file").
 - Screen readers now name an omnibar result by its title only; its description is read as the description instead of being part of a very long name.
 - Professor Mari's requests to install a package or change a sensitive file such as package.json are now calm cards that say what she wants and why, with one Install or Apply change button and a quiet Not now. The exact version, integrity hash, source, full path and file contents sit behind one Technical details toggle.

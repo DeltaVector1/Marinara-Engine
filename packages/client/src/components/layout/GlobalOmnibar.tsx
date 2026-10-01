@@ -156,6 +156,7 @@ import {
 } from "../../lib/professor-mari-open";
 import type { ProfessorMariNavigationTarget } from "../../lib/professor-mari-navigation";
 import { executeStateNavigation } from "../../lib/state-navigation";
+import { isPullHandoffPending, takePullHandoff } from "../../lib/pull-to-open";
 import { hasEditorLeaveHandler } from "../../lib/editor-leave";
 import { cn } from "../../lib/utils";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
@@ -337,6 +338,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const backButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  // Opened by the pull-to-open drop, which has already grown into the panel's
+  // shape: skip the pop-in and let the drop's layer fade out underneath.
+  const [fromPull] = useState(isPullHandoffPending);
+  useEffect(() => takePullHandoff()?.(), []);
   // R33: how far the search field has to fall to land where Mari's composer sits.
   // Measured while the list is still up, because by the time it leaves the field
   // is gone. 0 means "do not travel" - reduced motion, or a phone, where the
@@ -2581,7 +2586,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         aria-labelledby="global-omnibar-title"
         ref={dialogRef}
         data-component="GlobalOmnibar.Panel"
-        className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--card)] shadow-2xl motion-safe:animate-omnibar-in sm:max-w-[44rem] sm:rounded-2xl sm:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] sm:ring-1 sm:ring-[var(--border)]/60 motion-safe:transition-[height,max-height,max-width] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none ${
+        className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--card)] shadow-2xl ${fromPull ? "" : "motion-safe:animate-omnibar-in"} sm:max-w-[44rem] sm:rounded-2xl sm:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] sm:ring-1 sm:ring-[var(--border)]/60 motion-safe:transition-[height,max-height,max-width] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none ${
           pane === "mari"
             ? "mari-workspace-shell sm:h-[min(44rem,80dvh)] sm:max-h-[min(44rem,80dvh)]"
             : idle && !settingsOpen

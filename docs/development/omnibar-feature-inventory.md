@@ -258,6 +258,24 @@ The omnibar reuses the app's global chat search; it has no search of its own.
 
 This is the part most likely to break silently. All of it must survive.
 
+- Opening: `⌘K` / `Ctrl+K`; on the phone shell a long press on Home, or a
+  pull down on the top bar (and the safe-area strip above it). The pull is
+  touch only, locks after 10 px when it is mostly downward, and opens on
+  release past `min(120 px, 18% of the height)` (at least 80 px) or on a flick
+  (> 0.5 px/ms after 40 px). Moving back above the threshold, a second finger
+  or `pointercancel` cancels it. It never starts while a modal, a `Modal`
+  overlay, the software keyboard or the omnibar itself is open, and a pull
+  that starts on a bar button does not press it. Feedback is a fluid drop
+  (`OmnibarPullDrop`, one SVG path driven by motion values): it stretches out
+  of the bar's edge on a neck that thins with the pull, pinches off at the
+  threshold (one 8 ms vibration), and below it springs back into the bar.
+  On open it falls, squashes on landing, and a card layer clipped to the drop
+  grows into the panel's resting rect; the dialog then skips its own pop-in
+  (`takePullHandoff`) and the layer fades out under it. The layer is removed
+  even if the dialog never mounts. The recognizer and the drop geometry are
+  pure (`lib/pull-to-open.ts`) and pinned by the command-center regression.
+  Under reduced motion there is no drop and the omnibar opens at the
+  threshold.
 - `↑`/`↓` move the selection; `Home`/`End` jump to the ends. No exceptions:
   there is no surface left that opts out of the keyboard model.
 - `Enter` chooses. On a toggle row it flips the toggle; on a choice row it

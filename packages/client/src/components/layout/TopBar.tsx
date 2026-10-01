@@ -36,6 +36,8 @@ import { SpotifyMiniPlayer } from "../spotify/SpotifyMiniPlayer";
 import { YouTubePlayer } from "../chat/YouTubePlayer";
 import { LocalMusicPlayer } from "../chat/LocalMusicPlayer";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
+import { usePullToOpenOmnibar } from "../../hooks/use-pull-to-open-omnibar";
+import { OmnibarPullDrop } from "./OmnibarPullDrop";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import {
   activatePersonalExtensionContribution,
@@ -212,6 +214,8 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
       handleOmnibarClick();
     }, HOME_LONG_PRESS_MS);
   }, [clearHomeLongPress, handleOmnibarClick]);
+
+  const pull = usePullToOpenOmnibar({ onPullStart: clearHomeLongPress, onOpen: handleOmnibarClick });
 
   const handleRightPanelClick = useCallback(
     (panel: Parameters<typeof toggleRightPanel>[0]) => {
@@ -415,13 +419,17 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     </button>
   );
 
-  return (
+  const header = (
     <header
       ref={headerRef}
       data-component="TopBar"
+      {...pull.handlers}
       onPointerLeave={clearTopbarHover}
       onPointerOver={handleTopbarPointerOver}
-      className="mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between bg-[var(--marinara-topbar-surface)] px-3 backdrop-blur-sm"
+      className={cn(
+        "mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between bg-[var(--marinara-topbar-surface)] px-3 backdrop-blur-sm",
+        mobileTopbarNavigation && "touch-none",
+      )}
     >
       {/* Subtle bottom border only */}
       <div className="absolute inset-x-0 bottom-0 h-px bg-[var(--marinara-topbar-border)]" />
@@ -539,6 +547,21 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
         <TopbarMoreMenu items={overflowItems} headerRef={headerRef} phoneTopbar={phoneTopbar} />
       </nav>
     </header>
+  );
+
+  return (
+    <>
+      {/* iOS safe area spacer — pushes TopBar below status bar and fills that gap with topbar bg */}
+      <div
+        {...pull.handlers}
+        className={cn(
+          "flex-shrink-0 md:hidden h-[env(safe-area-inset-top)] bg-[var(--marinara-topbar-surface)] backdrop-blur-sm",
+          mobileTopbarNavigation && "touch-none",
+        )}
+      />
+      {header}
+      {mobileTopbarNavigation && <OmnibarPullDrop visuals={pull.visuals} />}
+    </>
   );
 }
 
