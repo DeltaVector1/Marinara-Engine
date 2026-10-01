@@ -110,13 +110,24 @@ function showError(msg: string, options?: Pick<ExternalToast, "action" | "id">) 
   const formatted = formatGenerationParameterError(msg);
   console.error("[Generation]", msg);
   toast.error(formatted, { duration: 15000, ...options });
-  // So the omnibar's "fix this" context row can answer for a failed reply too
-  // (today it only hears about failed connection tests).
-  const connectionId = useChatStore.getState().activeChat?.connectionId ?? null;
+  return formatted;
+}
+
+/**
+ * So the omnibar's "fix this" context row can answer for a failed reply too
+ * (today it only hears about failed connection tests). Scoped to the two
+ * main-generation error sites — tool failures and agent-retry failures route
+ * through `showError`/`showAgentFailuresError` too, but aren't "Generate
+ * reply" failures and shouldn't overwrite that row with the wrong message.
+ */
+function setGenerateReplyError(formattedMessage: string, chatId: string, qc: QueryClient) {
+  const connectionId = qc.getQueryData<Chat>(chatKeys.detail(chatId))?.connectionId ?? null;
   useUIStore.getState().setLastAppError({
-    message: formatted,
+    message: formattedMessage,
     action: "Generate reply",
-    ...(connectionId ? { retry: { kind: "open-connection" as const, id: connectionId } } : {}),
+    ...(connectionId && connectionId !== "random"
+      ? { retry: { kind: "open-connection" as const, id: connectionId } }
+      : {}),
   });
 }
 
@@ -3160,7 +3171,7 @@ export function useGenerate() {
               setProcessingRun(agentProcessingRunId, false, params.chatId);
               clearMariPhaseForThisChat();
               generationErrorSeen = true;
-              showError((event.data as string) || "Generation failed");
+              setGenerateReplyError(showError((event.data as string) || "Generation failed"), params.chatId, qc);
               window.dispatchEvent(new CustomEvent("marinara:generation-error", { detail: { chatId: params.chatId } }));
               break;
             }
@@ -3305,7 +3316,7 @@ export function useGenerate() {
         }
         const msg = error instanceof Error ? error.message : "Generation failed";
         generationErrorSeen = true;
-        showError(msg);
+        setGenerateReplyError(showError(msg), params.chatId, qc);
         window.dispatchEvent(new CustomEvent("marinara:generation-error", { detail: { chatId: params.chatId } }));
         return await confirmDurableSubmittedUserTurn();
       } finally {

@@ -17,6 +17,12 @@
  * `omnibar-results.ts` (`toggleRows`), and binding them again would show the
  * same setting as two rows.
  *
+ * Also excluded on purpose, per the K5 rule against anything that deletes,
+ * spends money, or changes security: `confirm-before-delete`, `debug-mode`,
+ * `include-private-notes-in-exports`, `include-reasoning-in-exports`, and
+ * `image-prompt-review`. These navigate to Settings instead of flipping in
+ * place.
+ *
  * `omnibar-settings-toggle-bindings.regression.ts`-style coverage lives in
  * `scripts/regressions/command-center.regression.ts`: every id here must name
  * an actual `Toggle` control in `SETTINGS_SEARCHABLE_CONTROLS`.
@@ -35,10 +41,6 @@ export const OMNIBAR_SETTINGS_TOGGLE_BINDINGS: Readonly<Record<string, OmnibarSe
   "hide-chat-help-button": {
     get: (state) => state.chatHelpButtonHidden,
     set: (value) => useUIStore.getState().setChatHelpButtonHidden(value),
-  },
-  "confirm-before-delete": {
-    get: (state) => state.confirmBeforeDelete,
-    set: (value) => useUIStore.getState().setConfirmBeforeDelete(value),
   },
   achievements: {
     get: (state) => state.achievementsEnabled,
@@ -115,10 +117,6 @@ export const OMNIBAR_SETTINGS_TOGGLE_BINDINGS: Readonly<Record<string, OmnibarSe
   "queue-media-generation": {
     get: (state) => state.queueImageGenerationRequests,
     set: (value) => useUIStore.getState().setQueueImageGenerationRequests(value),
-  },
-  "image-prompt-review": {
-    get: (state) => state.reviewImagePromptsBeforeSend,
-    set: (value) => useUIStore.getState().setReviewImagePromptsBeforeSend(value),
   },
   "custom-cursor": {
     get: (state) => state.customCursorEnabled,
@@ -212,17 +210,5 @@ export const OMNIBAR_SETTINGS_TOGGLE_BINDINGS: Readonly<Record<string, OmnibarSe
   "guide-generations": {
     get: (state) => state.guideGenerations,
     set: (value) => useUIStore.getState().setGuideGenerations(value),
-  },
-  "include-reasoning-in-exports": {
-    get: (state) => state.includeReasoningInExports,
-    set: (value) => useUIStore.getState().setIncludeReasoningInExports(value),
-  },
-  "include-private-notes-in-exports": {
-    get: (state) => state.includePrivateNotesInExports,
-    set: (value) => useUIStore.getState().setIncludePrivateNotesInExports(value),
-  },
-  "debug-mode": {
-    get: (state) => state.debugMode,
-    set: (value) => useUIStore.getState().setDebugMode(value),
   },
 };

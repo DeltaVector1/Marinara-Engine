@@ -1159,13 +1159,20 @@ export function buildOmnibarContextResults({
       icon,
       action: { kind: "open-chat-tool", chatId: activeChat.id, tool },
     });
-    push(chatTool("search", t("commandCenter.chatTools.search", "Search this chat"), "command"));
+    // Game mode has its own turn-retry reset (GameSurface's handleRetryTurn) and no
+    // CHAT_SEARCH_OPEN_REQUEST_EVENT listener, so the plain regenerate/search rows
+    // would either skip game state resets or open nothing.
+    if (activeChat.mode !== "game") {
+      push(chatTool("search", t("commandCenter.chatTools.search", "Search this chat"), "command"));
+    }
     push(chatTool("lorebook", t("commandCenter.chatTools.lorebook", "Active lorebook entries"), "lorebook"));
     push(chatTool("peek-prompt", t("commandCenter.chatTools.peekPrompt", "Peek prompt"), "command"));
     if (activeChat.mode === "roleplay") {
       push(chatTool("summary", t("commandCenter.chatTools.summary", "Summary"), "chats"));
     }
-    push(chatTool("regenerate", t("commandCenter.chatTools.regenerate", "Regenerate reply"), "command"));
+    if (activeChat.mode !== "game") {
+      push(chatTool("regenerate", t("commandCenter.chatTools.regenerate", "Regenerate reply"), "command"));
+    }
   }
   return out;
 }

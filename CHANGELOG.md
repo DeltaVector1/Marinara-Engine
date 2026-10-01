@@ -4,7 +4,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
-- Reopening the omnibar with a very large library (thousands of chats or characters) rebuilds its chat and character rows a bit faster, since they are no longer always recomputed from scratch.
+- The omnibar no longer rebuilds its whole result list on every keystroke or hover while open; it only rebuilds when something you can see actually changed.
+- Fixed a round of bugs from review of the assistant round 2 slices: in a game chat the omnibar no longer offers "Regenerate reply" or "Search this chat" (the game has its own retry and no listener for either); risky settings such as Confirm before deleting, Debug mode and the export-privacy toggles no longer flip in place from the omnibar, only navigate to Settings (Shift+Enter now does that for any bound toggle row); a failed reply's "Fix: Generate reply failed" row no longer gets overwritten by an unrelated tool or agent-retry failure, and no longer offers a broken retry when the chat uses the Random connection; and a chat's relative "updated" time now also shows on its collapsed Recent row, not only in the expanded preview.
 - Added the Safari Mari appearance pack, with jungle explorer gear, matching portraits and twelve expedition stories, available in omnibar settings.
 - Many more settings now flip right in the omnibar instead of only opening the Settings tab: things like Confirm before deleting, Mini Mari surprise visits, Enable streaming, Tracker Panel, swipe menus, the appearance toggles and more now show a switch you can flip without leaving the search list.
 - Added the Golden Mari appearance pack, with shiny gold artwork, a confident Chad expression and matching portraits and twelve activity stories. Available normally in omnibar settings, with no achievement requirement.

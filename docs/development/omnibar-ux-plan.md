@@ -43,7 +43,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Done        | 3ba6e78c9 |
 | 20  | Flip more boolean settings in place, with Undo (K5)           | worker        | Done        | 3e7f5a89e |
 | 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Done        | f138ad970 |
-| 22  | Review of slices 15-21                                        | reviewer      | Pending     |           |
+| 22  | Review of slices 15-21                                        | reviewer      | Done        | 77ce131fd |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
@@ -448,20 +448,26 @@ Check what already exists before adding anything.
   (`packages/client/src/lib/omnibar-open-timing.ts`). Measured with a mocked
   `/api/characters` (2,000 rows) and `/api/chats` (5,000 rows), 40 opens via a
   temporary `e2e/zz-omnibar-open-perf.e2e.ts` (deleted after the run):
-  **before a cache: p50 138.4 ms, p95 157.0 ms, max 1608.6 ms (n=40)**. p95 is
-  over the ~100 ms bar, so `buildOmnibarChatRows`/`buildOmnibarCharacterRows`
-  (`omnibar-entity-rows.ts`) - the two builders that scale with the whole
-  library and get rebuilt from scratch on every open because the dialog
-  unmounts on close - are now cached by input reference (`memoizeLastByKeys`),
-  keyed on the chat/character arrays, the lookup maps, the resolved language
-  (not `t` itself - react-i18next hands back a new `t` on every remount), and
-  a one-minute bucket of `Date.now()` so relative "updated" text does not go
-  stale between opens. **After the cache: p50 118.1 ms, p95 136.1 ms, max
-  1422.9 ms (n=40)**. p95 is still above 100 ms - the remainder is dominated
-  by result ranking/presentation and DOM mount cost on a 7k-entity idle list,
-  not the two cached builders - but caching them removed the one clearly
-  avoidable cost (rebuilding ~7,000 rows from scratch every open), so it
-  stays. Internal only, no user-facing behavior change.
+  **p50 138.4 ms, p95 157.0 ms, max 1608.6 ms (n=40)**. p95 is over the
+  ~100 ms bar.
+  Slice 22 review correction: the `memoizeLastByKeys` cache added here keyed
+  `buildOmnibarChatRows`/`buildOmnibarCharacterRows` on `useMemo` lookup maps
+  (`characterById`, `connectionById`, `personaById`,
+  `lorebookNamesByCharacter`) that `GlobalOmnibarDialog` recreates on every
+  mount - and the dialog unmounts on close - so the cache could never hit
+  across opens and was dead weight; it has been removed and those two
+  builders are plain functions again. The real, zero-risk win found in review:
+  `GlobalOmnibar.tsx`'s `data` memo (and the ranking/searchable memos
+  downstream of it) depended directly on `setDefaultPreset`/`updateLorebook`,
+  the `useMutation` result objects, which TanStack Query hands back as a new
+  reference on every render, so that memo chain rebuilt on every keystroke
+  and hover while the dialog was open, not just on open. Extracting their
+  stable `.mutate`/`.mutateAsync` functions into the dependency array (the
+  same pattern the file already used for `patchChat`) fixes that unnecessary
+  work. This does not touch the measured open→first-paint numbers above,
+  which stay the real baseline: p95 ~136-157 ms, still above the ~100 ms bar.
+  The next lever - capping or virtualizing the idle list on a 7k-entity
+  library - needs a maintainer decision and is out of scope for this round.
 - Slice 22: reviewer pass over 15-21 (read-only findings, then a worker fixes
   the confirmed ones in the same slice).
 

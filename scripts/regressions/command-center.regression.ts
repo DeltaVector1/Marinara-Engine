@@ -83,7 +83,12 @@ import {
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 import { formatCapabilityAgentGroundingLines } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
 import { buildOmnibarChatRows } from "../../packages/client/src/lib/omnibar-entity-rows.js";
-import { matchOmnibarCapabilityAgentPackageIds, type Chat } from "@marinara-engine/shared";
+import {
+  matchOmnibarCapabilityAgentPackageIds,
+  OMNIBAR_CAPABILITY_AGENT_KEYWORDS,
+  type Chat,
+} from "@marinara-engine/shared";
+import { OFFICIAL_AGENT_KNOWLEDGE_ENTRIES } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
 
 const commands: CommandDefinition[] = [
   { id: "home", title: "Home", kind: "navigation", icon: "home", target: { kind: "home" } },
@@ -780,8 +785,6 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(isOmnibarShortcut(key({ ctrlKey: true, key: "t" }), false), false);
 }
 
-console.info("Command Center regression checks passed.");
-
 {
   const key = (overrides: Partial<Parameters<typeof isShortcutsHelpKey>[0]>) => ({
     key: "?",
@@ -1041,6 +1044,16 @@ console.info("Command Center regression checks passed.");
     null,
     "a query with no capability word grounds nothing",
   );
+
+  // Slice 22 fix: every package id a keyword can match must actually exist in
+  // the catalog, or the grounding line (and the Download Agents chip) would
+  // silently point at nothing.
+  const knownAgentIds = new Set(OFFICIAL_AGENT_KNOWLEDGE_ENTRIES.map((entry) => entry.id));
+  for (const [word, ids] of Object.entries(OMNIBAR_CAPABILITY_AGENT_KEYWORDS)) {
+    for (const id of ids) {
+      assert.ok(knownAgentIds.has(id), `keyword "${word}" names unknown catalog id "${id}"`);
+    }
+  }
 }
 
 {
@@ -1381,6 +1394,9 @@ console.info("Command Center regression checks passed.");
   });
   const updatedFact = row?.preview().facts.find((fact) => fact.label === "Last updated");
   assert.equal(updatedFact?.value, "5m ago", "relative time, not an absolute date");
+  // Slice 22 fix: the relative time also shows on the collapsed Recent row,
+  // not only in the expanded preview's "Last updated" fact.
+  assert.equal(row?.preview().metadataLine, "5m ago", "relative time also shows on the collapsed row's second line");
 }
 
 {
@@ -1468,6 +1484,21 @@ console.info("Command Center regression checks passed.");
     "conversation mode has no Summary feature, so no Summary row",
   );
 
+  // Slice 22 fix: game mode has its own turn-retry reset (GameSurface's
+  // handleRetryTurn) and no listener for CHAT_SEARCH_OPEN_REQUEST_EVENT, so
+  // the plain regenerate/search rows must not be offered there.
+  const gameChat: Chat = { ...roleplayChat, mode: "game" };
+  const gameOnChatSurface = buildOmnibarContextResults({
+    ...toolBaseInput,
+    activeChat: gameChat,
+    surface: "chat",
+  });
+  assert.deepEqual(
+    toolIds(gameOnChatSurface),
+    ["chat-tool:lorebook:chat-1", "chat-tool:peek-prompt:chat-1"],
+    "game mode gets only lorebook and peek-prompt tool rows, not search or regenerate",
+  );
+
   const roleplayOffChatSurface = buildOmnibarContextResults({
     ...toolBaseInput,
     activeChat: roleplayChat,
@@ -1494,8 +1525,8 @@ console.info("Command Center regression checks passed.");
   // value the caller passed in (a reactive store read happens outside this
   // pure builder); an unbound id keeps navigating instead.
   const t = ((key: string, fallback: string) => fallback) as never;
-  const boundId = "debug-mode";
-  assert.ok(OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId], "debug-mode should stay bound for this assertion to mean anything");
+  const boundId = "achievements";
+  assert.ok(OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId], "achievements should stay bound for this assertion to mean anything");
   const settingsToggleValues: Record<string, boolean> = {};
   for (const id of Object.keys(OMNIBAR_SETTINGS_TOGGLE_BINDINGS)) settingsToggleValues[id] = id === boundId;
   const controlResults = buildOmnibarControlResults({
@@ -1527,17 +1558,17 @@ console.info("Command Center regression checks passed.");
     theme: "dark",
     userStatus: "active",
   });
-  const debugModeRow = controlResults.find((row) => row.id === "settings-control:debug-mode");
-  assert.ok(debugModeRow, "debug-mode settings-control row should exist");
-  assert.equal(debugModeRow?.control?.type, "toggle", "a bound registry id gets a toggle control, not navigation only");
-  assert.equal(debugModeRow?.control?.value, true, "the toggle reflects the value the caller passed in");
+  const boundRow = controlResults.find((row) => row.id === "settings-control:achievements");
+  assert.ok(boundRow, "achievements settings-control row should exist");
+  assert.equal(boundRow?.control?.type, "toggle", "a bound registry id gets a toggle control, not navigation only");
+  assert.equal(boundRow?.control?.value, true, "the toggle reflects the value the caller passed in");
   let flippedTo: boolean | undefined;
   const originalSet = OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId].set;
   OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId].set = (value: boolean) => {
     flippedTo = value;
   };
   try {
-    debugModeRow?.control?.onChange(false);
+    boundRow?.control?.onChange(false);
     assert.equal(flippedTo, false, "picking the row calls the binding's set, not a different setter");
   } finally {
     OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId].set = originalSet;
@@ -1545,4 +1576,20 @@ console.info("Command Center regression checks passed.");
 
   const sectionRow = controlResults.find((row) => row.id === "settings-section-detail:application");
   assert.equal(sectionRow?.control, undefined, "a row with no bound controlId still just navigates");
+
+  // Slice 22 fix: these ids delete, spend money, or change security, so K5's
+  // exclusion rule means they must never be in the binding map — they should
+  // keep navigating to Settings instead of flipping in place.
+  const deniedIds = [
+    "confirm-before-delete",
+    "debug-mode",
+    "include-private-notes-in-exports",
+    "include-reasoning-in-exports",
+    "image-prompt-review",
+  ];
+  for (const id of deniedIds) {
+    assert.ok(!(id in OMNIBAR_SETTINGS_TOGGLE_BINDINGS), `"${id}" must not be bound (risky per K5)`);
+  }
 }
+
+console.info("Command Center regression checks passed.");

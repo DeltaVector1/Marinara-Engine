@@ -486,6 +486,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const agents = useAgentConfigs();
   const updateLorebook = useUpdateLorebook();
   const setDefaultPreset = useSetDefaultPreset();
+  // `useMutation` hands back a new result object on every render, so using
+  // `updateLorebook`/`setDefaultPreset` themselves as memo deps below would
+  // rebuild the row list (and everything ranked from it) on every keystroke
+  // and hover instead of only when the underlying data changes. Their
+  // `.mutate` functions are stable across renders, same as `patchChat` below.
+  const updateLorebookMutate = updateLorebook.mutate;
+  const setDefaultPresetMutate = setDefaultPreset.mutate;
   const updateChat = useUpdateChat();
   const updateChatMetadata = useUpdateChatMetadata();
   const extensionCommands = usePersonalExtensionCommands();
@@ -750,13 +757,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         personaById,
         categoryLabels,
         t,
-        onSetLorebookEnabled: (id, enabled) => updateLorebook.mutate({ id, enabled }),
+        onSetLorebookEnabled: (id, enabled) => updateLorebookMutate({ id, enabled }),
       }),
       ...buildOmnibarPresetRows({
         presets: presets.data ?? [],
         categoryLabels,
         t,
-        onSetDefaultPreset: (id) => setDefaultPreset.mutate(id),
+        onSetDefaultPreset: (id) => setDefaultPresetMutate(id),
       }),
       ...buildOmnibarAgentRows({ agents: agents.data ?? [], connectionById, categoryLabels, t }),
     ];
@@ -784,9 +791,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     personaById,
     personas.data,
     presets.data,
-    setDefaultPreset,
+    setDefaultPresetMutate,
     t,
-    updateLorebook,
+    updateLorebookMutate,
   ]);
 
   const controls = useMemo<OmnibarResult[]>(
@@ -2032,6 +2039,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       return;
     }
     const previousValue = control.value === true;
+    // Pulse and RGB are mutually exclusive (same pair as the Appearance
+    // settings row), so flipping one can silently turn the other off as a
+    // side effect; Undo must restore both, not just the row that was flipped.
+    const isAccentPair = result.id === "settings-control:accent-pulse" || result.id === "settings-control:rgb-mode";
+    const previousPulse = isAccentPair ? useUIStore.getState().appAccentPulseMode : undefined;
+    const previousRgb = isAccentPair ? useUIStore.getState().appAccentRgbMode : undefined;
     control.onChange(nextValue);
     toast.success(
       t("commandCenter.actions.settingToggled", "{{label}}: {{state}}", {
@@ -2043,7 +2056,14 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       {
         action: {
           label: t("ui.chat.chatresourcedropoverlay.undo", "Undo"),
-          onClick: () => control.onChange(previousValue),
+          onClick: () => {
+            if (isAccentPair) {
+              useUIStore.getState().setAppAccentPulseMode(previousPulse!);
+              useUIStore.getState().setAppAccentRgbMode(previousRgb!);
+            } else {
+              control.onChange(previousValue);
+            }
+          },
         },
       },
     );
@@ -2161,6 +2181,22 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       // Nothing ranked at all, so Enter still reaches Mari by the one door.
       event.preventDefault();
       askMariAbout(null);
+    } else if (
+      pane === "results" &&
+      event.key === "Enter" &&
+      event.shiftKey &&
+      activeResult &&
+      activeResult.id.startsWith("settings-control:") &&
+      activeResult.control?.type === "toggle" &&
+      activeResult.target
+    ) {
+      // Enter flips a bound toggle in place (K5); Shift+Enter keeps the pre-K5
+      // path of navigating to the control's spot in Settings instead.
+      event.preventDefault();
+      if (navigate(activeResult.target)) {
+        recordUse(activeResult.id);
+        onClose();
+      }
     } else if (pane === "results" && event.key === "Enter" && activeResult) {
       event.preventDefault();
       if (chooseChoiceOption(activeResult)) return;
