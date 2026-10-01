@@ -37,6 +37,13 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Done        | ff125a4ad |
 | 14  | Final review of slices 7b-13                                  | reviewer      | Done        | daddf5a02 |
 | 15  | Slime pull-to-open from the approved drop prototype (J1-J5)   | designer      | Done        | bb4f786d0 |
+| 16  | Failed replies feed the "fix this" context row (K1)           | worker        | Pending     |           |
+| 17  | Relative time on recent-chat rows (K2)                        | worker        | Pending     |           |
+| 18  | Rows for existing chat tools on the chat surface (K3)         | worker        | Pending     |           |
+| 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Pending     |           |
+| 20  | Flip more boolean settings in place, with Undo (K5)           | worker        | Pending     |           |
+| 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Pending     |           |
+| 22  | Review of slices 15-21                                        | reviewer      | Pending     |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
@@ -388,3 +395,56 @@ tests stay where they still fit.
   pull starting on a bar button does not press it, no open under a modal);
   screenshots dark+light compared with the prototype; CHANGELOG and inventory
   updated; `heavy pnpm check` exit 0.
+
+### K. Assistant round 2 (slices 16-22) — approved by the maintainer 2026-10-01
+
+Source: the strategy report (jobs the omnibar owns; Mari only behind the dead
+end). Only items that need no product decision. Rules for every K item: unasked
+Mari calls get query + surface + resource label + docs/settings labels only
+(R22); user content leaves the device only after a deliberate act; every write
+is a review (R5); if a deterministic row answers, ship the row, not a Mari run.
+Check what already exists before adding anything.
+
+- K1 Fix what just broke: today `lastAppError` is set only by connection tests
+  (`hooks/use-connections.ts`). In `hooks/use-generate.ts` (`showError` and the
+  agent-failure path) also call `setLastAppError({ message, action: "Generate
+  reply", retry: { kind: "open-connection", id: <active connection> } })`;
+  clear it on the next successful generation. The context row and the
+  `chat-error` Mari handoff exist already. Error text goes to Mari only on ⌘↵.
+  Proof: regression assert on `buildOmnibarContextResults` with a generation
+  error; e2e that mocks a 500 from generate, then ⌘K shows the error row first
+  and ⌘↵ opens Mari with `source: "chat-error"`.
+- K2 Relative time: recent-chat rows show an absolute date
+  (`formatDate` in `lib/omnibar-entity-rows.ts`). Use the existing
+  `formatRelativeContact` (`lib/relative-time.ts`) for the second line, at least
+  in the Recent group. Proof: regression assert with a fixed `now`; screenshot
+  390 and 1440.
+- K3 Chat tools as rows: on the chat surface, reach Summary (`SummaryPopover`),
+  Active lorebook entries, Peek prompt, Search this chat, Continue and
+  Regenerate from the omnibar; each row opens/runs the existing UI, nothing new
+  behind it. First list which already exist as `data.commands` and skip those.
+  Mari never writes roleplay. Proof: regression on surface rows; e2e opening
+  Summary from ⌘K.
+- K4 Agent catalog grounding: when a quick-answer query asks for a capability
+  ("images", "music", "maps"…), add 2-3 matching lines from
+  `official-agent-knowledge.ts` to the aside context (static data only, R22
+  holds) and show a link chip to Download Agents. Proof: extend the
+  quick-context-payload check; mocked answer shows the chip.
+- K5 Flip settings in place: only 9 of 59 `Toggle` controls in
+  `settings-registry.ts` flip in the omnibar (`toggleRows` in
+  `omnibar-results.ts`). Add a small `controlId → { get, set }` binding map for
+  client-store toggles next to `omnibar-settings.ts`; the registry stays plain
+  data. Exclude server-backed and risky toggles (anything that deletes, spends
+  money, or changes security). Keep the existing Undo toast. Proof: regression
+  assert that every bound id is a `Toggle` in the registry; e2e flip + Undo.
+- K6 Open time: add `performance.mark`/`measure` on ⌘K or pull and on the first
+  result paint (`useLayoutEffect`), logged only in debug mode (client
+  `console.debug`). Measure on a large fixture (2k characters, 5k chats). Add a
+  cache for derived rows only if p95 > ~100 ms; otherwise record the numbers in
+  this file and ship only the measurement. Proof: the numbers.
+- Slice 22: reviewer pass over 15-21 (read-only findings, then a worker fixes
+  the confirmed ones in the same slice).
+
+Needs the maintainer's decision, NOT in this round: batch review for library
+chores, lorebook health check placement, Mari editing chat history, Mari in the
+game setup wizard.
