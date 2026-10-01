@@ -2112,71 +2112,6 @@
   box-shadow: 0 1rem 2rem color-mix(in srgb, black 24%, transparent);
 }
 
-/* Permissions Mode pill: the active mode stays readable in the bar, and its
-   menu is a full-width sheet instead of a row inside the narrow overflow menu. */
-.mari-omnibar-mode {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.mari-omnibar-mode__trigger {
-  display: inline-flex;
-  min-height: 2.75rem;
-  align-items: center;
-  gap: 0.35rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding-inline: 0.65rem;
-  color: var(--muted-foreground);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  white-space: nowrap;
-  transition:
-    color 160ms ease,
-    background-color 160ms ease,
-    border-color 160ms ease;
-}
-
-.mari-omnibar-mode__trigger:hover,
-.mari-omnibar-mode__trigger[aria-expanded="true"] {
-  background: var(--accent);
-  color: var(--foreground);
-}
-
-.mari-omnibar-mode__trigger:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-
-.mari-omnibar-mode__trigger[data-mode="bypass"] {
-  border-color: color-mix(in srgb, var(--destructive) 55%, transparent);
-  color: var(--destructive);
-}
-
-.mari-omnibar-mode__trigger[data-mode="plan"] {
-  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
-  color: var(--primary);
-}
-
-.mari-omnibar-mode__menu {
-  position: absolute;
-  z-index: 100;
-  top: calc(100% + 0.35rem);
-  right: 0;
-  display: flex;
-  width: min(19rem, calc(100vw - 1.5rem));
-  max-height: min(28rem, calc(100dvh - 8rem));
-  flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  /* --card is translucent in some themes; keep the page from showing through. */
-  background: linear-gradient(var(--card), var(--card)) var(--background);
-  text-align: left;
-  box-shadow: 0 1rem 2rem color-mix(in srgb, black 24%, transparent);
-}
-
 .mari-permissions-mode-row__icon {
   background: color-mix(in srgb, var(--foreground) 7%, transparent);
   color: var(--muted-foreground);
@@ -2190,36 +2125,6 @@
 .mari-permissions-mode-row[data-mode="bypass"] .mari-permissions-mode-row__icon {
   background: color-mix(in srgb, var(--destructive) 16%, transparent);
   color: var(--destructive);
-}
-
-@media (min-width: 40rem) {
-  .mari-omnibar-mode__trigger {
-    min-height: 2.25rem;
-  }
-}
-
-/* Phones: icon-only pill (the label stays in aria-label) and a row-wide sheet,
-   because a 19rem menu anchored to the pill runs off the left edge. */
-@media (max-width: 39.99rem) {
-  .mari-omnibar-mode {
-    position: static;
-  }
-
-  .mari-omnibar-mode__trigger {
-    width: 2.75rem;
-    justify-content: center;
-    padding-inline: 0;
-  }
-
-  .mari-omnibar-mode__trigger span {
-    display: none;
-  }
-
-  .mari-omnibar-mode__menu {
-    right: 0.25rem;
-    left: 0.25rem;
-    width: auto;
-  }
 }
 
 .mari-omnibar-header-menu__popover button {
@@ -3322,26 +3227,89 @@
   align-items: center;
 }
 
+/* The textarea takes the whole first row; attach, the connection and the Permissions Mode sit under it
+   like Claude's, with Send on the right. */
+.mari-workspace-composer {
+  flex-wrap: wrap;
+}
+
+.mari-composer-toolbar {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.mari-composer-menu {
+  position: relative;
+  min-width: 0;
+}
+
+.mari-composer-menu__trigger {
+  max-width: 14rem;
+}
+
+.mari-composer-menu__trigger svg {
+  flex: none;
+}
+
+.mari-chrome-control.mari-composer-menu__trigger[data-mode="bypass"] {
+  border-color: color-mix(in srgb, var(--destructive) 45%, transparent);
+  color: var(--destructive);
+}
+
+.mari-chrome-control.mari-composer-menu__trigger[data-mode="plan"] {
+  color: var(--primary);
+}
+
+/* No connection: a small red dot on the chip, so it asks for you. */
 .mari-workspace-composer__connection {
   position: relative;
 }
 
-/* Connected: a quiet dot that matches the other icons. Missing: the same dot in red, so it asks for you. */
-.mari-workspace-composer__connection--active::after,
 .mari-workspace-composer__connection--missing::after {
   position: absolute;
-  top: 0.15rem;
-  right: 0.1rem;
+  top: -0.15rem;
+  right: -0.15rem;
   width: 0.42rem;
   height: 0.42rem;
   border: 1px solid var(--card);
   border-radius: 999px;
   content: "";
-  background: color-mix(in srgb, oklch(0.74 0.16 151) 45%, var(--muted-foreground));
+  background: var(--destructive);
 }
 
-.mari-workspace-composer__connection--missing::after {
-  background: var(--destructive);
+.mari-composer-menu__popover {
+  position: absolute;
+  z-index: 100;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  display: flex;
+  width: min(19rem, calc(100vw - 1.5rem));
+  max-height: min(28rem, calc(100dvh - 8rem));
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  /* --card is translucent in some themes; keep the page from showing through. */
+  background: linear-gradient(var(--card), var(--card)) var(--background);
+  text-align: left;
+  box-shadow: 0 1rem 2rem color-mix(in srgb, black 24%, transparent);
+}
+
+/* Phones: the menu spans the composer instead of hanging off its chip, which would run off the edge. */
+@media (max-width: 39.99rem) {
+  .mari-composer-menu {
+    position: static;
+  }
+
+  .mari-composer-menu__popover {
+    right: 0.25rem;
+    left: 0.25rem;
+    width: auto;
+  }
 }
 
 .mari-jump-to-latest {
@@ -3375,25 +3343,22 @@
   .mari-workspace-composer-dock {
     padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
   }
+}
 
-  .mari-workspace-composer-dock .mari-professor-composer {
-    flex-wrap: wrap;
-  }
+/* The context she gets rides above the text, on its own row. */
+.mari-omnibar-context-attachment {
+  width: 100%;
+  flex: 1 0 100%;
+  margin-bottom: 0.125rem;
+}
 
-  .mari-omnibar-context-attachment {
-    order: -1;
-    width: 100%;
-    flex: 1 0 100%;
-    margin-bottom: 0.125rem;
-  }
-
-  .mari-omnibar-context-attachment .mari-workspace-context-chip {
-    max-width: 100%;
-  }
+.mari-omnibar-context-attachment .mari-workspace-context-chip {
+  max-width: 100%;
 }
 
 @media (pointer: coarse) {
-  .mari-workspace-composer__connection,
+  .mari-composer-toolbar .mari-chrome-control,
+  .mari-composer-menu__popover button,
   .mari-workspace-composer__send,
   .mari-workspace-composer__attach button {
     min-width: 2.75rem;

@@ -9,11 +9,12 @@
 // Escape or the arrow returns to where you were. It is not a separate `Modal`, so the omnibar's
 // dialog, focus and Escape handling stay in one place.
 
-import { useEffect, useRef, type CSSProperties, type KeyboardEvent } from "react";
+import { useRef, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, Settings2 } from "lucide-react";
 import { LOCAL_SIDECAR_CONNECTION_ID } from "@marinara-engine/shared";
 
+import { useInDialogFocusScope } from "../../../hooks/use-in-dialog-focus-scope";
 import { useSidecarStore } from "../../../stores/sidecar.store";
 import { useUIStore } from "../../../stores/ui.store";
 import { MARI_APPEARANCE_PACKS } from "../../../lib/mari-work-animations";
@@ -97,9 +98,6 @@ export function OmnibarSettingsButton({ open, onOpen }: { open: boolean; onOpen:
   );
 }
 
-const FOCUSABLE =
-  'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
 export function OmnibarSettingsSheet({
   onClose,
   connections,
@@ -131,35 +129,8 @@ export function OmnibarSettingsSheet({
   const usesLocalModel = asideConnectionId === LOCAL_SIDECAR_CONNECTION_ID;
   const knownConnection = usesLocalModel || connections.some((connection) => connection.id === asideConnectionId);
 
-  // Focus moves in on open and back to whatever opened the sheet on close.
-  useEffect(() => {
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    cardRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
-    return () => opener?.focus();
-  }, []);
-
-  // Handled here and marked handled, so the omnibar's own key handling below it
-  // (Escape closes the omnibar, Tab cycles its whole panel) skips these keys.
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      onClose();
-      return;
-    }
-    if (event.key !== "Tab") return;
-    const focusable = Array.from(cardRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
-    if (focusable.length === 0) return;
-    const index = focusable.indexOf(document.activeElement as HTMLElement);
-    const next = event.shiftKey
-      ? index <= 0
-        ? focusable.length - 1
-        : index - 1
-      : index === focusable.length - 1
-        ? 0
-        : index + 1;
-    event.preventDefault();
-    focusable[next]?.focus();
-  };
+  // Focus moves in on open and back to whatever opened the sheet on close; Escape and Tab stay here.
+  const onKeyDown = useInDialogFocusScope(cardRef, onClose);
 
   return (
     <div className="omnibar-settings-sheet" data-component="GlobalOmnibar.Settings" onKeyDown={onKeyDown}>

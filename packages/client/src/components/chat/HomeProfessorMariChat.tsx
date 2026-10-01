@@ -26,6 +26,7 @@ import {
   Brain,
   Check,
   Copy,
+  ChevronDown,
   ChevronRight,
   Database,
   FileText,
@@ -100,6 +101,7 @@ import { lorebookKeys, useLorebooks } from "../../hooks/use-lorebooks";
 import { presetKeys, usePresets } from "../../hooks/use-presets";
 import { useMariWorkspaceContext } from "../../hooks/use-mari-workspace-context";
 import { useDialogFocusScope } from "../../hooks/use-dialog-focus-scope";
+import { useInDialogFocusScope } from "../../hooks/use-in-dialog-focus-scope";
 import { MariAttachButton } from "./MariAttachButton";
 import { MariChatHistoryPicker } from "./MariChatHistoryPicker";
 import { MariContextViewer } from "./MariContextViewer";
@@ -2804,7 +2806,6 @@ export function HomeProfessorMariChat({
 
   const permissionsButtonRef = useRef<HTMLButtonElement | null>(null);
   const permissionsMenuRef = useRef<HTMLDivElement | null>(null);
-  const omnibarModeMenuRef = useRef<HTMLDivElement | null>(null);
   const [historyPickerOpen, setHistoryPickerOpen] = useState(false);
   const [contextViewerOpen, setContextViewerOpen] = useState(false);
   const [selectedContextId, setSelectedContextId] = useState<string | null>(null);
@@ -3733,17 +3734,25 @@ export function HomeProfessorMariChat({
     if (!permissionsMenuOpen) return;
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
-      if (
-        permissionsButtonRef.current?.contains(target) ||
-        permissionsMenuRef.current?.contains(target) ||
-        omnibarModeMenuRef.current?.contains(target)
-      )
-        return;
+      if (permissionsButtonRef.current?.contains(target) || permissionsMenuRef.current?.contains(target)) return;
       setPermissionsMenuOpen(false);
     };
     document.addEventListener("mousedown", handlePointerDown);
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [permissionsMenuOpen]);
+
+  // The composer's mode and connection menus sit inside the omnibar dialog: Escape closes the menu
+  // first, and only a second Escape reaches the dialog.
+  const onPermissionsMenuKeyDown = useInDialogFocusScope(
+    permissionsMenuRef,
+    () => setPermissionsMenuOpen(false),
+    permissionsMenuOpen,
+  );
+  const onConnectionMenuKeyDown = useInDialogFocusScope(
+    connectionMenuRef,
+    () => setConnectionMenuOpen(false),
+    connectionMenuOpen,
+  );
 
   // #5725: the server-authoritative Permissions Mode. Display rides the status
   // payload; writes go through the dedicated validated PUT. The change applies
@@ -5252,7 +5261,7 @@ export function HomeProfessorMariChat({
       onClick={onSelect}
       aria-pressed={selected}
       data-mode={mode}
-      className="mari-permissions-mode-row flex items-start gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[var(--accent)]"
+      className="mari-permissions-mode-row flex w-full items-start gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[var(--accent)]"
     >
       <span className="mari-permissions-mode-row__icon mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md">
         <Icon size="0.8rem" aria-hidden="true" />
@@ -5321,36 +5330,6 @@ export function HomeProfessorMariChat({
                 </button>
               ))}
             </nav>
-            <div
-              ref={omnibarModeMenuRef}
-              className="mari-omnibar-mode"
-              onKeyDown={(event) => {
-                if (event.key !== "Escape" || !permissionsMenuOpen) return;
-                event.stopPropagation();
-                setPermissionsMenuOpen(false);
-                event.currentTarget.querySelector<HTMLButtonElement>(".mari-omnibar-mode__trigger")?.focus();
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setPanelMenuOpen(false);
-                  setPermissionsMenuOpen((open) => !open);
-                }}
-                className="mari-omnibar-mode__trigger"
-                data-mode={permissionsMode}
-                aria-expanded={permissionsMenuOpen}
-                aria-label={localizeUi("ui.chat.quickreplymenu.value1Value2", {
-                  value1: localizeUi("ui.chat.homeprofessormarichat.permissionsMode"),
-                  value2: localize(MARI_PERMISSIONS_MODE_LABELS[permissionsMode].label),
-                })}
-                title={localizeUi("ui.chat.homeprofessormarichat.permissionsMode")}
-              >
-                <ActivePermissionsModeIcon size="0.8rem" aria-hidden="true" />
-                <span>{localize(MARI_PERMISSIONS_MODE_LABELS[permissionsMode].label)}</span>
-              </button>
-              {permissionsMenuOpen ? <div className="mari-omnibar-mode__menu">{permissionsModeOptions}</div> : null}
-            </div>
             <button
               type="button"
               onClick={() => void runRestart()}
@@ -5373,10 +5352,7 @@ export function HomeProfessorMariChat({
             >
               <button
                 type="button"
-                onClick={() => {
-                  setPermissionsMenuOpen(false);
-                  setPanelMenuOpen((open) => !open);
-                }}
+                onClick={() => setPanelMenuOpen((open) => !open)}
                 className="mari-omnibar-header-menu__trigger"
                 aria-expanded={panelMenuOpen}
                 aria-label={localizeUi("ui.chat.homeprofessormarichat.moreMariActions", "More Professor Mari actions")}
@@ -5834,35 +5810,6 @@ export function HomeProfessorMariChat({
                               </span>
                             )}
                           </button>
-                          <div className="relative">
-                            <button
-                              ref={permissionsButtonRef}
-                              type="button"
-                              onClick={() => {
-                                setConnectionMenuOpen(false);
-                                setPermissionsMenuOpen((current) => !current);
-                              }}
-                              className={cn(
-                                "mari-chrome-control mari-chrome-control--compact",
-                                "mari-chrome-accent-text-muted mari-accent-animated hover:text-[var(--marinara-chat-chrome-button-text-hover)]",
-                              )}
-                              title={localizeUi("ui.chat.homeprofessormarichat.permissionsMode")}
-                              aria-expanded={permissionsMenuOpen}
-                            >
-                              <ActivePermissionsModeIcon size="0.75rem" />
-                              <span className="max-[420px]:hidden">
-                                {localize(MARI_PERMISSIONS_MODE_LABELS[permissionsMode].label)}
-                              </span>
-                            </button>
-                            {permissionsMenuOpen && (
-                              <div
-                                ref={permissionsMenuRef}
-                                className="absolute right-0 top-full z-20 mt-2 flex w-[19rem] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] text-left shadow-2xl"
-                              >
-                                {permissionsModeOptions}
-                              </div>
-                            )}
-                          </div>
                           <ProfessorMariContextControl
                             context={handoffContext}
                             character={focusedCharacter}
@@ -6099,23 +6046,11 @@ export function HomeProfessorMariChat({
                           className={getChatInputShellClass({
                             hasContent: draft.trim().length > 0 || attachments.length > 0,
                             layout: "conversation",
-                            className: "mari-professor-composer",
+                            className: "mari-professor-composer mari-workspace-composer",
                           })}
                           data-busy={isBusy ? "true" : undefined}
                           data-collapsed={workspaceTimelineActive ? "true" : undefined}
                         >
-                          <div className="mari-workspace-composer__attach">
-                            <MariAttachButton
-                              onAttachFiles={() => attachmentInputRef.current?.click()}
-                              onAddChatHistory={() => void handleOpenHistoryPicker()}
-                              onViewContext={() => void handleOpenContextViewer()}
-                              attachedFileCount={attachments.length}
-                              attachedContextCount={attachedContext?.length ?? 0}
-                              disabled={isBusy || isReadingAttachments}
-                              isReading={isReadingAttachments}
-                            />
-                          </div>
-
                           {oneShotContext ? (
                             <div className="mari-omnibar-context-attachment flex min-w-0 items-center gap-1">
                               {oneShotContextFacets.length > 0 ? (
@@ -6147,94 +6082,7 @@ export function HomeProfessorMariChat({
                             </div>
                           ) : null}
 
-                          <button
-                            ref={connectionButtonRef}
-                            type="button"
-                            onClick={() => setConnectionMenuOpen((current) => !current)}
-                            disabled={isBusy}
-                            className={cn(
-                              "mari-workspace-composer__connection flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90 sm:h-8 sm:w-8",
-                              effectiveConnection
-                                ? "mari-workspace-composer__connection--active"
-                                : "mari-workspace-composer__connection--missing",
-                              connectionMenuOpen
-                                ? "bg-foreground/10 text-foreground/75"
-                                : "text-foreground/40 hover:bg-foreground/10 hover:text-foreground/70",
-                            )}
-                            aria-label={
-                              effectiveConnection?.name
-                                ? localizeUi("ui.chat.homeprofessormarichat.connectionValue1", {
-                                    value1: effectiveConnection.name,
-                                  })
-                                : localizeUi("ui.chat.homeprofessormarichat.selectConnection")
-                            }
-                            title={
-                              effectiveConnection?.name
-                                ? localizeUi("ui.chat.homeprofessormarichat.connectionValue1", {
-                                    value1: effectiveConnection.name,
-                                  })
-                                : localizeUi("ui.chat.homeprofessormarichat.selectConnection")
-                            }
-                          >
-                            <Link size="1rem" />
-                          </button>
-
-                          {connectionMenuOpen && (
-                            <div
-                              ref={connectionMenuRef}
-                              className="absolute bottom-full left-12 z-20 mb-2 flex max-h-72 min-w-[15rem] max-w-[20rem] flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] text-left shadow-2xl"
-                            >
-                              <div className="border-b border-[var(--border)] px-3 py-2 text-[0.6875rem] font-semibold text-[var(--foreground)]">
-                                {localizeUi("navigation.topbar.connections")}
-                              </div>
-                              <div className="overflow-y-auto p-1">
-                                {connectionOptions.length > 0 ? (
-                                  connectionOptions.map((connection) => {
-                                    const isActive = effectiveConnectionId === connection.id;
-                                    return (
-                                      <button
-                                        key={connection.id}
-                                        type="button"
-                                        onClick={() => handleConnectionChange(connection.id)}
-                                        className={cn(
-                                          "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-[var(--accent)]",
-                                          isActive && "font-semibold text-[var(--foreground)]",
-                                        )}
-                                      >
-                                        <span className="min-w-0 flex-1 truncate">
-                                          {connection.name || connection.id}
-                                          {connection.id === LOCAL_SIDECAR_CONNECTION_ID && (
-                                            <span className="ml-1 text-[0.625rem] font-normal text-[var(--muted-foreground)]">
-                                              {sidecarNativeToolCalls
-                                                ? localizeUi("ui.chat.homeprofessormarichat.nativeTools")
-                                                : localizeUi("ui.chat.homeprofessormarichat.toolsOff")}
-                                            </span>
-                                          )}
-                                        </span>
-                                        {isActive && (
-                                          <Check size="0.75rem" className="shrink-0 text-[var(--primary)]" />
-                                        )}
-                                      </button>
-                                    );
-                                  })
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setConnectionMenuOpen(false);
-                                      useUIStore.getState().openModal("create-connection");
-                                    }}
-                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-                                  >
-                                    <Link size="0.875rem" />
-                                    {localizeUi("ui.chat.homeprofessormarichat.addAConnection")}
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="relative flex min-w-0 flex-1">
+                          <div className="relative flex min-w-0 flex-1 basis-full">
                             <InlineGhostText
                               value={draft}
                               suffix={draftSuffix}
@@ -6276,6 +6124,145 @@ export function HomeProfessorMariChat({
                               className="mari-chat-input-textarea max-h-32 min-h-9 w-full resize-none overflow-y-auto bg-transparent px-1 py-2 text-[1rem] leading-tight text-foreground outline-hidden placeholder:text-foreground/30 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-0 sm:px-0 sm:py-0 sm:leading-normal"
                               disabled={isBusy}
                             />
+                          </div>
+                          {/* Under the text, like Claude's: attach, the connection and the Permissions Mode. */}
+                          <div className="mari-composer-toolbar">
+                            <div className="mari-workspace-composer__attach">
+                              <MariAttachButton
+                                onAttachFiles={() => attachmentInputRef.current?.click()}
+                                onAddChatHistory={() => void handleOpenHistoryPicker()}
+                                onViewContext={() => void handleOpenContextViewer()}
+                                attachedFileCount={attachments.length}
+                                attachedContextCount={attachedContext?.length ?? 0}
+                                disabled={isBusy || isReadingAttachments}
+                                isReading={isReadingAttachments}
+                              />
+                            </div>
+
+                            <div className="mari-composer-menu mari-composer-menu--connection">
+                              <button
+                                ref={connectionButtonRef}
+                                type="button"
+                                onClick={() => {
+                                  setPermissionsMenuOpen(false);
+                                  setConnectionMenuOpen((current) => !current);
+                                }}
+                                disabled={isBusy}
+                                className={cn(
+                                  "mari-chrome-control mari-chrome-control--compact mari-composer-menu__trigger mari-workspace-composer__connection",
+                                  !effectiveConnection && "mari-workspace-composer__connection--missing",
+                                )}
+                                aria-expanded={connectionMenuOpen}
+                                aria-label={
+                                  effectiveConnection?.name
+                                    ? localizeUi("ui.chat.homeprofessormarichat.connectionValue1", {
+                                        value1: effectiveConnection.name,
+                                      })
+                                    : localizeUi("ui.chat.homeprofessormarichat.selectConnection")
+                                }
+                                title={
+                                  effectiveConnection?.name
+                                    ? localizeUi("ui.chat.homeprofessormarichat.connectionValue1", {
+                                        value1: effectiveConnection.name,
+                                      })
+                                    : localizeUi("ui.chat.homeprofessormarichat.selectConnection")
+                                }
+                              >
+                                <Link size="0.75rem" aria-hidden="true" />
+                                <span>
+                                  {effectiveConnection
+                                    ? effectiveConnection.name || effectiveConnection.id
+                                    : localizeUi("ui.chat.homeprofessormarichat.selectConnection")}
+                                </span>
+                                <ChevronDown size="0.7rem" aria-hidden="true" />
+                              </button>
+                              {connectionMenuOpen && (
+                                <div
+                                  ref={connectionMenuRef}
+                                  className="mari-composer-menu__popover"
+                                  onKeyDown={onConnectionMenuKeyDown}
+                                >
+                                  <div className="border-b border-[var(--border)] px-3 py-2 text-[0.6875rem] font-semibold text-[var(--foreground)]">
+                                    {localizeUi("navigation.topbar.connections")}
+                                  </div>
+                                  <div className="overflow-y-auto p-1">
+                                    {connectionOptions.length > 0 ? (
+                                      connectionOptions.map((connection) => {
+                                        const isActive = effectiveConnectionId === connection.id;
+                                        return (
+                                          <button
+                                            key={connection.id}
+                                            type="button"
+                                            onClick={() => handleConnectionChange(connection.id)}
+                                            className={cn(
+                                              "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors hover:bg-[var(--accent)]",
+                                              isActive && "font-semibold text-[var(--foreground)]",
+                                            )}
+                                          >
+                                            <span className="min-w-0 flex-1 truncate">
+                                              {connection.name || connection.id}
+                                              {connection.id === LOCAL_SIDECAR_CONNECTION_ID && (
+                                                <span className="ml-1 text-[0.625rem] font-normal text-[var(--muted-foreground)]">
+                                                  {sidecarNativeToolCalls
+                                                    ? localizeUi("ui.chat.homeprofessormarichat.nativeTools")
+                                                    : localizeUi("ui.chat.homeprofessormarichat.toolsOff")}
+                                                </span>
+                                              )}
+                                            </span>
+                                            {isActive && (
+                                              <Check size="0.75rem" className="shrink-0 text-[var(--primary)]" />
+                                            )}
+                                          </button>
+                                        );
+                                      })
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setConnectionMenuOpen(false);
+                                          useUIStore.getState().openModal("create-connection");
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                                      >
+                                        <Link size="0.875rem" />
+                                        {localizeUi("ui.chat.homeprofessormarichat.addAConnection")}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="mari-composer-menu">
+                              <button
+                                ref={permissionsButtonRef}
+                                type="button"
+                                onClick={() => {
+                                  setConnectionMenuOpen(false);
+                                  setPermissionsMenuOpen((current) => !current);
+                                }}
+                                className="mari-chrome-control mari-chrome-control--compact mari-composer-menu__trigger"
+                                data-mode={permissionsMode}
+                                aria-expanded={permissionsMenuOpen}
+                                aria-label={localizeUi("ui.chat.quickreplymenu.value1Value2", {
+                                  value1: localizeUi("ui.chat.homeprofessormarichat.permissionsMode"),
+                                  value2: localize(MARI_PERMISSIONS_MODE_LABELS[permissionsMode].label),
+                                })}
+                                title={localizeUi("ui.chat.homeprofessormarichat.permissionsMode")}
+                              >
+                                <ActivePermissionsModeIcon size="0.75rem" aria-hidden="true" />
+                                <span>{localize(MARI_PERMISSIONS_MODE_LABELS[permissionsMode].label)}</span>
+                                <ChevronDown size="0.7rem" aria-hidden="true" />
+                              </button>
+                              {permissionsMenuOpen ? (
+                                <div
+                                  ref={permissionsMenuRef}
+                                  className="mari-composer-menu__popover"
+                                  onKeyDown={onPermissionsMenuKeyDown}
+                                >
+                                  {permissionsModeOptions}
+                                </div>
+                              ) : null}
+                            </div>
                           </div>
                           {/* While she works the whole bar folds into one labelled Stop pill, and unfolds again after. */}
                           <button

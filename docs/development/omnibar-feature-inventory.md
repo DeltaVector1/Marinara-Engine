@@ -45,6 +45,10 @@ Rules that must survive:
   would break every "open Mari" hand-off from Home, the FAQ and error recovery.
 - Escape collapses an expansion if one is open; otherwise it leaves a takeover;
   otherwise it closes. One level, so Escape and the back arrow always agree.
+- A view or menu inside the dialog (the settings sheet, Mari's mode and
+  connection menus) takes focus when it opens, keeps Tab inside, and handles
+  Escape itself (`useInDialogFocusScope`); the dialog's own Escape needs a
+  second press.
 - Escape from a takeover never cancels a running answer.
 - Leaving `mari` restores focus to the row it came from (`mariReturnResultId`),
   falling back to the input.
@@ -100,6 +104,17 @@ Rules that must survive:
   - The end-of-run glow is a small, low, faint green band that sinks within
     3.5 s. The header status wraps to a second line on a phone instead of
     ending in "…", and waiting on a review reads "Needs your answer".
+  - The header is one calm row of tabs (Chats, Skills, Memories, Context), New
+    chat and, below 64rem, the overflow menu. It has no mode control.
+  - The composer puts the textarea on its own row and a toolbar under it:
+    attach, the connection as a labelled `.mari-chrome-control--compact` menu
+    (it replaced the bare link icon; a red dot when none is set), and the
+    Permissions Mode as a labelled menu (current mode on the chip, Bypass in
+    red, Plan in the primary colour). The mode menu keeps "Use default" plus the
+    five modes with their one-line descriptions, writes the same per-chat
+    `PUT /professor-mari/workspace/permissions-mode { mode, chatId }`, and
+    keeps the Bypass wording unchanged. On a phone both menus span the composer;
+    every toolbar control is 44px on a coarse pointer.
 
 ## 2. Query handling
 
