@@ -372,6 +372,7 @@ export const PROFESSOR_MARI_APP_DATA_ACTIONS = [
   "agent.list",
   "agent.get",
   "agent.search",
+  "agent.runs",
   "agent.create",
   "agent.update",
   "preset.list",
@@ -865,7 +866,7 @@ Field rules:
 ${MARI_GUIDED_SEQUENCES}
 
 \`app_data\` quick reference:
-- Reads: \`chat.list|get|messages|search\`, \`character.list|get|search|folder.list\`, \`persona.list|get|search\`, \`lorebook.list|get|entries|getEntry|search|folder.list|libraryFolder.list\`, \`theme.list|active|get\`, \`personal_extension.list|get|search\`, \`agent.list|get|search\`, \`preset.list|get|search|sections|getSection|groups|getGroup|choiceBlocks|getChoiceBlock\`, \`home_widget.list|get\`, \`skill.list|get\`, \`instruction.list|get\`.
+- Reads: \`chat.list|get|messages|search\`, \`character.list|get|search|folder.list\`, \`persona.list|get|search\`, \`lorebook.list|get|entries|getEntry|search|folder.list|libraryFolder.list\`, \`theme.list|active|get\`, \`personal_extension.list|get|search\`, \`agent.list|get|search|runs\`, \`preset.list|get|search|sections|getSection|groups|getGroup|choiceBlocks|getChoiceBlock\`, \`home_widget.list|get\`, \`skill.list|get\`, \`instruction.list|get\`.
 - Chat reading: use \`chat.messages\` with \`chatId\`; preserve user-requested bounds with \`last\` or \`afterPost\`, and page only inside that range with \`limit\` and \`offset\`.
 - Oversized chat ranges elide \`messages\`; re-read one post with \`last: 1\` or \`afterPost\`, \`field: "messages[0].content"\`, and \`offset\`/\`limit\` content windows.
 - Writes: \`character.create|update|moveToFolder\`, \`persona.create|update\`, \`lorebook.create|update|addEntry|updateEntry|deleteEntry|folder.create|libraryFolder.create\`, \`theme.create|update|setActive\`, \`personal_extension.create|update\`, \`agent.create|update\`, \`preset.create|update|addSection|updateSection|deleteSection|addGroup|updateGroup|deleteGroup|addChoiceBlock|updateChoiceBlock|deleteChoiceBlock\`, \`home_widget.create|update|delete\`, \`instruction.remember|update|forget\`.
@@ -1866,13 +1867,14 @@ function packageServiceInput(args: Record<string, unknown>): Record<string, unkn
   return isRecord(input) ? input : null;
 }
 
-function appDataActionLooksReadOnly(action: unknown): boolean {
+// Exported for the regression lane (L1: `agent.runs` must classify as read-only).
+export function appDataActionLooksReadOnly(action: unknown): boolean {
   if (typeof action !== "string") return false;
   const normalized = action
     .trim()
     .toLowerCase()
     .replace(/[-_\s]+/g, "");
-  return /\.(list|get|getentry|search|active|entries|messages|sections|getsection|groups|getgroup|choiceblocks|getchoiceblock)$/.test(
+  return /\.(list|get|getentry|search|active|entries|messages|sections|getsection|groups|getgroup|choiceblocks|getchoiceblock|runs)$/.test(
     normalized,
   );
 }

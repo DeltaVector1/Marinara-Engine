@@ -89,6 +89,9 @@ import {
   type Chat,
 } from "@marinara-engine/shared";
 import { OFFICIAL_AGENT_KNOWLEDGE_ENTRIES } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
+import { summarizeMergedAgentRow } from "../../packages/server/src/services/mari-db/mari-db.service.js";
+import { appDataActionLooksReadOnly } from "../../packages/server/src/services/professor-mari/workspace-agent.service.js";
+import type { BuiltInAgentManifest } from "@marinara-engine/shared";
 
 const commands: CommandDefinition[] = [
   { id: "home", title: "Home", kind: "navigation", icon: "home", target: { kind: "home" } },
@@ -1590,6 +1593,62 @@ assert.ok(!("mariDetailId" in mariSession));
   for (const id of deniedIds) {
     assert.ok(!(id in OMNIBAR_SETTINGS_TOGGLE_BINDINGS), `"${id}" must not be bound (risky per K5)`);
   }
+}
+
+// L1: `agent.runs` must be classified read-only so it never arms the mutation gate.
+{
+  assert.ok(appDataActionLooksReadOnly("agent.runs"), "agent.runs should be read-only");
+  assert.ok(!appDataActionLooksReadOnly("agent.create"), "agent.create must stay a write action");
+  assert.ok(!appDataActionLooksReadOnly("agent.update"), "agent.update must stay a write action");
+}
+
+// L1: the merged agent list surfaces a type from the installed registry that has no
+// agent_configs row (never configured) and keeps a custom agent that has no registry entry.
+{
+  const registryOnlyManifest: BuiltInAgentManifest = {
+    id: "registry-only-agent",
+    name: "Registry Only Agent",
+    description: "Ships with a package, never configured by the user.",
+    phase: "post_processing",
+    enabledByDefault: true,
+    category: "misc",
+    packageId: "example-package",
+    defaultPromptTemplate: "Do the thing.",
+    defaultSettings: { exampleKey: "exampleValue" },
+  };
+  const registryOnlyRow = summarizeMergedAgentRow(registryOnlyManifest, undefined);
+  assert.equal(registryOnlyRow.type, "registry-only-agent", "a registry-only type keeps its id");
+  assert.equal(registryOnlyRow.custom, false, "a registry entry is never reported as custom");
+  assert.equal(registryOnlyRow.enabled, true, "an unconfigured registry agent falls back to enabledByDefault");
+  assert.deepEqual(registryOnlyRow.settingKeys, ["exampleKey"], "setting keys come from the manifest default, names only");
+  assert.ok(!("settings" in registryOnlyRow), "setting values are never exposed, only key names");
+
+  const customConfigRow = {
+    id: "cfg-1",
+    type: "my-custom-agent",
+    name: "My Custom Agent",
+    phase: "parallel",
+    enabled: "true",
+    promptTemplate: "Custom prompt.",
+    settings: JSON.stringify({ secretApiKey: "shh" }),
+  };
+  const customRow = summarizeMergedAgentRow(undefined, customConfigRow);
+  assert.equal(customRow.custom, true, "a type absent from the registry is a custom agent");
+  assert.equal(customRow.packageId, null, "a custom agent has no package");
+  assert.deepEqual(customRow.settingKeys, ["secretApiKey"], "setting keys, not values, are reported for a custom agent");
+
+  const overriddenRow = summarizeMergedAgentRow(registryOnlyManifest, {
+    ...customConfigRow,
+    type: "registry-only-agent",
+    promptTemplate: "A different prompt than the package default.",
+  });
+  assert.equal(overriddenRow.promptOverridden, true, "a prompt that differs from the package default is flagged overridden");
+  const unmodifiedRow = summarizeMergedAgentRow(registryOnlyManifest, {
+    ...customConfigRow,
+    type: "registry-only-agent",
+    promptTemplate: "Do the thing.",
+  });
+  assert.equal(unmodifiedRow.promptOverridden, false, "a prompt matching the package default is not overridden");
 }
 
 console.info("Command Center regression checks passed.");

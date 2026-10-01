@@ -269,7 +269,7 @@ export const PROFESSOR_MARI_AGENT_CATALOG_KNOWLEDGE = [
   ]),
   "Catalog guidance:",
   "- Package sources, manifests, artifacts, and the complete official catalog are public at https://github.com/Pasta-Devs/Marinara-Agents.",
-  "- Catalog availability is not proof that a package is installed. Inspect the user's installed agents before claiming one is active.",
+  "- Catalog availability is not proof that a package is installed. Before saying which agent fits a request, call `agent.list` to see what is installed; only reach for this catalog for a capability nothing installed covers, and point the user to Agents → Download Agents to add it. Never claim an uninstalled agent is active.",
   "- Install, update, or uninstall official packages from Agents → Download Agents. When a compatible update is found, Marinara asks before applying it; declining or failing an update preserves the installed version and leaves the manual Update action available.",
   "- Pipeline agents are enabled per compatible chat in Chat Settings → Agents. Feature packages such as Maps, Calls, and Conversation games expose their own controls after installation.",
   "- Do not describe About Me Keeper as an agent. Conversation About Me and its update tool are built into Marinara Engine.",

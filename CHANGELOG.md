@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari can now see which agents are installed (built-in and downloaded packages alike) and their configuration, and look up an agent's recent run history, so she can answer "which agent fits" or "why did this agent fail" without guessing or claiming an uninstalled agent is active.
 - The omnibar no longer rebuilds its whole result list on every keystroke or hover while open; it only rebuilds when something you can see actually changed.
 - Fixed a round of bugs from review of the assistant round 2 slices: in a game chat the omnibar no longer offers "Regenerate reply" or "Search this chat" (the game has its own retry and no listener for either); risky settings such as Confirm before deleting, Debug mode and the export-privacy toggles no longer flip in place from the omnibar, only navigate to Settings (Shift+Enter now does that for any bound toggle row); a failed reply's "Fix: Generate reply failed" row no longer gets overwritten by an unrelated tool or agent-retry failure, and no longer offers a broken retry when the chat uses the Random connection; and a chat's relative "updated" time now also shows on its collapsed Recent row, not only in the expanded preview.
 - Added the Safari Mari appearance pack, with jungle explorer gear, matching portraits and twelve expedition stories, available in omnibar settings.

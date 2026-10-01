@@ -21,6 +21,7 @@ import { getFileStorageDir, getMonorepoRoot, isCustomToolScriptEnabled } from ".
 import { logger } from "../../lib/logger.js";
 import { chatIdForMariSession } from "../professor-mari/mari-session.js";
 import { createCharactersStorage } from "../storage/characters.storage.js";
+import { createAgentsStorage } from "../storage/agents.storage.js";
 import {
   clearCharacterEmbeddedLorebook,
   embedLorebookIntoCharacter,
@@ -65,6 +66,8 @@ import {
   createLorebookEntrySchema,
   lorebookDecisionModeSchema,
   parseLorebookDecisionActivation,
+  BUILT_IN_AGENT_MANIFESTS,
+  type BuiltInAgentManifest,
 } from "@marinara-engine/shared";
 import { guardMariDecisionWrites, MARI_DECISION_STATE_KEY } from "../professor-mari/decision-authoring.js";
 import { computePersonalExtensionHash } from "../extensions/personal-extension-hash.js";
@@ -2355,6 +2358,31 @@ function summarizeAgentConfigRow(row: Row): Row {
   };
 }
 
+/** L1: one merged row per agent type, combining the installed registry (built-in plus installed
+ *  package agents, the same source `GET /capability-packages/agents` reads) with the user's
+ *  `agent_configs` row for that type, if any. A type present only in the registry (never
+ *  configured) and a type present only in `agent_configs` (a custom agent) both surface here. */
+// Exported for the regression lane (L1: a registry-only type must still surface in `agent.list`).
+export function summarizeMergedAgentRow(manifest: BuiltInAgentManifest | undefined, configRow: Row | undefined): Row {
+  const configSettings = parseJsonRecordValue(configRow?.settings);
+  const settingKeys = Object.keys(
+    Object.keys(configSettings).length > 0 ? configSettings : (manifest?.defaultSettings ?? {}),
+  );
+  const configPrompt = typeof configRow?.promptTemplate === "string" ? configRow.promptTemplate : "";
+  return {
+    type: manifest?.id ?? String(configRow?.type ?? ""),
+    name: (typeof configRow?.name === "string" && configRow.name) || manifest?.name || "",
+    packageId: manifest?.packageId ?? null,
+    phase: typeof configRow?.phase === "string" ? configRow.phase : (manifest?.phase ?? null),
+    category: manifest?.category ?? null,
+    modes: manifest?.modeAllowlist ? [...manifest.modeAllowlist] : null,
+    enabled: configRow ? configRow.enabled !== "false" : manifest?.enabledByDefault === true,
+    custom: !manifest,
+    promptOverridden: configPrompt.length > 0 && configPrompt !== (manifest?.defaultPromptTemplate ?? ""),
+    settingKeys,
+  };
+}
+
 function summarizeChatRow(row: Row): Row {
   const charIds = tryParseJsonColumn(row, "characterIds");
   return {
@@ -4387,23 +4415,52 @@ export class MariDbService {
       case "list": {
         const limit = normalizeLimit(firstNumber(args, ["limit"]), 50, 1000);
         const search = firstString(args, ["search", "query"])?.toLowerCase();
-        const rows = (await this.rawRows("agent_configs")).sort((a, b) =>
-          String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? "")),
-        );
-        const summaries = rows
-          .map(summarizeAgentConfigRow)
-          .filter((summary) => !search || JSON.stringify(summary).toLowerCase().includes(search));
+        const configByType = new Map<string, Row>();
+        for (const row of await this.rawRows("agent_configs")) {
+          const type = String(row.type ?? "");
+          const existing = configByType.get(type);
+          if (!existing || String(row.updatedAt ?? "") > String(existing.updatedAt ?? "")) configByType.set(type, row);
+        }
+        const types = new Set([...BUILT_IN_AGENT_MANIFESTS.map((agent) => agent.id), ...configByType.keys()]);
+        const summaries = [...types]
+          .map((type) =>
+            summarizeMergedAgentRow(
+              BUILT_IN_AGENT_MANIFESTS.find((agent) => agent.id === type),
+              configByType.get(type),
+            ),
+          )
+          .filter((summary) => !search || JSON.stringify(summary).toLowerCase().includes(search))
+          .sort((a, b) => String(a.name ?? "").localeCompare(String(b.name ?? "")));
         return { ok: true, mode: "read", command: context.command, output: summaries.slice(0, limit) };
       }
       case "get": {
-        const id = requiredString(args, ["id", "agentId", "agentConfigId"], "agent id");
-        const row = await this.getRawById(getMeta("agent_configs"), id);
+        const id = firstString(args, ["id", "agentId", "agentConfigId"]);
+        const type = firstString(args, ["type", "agentType"]);
+        if (!id && !type) {
+          return { ok: false, mode: "read", command: context.command, error: "Provide an agent id or type." };
+        }
+        const agentsStorage = createAgentsStorage(this.db);
+        const row =
+          (id ? await agentsStorage.getById(id) : null) ?? (type ? await agentsStorage.getByType(type) : null);
         return {
           ok: Boolean(row),
           mode: "read",
           command: context.command,
-          output: row ? parseRow("agent_configs", row) : null,
+          output: row ? parseRow("agent_configs", row as unknown as Row) : null,
         };
+      }
+      case "runs": {
+        const type = requiredString(args, ["type", "agentType"], "agent type");
+        const chatId = firstString(args, ["chatId"]);
+        const limit = normalizeLimit(firstNumber(args, ["limit"]), 10, 10);
+        const runs = await createAgentsStorage(this.db).listRunsByTypeForChat(type, chatId, limit);
+        const summaries = runs.map((run) => ({
+          success: run.success,
+          error: run.error,
+          durationMs: run.durationMs,
+          createdAt: run.createdAt,
+        }));
+        return { ok: true, mode: "read", command: context.command, output: summaries };
       }
       case "search": {
         const query = requiredString(args, ["query", "search"], "agent search query").toLowerCase();
