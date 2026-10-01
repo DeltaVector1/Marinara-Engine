@@ -42,7 +42,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 18  | Rows for existing chat tools on the chat surface (K3)         | worker        | Done        | 81393ea47 |
 | 19  | Agent-catalog grounding for the quick answer (K4)             | worker        | Done        | 3ba6e78c9 |
 | 20  | Flip more boolean settings in place, with Undo (K5)           | worker        | Done        | 3e7f5a89e |
-| 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Done        | 9f93e6c56 |
+| 21  | Measure omnibar open time; cache only if needed (K6)          | worker        | Done        | f138ad970 |
 | 22  | Review of slices 15-21                                        | reviewer      | Pending     |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
