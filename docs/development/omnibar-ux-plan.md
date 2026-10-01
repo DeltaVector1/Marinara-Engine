@@ -50,7 +50,8 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 26  | Why a lorebook entry did not fire (L4)                          | worker        | Pending |           |
 | 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker        | Pending |           |
 | 28  | Reply-fix review card (L6)                                      | designer      | Pending |           |
-| 29  | Review of slices 23-28 (L7)                                     | reviewer      | Pending |           |
+| 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Pending |           |
+| 29  | Review of slices 23-28b (L7)                                    | reviewer      | Pending |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
@@ -554,6 +555,20 @@ have only an untyped `defaultSettings`; Mari can name keys, not explain them), b
 package agent, Mari inside feature-package UIs (`FeatureAgentDetailHost` content), catalog
 descriptions (`official-agent-knowledge.ts` mirrors them; refresh it when the catalog changes).
 
-L-open (blocks only #13): the game setup wizard is a `z-[10000]` overlay (`GameSetupWizard.tsx:1590`,
-opened at `GameSurface.tsx:11505`), so ⌘K opens under it. Mari there needs either the omnibar above
-the wizard or a door inside it (R29). Maintainer: which, or leave game setup out?
+L-open resolved 2026-10-01: the maintainer decided "Omnibar and Mari should be above all!" (L8).
+
+- L8 Omnibar and Mari above everything (designer, slice 28b). Today the omnibar is `z-[100]`
+  (`GlobalOmnibar.tsx`, backdrop and the preview layer at `z-[110]`) while many overlays sit higher:
+  `z-[9999]` popovers, the game setup wizard and lightbox at `z-[10000]`/`z-[10001]`, capability
+  elements `z-[10020]`, the chat help overlay `z-[10050]`, `CsrfOriginWarningBanner` 9999. Put the
+  omnibar, the Mari pane/workspace takeover and their own portalled popovers/menus/tooltips above all
+  of them with ONE shared layer constant (or CSS variable) instead of new magic numbers; keep the
+  sonner `Toaster` (`App.tsx`) above the omnibar so Undo toasts stay visible. Skip
+  `PersonalExtensionContributionsMenu` (`z-[2147482000]`, user extensions) only if it cannot be
+  outranked sanely; note it. ⌘K and the slice 15 pull now open over modals and the game setup wizard
+  too (relax the "no open under a modal" guard: open ON TOP instead); Escape closes the omnibar first
+  and leaves the modal underneath intact; focus returns to the modal. With the wizard open, the surface
+  is the game setup, so typed questions reach Mari as the existing `game-setup` entry point with the
+  wizard step as label only (R22) — no new button in the wizard (R29). Proof: e2e at 390 and 1440
+  that opens ⌘K over the game setup wizard, a lightbox and a Settings dialog, Escape returns to each;
+  pull-to-open over a modal now opens; screenshots dark+light; regression where pure.
