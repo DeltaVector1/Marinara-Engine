@@ -312,7 +312,7 @@ deux mondes ou un passage secret entre des pièces de bâtiments différents.
 
 Pour une tour de 25 étages, modélise normalement les étages comme des lieux
 frères sous une même tour, plutôt qu'en une chaîne de parents profonde de 25
-niveaux. Les cartes acceptent jusqu'à 500 lieux et 20 niveaux de hiérarchie.
+niveaux. Les cartes acceptent jusqu'à 5 000 lieux et 20 niveaux de hiérarchie.
 
 ## Rédiger ou étendre une carte avec l'IA
 

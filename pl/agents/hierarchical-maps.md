@@ -292,7 +292,7 @@ tajne przejście między pomieszczeniami w różnych budynkach.
 
 Wieżę o 25 piętrach zwykle lepiej opisać tak, żeby piętra były równorzędne pod
 jedną wieżą, a nie tworzyły łańcucha zagnieżdżeń o głębokości 25. Mapa
-dopuszcza do 500 lokalizacji i 20 poziomów hierarchii.
+dopuszcza do 5000 lokalizacji i 20 poziomów hierarchii.
 
 ## Szkic i rozbudowa mapy przez AI
 

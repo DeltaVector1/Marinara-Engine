@@ -175,7 +175,7 @@ Bei der Darstellung **Map** ziehst du die untergeordneten Orte an ihre Position 
 
 Direktverknüpfungen können beliebige gültige Orte der Hierarchie verbinden: eine Fähre zwischen zwei Städten, eine Treppe zwischen ausgewählten Stockwerken, ein Portal zwischen Welten oder einen Geheimgang zwischen Räumen in verschiedenen Gebäuden.
 
-Ein Turm mit 25 Stockwerken sollte diese Stockwerke normalerweise als Geschwister unter einem Turm abbilden, nicht als 25 Stufen tiefe Kette übergeordneter Orte. Maps erlaubt bis zu 500 Orte und 20 Hierarchiestufen.
+Ein Turm mit 25 Stockwerken sollte diese Stockwerke normalerweise als Geschwister unter einem Turm abbilden, nicht als 25 Stufen tiefe Kette übergeordneter Orte. Maps erlaubt bis zu 5.000 Orte und 20 Hierarchiestufen.
 
 ## Eine Karte mit KI entwerfen oder erweitern
 
