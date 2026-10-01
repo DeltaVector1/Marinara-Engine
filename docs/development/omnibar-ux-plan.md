@@ -48,7 +48,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Remaining order: 11, 12, 13, 14. Stop after 14.
+slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Remaining order: 16-22 (section K). Stop after 22.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
