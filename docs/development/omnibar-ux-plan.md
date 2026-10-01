@@ -50,7 +50,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 26  | Why a lorebook entry did not fire (L4)                          | worker        | Done    | 6991cf90d |
 | 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker        | Done    | f41a106d6 |
 | 28  | Reply-fix review card (L6)                                      | designer      | Done    | 617a47e05 |
-| 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Done    |           |
+| 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Done    | 2ea1f7f65 |
 | 29  | Review of slices 23-28b (L7)                                    | reviewer      | Pending |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
