@@ -36,7 +36,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 12  | Mari composer redesign with mode + model pickers (H1-H4)      | designer      | Done        | 7c9f5f8e0 |
 | 13  | DB review card + MariEditEasyViewer in direction A (E6)       | designer      | Done        | ff125a4ad |
 | 14  | Final review of slices 7b-13                                  | reviewer      | Done        | daddf5a02 |
-| 15  | Slime pull-to-open from the approved drop prototype (J1-J5)   | designer      | In progress |           |
+| 15  | Slime pull-to-open from the approved drop prototype (J1-J5)   | designer      | Done        | bb4f786d0 |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
