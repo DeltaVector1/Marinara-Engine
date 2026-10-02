@@ -75,7 +75,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 38a | Mari images as small WebP (M15)                                   | worker        | Done    | f030f7b6e |
 | 39  | Mari arrives with context, on every surface (M9, M17, M18)       | designer      | Done    | c01583495 |
 | 38c | The selected Mari everywhere (M16)                                | designer      | Done    | 38473569d |
-| 40  | Review of slices 30-39 (M11)                                      | reviewer      | Pending |           |
+| 40  | Review of slices 30-39 (M11)                                      | reviewer, worker | Done | 9aeba3739 |
 | 41  | Fresh-eyes flow pass (M12)                                        | reviewer      | Pending |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
