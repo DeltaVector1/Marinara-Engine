@@ -102,6 +102,7 @@ import {
   guardRawMessageTableWrite,
 } from "../../packages/server/src/services/mari-db/mari-db.service.js";
 import { appDataActionLooksReadOnly } from "../../packages/server/src/services/professor-mari/workspace-agent.service.js";
+import { transcriptScrollAction } from "../../packages/client/src/lib/professor-mari-transcript-scroll.js";
 import type { BuiltInAgentManifest } from "@marinara-engine/shared";
 
 const commands: CommandDefinition[] = [
@@ -1924,6 +1925,57 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(wizardContext.field, "Connection");
   assert.equal(wizardContext.fieldId, undefined, "the wizard step travels as a label, never an id");
   assert.equal(wizardContext.resource, undefined);
+}
+
+// M4 (slice 31): the question goes to the top once on send, growth follows only while the reader is
+// at the bottom, completion never moves the scroll position on its own, and a reader who scrolls away
+// from the bottom stops following.
+{
+  assert.equal(
+    transcriptScrollAction({ event: "send", nearBottom: true, following: true }).scrollTo,
+    "top",
+    "sending a message must place the question at the top",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "send", nearBottom: true, following: true }).following,
+    false,
+    "following must start false after a send - it only turns on once the reader reaches the bottom",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "grow", nearBottom: true, following: true }).scrollTo,
+    "bottom",
+    "growth while following must keep pinning to the newest output",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "grow", nearBottom: false, following: false }).scrollTo,
+    null,
+    "growth while not following must never scroll - that is the jump back to the question",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "grow", nearBottom: false, following: true }).scrollTo,
+    null,
+    "growth must trust the live DOM, not a stale following flag - a reader who just scrolled away must not get pulled back",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "complete", nearBottom: true, following: true }).scrollTo,
+    null,
+    "a completed run must never scroll on its own, whatever the reader's position",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "complete", nearBottom: false, following: false }).scrollTo,
+    null,
+    "a completed run must never scroll a reader who had scrolled away either",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "user-scroll", nearBottom: false, following: true }).following,
+    false,
+    "scrolling away from the bottom must stop following",
+  );
+  assert.equal(
+    transcriptScrollAction({ event: "user-scroll", nearBottom: true, following: false }).following,
+    true,
+    "scrolling back to the bottom must resume following",
+  );
 }
 
 console.info("Command Center regression checks passed.");

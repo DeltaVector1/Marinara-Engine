@@ -173,6 +173,7 @@ import {
   followTranscriptGrowth,
   isProfessorMariTranscriptNearBottom,
   scrollProfessorMariTranscriptToBottom,
+  transcriptScrollAction,
 } from "../../lib/professor-mari-transcript-scroll";
 import {
   formatCompactTokenCount,
@@ -2829,6 +2830,11 @@ export function HomeProfessorMariChat({
   const transcriptScrollFrameRef = useRef<number | null>(null);
   const suggestionFocusFrameRef = useRef<number | null>(null);
   const transcriptFollowOutputRef = useRef(true);
+  // M4: right after reserving the turn's height, "top of the question" and "bottom of the page" can be
+  // only a few px apart (the reservation IS the viewport height), so the native "scroll" event OUR OWN
+  // placement scroll fires would otherwise read as the reader already being near the bottom and re-arm
+  // following before a single token has streamed. Swallow exactly that one event.
+  const suppressNextScrollEventRef = useRef(false);
   const connectionButtonRef = useRef<HTMLButtonElement>(null);
   const connectionMenuRef = useRef<HTMLDivElement>(null);
   const headerMenuRef = useRef<HTMLDivElement>(null);
@@ -2892,6 +2898,11 @@ export function HomeProfessorMariChat({
     setChatId(id);
   }, []);
 
+  // This ref callback is recreated (and so re-invoked by React on the SAME node) whenever any of its
+  // deps change, not only when a chat is freshly opened - e.g. once more when the initial load of a
+  // brand-new chat catches up to a chatId that handleSubmit's own send already moved past. Landing on
+  // the bottom must happen once per chat, not every time those deps happen to realign.
+  const scrolledToBottomForChatRef = useRef<string | null>(null);
   const setTranscriptScrollNode = useCallback(
     (node: HTMLDivElement | null) => {
       if (transcriptScrollFrameRef.current !== null) {
@@ -2900,6 +2911,8 @@ export function HomeProfessorMariChat({
       }
       scrollRef.current = node;
       if (!node || loadingHistory || !chatId || loadedMessagesChatId !== chatId) return;
+      if (scrolledToBottomForChatRef.current === chatId) return;
+      scrolledToBottomForChatRef.current = chatId;
       transcriptFollowOutputRef.current = true;
       transcriptScrollFrameRef.current = window.requestAnimationFrame(() => {
         transcriptScrollFrameRef.current = null;
@@ -2923,6 +2936,12 @@ export function HomeProfessorMariChat({
     observer.observe(dock);
     return () => observer.disconnect();
   }, []);
+
+  // M4: the newest turn (the local user message plus everything that follows it) reserves the
+  // transcript's visible height so her reply grows into empty space instead of changing the
+  // scrollable height, and the question is placed under the header exactly once, on send.
+  const activeTurnRef = useRef<HTMLDivElement>(null);
+  const [turnStartMessageId, setTurnStartMessageId] = useState<string | null>(null);
 
   const resizeComposer = useCallback((textarea: HTMLTextAreaElement | null) => {
     if (!textarea) return;
@@ -3111,7 +3130,10 @@ export function HomeProfessorMariChat({
   }, [initialAskContext]);
 
   const loadMessages = useCallback(
-    async (id: string, options: { restoreFocus?: boolean; shouldApply?: () => boolean } = {}) => {
+    async (
+      id: string,
+      options: { restoreFocus?: boolean; shouldApply?: () => boolean; onApplied?: () => void } = {},
+    ) => {
       messageLoadAbortRef.current?.abort();
       const controller = new AbortController();
       messageLoadAbortRef.current = controller;
@@ -3128,7 +3150,10 @@ export function HomeProfessorMariChat({
           return;
         }
         const normalizedMessages = items.map((message) => ({ ...message, extra: toMessageExtra(message) }));
+        // M4: the caller's onApplied runs in this same synchronous block, so a live timeline it clears
+        // commits in the same React batch as these reloaded messages — never a frame with neither.
         setMessages(normalizedMessages);
+        options.onApplied?.();
         let restoredContext: ProfessorMariAskContext | null = null;
         for (let index = normalizedMessages.length - 1; index >= 0; index -= 1) {
           const messageContext = getProfessorMariMessageContext(normalizedMessages[index]!);
@@ -3574,6 +3599,9 @@ export function HomeProfessorMariChat({
   }, [pendingChangeReviews]);
 
   const workspaceTimelineActive = workspaceActive || hasActiveGeneration;
+  // M4: the live timeline stays mounted (and keeps the transcript's height) until the reloaded
+  // messages apply, even after the stream itself has closed - see loadMessages' onApplied callback.
+  const workspaceTimelineVisible = workspaceTimelineActive || workspaceTimeline.length > 0;
   // When a run ends, the composer halo flashes once and lets go instead of vanishing mid-turn.
   const [composerHaloEnding, setComposerHaloEnding] = useState(false);
   const composerHaloWasActiveRef = useRef(false);
@@ -3676,14 +3704,21 @@ export function HomeProfessorMariChat({
 
   useEffect(() => {
     const node = scrollRef.current;
-    if (!node || !transcriptFollowOutputRef.current) return;
-    scrollProfessorMariTranscriptToBottom(node);
+    if (!node) return;
+    const decision = transcriptScrollAction({
+      event: "grow",
+      nearBottom: isProfessorMariTranscriptNearBottom(node),
+      following: transcriptFollowOutputRef.current,
+    });
+    if (decision.scrollTo === "bottom") scrollProfessorMariTranscriptToBottom(node);
   }, [messages, workspaceTimeline, visiblePendingChangeReviewKey, workspaceStatus?.error, recovery]);
 
   const transcriptGlideCleanupRef = useRef<(() => void) | null>(null);
   const setTranscriptStackNode = useCallback((node: HTMLDivElement | null) => {
     transcriptGlideCleanupRef.current?.();
-    transcriptGlideCleanupRef.current = node?.parentElement ? followTranscriptGrowth(node.parentElement, node) : null;
+    transcriptGlideCleanupRef.current = node?.parentElement
+      ? followTranscriptGrowth(node.parentElement, node, () => transcriptFollowOutputRef.current)
+      : null;
   }, []);
 
   // Scrolled up to read: a small round arrow above the composer brings you back to the newest line.
@@ -3692,7 +3727,16 @@ export function HomeProfessorMariChat({
   const handleTranscriptScroll = useCallback(() => {
     const node = scrollRef.current;
     if (!node) return;
-    transcriptFollowOutputRef.current = isProfessorMariTranscriptNearBottom(node);
+    if (suppressNextScrollEventRef.current) {
+      suppressNextScrollEventRef.current = false;
+      return;
+    }
+    const decision = transcriptScrollAction({
+      event: "user-scroll",
+      nearBottom: isProfessorMariTranscriptNearBottom(node),
+      following: transcriptFollowOutputRef.current,
+    });
+    transcriptFollowOutputRef.current = decision.following;
     setShowJumpToLatest(!transcriptFollowOutputRef.current);
   }, []);
   const jumpToLatest = useCallback(() => {
@@ -3703,8 +3747,50 @@ export function HomeProfessorMariChat({
     setShowJumpToLatest(false);
   }, [reduceMotion]);
 
+  // M4: the instant the local user message commits, put its top under the header once and reserve the
+  // turn's height so her reply grows into empty space - following starts false, the opposite of "stay
+  // pinned to the bottom", until the reader scrolls there themselves.
+  useLayoutEffect(() => {
+    if (!turnStartMessageId) return;
+    const node = scrollRef.current;
+    const turn = activeTurnRef.current;
+    if (!node || !turn) return;
+    const dockHeight = composerDockRef.current?.offsetHeight ?? 0;
+    turn.style.minHeight = `${Math.max(0, node.clientHeight - dockHeight)}px`;
+    const decision = transcriptScrollAction({
+      event: "send",
+      nearBottom: isProfessorMariTranscriptNearBottom(node),
+      following: transcriptFollowOutputRef.current,
+    });
+    transcriptFollowOutputRef.current = decision.following;
+    setShowJumpToLatest(false);
+    if (decision.scrollTo === "top") {
+      // Instant, not smooth: a multi-frame animation would fire more than the one "scroll" event the
+      // suppress guard below swallows. The guard self-clears next frame too, in case the target position
+      // equals the current one and the browser never fires a "scroll" event to consume it.
+      suppressNextScrollEventRef.current = true;
+      node.scrollTo({ top: turn.offsetTop - 16, behavior: "auto" });
+      window.requestAnimationFrame(() => {
+        suppressNextScrollEventRef.current = false;
+      });
+    }
+  }, [turnStartMessageId]);
+
+  // Opening a different chat is not a send: drop the reservation and land on its history as before.
+  useLayoutEffect(() => {
+    setTurnStartMessageId(null);
+    activeTurnRef.current?.style.removeProperty("min-height");
+  }, [chatId]);
+
   const displayMessages = messages;
   const lastUserMessageId = messages.findLast((message) => message.role === "user")?.id;
+  // M4: everything from the newest user message onward is "the active turn" - it reserves height and
+  // never re-mounts mid-run (unlike the rest of the history, which renders plainly above it).
+  const activeTurnStartIndex = lastUserMessageId
+    ? displayMessages.findIndex((message) => message.id === lastUserMessageId)
+    : displayMessages.length;
+  const transcriptHeadMessages = displayMessages.slice(0, activeTurnStartIndex);
+  const activeTurnMessages = displayMessages.slice(activeTurnStartIndex);
   const showConnectionFirstHint = shouldShowProfessorMariConnectionHint({
     chatId,
     loadedMessagesChatId,
@@ -4830,6 +4916,9 @@ export function HomeProfessorMariChat({
         if (workspaceRunIdRef.current !== runId || activeChatIdRef.current !== completedChatId) return;
         await loadMessages(completedChatId, {
           shouldApply: () => workspaceRunIdRef.current === runId && activeChatIdRef.current === completedChatId,
+          // M4: clear the live timeline in the same synchronous block that applies the reloaded
+          // messages, so the transcript never renders a frame holding only the question.
+          onApplied: () => setWorkspaceTimeline([]),
         });
         messagesReloaded = true;
       } catch (error) {
@@ -4839,7 +4928,6 @@ export function HomeProfessorMariChat({
       if (messagesReloaded) {
         useChatStore.getState().clearStreamBuffer(completedChatId);
         useChatStore.getState().clearThinkingBuffer(completedChatId);
-        setWorkspaceTimeline([]);
       }
       await Promise.allSettled([
         refreshWorkspaceStatus(
@@ -5101,6 +5189,8 @@ export function HomeProfessorMariChat({
         ...current.filter((message) => message.id !== overrideRecovery?.localMessageId),
         localMessage,
       ]);
+      // M4: place the question at the top once, in the same commit the message lands in.
+      setTurnStartMessageId(localMessage.id);
       if (messagesRef.current.length === 0 && (chat.name ?? "") === PROFESSOR_MARI_DEFAULT_CHAT_NAME) {
         const autoTitle = buildProfessorMariAutoTitle(messageText);
         if (autoTitle) {
@@ -5914,9 +6004,7 @@ export function HomeProfessorMariChat({
                           ref={setTranscriptScrollNode}
                           onScroll={handleTranscriptScroll}
                           data-component="HomeProfessorMariChat.Transcript"
-                          data-anchor={
-                            omnibarMode || messages.length > 0 || workspaceTimelineActive ? "bottom" : undefined
-                          }
+                          data-anchor={messages.length === 0 ? "bottom" : undefined}
                           data-mari-state={mariPresentationState}
                           className={cn(
                             "min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-5 text-left sm:px-7",
@@ -5938,7 +6026,7 @@ export function HomeProfessorMariChat({
                                     <span className="mari-note__detail">{workspaceToolsIssue}</span>
                                   </MariNote>
                                 ) : null}
-                                {displayMessages.map(renderDisplayMessage)}
+                                {transcriptHeadMessages.map(renderDisplayMessage)}
                                 {omnibarMode && messages.length === 0 && !isBusy && loadedMessagesChatId === chatId ? (
                                   <div className="mari-omnibar-empty-welcome">
                                     <span className="mari-welcome-story" aria-hidden="true">
@@ -5960,50 +6048,62 @@ export function HomeProfessorMariChat({
                                     {localizeUi("ui.chat.homeprofessormarichat.selectAConnectionFirst")}
                                   </p>
                                 )}
-                                {workspaceTimelineActive ? (
-                                  <MariWorkTimeline
-                                    items={workspaceTimeline}
-                                    character={focusedCharacter}
-                                    lorebook={focusedLorebook}
-                                  />
-                                ) : null}
-                                {/* A failed send is its red line under your message, not also a line of hers. */}
-                                {restingStory && !latestTurnHasSteps && !recovery ? (
-                                  <div className="mari-work-timeline__live">
-                                    <MariStorySprite
-                                      key={`${chatId}:${latestMessage?.id}:${restingStory}`}
-                                      state={restingStory}
+                                {/* M4: the active turn reserves the transcript's visible height (set on send) so
+                                  nothing below it changes the scrollable height until a new turn replaces it. */}
+                                <div
+                                  ref={activeTurnRef}
+                                  data-component="HomeProfessorMariChat.ActiveTurn"
+                                  className="space-y-3"
+                                >
+                                  {activeTurnMessages.map(renderDisplayMessage)}
+                                  {workspaceTimelineVisible ? (
+                                    <MariWorkTimeline
+                                      items={workspaceTimeline}
+                                      character={focusedCharacter}
+                                      lorebook={focusedLorebook}
                                     />
-                                    <span className="text-xs text-[var(--muted-foreground)]">
-                                      {t(`mari.stories.${restingStory}`)}
-                                    </span>
-                                  </div>
-                                ) : null}
-                                {recovery && !displayMessages.some((message) => message.id === recovery.localMessageId)
-                                  ? sendFailedLine
-                                  : null}
-                                {workspaceStatus?.error ? (
-                                  <MariNote tone="danger" role="alert">
-                                    {workspaceStatus.error}
-                                  </MariNote>
-                                ) : null}
-                                {reviewsByTurn.unassigned.length > 0 ? (
-                                  <div className="space-y-3">{reviewsByTurn.unassigned.map(renderTurnPrompt)}</div>
-                                ) : null}
-                                {/* Only a real question gets a line (a guided plan step, or held changes); generic
-                                  "what next?" prompts are left to the chips, as in Claude and Gemini. */}
-                                {omnibarMode &&
-                                messages.length > 0 &&
-                                showSuggestionPrompt &&
-                                suggestionQuestion &&
-                                (guidedPlanStep || chipRowAwaitsApproval) ? (
-                                  <TranscriptRow layout="document" marker={null} className="mari-suggestion-turn">
-                                    <div className="mari-suggestion-question-turn">
-                                      <Sparkles size="0.8rem" aria-hidden="true" />
-                                      <CompactMarkdown content={suggestionQuestion} />
+                                  ) : null}
+                                  {/* A failed send is its red line under your message, not also a line of hers.
+                                    Held back while the live timeline is still mounted (M4): the reload that
+                                    clears it also brings the trace that makes latestTurnHasSteps true. */}
+                                  {restingStory && !latestTurnHasSteps && !recovery && !workspaceTimelineVisible ? (
+                                    <div className="mari-work-timeline__live">
+                                      <MariStorySprite
+                                        key={`${chatId}:${latestMessage?.id}:${restingStory}`}
+                                        state={restingStory}
+                                      />
+                                      <span className="text-xs text-[var(--muted-foreground)]">
+                                        {t(`mari.stories.${restingStory}`)}
+                                      </span>
                                     </div>
-                                  </TranscriptRow>
-                                ) : null}
+                                  ) : null}
+                                  {recovery &&
+                                  !displayMessages.some((message) => message.id === recovery.localMessageId)
+                                    ? sendFailedLine
+                                    : null}
+                                  {workspaceStatus?.error ? (
+                                    <MariNote tone="danger" role="alert">
+                                      {workspaceStatus.error}
+                                    </MariNote>
+                                  ) : null}
+                                  {reviewsByTurn.unassigned.length > 0 ? (
+                                    <div className="space-y-3">{reviewsByTurn.unassigned.map(renderTurnPrompt)}</div>
+                                  ) : null}
+                                  {/* Only a real question gets a line (a guided plan step, or held changes); generic
+                                    "what next?" prompts are left to the chips, as in Claude and Gemini. */}
+                                  {omnibarMode &&
+                                  messages.length > 0 &&
+                                  showSuggestionPrompt &&
+                                  suggestionQuestion &&
+                                  (guidedPlanStep || chipRowAwaitsApproval) ? (
+                                    <TranscriptRow layout="document" marker={null} className="mari-suggestion-turn">
+                                      <div className="mari-suggestion-question-turn">
+                                        <Sparkles size="0.8rem" aria-hidden="true" />
+                                        <CompactMarkdown content={suggestionQuestion} />
+                                      </div>
+                                    </TranscriptRow>
+                                  ) : null}
+                                </div>
                               </>
                             )}
                           </div>
