@@ -62,7 +62,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 29  | Review of slices 23-28b (L7)                                    | reviewer      | Done    | 112cf53c1 |
 | 30  | Composer over the transcript, one always-on fade (M1, M2)       | worker        | Done    | 167ffaa0a |
 | 31  | No scroll back to the question at the end of a run (M4)         | worker        | Done    | 887b6ac44 |
-| 32  | Stable run layout: append only, no layout animation (M3)        | worker        | Pending |           |
+| 32  | Stable run layout: append only, no layout animation (M3)        | worker        | Done    | 6bb1ba18f |
 | 33  | One header row in Mari mode, no header Mari (M8)                 | designer      | Pending |           |
 | 34  | "Context" becomes "What Mari sees" (M7)                          | designer      | Pending |           |
 | 35  | Side panels in one surface language (M6)                         | designer      | Pending |           |
