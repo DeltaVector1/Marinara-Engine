@@ -690,6 +690,17 @@ does not keep its own copy).
   (`GlobalOmnibar.tsx` ≈2824-2862) above a second row of destinations (`mari-omnibar-header-row`, ≈2963),
   while the transcript already shows her (live line sprite, "Worked for" sprite). Two rows ≈107 px; at
   390 the destinations clip ("Cor…").
+- **M14 the done check and the plop (added 2026-10-02, maintainer feedback after deploy of e8509f10b).**
+  The maintainer asked for the green done check and the entrance "plop" back, reading M3/slice 32 as
+  having deleted both. Checked with `git show 6bb1ba18f^:…HomeProfessorMariChat.tsx` against the current
+  file: the `mari-work-timeline__done-mark` svg and `settleTo={restStory === "success" ? "idle" :
+  undefined}` were never removed — slice 32 only dedented them when it deleted the `MariSmoothGrow`
+  wrapper, and slice 35a's inline-sprite rework (M8/M9) kept both on the same `.mari-work-timeline__live`
+  line without touching them. What slice 32 did cut on purpose was the step row's entrance: `motion.li
+  layout` with a `y`/blur slide became opacity-only (150 ms), because the slide was fighting
+  `MariSmoothGrow`'s height transition (M3 root cause above) and produced ghost/overlapping rows. That
+  part is the real gap: steps now fade in with no "plop", and a step's running→done/error transition is
+  silent.
 - **M13 pull drop at the screen's sides (added 2026-10-02, slice 15 bugfix).** On a phone the drop's rim
   shimmer is always white (`OmnibarPullDrop.tsx` gradient stops hardcode `#fff`). Near a side the sheet
   narrows on both sides (`use-pull-to-open-omnibar.ts` clamps `base` to `min(cx, width - cx)`), the circle
@@ -767,6 +778,17 @@ does not keep its own copy).
   buttons. Skills/Memories (`MariSkillsMenu`, `MariMemoriesMenu`): drop their own frames and shadows, keep
   behaviour. Proof: screenshots all four at 390/1440 dark+light next to `mock/chats-*.png`; keyboard: each
   panel's first control takes focus, Escape closes the panel before the omnibar (existing back logic).
+- **M14 (slice 35b).** The done check and `settleTo` success story stay as they are (confirmed unchanged
+  since before slice 32; no restoration needed — see the M14 root cause above). The plop: the step row's
+  `motion.li` key becomes `${id}:${tool.status}`, so a status change (running → done/error) remounts just
+  that row while an unrelated re-render (the live timer ticking, a sibling row updating) keeps the same
+  key and replays nothing. `initial`/`animate` grow from `{opacity: 0, scale: 0.96, y: 4}` to `{opacity:
+  1, scale: 1, y: 0}` on a short spring (`visualDuration: 0.22`, `bounce: 0.25`) instead of the opacity-only
+  150 ms fade — transform and opacity only, no `layout` prop, no height animation, so M3's no-jump
+  guarantee holds. `prefers-reduced-motion` keeps `initial={false}` (no pop, instant). Proof: re-run M3's
+  per-100ms frame-overlap/no-ghost-row check (still holds) plus new frames showing the pop on a new row and
+  on a running→done transition, and the done check next to slice 35a's inline sprite on the "Worked for"
+  line with no overlap.
 - **M5a (slice 36).** A run reads top to bottom as: goal → phases → short lead → reference pills →
   outcome group → "Worked for" → next cards. Goal: the existing `latestUnderstoodRequest` record (#5740)
   shown as one muted "Goal" line (no model call). Phases: pure `groupRunPhases(items)` in

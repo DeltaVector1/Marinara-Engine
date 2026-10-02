@@ -1831,14 +1831,16 @@ function MariWorkTimeline({
             const StepIcon = stepFailed ? AlertTriangle : stepIcon(presentation.title);
             return (
               // M3: append-only - no layout animation (it fought MariSmoothGrow's height transition and
-              // produced a frame of overlapping/ghost rows) and no y/blur slide, opacity only so a row
-              // appears in its final position immediately.
+              // produced a frame of overlapping/ghost rows). Still true here: no `layout` prop, no height
+              // animation, the row never moves. The key includes status so a step's running->done/error
+              // transition remounts just that row (a "changed" plop); an unrelated re-render (duration
+              // ticking, sibling update) keeps the same key and replays nothing.
               <motion.li
-                key={id}
+                key={`${id}:${tool.status}`}
                 data-status={tool.status}
-                initial={reduceMotion ? false : { opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: reduceMotion ? 0 : 0.15 }}
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={reduceMotion ? { duration: 0 } : { type: "spring", visualDuration: 0.22, bounce: 0.25 }}
               >
                 <details className="mari-live-work__step-details group">
                   <summary>
