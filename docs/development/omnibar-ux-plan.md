@@ -8,6 +8,14 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 `git push origin HEAD:refs/heads/feat/omnibar-professor-mari`. Never push
 `staging`/`main`, never open a PR, never deploy, never touch `ssh marinara`.
 
+## North star
+
+The omnibar is three things in one place: search, commands, and the home of Professor Mari.
+Every change must make the flow more obvious for a first-time user: what to type, what Enter
+does, and how to reach Mari and come back. It must not add a feature for its own sake. If a
+slice makes the flow less clear, it is wrong even when its checks pass. (Maintainer guidance,
+2026-10-02.)
+
 ## How to resume
 
 1. `git fetch origin && git status` in the worktree. If the worktree is gone,
@@ -63,11 +71,12 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 38  | Small fixes found on the way (M10)                                | worker        | Pending |           |
 | 39  | Mari arrives with context, on every surface (M9)                 | designer      | Pending |           |
 | 40  | Review of slices 30-39 (M11)                                      | reviewer      | Pending |           |
+| 41  | Fresh-eyes flow pass (M12)                                        | reviewer      | Pending |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Remaining order: 30-40 (section M). Stop after 40.
+slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Remaining order: 30-41 (section M). Stop after 41.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
@@ -594,7 +603,7 @@ L-open resolved 2026-10-01: the maintainer decided "Omnibar and Mari should be a
   moving the toaster into the 2^31 range too. The regression pins both exceptions.
 
 
-### M. The Professor Mari window, round 4 (slices 30-40) — maintainer feedback 2026-10-01
+### M. The Professor Mari window, round 4 (slices 30-41) — maintainer feedback 2026-10-01/02
 
 Source: the maintainer's nine points on the Mari window, reproduced with a mocked long run (temporary
 `e2e/zz-mari-window.e2e.ts`, deleted; evidence in `.tmp/omnibar-ux/round4/shots/`, `*-log.json` has the
@@ -606,7 +615,8 @@ beats a Mari run; no new buttons in editors or chat (R29).
 Paths are under `packages/client/src/` unless noted. Line numbers are from 2026-10-01 and drift (other
 agents commit here); search by name.
 
-Order: bugs first (30-32, small, worker), then the redesign (33-38, designer), arrival (39), review (40).
+Order: bugs first (30-32, small, worker), then the redesign (33-38, designer), arrival (39), review
+(40), fresh-eyes flow pass (41).
 
 Maintainer decisions (2026-10-01), YES to all four open questions:
 1. The header portrait goes away in Mari mode; slice 15's portrait flight lands on the arrival
@@ -620,19 +630,8 @@ Maintainer decisions (2026-10-01), YES to all four open questions:
 Also: Mari output must be things you read and act on (reference pills, the hairline row group,
 suggestion cards with a fact line), never long paragraphs. Treat the mockup as the target.
 
-| #   | Slice                                                        | Owner profile | Status  | Commit |
-| --- | ------------------------------------------------------------ | ------------- | ------- | ------ |
-| 30  | Composer over the transcript, one always-on fade (M1, M2)    | worker        | Done    | 167ffaa0a |
-| 31  | No scroll back to the question at the end of a run (M4)      | worker        | Pending |        |
-| 32  | Stable run layout: append only, no layout animation (M3)     | worker        | Pending |        |
-| 33  | One header row in Mari mode, no header Mari (M8)             | designer      | Pending |        |
-| 34  | "Context" becomes "What Mari sees" (M7)                      | designer      | Pending |        |
-| 35  | Side panels in one surface language (M6)                     | designer      | Pending |        |
-| 36  | A run in cards: goal, phases, outcome group (M5a)            | designer      | Pending |        |
-| 37  | Next-step suggestion cards with a fact line (M5b)            | designer      | Pending |        |
-| 38  | Small fixes found on the way (M10)                           | worker        | Pending |        |
-| 39  | Mari arrives with context, on every surface (M9)             | designer      | Pending |        |
-| 40  | Review of slices 30-39 (M11)                                 | reviewer      | Pending |        |
+Slice table for 30-41: see the top-level Status table (the single source of truth; this section
+does not keep its own copy).
 
 #### Root causes (reproduced)
 
@@ -807,7 +806,19 @@ suggestion cards with a fact line), never long paragraphs. Treat the mockup as t
 - **M11 (slice 40).** Reviewer pass over 30-39 (read-only findings, then a worker fixes the confirmed
   ones in the same slice): R22 on the arrival builder and the new facets, no write without a review, the
   scroll rule under real network latency, both themes, both visual themes (`default`, `sillytavern`),
-  reduced motion, 44 px targets, `pnpm localization:check`, inventory and CHANGELOG.
+  reduced motion, 44 px targets, `pnpm localization:check`, inventory and CHANGELOG. Judge every slice
+  against the North star above (search + commands + Mari, in one obvious flow), not only against its own
+  proof — a slice whose checks pass but that makes the flow less clear is a finding.
+- **M12 (slice 41), Fresh-eyes flow pass.** Reviewer profile, then a worker. The reviewer acts as a new
+  user on the real running app at 390 and 1440, with no knowledge of the code or this plan, and does these
+  jobs: find and reopen a chat; find a message; change a setting; run a command; ask a quick question; hand
+  off to Mari and come back; fix a failed reply; pull to open on a phone. For each job it records every
+  hesitation, dead end, unclear label or extra step, with a screenshot, judged against the North star
+  (what to type, what Enter does, how to reach Mari and come back). Then a worker fixes the confirmed
+  friction in small, safe changes (copy, affordance, a misrouted click) and lists anything bigger
+  (navigation redesign, new surface) as open items for the maintainer rather than building it. Proof:
+  the reviewer's findings list with screenshots in `.tmp/omnibar-ux/round4/slice-41/`; the worker's fix
+  commit plus `heavy pnpm check`.
 
 Belongs in Pasta-Devs/Marinara-Agents, not here: agent-specific arrival cards that need package knowledge
 (e.g. per-setting help for an agent); the Engine only shows names and states it already has.
