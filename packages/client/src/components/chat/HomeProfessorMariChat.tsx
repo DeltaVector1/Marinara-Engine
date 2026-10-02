@@ -1661,6 +1661,7 @@ function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working"
       data-scene={scene.id}
       data-role={role}
       data-appearance-pack={appearance.id}
+      data-mari-pull-target="mari"
       aria-hidden="true"
     >
       <span
@@ -1929,9 +1930,10 @@ function MariWorkTimeline({
               ))}
             </span>
           </div>
-        ) : toolItems.length > 0 ? (
+        ) : toolItems.length > 0 || restStory ? (
           // Done: where the live line was, one line says how long she worked and folds the work away. On the
-          // newest turn she still stands on it (her story, then rest); older turns keep only the words.
+          // newest turn she still stands on it (her story, then rest), also after a reply without steps; older
+          // turns keep only the words.
           <div className="mari-work-timeline__live" data-past={restStory ? undefined : "true"}>
             {restStory ? (
               <MariStorySprite
@@ -1940,23 +1942,29 @@ function MariWorkTimeline({
                 settleTo={restStory === "success" ? "idle" : undefined}
               />
             ) : null}
-            <button
-              type="button"
-              className="mari-work-timeline__header"
-              aria-expanded={!folded}
-              onClick={() => setFolded((current) => !current)}
-            >
-              {failed ? (
-                <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
-              ) : (
-                <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
-                  <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
-                  <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
-                </svg>
-              )}
-              <span className="mari-work-timeline__status">{workedFor}</span>
-              <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />
-            </button>
+            {toolItems.length === 0 ? (
+              restStory && restStory !== "idle" && restStory !== "success" ? (
+                <span className="text-xs text-[var(--muted-foreground)]">{t(`mari.stories.${restStory}`)}</span>
+              ) : null
+            ) : (
+              <button
+                type="button"
+                className="mari-work-timeline__header"
+                aria-expanded={!folded}
+                onClick={() => setFolded((current) => !current)}
+              >
+                {failed ? (
+                  <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
+                ) : (
+                  <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
+                    <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
+                    <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
+                  </svg>
+                )}
+                <span className="mari-work-timeline__status">{workedFor}</span>
+                <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />
+              </button>
+            )}
           </div>
         ) : null}
       </section>
@@ -2594,6 +2602,8 @@ type HomeProfessorMariChatProps = {
   openChatId?: string | null;
   pendingReviewRequest?: number;
   omnibarHeaderSlot?: HTMLElement | null;
+  /** Her status line under "Professor Mari" in the omnibar header's first row. */
+  omnibarStatusSlot?: HTMLElement | null;
   onChatWindowOpenChange?: (open: boolean) => void;
   onChatWindowExitComplete?: () => void;
 };
@@ -2610,6 +2620,7 @@ export function HomeProfessorMariChat({
   openChatId = null,
   pendingReviewRequest = 0,
   omnibarHeaderSlot = null,
+  omnibarStatusSlot = null,
   onChatWindowOpenChange,
   onChatWindowExitComplete,
 }: HomeProfessorMariChatProps) {
@@ -3575,9 +3586,8 @@ export function HomeProfessorMariChat({
         (item) => item.type === "tool" && item.tool.status === "error",
       )
     : false;
-  const latestTurnHasSteps = Boolean(
-    latestMessage && getMessageWorkspaceTrace(latestMessage)?.some((item) => item.type === "tool"),
-  );
+  // A reply with a stored run shows Mari on its own timeline line; one without needs her line below it.
+  const latestTurnHasTrace = Boolean(latestMessage && getMessageWorkspaceTrace(latestMessage));
   const restingStory = resolveMariRestStory({
     working: workspaceTimelineActive,
     failed: Boolean(recovery || workspaceStatus?.error) || latestTraceFailed,
@@ -5438,6 +5448,19 @@ export function HomeProfessorMariChat({
           omnibarHeaderSlot,
         )
       : null;
+  const omnibarStatusChrome =
+    omnibarMode && omnibarStatusSlot
+      ? createPortal(
+          <span className="mari-status-shimmer" data-active={isBusy ? "true" : undefined}>
+            {isBusy
+              ? localizeUi("ui.chat.homeprofessormarichat.workingOnIt")
+              : visiblePendingChangeReviews.length > 0
+                ? localizeUi("mari.presence.needsYouShort")
+                : localizeUi("ui.chat.homeprofessormarichat.readyToHelp")}
+          </span>,
+          omnibarStatusSlot,
+        )
+      : null;
 
   useEffect(() => {
     if (visiblePendingChangeReviewKey && visiblePendingChangeReviewKey !== lastAutoOpenedApprovalKeyRef.current) {
@@ -5661,6 +5684,7 @@ export function HomeProfessorMariChat({
     <>
       {attachModals}
       {omnibarHeaderChrome}
+      {omnibarStatusChrome}
       {!launchHidden && (
         <div
           className={cn(
@@ -6045,18 +6069,24 @@ export function HomeProfessorMariChat({
                                       ) : null}
                                     </MariWorkTimeline>
                                   ) : null}
-                                  {/* A failed send is its red line under your message, not also a line of hers.
+                                  {/* Mari rests under her newest reply (or tells her story: stopped, retry, review).
+                                    A failed send is its red line under your message, not also a line of hers.
                                     Held back while the live timeline is still mounted (M4): the reload that
-                                    clears it also brings the trace that makes latestTurnHasSteps true. */}
-                                  {restingStory && !latestTurnHasSteps && !recovery && !workspaceTimelineVisible ? (
+                                    clears it also brings the trace whose timeline then shows her. */}
+                                  {(restingStory || latestMessage?.role === "assistant") &&
+                                  !latestTurnHasTrace &&
+                                  !recovery &&
+                                  !workspaceTimelineVisible ? (
                                     <div className="mari-work-timeline__live">
                                       <MariStorySprite
-                                        key={`${chatId}:${latestMessage?.id}:${restingStory}`}
-                                        state={restingStory}
+                                        key={`${chatId}:${latestMessage?.id}:${restingStory ?? "idle"}`}
+                                        state={restingStory ?? "idle"}
                                       />
-                                      <span className="text-xs text-[var(--muted-foreground)]">
-                                        {t(`mari.stories.${restingStory}`)}
-                                      </span>
+                                      {restingStory ? (
+                                        <span className="text-xs text-[var(--muted-foreground)]">
+                                          {t(`mari.stories.${restingStory}`)}
+                                        </span>
+                                      ) : null}
                                     </div>
                                   ) : null}
                                   {recovery &&

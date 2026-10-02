@@ -453,6 +453,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     to: { top: number; left: number; width: number; height: number };
   } | null>(null);
   const [mariHeaderSlot, setMariHeaderSlot] = useState<HTMLDivElement | null>(null);
+  const [mariStatusSlot, setMariStatusSlot] = useState<HTMLSpanElement | null>(null);
   const mariReturnResultIdRef = useRef<string | null>(mariReturnResultId);
   const [ranking, setRanking] = useState<CommandRankingState>(() => readCommandRankingState());
   const chats = useChats();
@@ -2808,8 +2809,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         <header className="relative z-50 shrink-0 overflow-visible pt-[env(safe-area-inset-top)]">
           <div
             className={cn(
-              "flex items-center border-b border-[var(--border)]",
-              mariSurface ? "mari-workspace-header h-12 px-2" : "h-16 gap-3 px-3 sm:h-14 sm:px-4",
+              "flex items-center",
+              mariSurface
+                ? "mari-workspace-header h-12 px-2"
+                : "h-16 gap-3 border-b border-[var(--border)] px-3 sm:h-14 sm:px-4",
             )}
           >
             {pane !== "results" ? (
@@ -2842,9 +2845,18 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, x: -10 }}
                   transition={reduceMotion ? { duration: 0 } : { duration: 0.16, ease: "easeOut" }}
-                  ref={setMariHeaderSlot}
-                  className="mari-omnibar-header-slot min-w-0 flex-1"
-                />
+                  className="flex min-w-0 flex-1 flex-col justify-center px-1"
+                >
+                  {/* Row 1: her name and live status, no portrait (she is in the transcript). The status text
+                      comes from her chat through `mariStatusSlot`; row 2 below holds the destinations. */}
+                  <span className="truncate text-sm font-semibold leading-tight text-[var(--foreground)]">
+                    {t("omnibar.categories.professor", "Professor Mari")}
+                  </span>
+                  <span
+                    ref={setMariStatusSlot}
+                    className="mari-omnibar-header-status truncate text-[0.6875rem] font-medium leading-tight text-[var(--muted-foreground)]"
+                  />
+                </motion.div>
               ) : (
                 <motion.div
                   key="omnibar-search-header"
@@ -2942,6 +2954,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               <X size={18} />
             </button>
           </div>
+          {mariSurface ? (
+            <div ref={setMariHeaderSlot} className="mari-omnibar-header-slot mari-omnibar-header-row" />
+          ) : null}
           {!query.trim() && !mariSurface ? (
             <div
               role="toolbar"
@@ -3023,6 +3038,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               completionActions={completionActions}
               onCompletionAction={runCompletionAction}
               omnibarHeaderSlot={mariHeaderSlot}
+              omnibarStatusSlot={mariStatusSlot}
             />
           </Suspense>
         ) : null}

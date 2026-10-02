@@ -2003,8 +2003,51 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   background: color-mix(in srgb, var(--foreground) 7%, var(--card));
 }
 
-/* One header row in Mari mode: Back, the destinations, New chat, ⋮, settings, Close. She is in the
-   transcript, so the header has no portrait or status of its own. */
+/* Mari's header is two lines and has no portrait (she is in the transcript): row 1 is Back, her name with
+   her status, settings and Close; this row 2 holds the destinations, New chat and ⋮. */
+.mari-omnibar-header-row {
+  position: relative;
+  z-index: 50;
+  padding-inline: 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--mari-workspace-blush) 18%, var(--border));
+  background: color-mix(in srgb, var(--card) 96%, var(--mari-workspace-hoodie));
+}
+
+.mari-omnibar-header-row .mari-omnibar-header-controls {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+/* Her status under her name shimmers while she works, like Claude's thinking text. */
+.mari-status-shimmer[data-active="true"] {
+  background: linear-gradient(100deg, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%) 0
+    0 / 250% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: mari-text-shimmer 2.2s linear infinite;
+}
+
+@keyframes mari-text-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true"] {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-status-shimmer[data-active="true"] {
+    animation: none;
+    background: none;
+    color: var(--muted-foreground);
+  }
+}
+
 .mari-omnibar-header-slot .mari-omnibar-header-destinations {
   display: flex;
   flex: 1 1 auto;

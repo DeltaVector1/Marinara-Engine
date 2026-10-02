@@ -621,7 +621,12 @@ Order: bugs first (30-32, small, worker), then the redesign (33-38, designer), a
 
 Maintainer decisions (2026-10-01), YES to all four open questions:
 1. The header portrait goes away in Mari mode; slice 15's portrait flight lands on the arrival
-   sprite instead (already the plan for M8/M9 below).
+   sprite instead (already the plan for M8/M9 below). **Amended by maintainer decision
+   2026-10-02 (slice 35a):** no header portrait (slice 33 stays correct), but Mari must always be
+   visible inline in the transcript: in the empty state, in the resting/finished state, and in the
+   existing live-work state. The header is two lines (name + status, then the destinations), with
+   no portrait. The slice 15 pull target is the inline resting sprite in the transcript, not the
+   header.
 2. Desktop mouse drag on the top bar: build it (slice 39), reusing the slice 15 recognizer, on
    empty bar space only — not a progressive-enhancement maybe, ship it.
 3. Action cards may act at once without Mari (open a picker, start a chat, Peek prompt) — already
@@ -809,7 +814,11 @@ does not keep its own copy).
     consistency, For lorebooks: entries that never fired;
   - settings: the open section; Explain this section, Find a setting, Undo last change (K5 Undo);
   - game setup (L8): the wizard step as label only.
-  The current generic welcome stays only for Home with nothing open. Desktop pull: **build it**
+  The current generic welcome stays only for Home with nothing open. The inline resting-Mari
+  sprite for the empty/idle and finished states already exists as of slice 35a (`MariStorySprite`
+  in the welcome and under the newest reply, also the slice 15 pull target): slice 39 builds the
+  surface-aware arrival content (cards, reference pills, the deterministic line) around and near
+  this existing sprite and does not duplicate the sprite mechanism. Desktop pull: **build it**
   (maintainer decision 2026-10-01, decision 2) — a mouse drag on the top bar: reuse the slice 15
   recognizer with `pointerType === "mouse"`, start only on empty bar space (never on a button),
   threshold 30 % like touch, same left/right split; the recognizer and the slime visuals already

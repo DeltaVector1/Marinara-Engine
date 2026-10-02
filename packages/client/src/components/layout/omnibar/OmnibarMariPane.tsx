@@ -24,6 +24,7 @@ export interface OmnibarMariPaneProps {
   completionActions: readonly OmnibarCompletionAction[];
   onCompletionAction: (action: OmnibarCompletionAction) => void;
   omnibarHeaderSlot: HTMLElement | null;
+  omnibarStatusSlot: HTMLElement | null;
 }
 
 export function OmnibarMariPane({
@@ -38,6 +39,7 @@ export function OmnibarMariPane({
   completionActions,
   onCompletionAction,
   omnibarHeaderSlot,
+  omnibarStatusSlot,
 }: OmnibarMariPaneProps) {
   const { t } = useTranslation();
   return (
@@ -70,6 +72,7 @@ export function OmnibarMariPane({
           pendingReviewRequest={mariPendingReviewRequest}
           chatWindowOpen={mariChatOpen}
           omnibarHeaderSlot={omnibarHeaderSlot}
+          omnibarStatusSlot={omnibarStatusSlot}
           onChatWindowOpenChange={onChatWindowOpenChange}
         />
       </Suspense>

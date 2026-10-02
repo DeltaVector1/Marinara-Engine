@@ -74,7 +74,11 @@ Rules that must survive:
   - When the run ends, the live line becomes "Worked for Ns · N steps" at the
     bottom of the turn and folds the steps and thoughts away. On the newest
     turn her sprite stays on it (success just after the run, then idle, or the
-    retry / stopped / approval story); older turns keep only the words.
+    retry / stopped / approval story); older turns keep only the words. A newest
+    reply without steps still gets her resting sprite on a line under it (with
+    the retry / stopped / approval words when that is her state), so she is
+    always in the transcript: the welcome sprite when empty, the live line while
+    she works, and the resting sprite under her newest reply.
   - An applied DB edit (`MariEditEasyViewer`: updates, inserts and lorebook
     entries alike) is one summary row per record: avatar or monogram, name,
     "Updated character · description, tags, first message" and "N changes", or
@@ -130,12 +134,16 @@ Rules that must survive:
     missing workspace tools are `MariNote` lines (R43).
   - The end-of-run glow is a small, low, faint green band that sinks within
     3.5 s.
-  - The header is one row: Back, the tabs (Chats, Skills, Memories, What Mari
-    sees with its count), New chat, below 64rem the ⋮ menu, settings and Close. It
-    has no portrait, name or status (she and her state are in the transcript)
-    and no mode control. Below 30rem the tabs show icon + count only and share
-    the free width; their labels stay for screen readers, as a tooltip and in
-    the ⋮ menu.
+  - The header is two lines and has no portrait (she is in the transcript).
+    Row 1: Back, "Professor Mari" with her status under it ("Ready to help",
+    "Working on it..." with a soft shimmer while she works, "Needs your
+    answer" while a review waits), settings and Close; the chat portals the
+    status text into the row (`omnibarStatusSlot`). Row 2
+    (`.mari-omnibar-header-row`): the tabs (Chats, Skills, Memories, What Mari
+    sees with its count), New chat and, below 64rem, the ⋮ menu. No mode
+    control. Below 30rem the tabs show icon + count only and share the free
+    width; their labels stay for screen readers, as a tooltip and in the ⋮
+    menu.
   - What Mari sees (M7; destination id `context`): the handoff facets ride
     above the textarea behind a "Mari sees" label as `MariContextFacetChips`
     with `onRemove`, one X per facet (`withoutProfessorMariContextFacet`
@@ -355,8 +363,11 @@ This is the part most likely to break silently. All of it must survive.
   and draws back into the bar. On release the circle pops the dialog open
   (`takePullHandoff` hands over the panel, clipped to the circle before its
   first paint; the dialog skips its own pop-in) and the magnifier or portrait
-  docks onto the search icon. Mari's header has no portrait, so her circle
-  reveals the dialog where it was let go and fades. The overlay is removed even if the dialog never mounts. The
+  docks onto the search icon, or onto the head end of Mari's sprite in the
+  transcript (`data-mari-pull-target="mari"` on `MariStorySprite` and the
+  live-line sprite: the welcome sprite, her resting sprite under the newest
+  reply, or the working one), never the header. If that sprite is scrolled out
+  of view, her circle reveals the dialog where it was let go and fades. The overlay is removed even if the dialog never mounts. The
   recognizer, the target choice and the sheet geometry are pure
   (`lib/pull-to-open.ts`) and pinned by the command-center regression. Under
   reduced motion there is no sheet: a label above the finger, and the target
@@ -529,9 +540,11 @@ Do not "fix" these; each was a decision.
   indicator that shows state and opens her. She cannot sit beside an open
   editor; she is a place you go.
 - **Escape does not walk a pane stack.** There is one level to step back from.
-- **Her sprite does not appear on messages or in the header.** Her only sprite
-  is on the live line while she works and on the newest turn's "Worked for"
-  line; the live line carries her state. Her transcript rows are labelled instead.
+- **Her sprite does not appear in the header or on older messages.** She has
+  exactly one sprite in the transcript: the welcome sprite when it is empty,
+  the live line while she works, and a resting sprite under her newest reply
+  (on its "Worked for" line when it has steps). Her transcript rows are
+  labelled instead.
 - **A prose rewrite is not painted red and green.** That reads as
   wrong-and-right, when it is a rewrite. Old text is struck and muted, new text
   is underlined on a light tint, so colour is never the only signal. Structural
