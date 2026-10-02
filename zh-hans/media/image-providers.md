@@ -23,13 +23,14 @@
 
 ## 选择服务
 
-这些服务分成三类。云端服务需要账号和 API 密钥。免费服务不需要密钥。本地服务在自己的电脑上运行图像软件。
+这些服务分成三类。云端服务需要账号，其中大多数还需要 API 密钥。免费服务不需要密钥。本地服务在自己的电脑上运行图像软件。
 
 下面这张表可以快速对照各个服务。细节和注意事项见后面的分服务小节。
 
 | 服务 | API 密钥 | 运行位置 |
 | --- | --- | --- |
 | OpenAI (DALL-E) | 需要 | 云端 |
+| ChatGPT (Codex login) | 不需要，改用 `codex login` 登录 | 云端 |
 | Stability AI | 需要 | 云端 |
 | Together AI | 需要 | 云端 |
 | NovelAI | 需要 | 云端 |
@@ -51,6 +52,14 @@
 ## OpenAI (DALL-E)
 
 云端服务，默认 Base URL 是 `https://api.openai.com/v1`。需要 OpenAI 账号的 API 密钥。提供 DALL-E 和 GPT Image 系列模型。最多接受 16 张参考图。
+
+## ChatGPT (Codex login)
+
+云端服务，用 ChatGPT 套餐代替 API 密钥，所以生成图像不需要 OpenAI API 额度。在运行 Marinara 服务器的那台电脑上安装 Codex CLI，然后运行一次 `codex login`。这和 **OpenAI (ChatGPT)** 聊天连接用的是同一套登录，具体步骤见 [Claude、ChatGPT 和 Grok 订阅连接](../connections/subscription-clis.md#openai-chatgpt)。不需要填写 API 密钥或 Base URL。Marinara 会自动填入模型 `gpt-image-2`，也就是 Codex 自己生成图像所用的模型。
+
+**Test Connection**(测试连接) 只检查 Marinara 能否读到你的 Codex 登录信息。**Test Image** 会实际生成一张图像，并计入 ChatGPT 的图像用量上限。带参考图时，Marinara 会发送图像编辑请求，最多附带 16 张参考图。ChatGPT 返回的像素尺寸可能和请求的不一样，所以 Marinara 还会在提示词里写明想要的宽高比。
+
+这个服务调用的是 Codex 所用的 ChatGPT 图像接口，而不是公开的 OpenAI API，所以 OpenAI 可能随时改动它，不会提前通知。
 
 ## Stability AI
 
@@ -179,6 +188,7 @@ Marinara 通过占位符往工作流里填内容。把下面这些文本标记�
 | 服务商 | 参考图 |
 | --- | --- |
 | OpenAI (DALL-E) | 最多 16 张 |
+| ChatGPT (Codex login) | 最多 16 张 |
 | NovelAI | 最多 16 张，仅限 V4.5 模型 |
 | xAI / Grok Imagine | 最多 3 张 |
 | Venice.ai | 文生图不支持 |

@@ -23,13 +23,14 @@
 
 ## サービスの選び方
 
-サービスは3つのグループに分かれます。クラウドサービスにはAPIキーとアカウントが必要です。無料サービスにキーは要りません。ローカルサービスは、自分のコンピューターで画像生成ソフトを動かします。
+サービスは3つのグループに分かれます。クラウドサービスにはアカウントが必要で、ほとんどのサービスではAPIキーも必要です。無料サービスにキーは要りません。ローカルサービスは、自分のコンピューターで画像生成ソフトを動かします。
 
 次の表は各サービスの概要です。細かい違いや注意点は、サービスごとの節で説明します。
 
 | サービス | APIキー | 動作場所 |
 | --- | --- | --- |
 | OpenAI (DALL-E) | 必要 | クラウド |
+| ChatGPT (Codex login) | 不要、`codex login`を使用 | クラウド |
 | Stability AI | 必要 | クラウド |
 | Together AI | 必要 | クラウド |
 | NovelAI | 必要 | クラウド |
@@ -51,6 +52,14 @@
 ## OpenAI (DALL-E)
 
 デフォルトのBase URLが`https://api.openai.com/v1`のクラウドサービスです。OpenAIアカウントのAPIキーが必要です。DALL-EとGPT Imageのモデルを利用できます。参照画像は最大16枚まで受け付けます。
+
+## ChatGPT (Codex login)
+
+APIキーの代わりにChatGPTのプランを使うクラウドサービスです。そのため、画像生成にOpenAIのAPIクレジットは要りません。Marinaraのサーバーが動いているコンピューターにCodex CLIをインストールし、`codex login`を一度だけ実行してください。**OpenAI (ChatGPT)**のチャット接続で使うログインと同じものです。手順は[Claude、ChatGPT、Grokのサブスクリプション接続](../connections/subscription-clis.md#openai-chatgpt)を参照してください。APIキーやBase URLを入力する必要はありません。モデルには、Codex自身が画像生成に使っている`gpt-image-2`をMarinaraが自動で入力します。
+
+**Test Connection**(接続テスト)は、MarinaraがCodexのログイン情報を読み取れるかどうかだけを確認します。**Test Image**は実際に画像を生成するので、ChatGPTの画像生成の利用上限にカウントされます。参照画像がある場合は、Marinaraが最大16枚の参照画像を付けて画像編集のリクエストを送ります。ChatGPTは指定したものとは異なるピクセルサイズで画像を返すことがあるため、Marinaraは希望するアスペクト比をプロンプトにも明記します。
+
+このサービスは、OpenAIの公開APIではなく、Codexが使うChatGPTの画像エンドポイントと通信します。そのため、このエンドポイントはOpenAIによって予告なく変更される可能性があります。
 
 ## Stability AI
 
@@ -179,6 +188,7 @@ Marinaraはプレースホルダーを使ってワークフローを埋めます
 | プロバイダー | 参照画像 |
 | --- | --- |
 | OpenAI (DALL-E) | 最大16枚 |
+| ChatGPT (Codex login) | 最大16枚 |
 | NovelAI | 最大16枚、V4.5系モデルのみ |
 | xAI / Grok Imagine | 最大3枚 |
 | Venice.ai | text-to-imageの生成では非対応 |

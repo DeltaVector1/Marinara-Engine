@@ -262,6 +262,42 @@ Keep combat pacing rules in effect.
 
 함께 사용하면 장면 전환, 한 번의 알림, 몇 턴 유지할 기분 등 한 번 들어온 뒤 쉬어야 하는 내용에 적합합니다. **Decision** 필드로 활성화하는 로어북 항목에는 항목 자체의 **Sticky**와 **Cooldown**을 사용하세요. sticky 항목은 다시 묻지 않고 유지되며 cooldown 항목에는 묻지 않습니다.
 
+<a id="until-and-while"></a>
+
+### Until과 While
+
+일부 블록은 정해진 턴 수가 아니라 전투처럼 어떤 상황이 이어지는 동안 켜져 있어야 합니다. 첫 번째 문장 뒤에 `until:`이나 `while:`을 붙여 두 번째 문장을 쓰세요.
+
+```
+{{#if decision:"A fight starts in the latest message" until:"The fight ends in the latest message"}}
+Keep combat pacing rules in effect.
+{{/if}}
+```
+
+- 예라고 답하면 블록이 켜진 상태로 유지되고, 켜져 있는 동안에는 첫 번째 문장을 묻지 않습니다. 그 대신 매 턴 `until` 문장을 묻고, 그 문장이 참인 턴에 블록이 꺼집니다.
+- `while:`은 반대로 동작합니다. 블록은 그 문장이 참인 동안 켜져 있고, 거짓인 턴에 꺼집니다.
+- 둘 중 하나만 쓰세요. 둘 다 쓰면 먼저 쓴 것만 적용됩니다.
+- 블록이 꺼지면 평소처럼 cooldown이 시작되고, 그 뒤 첫 번째 문장을 다시 묻습니다.
+- 어떤 턴에 `until`이나 `while` 문장에 답이 없으면 블록은 켜진 상태로 유지됩니다.
+- `until`이나 `while` 문장은 **Decision statements per turn**에 포함됩니다. 블록이 켜져 있는 동안 첫 번째 문장은 포함되지 않습니다.
+- 이 기능은 `decision:`에서 동작하며 `decision_choice:`에서는 동작하지 않습니다.
+
+**sticky**와 함께 쓸 때는 두 번째 문장 바로 뒤에 `:and`나 `:or`를 붙여 두 조건이 어떻게 함께 작동할지 정하세요.
+
+| 작성 형태 | 예라고 답한 뒤 블록이 켜져 있는 기간 |
+| --- | --- |
+| `until:"..." sticky:5` 또는 `until:"...":and sticky:5` | 최대 5턴 더 켜져 있으며, until 문장이 참이면 그보다 일찍 꺼집니다. |
+| `until:"...":or sticky:5` | 최소 5턴 더 켜져 있고, 그 뒤에는 until 문장이 참이 될 때까지 켜져 있습니다. |
+| `while:"..." sticky:5` 또는 `while:"...":or sticky:5` | 최소 5턴 더 켜져 있고, 그 뒤에는 while 문장이 참인 동안 켜져 있습니다. |
+| `while:"...":and sticky:5` | 최대 5턴 더 켜져 있으며, while 문장이 거짓이면 그보다 일찍 꺼집니다. |
+
+`:restrict`는 `:and`와, `:extend`는 `:or`와 같은 뜻입니다. sticky가 없으면 아무 차이가 없습니다. 예를 들면 다음과 같습니다.
+
+```
+{{#if decision:"{{user}} casts a stealth spell in the latest message" while:"{{user}} stays still":extend sticky:5}}...{{/if}}
+{{#if decision:"{{user}} casts a stealth spell in the latest message" until:"{{user}} is spotted":restrict sticky:5}}...{{/if}}
+```
+
 <a id="checking-every-few-turns"></a>
 
 ### 몇 턴마다 확인하기

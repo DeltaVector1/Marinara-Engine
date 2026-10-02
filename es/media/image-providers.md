@@ -23,13 +23,14 @@ Si **Test Image** devuelve una imagen, tu conexión está lista. Si falla, revis
 
 ## Cómo elegir un servicio
 
-Los servicios se dividen en tres grupos. Los servicios en la nube necesitan una API key y una cuenta. Los servicios gratuitos no necesitan clave. Los servicios locales ejecutan software de imágenes en tu propia computadora.
+Los servicios se dividen en tres grupos. Los servicios en la nube necesitan una cuenta, y la mayoría también necesita una API key. Los servicios gratuitos no necesitan clave. Los servicios locales ejecutan software de imágenes en tu propia computadora.
 
 La tabla de abajo muestra cada servicio de un vistazo. Los detalles y peculiaridades siguen en las secciones de cada servicio.
 
 | Servicio | API key | Dónde se ejecuta |
 | --- | --- | --- |
 | OpenAI (DALL-E) | Sí | Nube |
+| ChatGPT (Codex login) | No, usa tu `codex login` | Nube |
 | Stability AI | Sí | Nube |
 | Together AI | Sí | Nube |
 | NovelAI | Sí | Nube |
@@ -51,6 +52,14 @@ La tabla de abajo muestra cada servicio de un vistazo. Los detalles y peculiarid
 ## OpenAI (DALL-E)
 
 Servicio en la nube con la Base URL predeterminada `https://api.openai.com/v1`. Necesita una API key de tu cuenta de OpenAI. Ofrece modelos DALL-E y GPT Image. Acepta hasta 16 imágenes de referencia.
+
+## ChatGPT (Codex login)
+
+Servicio en la nube que usa tu plan de ChatGPT en lugar de una API key, así que las imágenes no necesitan créditos de la API de OpenAI. En la computadora que ejecuta el servidor de Marinara, instala la Codex CLI y ejecuta `codex login` una sola vez. Es el mismo inicio de sesión que usa la conexión de chat **OpenAI (ChatGPT)**; consulta [Conexiones de suscripción de Claude, ChatGPT y Grok](../connections/subscription-clis.md#openai-chatgpt) para ver los pasos. No hay API key ni Base URL que rellenar. Marinara rellena el modelo `gpt-image-2`, el que usa el propio Codex para las imágenes.
+
+**Test Connection** (Probar conexión) solo comprueba que Marinara puede leer tu inicio de sesión de Codex. **Test Image** genera una imagen real y cuenta para tus límites de imágenes de ChatGPT. Con imágenes de referencia, Marinara envía una solicitud de edición con hasta 16 de ellas. ChatGPT puede devolver un tamaño en píxeles distinto del solicitado, así que Marinara también indica en el prompt la relación de aspecto deseada.
+
+Este servicio se comunica con el endpoint de imagen de ChatGPT que usa Codex, no con la API pública de OpenAI, así que OpenAI puede cambiarlo sin avisar.
 
 ## Stability AI
 
@@ -179,6 +188,7 @@ Una **imagen de referencia** es una imagen existente que envías junto con tu pr
 | Proveedor | Imágenes de referencia |
 | --- | --- |
 | OpenAI (DALL-E) | Hasta 16 |
+| ChatGPT (Codex login) | Hasta 16 |
 | NovelAI | Hasta 16, solo modelo V4.5 |
 | xAI / Grok Imagine | Hasta 3 |
 | Venice.ai | No compatible con la generación de texto a imagen |

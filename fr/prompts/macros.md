@@ -69,7 +69,7 @@ Dans un chat avec un seul personnage, elles se résolvent d'après ce personnage
 
 Le champ Phonetic name a deux rôles. Il fixe la prononciation du nom par la synthèse vocale (Text to Speech). Il alimente aussi `{{charNamePhonetic}}` et `{{userNamePhonetic}}`. Tu le trouves à la fois dans l'éditeur **Character Editor** et dans l'éditeur **Persona Editor**.
 
-Pour référencer un personnage absent du chat actuel, copie l'identifiant de sa fiche directement entre doubles accolades, comme `{{V1StGXR8_Z5jdHi6B-myT}}`. N'inclus pas les caractères littéraux `<` ou `>`. Marinara remplace la macro par le nom du personnage et ajoute les champs Description, Personality, Appearance, Backstory, Scenario et Example Dialogue de la fiche au prompt système. Cela fonctionne dans les messages, les champs de prompt et les entrées de lorebook activées. Les salutations initiales sont exclues. Les lorebooks activés rattachés à la fiche conservent leurs règles ordinaires de mots-clés, constant, filtres, probabilité et budget de tokens.
+Pour référencer un personnage absent du chat actuel, copie l'identifiant de sa fiche directement entre doubles accolades, comme `{{V1StGXR8_Z5jdHi6B-myT}}`. N'inclus pas les caractères littéraux `<` ou `>`. Marinara remplace la macro par le nom du personnage et ajoute les champs Description, Personality, Appearance, Backstory, Scenario et Example Dialogue de la fiche au prompt système. Cela fonctionne dans les messages, les champs de prompt et les entrées de lorebook activées. Les salutations initiales sont exclues. Les lorebooks activés rattachés à la fiche conservent leurs règles ordinaires de mots-clés, constant, filtres, probabilité et budget de tokens. Si le personnage fait déjà partie du chat, la macro est quand même remplacée par son nom, et sa fiche n'est pas ajoutée une seconde fois.
 
 Pour faire référence à un persona inactif, ajoute `persona-` devant l'ID copié, par exemple `{{persona-P1StGXR8_Z5jdHi6B-myT}}`. Marinara remplace la macro par le nom du persona et ajoute ses champs Description, Personality, Appearance, Backstory et Scenario aux ID Macro Cards. Les lorebooks joints suivent toujours leurs règles d'activation habituelles.
 
@@ -136,6 +136,27 @@ Les macros d'outlet s'utilisent dans les sections de prompt des modes Conversati
 Les identifiants inconnus donnent `0`. Le compte inclut toutes les entrées, activées, désactivées ou dans des dossiers.
 
 Utilise cette macro dans les sections de prompt, les champs de fiches de personnage, le contenu des entrées de lorebook ou tout endroit où les macros sont résolues.
+
+<a id="lorebook-include-macro"></a>
+
+## Macro d'inclusion de lorebook
+
+`{{include::ENTRY}}` insère le texte d'une entrée de lorebook là où tu poses la macro. Garde un texte partagé, comme des règles maison, dans une seule entrée, et réutilise-le dans d'autres entrées, des sections de prompt ou des fiches : il n'y a ainsi qu'une seule copie à modifier. Remplace `ENTRY` par l'identifiant de l'entrée ou par son nom. Pour les noms, la casse n'a pas d'importance.
+
+- Dans une entrée de lorebook, un nom est cherché dans le lorebook qui contient cette entrée.
+- Partout ailleurs, un nom est cherché dans les lorebooks qu'utilise ce chat : ceux ajoutés au chat, ceux liés à ses personnages et à son persona, et les lorebooks globaux.
+- Un identifiant trouve l'entrée dans n'importe quel lorebook.
+
+`{{include::BOOK::ENTRY}}` prend l'entrée dans le lorebook que tu nommes, par son identifiant ou son nom. Ce lorebook n'a pas besoin d'être ajouté au chat, ni même d'être activé.
+
+```text
+{{include::Rules of the arena}}
+{{include::Shared lore::Rules of the arena}}
+```
+
+L'entrée incluse n'a pas besoin de se déclencher, et elle peut être désactivée : tu peux donc garder des entrées qui n'existent que pour être incluses. Les macros du texte inclus fonctionnent normalement, et ce texte peut lui aussi inclure d'autres entrées. Si une inclusion ramène à une entrée dans laquelle elle se trouve déjà, par exemple une entrée qui s'inclut elle-même, cette inclusion donne un résultat vide au lieu de se répéter à l'infini. Une entrée ou un lorebook introuvable donne aussi un résultat vide.
+
+Écris les noms et les identifiants en texte brut. Les macros qu'ils contiennent, comme dans `{{include::{{char}}}}`, ne sont pas résolues.
 
 ## Macros de temps
 
@@ -251,7 +272,7 @@ Autre option : saisir `/macros` dans le champ de saisie du chat (la forme courte
 
 Les blocs conditionnels peuvent combiner des comparaisons avec `||` (OU), `&&` (ET) et des parenthèses. Les listes d'égalité acceptent la forme compacte `{{#if character == "Maukie" || "Pantalone"}}`. Voir [Prompts conditionnels](conditional-prompts.md) pour la priorité des opérateurs, des exemples en chat de groupe et la liste complète.
 
-Une condition peut aussi interroger ton Decision model sur la scène : `{{#if decision:"The latest message moves the scene to a new place"}}` pour oui/non, et `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` pour choisir une option. Sans modèle ou sans réponse, elles valent non. Consulte [Interroger le Decision model](conditional-prompts.md#asking-the-decision-model). Ajoute `sticky:3 cooldown:5` après un énoncé pour maintenir un oui trois tours puis attendre cinq tours ; voir [Sticky et cooldown](conditional-prompts.md#sticky-and-cooldown). `every:3` interroge tous les trois tours, et `priority:high` ou `priority:low` choisit les énoncés qui tiennent dans le plan ; voir [Vérifier tous les quelques tours](conditional-prompts.md#checking-every-few-turns), [Priorité](conditional-prompts.md#priority) et [Limites et coût](conditional-prompts.md#limits-and-cost).
+Une condition peut aussi interroger ton Decision model sur la scène : `{{#if decision:"The latest message moves the scene to a new place"}}` pour oui/non, et `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` pour choisir une option. Sans modèle ou sans réponse, elles valent non. Consulte [Interroger le Decision model](conditional-prompts.md#asking-the-decision-model). Ajoute `sticky:3 cooldown:5` après un énoncé pour maintenir un oui trois tours puis attendre cinq tours ; voir [Sticky et cooldown](conditional-prompts.md#sticky-and-cooldown). Ajoute `until:"..."` ou `while:"..."` pour maintenir un oui aussi longtemps qu'un second énoncé le permet ; voir [Until et while](conditional-prompts.md#until-and-while). `every:3` interroge tous les trois tours, et `priority:high` ou `priority:low` choisit les énoncés qui tiennent dans le plan ; voir [Vérifier tous les quelques tours](conditional-prompts.md#checking-every-few-turns), [Priorité](conditional-prompts.md#priority) et [Limites et coût](conditional-prompts.md#limits-and-cost).
 
 ## Erreurs fréquentes
 

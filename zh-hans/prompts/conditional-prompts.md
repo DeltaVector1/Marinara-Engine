@@ -262,6 +262,42 @@ Keep combat pacing rules in effect.
 
 结合使用适合出现一次后暂停的内容：场景转换、一次性提醒，或应持续几回合的情绪。通过 **Decision** 字段激活的世界书条目，改用条目自己的 **Sticky** 和 **Cooldown**：sticky 条目不再询问也会保留，cooldown 条目不会询问。
 
+<a id="until-and-while"></a>
+
+### Until 与 While
+
+有些块应该在某件事持续期间一直生效，比如一场战斗，而不是只生效固定的回合数。在第一条陈述后写 `until:` 或 `while:` 和第二条陈述：
+
+```
+{{#if decision:"A fight starts in the latest message" until:"The fight ends in the latest message"}}
+Keep combat pacing rules in effect.
+{{/if}}
+```
+
+- 得到是以后，块保持生效，生效期间不再询问第一条陈述。改为每回合询问 `until` 陈述，它为真的那个回合，块停止生效。
+- `while:` 正好相反：它的陈述为真时块保持生效，为假的那个回合停止生效。
+- 两者只用其一。如果都写了，只有写在前面的那个有效。
+- 块停止生效后，cooldown 照常开始，之后再重新询问第一条陈述。
+- 如果某个回合 `until` 或 `while` 陈述没有得到答案，块保持生效。
+- `until` 或 `while` 陈述计入 **Decision statements per turn**。块生效期间，第一条陈述不计入。
+- 它适用于 `decision:`，不适用于 `decision_choice:`。
+
+配合 **sticky** 时，在第二条陈述后面紧接着加 `:and` 或 `:or`，决定两者如何共同作用：
+
+| 写法 | 得到是以后，块保持生效 |
+| --- | --- |
+| `until:"..." sticky:5` 或 `until:"...":and sticky:5` | 最多再 5 个回合；until 陈述为真时提前停止生效。 |
+| `until:"...":or sticky:5` | 至少再 5 个回合，之后持续到 until 陈述为真。 |
+| `while:"..." sticky:5` 或 `while:"...":or sticky:5` | 至少再 5 个回合，之后只要 while 陈述为真就继续生效。 |
+| `while:"...":and sticky:5` | 最多再 5 个回合；while 陈述为假时提前停止生效。 |
+
+`:restrict` 和 `:and` 含义相同，`:extend` 和 `:or` 含义相同。不加 sticky 时，它们不起作用。例如：
+
+```
+{{#if decision:"{{user}} casts a stealth spell in the latest message" while:"{{user}} stays still":extend sticky:5}}...{{/if}}
+{{#if decision:"{{user}} casts a stealth spell in the latest message" until:"{{user}} is spotted":restrict sticky:5}}...{{/if}}
+```
+
 <a id="checking-every-few-turns"></a>
 
 ### 每隔几回合检查

@@ -262,6 +262,42 @@ Keep combat pacing rules in effect.
 
 組み合わせると、場面転換、一度だけの通知、数ターン続かせたい気分など、一度入れた後に休ませたい内容に適します。**Decision**欄で起動するロアブックエントリーには、エントリー自身の**Sticky**と**Cooldown**を使ってください。sticky中は再問い合わせせずに残り、cooldown中のエントリーには問い合わせません。
 
+<a id="until-and-while"></a>
+
+### UntilとWhile
+
+決まったターン数ではなく、戦闘のように何かが続いているあいだ有効にしておきたいブロックもあります。1つ目の判定文の後ろに、`until:`か`while:`を付けて2つ目の判定文を書きます。
+
+```
+{{#if decision:"A fight starts in the latest message" until:"The fight ends in the latest message"}}
+Keep combat pacing rules in effect.
+{{/if}}
+```
+
+- はいの後、ブロックは有効なままになり、その間は1つ目の判定文を尋ねません。代わりに`until`の判定文を毎ターン尋ね、それが真になったターンにブロックは無効になります。
+- `while:`は逆の動きをします。その判定文が真のあいだブロックは有効なままで、偽になったターンに無効になります。
+- どちらか一方だけを使ってください。両方を書いた場合は、先に書いたほうだけが使われます。
+- ブロックが無効になると、通常どおりcooldownが始まり、その後また1つ目の判定文を尋ねます。
+- `until`または`while`の判定文に回答がなかったターンも、ブロックは有効なままです。
+- `until`または`while`の判定文は**Decision statements per turn**に数えられます。ブロックが有効なあいだ、1つ目の判定文は数えられません。
+- この機能は`decision:`で使えますが、`decision_choice:`では使えません。
+
+**sticky**と併用する場合は、2つ目の判定文のすぐ後ろに`:and`か`:or`を付けて、両者の組み合わせ方を選びます。
+
+| 書き方 | はいの後、ブロックが有効なままの期間 |
+| --- | --- |
+| `until:"..." sticky:5`または`until:"...":and sticky:5` | 最大であと5ターン。untilの判定文が真になれば、それより早く無効になります。 |
+| `until:"...":or sticky:5` | 少なくともあと5ターン。その後は、untilの判定文が真になるまで続きます。 |
+| `while:"..." sticky:5`または`while:"...":or sticky:5` | 少なくともあと5ターン。その後は、whileの判定文が真のあいだ続きます。 |
+| `while:"...":and sticky:5` | 最大であと5ターン。whileの判定文が偽になれば、それより早く無効になります。 |
+
+`:restrict`は`:and`と、`:extend`は`:or`と同じ意味です。stickyがなければ、どれを付けても違いはありません。たとえば次のように書きます。
+
+```
+{{#if decision:"{{user}} casts a stealth spell in the latest message" while:"{{user}} stays still":extend sticky:5}}...{{/if}}
+{{#if decision:"{{user}} casts a stealth spell in the latest message" until:"{{user}} is spotted":restrict sticky:5}}...{{/if}}
+```
+
 <a id="checking-every-few-turns"></a>
 
 ### 数ターンごとの確認

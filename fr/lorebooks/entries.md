@@ -377,6 +377,7 @@ Le champ **Content** d'une entrée est développé comme n'importe quel texte de
 - `{{random::a::b::c}}` et `{{roll:1d6}}` : tire une option au hasard ou lance les dés, pour une touche d'ambiance qui change à chaque déclenchement. Ajoute des poids avec `@`, comme dans `{{random::common@3::rare@1}}`, pour rendre certaines options plus probables que d'autres.
 - `{{#if ...}}...{{else}}...{{/if}}` : change le texte selon qui parle, selon une variable ou selon le personnage actif.
 - `{{getvar::name}}` et `{{setvar::name::value}}` : lis ou définis une variable persistante propre au chat, pour qu'une entrée réagisse à l'état ou le pilote lors des tours suivants sans le propager aux autres chats.
+- `{{include::Entry name}}` : insère le texte d'une autre entrée du même lorebook, même si elle est désactivée, pour que le texte partagé vive à un seul endroit. Voir [Macro d'inclusion de lorebook](../prompts/macros.md#lorebook-include-macro).
 
 Le tirage aléatoire pondéré se marie bien avec **Probability** : à eux deux, ils font tenir toute une table aléatoire dans une seule entrée. Au lieu d'un groupe de vingt entrées de monstres, crée une seule entrée "rencontre errante". Donne-lui une **Probability** basse, pour que la rencontre reste occasionnelle, et une liste pondérée de ce qui apparaît :
 

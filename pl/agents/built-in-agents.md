@@ -12,7 +12,7 @@ Przy każdym agencie poniżej znajdziesz trzy szybkie informacje.
 - **Gdzie działa**: tryby czatu, w których da się dodać danego agenta. Większość agentów działa na czatach w trybie **Roleplay**. Kilku działa w innych trybach – przy każdym jest to napisane.
 - **Najważniejsze ustawienia**: ustawienia, które zmienia się najczęściej. Ustawisz je przy dodawaniu agenta albo później, w karcie konfiguracji agenta w panelu **Chat Settings** (ustawienia czatu).
 
-Marinara dzieli agentów na trzy kategorie w panelu **Agents**: **Writer Agents**, **Tracker Agents** i **Misc Agents**. Ten przegląd trzyma się tego samego podziału.
+Marinara dzieli agentów na kategorie w panelu **Agents**: **Apps**, **Writer Agents**, **Tracker Agents** i **Misc Agents**. Apps to pakiety z własną kartą Home, takie jak Noodle i Slurp. Ten przegląd opisuje Noodle w sekcji Agenci różni.
 
 Odstęp uruchamiania oznacza, że agent działa raz na kilka wiadomości użytkownika i asystenta, a nie po każdej wiadomości. Odstęp uruchamiania zmienisz w konfiguracji agenta, maksymalnie do 100.
 

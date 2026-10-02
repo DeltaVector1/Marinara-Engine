@@ -69,7 +69,7 @@ In einem Chat mit einem einzelnen Charakter beziehen sie sich auf genau diesen. 
 
 Das Feld Phonetic hat zwei Aufgaben. Es legt fest, wie die Sprachausgabe den Namen ausspricht. Und es speist `{{charNamePhonetic}}` und `{{userNamePhonetic}}`. Du findest es sowohl im **Character Editor** als auch im **Persona Editor**.
 
-Willst du einen Charakter ansprechen, der nicht Teil des aktuellen Chats ist, kopiere die ID seiner Karte und setz sie direkt in doppelte geschweifte Klammern, zum Beispiel `{{V1StGXR8_Z5jdHi6B-myT}}`. Füge keine wörtlichen Zeichen `<` oder `>` ein. Marinara ersetzt das Makro durch den Namen des Charakters und ergänzt den System-Prompt um Description, Personality, Appearance, Backstory, Scenario und Example Dialogue der referenzierten Karte. Das funktioniert in Chatnachrichten, Prompt-Feldern und aktivierten Lorebook-Einträgen. Die ersten Begrüßungen der Karte bleiben außen vor. Aktivierte Lorebooks, die an dieser Karte hängen, unterliegen weiterhin ihren normalen Regeln für Schlüsselwörter, Constant-Einträge, Filter, Wahrscheinlichkeit und Token-Budget.
+Willst du einen Charakter ansprechen, der nicht Teil des aktuellen Chats ist, kopiere die ID seiner Karte und setz sie direkt in doppelte geschweifte Klammern, zum Beispiel `{{V1StGXR8_Z5jdHi6B-myT}}`. Füge keine wörtlichen Zeichen `<` oder `>` ein. Marinara ersetzt das Makro durch den Namen des Charakters und ergänzt den System-Prompt um Description, Personality, Appearance, Backstory, Scenario und Example Dialogue der referenzierten Karte. Das funktioniert in Chatnachrichten, Prompt-Feldern und aktivierten Lorebook-Einträgen. Die ersten Begrüßungen der Karte bleiben außen vor. Aktivierte Lorebooks, die an dieser Karte hängen, unterliegen weiterhin ihren normalen Regeln für Schlüsselwörter, Constant-Einträge, Filter, Wahrscheinlichkeit und Token-Budget. Ist der Charakter bereits Teil des Chats, ersetzt Marinara das Makro trotzdem durch seinen Namen, fügt seine Karte aber kein zweites Mal hinzu.
 
 Um auf eine inaktive Persona zu verweisen, stell ihrer kopierten ID `persona-` voran, zum Beispiel `{{persona-P1StGXR8_Z5jdHi6B-myT}}`. Marinara ersetzt das Makro durch den Namen der Persona und fügt ihre Felder Description, Personality, Appearance, Backstory und Scenario zu den ID Macro Cards hinzu. Angehängte Lorebooks folgen weiterhin ihren normalen Aktivierungsregeln.
 
@@ -136,6 +136,27 @@ Outlet-Makros kannst du in Prompt-Abschnitten im Conversation Mode, im Roleplay 
 Unbekannte Lorebook-IDs ergeben `0`. Gezählt werden alle Einträge, unabhängig davon, ob sie aktiviert, deaktiviert oder in Ordnern liegen.
 
 Verwende dieses Makro in Prompt-Abschnitten, Charakterkartenfeldern, Lorebook-Eintragstexten oder überall sonst, wo Makros aufgelöst werden.
+
+<a id="lorebook-include-macro"></a>
+
+## Makro zum Einbinden von Lorebook-Einträgen
+
+`{{include::ENTRY}}` fügt den Text eines Lorebook-Eintrags genau dort ein, wo du das Makro schreibst. Leg einen gemeinsam genutzten Text wie Hausregeln in einem einzigen Eintrag ab und verwende ihn in anderen Einträgen, Prompt-Abschnitten oder Karten wieder – dann bearbeitest du ihn nur an einer Stelle. Ersetze `ENTRY` durch die ID oder den Namen des Eintrags. Bei Namen spielt Groß- und Kleinschreibung keine Rolle.
+
+- Innerhalb eines Lorebook-Eintrags wird ein Name im eigenen Lorebook dieses Eintrags gesucht.
+- Überall sonst wird ein Name in den Lorebooks gesucht, die dieser Chat nutzt: in denen, die dem Chat hinzugefügt sind, in denen, die mit seinen Charakteren und seiner Persona verknüpft sind, und in den globalen.
+- Über eine ID wird der Eintrag in jedem Lorebook gefunden.
+
+`{{include::BOOK::ENTRY}}` holt den Eintrag aus dem Lorebook, das du per ID oder Namen angibst. Dieses Lorebook muss weder dem Chat hinzugefügt noch überhaupt eingeschaltet sein.
+
+```text
+{{include::Rules of the arena}}
+{{include::Shared lore::Rules of the arena}}
+```
+
+Der eingebundene Eintrag muss nicht selbst auslösen und darf sogar ausgeschaltet sein. So kannst du Einträge anlegen, die nur zum Einbinden da sind. Makros im eingebundenen Text funktionieren wie gewohnt, und er kann seinerseits weitere Einträge einbinden. Führt eine Einbindung zurück zu einem Eintrag, in dem sie bereits steckt – etwa bei einem Eintrag, der sich selbst einbindet –, ergibt diese Einbindung nichts, statt sich endlos zu wiederholen. Wird ein Eintrag oder Lorebook nicht gefunden, ergibt das Makro ebenfalls nichts.
+
+Schreib Namen und IDs als reinen Text. Makros darin, etwa `{{include::{{char}}}}`, werden nicht aufgelöst.
 
 ## Zeit-Makros
 
@@ -251,7 +272,7 @@ Alternativ tippst du `/macros` ins Chatfeld (die Kurzform `/macro` geht ebenfall
 
 In bedingten Blöcken lassen sich Vergleiche mit `||` (ODER), `&&` (UND) und Klammern verknüpfen. Für Gleichheitslisten gibt es die kompakte Form `{{#if character == "Maukie" || "Pantalone"}}`. Vorrangregeln, Beispiele für Gruppenchats und die vollständige Operatorenliste findest du unter [Bedingte Prompts](conditional-prompts.md).
 
-Eine Bedingung kann auch dein Decision-Modell zur Szene befragen: `{{#if decision:"The latest message moves the scene to a new place"}}` für ja oder nein und `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` für eine Auswahl. Ohne Decision-Modell oder Antwort gelten sie als nein. Siehe [Das Decision-Modell fragen](conditional-prompts.md#asking-the-decision-model). Ergänze `sticky:3 cooldown:5` hinter einer Aussage, um ein ja drei Züge zu halten und dann fünf Züge zu pausieren; siehe [Sticky und Cooldown](conditional-prompts.md#sticky-and-cooldown). `every:3` prüft eine Aussage nur alle drei Züge. `priority:high` oder `priority:low` bestimmt, welche Aussagen in einen Prompt-Plan passen; siehe [Alle paar Züge prüfen](conditional-prompts.md#checking-every-few-turns), [Priorität](conditional-prompts.md#priority) und [Grenzen und Kosten](conditional-prompts.md#limits-and-cost).
+Eine Bedingung kann auch dein Decision-Modell zur Szene befragen: `{{#if decision:"The latest message moves the scene to a new place"}}` für ja oder nein und `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` für eine Auswahl. Ohne Decision-Modell oder Antwort gelten sie als nein. Siehe [Das Decision-Modell fragen](conditional-prompts.md#asking-the-decision-model). Ergänze `sticky:3 cooldown:5` hinter einer Aussage, um ein ja drei Züge zu halten und dann fünf Züge zu pausieren; siehe [Sticky und Cooldown](conditional-prompts.md#sticky-and-cooldown). Mit `until:"..."` oder `while:"..."` hältst du ein ja so lange, wie eine zweite Aussage es zulässt; siehe [Until und While](conditional-prompts.md#until-and-while). `every:3` prüft eine Aussage nur alle drei Züge. `priority:high` oder `priority:low` bestimmt, welche Aussagen in einen Prompt-Plan passen; siehe [Alle paar Züge prüfen](conditional-prompts.md#checking-every-few-turns), [Priorität](conditional-prompts.md#priority) und [Grenzen und Kosten](conditional-prompts.md#limits-and-cost).
 
 ## Typische Fehler
 

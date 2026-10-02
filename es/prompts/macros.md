@@ -69,7 +69,7 @@ En un chat con un solo personaje, estas se resuelven contra ese personaje. En un
 
 El campo del nombre Phonetic tiene dos funciones. Define cómo pronuncia el nombre el text-to-speech. También alimenta a `{{charNamePhonetic}}` y `{{userNamePhonetic}}`. Lo encontrarás tanto en el **Character Editor** como en el **Persona Editor**.
 
-Para referirte a un personaje que no está en el chat actual, copia el ID de su tarjeta y colócalo directamente entre llaves dobles, como `{{V1StGXR8_Z5jdHi6B-myT}}`. No incluyas los caracteres literales `<` o `>`. Marinara reemplaza la macro por el nombre del personaje y añade Description, Personality, Appearance, Backstory, Scenario y Example Dialogue de la tarjeta al prompt de sistema. Funciona en mensajes del chat, campos de prompt y entradas activadas de lorebook. Se excluyen los saludos iniciales de la tarjeta. Los lorebooks activados vinculados a ella conservan sus reglas normales de palabras clave, constant, filtros, probabilidad y presupuesto de tokens.
+Para referirte a un personaje que no está en el chat actual, copia el ID de su tarjeta y colócalo directamente entre llaves dobles, como `{{V1StGXR8_Z5jdHi6B-myT}}`. No incluyas los caracteres literales `<` o `>`. Marinara reemplaza la macro por el nombre del personaje y añade Description, Personality, Appearance, Backstory, Scenario y Example Dialogue de la tarjeta al prompt de sistema. Funciona en mensajes del chat, campos de prompt y entradas activadas de lorebook. Se excluyen los saludos iniciales de la tarjeta. Los lorebooks activados vinculados a ella conservan sus reglas normales de palabras clave, constant, filtros, probabilidad y presupuesto de tokens. Si el personaje ya está en el chat, la macro se sigue reemplazando por su nombre, y su tarjeta no se añade por segunda vez.
 
 Para referirte a una persona inactiva, antepón `persona-` al ID copiado, por ejemplo `{{persona-P1StGXR8_Z5jdHi6B-myT}}`. Marinara reemplaza la macro por el nombre de la persona y añade sus campos Description, Personality, Appearance, Backstory y Scenario a ID Macro Cards. Los lorebooks adjuntos siguen sus reglas normales de activación.
 
@@ -136,6 +136,27 @@ Usa las macros Outlet en secciones de prompt de los modos Conversation, Roleplay
 Los IDs desconocidos se resuelven como `0`. El recuento incluye todas las entradas, estén activadas, desactivadas o en carpetas.
 
 Usa esta macro en secciones de prompt, campos de tarjetas de personaje, contenido de entradas de lorebook o cualquier lugar donde se resuelvan macros.
+
+<a id="lorebook-include-macro"></a>
+
+## Macro de inclusión de lorebook
+
+`{{include::ENTRY}}` inserta el texto de una entrada de lorebook en el lugar donde escribes la macro. Guarda un fragmento de texto compartido, como las reglas de la casa, en una sola entrada y reutilízalo en otras entradas, secciones de prompt o tarjetas, para que solo haya una copia que editar. Reemplaza `ENTRY` por el ID o el nombre de la entrada. Los nombres no distinguen mayúsculas de minúsculas.
+
+- Dentro de una entrada de lorebook, un nombre se busca en el propio lorebook de esa entrada.
+- En cualquier otro lugar, un nombre se busca en los lorebooks que usa este chat: los añadidos al chat, los vinculados a sus personajes y a su persona, y los globales.
+- Un ID encuentra la entrada en cualquier lorebook.
+
+`{{include::BOOK::ENTRY}}` toma la entrada del lorebook que indiques por su ID o su nombre. Ese lorebook no tiene que estar añadido al chat, ni siquiera activado.
+
+```text
+{{include::Rules of the arena}}
+{{include::Shared lore::Rules of the arena}}
+```
+
+La entrada incluida no tiene que activarse, y puede estar desactivada, así que puedes tener entradas que existan solo para ser incluidas. Las macros del texto incluido funcionan como siempre, y ese texto también puede incluir otras entradas. Si una inclusión lleva de vuelta a una entrada dentro de la que ya está, como una entrada que se incluye a sí misma, esa inclusión se resuelve a nada en lugar de repetirse indefinidamente. Una entrada o un lorebook que no se encuentra también se resuelve a nada.
+
+Escribe los nombres y los IDs como texto plano. Las macros dentro de ellos, como `{{include::{{char}}}}`, no se completan.
 
 ## Macros de tiempo
 
@@ -251,7 +272,7 @@ También puedes escribir `/macros` en el cuadro de chat (la forma corta `/macro`
 
 Los bloques condicionales pueden combinar comparaciones con `||` (OR), `&&` (AND) y paréntesis. Las listas de igualdad pueden usar la forma compacta `{{#if character == "Maukie" || "Pantalone"}}`. Consulta [Prompts condicionales](conditional-prompts.md) para la precedencia, ejemplos de chat grupal y la lista completa de operadores.
 
-Una condición también puede consultar a tu Decision model sobre la escena: `{{#if decision:"The latest message moves the scene to a new place"}}` para sí o no y `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` para elegir una opción. Sin Decision model o sin respuesta, se interpretan como no. Consulta [Consultar al Decision model](conditional-prompts.md#asking-the-decision-model). Añade `sticky:3 cooldown:5` después de una declaración para conservar un sí tres turnos y dejarla descansar cinco; consulta [Sticky y cooldown](conditional-prompts.md#sticky-and-cooldown). `every:3` pregunta solo cada tres turnos, y `priority:high` o `priority:low` decide cuáles caben en un plan de prompt; consulta [Comprobar cada varios turnos](conditional-prompts.md#checking-every-few-turns), [Prioridad](conditional-prompts.md#priority) y [Límites y costo](conditional-prompts.md#limits-and-cost).
+Una condición también puede consultar a tu Decision model sobre la escena: `{{#if decision:"The latest message moves the scene to a new place"}}` para sí o no y `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` para elegir una opción. Sin Decision model o sin respuesta, se interpretan como no. Consulta [Consultar al Decision model](conditional-prompts.md#asking-the-decision-model). Añade `sticky:3 cooldown:5` después de una declaración para conservar un sí tres turnos y dejarla descansar cinco; consulta [Sticky y cooldown](conditional-prompts.md#sticky-and-cooldown). Añade `until:"..."` o `while:"..."` para conservar un sí mientras lo permita una segunda declaración; consulta [Until y while](conditional-prompts.md#until-and-while). `every:3` pregunta solo cada tres turnos, y `priority:high` o `priority:low` decide cuáles caben en un plan de prompt; consulta [Comprobar cada varios turnos](conditional-prompts.md#checking-every-few-turns), [Prioridad](conditional-prompts.md#priority) y [Límites y costo](conditional-prompts.md#limits-and-cost).
 
 ## Errores comunes
 
