@@ -81,7 +81,18 @@ import {
   trackListChange,
   trackProseChange,
 } from "../../packages/client/src/lib/mari-edit-diff.js";
-import { pastTenseStepTitle } from "../../packages/client/src/lib/mari-work-timeline.js";
+import {
+  groupRunPhases,
+  pastTenseStepTitle,
+  splitMariAnswerWhy,
+  type WorkTimelineItem,
+} from "../../packages/client/src/lib/mari-work-timeline.js";
+import {
+  collectMariReferencedResources,
+  findMariSettingReferences,
+  mariReferenceTarget,
+  selectMariReplyReferences,
+} from "../../packages/client/src/lib/mari-referenced-resources.js";
 import {
   createPullRecognizer,
   pullCircleTarget,
@@ -791,7 +802,6 @@ assert.deepEqual(professorMariContextFacets(null), []);
   );
 }
 
-
 // A5: a typed scope prefix like "faq:" is omnibar search syntax, not message text
 // — every door into Mari (including the Ask-Mari row's own query) must strip it
 // with the same helper before it reaches the composer.
@@ -1090,11 +1100,7 @@ assert.ok(!("mariDetailId" in mariSession));
   const imagesLines = formatCapabilityAgentGroundingLines("how do I generate images");
   assert.ok(imagesLines, "a capability query returns a grounding block");
   assert.ok(imagesLines!.includes("Illustrator") && imagesLines!.includes("`illustrator`"));
-  assert.equal(
-    imagesLines!.split("\n").length,
-    1,
-    "one matched capability is one line, not the whole catalog",
-  );
+  assert.equal(imagesLines!.split("\n").length, 1, "one matched capability is one line, not the whole catalog");
   assert.equal(
     formatCapabilityAgentGroundingLines("what time is it"),
     null,
@@ -1182,6 +1188,158 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(pastTenseStepTitle("Taking notes"), "Took notes");
   assert.equal(pastTenseStepTitle("String search"), "String search", "no vowel before -ing: not a verb");
   assert.equal(pastTenseStepTitle("docs_search"), "docs_search");
+}
+
+// Slice 36 (M5a): steps fold into phases by verb class; only the phase she is still in stays open.
+{
+  type Step = { title: string; status: string };
+  const step = (id: string, title: string, status = "done"): WorkTimelineItem<Step> => ({
+    id,
+    type: "tool",
+    tool: { title, status },
+  });
+  const describe = (tool: Step) => ({ title: tool.title, failed: tool.status === "error" });
+  const run: WorkTimelineItem<Step>[] = [
+    { id: "t0", type: "thinking", content: "Read the character first." },
+    step("s1", "Reading character"),
+    step("s2", "Searching lorebooks"),
+    { id: "say", type: "text", content: "Now I'll fix the greeting." },
+    step("s3", "Updating character"),
+    step("s4", "Creating lorebook entry", "error"),
+    step("s5", "Running command"),
+  ];
+  const live = groupRunPhases(run, { active: true, describe });
+  assert.deepEqual(
+    live.phases.map((phase) => [phase.kind, phase.steps, phase.failed]),
+    [
+      ["look", 2, 0],
+      ["change", 2, 1],
+      ["other", 1, 0],
+    ],
+    "read/search look, edit/create change, anything else is its own phase; a failed step counts on its phase",
+  );
+  assert.deepEqual(
+    live.intro.map((item) => item.id),
+    ["t0"],
+    "what came before the first step stays where it was",
+  );
+  assert.deepEqual(
+    live.phases[1]!.items.map((item) => item.id),
+    ["say", "s3", "s4"],
+    "words she said before a step belong to that step's phase",
+  );
+  assert.deepEqual(
+    live.phases.map((phase) => phase.open),
+    [false, false, true],
+    "while she runs, only the phase she is in stays open",
+  );
+  const answering = groupRunPhases(
+    [...run, { id: "a", type: "text", content: "Done: the greeting opens the scene." }],
+    {
+      active: true,
+      describe,
+    },
+  );
+  assert.equal(answering.phases.at(-1)!.open, false, "the last phase folds once she starts answering");
+  assert.deepEqual(
+    answering.tail.map((item) => item.id),
+    ["a"],
+    "her answer is the tail",
+  );
+  assert.ok(
+    groupRunPhases(run, { active: false, describe }).phases.every((phase) => !phase.open),
+    "a finished run folds every phase",
+  );
+  const noSteps = groupRunPhases<Step>(
+    [
+      { id: "t", type: "thinking", content: "Easy one." },
+      { id: "a", type: "text", content: "Yes." },
+      { id: "st", type: "status", content: "pacing" },
+    ],
+    { active: true, describe },
+  );
+  assert.deepEqual(
+    [noSteps.intro.length, noSteps.phases.length, noSteps.tail.map((item) => item.id)],
+    [0, 0, ["t", "a"]],
+    "a run without steps has no phases; status lines stay out",
+  );
+  assert.deepEqual(
+    groupRunPhases([step("x", "Reading a"), step("y", "Reading b")], { active: true, describe }).phases.length,
+    1,
+    "back-to-back steps of one kind share one phase",
+  );
+}
+
+// Slice 36 (M5a): a trailing "Why" list folds into one line; anything else stays in the answer.
+{
+  assert.deepEqual(splitMariAnswerWhy("**Illustrator** fits.\n\nWhy:\n- It draws scenes.\n- It is installed."), {
+    answer: "**Illustrator** fits.",
+    why: ["It draws scenes.", "It is installed."],
+  });
+  assert.deepEqual(splitMariAnswerWhy("Lead.\n\n**Why**\n1. One").why, ["One"], "bold heading and numbers");
+  assert.deepEqual(
+    splitMariAnswerWhy("Lead.\n\nWhy:\n- One\n\nThen more text.").why,
+    [],
+    "a Why list followed by more prose is not folded",
+  );
+  assert.deepEqual(
+    splitMariAnswerWhy("Why do agents fail? They run out of tokens.").why,
+    [],
+    "a question is not a heading",
+  );
+}
+
+// Slice 36: agents, chats and lorebook entries she read become cards; settings come from bold labels.
+{
+  const tool = (action: string, input: Record<string, unknown>, output: unknown) => ({
+    name: "app_data",
+    status: "done",
+    input: { action, ...input },
+    output: `stdout:\n${JSON.stringify(output)}`,
+  });
+  const refs = collectMariReferencedResources([
+    tool("agent.list", {}, [
+      { id: null, type: "illustrator", name: "Illustrator", enabled: true, description: "Draws scenes" },
+      { id: "cfg-2", type: "music-dj", name: "Music DJ", enabled: false },
+    ]),
+    tool("agent.runs", { type: "illustrator" }, [{ success: false, error: "No image connection" }]),
+    tool("lorebook.getEntry", { entryId: "e1" }, { id: "e1", lorebookId: "lb1", name: "Harbor gate" }),
+    tool("chat.get", { id: "c1" }, { id: "c1", name: "Night at the docks" }),
+  ]);
+  const illustrator = refs.find((ref) => ref.kind === "agent" && ref.id === "illustrator");
+  assert.equal(illustrator?.name, "Illustrator", "agents are keyed by type, the id their editor opens");
+  assert.equal(illustrator?.state, "failed", "a failed last run is the news, over the list's 'on'");
+  assert.equal(illustrator?.fromList, false, "a direct run read makes the agent a card even when unnamed");
+  assert.equal(refs.find((ref) => ref.id === "music-dj")?.state, "off");
+  const entry = refs.find((ref) => ref.kind === "lorebookEntry");
+  assert.equal(entry?.parentId, "lb1", "an entry keeps its lorebook");
+  assert.deepEqual(mariReferenceTarget(entry!, []), {
+    kind: "resource",
+    resource: "lorebook",
+    id: "lb1",
+    entryId: "e1",
+  });
+  assert.deepEqual(
+    mariReferenceTarget(
+      refs.find((ref) => ref.kind === "chat")!,
+      [],
+    ),
+    { kind: "chat", chatId: "c1" },
+  );
+  assert.deepEqual(
+    selectMariReplyReferences(refs, "Turn on **Music DJ**; **Illustrator** failed.").map((ref) => ref.id),
+    ["music-dj", "illustrator", "e1", "c1"],
+    "a listed agent shows only when named; named ones lead in answer order",
+  );
+  const settings = getOmnibarSettingsDestinations();
+  const hideHelp = settings.find((setting) => setting.controlId === "hide-chat-help-button")!;
+  const settingRefs = findMariSettingReferences(`Turn on **${hideHelp.title}**. The language stays.`, settings);
+  assert.deepEqual(
+    settingRefs.map((ref) => ref.id),
+    [hideHelp.id],
+    "only a bold exact label is a setting card",
+  );
+  assert.equal(mariReferenceTarget(settingRefs[0]!, settings)?.kind, "settings", "a setting card opens Settings");
 }
 
 // Slice 7b (I2): tracked changes keep a small edit word by word, but strike a rewrite whole.
@@ -1574,8 +1732,7 @@ assert.ok(!("mariDetailId" in mariSession));
     presets: undefined,
     t,
   };
-  const toolIds = (rows: OmnibarResult[]) =>
-    rows.filter((row) => row.id.startsWith("chat-tool:")).map((row) => row.id);
+  const toolIds = (rows: OmnibarResult[]) => rows.filter((row) => row.id.startsWith("chat-tool:")).map((row) => row.id);
 
   const roleplayOnChatSurface = buildOmnibarContextResults({
     ...toolBaseInput,
@@ -1654,7 +1811,10 @@ assert.ok(!("mariDetailId" in mariSession));
   // pure builder); an unbound id keeps navigating instead.
   const t = ((key: string, fallback: string) => fallback) as never;
   const boundId = "achievements";
-  assert.ok(OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId], "achievements should stay bound for this assertion to mean anything");
+  assert.ok(
+    OMNIBAR_SETTINGS_TOGGLE_BINDINGS[boundId],
+    "achievements should stay bound for this assertion to mean anything",
+  );
   const settingsToggleValues: Record<string, boolean> = {};
   for (const id of Object.keys(OMNIBAR_SETTINGS_TOGGLE_BINDINGS)) settingsToggleValues[id] = id === boundId;
   const controlResults = buildOmnibarControlResults({
@@ -1735,10 +1895,11 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.ok(appDataActionLooksReadOnly("lorebook.testScan"), "lorebook.testScan should be read-only");
   assert.ok(!appDataActionLooksReadOnly("lorebook.updateEntry"), "lorebook.updateEntry must stay a write action");
 
-  const entryContext = buildProfessorMariCommandCenterContext(
-    "why didn't Harbor fire",
-    { id: "lorebook-entry:book-1:entry-7", title: "Harbor", category: "lorebook" },
-  );
+  const entryContext = buildProfessorMariCommandCenterContext("why didn't Harbor fire", {
+    id: "lorebook-entry:book-1:entry-7",
+    title: "Harbor",
+    category: "lorebook",
+  });
   assert.deepEqual(
     entryContext.resource,
     { kind: "lorebook", id: "book-1", label: "Harbor" },
@@ -1764,7 +1925,11 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(registryOnlyRow.type, "registry-only-agent", "a registry-only type keeps its id");
   assert.equal(registryOnlyRow.custom, false, "a registry entry is never reported as custom");
   assert.equal(registryOnlyRow.enabled, true, "an unconfigured registry agent falls back to enabledByDefault");
-  assert.deepEqual(registryOnlyRow.settingKeys, ["exampleKey"], "setting keys come from the manifest default, names only");
+  assert.deepEqual(
+    registryOnlyRow.settingKeys,
+    ["exampleKey"],
+    "setting keys come from the manifest default, names only",
+  );
   assert.ok(!("settings" in registryOnlyRow), "setting values are never exposed, only key names");
   assert.equal(registryOnlyRow.id, null, "an unconfigured registry agent has no config id to update with");
 
@@ -1781,18 +1946,30 @@ assert.ok(!("mariDetailId" in mariSession));
   const customRow = summarizeMergedAgentRow(undefined, customConfigRow);
   assert.equal(customRow.custom, true, "a type absent from the registry is a custom agent");
   assert.equal(customRow.packageId, null, "a custom agent has no package");
-  assert.deepEqual(customRow.settingKeys, ["secretApiKey"], "setting keys, not values, are reported for a custom agent");
+  assert.deepEqual(
+    customRow.settingKeys,
+    ["secretApiKey"],
+    "setting keys, not values, are reported for a custom agent",
+  );
   // #L7 review: agent.update requires an id - a merged row with no id breaks the list-then-edit
   // flow (L3) because there is nothing to call agent.update with.
   assert.equal(customRow.id, "cfg-1", "a configured agent's config id must survive into the merged row");
-  assert.equal(customRow.description, "Reviews scenes for tone drift.", "the config row's description must survive too");
+  assert.equal(
+    customRow.description,
+    "Reviews scenes for tone drift.",
+    "the config row's description must survive too",
+  );
 
   const overriddenRow = summarizeMergedAgentRow(registryOnlyManifest, {
     ...customConfigRow,
     type: "registry-only-agent",
     promptTemplate: "A different prompt than the package default.",
   });
-  assert.equal(overriddenRow.promptOverridden, true, "a prompt that differs from the package default is flagged overridden");
+  assert.equal(
+    overriddenRow.promptOverridden,
+    true,
+    "a prompt that differs from the package default is flagged overridden",
+  );
   const unmodifiedRow = summarizeMergedAgentRow(registryOnlyManifest, {
     ...customConfigRow,
     type: "registry-only-agent",

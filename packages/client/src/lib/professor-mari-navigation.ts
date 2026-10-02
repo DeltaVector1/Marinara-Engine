@@ -27,7 +27,8 @@ export type ProfessorMariNavigationTarget =
       kind: "window";
       window: "discord" | "support" | "documentation" | "faq" | "widgets" | "tutorial" | "credits";
     }
-  | { kind: "resource"; resource: ProfessorMariNavigationResourceKind; id: string }
+  /** `entryId` opens a lorebook at that entry. */
+  | { kind: "resource"; resource: ProfessorMariNavigationResourceKind; id: string; entryId?: string }
   | { kind: "package"; packageId: string };
 
 export interface ProfessorMariBrowserTab {

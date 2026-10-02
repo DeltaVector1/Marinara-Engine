@@ -38,7 +38,6 @@ import {
   EllipsisVertical,
   Pencil,
   Plus,
-  Quote,
   RefreshCw,
   Search,
   Send,
@@ -53,10 +52,13 @@ import {
   Hand,
   RotateCcw,
   ShieldOff,
+  Bot,
+  Settings2,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
+  BUILT_IN_AGENTS,
   LOCAL_SIDECAR_CONNECTION_ID,
   MARI_AUTHORIZATION_ACCEPT_CHIP,
   MARI_AUTHORIZATION_DECLINE_CHIP,
@@ -95,7 +97,15 @@ import {
   type MariStoryState,
   type MariWorkAnimation,
 } from "../../lib/mari-work-animations";
-import { buildWorkTimelineBlocks, pastTenseStepTitle } from "../../lib/mari-work-timeline";
+import {
+  buildWorkTimelineBlocks,
+  groupRunPhases,
+  pastTenseStepTitle,
+  splitMariAnswerWhy,
+  stepVerbClass,
+  type RunPhaseKind,
+  type StepVerbClass,
+} from "../../lib/mari-work-timeline";
 import { resolveStepSeconds } from "../../lib/mari-step-duration";
 import { getChatInputShellClass } from "./chat-input-styles";
 import { InlineGhostText } from "../ui/InlineGhostText";
@@ -190,10 +200,13 @@ import { cn, copyToClipboard } from "../../lib/utils";
 import { executeStateNavigation } from "../../lib/state-navigation";
 import {
   collectMariReferencedResources,
+  findMariSettingReferences,
+  mariReferenceTarget,
   selectMariReplyReferences,
   type MariReferencedResource,
-  type MariReferencedResourceKind,
 } from "../../lib/mari-referenced-resources";
+import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
+import { useAgentConfigs } from "../../hooks/use-agents";
 import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { MariSuggestionChips } from "./MariSuggestionChips";
@@ -1248,6 +1261,15 @@ function appDataSubject(tool: WorkspaceToolCall, input: Record<string, unknown> 
   return typeof asked === "string" && asked.trim() ? previewValue(asked, 60) : null;
 }
 
+const APP_DATA_WRITE_VERBS: Record<string, string> = {
+  create: "Creating",
+  update: "Updating",
+  add: "Adding",
+  delete: "Deleting",
+  set: "Setting",
+  move: "Moving",
+};
+
 function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
   const name = formatToolName(tool.name);
   const input = asRecord(tool.input);
@@ -1334,9 +1356,21 @@ function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
       "character.get": "Reading character",
       "instruction.get": "Reading instruction",
     };
+    // A write reads as one ("Updating lorebook entry"), so its icon and its run phase say it changed something.
+    const parts = appDataAction.split(".");
+    const writeVerb = /^(create|update|add|delete|set|move)(.*)$/u.exec(parts.at(-1) ?? "");
+    const writeTitle = writeVerb
+      ? [
+          APP_DATA_WRITE_VERBS[writeVerb[1]!],
+          ...parts.slice(0, -1),
+          writeVerb[2]!.replace(/([a-z])([A-Z])/gu, "$1 $2").toLowerCase(),
+        ]
+          .filter(Boolean)
+          .join(" ")
+      : null;
     return {
       eyebrow: "App data",
-      title: actionTitles[appDataAction] ?? `Reading ${appDataAction.replaceAll(".", " ")}`,
+      title: actionTitles[appDataAction] ?? writeTitle ?? `Reading ${appDataAction.replaceAll(".", " ")}`,
       detail: appDataSubject(tool, input),
       tone: "db",
     };
@@ -1711,16 +1745,36 @@ function MariLiveHeadline({ text, subject }: { text: string; subject?: string | 
 }
 
 /** A finished step's icon comes from its verb: read, search, create, delete, edit, or a command. */
-const STEP_ICONS: ReadonlyArray<[RegExp, LucideIcon]> = [
-  [/^(search|find|grep|look)/i, Search],
-  [/^(creat|add|install|import)/i, Plus],
-  [/^(delet|remov)/i, Trash2],
-  [/^(edit|updat|writ|sav|set|chang|renam|appl|replac|mov|cop)/i, Pencil],
-  [/^(read|load|list|check|inspect|view|open|fetch|get|preview)/i, FileText],
-];
+const STEP_ICONS: Record<StepVerbClass, LucideIcon> = {
+  search: Search,
+  create: Plus,
+  delete: Trash2,
+  edit: Pencil,
+  read: FileText,
+};
 
 function stepIcon(title: string): LucideIcon {
-  return STEP_ICONS.find(([pattern]) => pattern.test(title))?.[1] ?? Terminal;
+  const verb = stepVerbClass(title);
+  return verb ? STEP_ICONS[verb] : Terminal;
+}
+
+const PHASE_ICONS: Record<RunPhaseKind, LucideIcon> = { look: FileText, change: Pencil, other: Terminal };
+
+/**
+ * Her reply column: the words and what they made, indented by an avatar gutter that is always there (so
+ * nothing reflows when she arrives). On her newest finished reply she rests in it beside the first line.
+ */
+function MariAnswer({ restStory, children }: { restStory: MariStoryState | null; children: ReactNode }) {
+  return (
+    <div className="mari-answer" data-sprite={restStory ? "true" : undefined}>
+      {restStory ? (
+        <span className="mari-answer__sprite">
+          <MariStorySprite key={restStory} state={restStory} settleTo={restStory === "success" ? "idle" : undefined} />
+        </span>
+      ) : null}
+      {children}
+    </div>
+  );
 }
 
 function MariWorkTimeline({
@@ -1729,12 +1783,15 @@ function MariWorkTimeline({
   lorebook,
   active = true,
   restStory = null,
+  goal = null,
   children,
 }: {
   items: WorkspaceTimelineItem[];
   character?: CharacterPreviewModel | null;
   lorebook?: LorebookPreviewModel | null;
   active?: boolean;
+  /** M5a: the request she reported acting on, as one muted line above the run. */
+  goal?: ReactNode;
   /** On the newest finished turn, Mari stands on the "Worked for" line in this story. */
   restStory?: MariStoryState | null;
   /** What she made (tiles, references), between her answer and the "Worked for" line. */
@@ -1754,10 +1811,22 @@ function MariWorkTimeline({
   // A finished run that still holds a failed step is not a success, whatever the last step was.
   const failed = !active && toolItems.some(({ tool }) => tool.status === "error");
   // The running step is the live line itself, so it is not also a row in the list.
-  const blocks = buildWorkTimelineBlocks(
-    active ? items.filter((item) => item.type !== "tool" || item.tool.status !== "running") : items,
-  );
-  const lastBlock = blocks.at(-1);
+  const shownItems = active ? items.filter((item) => item.type !== "tool" || item.tool.status !== "running") : items;
+  // M5a: what came before her first step, her steps as phases (only the one she is in stays open), then
+  // her answer.
+  const { intro, phases, tail } = groupRunPhases(shownItems, {
+    active,
+    describe: (tool) => ({ title: inferToolPresentation(tool).title, failed: tool.status === "error" }),
+  });
+  const introBlocks = buildWorkTimelineBlocks(intro);
+  const tailBlocks = buildWorkTimelineBlocks(tail);
+  const lastBlock = tailBlocks.at(-1);
+  // Her words (and what they made) sit in one column with her avatar gutter on the left; a thought she
+  // had before them stays with the work above.
+  const answerStart = tailBlocks.findIndex((block) => block.kind === "text");
+  const answerBlocks = answerStart < 0 ? [] : tailBlocks.slice(answerStart);
+  // On the newest finished turn she rests beside her reply, like an avatar beside a bubble.
+  const spriteBesideAnswer = !active && Boolean(restStory) && answerBlocks.length > 0;
   const runningTool = active ? [...toolItems].reverse().find(({ tool }) => tool.status === "running") : undefined;
   // One scene per step, so the Mari who worked a step is the one left beside it when it is done.
   const stepAnimation = ({ tool }: WorkspaceToolItem) =>
@@ -1800,10 +1869,15 @@ function MariWorkTimeline({
           toolNames: [],
           packId: appearance.id,
         });
-  const renderBlock = (block: (typeof blocks)[number]) => {
+  const renderBlock = (block: (typeof tailBlocks)[number]) => {
     if (block.kind !== "steps") {
       return block.kind === "text" ? (
-        <CompactMarkdown key={block.id} content={block.content} streaming={active && block === lastBlock} />
+        <CompactMarkdown
+          key={block.id}
+          // A finished answer's trailing "Why" list folds into one line under the outcome.
+          content={!active && block === lastBlock ? splitMariAnswerWhy(block.content).answer : block.content}
+          streaming={active && block === lastBlock}
+        />
       ) : (
         <MariReasoningPanel
           key={block.id}
@@ -1876,7 +1950,7 @@ function MariWorkTimeline({
     );
   };
   // Consecutive work blocks (thoughts and steps) share one rail; her words sit at full width between them.
-  const renderSegments = (list: typeof blocks) => {
+  const renderSegments = (list: typeof tailBlocks) => {
     const out: ReactNode[] = [];
     let rail: ReactNode[] = [];
     const flush = () => {
@@ -1898,6 +1972,8 @@ function MariWorkTimeline({
     return out;
   };
   const workedFor = t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length });
+  const restStoryText =
+    restStory && restStory !== "idle" && restStory !== "success" ? t(`mari.stories.${restStory}`) : null;
 
   return (
     <TranscriptRow layout="document" marker={null}>
@@ -1911,8 +1987,47 @@ function MariWorkTimeline({
       >
         <MariResourceSubject character={character} lorebook={lorebook} className="mari-work-timeline__subject" />
 
-        {renderSegments(blocks)}
-        {children}
+        {goal}
+        {renderSegments(introBlocks)}
+        {phases.length > 0 ? (
+          <div className="mari-work-timeline__rail">
+            {phases.map((phase) => {
+              const PhaseIcon = PHASE_ICONS[phase.kind];
+              return (
+                <details
+                  key={phase.id}
+                  className="mari-phase"
+                  open={phase.open}
+                  data-state={phase.open ? "live" : "done"}
+                >
+                  <summary className="mari-disclosure">
+                    <PhaseIcon size="0.85rem" className="shrink-0" aria-hidden="true" />
+                    <span>
+                      {phase.open
+                        ? t(`mari.workCard.phase.${phase.kind}Live`)
+                        : t(`mari.workCard.phase.${phase.kind}`, { count: phase.steps })}
+                    </span>
+                    {phase.open ? <span className="mari-phase__count">{phase.steps}</span> : null}
+                    {phase.failed > 0 ? (
+                      <span className="mari-phase__failed">
+                        {t("mari.workCard.phase.failed", { count: phase.failed })}
+                      </span>
+                    ) : null}
+                    <ChevronRight size="0.7rem" className="mari-disclosure__chevron shrink-0" aria-hidden="true" />
+                  </summary>
+                  <div className="mari-phase__body">{buildWorkTimelineBlocks(phase.items).map(renderBlock)}</div>
+                </details>
+              );
+            })}
+          </div>
+        ) : null}
+        {renderSegments(answerStart < 0 ? tailBlocks : tailBlocks.slice(0, answerStart))}
+        {answerBlocks.length > 0 || children ? (
+          <MariAnswer restStory={spriteBesideAnswer ? restStory : null}>
+            {renderSegments(answerBlocks)}
+            {children}
+          </MariAnswer>
+        ) : null}
 
         {active ? (
           // The live line is always the last line, and working Mari leads it on the left: new work lands above
@@ -1932,12 +2047,12 @@ function MariWorkTimeline({
               ))}
             </span>
           </div>
-        ) : toolItems.length > 0 || restStory ? (
+        ) : toolItems.length > 0 || (restStory && (!spriteBesideAnswer || restStoryText)) ? (
           // Done: where the live line was, one line says how long she worked and folds the work away. On the
-          // newest turn she still stands on it (her story, then rest), also after a reply without steps; older
+          // newest turn she rests beside her reply; only a turn without words keeps her on this line. Older
           // turns keep only the words.
-          <div className="mari-work-timeline__live" data-past={restStory ? undefined : "true"}>
-            {restStory ? (
+          <div className="mari-work-timeline__live" data-past={restStory && !spriteBesideAnswer ? undefined : "true"}>
+            {restStory && !spriteBesideAnswer ? (
               <MariStorySprite
                 key={restStory}
                 state={restStory}
@@ -1945,8 +2060,8 @@ function MariWorkTimeline({
               />
             ) : null}
             {toolItems.length === 0 ? (
-              restStory && restStory !== "idle" && restStory !== "success" ? (
-                <span className="text-xs text-[var(--muted-foreground)]">{t(`mari.stories.${restStory}`)}</span>
+              restStoryText ? (
+                <span className="text-xs text-[var(--muted-foreground)]">{restStoryText}</span>
               ) : null
             ) : (
               <button
@@ -2095,9 +2210,18 @@ function MariWorkspaceActionResultRow({
   );
 }
 
+/** Kinds without a portrait show what they are: an agent, a setting, a chat, a lorebook entry. */
+const REFERENCE_ICONS: Partial<Record<MariReferencedResource["kind"], LucideIcon>> = {
+  agent: Bot,
+  setting: Settings2,
+  chat: MessageCircle,
+  lorebookEntry: BookOpen,
+};
+
 /**
- * What her answer is about, as a row of small cards under her reply: avatar on the left, name and a tag
- * on the right. Picking one opens a short sheet under the row with the description, tags and Open.
+ * What her answer is about, as a row of small cards right under her words: a face or icon on the left,
+ * the name and one fact (an agent's state, a setting's section, an entry's lorebook) on the right.
+ * Picking one opens a short sheet under the row with the description and Open.
  */
 function MariReferencedResources({
   resources,
@@ -2108,23 +2232,72 @@ function MariReferencedResources({
   resources: readonly MariReferencedResource[];
   characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
   lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
-  onOpen: (kind: MariReferencedResourceKind, id: string) => void;
+  onOpen: (resource: MariReferencedResource) => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
+  const localize = useLocalizedUiText();
+  const hasAgents = resources.some((resource) => resource.kind === "agent");
+  // The live config says whether an agent is on now; what she read may be older.
+  const { data: agentConfigs } = useAgentConfigs(hasAgents);
+  const settings = getOmnibarSettingsDestinations();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const cards = resources.flatMap((resource) => {
+    // A card that cannot open anything (an entry without its lorebook, a renamed setting) is not shown.
+    if (!mariReferenceTarget(resource, settings)) return [];
     const character = resource.kind === "character" ? characterPreviews.get(resource.id) : undefined;
     const lorebook = resource.kind === "lorebook" ? lorebookPreviews.get(resource.id) : undefined;
-    const name = character?.name ?? lorebook?.name ?? resource.name;
+    const agent = resource.kind === "agent" ? agentConfigs?.find((row) => row.type === resource.id) : undefined;
+    const builtInAgent = resource.kind === "agent" ? BUILT_IN_AGENTS.find((row) => row.id === resource.id) : undefined;
+    const setting = resource.kind === "setting" ? settings.find((row) => row.id === resource.id) : undefined;
+    const name =
+      character?.name ??
+      lorebook?.name ??
+      agent?.name ??
+      (setting ? localize(setting.title) : null) ??
+      resource.name ??
+      builtInAgent?.name;
     // A record she read that no longer exists (or never loaded) has nothing to show.
     if (!name) return [];
+    const agentOn = agent
+      ? agent.enabled === "true"
+      : resource.state === "on"
+        ? true
+        : resource.state === "off"
+          ? false
+          : null;
+    const fact =
+      resource.kind === "agent"
+        ? resource.state === "failed"
+          ? localizeUi("ui.chat.homeprofessormarichat.referenceAgentFailed")
+          : agentOn === null
+            ? localizeUi("omnibar.categories.agent")
+            : localizeUi(agentOn ? "commandCenter.values.enabled" : "commandCenter.values.disabled")
+        : resource.kind === "setting"
+          ? localize(setting!.sectionLabel)
+          : resource.kind === "chat"
+            ? localizeUi("omnibar.categories.chat")
+            : resource.kind === "lorebookEntry"
+              ? (lorebookPreviews.get(resource.parentId ?? "")?.name ??
+                // The lorebook she read the entry from, when it is not loaded here.
+                resources.find((other) => other.kind === "lorebook" && other.id === resource.parentId)?.name ??
+                localizeUi("omnibar.categories.lorebook"))
+              : (character?.tags ?? lorebook?.tags ?? [])[0];
     return [
       {
-        ...resource,
+        resource,
         key: `${resource.kind}:${resource.id}`,
         name,
-        src: character?.avatarSrc ?? lorebook?.imageSrc,
-        description: character?.description ?? character?.summary ?? lorebook?.description,
+        fact,
+        failed: resource.state === "failed",
+        src: character?.avatarSrc ?? lorebook?.imageSrc ?? agent?.imagePath,
+        description:
+          character?.description ??
+          character?.summary ??
+          lorebook?.description ??
+          agent?.description ??
+          (setting ? localize(setting.description) : undefined) ??
+          resource.detail ??
+          builtInAgent?.description,
         tags: (character?.tags ?? lorebook?.tags ?? []).slice(0, 4),
       },
     ];
@@ -2132,7 +2305,7 @@ function MariReferencedResources({
   // Two records with the same name read as a glitch in a row of cards; the first one stands for both.
   const seenNames = new Set<string>();
   const uniqueCards = cards.filter((card) => {
-    const nameKey = `${card.kind}:${card.name.toLocaleLowerCase()}`;
+    const nameKey = `${card.resource.kind}:${card.name.toLocaleLowerCase()}`;
     if (seenNames.has(nameKey)) return false;
     seenNames.add(nameKey);
     return true;
@@ -2142,43 +2315,47 @@ function MariReferencedResources({
   return (
     <div className="mari-ref-cards">
       <div className="mari-ref-cards__row" role="list">
-        {uniqueCards.map((card, index) => (
-          <button
-            key={card.key}
-            type="button"
-            role="listitem"
-            className="mari-ref-card"
-            style={{ "--i": index } as CSSProperties}
-            data-kind={card.kind}
-            aria-expanded={selectedKey === card.key}
-            onClick={() => setSelectedKey((current) => (current === card.key ? null : card.key))}
-          >
-            {card.src ? (
-              <CommandCenterMedia
-                size="row"
-                role="row"
-                icon={card.kind === "lorebook" ? BookOpen : MessageCircle}
-                src={card.src}
-                alt=""
-                kind={card.kind === "lorebook" ? "image" : "avatar"}
-                className="mari-ref-card__art"
-              />
-            ) : (
-              // No portrait yet: a monogram on a color of its own, stable for the name.
-              <span
-                className="mari-ref-card__monogram"
-                style={{ "--mari-ref-hue": stableHash(card.name) % 360 } as CSSProperties}
-                aria-hidden="true"
-              >
-                {[...card.name.trim()][0]?.toLocaleUpperCase()}
+        {uniqueCards.map((card, index) => {
+          const KindIcon = REFERENCE_ICONS[card.resource.kind];
+          return (
+            <button
+              key={card.key}
+              type="button"
+              role="listitem"
+              className="mari-ref-card"
+              style={{ "--i": index } as CSSProperties}
+              data-kind={card.resource.kind}
+              data-failed={card.failed ? "true" : undefined}
+              aria-expanded={selectedKey === card.key}
+              onClick={() => setSelectedKey((current) => (current === card.key ? null : card.key))}
+            >
+              {card.src ? (
+                <CommandCenterMedia
+                  size="row"
+                  role="row"
+                  icon={KindIcon ?? (card.resource.kind === "lorebook" ? BookOpen : MessageCircle)}
+                  src={card.src}
+                  alt=""
+                  kind={card.resource.kind === "character" || card.resource.kind === "persona" ? "avatar" : "image"}
+                  className="mari-ref-card__art"
+                />
+              ) : (
+                // No portrait yet: a monogram (or what kind of thing it is) on a color of its own, stable for the name.
+                <span
+                  className="mari-ref-card__monogram"
+                  style={{ "--mari-ref-hue": stableHash(card.name) % 360 } as CSSProperties}
+                  aria-hidden="true"
+                >
+                  {KindIcon ? <KindIcon size="0.95rem" /> : [...card.name.trim()][0]?.toLocaleUpperCase()}
+                </span>
+              )}
+              <span className="mari-ref-card__caption">
+                <span className="mari-ref-card__name">{card.name}</span>
+                {card.fact ? <span className="mari-ref-card__tag">{card.fact}</span> : null}
               </span>
-            )}
-            <span className="mari-ref-card__caption">
-              <span className="mari-ref-card__name">{card.name}</span>
-              {card.tags[0] ? <span className="mari-ref-card__tag">{card.tags[0]}</span> : null}
-            </span>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
       <AnimatePresence initial={false}>
         {selected ? (
@@ -2201,7 +2378,7 @@ function MariReferencedResources({
             ) : null}
             <button
               type="button"
-              onClick={() => onOpen(selected.kind, selected.id)}
+              onClick={() => onOpen(selected.resource)}
               className="mari-chrome-control mari-chrome-control--compact"
             >
               {localizeUi("ui.chat.homeprofessormarichat.openResult")}
@@ -2248,9 +2425,50 @@ function MariResourceSubject({
   return null;
 }
 
-/** What a finished run made: reference pills, applied-change rows, reply actions, then any reviews it
- * is waiting on. Shared by the historic-turn render and the active turn's own timeline (M3) so the
- * two never diverge. */
+/** The reviews a turn holds, split by whether they already changed something or wait for your answer. */
+type MariTurnReviews = { changed: ReactNode[]; needsOk: ReactNode[] };
+
+/**
+ * M5a: what a run changed and what it needs from you, as ONE group of hairline rows after her answer.
+ * The two labels show only when both kinds are there; one kind needs no heading.
+ */
+function MariOutcomeGroup({ changed, needsOk }: MariTurnReviews) {
+  const { t: localizeUi } = useUiTranslation();
+  if (changed.length === 0 && needsOk.length === 0) return null;
+  const labelled = changed.length > 0 && needsOk.length > 0;
+  const section = (label: string, rows: ReactNode[]) =>
+    rows.length > 0 ? (
+      <div className="mari-outcome__section" role="group" aria-label={label}>
+        {labelled ? <p className="mari-outcome__label">{label}</p> : null}
+        {rows}
+      </div>
+    ) : null;
+  return (
+    <div className="mari-outcome">
+      {section(localizeUi("ui.chat.homeprofessormarichat.outcomeChanged"), changed)}
+      {section(localizeUi("ui.chat.homeprofessormarichat.outcomeNeedsYou"), needsOk)}
+    </div>
+  );
+}
+
+/** Her reasons, folded to one "Why" line you can open (the server asks for at most three). */
+function MariWhyDisclosure({ points }: { points: string[] }) {
+  const { t: localizeUi } = useUiTranslation();
+  if (points.length === 0) return null;
+  return (
+    <details className="mari-why">
+      <summary className="mari-disclosure">
+        {localizeUi("ui.chat.homeprofessormarichat.why")}
+        <ChevronRight size="0.7rem" className="mari-disclosure__chevron shrink-0" aria-hidden="true" />
+      </summary>
+      <CompactMarkdown content={points.map((point) => `- ${point}`).join("\n")} />
+    </details>
+  );
+}
+
+/** What a finished run made, under her answer: reference cards, the outcome group, her reasons, then the
+ * reply actions. Shared by the historic-turn render and the active turn's own timeline (M3) so the two
+ * never diverge. */
 function MariWorkTimelineOutcome({
   content,
   items,
@@ -2269,45 +2487,53 @@ function MariWorkTimelineOutcome({
   actionResults: MariWorkspaceActionResult[];
   characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
   lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
-  onOpenResource: (kind: MariReferencedResourceKind, id: string) => void;
+  onOpenResource: (resource: MariReferencedResource) => void;
   onOpenActionResult: (result: MariWorkspaceActionResult) => void;
   onReviewActionResult: (reviewId: string) => void;
   onRegenerate?: () => void;
   onDelete?: () => void;
-  reviews?: ReactNode;
+  reviews?: MariTurnReviews;
 }) {
+  const references = selectMariReplyReferences(
+    [
+      ...collectMariReferencedResources(items.flatMap((item) => (item.type === "tool" ? [item.tool] : []))),
+      ...findMariSettingReferences(content, getOmnibarSettingsDestinations()),
+    ],
+    content,
+  ).filter(
+    (resource) =>
+      !actionResults.some((result) => result.resource.kind === resource.kind && result.resource.id === resource.id),
+  );
   return (
-    <div className="min-w-0">
+    <div className="mari-run-outcome">
       <MariReferencedResources
-        resources={selectMariReplyReferences(
-          collectMariReferencedResources(items.flatMap((item) => (item.type === "tool" ? [item.tool] : []))),
-          content,
-        ).filter(
-          (resource) =>
-            !actionResults.some(
-              (result) => result.resource.kind === resource.kind && result.resource.id === resource.id,
-            ),
-        )}
+        resources={references}
         characterPreviews={characterPreviews}
         lorebookPreviews={lorebookPreviews}
         onOpen={onOpenResource}
       />
-      {actionResults.map((result) => (
-        <MariWorkspaceActionResultRow
-          key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
-          result={result}
-          onOpen={onOpenActionResult}
-          onReview={onReviewActionResult}
-          character={characterPreviews.get(result.resource.id)}
-          lorebook={lorebookPreviews.get(result.resource.id)}
-        />
-      ))}
+      <MariOutcomeGroup
+        changed={[
+          ...actionResults.map((result) => (
+            <MariWorkspaceActionResultRow
+              key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
+              result={result}
+              onOpen={onOpenActionResult}
+              onReview={onReviewActionResult}
+              character={characterPreviews.get(result.resource.id)}
+              lorebook={lorebookPreviews.get(result.resource.id)}
+            />
+          )),
+          ...(reviews?.changed ?? []),
+        ]}
+        needsOk={reviews?.needsOk ?? []}
+      />
+      <MariWhyDisclosure points={splitMariAnswerWhy(stripProfessorMariSpeakerPrefix(content)).why} />
       <MariReplyActions
         content={stripProfessorMariSpeakerPrefix(content)}
         onRegenerate={onRegenerate}
         onDelete={onDelete}
       />
-      {reviews ? <div className="mt-3 space-y-3">{reviews}</div> : null}
     </div>
   );
 }
@@ -2331,6 +2557,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   messageContext,
   restStory = null,
   reviews,
+  goal = null,
 }: {
   message: Message;
   thinking?: string | null;
@@ -2343,7 +2570,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   onRemoveAttachment?: (messageId: string, attachmentIndex: number) => void;
   onOpenActionResult: (result: MariWorkspaceActionResult) => void;
   onReviewActionResult: (reviewId: string) => void;
-  onOpenResource: (kind: MariReferencedResourceKind, id: string) => void;
+  onOpenResource: (resource: MariReferencedResource) => void;
   characterSubject?: CharacterPreviewModel | null;
   lorebookSubject?: LorebookPreviewModel | null;
   characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
@@ -2352,8 +2579,10 @@ const CompactMariMessage = memo(function CompactMariMessage({
   messageContext?: ProfessorMariAskContext | null;
   /** Only on the newest finished turn: the story Mari plays on its "Worked for" line. */
   restStory?: MariStoryState | null;
-  /** The reviews this turn is waiting on, after what she made and before the "Worked for" line. */
-  reviews?: ReactNode;
+  /** The reviews this turn holds, in its outcome group before the "Worked for" line. */
+  reviews?: MariTurnReviews;
+  /** M5a: the request she reported acting on, as the turn's first line. */
+  goal?: ReactNode;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const content = message.content ?? "";
@@ -2472,6 +2701,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
           lorebook={lorebookSubject}
           active={false}
           restStory={restStory}
+          goal={goal}
         >
           <MariWorkTimelineOutcome
             content={content}
@@ -2495,29 +2725,29 @@ const CompactMariMessage = memo(function CompactMariMessage({
     <>
       <TranscriptRow layout="document" className="group" marker={null}>
         <MariResourceSubject character={characterSubject} lorebook={lorebookSubject} className="mb-2" />
-        <CompactMarkdown content={stripProfessorMariSpeakerPrefix(content)} />
-        {actionResults.map((result) => (
-          <MariWorkspaceActionResultRow
-            key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
-            result={result}
-            onOpen={onOpenActionResult}
-            onReview={onReviewActionResult}
-            character={characterPreviews.get(result.resource.id)}
-            lorebook={lorebookPreviews.get(result.resource.id)}
+        {goal}
+        <MariAnswer restStory={restStory}>
+          <CompactMarkdown content={splitMariAnswerWhy(stripProfessorMariSpeakerPrefix(content)).answer} />
+          <MariWorkTimelineOutcome
+            content={content}
+            items={[]}
+            actionResults={actionResults}
+            characterPreviews={characterPreviews}
+            lorebookPreviews={lorebookPreviews}
+            onOpenResource={onOpenResource}
+            onOpenActionResult={onOpenActionResult}
+            onReviewActionResult={onReviewActionResult}
+            onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
+            onDelete={onDelete ? () => onDelete(message.id) : undefined}
+            reviews={reviews}
           />
-        ))}
-        <MariReplyActions
-          content={stripProfessorMariSpeakerPrefix(content)}
-          onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
-          onDelete={onDelete ? () => onDelete(message.id) : undefined}
-        />
+        </MariAnswer>
       </TranscriptRow>
       {thinking && (
         <TranscriptRow layout="document" marker={null}>
           <MariReasoningPanel thinking={thinking} />
         </TranscriptRow>
       )}
-      {reviews ? <div className="mt-3 space-y-3">{reviews}</div> : null}
     </>
   );
 });
@@ -5275,6 +5505,16 @@ export function HomeProfessorMariChat({
         onRenderPrompt={renderWorkspacePrompt}
       />
     );
+  // M5a: applied changes and answered prompts are "what changed"; everything still waiting is "needs your OK".
+  const renderTurnReviews = (messageId: string): MariTurnReviews => {
+    const entries = reviewsByTurn.byMessageId.get(messageId) ?? [];
+    const changed = ({ approval, outcome }: (typeof entries)[number]) =>
+      Boolean(outcome) || approval.kind === "applied_review";
+    return {
+      changed: entries.filter(changed).map(renderTurnPrompt),
+      needsOk: entries.filter((entry) => !changed(entry)).map(renderTurnPrompt),
+    };
+  };
   const headerDestinations = [
     { id: "chats", Icon: MessageCircle, label: localizeUi("navigation.common.chats"), count: 0 },
     {
@@ -5542,8 +5782,10 @@ export function HomeProfessorMariChat({
   );
 
   const openReferencedResource = useCallback(
-    (kind: MariReferencedResourceKind, id: string) => {
-      executeStateNavigation({ kind: "resource", resource: kind, id });
+    (resource: MariReferencedResource) => {
+      const target = mariReferenceTarget(resource, getOmnibarSettingsDestinations());
+      if (!target) return;
+      executeStateNavigation(target);
       if (omnibarMode) closeChatWindow();
     },
     [closeChatWindow, omnibarMode],
@@ -5569,32 +5811,62 @@ export function HomeProfessorMariChat({
     });
   }, [requestedReviewId, visiblePendingChangeReviewKey, workspaceDestination]);
 
-  const renderDisplayMessage = (message: Message) => {
-    const canManageMessage = true;
-    // #5740: under the reply the latest mutating round produced, show the
-    // phrase Mari reported acting on - user-visible by default so people can
-    // self-correct ("that wasn't a request!") before filing reports. One
-    // record only (latest round). The server also reads the record back to
-    // Mari as context, so asking her "why did you treat that as permission?"
-    // gets an answer grounded in this same record - never a gate either way.
+  // #5740 / M5a: on the turn the latest mutating round produced, its first line is the goal Mari
+  // reported acting on - user-visible by default so people can self-correct ("that wasn't a request!")
+  // before filing reports. One record only (latest round), read from status, never a model call. The
+  // server also reads the record back to Mari as context, so asking her "why did you treat that as
+  // permission?" gets an answer grounded in this same record - never a gate either way.
+  const renderGoal = (message: Message) => {
     const understoodRequest =
-      message.role === "assistant" &&
-      workspaceStatus?.latestUnderstoodRequest &&
-      workspaceStatus.latestUnderstoodRequest.messageId === message.id
+      message.role === "assistant" && workspaceStatus?.latestUnderstoodRequest?.messageId === message.id
         ? workspaceStatus.latestUnderstoodRequest
         : null;
-    const understoodRequestExpanded = understoodRequest !== null && expandedUnderstoodRequestMessageId === message.id;
-    const understoodRequestOutcomeLabel = understoodRequest
-      ? localizeUi(
-          understoodRequest.outcome === "held"
-            ? "ui.chat.homeprofessormarichat.heldForYourApproval"
-            : understoodRequest.outcome === "applied"
-              ? "ui.chat.homeprofessormarichat.actingOnOutcomeApplied"
-              : understoodRequest.outcome === "failed"
-                ? "ui.chat.homeprofessormarichat.actingOnOutcomeFailed"
-                : "ui.chat.homeprofessormarichat.actingOnOutcomeInterrupted",
-        )
-      : null;
+    if (!understoodRequest) return null;
+    const expanded = expandedUnderstoodRequestMessageId === message.id;
+    const outcomeLabel = localizeUi(
+      understoodRequest.outcome === "held"
+        ? "ui.chat.homeprofessormarichat.heldForYourApproval"
+        : understoodRequest.outcome === "applied"
+          ? "ui.chat.homeprofessormarichat.actingOnOutcomeApplied"
+          : understoodRequest.outcome === "failed"
+            ? "ui.chat.homeprofessormarichat.actingOnOutcomeFailed"
+            : "ui.chat.homeprofessormarichat.actingOnOutcomeInterrupted",
+    );
+    return (
+      <button
+        type="button"
+        onClick={() => setExpandedUnderstoodRequestMessageId((current) => (current === message.id ? null : message.id))}
+        aria-expanded={expanded}
+        title={localizeUi(
+          expanded ? "ui.chat.homeprofessormarichat.actingOnCollapse" : "ui.chat.homeprofessormarichat.actingOnExpand",
+        )}
+        className="mari-goal"
+      >
+        <span className="mari-goal__kicker">{localizeUi("ui.chat.homeprofessormarichat.goal")}</span>
+        {/* break-words: the phrase is model-authored and routinely carries unbreakable tokens (paths, URLs)
+            that would otherwise force a horizontal scrollbar onto the whole transcript. */}
+        <span className={expanded ? "min-w-0 whitespace-pre-wrap break-words" : "min-w-0 truncate"}>
+          {understoodRequest.text
+            ? localizeUi("ui.chat.homeprofessormarichat.goalQuote", { text: understoodRequest.text })
+            : localizeUi("ui.chat.homeprofessormarichat.goalNothingReported")}
+          {expanded && (
+            <span className="mt-0.5 block text-[0.625rem] opacity-80">
+              {understoodRequest.commands.join(", ")}
+              <span className="block">
+                {localizeUi("ui.chat.homeprofessormarichat.actingOnModeOutcomeValue1Value2", {
+                  value1: localize(MARI_PERMISSIONS_MODE_LABELS[understoodRequest.permissionsMode].label),
+                  value2: outcomeLabel,
+                })}
+              </span>
+            </span>
+          )}
+        </span>
+      </button>
+    );
+  };
+
+  const renderDisplayMessage = (message: Message) => {
+    const canManageMessage = true;
     const messageContext = getProfessorMariMessageContext(message);
     const messageCharacter = resolveContextCharacter(messageContext, characterPreviewById, characterFallbackName);
     const messageLorebook = resolveContextLorebook(messageContext, lorebookPreviewById, lorebookFallbackName);
@@ -5620,47 +5892,10 @@ export function HomeProfessorMariChat({
           lorebookPreviews={lorebookPreviewById}
           messageContext={messageContext}
           restStory={message.id === latestMessage?.id ? latestTurnRestStory : null}
-          reviews={reviewsByTurn.byMessageId.get(message.id)?.map(renderTurnPrompt)}
+          reviews={renderTurnReviews(message.id)}
+          goal={renderGoal(message)}
         />
         {recovery?.localMessageId === message.id ? sendFailedLine : null}
-        {understoodRequest && (
-          <button
-            type="button"
-            onClick={() =>
-              setExpandedUnderstoodRequestMessageId((current) => (current === message.id ? null : message.id))
-            }
-            aria-expanded={understoodRequestExpanded}
-            title={localizeUi(
-              understoodRequestExpanded
-                ? "ui.chat.homeprofessormarichat.actingOnCollapse"
-                : "ui.chat.homeprofessormarichat.actingOnExpand",
-            )}
-            className="mt-1 flex w-full items-start gap-1.5 rounded-md px-2 py-1 text-left text-[0.6875rem] text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)]"
-          >
-            <Quote size="0.6875rem" className="mt-0.5 shrink-0 opacity-70" />
-            {/* break-words: the phrase is model-authored and routinely carries
-                unbreakable tokens (paths, URLs) that would otherwise force a
-                horizontal scrollbar onto the whole transcript. */}
-            <span
-              className={understoodRequestExpanded ? "min-w-0 whitespace-pre-wrap break-words" : "min-w-0 truncate"}
-            >
-              {understoodRequest.text
-                ? localizeUi("ui.chat.homeprofessormarichat.actingOnValue1", { value1: understoodRequest.text })
-                : localizeUi("ui.chat.homeprofessormarichat.actingOnNothingReported")}
-              {understoodRequestExpanded && (
-                <span className="mt-0.5 block text-[0.625rem] opacity-80">
-                  {understoodRequest.commands.join(", ")}
-                  <span className="block">
-                    {localizeUi("ui.chat.homeprofessormarichat.actingOnModeOutcomeValue1Value2", {
-                      value1: localize(MARI_PERMISSIONS_MODE_LABELS[understoodRequest.permissionsMode].label),
-                      value2: understoodRequestOutcomeLabel ?? "",
-                    })}
-                  </span>
-                </span>
-              )}
-            </span>
-          </button>
-        )}
       </div>
     );
   };
@@ -6049,6 +6284,9 @@ export function HomeProfessorMariChat({
                                       lorebook={focusedLorebook}
                                       active={workspaceTimelineActive}
                                       restStory={latestTurnRestStory}
+                                      goal={
+                                        !workspaceTimelineActive && latestMessage ? renderGoal(latestMessage) : null
+                                      }
                                     >
                                       {!workspaceTimelineActive && latestMessage?.role === "assistant" ? (
                                         <MariWorkTimelineOutcome
@@ -6064,26 +6302,27 @@ export function HomeProfessorMariChat({
                                             !isBusy ? () => handleRegenerateMessage(latestMessage.id) : undefined
                                           }
                                           onDelete={!isBusy ? () => handleDeleteMessage(latestMessage.id) : undefined}
-                                          reviews={reviewsByTurn.byMessageId
-                                            .get(latestMessage.id)
-                                            ?.map(renderTurnPrompt)}
+                                          reviews={renderTurnReviews(latestMessage.id)}
                                         />
                                       ) : null}
                                     </MariWorkTimeline>
                                   ) : null}
-                                  {/* Mari rests under her newest reply (or tells her story: stopped, retry, review).
+                                  {/* Mari tells her story (stopped, retry, review) under her newest turn; she rests beside her reply.
                                     A failed send is its red line under your message, not also a line of hers.
                                     Held back while the live timeline is still mounted (M4): the reload that
                                     clears it also brings the trace whose timeline then shows her. */}
-                                  {(restingStory || latestMessage?.role === "assistant") &&
-                                  !latestTurnHasTrace &&
-                                  !recovery &&
-                                  !workspaceTimelineVisible ? (
-                                    <div className="mari-work-timeline__live">
-                                      <MariStorySprite
-                                        key={`${chatId}:${latestMessage?.id}:${restingStory ?? "idle"}`}
-                                        state={restingStory ?? "idle"}
-                                      />
+                                  {restingStory && !latestTurnHasTrace && !recovery && !workspaceTimelineVisible ? (
+                                    <div
+                                      className="mari-work-timeline__live"
+                                      data-past={latestMessage?.role === "assistant" ? "true" : undefined}
+                                    >
+                                      {/* Beside her reply when there is one (MariAnswer); here otherwise. */}
+                                      {latestMessage?.role === "assistant" ? null : (
+                                        <MariStorySprite
+                                          key={`${chatId}:${latestMessage?.id}:${restingStory ?? "idle"}`}
+                                          state={restingStory ?? "idle"}
+                                        />
+                                      )}
                                       {restingStory ? (
                                         <span className="text-xs text-[var(--muted-foreground)]">
                                           {t(`mari.stories.${restingStory}`)}

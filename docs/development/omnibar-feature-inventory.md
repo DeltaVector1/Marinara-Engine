@@ -71,14 +71,43 @@ Rules that must survive:
     chevron to the technical details. Her thoughts use the same line. The
     running step is only the live line (sprite, present-tense headline, timer);
     it is never also a row in the list.
+  - A run reads top to bottom (M5a, slice 36): the goal she reported acting on
+    (`latestUnderstoodRequest`, one muted "Goal" line that opens to the commands,
+    mode and outcome; no model call), her steps as phases, a short answer, its
+    reference cards, one outcome group, a "Why" line, then "Worked for".
+    `groupRunPhases` (`lib/mari-work-timeline.ts`) buckets back-to-back steps by
+    verb class (`stepVerbClass`, shared with the step icons): read/search are
+    "Looked at N things", create/edit/delete "Changed N things", anything else
+    "Ran N steps", plus "N failed". Only the phase she is in stays open (until she
+    starts answering); a finished phase folds to its line and opens on click.
+    App-data writes are labelled as writes ("Updating lorebook entry"), so they
+    land in "Changed".
+  - Her answer and what it made sit in one column with an avatar gutter on the
+    left (`MariAnswer`), always reserved so nothing reflows when she arrives.
   - When the run ends, the live line becomes "Worked for Ns · N steps" at the
     bottom of the turn and folds the steps and thoughts away. On the newest
-    turn her sprite stays on it (success just after the run, then idle, or the
-    retry / stopped / approval story); older turns keep only the words. A newest
-    reply without steps still gets her resting sprite on a line under it (with
-    the retry / stopped / approval words when that is her state), so she is
-    always in the transcript: the welcome sprite when empty, the live line while
-    she works, and the resting sprite under her newest reply.
+    turn her sprite rests beside her reply in that gutter, by its first line
+    (success just after the run, then idle, or the retry / stopped / approval
+    story); older turns keep only the words. A turn without words keeps her on
+    the "Worked for" line instead, and the retry / stopped / approval words stay
+    on a line under the turn. So she is always in the transcript: the welcome
+    sprite when empty, the live line while she works, and the resting sprite
+    beside her newest reply.
+  - Reference cards (`MariReferencedResources`, `.mari-ref-card`) come right
+    after her words: characters, personas and lorebooks she read, agents (keyed
+    by type; their live Enabled / Disabled state, or "Last run failed" from
+    `agent.runs`), chats, lorebook entries (with their lorebook's name) and
+    settings she names in bold by their exact label (`findMariSettingReferences`).
+    A list result shows only when her answer names it. A card opens a sheet with
+    the description and Open (`mariReferenceTarget` → `executeStateNavigation`;
+    an entry opens its lorebook at that entry).
+  - What changed (created/updated tiles, applied reviews, answered prompts) and
+    what needs your OK (held changes, install and sensitive-file prompts) render
+    as ONE hairline group (`MariOutcomeGroup`); the "What changed" / "Needs your
+    OK" labels show only when both exist. A trailing "Why:" bullet list in her
+    answer folds into one "Why" disclosure (`splitMariAnswerWhy`); the server
+    prompt asks for a one- or two-sentence lead, bold names for referenceable
+    things, and at most three "Why" bullets.
   - An applied DB edit (`MariEditEasyViewer`: updates, inserts and lorebook
     entries alike) is one summary row per record: avatar or monogram, name,
     "Updated character · description, tags, first message" and "N changes", or
@@ -106,7 +135,7 @@ Rules that must survive:
     to 44px on touch); View as prompt and a multi-row lorebook entry's Reject
     stay as quiet links. No panel sits inside another. A folded row's content
     is `inert`, so its hidden buttons leave the Tab order.
-  - A review renders inside the turn that asked for it, after her answer and
+  - A review renders inside the turn that asked for it, in its outcome group
     before "Worked for" (`assignReviewsToTurns`: the reply between the user
     message before `requestedAt` and the next one). One whose turn has no reply
     stays after the transcript.
@@ -365,7 +394,7 @@ This is the part most likely to break silently. All of it must survive.
   first paint; the dialog skips its own pop-in) and the magnifier or portrait
   docks onto the search icon, or onto the head end of Mari's sprite in the
   transcript (`data-mari-pull-target="mari"` on `MariStorySprite` and the
-  live-line sprite: the welcome sprite, her resting sprite under the newest
+  live-line sprite: the welcome sprite, her resting sprite beside the newest
   reply, or the working one), never the header. If that sprite is scrolled out
   of view, her circle reveals the dialog where it was let go and fades. The overlay is removed even if the dialog never mounts. The
   recognizer, the target choice and the sheet geometry are pure
@@ -542,8 +571,8 @@ Do not "fix" these; each was a decision.
 - **Escape does not walk a pane stack.** There is one level to step back from.
 - **Her sprite does not appear in the header or on older messages.** She has
   exactly one sprite in the transcript: the welcome sprite when it is empty,
-  the live line while she works, and a resting sprite under her newest reply
-  (on its "Worked for" line when it has steps). Her transcript rows are
+  the live line while she works, and a resting sprite beside her newest reply
+  (on its "Worked for" line only when the turn has no words). Her transcript rows are
   labelled instead.
 - **A prose rewrite is not painted red and green.** That reads as
   wrong-and-right, when it is a rewrite. Old text is struck and muted, new text

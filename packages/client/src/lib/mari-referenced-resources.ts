@@ -1,15 +1,27 @@
-// What Professor Mari looked at during a run, so her reply can show it as cards (a character's avatar
-// and name, a lorebook, a persona) instead of leaving you with "Reading character" steps only.
+import type { ProfessorMariNavigationTarget } from "./professor-mari-navigation";
+import type { OmnibarSettingsDestination } from "./omnibar-settings";
 
-export type MariReferencedResourceKind = "character" | "lorebook" | "persona";
+// What Professor Mari looked at during a run, so her reply can show it as cards (a character's avatar
+// and name, a lorebook, an agent and whether it is on, a chat, a lorebook entry, a setting) instead of
+// leaving you with "Reading character" steps only.
+
+export type MariReferencedResourceKind =
+  "character" | "lorebook" | "persona" | "agent" | "chat" | "lorebookEntry" | "setting";
 
 export interface MariReferencedResource {
   kind: MariReferencedResourceKind;
+  /** An agent's type (its editor opens by type), an entry's id, a setting's destination id. */
   id: string;
   /** From the tool output when the client has no preview of the record yet. */
   name: string | null;
   /** Came from a list or search, not a direct read: show it only if her answer names it. */
   fromList: boolean;
+  /** An entry's lorebook, so the card opens the lorebook at that entry. */
+  parentId?: string;
+  /** An agent as she read it: on, off, or its last run failed. */
+  state?: "on" | "off" | "failed";
+  /** One line about it from the tool output (an agent's or entry's description). */
+  detail?: string;
 }
 
 interface MariToolCallLike {
@@ -19,7 +31,7 @@ interface MariToolCallLike {
   output: string | null;
 }
 
-const READ_ACTION = /^(character|lorebook|persona)\.(get|list|search)$/u;
+const READ_ACTION = /^(character|lorebook|persona|agent|chat)\.(get|list|search|runs|entries|getEntry)$/u;
 /** A list of 200 characters is not an answer; the cards are for what she picked out. */
 const MAX_REFERENCES = 4;
 
@@ -58,25 +70,87 @@ function listRecords(parsed: unknown): Record<string, unknown>[] {
   return (list ?? []).map(asRecord).filter((record): record is Record<string, unknown> => record !== null);
 }
 
+function recordDetail(record: Record<string, unknown>): string | undefined {
+  const text = record.description;
+  return typeof text === "string" && text.trim() ? text.trim() : undefined;
+}
+
+/** `enabled` is a boolean in merged agent rows and "true"/"false" in raw config rows. */
+function agentState(record: Record<string, unknown>): MariReferencedResource["state"] {
+  if (record.enabled === undefined) return undefined;
+  return record.enabled === true || record.enabled === "true" ? "on" : "off";
+}
+
 export function collectMariReferencedResources(tools: readonly MariToolCallLike[]): MariReferencedResource[] {
   const seen = new Map<string, MariReferencedResource>();
-  const add = (kind: MariReferencedResourceKind, id: unknown, name: string | null, fromList: boolean) => {
+  const add = (
+    kind: MariReferencedResourceKind,
+    id: unknown,
+    name: string | null,
+    fromList: boolean,
+    extra: Pick<MariReferencedResource, "parentId" | "state" | "detail"> = {},
+  ) => {
     if (typeof id !== "string" || !id.trim()) return;
     const key = `${kind}:${id}`;
     const existing = seen.get(key);
-    // A direct read beats a list mention of the same record.
-    if (existing && (fromList || !existing.fromList)) return;
-    seen.set(key, { kind, id, name: name ?? existing?.name ?? null, fromList });
+    seen.set(key, {
+      kind,
+      id,
+      // A direct read's name beats a list's.
+      name: (fromList ? (existing?.name ?? name) : (name ?? existing?.name)) ?? null,
+      fromList: fromList && (existing?.fromList ?? true),
+      parentId: extra.parentId ?? existing?.parentId,
+      detail: extra.detail ?? existing?.detail,
+      // A failed run is the news about an agent, whatever an earlier read said about it.
+      state: existing?.state === "failed" ? "failed" : (extra.state ?? existing?.state),
+    });
   };
   for (const tool of tools) {
     if (tool.status !== "done" || !/app[ _-]?data/iu.test(tool.name)) continue;
     const input = asRecord(tool.input);
     const match = typeof input?.action === "string" ? READ_ACTION.exec(input.action) : null;
     if (!match) continue;
-    const kind = match[1] as MariReferencedResourceKind;
+    const resource = match[1]!;
+    const verb = match[2]!;
     const stdout = stdoutOf(tool.output);
     const parsed = parseOutput(stdout);
-    if (match[2] === "get") {
+    if (resource === "agent") {
+      // Built-in agents open by type, and so do custom ones (the editor matches either).
+      if (verb === "runs") {
+        const runs = listRecords(parsed);
+        add("agent", input?.type ?? input?.agentType, null, false, {
+          state: runs[0]?.success === false ? "failed" : undefined,
+        });
+      } else if (verb === "get") {
+        const record = asRecord(parsed);
+        add("agent", record?.type ?? input?.type ?? input?.agentType, record ? recordName(record) : null, false, {
+          state: record ? agentState(record) : undefined,
+          detail: record ? recordDetail(record) : undefined,
+        });
+      } else {
+        for (const record of listRecords(parsed)) {
+          add("agent", record.type, recordName(record), true, {
+            state: agentState(record),
+            detail: recordDetail(record),
+          });
+        }
+      }
+      continue;
+    }
+    if (resource === "lorebook" && (verb === "entries" || verb === "getEntry")) {
+      const records = verb === "entries" ? listRecords(parsed) : [asRecord(parsed)].filter((r) => r !== null);
+      for (const record of records) {
+        const parentId = record.lorebookId ?? input?.lorebookId ?? input?.id;
+        add("lorebookEntry", record.id ?? input?.entryId, recordName(record), verb === "entries", {
+          parentId: typeof parentId === "string" ? parentId : undefined,
+          detail: recordDetail(record),
+        });
+      }
+      continue;
+    }
+    if (verb === "runs" || verb === "entries" || verb === "getEntry") continue;
+    const kind = resource as MariReferencedResourceKind;
+    if (verb === "get") {
       const record = asRecord(parsed);
       const outputName =
         (record && recordName(record)) ?? stdout.match(/"(?:name|title)"\s*:\s*"((?:[^"\\]|\\.){1,80})"/u)?.[1];
@@ -91,6 +165,25 @@ export function collectMariReferencedResources(tools: readonly MariToolCallLike[
     }
   }
   return [...seen.values()];
+}
+
+/**
+ * Settings she names in bold, by their exact label ("turn on **Hide chat Help button**"), as cards that
+ * open that setting. Only bold names count, so a passing word such as "language" never becomes a card.
+ */
+export function findMariSettingReferences(
+  replyText: string,
+  settings: readonly { id: string; title: string }[],
+): MariReferencedResource[] {
+  const byLabel = new Map(settings.map((setting) => [setting.title.toLocaleLowerCase(), setting]));
+  const found = new Map<string, MariReferencedResource>();
+  for (const [, bold] of replyText.matchAll(/\*\*(.+?)\*\*/gu)) {
+    const setting = byLabel.get(bold!.trim().toLocaleLowerCase());
+    if (setting && !found.has(setting.id)) {
+      found.set(setting.id, { kind: "setting", id: setting.id, name: setting.title, fromList: true });
+    }
+  }
+  return [...found.values()];
 }
 
 /**
@@ -116,4 +209,27 @@ export function selectMariReplyReferences(
     .sort((a, b) => (a.at < 0 ? Infinity : a.at) - (b.at < 0 ? Infinity : b.at))
     .slice(0, MAX_REFERENCES)
     .map(({ resource }) => resource);
+}
+
+/** Where a card goes when you open it; null when it cannot go anywhere (an entry without its lorebook). */
+export function mariReferenceTarget(
+  resource: MariReferencedResource,
+  settings: readonly OmnibarSettingsDestination[],
+): ProfessorMariNavigationTarget | null {
+  switch (resource.kind) {
+    case "chat":
+      return { kind: "chat", chatId: resource.id };
+    case "lorebookEntry":
+      return resource.parentId
+        ? { kind: "resource", resource: "lorebook", id: resource.parentId, entryId: resource.id }
+        : null;
+    case "setting": {
+      const setting = settings.find((candidate) => candidate.id === resource.id);
+      return setting
+        ? { kind: "settings", tab: setting.tab, controlId: setting.controlId, sectionId: setting.sectionId }
+        : null;
+    }
+    default:
+      return { kind: "resource", resource: resource.kind, id: resource.id };
+  }
 }

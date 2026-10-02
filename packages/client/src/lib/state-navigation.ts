@@ -54,7 +54,8 @@ export function executeStateNavigation(
     if (target.resource === "character") ui.openCharacterDetail(target.id);
     else if (target.resource === "persona") ui.openPersonaDetail(target.id);
     else if (target.resource === "preset") ui.openPresetDetail(target.id);
-    else if (target.resource === "lorebook") ui.openLorebookDetail(target.id);
+    else if (target.resource === "lorebook")
+      ui.openLorebookDetail(target.id, target.entryId ? { initialTab: "entries", entryId: target.entryId } : undefined);
     else ui.openAgentDetail(target.id);
   } else if (target.kind === "window") {
     if (target.window === "documentation") ui.openModal("docs-viewer");

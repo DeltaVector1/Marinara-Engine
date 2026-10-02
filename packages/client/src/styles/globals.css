@@ -2657,6 +2657,182 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   min-width: 0;
 }
 
+/* M5a: one-line disclosures (a run phase, her "Why"): a quiet label with a chevron that turns when open. */
+.mari-disclosure {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 1.9rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: -0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  list-style: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.mari-disclosure::-webkit-details-marker {
+  display: none;
+}
+
+.mari-disclosure:hover {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  color: var(--foreground);
+}
+
+.mari-disclosure__chevron {
+  opacity: 0.7;
+  transition: transform 0.16s ease;
+}
+
+details[open] > .mari-disclosure .mari-disclosure__chevron {
+  transform: rotate(90deg);
+}
+
+/* The phase she is in reads in full colour; a finished one folds to "Looked at 4 things". */
+.mari-phase[data-state="live"] > .mari-disclosure {
+  color: var(--foreground);
+}
+
+.mari-phase__count {
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.mari-phase__failed {
+  color: var(--destructive);
+  font-size: 0.75rem;
+}
+
+.mari-phase__body {
+  display: grid;
+  min-width: 0;
+  margin: 0.1rem 0 0.2rem 0.4rem;
+  padding-inline-start: 0.85rem;
+  border-inline-start: 1px solid var(--mari-hairline);
+}
+
+/* The goal she reported acting on: one muted line above the run. */
+.mari-goal {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-inline-start: -0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  text-align: start;
+  transition: background-color 0.15s ease;
+}
+
+.mari-goal:hover {
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+.mari-goal__kicker {
+  flex: none;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Her reply column: an avatar gutter that is always there, so nothing reflows when she arrives in it.
+   On her newest finished reply she rests there beside the first line, like an avatar beside a bubble. */
+.mari-answer {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: 0.5rem;
+  padding-inline-start: 3.5rem;
+}
+
+.mari-answer[data-sprite="true"] {
+  min-height: 4.5rem;
+}
+
+.mari-answer__sprite {
+  position: absolute;
+  inset-block-start: -0.6rem;
+  inset-inline-start: 0;
+}
+
+/* Under her answer: reference cards, the outcome group, "Why", then the reply actions. */
+.mari-run-outcome {
+  display: grid;
+  min-width: 0;
+  gap: 0.6rem;
+}
+
+.mari-run-outcome > .mari-ref-cards {
+  margin-top: 0;
+}
+
+/* What changed and what needs your OK: ONE group of hairline rows. The rows inside drop their own frames. */
+.mari-outcome {
+  overflow: hidden;
+  border: 1px solid var(--mari-hairline);
+  border-radius: 0.875rem;
+  background: var(--mari-group-bg);
+}
+
+.mari-outcome__section + .mari-outcome__section,
+.mari-outcome__section > * + * {
+  border-top: 1px solid var(--mari-divider);
+}
+
+.mari-outcome__label {
+  padding: 0.6rem 0.9rem 0.1rem;
+  color: var(--muted-foreground);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mari-outcome__label + * {
+  border-top: 0 !important;
+}
+
+.mari-outcome .mari-tile,
+.mari-outcome .mari-inline-review > .mari-card,
+.mari-outcome .mari-inline-review > .mari-edit {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.mari-outcome .mari-tile {
+  padding: 0.55rem 0.9rem 0.55rem 0.75rem;
+}
+
+.mari-outcome__section > .mari-note {
+  padding: 0.6rem 0.9rem;
+}
+
+.mari-why > .mari-message-content {
+  padding-inline-start: 0.25rem;
+  color: var(--muted-foreground);
+}
+
+.mari-ref-card[data-failed="true"] .mari-ref-card__tag {
+  color: var(--destructive);
+}
+
 /* The live headline: what Mari does now, written in letter by letter under a soft light sweep. */
 .mari-work-timeline__phrase {
   position: relative;

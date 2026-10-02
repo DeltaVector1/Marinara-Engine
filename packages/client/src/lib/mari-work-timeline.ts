@@ -43,6 +43,100 @@ export function buildWorkTimelineBlocks<Tool>(items: readonly WorkTimelineItem<T
   return blocks;
 }
 
+/** A step's verb class, read from its title ("Reading character" → read). Step icons and run phases share it. */
+export type StepVerbClass = "search" | "create" | "delete" | "edit" | "read";
+
+const STEP_VERB_PATTERNS: ReadonlyArray<[RegExp, StepVerbClass]> = [
+  [/^(search|find|grep|look)/i, "search"],
+  [/^(creat|add|install|import)/i, "create"],
+  [/^(delet|remov)/i, "delete"],
+  [/^(edit|updat|writ|sav|set|chang|renam|appl|replac|mov|cop|fix)/i, "edit"],
+  [/^(read|load|list|check|inspect|view|open|fetch|get|preview)/i, "read"],
+];
+
+export function stepVerbClass(title: string): StepVerbClass | null {
+  return STEP_VERB_PATTERNS.find(([pattern]) => pattern.test(title))?.[1] ?? null;
+}
+
+export type RunPhaseKind = "look" | "change" | "other";
+
+const PHASE_KIND: Record<StepVerbClass, RunPhaseKind> = {
+  search: "look",
+  read: "look",
+  create: "change",
+  delete: "change",
+  edit: "change",
+};
+
+export interface RunPhase<Tool> {
+  id: string;
+  kind: RunPhaseKind;
+  /** Its steps, with the thoughts and words that led up to each, in order. */
+  items: WorkTimelineItem<Tool>[];
+  steps: number;
+  failed: number;
+  /** Only the phase she is still in is open; a finished phase folds to its one summary line. */
+  open: boolean;
+}
+
+/**
+ * M5a: a run as phases. Back-to-back steps of one kind (looking, changing, anything else) share a phase,
+ * together with the thoughts and words that led up to them. What came before her first step stays as it
+ * was (`intro`), and what came after her last step is her answer (`tail`), so neither moves when a phase
+ * starts. The last phase stays open while she runs, until she starts answering.
+ */
+export function groupRunPhases<Tool>(
+  items: readonly WorkTimelineItem<Tool>[],
+  { active, describe }: { active: boolean; describe: (tool: Tool) => { title: string; failed: boolean } },
+): { intro: WorkTimelineItem<Tool>[]; phases: RunPhase<Tool>[]; tail: WorkTimelineItem<Tool>[] } {
+  const intro: WorkTimelineItem<Tool>[] = [];
+  const phases: RunPhase<Tool>[] = [];
+  let pending: WorkTimelineItem<Tool>[] = [];
+  for (const item of items) {
+    if (item.type === "status") continue;
+    if (item.type !== "tool") {
+      pending.push(item);
+      continue;
+    }
+    const step = describe(item.tool);
+    const verb = stepVerbClass(step.title);
+    const kind = verb ? PHASE_KIND[verb] : "other";
+    if (phases.length === 0) intro.push(...pending.splice(0));
+    let phase = phases.at(-1);
+    if (phase?.kind !== kind) {
+      phase = { id: item.id, kind, items: [], steps: 0, failed: 0, open: false };
+      phases.push(phase);
+    }
+    phase.items.push(...pending, item);
+    pending = [];
+    phase.steps += 1;
+    if (step.failed) phase.failed += 1;
+  }
+  const last = phases.at(-1);
+  const answering = pending.some((item) => item.type === "text" && item.content.trim());
+  if (last && active && !answering) last.open = true;
+  return { intro, phases, tail: pending };
+}
+
+/**
+ * Her answer without a trailing "Why" list, and that list's points: the client folds them into one
+ * line you can open. Only a heading-like "Why" line followed by nothing but bullets counts.
+ */
+export function splitMariAnswerWhy(content: string): { answer: string; why: string[] } {
+  const lines = content.replace(/\s+$/u, "").split("\n");
+  const heading = lines.findLastIndex((line) =>
+    /^\s*(?:#{1,4}\s*)?(?:\*\*|__)?why(?: it works| this works| it matters)?\s*:?\s*(?:\*\*|__)?\s*:?\s*$/iu.test(line),
+  );
+  if (heading < 0) return { answer: content, why: [] };
+  const rest = lines.slice(heading + 1).filter((line) => line.trim());
+  const bullet = /^\s*(?:[-*•]|\d+[.)])\s+(.+)$/u;
+  if (rest.length === 0 || !rest.every((line) => bullet.test(line))) return { answer: content, why: [] };
+  return {
+    answer: lines.slice(0, heading).join("\n").trimEnd(),
+    why: rest.map((line) => bullet.exec(line)![1]!.trim()),
+  };
+}
+
 // ponytail: English-only. Step titles are English literals in inferToolPresentation; localize both
 // together if they ever move into en.json.
 // Keyed by the stem left after stripping "-ing", so silent-e verbs drop the e ("making" → "mak").
