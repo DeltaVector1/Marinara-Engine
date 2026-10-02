@@ -125,9 +125,13 @@ Laisse-le activé, sauf raison précise de renvoyer l'ancien raisonnement dans l
 
 Utilise-le pour les modèles incapables de voir les images. À l'activation, choisis une connexion dans le menu déroulant **Captioning Connection**. Un endpoint uniquement textuel peut échouer si tu le désignes par erreur. Ce réglage est désactivé par défaut.
 
+Le champ **Captioning Prompt** (prompt de description), sous le menu déroulant, contient les instructions envoyées avec chaque image. Modifie-le pour changer les descriptions, par exemple pour demander plus de détails. Le bouton de réinitialisation à côté du libellé rétablit le prompt par défaut, tout comme le fait de vider le champ. Le prompt est enregistré pour ce chat uniquement, et **Save as Connection Default** (enregistrer comme valeur par défaut de la connexion) ne le copie pas.
+
+Si la description échoue, par exemple parce que la connexion utilisée pour les descriptions est défaillante, a été supprimée ou ne renvoie rien, la réponse s'arrête avec l'erreur **Image captioning failed**. Marinara n'envoie pas l'image elle-même à la place. Répare ou remplace cette connexion, ou désactive Image Captioning.
+
 ## Save as Connection Default
 
-Tout en bas de **Advanced Parameters**, le bouton **Save as Connection Default** (enregistrer comme valeur par défaut de la connexion) inscrit les valeurs de paramètres actuelles sur la connexion elle-même. Ensuite, les nouveaux chats qui utilisent cette même connexion partent de ces valeurs.
+Tout en bas de **Advanced Parameters**, le bouton **Save as Connection Default** inscrit les valeurs de paramètres actuelles sur la connexion elle-même. Ensuite, les nouveaux chats qui utilisent cette même connexion partent de ces valeurs.
 
 Le bouton n'apparaît que pour une connexion normale et enregistrée. Il reste masqué pour le pool de connexions aléatoires et pour le modèle local intégré.
 

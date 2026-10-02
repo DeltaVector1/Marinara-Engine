@@ -125,6 +125,10 @@ Ustawienie **Image Captioning** zmienia sposób, w jaki AI obsługuje załączon
 
 Przydaje się przy modelach, które nie widzą obrazów. Po włączeniu wybierz połączenie z listy rozwijanej **Captioning Connection**. Endpoint obsługujący tylko tekst może zgłosić błąd, jeśli wskażesz niewłaściwe połączenie. To ustawienie jest domyślnie wyłączone.
 
+Pole **Captioning Prompt** (prompt do opisywania obrazów) pod listą rozwijaną zawiera instrukcje wysyłane razem z każdym obrazem. Edytuj je, aby zmienić opisy, na przykład poprosić o więcej szczegółów. Przycisk resetowania obok etykiety przywraca domyślny prompt, podobnie jak wyczyszczenie pola. Prompt jest zapisywany tylko dla tego czatu, a przycisk **Save as Connection Default** go nie kopiuje.
+
+Jeśli opisywanie się nie powiedzie, na przykład dlatego, że połączenie używane do opisów jest uszkodzone, zostało usunięte albo nic nie zwraca, generowanie odpowiedzi zatrzymuje się z błędem **Image captioning failed**. Marinara nie wysyła wtedy samego obrazu zamiast opisu. Napraw lub zmień to połączenie albo wyłącz ustawienie Image Captioning.
+
 ## Save as Connection Default
 
 Na dole sekcji **Advanced Parameters** przycisk **Save as Connection Default** zapisuje bieżące wartości parametrów w samym połączeniu. Od tej pory nowe czaty korzystające z tego połączenia startują z tych wartości.

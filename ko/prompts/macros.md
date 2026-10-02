@@ -69,7 +69,7 @@
 
 Phonetic 이름 필드는 2가지 역할을 합니다. 음성 합성이 이름을 어떻게 발음할지 정하고, `{{charNamePhonetic}}`과 `{{userNamePhonetic}}`에도 값을 공급합니다. 이 필드는 **Character Editor**와 **Persona Editor** 양쪽에 있습니다.
 
-현재 채팅에 없는 캐릭터를 참조하려면 카드 ID를 복사해 `{{V1StGXR8_Z5jdHi6B-myT}}`처럼 중괄호 두 개 안에 직접 넣으세요. `<`나 `>` 문자는 넣지 마세요. Marinara는 매크로를 캐릭터 이름으로 바꾸고 카드의 Description, Personality, Appearance, Backstory, Scenario, Example Dialogue를 시스템 프롬프트에 추가합니다. 채팅 메시지, 프롬프트 필드, 활성화된 로어북 항목에서 동작합니다. 카드의 첫 인사말은 제외합니다. 연결된 활성 로어북에는 원래 키워드, constant, 필터, 확률, 토큰 예산 규칙이 적용됩니다. 이미 채팅에 있는 캐릭터라면 매크로는 그대로 캐릭터 이름으로 바뀌고, 카드는 한 번 더 추가되지 않습니다.
+현재 채팅에 없는 캐릭터를 참조하려면 카드 ID를 복사해 `{{V1StGXR8_Z5jdHi6B-myT}}`처럼 중괄호 두 개 안에 직접 넣으세요. `<`나 `>` 문자는 넣지 마세요. Marinara는 매크로를 캐릭터 이름으로 바꿉니다. 프롬프트 프리셋을 쓰는 Roleplay 채팅에서는 카드의 Description, Personality, Appearance, Backstory, Scenario, Example Dialogue도 시스템 프롬프트에 추가하며, 그 밖의 채팅에서는 매크로가 이름으로만 바뀝니다. 채팅 메시지와 프롬프트 필드에서 동작하고, 프리셋을 쓰는 Roleplay 채팅에서는 활성화된 로어북 항목에서도 동작합니다. 카드의 첫 인사말은 제외합니다. 연결된 활성 로어북에는 원래 키워드, constant, 필터, 확률, 토큰 예산 규칙이 적용됩니다. 이미 채팅에 있는 캐릭터라면 매크로는 그대로 캐릭터 이름으로 바뀌고, 카드는 한 번 더 추가되지 않습니다.
 
 현재 선택되지 않은 페르소나를 참조하려면 복사한 ID 앞에 `persona-`를 붙이세요. 예: `{{persona-P1StGXR8_Z5jdHi6B-myT}}`. Marinara는 매크로를 페르소나 이름으로 바꾸고 Description, Personality, Appearance, Backstory, Scenario 필드를 ID Macro Cards에 추가합니다. 연결된 로어북은 평소의 활성화 규칙을 따릅니다.
 

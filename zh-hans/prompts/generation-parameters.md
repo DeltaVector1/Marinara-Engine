@@ -125,9 +125,13 @@
 
 看不了图的模型就用这个。开启后，在 **Captioning Connection**(描述用连接) 下拉菜单里选一个连接。指到不合适的连接上，纯文本端点可能会失败。这项设置默认关闭。
 
+下拉菜单下方的 **Captioning Prompt**(图像描述提示词) 输入框里，是随每张图片一起发送的指令。想改变描述的写法，比如要求写得更详细，就编辑它。点标签旁边的重置按钮可以恢复默认提示词，清空输入框也一样。这段提示词只保存在当前聊天里，**Save as Connection Default**(保存为连接默认值) 也不会复制它。
+
+如果图像描述失败，比如描述用连接坏了、被删除了或者什么都没返回，回复就会中止，并报 **Image captioning failed** 错误。Marinara 不会改为直接发送图片本身。请修复或更换描述用连接，或者关闭 Image Captioning。
+
 ## Save as Connection Default
 
-在 **Advanced Parameters** 底部，**Save as Connection Default**(保存为连接默认值) 按钮会把当前的参数值写到连接本身上。之后凡是用这个连接新建的聊天，都从这些值开始。
+在 **Advanced Parameters** 底部，**Save as Connection Default** 按钮会把当前的参数值写到连接本身上。之后凡是用这个连接新建的聊天，都从这些值开始。
 
 这个按钮只对正常保存的连接出现，随机连接池和内置本地模型下不显示。
 

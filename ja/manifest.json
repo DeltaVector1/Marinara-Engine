@@ -624,13 +624,13 @@
     },
     {
       "path": "prompts/generation-parameters.md",
-      "sha256": "81f23cbca7b105a9ac9bdc382a9978151c8eef633e2c420d1359bc95cb4527c4",
-      "bytes": 20783
+      "sha256": "cb4b4022cde9de63a72bbec9bf1cb2e4823ebe7c119206695fbc690f6d09695a",
+      "bytes": 21764
     },
     {
       "path": "prompts/macros.md",
-      "sha256": "5f52fb2dc228538f54bc6e939feeb8d711bb85f8eb87d8819b34a06643048c68",
-      "bytes": 29146
+      "sha256": "5bb1fe0470d3559e4af74455f38301bd99860ef411d10d0938c35b158c590da1",
+      "bytes": 29387
     },
     {
       "path": "prompts/preset-variables.md",

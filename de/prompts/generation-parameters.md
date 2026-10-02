@@ -125,9 +125,13 @@ Lass die Option an, solange du keinen klaren Grund hast, altes Reasoning erneut 
 
 Das hilft bei Modellen, die keine Bilder sehen können. Wähl nach dem Aktivieren eine Verbindung im Dropdown-Menü **Captioning Connection**. Ein reiner Text-Endpunkt kann scheitern, wenn du die falsche Verbindung angibst. Standardmäßig ist die Einstellung aus.
 
+Das Feld **Captioning Prompt** (Prompt für die Bildbeschreibung) unter dem Dropdown-Menü enthält die Anweisungen, die mit jedem Bild mitgeschickt werden. Bearbeite es, um die Beschreibungen zu ändern, etwa für mehr Details. Die Schaltfläche zum Zurücksetzen neben der Beschriftung stellt den Standard-Prompt wieder her; dasselbe passiert, wenn du das Feld leerst. Der Prompt wird nur für diesen Chat gespeichert, und **Save as Connection Default** (als Verbindungsstandard speichern) übernimmt ihn nicht.
+
+Schlägt die Bildbeschreibung fehl, etwa weil die gewählte Verbindung defekt oder gelöscht ist oder nichts zurückliefert, bricht die Antwort mit dem Fehler **Image captioning failed** ab. Marinara schickt dann nicht ersatzweise das Bild selbst. Repariere die Verbindung für die Bildbeschreibung, wähl eine andere oder schalte Image Captioning aus.
+
 ## Save as Connection Default
 
-Ganz unten in **Advanced Parameters** schreibt die Schaltfläche **Save as Connection Default** (als Verbindungsstandard speichern) die aktuellen Parameterwerte in die Verbindung selbst. Neue Chats über dieselbe Verbindung starten danach mit diesen Werten.
+Ganz unten in **Advanced Parameters** schreibt die Schaltfläche **Save as Connection Default** die aktuellen Parameterwerte in die Verbindung selbst. Neue Chats über dieselbe Verbindung starten danach mit diesen Werten.
 
 Die Schaltfläche erscheint nur bei einer normalen, gespeicherten Verbindung. Beim Zufallspool an Verbindungen und beim eingebauten lokalen Modell bleibt sie ausgeblendet.
 
