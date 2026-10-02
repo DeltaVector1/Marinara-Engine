@@ -1121,6 +1121,7 @@ export function App() {
           position={notificationPosition === "bottom" ? "bottom-center" : "top-center"}
           swipeDirections={["left", "right", notificationPosition === "bottom" ? "bottom" : "top"]}
           offset="4rem"
+          mobileOffset={{ top: "calc(env(safe-area-inset-top) + 3.5rem)", bottom: "1rem" }}
           theme={theme}
           closeButton
           duration={TOAST_DURATION_MS}

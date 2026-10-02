@@ -67,6 +67,8 @@ import { api, ApiError } from "../../lib/api-client";
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { HOME_CHAT_MODE_ACCENTS } from "../../lib/home-chat-mode-style";
 import { resolveCapabilityPackageDisplay } from "../../lib/capability-package-localization";
+import { isApplePlatform } from "../../lib/command-center";
+import { formatShortcutKey } from "../../lib/keyboard-shortcuts";
 import { executeStateNavigation } from "../../lib/state-navigation";
 import {
   resolveProfessorMariNavigation,
@@ -1858,10 +1860,12 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                   <RefreshCw size="0.88rem" />
                 </span>
               </div>
-              <div
-                className="mari-home-browser-address flex h-7 min-w-0 flex-1 items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--marinara-app-accent-solid)_44%,var(--border))] px-2.5 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_8%,transparent),0_0_18px_-14px_var(--marinara-app-accent-solid)] sm:h-9 sm:px-3"
-                role="status"
-                aria-label={t("home.browser.addressLabel", { address })}
+              <button
+                type="button"
+                onClick={() => useUIStore.getState().setOmnibarOpen(true)}
+                className="mari-home-browser-address flex h-7 min-w-0 flex-1 items-center gap-2 rounded-full border border-[color-mix(in_srgb,var(--marinara-app-accent-solid)_44%,var(--border))] px-2.5 text-left shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_8%,transparent),0_0_18px_-14px_var(--marinara-app-accent-solid)] sm:h-9 sm:px-3"
+                aria-label={t("home.browser.searchLabel")}
+                title={t("home.browser.addressLabel", { address })}
                 data-component="HomeBrowserHub.Address"
               >
                 <img
@@ -1872,12 +1876,14 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                 <span className="truncate font-mono text-[0.67rem] text-[var(--foreground)] sm:text-[0.72rem]">
                   {address}
                 </span>
-                <Star
-                  size="0.72rem"
-                  className="ml-auto shrink-0 text-[var(--marinara-app-accent-solid)]"
+                <kbd
+                  className="ml-auto shrink-0 rounded border border-[var(--border)] bg-[var(--secondary)]/60 px-1 py-0.5 font-sans text-[0.6rem] text-[var(--muted-foreground)]"
                   aria-hidden="true"
-                />
-              </div>
+                >
+                  {formatShortcutKey("Mod", isApplePlatform())}
+                  {formatShortcutKey("K", isApplePlatform())}
+                </kbd>
+              </button>
             </div>
           ) : null}
 

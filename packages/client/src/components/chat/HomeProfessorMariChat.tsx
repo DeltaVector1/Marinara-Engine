@@ -293,8 +293,6 @@ const MARI_PERMISSIONS_MODE_ICONS: Record<MariPermissionsMode, LucideIcon> = {
   bypass: ShieldOff,
 };
 
-const PROFESSOR_MARI_NO_CONNECTION_TOAST =
-  "You haven't set up a connection yet! Click the link icon beside the paperclip to select one.";
 const MARI_WELCOME =
   "Howdy, welcome to Marinara Engine!\n\nFeeling a little lost? It is not a skill issue yet, I am here to help! Ask me about the app, your setup, or what to do next.\n\nNeed something made or changed? I can create character cards, personas, lorebooks, chats, and presets, and I can make reversible local workspace changes with a Keep/Restore review. Select a connection via the link icon beside the paperclip first and then ask away!";
 const NEW_SKILL_CONTENT = `# Custom Professor Mari Skill
@@ -5224,7 +5222,6 @@ export function HomeProfessorMariChat({
       if (!effectiveConnectionId) {
         // Fix inside the Mari pane, not the right panel: that panel renders behind
         // the omnibar (z-100) and would silently swallow this request.
-        toast.error(PROFESSOR_MARI_NO_CONNECTION_TOAST);
         setConnectionMenuOpen(true);
         return;
       }
@@ -5285,7 +5282,6 @@ export function HomeProfessorMariChat({
     async (messageId: string, content: string) => {
       if (isBusy || regenerationInFlightRef.current || !chatId || !content.trim()) return;
       if (!effectiveConnectionId) {
-        toast.error(PROFESSOR_MARI_NO_CONNECTION_TOAST);
         setConnectionMenuOpen(true);
         return;
       }
@@ -5402,7 +5398,6 @@ export function HomeProfessorMariChat({
     if (await handleTitleCommand(messageText)) return;
 
     if (!effectiveConnectionId) {
-      toast.error(PROFESSOR_MARI_NO_CONNECTION_TOAST);
       setConnectionMenuOpen(true);
       return;
     }
@@ -5611,29 +5606,39 @@ export function HomeProfessorMariChat({
     };
   };
   const headerDestinations = [
-    { id: "chats", Icon: MessageCircle, label: localizeUi("navigation.common.chats"), count: 0 },
+    {
+      id: "chats",
+      Icon: MessageCircle,
+      label: localizeUi("navigation.common.chats"),
+      shortLabel: undefined,
+      count: 0,
+    },
     {
       id: "skills",
       Icon: Brain,
       label: localizeUi("ui.chat.homeprofessormarichat.skills"),
+      shortLabel: undefined,
       count: activeSkillCount,
     },
     {
       id: "memories",
       Icon: BookOpen,
       label: localizeUi("ui.chat.homeprofessormarichat.memories"),
+      shortLabel: undefined,
       count: activeMemoryCount,
     },
     {
       id: "context",
       Icon: Eye,
       label: localizeUi("ui.chat.homeprofessormarichat.whatMariSees"),
+      shortLabel: localizeUi("ui.chat.homeprofessormarichat.whatMariSeesChipsLabel"),
       count: persistentContextCount + oneShotContextFacets.length,
     },
   ] as const satisfies ReadonlyArray<{
     id: Exclude<ProfessorMariWorkspaceDestination, "chat">;
     Icon: typeof MessageCircle;
     label: string;
+    shortLabel?: string;
     count: number;
   }>;
 
@@ -5719,7 +5724,7 @@ export function HomeProfessorMariChat({
               className="mari-omnibar-header-destinations"
               aria-label={localizeUi("ui.chat.homeprofessormarichat.workspaceDestinations")}
             >
-              {headerDestinations.map(({ id, Icon, label, count }) => (
+              {headerDestinations.map(({ id, Icon, label, shortLabel, count }) => (
                 <button
                   key={id}
                   type="button"
@@ -5728,10 +5733,16 @@ export function HomeProfessorMariChat({
                   disabled={id === "chats" && isBusy}
                   data-destination={id}
                   data-active={workspaceDestination === id ? "true" : "false"}
+                  aria-label={label}
                   title={label}
                 >
                   <Icon size="0.8rem" aria-hidden="true" />
-                  <span>{label}</span>
+                  <span className="mari-omnibar-header-destination-label-full" aria-hidden="true">
+                    {label}
+                  </span>
+                  <span className="mari-omnibar-header-destination-label-short" aria-hidden="true">
+                    {shortLabel ?? label}
+                  </span>
                   {count > 0 ? <b>{count}</b> : null}
                 </button>
               ))}

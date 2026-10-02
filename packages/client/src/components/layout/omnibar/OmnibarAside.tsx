@@ -208,8 +208,13 @@ export function OmnibarAside({
                   </button>
                 </>
               ) : null}
-              <button type="button" onClick={onEscalate} className={textAction}>
-                {t("omnibar.aside.escalate", "⌘↵ Continue with Professor Mari")}
+              <button
+                type="button"
+                onClick={onEscalate}
+                className={textAction}
+                title={t("commandCenter.keyboard.continueMari", "Ctrl/⌘+Enter Continue with Mari")}
+              >
+                {t("omnibar.aside.escalate", "Continue with Mari")}
               </button>
             </>
           )}

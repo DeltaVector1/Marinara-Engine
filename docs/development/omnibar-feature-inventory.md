@@ -71,8 +71,10 @@ Rules that must survive:
   chat travels as its outlined chat chip, not also as a "Current chat"
   resource) and, while her chat is empty, shows the arrival instead of the
   generic welcome: her sprite, one line, the facts, reference cards and 2-4
-  next-step cards (`MariNextStepCards`; a spark card fills the composer, an
-  arrow card acts at once). `buildMariArrival` (`lib/mari-arrival.ts`, pure,
+  next-step cards (`MariNextStepCards`; a spark card fills the composer and is
+  labeled "Drafts a message", an arrow card acts at once and is labeled "Opens
+  now" — both as visible text next to the icon, not only `title`/screen-reader
+  text, so the kind is clear before the click (F7/b2, slice 41)). `buildMariArrival` (`lib/mari-arrival.ts`, pure,
   pinned per surface by the command-center regression) builds it on the client
   from `createOmnibarContext`, the chat store, cached query data and
   `lastAppError`; it gets names, counts and times only, never message text,
@@ -216,9 +218,11 @@ Rules that must survive:
     status text into the row (`omnibarStatusSlot`). Row 2
     (`.mari-omnibar-header-row`): the tabs (Chats, Skills, Memories, What Mari
     sees with its count), New chat and, below 64rem, the ⋮ menu. No mode
-    control. Below 30rem the tabs show icon + count only and share the free
-    width; their labels stay for screen readers, as a tooltip and in the ⋮
-    menu.
+    control. Below 30rem the tabs show icon + count plus a short visible label
+    under the icon (`context`'s short label reuses the "Mari sees" composer
+    chip copy), not only screen-reader text, so the icons are identifiable
+    without opening the ⋮ menu (F8/D2, slice 41); the full label stays for
+    `aria-label`/`title` and in the ⋮ menu.
   - What Mari sees (M7; destination id `context`): the handoff facets ride
     above the textarea behind a "Mari sees" label as `MariContextFacetChips`
     with `onRemove`, one X per facet (`withoutProfessorMariContextFacet`
@@ -392,6 +396,12 @@ without one fall through to the generic open path.
   characters, personas, lorebooks and presets, the things she can change.
 - On a touch screen the first tap on a rich row expands it and a tap on the
   expanded row runs Enter; the expanded row shows its Enter hint at every width.
+  A chat row or a message row (`goto-message`) is the exception: the first tap
+  opens it directly, since a navigation row is what a phone user expects a tap
+  to do (F4, slice 41). Opening a chat on the phone shell no longer opens the
+  Chats sidebar sheet over it afterward (`executeStateNavigation`,
+  `lib/state-navigation.ts`); the sheet only opens for a target that actually
+  is the chat list (F3, slice 41).
 
 ## 6. Cross-chat message search
 
@@ -425,6 +435,9 @@ This is the part most likely to break silently. All of it must survive.
   footer says "Ctrl/⌘+J Ask Mari", the Mari Back button's tooltip "Back to
   search (Ctrl/⌘+J)"). Tab is not a Mari door: in the field it accepts the ghost
   completion and otherwise moves focus through the panel.
+  Desktop Home's address pill (`HomeBrowserHub.tsx`, `data-component="HomeBrowserHub.Address"`)
+  is a real button, not a decorative `role="status"` field: clicking it opens
+  the omnibar, and it shows a muted `Mod+K` hint instead of a star (F9, slice 41).
   On the phone shell a long press on Home, or a
   pull down on the top bar (and the safe-area strip above it). On desktop the
   same gesture is a mouse drag that starts on empty top-bar space, never on a

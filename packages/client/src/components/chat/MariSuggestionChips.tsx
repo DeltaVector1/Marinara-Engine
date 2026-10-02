@@ -329,7 +329,7 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
               ) : (
                 <Sparkles size="0.75rem" aria-hidden="true" />
               )}
-              <span className="sr-only">{kindLabel}</span>
+              <span className="mari-next-card__kind-text">{kindLabel}</span>
             </span>
           </button>
         );

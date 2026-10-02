@@ -1,5 +1,5 @@
 import { useChatStore } from "../stores/chat.store";
-import { useUIStore } from "../stores/ui.store";
+import { isMobileShellViewport, useUIStore } from "../stores/ui.store";
 import { requestProfessorMariOpen } from "./professor-mari-open";
 import type { ProfessorMariNavigationTarget } from "./professor-mari-navigation";
 
@@ -34,7 +34,9 @@ export function executeStateNavigation(
     ui.setSidebarOpen(true);
     ui.closeRightPanel();
   } else if (target.kind === "chat") {
-    ui.setSidebarOpen(true);
+    // On the phone shell the sidebar is a full-screen sheet, so opening it here
+    // would cover the chat we just navigated to (F3, slice 41).
+    if (!isMobileShellViewport()) ui.setSidebarOpen(true);
     ui.closeRightPanel();
     useChatStore.getState().setActiveChatId(target.chatId);
   } else if (target.kind === "panel") {

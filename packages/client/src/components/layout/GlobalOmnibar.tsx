@@ -1076,46 +1076,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }),
     [t],
   );
-  const searchResults = useMemo<OmnibarResult[]>(
-    () =>
-      buildOmnibarSearchResults({
-        chatControls,
-        contextLabels,
-        controls,
-        data,
-        deferredQuery,
-        docsResults: docs.results,
-        faqItems: HOME_FAQ_ITEMS,
-        getFaqSearchText,
-        localize,
-        mariEnabled,
-        omnibarContext,
-        t,
-      }),
-    [
-      chatControls,
-      contextLabels,
-      controls,
-      data,
-      deferredQuery,
-      docs.results,
-      localize,
-      mariEnabled,
-      omnibarContext,
-      t,
-    ],
-  );
-  // Professor Mari's conversations live behind an internal marker, so they are
-  // missing from the normal chat list. Searchable here by their auto-title.
-  const [mariOpenChatId, setMariOpenChatId] = useState<string | null>(null);
-  // Fetched on open rather than on the first keystroke, so the rows are ready
-  // before typing instead of arriving late and pushing the list down.
-  const mariChats = useProfessorMariChats(mariEnabled);
-  const mariChatResults = useMemo<OmnibarResult[]>(
-    () => buildOmnibarMariChatResults({ deferredQuery, mariChats: mariChats.data ?? [], t }),
-    [deferredQuery, mariChats.data, t],
-  );
-
   // Chat search: the engine only stores messages per chat, so this searches the
   // chat you are in rather than pretending to search all of them. The message
   // list is shared with the in-chat search panel's cache.
@@ -1187,6 +1147,51 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         : [],
     [globalMessageQuery, lorebookEntrySearch.data, lorebookNameById, messageSearchQuery, t],
   );
+  // F1: an exact message/entry hit should win over the Mari fallback promotion
+  // even when nothing else scored well (slice 41).
+  const directHitCount = messageResults.length + globalMessageResults.length + lorebookEntryResults.length;
+  const searchResults = useMemo<OmnibarResult[]>(
+    () =>
+      buildOmnibarSearchResults({
+        chatControls,
+        contextLabels,
+        controls,
+        data,
+        deferredQuery,
+        directHitCount,
+        docsResults: docs.results,
+        faqItems: HOME_FAQ_ITEMS,
+        getFaqSearchText,
+        localize,
+        mariEnabled,
+        omnibarContext,
+        t,
+      }),
+    [
+      chatControls,
+      contextLabels,
+      controls,
+      data,
+      deferredQuery,
+      directHitCount,
+      docs.results,
+      localize,
+      mariEnabled,
+      omnibarContext,
+      t,
+    ],
+  );
+  // Professor Mari's conversations live behind an internal marker, so they are
+  // missing from the normal chat list. Searchable here by their auto-title.
+  const [mariOpenChatId, setMariOpenChatId] = useState<string | null>(null);
+  // Fetched on open rather than on the first keystroke, so the rows are ready
+  // before typing instead of arriving late and pushing the list down.
+  const mariChats = useProfessorMariChats(mariEnabled);
+  const mariChatResults = useMemo<OmnibarResult[]>(
+    () => buildOmnibarMariChatResults({ deferredQuery, mariChats: mariChats.data ?? [], t }),
+    [deferredQuery, mariChats.data, t],
+  );
+
   // The chat input already owns a slash-command registry; the omnibar reuses it
   // so "what can I do in this chat" is answerable from one place. Choosing a row
   // types the command into the chat input instead of running it, so args and
@@ -2266,8 +2271,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (chooseChoiceOption(result)) return;
     // A first tap opens the preview; a tap on the open row runs Enter, which the
     // preview no longer repeats as a chip.
+    // Chats and messages are navigation rows: a first tap should open them, not
+    // expand a preview the user did not ask for (F4, slice 41).
+    const opensDirectlyOnTap = result.target?.kind === "chat" || result.action?.kind === "goto-message";
     if (
       !result.control &&
+      !opensDirectlyOnTap &&
       expandedPreviewId !== result.id &&
       isRichResult(result) &&
       window.matchMedia("(pointer: coarse)").matches

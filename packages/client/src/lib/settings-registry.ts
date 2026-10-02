@@ -244,6 +244,14 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     kind: "Input",
   },
   {
+    id: "send-on-enter",
+    sectionId: "input-editing",
+    label: "Send on Enter",
+    description: "Choose where Enter sends your message instead of adding a new line.",
+    aliases: ["enter to send", "enter key", "new line", "ctrl enter"],
+    kind: "Button group",
+  },
+  {
     id: "speech-to-text",
     sectionId: "input-editing",
     label: "Speech-to-text microphone",

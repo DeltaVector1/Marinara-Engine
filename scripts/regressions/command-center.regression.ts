@@ -39,6 +39,7 @@ import {
   buildOmnibarControlResults,
   buildOmnibarIntentShortcuts,
   buildOmnibarSearchResults,
+  buildOmnibarVerbSuggestions,
   findMentionedResults,
   matchesAtWordStart,
 } from "../../packages/client/src/lib/omnibar-results.js";
@@ -1191,6 +1192,117 @@ assert.ok(!("mariDetailId" in mariSession));
     ["Source", "Line"],
     "no Category or Match fact repeats the path or the description",
   );
+}
+
+// Slice 41 (F1): a direct message/entry hit must outrank the Mari fallback promotion.
+{
+  const identity = (text: string) => text;
+  const baseSearchInput = {
+    chatControls: [],
+    contextLabels: {},
+    controls: [],
+    data: { commands: [], chats: [], resources: [], connections: [], askProfessorTitle: "Ask" },
+    deferredQuery: "silver compass",
+    docsResults: [],
+    faqItems: [],
+    getFaqSearchText: () => "",
+    localize: identity,
+    mariEnabled: true,
+    omnibarContext: {
+      surface: "home",
+      surfaceResultIds: [],
+      editorDirty: false,
+      pinnedResultIds: [],
+      recentResultIds: [],
+      setupResultIds: [],
+    } as never,
+    t: ((_key: string, fallback?: string) => fallback ?? _key) as never,
+  };
+  const withoutDirectHit = buildOmnibarSearchResults(baseSearchInput);
+  const mariRow = withoutDirectHit.find((result) => result.id === "ask-professor-mari");
+  assert.equal(
+    mariRow?.group,
+    "professor-suggested",
+    "with nothing scoring well and no direct hit, Mari is still promoted",
+  );
+  const withDirectHit = buildOmnibarSearchResults({ ...baseSearchInput, directHitCount: 1 });
+  const mariRowWithHit = withDirectHit.find((result) => result.id === "ask-professor-mari");
+  assert.notEqual(
+    mariRowWithHit?.group,
+    "professor-suggested",
+    "a direct hit elsewhere (the message row) keeps Mari out of the suggested group",
+  );
+}
+
+// Slice 41 (F2): "import" lists import rows, not create rows; "new" stays create-only.
+{
+  const createCharacter: OmnibarResult = { id: "create-character", title: "Create Character", category: "character", score: 1 };
+  const createPersona: OmnibarResult = { id: "create-persona", title: "Create Persona", category: "persona", score: 1 };
+  const importData: OmnibarResult = { id: "import-data", title: "Import data", category: "data", score: 1 };
+  const verbInput = { allLocalResults: [createCharacter, createPersona, importData] };
+  const importVerb = buildOmnibarVerbSuggestions({ ...verbInput, deferredQuery: "import" });
+  assert.deepEqual(
+    importVerb.map((result) => result.id),
+    ["import-data"],
+    "a bare import lists only import rows",
+  );
+  const newVerb = buildOmnibarVerbSuggestions({ ...verbInput, deferredQuery: "new" });
+  assert.deepEqual(
+    newVerb.map((result) => result.id).sort(),
+    ["create-character", "create-persona"],
+    "a bare new/create lists only create rows, never import",
+  );
+}
+
+// Slice 41 (F5): the "Fix" row shows the real error text, not the connection's provider name.
+{
+  const contextBase = {
+    activeChat: null,
+    activeChatId: null,
+    agents: [],
+    allLocalResults: [{ id: "connection:conn1", title: "My Connection", category: "connection", score: 0, description: "openai" } as OmnibarResult],
+    characterById: new Map(),
+    connectionById: new Map([["conn1", { id: "conn1", provider: "openai" }]]) as never,
+    connections: [{ id: "conn1", name: "My Connection", provider: "openai" }] as never,
+    lastAppError: {
+      action: "Generate reply",
+      message: "fetch failed: bad port",
+      retry: { kind: "open-connection" as const, id: "conn1" },
+    },
+    lorebookById: new Map(),
+    lorebooks: [],
+    mariEnabled: false,
+    omnibarSuggestionsEnabled: true,
+    openAgentId: null,
+    openCharacterId: null,
+    openConnectionId: null,
+    openLorebookId: null,
+    openPersonaId: null,
+    openPresetId: null,
+    personaById: new Map(),
+    personas: [],
+    presets: [],
+    surface: "home" as const,
+    t: ((_key: string, fallback?: string) => fallback ?? _key) as never,
+  };
+  const fixRow = buildOmnibarContextResults(contextBase as never).find((result) => result.id === "connection:conn1");
+  assert.equal(
+    fixRow?.description,
+    "fetch failed: bad port",
+    "the Fix row keeps the real error text instead of the canonical connection's description",
+  );
+}
+
+// Slice 41 (F10): "Send on Enter" is reachable from the omnibar settings search.
+{
+  assert.ok(
+    SETTINGS_SEARCHABLE_CONTROLS.some((control) => control.id === "send-on-enter"),
+    "send-on-enter is registered",
+  );
+  const sendOnEnterDestination = getOmnibarSettingsDestinations().find(
+    (setting) => setting.id === "settings-control:send-on-enter",
+  );
+  assert.ok(sendOnEnterDestination, "searching settings resolves send-on-enter to a destination row");
 }
 
 // Slice 7b (I4): a finished step reads in the past tense; other titles stay as they are.

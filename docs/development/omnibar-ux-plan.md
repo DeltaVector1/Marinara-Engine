@@ -897,6 +897,28 @@ does not keep its own copy).
   (navigation redesign, new surface) as open items for the maintainer rather than building it. Proof:
   the reviewer's findings list with screenshots in `.tmp/omnibar-ux/round4/slice-41/`; the worker's fix
   commit plus `heavy pnpm check`.
+
+  **Open items for the maintainer** (bigger than this round's small fixes; recorded, not built):
+  1. No visible door to search/Mari on desktop chat screens or on the phone — the desktop top bar has no
+     search/Mari icon, and the phone's only doors are the pull (no on-screen hint) and a hidden Home
+     long-press. Options: a desktop top-bar search pill, or a one-time "Pull down to search or ask Mari"
+     hint under the phone bar on first run.
+  2. A failed reply leaves no trace in the chat itself — no inline "Failed · Retry" under the user's
+     message; after the 15 s toast ends there is no sign it failed except the omnibar's Fix row (which only
+     helps users who already know ⌘K).
+  3. No "New chat" command — "new chat" finds nothing that starts one; you must name a character ("start
+     chat with …"). Home's Conversation/Roleplay/Game buttons have no omnibar counterpart.
+  4. Toasts still cover the omnibar's search field (desktop and phone) — L8 keeps toasts above the omnibar
+     for Undo, but error toasts now cover the field. Consider moving toasts to the bottom while the omnibar
+     is open.
+  5. Mari cards drafting vs. sending (b2) — after the slice 41 copy fix ("Drafts a message"), decide whether
+     Mari cards should send at once instead (and the label would then say "Asks Mari" truthfully).
+  6. D1 (slice 40) is still open; it needs a real-model session to judge honestly.
+  7. Arrival + live error and R22 — on an arrival (⌘J, pull, Home button) with a live error, `focusResult`
+     falls back to the Fix row, so the error rides along with any question typed after, not only on a
+     deliberate ⌘↵ on the error row as K1 specifies; the arrival's "Fix the last reply" chip also duplicates
+     the error chip. Suggested fix: treat the Fix row like the current-chat row in the arrival branch. Needs
+     a maintainer or the slice 40 reviewer to confirm before a worker changes R22 semantics.
 - **M15 (slice 38a), Mari images as small WebP (new maintainer request 2026-10-02, performance).** Root
   cause: `public/sprites/mari/` carried ~49 MB, nearly all of it full-resolution painted PNGs sized for
   print, not screen, plus a ~16 MB `generated/` folder of narrative sprite sheets from a cut feature that

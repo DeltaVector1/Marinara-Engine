@@ -177,6 +177,8 @@ export type OmnibarSearchResultsInput = {
   controls: readonly OmnibarResult[];
   data: OmnibarSearchData;
   deferredQuery: string;
+  /** Exact message/lorebook-entry hits found elsewhere, so a direct hit outranks the Mari fallback (F1). */
+  directHitCount?: number;
   docsResults: readonly DocsCommandSearchPassage[];
   faqItems: readonly HomeFaqItem[];
   /** Passed in so this module never pulls the FAQ component into its graph. */
@@ -554,6 +556,7 @@ export function buildOmnibarSearchResults({
   controls,
   data,
   deferredQuery,
+  directHitCount,
   docsResults,
   faqItems,
   getFaqSearchText,
@@ -652,7 +655,7 @@ export function buildOmnibarSearchResults({
       /\?\s*$|^\s*(?:who|what|where|which|when|can|could|should|would|is|are|do|does|did|help|tell)\b/i.test(
         trimmedQuery,
       ) ||
-      bestMatchScore < 150);
+      (bestMatchScore < 150 && !directHitCount));
   const askResults = baseResults.map((result) =>
     result.id === "ask-professor-mari"
       ? {
@@ -979,7 +982,18 @@ export function buildOmnibarContextResults({
   const canonicalById = new Map(allLocalResults.map((result) => [result.id, result]));
   const pushCanonical = (id: string, fallback: OmnibarResult) => {
     const result = canonicalById.get(id);
-    push({ ...fallback, ...(result ?? {}), title: fallback.title, group: "current-work", score: 0 });
+    push({
+      ...fallback,
+      ...(result ?? {}),
+      title: fallback.title,
+      description: fallback.description ?? result?.description,
+      // The canonical row's own preview (e.g. a connection's provider as its
+      // subtitle) would otherwise win in `resultMetadata`'s fallback chain and
+      // silently hide a fallback description like the Fix row's error text.
+      preview: fallback.preview ?? result?.preview,
+      group: "current-work",
+      score: 0,
+    });
   };
 
   const isActiveChat = activeChat?.id === activeChatId;
@@ -1000,6 +1014,16 @@ export function buildOmnibarContextResults({
       category: isAgentRetry ? "agent" : "connection",
       score: 0,
       icon: isAgentRetry ? "agent" : "connection",
+      preview: () => ({
+        kind: "docs" as const,
+        title: lastAppError.action
+          ? t("commandCenter.context.fixFailed", "Fix: {{action}} failed", { action: lastAppError.action })
+          : t("commandCenter.context.fixError", "Fix the last error"),
+        categoryLabel: isAgentRetry
+          ? t("commandCenter.filters.agents", "Agents")
+          : t("commandCenter.filters.connections", "Connections"),
+        description: lastAppError.message,
+      }),
     });
   }
 
@@ -1251,12 +1275,13 @@ export function buildOmnibarVerbSuggestions({
       score: VERB_SUGGESTION_SCORE - index,
       group: "current-work" as const,
     }));
-  const createRows = () => allLocalResults.filter((result) => /^(?:create|import)-/.test(result.id));
+  const createRows = (verb: string) =>
+    allLocalResults.filter((result) => (verb === "import" ? /^import-/ : /^create-/).test(result.id));
   // "open"/"show" is answered by the ranked entity rows themselves.
   if (["open", "show", "go to"].includes(intent.verb)) return [];
   // Bounded verbs: list the objects themselves, because they all fit. "remove"
   // is bounded too, but `buildOmnibarRemovalSuggestions` already owns it.
-  if (["create", "new", "import"].includes(intent.verb)) return bounded(createRows());
+  if (["create", "new", "import"].includes(intent.verb)) return bounded(createRows(intent.verb));
   if (["enable", "disable", "turn on", "turn off"].includes(intent.verb))
     return bounded(allLocalResults.filter((result) => result.control?.type === "toggle"));
   return [];

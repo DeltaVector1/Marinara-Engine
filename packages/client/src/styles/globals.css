@@ -2075,11 +2075,18 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   white-space: nowrap;
 }
 
-/* A phone shows icon + count; the labels stay for screen readers and in the ⋮ menu. The four share the
-   free width and the count sits on the icon's corner, so none of them clips at 390 px. */
+.mari-omnibar-header-slot .mari-omnibar-header-destinations .mari-omnibar-header-destination-label-short {
+  display: none;
+}
+
+/* A phone shows icon + a short visible label stacked underneath; the full label stays for aria/title and
+   the ⋮ menu. The four share the free width and the count sits on the icon's corner, so none of them clips
+   at 390 px (F8/D2, slice 41). */
 @media (max-width: 30rem) {
   .mari-omnibar-header-slot .mari-omnibar-header-destinations button {
     flex: 1 1 0;
+    flex-direction: column;
+    gap: 0.125rem;
     min-width: 0;
     min-height: 2.75rem;
     justify-content: center;
@@ -2096,12 +2103,18 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
     font-size: 0.5625rem;
   }
 
-  .mari-omnibar-header-slot .mari-omnibar-header-destinations button > span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+  .mari-omnibar-header-slot .mari-omnibar-header-destinations .mari-omnibar-header-destination-label-full {
+    display: none;
+  }
+
+  .mari-omnibar-header-slot .mari-omnibar-header-destinations .mari-omnibar-header-destination-label-short {
+    display: block;
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    font-size: 0.625rem;
+    line-height: 1;
     white-space: nowrap;
   }
 }
@@ -2955,7 +2968,7 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 
 .mari-next-card__label {
   min-width: 0;
-  padding-right: 1rem;
+  padding-right: 5.5rem;
   color: var(--foreground);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -2974,7 +2987,16 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   position: absolute;
   top: 0.6rem;
   right: 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   color: var(--muted-foreground);
+}
+
+.mari-next-card__kind-text {
+  font-size: 0.6875rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .mari-next-card[data-kind="mari"] .mari-next-card__kind {
