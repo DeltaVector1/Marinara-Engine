@@ -76,6 +76,38 @@ export function professorMariContextFacets(
   return facets;
 }
 
+/**
+ * M7 (R22 made visible): before Send the chip shows only a name; the chat's
+ * messages, the error text and the field's value are read when you send.
+ */
+export function professorMariFacetSendsContentLater(kind: ProfessorMariContextFacetKind): boolean {
+  return kind === "chat" || kind === "field" || kind === "error";
+}
+
+/**
+ * The context without one facet, so the composer's X on one chip keeps the
+ * others. Null once no facet is left: the rest (source, capability, the typed
+ * query) is nothing the user can see, so it is not worth keeping.
+ */
+export function withoutProfessorMariContextFacet(
+  context: ProfessorMariAskContext | null | undefined,
+  kind: ProfessorMariContextFacetKind,
+): ProfessorMariAskContext | null {
+  if (!context) return null;
+  const next = { ...context };
+  if (kind === "resource") {
+    delete next.resource;
+    delete next.relatedResources;
+  } else if (kind === "chat") delete next.activeChat;
+  else if (kind === "field") {
+    delete next.field;
+    delete next.fieldId;
+  } else if (kind === "settings") delete next.settingsLocation;
+  else if (kind === "error") delete next.error;
+  else delete next.asideAnswer;
+  return professorMariContextFacets(next).length > 0 ? next : null;
+}
+
 export function shouldShowProfessorMariConnectionHint({
   chatId,
   loadedMessagesChatId,

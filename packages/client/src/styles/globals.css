@@ -1841,61 +1841,6 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   }
 }
 
-/* Grouped controls wrap when space is available. Dense context groups use two
-   scrollable lanes at the phone breakpoint below. */
-.mari-strip {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
-  background: var(--card);
-}
-
-.mari-strip > [data-group] {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.mari-strip > [data-group="end"] {
-  margin-inline-start: auto;
-}
-
-/* Wrapping is right when there is room to wrap into. On a phone this band is ten
-   chips, and wrapping turned two rows of chrome into four - four rows above a
-   conversation, on the viewport with the least room for it. A chip that scrolls
-   out of sight costs a swipe; a chip that pushes the transcript down costs the
-   screen. So below the panel's breakpoint the two groups stack and each scrolls,
-   which is two rows: what it was before, with one chip shape instead of three. */
-@media (max-width: 39.99rem) {
-  .mari-strip--stacked {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .mari-strip--stacked > [data-group] {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    overscroll-behavior-x: contain;
-  }
-
-  .mari-strip--stacked > [data-group]::-webkit-scrollbar {
-    display: none;
-  }
-
-  .mari-strip--stacked > [data-group] > * {
-    flex: 0 0 auto;
-  }
-
-  .mari-strip--stacked > [data-group="end"] {
-    margin-inline-start: 0;
-  }
-}
-
 /* R53: a split at 44rem gives each side 20rem, which is too narrow for a diff.
    The shell already animates its height when she takes over; this is the same
    motion on the other axis, and it needs no state passed up from the panel. */
@@ -3189,6 +3134,31 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 
 .mari-omnibar-context-attachment .mari-workspace-context-chip {
   max-width: 100%;
+}
+
+/* M7: one X per facet. On touch the hit area grows past the drawn chip, like .mari-btn. */
+.mari-workspace-context-chip__remove {
+  position: relative;
+  display: inline-grid;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  place-items: center;
+  border-radius: 0.25rem;
+  color: var(--muted-foreground);
+}
+
+.mari-workspace-context-chip__remove:hover {
+  background: var(--mari-hover);
+  color: var(--foreground);
+}
+
+@media (pointer: coarse) {
+  .mari-workspace-context-chip__remove::after {
+    position: absolute;
+    inset: -0.875rem -0.5rem;
+    content: "";
+  }
 }
 
 @media (pointer: coarse) {

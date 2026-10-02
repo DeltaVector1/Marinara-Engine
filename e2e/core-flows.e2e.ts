@@ -18051,10 +18051,12 @@ test("Professor Mari shows the latest context budget when token usage is enabled
     await page.getByRole("tab", { name: "Professor", exact: true }).click();
 
     const window = page.locator('[data-component="HomeProfessorMariChat.Window"]');
-    const trustStrip = window.locator('[data-component="HomeProfessorMariChat.TrustStrip"]');
-    await expect(trustStrip).toContainText("Budget connection");
-    await expect(trustStrip.getByLabel("Sandbox ready")).toBeVisible();
-    await expect(trustStrip).toContainText("12.3k / 128k tokens");
+    // M7: the trust strip became the "How she works" group of What Mari sees.
+    await page.locator('[data-destination="context"]').click();
+    const howSheWorks = window.locator('[data-component="HomeProfessorMariChat.WhatMariSees"] [data-group="how"]');
+    await expect(howSheWorks).toContainText("Budget connection");
+    await expect(howSheWorks).toContainText("Sandbox ready");
+    await expect(howSheWorks).toContainText("12.3k / 128k tokens");
     // The store write propagates to the inline CSS variable asynchronously;
     // poll instead of sampling once.
     await expect

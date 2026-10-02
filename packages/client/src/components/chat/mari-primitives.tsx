@@ -110,19 +110,3 @@ export function MariCard({
     </section>
   );
 }
-
-/**
- * A grouped row of controls. It wraps when space is available; dense grouped
- * strips may opt into two horizontal lanes on phones with `--stacked`.
- */
-export function MariStrip({
-  children,
-  className,
-  ...rest
-}: { children: ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn("mari-strip", className)} {...rest}>
-      {children}
-    </div>
-  );
-}

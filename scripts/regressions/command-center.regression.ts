@@ -66,7 +66,9 @@ import {
 import {
   assignReviewsToTurns,
   professorMariContextFacets,
+  professorMariFacetSendsContentLater,
   summarizeDeleteReview,
+  withoutProfessorMariContextFacet,
 } from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
@@ -750,6 +752,44 @@ assert.deepEqual(
   ],
 );
 assert.deepEqual(professorMariContextFacets(null), []);
+// M7: the composer's X on one facet keeps the others; removing the last one clears the context.
+{
+  const handoff = {
+    source: "command-center" as const,
+    capability: "repair" as const,
+    activeChat: { id: "chat-one", label: "Moonlit room" },
+    field: "Greeting",
+    fieldId: "greeting",
+    error: { message: "Generation failed" },
+  };
+  const withoutChat = withoutProfessorMariContextFacet(handoff, "chat");
+  assert.equal(withoutChat?.activeChat, undefined);
+  assert.deepEqual(withoutChat?.error, handoff.error);
+  assert.equal(withoutChat?.fieldId, "greeting");
+  assert.equal(handoff.activeChat.id, "chat-one", "removing a facet must not mutate the original context");
+  const withoutField = withoutProfessorMariContextFacet(handoff, "field");
+  assert.equal(withoutField?.field, undefined);
+  assert.equal(withoutField?.fieldId, undefined);
+  assert.deepEqual(
+    professorMariContextFacets(withoutField).map((facet) => facet.kind),
+    ["chat", "error"],
+  );
+  assert.equal(
+    withoutProfessorMariContextFacet(
+      { source: "command-center", capability: "repair", error: { message: "x" } },
+      "error",
+    ),
+    null,
+  );
+  // R22 made visible: chat text, error text and field values only leave on Send.
+  assert.deepEqual(
+    (["resource", "chat", "field", "settings", "error", "asideAnswer"] as const).filter(
+      professorMariFacetSendsContentLater,
+    ),
+    ["chat", "field", "error"],
+  );
+}
+
 
 // A5: a typed scope prefix like "faq:" is omnibar search syntax, not message text
 // — every door into Mari (including the Ask-Mari row's own query) must strip it

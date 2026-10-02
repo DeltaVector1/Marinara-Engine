@@ -130,12 +130,25 @@ Rules that must survive:
     missing workspace tools are `MariNote` lines (R43).
   - The end-of-run glow is a small, low, faint green band that sinks within
     3.5 s.
-  - The header is one row: Back, the tabs (Chats, Skills, Memories, Context
-    with its count), New chat, below 64rem the ⋮ menu, settings and Close. It
+  - The header is one row: Back, the tabs (Chats, Skills, Memories, What Mari
+    sees with its count), New chat, below 64rem the ⋮ menu, settings and Close. It
     has no portrait, name or status (she and her state are in the transcript)
     and no mode control. Below 30rem the tabs show icon + count only and share
     the free width; their labels stay for screen readers, as a tooltip and in
     the ⋮ menu.
+  - What Mari sees (M7; destination id `context`): the handoff facets ride
+    above the textarea behind a "Mari sees" label as `MariContextFacetChips`
+    with `onRemove`, one X per facet (`withoutProfessorMariContextFacet`
+    removes only that facet; the context clears once none is left). Chat,
+    field and error facets are outlined (`professorMariFacetSendsContentLater`)
+    with the tooltip "Name only now; the content goes when you send" (R22).
+    The panel is three `.mari-edit` groups: "With your next message" (the same
+    facets, each with Remove), "Always in this Mari chat" (the persistent
+    character/lorebook focus, attached chat histories that open their content,
+    and "Attach a chat history"), and "How she works" (the model with context
+    use when Show context usage is on, Change, and the sandbox state; this
+    replaced the trust strip), then one privacy line. On a phone the panel is
+    an opaque canvas sheet over the transcript.
   - The composer puts the textarea on its own row and a toolbar under it:
     attach, the connection as a labelled `.mari-chrome-control--compact` menu
     (it replaced the bare link icon; a red dot when none is set), and the
