@@ -55,11 +55,12 @@ export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
           <clipPath id={`${id}clip`}>
             <path ref={(el) => void (els.rimClip = el)} />
           </clipPath>
+          {/* The shimmer takes the app's accent, so it follows a theme change. */}
           <linearGradient ref={(el) => void (els.rimGrad = el)} id={`${id}rim`} gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#fff" stopOpacity="0.2" />
-            <stop offset="0.45" stopColor="#fff" stopOpacity="0.75" />
-            <stop offset="0.7" stopColor="#fff" stopOpacity="0.15" />
-            <stop offset="1" stopColor="#fff" stopOpacity="0.45" />
+            <stop offset="0" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.2" />
+            <stop offset="0.45" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.75" />
+            <stop offset="0.7" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.15" />
+            <stop offset="1" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.45" />
           </linearGradient>
           {/* The rim fades in below the bar, so the sheet leaves the bar without a seam. */}
           <linearGradient

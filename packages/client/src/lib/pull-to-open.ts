@@ -147,6 +147,18 @@ export function pullSheetBase(radius: number, pull: number, width: number) {
   return lerp(radius + 18, width * PULL_BASE_SHARE, smooth(pull));
 }
 
+/** The circle and the small bar stay this far in from the screen's sides. */
+export const PULL_EDGE_MARGIN = 6;
+
+/**
+ * `x` for something `half` px wide each side of it, moved in only as far as it
+ * must to stay on a `width` px screen: it follows the finger right up to the edge.
+ */
+export function pullOnScreenX(x: number, half: number, width: number) {
+  const min = half + PULL_EDGE_MARGIN;
+  return clamp(x, min, Math.max(min, width - min));
+}
+
 export interface PullSheet {
   cx: number;
   cy: number;

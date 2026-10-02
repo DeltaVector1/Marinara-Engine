@@ -683,6 +683,12 @@ does not keep its own copy).
   (`GlobalOmnibar.tsx` ≈2824-2862) above a second row of destinations (`mari-omnibar-header-row`, ≈2963),
   while the transcript already shows her (live line sprite, "Worked for" sprite). Two rows ≈107 px; at
   390 the destinations clip ("Cor…").
+- **M13 pull drop at the screen's sides (added 2026-10-02, slice 15 bugfix).** On a phone the drop's rim
+  shimmer is always white (`OmnibarPullDrop.tsx` gradient stops hardcode `#fff`). Near a side the sheet
+  narrows on both sides (`use-pull-to-open-omnibar.ts` clamps `base` to `min(cx, width - cx)`), the circle
+  stops 12 px plus its radius in from the edge, the small bar centred on it runs off screen (−22 px at 390
+  in Chromium, −36 px in WebKit), and on release the circle jumps to the raw finger x (`landing` skips the
+  clamp) and pops open half off screen.
 
 #### Work items
 
@@ -729,6 +735,13 @@ does not keep its own copy).
   search-mode header unchanged. Slice 15's "portrait flies to the header" lands on the arrival sprite (M9)
   instead; update `data-mari-pull-target="mari"`. Proof: screenshots 390/768/1440 dark+light; e2e that the
   header has no `.mari-workspace-portrait` in Mari mode and that every destination is reachable at 390.
+- **M13 (slice 33b).** Rim stops use `var(--marinara-app-accent-solid)` (same opacities). Drop the edge
+  clamp on `base` (keep `rx + 4`): the sheet keeps its width and the viewport clips it. One pure
+  `pullOnScreenX(x, half, width)` in `lib/pull-to-open.ts` keeps the circle and the small bar 6 px in from
+  the side and otherwise on the finger; `land` jumps `x` to the drawn circle first. Proof: regression
+  asserts (constant sheet width as `cx` nears either side, circle on screen and on the finger); temporary
+  e2e on mobile-chromium and mobile-webkit, pulls 0-40 px from each side, along the edge and diagonally,
+  dark+light, three accents, before/after in `.tmp/omnibar-ux/round4/slice-33b/`.
 - **M7 (slice 34).** Rename everywhere: "Context" → "What Mari sees" (header, panel, `en.json` keys
   `contextControlLabel`, `contextControlTitle`, `contextDestinationHint` get new semantic keys; old keys
   deleted). Composer: one removable chip per facet (`MariContextFacetChips` gets `onRemove(facet)`;

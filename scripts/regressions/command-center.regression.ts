@@ -85,6 +85,7 @@ import { pastTenseStepTitle } from "../../packages/client/src/lib/mari-work-time
 import {
   createPullRecognizer,
   pullCircleTarget,
+  pullOnScreenX,
   pullOpenThreshold,
   pullSheetBase,
   pullSheetPath,
@@ -1291,6 +1292,36 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.notEqual(mirrored, d);
   const pinched = pullSheetPath({ ...sheet, pinch: 1 });
   assert.ok(pinched.waistY > 0 && pinched.waistY < 120, "it lets go between the bar and the circle");
+
+  // Slice 33b (M13): at the screen's sides the circle follows the finger and stays whole on screen,
+  // and the sheet keeps its full width and runs off the edge instead of narrowing.
+  assert.equal(pullOnScreenX(195, 40, 390), 195, "in the middle it is the finger");
+  assert.equal(pullOnScreenX(2, 40, 390), 46, "at the left side it stops 6 px in, not further");
+  assert.equal(pullOnScreenX(388, 40, 390), 344, "at the right side too");
+  assert.equal(pullOnScreenX(60, 40, 390), 60, "near the side it still follows the finger");
+  for (const x of [-20, 0, 2, 20, 370, 388, 390, 410]) {
+    const cx = pullOnScreenX(x, 40, 390);
+    assert.ok(cx - 40 >= 0 && cx + 40 <= 390, `the circle stays on screen for a finger at ${x}`);
+  }
+  const label = pullOnScreenX(46, 75, 390);
+  assert.ok(label - 75 >= 0 && label + 75 <= 390, "the small bar stays on screen where the circle does");
+  for (const cx of [46, 100, 195, 290, 344]) {
+    const top = pullSheetPath({ ...sheet, cx }).d.match(/^M(-?[\d.]+) -3L(-?[\d.]+) -3/u);
+    assert.ok(top, "the sheet starts on the bar edge");
+    assert.equal(Number(top[2]) - Number(top[1]), 320, `the sheet keeps its width at cx ${cx}`);
+  }
+  const clientSource = (relativePath: string) =>
+    readFileSync(new URL(`../../packages/client/src/${relativePath}`, import.meta.url), "utf8");
+  assert.doesNotMatch(
+    clientSource("hooks/use-pull-to-open-omnibar.ts"),
+    /g\.width - cx/u,
+    "the hook must not narrow the sheet towards the screen's sides",
+  );
+  assert.match(
+    clientSource("components/layout/OmnibarPullDrop.tsx"),
+    /stopColor: "var\(--marinara-app-accent-solid\)"/u,
+    "the rim's shimmer takes the app accent",
+  );
 }
 
 {

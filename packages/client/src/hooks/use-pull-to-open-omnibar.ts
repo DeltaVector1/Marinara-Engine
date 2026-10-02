@@ -9,6 +9,7 @@ import {
   createPullRecognizer,
   pullCirclePath,
   pullCircleTarget,
+  pullOnScreenX,
   pullOpenThreshold,
   pullRemnantPath,
   pullSheetBase,
@@ -191,10 +192,12 @@ export function usePullToOpenOmnibar({
     const radius = Math.max(2, mv.radius.get());
     const rx = radius * (1 + 0.06 * pop);
     const ry = radius * (1 - 0.05 * pop);
-    const cx = landing ? mv.x.get() : clamp(mv.x.get(), radius + 12, g.width - radius - 12);
+    // The circle follows the finger right up to the screen's side and stays whole on it.
+    const cx = landing ? mv.x.get() : pullOnScreenX(mv.x.get(), rx, g.width);
     const cy = mv.y.get();
-    // Symmetric around the circle and always inside the bar: near an edge it narrows instead of skewing.
-    const base = clamp(mv.base.get(), rx + 4, Math.max(rx + 4, Math.min(cx, g.width - cx) - 2));
+    // Full width at the screen's sides too: the sheet runs off the edge rather than narrowing.
+    const base = Math.max(mv.base.get(), rx + 4);
+    const tagHalf = (tag?.offsetWidth ?? 0) / 2;
     const sag = clamp01(mv.y.getVelocity() / 1500);
     const attached = !g.detached && cy + ry > 0;
     const rem = g.detached ? mv.rem.get() : 0;
@@ -296,7 +299,7 @@ export function usePullToOpenOmnibar({
     // The small bar under the circle, above the finger; only its words change with the side.
     if (tag) {
       tag.style.opacity = landing ? "0" : String(px(showTag * 100) / 100);
-      tag.style.transform = `translate3d(${px(cx)}px, ${px(y + ry + PULL_TAG_GAP)}px, 0) translate(-50%, 0) scale(${px((0.9 + 0.1 * showTag) * 100) / 100})`;
+      tag.style.transform = `translate3d(${px(pullOnScreenX(cx, tagHalf, g.width))}px, ${px(y + ry + PULL_TAG_GAP)}px, 0) translate(-50%, 0) scale(${px((0.9 + 0.1 * showTag) * 100) / 100})`;
     }
     if (els.tagSearch) els.tagSearch.style.opacity = String(px(clamp01(1 - t * 1.6) * 100) / 100);
     if (els.tagMari) els.tagMari.style.opacity = String(px(clamp01(t * 1.6 - 0.6) * 100) / 100);
@@ -380,6 +383,8 @@ export function usePullToOpenOmnibar({
     (side: PullTarget, velocity: number) => {
       g.recognizer = null;
       g.mode = "land";
+      // The circle pops open where it was drawn, not under a finger past the screen's side.
+      mv.x.jump(g.geom.cx);
       const gesture = g.gesture;
       if (!g.detached) go(mv.pinch, 1, PINCH_FAST);
       go(mv.side, side === "mari" ? 1 : 0, SIDE);
