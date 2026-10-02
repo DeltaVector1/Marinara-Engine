@@ -57,6 +57,18 @@ export interface MariArrivalData {
   undoLabel?: string | null;
 }
 
+/**
+ * K1's lastAppError is a single global slot, not per chat. Scope "Generate reply" failed
+ * to the arrival's own chat so switching to an unrelated chat after a failure elsewhere
+ * doesn't offer "Fix the last reply" for a reply that never ran there.
+ */
+export function isMariReplyFailure(
+  lastAppError: { action?: string; chatId?: string } | null | undefined,
+  arrivalChatId: string | undefined,
+): boolean {
+  return lastAppError?.action === "Generate reply" && lastAppError.chatId === arrivalChatId;
+}
+
 const MAX_CARDS = 4;
 const mari = (id: string, label: string, prompt: string, detail?: string, icon?: string): MariArrivalCard => ({
   id: `arrival:${id}`,

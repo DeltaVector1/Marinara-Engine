@@ -120,6 +120,12 @@ Rules that must survive:
     on a line under the turn. So she is always in the transcript: the welcome
     sprite when empty, the live line while she works, and the resting sprite
     beside her newest reply.
+  - **Scroll contract** (slice 31): sending a message reserves
+    `clientHeight − dock height` under the header so the new turn's question
+    lands at the top; `grow` only autoscrolls while following and already near
+    the bottom; `complete` never scrolls. Scrolling up to read while she works
+    holds position through completion instead of snapping back down or
+    getting stuck.
   - Reference cards (`MariReferencedResources`, `.mari-ref-card`) come right
     after her words: characters, personas and lorebooks she read, agents (keyed
     by type; their live Enabled / Disabled state, or "Last run failed" from
@@ -245,6 +251,10 @@ Rules that must survive:
     `PUT /professor-mari/workspace/permissions-mode { mode, chatId }`, and
     keeps the Bypass wording unchanged. On a phone both menus span the composer;
     every toolbar control is 44px on a coarse pointer.
+  - **The composer floats over the transcript** (slice 30): scrolled content
+    passes under it through a soft, always-on fade at the top and bottom edges
+    instead of a hard cut, and her working glow shows through that fade rather
+    than being boxed in behind the composer.
 
 ## 2. Query handling
 
@@ -460,6 +470,16 @@ This is the part most likely to break silently. All of it must survive.
   (`lib/pull-to-open.ts`) and pinned by the command-center regression. Under
   reduced motion there is no sheet: a label above the finger, and the target
   opens at the threshold.
+- **Pull drop at screen edges** (slice 33b): the sheet's rim takes the user's
+  accent colour instead of a fixed white, the sheet keeps its full width and
+  runs off the side instead of narrowing, the circle follows the finger to the
+  edge while staying whole on screen, and releasing near a side pops the
+  dialog open from the circle's position instead of from half off-screen.
+- **Tiered appearance loading** (slice 38c): only the selected appearance
+  pack's sprites are fetched; the omnibar's own Mari portrait loads once the
+  app goes idle so ⌘K, ⌘J and the pull show her at once, other poses (tour,
+  FAQ, chibi) load lazily on first appearance, and switching packs in settings
+  swaps the live images with no reload — no other pack's assets download.
 - `↑`/`↓` move the selection; `Home`/`End` jump to the ends. No exceptions:
   there is no surface left that opts out of the keyboard model.
 - `Enter` chooses. On a toggle row it flips the toggle; on a choice row it

@@ -68,6 +68,7 @@ import {
   assignReviewsToTurns,
   professorMariContextFacets,
   professorMariFacetSendsContentLater,
+  shouldAppendMariArrival,
   summarizeDeleteReview,
   withoutProfessorMariContextFacet,
 } from "../../packages/client/src/lib/professor-mari-presentation.js";
@@ -108,7 +109,11 @@ import {
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 import { formatCapabilityAgentGroundingLines } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
 import { buildOmnibarChatRows } from "../../packages/client/src/lib/omnibar-entity-rows.js";
-import { buildMariArrival, type MariArrivalData } from "../../packages/client/src/lib/mari-arrival.js";
+import {
+  buildMariArrival,
+  isMariReplyFailure,
+  type MariArrivalData,
+} from "../../packages/client/src/lib/mari-arrival.js";
 import {
   matchOmnibarCapabilityAgentPackageIds,
   OMNIBAR_CAPABILITY_AGENT_KEYWORDS,
@@ -2381,8 +2386,50 @@ assert.ok(!("mariDetailId" in mariSession));
   );
   const failed = buildMariArrival(chatContext, { ...chatData({ lastReply: null }), replyFailed: true })!;
   assert.equal(failed.cards[0]?.id, "arrival:fix-reply", "a failed generation leads with the fix");
+  assert.equal(
+    isMariReplyFailure({ action: "Generate reply", chatId: "chat-2" }, "chat-1"),
+    false,
+    "a reply failure in a different chat does not offer Fix the last reply here",
+  );
+  assert.equal(
+    isMariReplyFailure({ action: "Generate reply", chatId: "chat-1" }, "chat-1"),
+    true,
+    "a reply failure in this chat does offer Fix the last reply",
+  );
+  const foreignChatFailed = buildMariArrival(chatContext, {
+    ...chatData({ lastReply: null }),
+    replyFailed: isMariReplyFailure({ action: "Generate reply", chatId: "chat-2" }, "chat-1"),
+  })!;
+  assert.ok(
+    !foreignChatFailed.cards.some((card) => card.id === "arrival:fix-reply"),
+    "a foreign chat's reply failure never surfaces as this arrival's fix card",
+  );
   const empty = buildMariArrival(chatContext, chatData({ messageCount: 0, lastReply: null, lorebooks: [] }))!;
   assert.ok(empty.cards.length >= 2 && empty.cards.length <= 4, "an empty chat still gets 2-4 cards");
+
+  // D1: an arrival door should still show the arrival (appended at the transcript's bottom) when her
+  // chat already has messages, not only when it is empty — otherwise ⌘J's "ask Mari about this" on a
+  // return visit shows nothing but old history.
+  assert.equal(
+    shouldAppendMariArrival({ omnibarMode: true, messageCount: 4, chatId: "mari-chat-1", loadedMessagesChatId: "mari-chat-1" }),
+    true,
+    "a chat with history, loaded, in the omnibar: show the appended arrival",
+  );
+  assert.equal(
+    shouldAppendMariArrival({ omnibarMode: true, messageCount: 0, chatId: "mari-chat-1", loadedMessagesChatId: "mari-chat-1" }),
+    false,
+    "an empty chat keeps the existing empty-state arrival instead, not the appended one",
+  );
+  assert.equal(
+    shouldAppendMariArrival({ omnibarMode: true, messageCount: 4, chatId: "mari-chat-1", loadedMessagesChatId: null }),
+    false,
+    "her history has not loaded yet: wait rather than append over a stale list",
+  );
+  assert.equal(
+    shouldAppendMariArrival({ omnibarMode: false, messageCount: 4, chatId: "mari-chat-1", loadedMessagesChatId: "mari-chat-1" }),
+    false,
+    "a normal (non-omnibar) continue-chatting surface never appends the arrival",
+  );
 
   const agentContext = createOmnibarContext({
     surface: "editor",

@@ -878,6 +878,15 @@ does not keep its own copy).
   reduced motion, 44 px targets, `pnpm localization:check`, inventory and CHANGELOG. Judge every slice
   against the North star above (search + commands + Mari, in one obvious flow), not only against its own
   proof — a slice whose checks pass but that makes the flow less clear is a finding.
+
+  **Known issues (not round-4, filed for later):**
+  - `e2e/core-flows.e2e.ts` "Professor Mari visibly arrives on Home and navigates without AI" fails at
+    the `marinara/professor` address assertion: the omnibar now opens Mari via `requestProfessorMariOpen()`
+    instead of switching `activeTab` to `"professor"` (pre-round-4, from `6134a021b`/`48c60d016`); the
+    unchanged test still expects the old tab route.
+  - `e2e/expression-active-sprites.e2e.ts` asserts 1 active sprite but sees 2: the client keeps the
+    previous active set after the server stores a new one (pre-round-4 `resolveLatestSpriteExpressionTurn`
+    behaviour), unrelated to any round-4 commit.
 - **M12 (slice 41), Fresh-eyes flow pass.** Reviewer profile, then a worker. The reviewer acts as a new
   user on the real running app at 390 and 1440, with no knowledge of the code or this plan, and does these
   jobs: find and reopen a chat; find a message; change a setting; run a command; ask a quick question; hand

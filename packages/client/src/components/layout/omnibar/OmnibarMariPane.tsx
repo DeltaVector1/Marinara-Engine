@@ -27,6 +27,8 @@ export interface OmnibarMariPaneProps {
   omnibarHeaderSlot: HTMLElement | null;
   omnibarStatusSlot: HTMLElement | null;
   arrival: MariArrival | null;
+  /** Increments on every arrival-door open (⌘J, the pull, the drag, Home's "Ask Professor Mari"). */
+  arrivalAppendRequest: number;
   onArrivalAction: (action: MariArrivalAction) => void;
 }
 
@@ -44,6 +46,7 @@ export function OmnibarMariPane({
   omnibarHeaderSlot,
   omnibarStatusSlot,
   arrival,
+  arrivalAppendRequest,
   onArrivalAction,
 }: OmnibarMariPaneProps) {
   const { t } = useTranslation();
@@ -79,6 +82,7 @@ export function OmnibarMariPane({
           omnibarHeaderSlot={omnibarHeaderSlot}
           omnibarStatusSlot={omnibarStatusSlot}
           arrival={arrival}
+          arrivalAppendRequest={arrivalAppendRequest}
           onArrivalAction={onArrivalAction}
           onChatWindowOpenChange={onChatWindowOpenChange}
         />

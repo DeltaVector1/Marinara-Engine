@@ -79,7 +79,7 @@ import {
   type ActiveLorebookScan,
 } from "../../hooks/use-lorebooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { buildMariArrival, type MariArrivalAction } from "../../lib/mari-arrival";
+import { buildMariArrival, isMariReplyFailure, type MariArrivalAction } from "../../lib/mari-arrival";
 import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
@@ -431,6 +431,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // Matches mariPendingReviewRequest, which solved the same problem.
   const [mariSubmitDraftRequest, setMariSubmitDraftRequest] = useState(0);
   const [mariPendingReviewRequest, setMariPendingReviewRequest] = useState(0);
+  // D1: every arrival-door open (⌘J, the pull, the drag, Home's "Ask Professor Mari") bumps this,
+  // so the chat can show the arrival at the bottom of her existing transcript when she already has
+  // history — the door's whole promise ("ask Mari about this") otherwise goes unmet on return visits.
+  const [mariArrivalAppendRequest, setMariArrivalAppendRequest] = useState(0);
   useEffect(() => {
     const pendingDraft = session.mariHandoff?.draft;
     if (!pendingDraft) return;
@@ -1336,7 +1340,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               queryClient.getQueryData<ActiveLorebookScan>(lorebookKeys.active(arrivalChat.id))?.entries.length ?? null,
           }
         : null,
-      replyFailed: lastAppError?.action === "Generate reply",
+      replyFailed: isMariReplyFailure(lastAppError, arrivalChat?.id),
       agent: agentRow
         ? {
             type: agentRow.type,
@@ -2612,6 +2616,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         : focusResult;
     enterMariPane(buildAskContext(draft, askFocus), options.submitDraft);
     if (options.reviewPending) setMariPendingReviewRequest((current) => current + 1);
+    if (options.arrival) setMariArrivalAppendRequest((current) => current + 1);
   };
   /**
    * One rule for every "take this to Mari" door: typed text that asks for something is sent.
@@ -3262,6 +3267,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               omnibarHeaderSlot={mariHeaderSlot}
               omnibarStatusSlot={mariStatusSlot}
               arrival={mariArrival}
+              arrivalAppendRequest={mariArrivalAppendRequest}
               onArrivalAction={runArrivalAction}
             />
           </Suspense>

@@ -122,6 +122,26 @@ export function shouldShowProfessorMariConnectionHint({
   return chatId !== null && loadedMessagesChatId === chatId && !sending && effectiveConnectionId === null;
 }
 
+/**
+ * D1: an arrival door (⌘J, the pull, the drag, Home's "Ask Professor Mari") should still show the
+ * arrival — appended at the bottom of the transcript — when Mari's own chat already has history,
+ * not only on an empty chat. Gated the same way the empty-state arrival already is: a real chat is
+ * selected and its history has actually loaded (never mid-load, never for a different chat).
+ */
+export function shouldAppendMariArrival({
+  omnibarMode,
+  messageCount,
+  chatId,
+  loadedMessagesChatId,
+}: {
+  omnibarMode: boolean;
+  messageCount: number;
+  chatId: string | null;
+  loadedMessagesChatId: string | null;
+}): boolean {
+  return omnibarMode && messageCount > 0 && chatId !== null && loadedMessagesChatId === chatId;
+}
+
 export function shouldOfferProfessorMariStarterSuggestions({
   chatId,
   loadedMessagesChatId,

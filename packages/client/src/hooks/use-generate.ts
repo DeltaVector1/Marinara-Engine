@@ -125,6 +125,7 @@ function setGenerateReplyError(formattedMessage: string, chatId: string, qc: Que
   useUIStore.getState().setLastAppError({
     message: formattedMessage,
     action: "Generate reply",
+    chatId,
     ...(connectionId && connectionId !== "random"
       ? { retry: { kind: "open-connection" as const, id: connectionId } }
       : {}),

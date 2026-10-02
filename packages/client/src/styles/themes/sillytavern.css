@@ -307,6 +307,10 @@
   box-shadow: none;
 }
 
+[data-visual-theme="sillytavern"] .mari-workspace-glow-band {
+  display: none;
+}
+
 /* ─── Disable scanlines & noise overlays ─── */
 [data-visual-theme="sillytavern"] .retro-scanlines::after {
   display: none !important;

@@ -670,6 +670,8 @@ interface UIState {
     message: string;
     code?: string;
     action?: string;
+    /** The chat the error belongs to, when the error is chat-scoped (e.g. a failed reply). */
+    chatId?: string;
     retry?: { kind: "open-connection"; id: string } | { kind: "open-agent"; id: string };
   } | null;
   /** When set, the main area shows the hierarchical map editor for this chat */

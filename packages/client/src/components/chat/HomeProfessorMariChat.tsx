@@ -135,6 +135,7 @@ import {
   professorMariContextFacets,
   professorMariFacetSendsContentLater,
   resolveProfessorMariPresentationState,
+  shouldAppendMariArrival,
   shouldOfferProfessorMariStarterSuggestions,
   shouldShowProfessorMariConnectionHint,
   stripProfessorMariSpeakerPrefix,
@@ -1679,7 +1680,16 @@ const MARI_LONG_WAIT_SECONDS = 15;
 const MARI_VERY_LONG_WAIT_SECONDS = 45;
 
 /** A little pixel Mari. The inner span is keyed by scene, so a new scene pops in instead of cutting. */
-function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working" }) {
+function MariSprite({
+  scene,
+  role,
+  pullTarget = true,
+}: {
+  scene: MariWorkAnimation;
+  role: "working";
+  /** D1: suppressed while an appended arrival at the bottom of the transcript owns the marker instead. */
+  pullTarget?: boolean;
+}) {
   const appearance = useMariAppearancePack();
   return (
     <span
@@ -1687,7 +1697,7 @@ function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working"
       data-scene={scene.id}
       data-role={role}
       data-appearance-pack={appearance.id}
-      data-mari-pull-target="mari-current"
+      data-mari-pull-target={pullTarget ? "mari-current" : undefined}
       aria-hidden="true"
     >
       <span
@@ -1756,12 +1766,26 @@ const PHASE_ICONS: Record<RunPhaseKind, LucideIcon> = { look: FileText, change: 
  * Her reply column: the words and what they made, indented by an avatar gutter that is always there (so
  * nothing reflows when she arrives). On her newest finished reply she rests in it beside the first line.
  */
-function MariAnswer({ restStory, children }: { restStory: MariStoryState | null; children: ReactNode }) {
+function MariAnswer({
+  restStory,
+  pullTarget = true,
+  children,
+}: {
+  restStory: MariStoryState | null;
+  /** D1: suppressed while an appended arrival at the bottom of the transcript owns the marker instead. */
+  pullTarget?: boolean;
+  children: ReactNode;
+}) {
   return (
     <div className="mari-answer" data-sprite={restStory ? "true" : undefined}>
       {restStory ? (
         <span className="mari-answer__sprite">
-          <MariStorySprite key={restStory} state={restStory} settleTo={restStory === "success" ? "idle" : undefined} />
+          <MariStorySprite
+            key={restStory}
+            state={restStory}
+            settleTo={restStory === "success" ? "idle" : undefined}
+            pullTarget={pullTarget}
+          />
         </span>
       ) : null}
       {children}
@@ -1776,12 +1800,15 @@ function MariWorkTimeline({
   active = true,
   restStory = null,
   goal = null,
+  pullTarget = true,
   children,
 }: {
   items: WorkspaceTimelineItem[];
   character?: CharacterPreviewModel | null;
   lorebook?: LorebookPreviewModel | null;
   active?: boolean;
+  /** D1: suppressed while an appended arrival at the bottom of the transcript owns the marker instead. */
+  pullTarget?: boolean;
   /** M5a: the request she reported acting on, as one muted line above the run. */
   goal?: ReactNode;
   /** On the newest finished turn, Mari stands on the "Worked for" line in this story. */
@@ -2015,7 +2042,7 @@ function MariWorkTimeline({
         ) : null}
         {renderSegments(answerStart < 0 ? tailBlocks : tailBlocks.slice(0, answerStart))}
         {answerBlocks.length > 0 || children ? (
-          <MariAnswer restStory={spriteBesideAnswer ? restStory : null}>
+          <MariAnswer restStory={spriteBesideAnswer ? restStory : null} pullTarget={pullTarget}>
             {renderSegments(answerBlocks)}
             {children}
           </MariAnswer>
@@ -2025,7 +2052,7 @@ function MariWorkTimeline({
           // The live line is always the last line, and working Mari leads it on the left: new work lands above
           // it and pushes the older lines up, so she is never left behind on an old step or clipped.
           <div className="mari-work-timeline__live">
-            {liveScene ? <MariSprite scene={liveScene} role="working" /> : null}
+            {liveScene ? <MariSprite scene={liveScene} role="working" pullTarget={pullTarget} /> : null}
             <MariLiveHeadline text={headline.text} subject={headline.subject} />
             <span
               className="mari-work-timeline__timer"
@@ -2049,6 +2076,7 @@ function MariWorkTimeline({
                 key={restStory}
                 state={restStory}
                 settleTo={restStory === "success" ? "idle" : undefined}
+                pullTarget={pullTarget}
               />
             ) : null}
             {toolItems.length === 0 ? (
@@ -2548,6 +2576,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   lorebookPreviews,
   messageContext,
   restStory = null,
+  pullTarget = true,
   reviews,
   goal = null,
 }: {
@@ -2571,6 +2600,8 @@ const CompactMariMessage = memo(function CompactMariMessage({
   messageContext?: ProfessorMariAskContext | null;
   /** Only on the newest finished turn: the story Mari plays on its "Worked for" line. */
   restStory?: MariStoryState | null;
+  /** D1: suppressed while an appended arrival at the bottom of the transcript owns the marker instead. */
+  pullTarget?: boolean;
   /** The reviews this turn holds, in its outcome group before the "Worked for" line. */
   reviews?: MariTurnReviews;
   /** M5a: the request she reported acting on, as the turn's first line. */
@@ -2693,6 +2724,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
           lorebook={lorebookSubject}
           active={false}
           restStory={restStory}
+          pullTarget={pullTarget}
           goal={goal}
         >
           <MariWorkTimelineOutcome
@@ -2718,7 +2750,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
       <TranscriptRow layout="document" className="group" marker={null}>
         <MariResourceSubject character={characterSubject} lorebook={lorebookSubject} className="mb-2" />
         {goal}
-        <MariAnswer restStory={restStory}>
+        <MariAnswer restStory={restStory} pullTarget={pullTarget}>
           <CompactMarkdown content={splitMariAnswerWhy(stripProfessorMariSpeakerPrefix(content)).answer} />
           <MariWorkTimelineOutcome
             content={content}
@@ -2839,6 +2871,12 @@ type HomeProfessorMariChatProps = {
   omnibarStatusSlot?: HTMLElement | null;
   /** M9: what the empty pane says about the screen she was opened from; null keeps the generic welcome. */
   arrival?: MariArrival | null;
+  /**
+   * D1: increments on every arrival-door open (⌘J, the pull, the drag, Home's "Ask Professor
+   * Mari"). When her chat already has messages, this appends the same arrival content at the
+   * bottom of the transcript instead of only showing it on an empty chat.
+   */
+  arrivalAppendRequest?: number;
   /** Runs the arrival cards only the omnibar can (back to its settings search, K5's Undo). */
   onArrivalAction?: (action: MariArrivalAction) => void;
   onChatWindowOpenChange?: (open: boolean) => void;
@@ -2859,6 +2897,7 @@ export function HomeProfessorMariChat({
   omnibarHeaderSlot = null,
   omnibarStatusSlot = null,
   arrival = null,
+  arrivalAppendRequest = 0,
   onArrivalAction,
   onChatWindowOpenChange,
   onChatWindowExitComplete,
@@ -3782,6 +3821,28 @@ export function HomeProfessorMariChat({
   const workspaceTimelineActive = workspaceActive || hasActiveGeneration;
   const emptyStateReady =
     omnibarMode && messages.length === 0 && !isBusy && chatId !== null && loadedMessagesChatId === chatId;
+  // D1: an arrival door (⌘J, the pull, the drag, Home's "Ask Professor Mari") opened into a chat that
+  // already has history. Append the same arrival content (`buildMariArrival`'s output, unchanged) at
+  // the bottom of the transcript instead of only showing it on an empty chat, so the door's "ask Mari
+  // about this" promise still holds on a return visit. Local UI only: never persisted, no model call.
+  const appendedArrivalReady = shouldAppendMariArrival({
+    omnibarMode,
+    messageCount: messages.length,
+    chatId,
+    loadedMessagesChatId,
+  });
+  const [appendedArrival, setAppendedArrival] = useState<MariArrival | null>(null);
+  const handledArrivalAppendRequestRef = useRef(0);
+  useEffect(() => {
+    if (arrivalAppendRequest <= handledArrivalAppendRequestRef.current) return;
+    if (!appendedArrivalReady || !arrival) return;
+    handledArrivalAppendRequestRef.current = arrivalAppendRequest;
+    setAppendedArrival(arrival);
+  }, [arrivalAppendRequest, appendedArrivalReady, arrival]);
+  const appendedArrivalNodeRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (appendedArrival) appendedArrivalNodeRef.current?.scrollIntoView({ block: "nearest" });
+  }, [appendedArrival]);
   // M4/M3: the timeline stays mounted (and keeps the transcript's height) through the reload that
   // applies the reply, and keeps showing workspaceTimeline (now with active=false) as the turn's
   // permanent record afterward - it is only cleared when the next send or chat switch starts a new run.
@@ -5347,6 +5408,8 @@ export function HomeProfessorMariChat({
     }
 
     setSending(true);
+    // D1: the appended arrival is local UI only — it never lingers once the user is really sending.
+    setAppendedArrival(null);
     let localMessageId: string | undefined;
     try {
       const chat = await ensureProfessorMariChat(effectiveConnectionId);
@@ -5924,6 +5987,7 @@ export function HomeProfessorMariChat({
           lorebookPreviews={lorebookPreviewById}
           messageContext={messageContext}
           restStory={message.id === latestMessage?.id ? latestTurnRestStory : null}
+          pullTarget={!appendedArrival}
           reviews={renderTurnReviews(message.id)}
           goal={renderGoal(message)}
         />
@@ -6362,6 +6426,7 @@ export function HomeProfessorMariChat({
                                       lorebook={focusedLorebook}
                                       active={workspaceTimelineActive}
                                       restStory={latestTurnRestStory}
+                                      pullTarget={!appendedArrival}
                                       goal={
                                         !workspaceTimelineActive && latestMessage ? renderGoal(latestMessage) : null
                                       }
@@ -6399,6 +6464,7 @@ export function HomeProfessorMariChat({
                                         <MariStorySprite
                                           key={`${chatId}:${latestMessage?.id}:${restingStory ?? "idle"}`}
                                           state={restingStory ?? "idle"}
+                                          pullTarget={!appendedArrival}
                                         />
                                       )}
                                       {restingStory ? (
@@ -6442,6 +6508,61 @@ export function HomeProfessorMariChat({
                                     />
                                   ) : null}
                                 </div>
+                                {appendedArrival ? (
+                                  // D1: an arrival door (⌘J, the pull, the drag, Home's "Ask Professor Mari")
+                                  // opened into a chat she already has history in. The same arrival content
+                                  // empty chats get (buildMariArrival, unchanged) appends at the bottom here
+                                  // instead, local UI only (R22): never persisted, cleared on send.
+                                  <div
+                                    ref={appendedArrivalNodeRef}
+                                    className="mari-arrival"
+                                    data-component="HomeProfessorMariChat.AppendedArrival"
+                                  >
+                                    <div className="mari-arrival__head">
+                                      <MariStorySprite state="idle" />
+                                      <div className="mari-arrival__copy mari-arrival-content">
+                                        <p className="mari-arrival__line">
+                                          {appendedArrival.strong &&
+                                          appendedArrival.line.includes(appendedArrival.strong) ? (
+                                            <>
+                                              {appendedArrival.line.slice(
+                                                0,
+                                                appendedArrival.line.indexOf(appendedArrival.strong),
+                                              )}
+                                              <b>{appendedArrival.strong}</b>
+                                              {appendedArrival.line.slice(
+                                                appendedArrival.line.indexOf(appendedArrival.strong) +
+                                                  appendedArrival.strong.length,
+                                              )}
+                                            </>
+                                          ) : (
+                                            appendedArrival.line
+                                          )}
+                                        </p>
+                                        {appendedArrival.meta.length > 0 ? (
+                                          <p className="mari-arrival__meta">{appendedArrival.meta.join(" · ")}</p>
+                                        ) : null}
+                                        <MariReferencedResources
+                                          resources={appendedArrival.refs}
+                                          characterPreviews={characterPreviewById}
+                                          lorebookPreviews={lorebookPreviewById}
+                                          onOpen={openReferencedResource}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="mari-arrival-content">
+                                      <MariNextStepCards
+                                        chips={appendedArrival.cards}
+                                        onSelect={(card) =>
+                                          card.action?.kind === "find-setting" || card.action?.kind === "undo-setting"
+                                            ? onArrivalAction?.(card.action)
+                                            : handleSuggestionSelect(card as MariSuggestionChip)
+                                        }
+                                        disabled={isBusy}
+                                      />
+                                    </div>
+                                  </div>
+                                ) : null}
                               </>
                             )}
                           </div>

@@ -10,9 +10,19 @@ import "./mari-appearance.css";
  * M17: she is also the present Mari the pull-to-open circle morphs into (`mari-current`). Exactly one
  * Mari sprite is on screen at a time, by construction: the live-line `MariSprite` while a run is live
  * (the transcript's `latestTurnRestStory` is null then), else the one resting beside the newest reply
- * (only the latest turn gets a `restStory`), else the arrival/welcome one (only in an empty chat).
+ * (only the latest turn gets a `restStory`), else the arrival/welcome one (only in an empty chat), else
+ * (D1) an appended arrival at the bottom of an existing transcript — callers pass `pullTarget={false}`
+ * on the other sprites while one is shown, so the marker still only ever sits on one element.
  */
-export function MariStorySprite({ state, settleTo }: { state: MariStoryState; settleTo?: MariStoryState }) {
+export function MariStorySprite({
+  state,
+  settleTo,
+  pullTarget = true,
+}: {
+  state: MariStoryState;
+  settleTo?: MariStoryState;
+  pullTarget?: boolean;
+}) {
   const pack = useMariAppearancePack();
   const [settled, setSettled] = useState(false);
   const shown = settled && settleTo ? settleTo : state;
@@ -21,7 +31,7 @@ export function MariStorySprite({ state, settleTo }: { state: MariStoryState; se
       className="mari-story-sprite"
       data-state={shown}
       data-appearance-pack={pack.id}
-      data-mari-pull-target="mari-current"
+      data-mari-pull-target={pullTarget ? "mari-current" : undefined}
       aria-hidden="true"
     >
       <span
