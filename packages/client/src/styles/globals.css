@@ -698,11 +698,19 @@
   initial-value: transparent;
 }
 
-.mari-workspace-composer-dock {
+/* M2: the band is its own aria-hidden sibling under the transcript (not the dock's pseudo-elements), so
+   the transcript's always-on fade shows it through instead of a hard-edged box. It tracks the dock's
+   live height so it still sits low and sinks out of view as the dock shrinks. */
+.mari-workspace-glow-band {
   --mari-glow-a: var(--mari-logo-pink);
   --mari-glow-b: var(--mari-logo-orange);
   --mari-glow-c: var(--mari-logo-cyan);
-  position: relative;
+  position: absolute;
+  z-index: 0;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--mari-dock-h, 0px);
+  pointer-events: none;
   isolation: isolate;
   transition:
     --mari-glow-a 0.9s ease,
@@ -711,31 +719,31 @@
 }
 
 /* Her state, in color. */
-.mari-workspace-composer-dock[data-glow="thinking"] {
+.mari-workspace-glow-band[data-glow="thinking"] {
   --mari-glow-a: var(--mari-logo-cyan);
   --mari-glow-b: oklch(0.68 0.16 280);
   --mari-glow-c: var(--mari-logo-pink);
 }
 
-.mari-workspace-composer-dock[data-glow="writing"] {
+.mari-workspace-glow-band[data-glow="writing"] {
   --mari-glow-a: var(--mari-logo-pink);
   --mari-glow-b: var(--mari-logo-orange);
   --mari-glow-c: var(--mari-workspace-gold, oklch(0.82 0.11 79));
 }
 
-.mari-workspace-composer-dock[data-glow="waiting-approval"] {
+.mari-workspace-glow-band[data-glow="waiting-approval"] {
   --mari-glow-a: var(--mari-workspace-gold, oklch(0.82 0.11 79));
   --mari-glow-b: var(--mari-logo-orange);
   --mari-glow-c: var(--mari-workspace-gold, oklch(0.82 0.11 79));
 }
 
-.mari-workspace-composer-dock[data-glow="broken"] {
+.mari-workspace-glow-band[data-glow="broken"] {
   --mari-glow-a: var(--destructive);
   --mari-glow-b: oklch(0.6 0.2 25);
   --mari-glow-c: var(--destructive);
 }
 
-.mari-workspace-composer-dock[data-working="ending"] {
+.mari-workspace-glow-band[data-working="ending"] {
   --mari-glow-a: oklch(0.78 0.08 158);
   --mari-glow-b: oklch(0.82 0.07 172);
   --mari-glow-c: oklch(0.78 0.08 158);
@@ -743,10 +751,9 @@
 
 /* A wide, low band (an ellipse, so the middle stands higher than the ends) spanning the whole window;
    the canvas clips it at the sides. Anchored at the bottom, so shrinking sinks it out of view. */
-.mari-workspace-composer-dock::before,
-.mari-workspace-composer-dock::after {
+.mari-workspace-glow-band::before,
+.mari-workspace-glow-band::after {
   position: absolute;
-  z-index: -1;
   left: 50%;
   bottom: -55%;
   width: max(100vw, 48rem);
@@ -760,7 +767,7 @@
   transition: opacity 0.6s ease;
 }
 
-.mari-workspace-composer-dock::before {
+.mari-workspace-glow-band::before {
   height: 130%;
   background: linear-gradient(
     90deg,
@@ -774,7 +781,7 @@
 }
 
 /* Brighter spots that drift along the band, so the light moves instead of sitting still. */
-.mari-workspace-composer-dock::after {
+.mari-workspace-glow-band::after {
   height: 110%;
   background:
     radial-gradient(closest-side at 20% 60%, color-mix(in srgb, var(--mari-glow-c) 75%, transparent), transparent),
@@ -783,31 +790,37 @@
   filter: blur(1.5rem);
 }
 
-.mari-workspace-composer-dock[data-working="true"]::before {
+.mari-workspace-glow-band[data-working="true"]::before {
   opacity: 0.65;
   animation: mari-glow-waver 4.2s ease-in-out infinite alternate;
 }
 
-.mari-workspace-composer-dock[data-working="true"]::after {
+.mari-workspace-glow-band[data-working="true"]::after {
   opacity: 0.55;
   animation: mari-glow-drift 5.5s ease-in-out infinite alternate;
 }
 
 /* Done: a small, low, faint green band that sinks and fades within a few seconds; no bright spots. */
-.mari-workspace-composer-dock[data-working="ending"]::before {
+.mari-workspace-glow-band[data-working="ending"]::before {
   animation: mari-glow-settle 3.5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
 /* Failed: red, smaller and quieter, lingers, then fades out slowly too. */
-.mari-workspace-composer-dock[data-glow="broken"]:not([data-working])::before {
+.mari-workspace-glow-band[data-glow="broken"]:not([data-working])::before {
   animation: mari-glow-alert 8s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
 /* Waiting for your approval: a small, quiet gold band that stays until you answer. */
-.mari-workspace-composer-dock[data-glow="waiting-approval"]:not([data-working])::before {
+.mari-workspace-glow-band[data-glow="waiting-approval"]:not([data-working])::before {
   opacity: 0.35;
   scale: 1 0.55;
   animation: mari-glow-waver-soft 4s ease-in-out infinite alternate;
+}
+
+/* Tab hidden or unfocused: freeze the band instead of animating off-screen. */
+html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::before,
+html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
+  animation-play-state: paused !important;
 }
 
 /* Slow and small: the band breathes in height and leans a little, it never jumps. */
@@ -868,18 +881,6 @@
   100% {
     opacity: 0;
     scale: 1 0.25;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mari-workspace-composer-dock {
-    transition: none;
-  }
-
-  .mari-workspace-composer-dock::before,
-  .mari-workspace-composer-dock::after {
-    transition: none;
-    animation: none !important;
   }
 }
 
@@ -1933,9 +1934,22 @@
   background: color-mix(in srgb, var(--background) 97%, oklch(0.2 0.025 315));
 }
 
+/* M1/M2: one always-on fade, top and bottom, instead of a toggle keyed to scroll position - the edges
+   never go hard and never flicker. Both the bottom fade stop and the bottom padding track the dock's
+   live height, so text clears into the composer instead of stopping at a line. */
 .mari-workspace-transcript {
+  position: relative;
+  z-index: 1;
   scrollbar-gutter: stable;
   width: 100%;
+  padding-bottom: var(--mari-dock-h, 0px);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 2rem,
+    #000 calc(100% - var(--mari-dock-h, 0px) - 2.5rem),
+    transparent calc(100% - var(--mari-dock-h, 0px) + 1.25rem)
+  );
 }
 
 /* One comfortable reading column, as in Claude and Gemini; the composer below lines up with it. */
@@ -1953,12 +1967,6 @@
 
 .mari-workspace-transcript[data-anchor="bottom"] > :first-child {
   margin-top: auto;
-}
-
-/* While the view follows the newest output, older lines fade very slightly into the top edge. Scrolling
-   up to read clears the fade, so history is never dimmed while you look at it. */
-.mari-workspace-transcript[data-following="true"] {
-  mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.35), #000 3rem);
 }
 
 /* Your turn: a soft bubble on the right, no avatar or name - the side it sits on says who spoke. */
