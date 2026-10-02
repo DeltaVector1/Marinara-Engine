@@ -52,11 +52,22 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 28  | Reply-fix review card (L6)                                      | designer      | Done    | 617a47e05 |
 | 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Done    | 2ea1f7f65 |
 | 29  | Review of slices 23-28b (L7)                                    | reviewer      | Done    | 112cf53c1 |
+| 30  | Composer over the transcript, one always-on fade (M1, M2)       | worker        | Pending |           |
+| 31  | No scroll back to the question at the end of a run (M4)         | worker        | Pending |           |
+| 32  | Stable run layout: append only, no layout animation (M3)        | worker        | Pending |           |
+| 33  | One header row in Mari mode, no header Mari (M8)                 | designer      | Pending |           |
+| 34  | "Context" becomes "What Mari sees" (M7)                          | designer      | Pending |           |
+| 35  | Side panels in one surface language (M6)                         | designer      | Pending |           |
+| 36  | A run in cards: goal, phases, outcome group (M5a)                | designer      | Pending |           |
+| 37  | Next-step suggestion cards with a fact line (M5b)                | designer      | Pending |           |
+| 38  | Small fixes found on the way (M10)                                | worker        | Pending |           |
+| 39  | Mari arrives with context, on every surface (M9)                 | designer      | Pending |           |
+| 40  | Review of slices 30-39 (M11)                                      | reviewer      | Pending |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. This round is complete.
+slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Remaining order: 30-40 (section M). Stop after 40.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
@@ -581,3 +592,222 @@ L-open resolved 2026-10-01: the maintainer decided "Omnibar and Mari should be a
   `PersonalExtensionContributionsMenu` (2147482000) and `PersonalExtensionInjector` windows
   (2147483000) stay above; they already sit above sonner (999999999), so outranking them would mean
   moving the toaster into the 2^31 range too. The regression pins both exceptions.
+
+
+### M. The Professor Mari window, round 4 (slices 30-40) — maintainer feedback 2026-10-01
+
+Source: the maintainer's nine points on the Mari window, reproduced with a mocked long run (temporary
+`e2e/zz-mari-window.e2e.ts`, deleted; evidence in `.tmp/omnibar-ux/round4/shots/`, `*-log.json` has the
+per-frame scroll log). Target design: `docs/development/mockups/mari-v4/index.html` (5 scenes, Light / Phone 390 /
+Glow off toggles; screenshots in `round4/mock/`). Direction A (section I) and K/L rules hold: unasked = query +
+surface + resource label + docs/settings labels (R22); every write is a review (R5); a deterministic row
+beats a Mari run; no new buttons in editors or chat (R29).
+
+Paths are under `packages/client/src/` unless noted. Line numbers are from 2026-10-01 and drift (other
+agents commit here); search by name.
+
+Order: bugs first (30-32, small, worker), then the redesign (33-38, designer), arrival (39), review (40).
+
+Maintainer decisions (2026-10-01), YES to all four open questions:
+1. The header portrait goes away in Mari mode; slice 15's portrait flight lands on the arrival
+   sprite instead (already the plan for M8/M9 below).
+2. Desktop mouse drag on the top bar: build it (slice 39), reusing the slice 15 recognizer, on
+   empty bar space only — not a progressive-enhancement maybe, ship it.
+3. Action cards may act at once without Mari (open a picker, start a chat, Peek prompt) — already
+   the action-card half of M5b below.
+4. `MariSuggestionChip` gains an optional `detail` field from the server — already specified in
+   M5b below.
+Also: Mari output must be things you read and act on (reference pills, the hairline row group,
+suggestion cards with a fact line), never long paragraphs. Treat the mockup as the target.
+
+| #   | Slice                                                        | Owner profile | Status  | Commit |
+| --- | ------------------------------------------------------------ | ------------- | ------- | ------ |
+| 30  | Composer over the transcript, one always-on fade (M1, M2)    | worker        | Pending |        |
+| 31  | No scroll back to the question at the end of a run (M4)      | worker        | Pending |        |
+| 32  | Stable run layout: append only, no layout animation (M3)     | worker        | Pending |        |
+| 33  | One header row in Mari mode, no header Mari (M8)             | designer      | Pending |        |
+| 34  | "Context" becomes "What Mari sees" (M7)                      | designer      | Pending |        |
+| 35  | Side panels in one surface language (M6)                     | designer      | Pending |        |
+| 36  | A run in cards: goal, phases, outcome group (M5a)            | designer      | Pending |        |
+| 37  | Next-step suggestion cards with a fact line (M5b)            | designer      | Pending |        |
+| 38  | Small fixes found on the way (M10)                           | worker        | Pending |        |
+| 39  | Mari arrives with context, on every surface (M9)             | designer      | Pending |        |
+| 40  | Review of slices 30-39 (M11)                                 | reviewer      | Pending |        |
+
+#### Root causes (reproduced)
+
+- **M1 "the composer sits on its own box".** The transcript and the composer are flex siblings
+  (`HomeProfessorMariChat.tsx`: `div[data-component="HomeProfessorMariChat.Transcript"]` ≈5887 and
+  `form.mari-workspace-composer-dock` ≈5987). Content never passes under the composer; the strip under it
+  (≈117 px at 1440, ≈100 px at 390) shows only the opaque canvas (`.mari-workspace-canvas`,
+  `globals.css` ≈1923, `color-mix(--background 97%)`; in dark mode near black) and the composer shell's own
+  `--marinara-chat-chrome-input-bg` (`rgba(20,20,20,.85)`). So scrolled text stops at a line and the strip
+  below is a dark block.
+- **M2 "the glow box swallows content with a hard edge".** While she works, the band lives in the dock's
+  `::before/::after` (`globals.css` ≈746-810, `z-index:-1` inside `isolation:isolate`), that is inside the
+  same box. The transcript has no bottom fade at all; its only mask is a TOP fade that is on only while
+  following (`.mari-workspace-transcript[data-following="true"]`, ≈1951, toggled per scroll in
+  `handleTranscriptScroll` ≈3670). Scrolling up removes the top fade too, so both edges become hard, and the
+  fade flickers on/off at the 72 px threshold. Also: `reduceAmbientEffects` does not turn the band off (only
+  `prefers-reduced-motion` stops its animation).
+- **M3 "things jump while she works".** (a) Every step row is `motion.li layout` with
+  `initial {y:6, blur}` inside `AnimatePresence` (`MariWorkTimeline` ≈1856) inside `MariSmoothGrow`
+  (≈1709, `overflow:clip` + 0.5 s height transition, `globals.css` ≈2475). Rows animate position while the
+  box animates height: frame `shots/390-dark-glowon-run-11.png` shows "Reading done." on top of the
+  documentation row, a ghost "Read character" row, and "Thought for 1s" gone for a frame. (b) At the end the
+  live `<MariWorkTimeline>` (≈5938) unmounts and a second `<MariWorkTimeline active={false}>` mounts from
+  the reloaded message (`renderDisplayMessage` ≈2418): every row re-renders, the live line becomes a
+  shorter "Worked for" line, `MariSmoothGrow` switches off (height snaps). (c) The stack is bottom-anchored
+  (`data-anchor="bottom"` → `margin-top:auto`, ≈1940), so the question rides up the screen with every
+  line. (d) Reviews, the resting story line and the suggestion question are hidden while working
+  (`visiblePendingChangeReviews` ≈3572) and pop in after.
+- **M4 "at the end it scrolls back up to the question".** `sendWorkspaceMessage`'s `finally` sets
+  `setWorkspaceActive(false)` (≈4783) the moment the stream closes, which unmounts the live timeline.
+  `refreshAfterWorkspaceRun` (≈4808) only then fetches the messages; the timeline is cleared after the
+  fetch. For that gap the transcript holds only the question: `scrollHeight` falls to `clientHeight`
+  (log: `top 430 → 0, h 926 → 496`, question at the bottom edge for ≈500 ms with a 250 ms mocked fetch;
+  longer on a real server). The browser clamps `scrollTop`. If the reader was within 72 px of the bottom,
+  the scroll event re-arms following and the reply snaps back (a visible jump); if the reader had scrolled
+  at all, `transcriptFollowOutputRef` stays false (≈3654) and the view stays clamped at the question
+  (`shots/1440-dark-scrolledup-log.json`: `top 0, qTop 17` after the reply lands).
+- **M5 structure.** One long markdown answer; steps grouped only as "rail" vs text; the outcome (applied
+  review, created tiles, decisions) sits after the prose; the guided "what next" is chips over the composer.
+- **M6 sidebars.** Three panel styles: Chats is a card in a card (`sm:rounded-xl sm:border sm:shadow-2xl`,
+  ≈6321) with pink Rename/Delete buttons per row; Skills has its own pink frame (`MariSkillsMenu`); Context
+  is a translucent slot (`cn(MARI_PANEL_SLOT_CLASS, "… bg-[var(--background)]/45")`, ≈6609) that on a phone
+  overlays the transcript at 45 % so both texts mix (`shots/side-390-dark-context.png`, a real bug).
+- **M7 "context" is three things.** The header destination "Context" (attached chat histories + the
+  persistent focus + the trust strip), the one-shot handoff chip in the composer (`oneShotContext`, one X
+  removes all facets), and `ProfessorMariContextControl` outside omnibar mode. The panel copy ("Only the
+  context shown here is attached to this Mari workspace") does not say what she reads or when.
+- **M8 header Mari.** In Mari mode the omnibar header shows her portrait, name and status
+  (`GlobalOmnibar.tsx` ≈2824-2862) above a second row of destinations (`mari-omnibar-header-row`, ≈2963),
+  while the transcript already shows her (live line sprite, "Worked for" sprite). Two rows ≈107 px; at
+  390 the destinations clip ("Cor…").
+
+#### Work items
+
+- **M1/M2 (slice 30).** Put the composer over the transcript. Wrap transcript + form in one
+  `relative flex-1` box; the form becomes `absolute inset-x-0 bottom-0` with a transparent background; the
+  composer shell stays the only surface (keep its token, add `backdrop-filter` like the mockup). The
+  transcript gets `padding-bottom: var(--mari-dock-h)`, set from one `ResizeObserver` on the form (the
+  composer grows with attachments and chips). Replace the `[data-following]` rule with one always-on mask:
+  `linear-gradient(to bottom, transparent 0, #000 2rem, #000 calc(100% - var(--mari-dock-h) - 2.5rem),
+  transparent calc(100% - var(--mari-dock-h) + 1.25rem))`; delete the `node.dataset.following` writes. Move
+  the band out of the dock pseudo-elements into one `aria-hidden` sibling under the transcript (the faded
+  edge shows it, no box); `html[data-marinara-effects-paused="true"]` / `reduceAmbientEffects` hides it.
+  `.mari-jump-to-latest` stays anchored to the form. Same for the non-omnibar window (shared JSX).
+  Proof: regression none (CSS); e2e at 390/1440, dark+light, working and idle: walk up from the composer
+  and assert no ancestor below the panel paints an opaque background over the transcript area, assert the
+  transcript's computed `mask-image` has both stops while scrolled up and while following; screenshots
+  scrolled-mid next to `mock/run-scrolled.png`.
+- **M4 (slice 31).** (1) Never collapse: clear the live timeline in the SAME synchronous block that applies
+  the reloaded messages (give `loadMessages` an `onApplied` callback or return the list and set both
+  states together), and render the live timeline while `workspaceTimeline.length > 0`, not while
+  `workspaceTimelineActive`. (2) Question at the top once: after the local user message commits, scroll so
+  its top sits 1 rem under the header, set the active turn's `min-height` to the transcript's visible
+  height (clientHeight − dock), and start with following = false; following turns on only when the reader
+  reaches the bottom (existing `isProfessorMariTranscriptNearBottom`). Drop `data-anchor="bottom"` once a
+  conversation has a turn (keep it for the empty state). (3) Completion never scrolls. Put the decision in a
+  pure helper in `lib/professor-mari-transcript-scroll.ts` (`transcriptScrollAction({ event:
+  "send"|"grow"|"complete"|"user-scroll", nearBottom, following })`) with asserts in
+  `scripts/regressions/command-center.regression.ts`. Proof: e2e with the per-frame recorder (mock SSE via
+  a `window.fetch` override in an init script; `page.route` cannot stream): at completion the scroll height
+  never drops and `scrollTop` never decreases; a reader who scrolled up stays at the same text.
+- **M3 (slice 32).** Append-only run: remove `layout` from step rows and the `y`/blur entrance (opacity
+  only, 150 ms); keep `MariSmoothGrow` only if it no longer clips moving children, else delete it (the
+  reserved turn height from slice 31 makes it unnecessary). One timeline per turn: the persisted turn keys
+  its `MariWorkTimeline` by the run so the swap from live to persisted (slice 31) keeps the DOM; the live line
+  and the "Worked for" line share `.mari-work-timeline__live` with the same `min-height` (4.75 rem). Render
+  the review / resting-story slots inside the turn from the start (empty, no height) so they append in
+  place. Proof: e2e samples every 100 ms the rects of all rows of the running turn: no two rows overlap,
+  existing rows never move down, the question's top only moves up (by scrolling) or not at all; frame
+  strip at 390 and 1440 next to the old `shots/390-dark-glowon-run-1[0-2].png`.
+- **M8 (slice 33).** In the Mari pane the header is one row: Back, the destinations (Chats, Skills,
+  Memories, What Mari sees + count), New chat, settings, Close. Remove the portrait, title and status
+  there (`GlobalOmnibar.tsx` Mari header branch); status already lives in the live line and the `aria-live`
+  status. Below 30 rem the destinations show icons + count, with labels in the existing ⋮ menu. Keep the
+  search-mode header unchanged. Slice 15's "portrait flies to the header" lands on the arrival sprite (M9)
+  instead; update `data-mari-pull-target="mari"`. Proof: screenshots 390/768/1440 dark+light; e2e that the
+  header has no `.mari-workspace-portrait` in Mari mode and that every destination is reachable at 390.
+- **M7 (slice 34).** Rename everywhere: "Context" → "What Mari sees" (header, panel, `en.json` keys
+  `contextControlLabel`, `contextControlTitle`, `contextDestinationHint` get new semantic keys; old keys
+  deleted). Composer: one removable chip per facet (`MariContextFacetChips` gets `onRemove(facet)`;
+  removing one facet keeps the others), a small "Mari sees" label in front; a facet whose content leaves
+  only on Send (chat text, error text, field values) is outlined with the tooltip "Name only now; the
+  content goes when you send" — that makes R22 visible. Panel: three groups — "With your next message"
+  (the chips), "Always in this Mari chat" (attached histories, + Attach), "How she works" (model with
+  context use, sandbox; the trust strip moves here) — and one privacy line. Fix the phone overlay (drop
+  `/45`, opaque canvas). Proof: e2e remove one facet → the sent request's `context` lacks only that facet;
+  screenshots 390/1440 dark+light next to `mock/sees-*.png`; `pnpm localization:check`.
+- **M6 (slice 35).** One panel language for Chats, Skills, Memories and What Mari sees: canvas colour, one
+  hairline (`border-left` on desktop; full opaque sheet with Back on phone), one shared header (title,
+  one-line hint, close), rows as direction A group rows (`.group`/`.row` from the v3 mockup; add one
+  `.mari-side-*` CSS block, no new component framework — a small `MariSidePanelHeader` if it removes
+  duplication across the four). Chats: Rename/Delete move to a row menu, multi-select stays; no pink
+  buttons. Skills/Memories (`MariSkillsMenu`, `MariMemoriesMenu`): drop their own frames and shadows, keep
+  behaviour. Proof: screenshots all four at 390/1440 dark+light next to `mock/chats-*.png`; keyboard: each
+  panel's first control takes focus, Escape closes the panel before the omnibar (existing back logic).
+- **M5a (slice 36).** A run reads top to bottom as: goal → phases → short lead → reference pills →
+  outcome group → "Worked for" → next cards. Goal: the existing `latestUnderstoodRequest` record (#5740)
+  shown as one muted "Goal" line (no model call). Phases: pure `groupRunPhases(items)` in
+  `lib/mari-work-timeline.ts` buckets steps by verb class (reuse the `STEP_ICONS` patterns: read/search/list
+  → "Looked at N things", edit/create/delete → "Changed N", errors → "N failed"); the running phase is
+  open, finished phases fold to their one line. Outcome group: the applied review rows (slice 13), created
+  tiles (I3) and decisions (install/sensitive/held changes) render as ONE group of hairline rows inside the
+  turn, after the answer, with "What changed" and "Needs your OK" labels only when both exist. Reference
+  pills: the existing `MariReferencedResources` (`.mari-ref-card`) move from under the prose to directly
+  under the lead. Prompt (server, `workspace-agent.service.ts` reply-style block): lead with one or two
+  sentences, no headings for short answers, "why" as at most three bullets — the client folds a trailing
+  "Why" list into a one-line disclosure. Proof: regression asserts for `groupRunPhases`; e2e mocked run
+  shows the order above; screenshots 390/1440 dark+light next to `mock/run-16000.png`.
+- **M5b (slice 37).** Next-step cards replace the post-run chip row: the `suggestions` event renders as
+  2-4 cards under the finished turn (icon, label, one fact line), not over the composer. Two kinds: Mari
+  cards (spark mark) put the prompt in the composer as today; action cards (arrow) run an existing
+  deterministic action at once — open the created resource, start a chat, open the connection picker,
+  Peek prompt (reuse `executeStateNavigation` / the omnibar row actions; no new backend). Shared type:
+  `MariSuggestionChip` gains optional `detail?: string` and `action?: OmnibarRowAction`-like discriminant;
+  the server suggestion prompt asks for a short factual `detail`. Authorization accept/decline chips stay
+  where they are (they are answers, not suggestions). Proof: regression on the shared parser accepting
+  and bounding `detail`; e2e: clicking an action card navigates without a prompt request, a Mari card fills
+  the composer; screenshots.
+- **M10 (slice 38).** Found while reproducing: light-mode inline code is white on white (the markdown
+  `code` background uses a dark-only token; see `shots/1440-light-glowon-scrolled-mid.png`); the glow band
+  ignores Reduced ambient effects (M1); a stored trace whose tool output is not a string crashes the
+  omnibar in `stdoutOf` (`lib/mari-referenced-resources.ts` ≈38, `output.indexOf`) — the server always
+  stores strings, but `isWorkspaceTraceItem` (≈658) should reject non-string outputs instead of trusting
+  disk data. Proof: screenshot light code; regression assert that a trace item with an object output is
+  dropped.
+- **M9 (slice 39).** Mari arrives with context, the same on every door (⌘K → Mari, pull right half, top-bar
+  drag, Home "Ask Professor Mari"). When the pane opens with no handoff text, the empty state shows the
+  arrival: one deterministic line + reference pills + 2-4 cards built on the client from
+  `createOmnibarContext` (surface, `activeChat`, `openResource`, `settingsTarget`, `error`), the chat store
+  and `lastAppError`. No model call until a card is clicked or the user types (R22; facts that would leave
+  the device are shown as outlined chips). Pure builder `buildMariArrival(context, data)` in a new
+  `lib/mari-arrival.ts` with asserts per surface:
+  - chat: "You're in <chat> with <character>." · mode · message count · last reply; cards: Fix the last
+    reply (only when the last reply's `finishReason` is `length` or it failed), Why didn't <entry> fire
+    (only with an active lorebook; count from the K3 active-entries data), Summarize since last summary
+    (count), Peek prompt (action);
+  - agent editor: "This is <agent>, your <type> agent." · on for <chat> · last run; cards: the L2 fix
+    (action when the fix is a picker, e.g. no connection), Why did it fail, Tighten its prompt (review),
+    What do its settings do;
+  - character / lorebook editor: the open field and dirty state; Improve <field> (L3 row), Check
+    consistency, For lorebooks: entries that never fired;
+  - settings: the open section; Explain this section, Find a setting, Undo last change (K5 Undo);
+  - game setup (L8): the wizard step as label only.
+  The current generic welcome stays only for Home with nothing open. Desktop pull: **build it**
+  (maintainer decision 2026-10-01, decision 2) — a mouse drag on the top bar: reuse the slice 15
+  recognizer with `pointerType === "mouse"`, start only on empty bar space (never on a button),
+  threshold 30 % like touch, same left/right split; the recognizer and the slime visuals already
+  exist. ⌘K and the Mari button remain the primary desktop doors alongside it. Proof: regression asserts for `buildMariArrival` per surface
+  (and that it reads no message text); e2e from a chat and from the agent editor: the arrival line and
+  cards render with zero requests to `/professor-mari/*/prompt`; desktop drag opens Mari, a drag that
+  starts on a top-bar button does not; screenshots next to `mock/chat-900.png`, `mock/agent-*.png`.
+- **M11 (slice 40).** Reviewer pass over 30-39 (read-only findings, then a worker fixes the confirmed
+  ones in the same slice): R22 on the arrival builder and the new facets, no write without a review, the
+  scroll rule under real network latency, both themes, both visual themes (`default`, `sillytavern`),
+  reduced motion, 44 px targets, `pnpm localization:check`, inventory and CHANGELOG.
+
+Belongs in Pasta-Devs/Marinara-Agents, not here: agent-specific arrival cards that need package knowledge
+(e.g. per-setting help for an agent); the Engine only shows names and states it already has.
