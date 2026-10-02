@@ -66,7 +66,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 33  | One header row in Mari mode, no header Mari (M8)                 | designer      | Done    | 7506b89ed |
 | 33b | Pull drop: accent rim, full width at the edges (M13)             | designer      | Done    | 1df476615 |
 | 34  | "Context" becomes "What Mari sees" (M7)                          | designer      | Done    | b4586bd4f |
-| 35  | Side panels in one surface language (M6)                         | designer      | Pending |           |
+| 35  | Side panels in one surface language (M6)                         | designer      | Done    | 7160b4798 |
 | 36  | A run in cards: goal, phases, outcome group (M5a)                | designer      | Pending |           |
 | 37  | Next-step suggestion cards with a fact line (M5b)                | designer      | Pending |           |
 | 38  | Small fixes found on the way (M10)                                | worker        | Pending |           |
