@@ -64,7 +64,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 31  | No scroll back to the question at the end of a run (M4)         | worker        | Done    | 887b6ac44 |
 | 32  | Stable run layout: append only, no layout animation (M3)        | worker        | Done    | 6bb1ba18f |
 | 33  | One header row in Mari mode, no header Mari (M8)                 | designer      | Done    | 7506b89ed |
-| 34  | "Context" becomes "What Mari sees" (M7)                          | designer      | Pending |           |
+| 34  | "Context" becomes "What Mari sees" (M7)                          | designer      | Done    | b4586bd4f |
 | 35  | Side panels in one surface language (M6)                         | designer      | Pending |           |
 | 36  | A run in cards: goal, phases, outcome group (M5a)                | designer      | Pending |           |
 | 37  | Next-step suggestion cards with a fact line (M5b)                | designer      | Pending |           |
