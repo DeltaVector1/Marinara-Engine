@@ -12,7 +12,7 @@ Zu jedem Agenten unten gibt es drei Kurzangaben.
 - **Wo er funktioniert**: die Chat-Modi, in denen sich der Agent hinzufügen lässt. Die meisten Agenten laufen in **Roleplay**-Chats. Einige wenige laufen in anderen Modi; welche das sind, steht beim jeweiligen Eintrag.
 - **Wichtige Einstellungen**: die Einstellungen, die du am ehesten anpassen wirst. Du legst sie beim Hinzufügen des Agenten fest oder später in seiner Einrichtungskarte unter **Chat Settings** (Chat-Einstellungen).
 
-Marinara sortiert die Agenten im Panel **Agents** in drei Kategorien: **Writer Agents**, **Tracker Agents** und **Misc Agents**. Diese Referenz übernimmt dieselbe Einteilung.
+Marinara sortiert die Agenten im Panel **Agents** in **Apps**, **Writer Agents**, **Tracker Agents** und **Misc Agents**. Apps sind Pakete mit einem eigenen Home-Tab, etwa Noodle und Slurp. Diese Referenz belässt Noodle und Slurp im Abschnitt „Misc-Agenten“.
 
 Ein Laufintervall bedeutet: Der Agent läuft nur alle paar Nutzer- und Assistenten-Nachrichten statt nach jeder Nachricht. Das Intervall lässt sich in der Einrichtung des Agenten ändern, bis maximal 100.
 

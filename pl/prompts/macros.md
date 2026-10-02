@@ -69,7 +69,7 @@ Makro `{{group}}` podąża za postacią, która właśnie odpowiada – równie�
 
 Pole Phonetic name pełni dwie funkcje. Decyduje o tym, jak imię wymawia syntezator mowy. Zasila też makra `{{charNamePhonetic}}` i `{{userNamePhonetic}}`. Znajdziesz je zarówno w panelu **Character Editor**, jak i w panelu **Persona Editor**.
 
-Aby wskazać postać spoza czatu, skopiuj ID jej karty i umieść bezpośrednio w podwójnych nawiasach, na przykład `{{V1StGXR8_Z5jdHi6B-myT}}`. Nie dodawaj dosłownych znaków `<` ani `>`. Marinara zastępuje makro imieniem i dodaje pola Description, Personality, Appearance, Backstory, Scenario i Example Dialogue karty do promptu systemowego. Działa to w wiadomościach, polach promptu i aktywowanych wpisach lorebooka. Początkowe powitania są pomijane. Włączone lorebooki karty nadal podlegają zwykłym regułom słów kluczowych, Constant, filtrów, prawdopodobieństwa i limitu tokenów.
+Aby wskazać postać spoza czatu, skopiuj ID jej karty i umieść bezpośrednio w podwójnych nawiasach, na przykład `{{V1StGXR8_Z5jdHi6B-myT}}`. Nie dodawaj dosłownych znaków `<` ani `>`. Marinara zastępuje makro imieniem i dodaje pola Description, Personality, Appearance, Backstory, Scenario i Example Dialogue karty do promptu systemowego. Działa to w wiadomościach, polach promptu i aktywowanych wpisach lorebooka. Początkowe powitania są pomijane. Włączone lorebooki karty nadal podlegają zwykłym regułom słów kluczowych, Constant, filtrów, prawdopodobieństwa i limitu tokenów. Jeśli postać jest już w czacie, makro nadal zamienia się w jej imię, a jej karta nie jest dodawana po raz drugi.
 
 Aby odwołać się do nieaktywnej persony, dodaj `persona-` przed skopiowanym ID, na przykład `{{persona-P1StGXR8_Z5jdHi6B-myT}}`. Marinara zamienia makro na nazwę persony i dodaje jej pola Description, Personality, Appearance, Backstory i Scenario do ID Macro Cards. Podpięte lorebooki nadal podlegają swoim zwykłym regułom aktywacji.
 
@@ -136,6 +136,27 @@ Makr outletów używa się w sekcjach promptu w trybie Conversation, Roleplay i 
 Nieznane ID lorebooków dają `0`. Liczba obejmuje wszystkie wpisy: włączone, wyłączone i w folderach.
 
 Używaj makra w sekcjach promptu, polach kart postaci, treści wpisów lorebooka i wszędzie, gdzie rozwijane są makra.
+
+<a id="lorebook-include-macro"></a>
+
+## Makro dołączania wpisów lorebooka
+
+`{{include::ENTRY}}` wstawia tekst wpisu lorebooka tam, gdzie wpiszesz to makro. Wspólny fragment tekstu, na przykład zasady domowe, trzymaj w jednym wpisie i używaj go ponownie w innych wpisach, sekcjach promptu lub kartach, dzięki czemu edytujesz tylko jedną kopię. Zamiast `ENTRY` wpisz ID wpisu albo jego nazwę. Wielkość liter w nazwach nie ma znaczenia.
+
+- Wewnątrz wpisu lorebooka nazwa jest wyszukiwana w lorebooku, do którego należy ten wpis.
+- W każdym innym miejscu nazwa jest wyszukiwana w lorebookach używanych przez ten czat: dodanych do czatu, powiązanych z jego postaciami i personą oraz globalnych.
+- ID znajduje wpis w dowolnym lorebooku.
+
+`{{include::BOOK::ENTRY}}` pobiera wpis z lorebooka, który wskażesz po jego ID lub nazwie. Ten lorebook nie musi być dodany do czatu ani nawet włączony.
+
+```text
+{{include::Rules of the arena}}
+{{include::Shared lore::Rules of the arena}}
+```
+
+Dołączany wpis nie musi się aktywować i może być wyłączony, więc możesz trzymać wpisy, które istnieją tylko po to, żeby je dołączać. Makra w dołączanym tekście działają jak zwykle, a sam tekst może też dołączać inne wpisy. Jeśli dołączenie prowadzi z powrotem do wpisu, wewnątrz którego już się znajduje, na przykład gdy wpis dołącza sam siebie, to takie dołączenie daje pusty tekst zamiast powtarzać się bez końca. Wpis lub lorebook, którego nie znaleziono, również daje pusty tekst.
+
+Nazwy i ID wpisuj zwykłym tekstem. Makra wewnątrz nich, takie jak `{{include::{{char}}}}`, nie są rozwijane.
 
 ## Makra czasu
 
@@ -252,7 +273,7 @@ Można też wpisać `/macros` w polu czatu (krótsza forma `/macro` również dz
 Bloki warunkowe łączą porównania operatorami `||` (LUB) i `&&` (ORAZ) oraz nawiasami. Listy równości można zapisać zwięźle: `{{#if character == "Maukie" || "Pantalone"}}`. Kolejność działań, przykłady dla czatu grupowego i pełną listę operatorów opisuje przewodnik [Prompty warunkowe](conditional-prompts.md).
 
 
-Warunek może zapytać model decyzyjny o scenę: `{{#if decision:"The latest message moves the scene to a new place"}}` dla tak/nie lub `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` dla wyboru opcji. Bez modelu lub odpowiedzi oznaczają nie. Zobacz [Pytanie modelu decyzyjnego](conditional-prompts.md#asking-the-decision-model). Dodaj `sticky:3 cooldown:5` po stwierdzeniu, by zachować tak przez trzy tury, a potem odpocząć przez pięć; zobacz [Sticky i cooldown](conditional-prompts.md#sticky-and-cooldown). `every:3` pyta tylko co trzy tury, a `priority:high` lub `priority:low` wybiera stwierdzenia mieszczące się w planie; zobacz [Sprawdzanie co kilka tur](conditional-prompts.md#checking-every-few-turns), [Priorytet](conditional-prompts.md#priority) i [Limity i koszty](conditional-prompts.md#limits-and-cost).
+Warunek może zapytać model decyzyjny o scenę: `{{#if decision:"The latest message moves the scene to a new place"}}` dla tak/nie lub `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}` dla wyboru opcji. Bez modelu lub odpowiedzi oznaczają nie. Zobacz [Pytanie modelu decyzyjnego](conditional-prompts.md#asking-the-decision-model). Dodaj `sticky:3 cooldown:5` po stwierdzeniu, by zachować tak przez trzy tury, a potem odpocząć przez pięć; zobacz [Sticky i cooldown](conditional-prompts.md#sticky-and-cooldown). Dodaj `until:"..."` lub `while:"..."`, by zachować tak, dopóki pozwala na to drugie stwierdzenie; zobacz [Until i while](conditional-prompts.md#until-and-while). `every:3` pyta tylko co trzy tury, a `priority:high` lub `priority:low` wybiera stwierdzenia mieszczące się w planie; zobacz [Sprawdzanie co kilka tur](conditional-prompts.md#checking-every-few-turns), [Priorytet](conditional-prompts.md#priority) i [Limity i koszty](conditional-prompts.md#limits-and-cost).
 
 ## Częste błędy
 

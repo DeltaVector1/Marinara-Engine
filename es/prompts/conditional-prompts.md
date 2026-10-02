@@ -262,6 +262,42 @@ Keep combat pacing rules in effect.
 
 Juntos sirven para algo que debe aparecer una vez y descansar después: una transición de escena, un recordatorio puntual o un estado de ánimo que dure unos turnos. Para una entrada de lorebook activada por su campo **Decision**, usa sus propios **Sticky** y **Cooldown**: una entrada sticky permanece sin volver a preguntar su declaración, y una entrada en cooldown no se evalúa.
 
+<a id="until-and-while"></a>
+
+### Until y while
+
+Algunos bloques deberían seguir activos mientras dure algo, como una pelea, en lugar de durante un número fijo de turnos. Escribe `until:` o `while:` con una segunda declaración después de la primera:
+
+```
+{{#if decision:"A fight starts in the latest message" until:"The fight ends in the latest message"}}
+Keep combat pacing rules in effect.
+{{/if}}
+```
+
+- Tras un sí, el bloque sigue activo, y la primera declaración no se pregunta mientras siga activo. En su lugar, cada turno se pregunta la declaración `until`, y el bloque se desactiva en el turno en que es verdadera.
+- `while:` funciona al revés: el bloque sigue activo mientras su declaración sea verdadera, y se desactiva en el turno en que es falsa.
+- Usa uno u otro. Si se escriben ambos, solo cuenta el primero.
+- Una vez que el bloque se desactiva, cooldown comienza como de costumbre, y después la primera declaración vuelve a preguntarse.
+- Si la declaración `until` o `while` no obtiene respuesta en un turno, el bloque sigue activo.
+- La declaración `until` o `while` cuenta para **Decision statements per turn**. La primera declaración no cuenta mientras el bloque está activo.
+- Esto funciona con `decision:`, no con `decision_choice:`.
+
+Con **sticky**, añade `:and` o `:or` justo después de la segunda declaración para elegir cómo funcionan juntas las dos:
+
+| Si escribes | Tras el sí, el bloque sigue activo |
+| --- | --- |
+| `until:"..." sticky:5` o `until:"...":and sticky:5` | Hasta 5 turnos más, y se desactiva antes si la declaración until es verdadera. |
+| `until:"...":or sticky:5` | Al menos 5 turnos más, y después hasta que la declaración until sea verdadera. |
+| `while:"..." sticky:5` o `while:"...":or sticky:5` | Al menos 5 turnos más, y después mientras la declaración while sea verdadera. |
+| `while:"...":and sticky:5` | Hasta 5 turnos más, y se desactiva antes si la declaración while es falsa. |
+
+`:restrict` significa lo mismo que `:and`, y `:extend` lo mismo que `:or`. Sin sticky, no cambian nada. Por ejemplo:
+
+```
+{{#if decision:"{{user}} casts a stealth spell in the latest message" while:"{{user}} stays still":extend sticky:5}}...{{/if}}
+{{#if decision:"{{user}} casts a stealth spell in the latest message" until:"{{user}} is spotted":restrict sticky:5}}...{{/if}}
+```
+
 <a id="checking-every-few-turns"></a>
 
 ### Comprobar cada varios turnos

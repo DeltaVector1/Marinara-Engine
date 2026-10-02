@@ -23,13 +23,14 @@
 
 ## 서비스 고르기
 
-서비스는 크게 3가지로 나뉩니다. 클라우드 서비스는 계정과 API 키가 필요합니다. 무료 서비스는 키가 필요 없습니다. 로컬 서비스는 이미지 생성 소프트웨어를 내 컴퓨터에서 직접 실행합니다.
+서비스는 크게 3가지로 나뉩니다. 클라우드 서비스는 계정이 필요하며, 대부분은 API 키도 필요합니다. 무료 서비스는 키가 필요 없습니다. 로컬 서비스는 이미지 생성 소프트웨어를 내 컴퓨터에서 직접 실행합니다.
 
 아래 표에서 각 서비스를 한눈에 볼 수 있습니다. 세부 사항과 주의점은 이어지는 서비스별 항목에서 설명합니다.
 
 | 서비스 | API 키 | 실행 위치 |
 | --- | --- | --- |
 | OpenAI (DALL-E) | 필요 | 클라우드 |
+| ChatGPT (Codex login) | 불필요, `codex login` 사용 | 클라우드 |
 | Stability AI | 필요 | 클라우드 |
 | Together AI | 필요 | 클라우드 |
 | NovelAI | 필요 | 클라우드 |
@@ -51,6 +52,14 @@
 ## OpenAI (DALL-E)
 
 기본 Base URL이 `https://api.openai.com/v1`인 클라우드 서비스입니다. OpenAI 계정에서 발급한 API 키가 필요합니다. DALL-E와 GPT Image 모델을 제공합니다. 참조 이미지는 최대 16장까지 받습니다.
+
+## ChatGPT (Codex login)
+
+API 키 대신 ChatGPT 요금제를 사용하는 클라우드 서비스입니다. 그래서 이미지를 만들 때 OpenAI API 크레딧이 들지 않습니다. Marinara 서버를 실행하는 컴퓨터에 Codex CLI를 설치하고 `codex login`을 한 번 실행하세요. **OpenAI (ChatGPT)** 채팅 연결이 쓰는 것과 같은 로그인이며, 절차는 [Claude, ChatGPT, Grok 구독 연결](../connections/subscription-clis.md#openai-chatgpt)에서 설명합니다. 입력할 API 키나 Base URL은 없습니다. Marinara는 Codex 자체가 이미지 생성에 쓰는 모델인 `gpt-image-2`를 자동으로 채웁니다.
+
+**Test Connection**(연결 테스트)은 Marinara가 Codex 로그인 정보를 읽을 수 있는지만 확인합니다. **Test Image**는 실제 이미지를 만들며, ChatGPT 이미지 사용량 한도에서 차감됩니다. 참조 이미지가 있으면 Marinara는 최대 16장까지 담아 이미지 편집 요청을 보냅니다. ChatGPT가 요청한 것과 다른 픽셀 크기로 이미지를 돌려줄 수 있으므로, Marinara는 원하는 화면비를 프롬프트에도 적어 보냅니다.
+
+이 서비스는 공개 OpenAI API가 아니라 Codex가 쓰는 ChatGPT 이미지 엔드포인트와 통신하므로, OpenAI가 예고 없이 바꿀 수 있습니다.
 
 ## Stability AI
 
@@ -179,6 +188,7 @@ Marinara는 플레이스홀더를 이용해 워크플로를 채웁니다. 값이
 | 제공자 | 참조 이미지 |
 | --- | --- |
 | OpenAI (DALL-E) | 최대 16장 |
+| ChatGPT (Codex login) | 최대 16장 |
 | NovelAI | 최대 16장, V4.5 모델에서만 |
 | xAI / Grok Imagine | 최대 3장 |
 | Venice.ai | 텍스트-이미지 생성에서는 지원하지 않음 |

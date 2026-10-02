@@ -69,7 +69,7 @@
 
 Phonetic name欄には2つの役割があります。1つは音声合成での名前の読み方を決めることです。もう1つは`{{charNamePhonetic}}`と`{{userNamePhonetic}}`に値を渡すことです。この欄は**Character Editor**と**Persona Editor**の両方にあります。
 
-現在のチャットにいないキャラクターを参照するには、カードのIDをコピーし、`{{V1StGXR8_Z5jdHi6B-myT}}`のように二重の波括弧内へ直接入れます。`<`や`>`の文字を含めないでください。Marinaraはマクロをキャラクター名に置き換え、参照カードのDescription、Personality、Appearance、Backstory、Scenario、Example Dialogueをシステムプロンプトへ追加します。チャットメッセージ、プロンプト欄、起動したロアブックエントリーで使えます。カードの最初の挨拶メッセージは除外します。紐づく有効なロアブックには、通常のキーワード、constant、フィルター、確率、トークン予算の規則が適用されます。
+現在のチャットにいないキャラクターを参照するには、カードのIDをコピーし、`{{V1StGXR8_Z5jdHi6B-myT}}`のように二重の波括弧内へ直接入れます。`<`や`>`の文字を含めないでください。Marinaraはマクロをキャラクター名に置き換え、参照カードのDescription、Personality、Appearance、Backstory、Scenario、Example Dialogueをシステムプロンプトへ追加します。チャットメッセージ、プロンプト欄、起動したロアブックエントリーで使えます。カードの最初の挨拶メッセージは除外します。紐づく有効なロアブックには、通常のキーワード、constant、フィルター、確率、トークン予算の規則が適用されます。キャラクターがすでにチャットにいる場合も、マクロはそのキャラクターの名前に置き換わりますが、カードが二重に追加されることはありません。
 
 現在選択されていないペルソナを参照するには、コピーしたIDの先頭に`persona-`を付けます。例: `{{persona-P1StGXR8_Z5jdHi6B-myT}}`。Marinaraはマクロをペルソナ名に置き換え、Description、Personality、Appearance、Backstory、Scenarioの各フィールドをID Macro Cardsに追加します。紐づくロアブックは通常の有効化ルールに従います。
 
@@ -136,6 +136,27 @@ Outletマクロは、Conversation、Roleplay、Game Modeのプロンプトのセ
 不明なIDは`0`になります。有効、無効、フォルダー内を問わず、すべてのエントリーを数えます。
 
 プロンプトセクション、キャラクターカードの欄、ロアブックエントリー本文など、マクロを展開するどこでも使えます。
+
+<a id="lorebook-include-macro"></a>
+
+## ロアブックのインクルードマクロ
+
+`{{include::ENTRY}}`は、書いた位置にロアブックのエントリーの内容を差し込みます。ハウスルールのような共通の文章を1つのエントリーに書いておき、ほかのエントリー、プロンプトのセクション、カードで使い回せば、編集するのは1か所だけで済みます。`ENTRY`は、エントリーのIDか名前に置き換えてください。名前は大文字と小文字を区別しません。
+
+- ロアブックのエントリーの中では、そのエントリーが属するロアブックから名前を探します。
+- それ以外の場所では、このチャットで使うロアブックから名前を探します。チャットに追加したロアブック、チャットのキャラクターとペルソナにリンクしたロアブック、グローバルなロアブックが対象です。
+- IDを使うと、どのロアブックにあるエントリーでも見つかります。
+
+`{{include::BOOK::ENTRY}}`は、IDか名前で指定したロアブックからエントリーを取り出します。そのロアブックは、チャットに追加されている必要はなく、オンになっている必要さえありません。
+
+```text
+{{include::Rules of the arena}}
+{{include::Shared lore::Rules of the arena}}
+```
+
+インクルードされるエントリーは発動する必要がなく、オフになっていてもかまいません。そのため、インクルード専用のエントリーを用意しておけます。インクルードされたテキストの中のマクロも通常どおり動き、そこからさらに別のエントリーをインクルードすることもできます。自分自身をインクルードするエントリーのように、インクルードをたどって、すでに展開中のエントリーに戻ってきた場合、そのインクルードは無限に繰り返されずに空になります。見つからないエントリーやロアブックも空になります。
+
+名前とIDはプレーンテキストで書いてください。`{{include::{{char}}}}`のように中にマクロを書いても展開されません。
 
 ## 時刻のマクロ
 
@@ -251,7 +272,7 @@ Outletマクロは、Conversation、Roleplay、Game Modeのプロンプトのセ
 
 条件ブロックでは、`||`(OR)、`&&`(AND)、丸括弧を使って複数の比較を組み合わせられます。等値の並びは`{{#if character == "Maukie" || "Pantalone"}}`のように短く書けます。優先順位、グループチャットでの例、演算子の全一覧は[条件付きプロンプト](conditional-prompts.md)を参照してください。
 
-条件は場面をDecisionモデルに尋ねることもできます。はい・いいえには`{{#if decision:"The latest message moves the scene to a new place"}}`、選択肢には`{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}`を使います。モデルや回答がなければいいえになります。[Decisionモデルへの問い合わせ](conditional-prompts.md#asking-the-decision-model)を参照してください。文の後ろに`sticky:3 cooldown:5`を加えると、はいを3ターン保ち、その後5ターン休ませます。[StickyとCooldown](conditional-prompts.md#sticky-and-cooldown)を参照してください。`every:3`は3ターンごとだけ尋ね、`priority:high`や`priority:low`は計画に入れる文を選びます。[数ターンごとの確認](conditional-prompts.md#checking-every-few-turns)、[優先順位](conditional-prompts.md#priority)、[制限と費用](conditional-prompts.md#limits-and-cost)を参照してください。
+条件は場面をDecisionモデルに尋ねることもできます。はい・いいえには`{{#if decision:"The latest message moves the scene to a new place"}}`、選択肢には`{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}`を使います。モデルや回答がなければいいえになります。[Decisionモデルへの問い合わせ](conditional-prompts.md#asking-the-decision-model)を参照してください。文の後ろに`sticky:3 cooldown:5`を加えると、はいを3ターン保ち、その後5ターン休ませます。[StickyとCooldown](conditional-prompts.md#sticky-and-cooldown)を参照してください。`until:"..."`か`while:"..."`を加えると、2つ目の文が許す限りはいを保ちます。[UntilとWhile](conditional-prompts.md#until-and-while)を参照してください。`every:3`は3ターンごとだけ尋ね、`priority:high`や`priority:low`は計画に入れる文を選びます。[数ターンごとの確認](conditional-prompts.md#checking-every-few-turns)、[優先順位](conditional-prompts.md#priority)、[制限と費用](conditional-prompts.md#limits-and-cost)を参照してください。
 
 ## よくある失敗
 

@@ -26,7 +26,7 @@ Marinara Engine을 새로 설치하면 선택형 에이전트는 하나도 들�
 
 앱 안의 카탈로그는 공개된 [Marinara-Agents 저장소](https://github.com/Pasta-Devs/Marinara-Agents)를 기반으로 합니다. 모든 패키지와 아티팩트를 저장소에서 직접 확인할 수 있지만, 보통은 **Download Agents**를 통해 설치하는 편이 좋습니다. 그래야 Marinara가 호환성, 권한, 해시, 아카이브 내용, 재시작 필요 여부를 검증합니다.
 
-카탈로그에는 공식 채팅 에이전트, World Maps, Conversation의 음성 및 영상 통화, 선택형 Conversation 게임이 모두 들어 있습니다. 설치한 에이전트는 **Writer Agents**(작가 에이전트), **Tracker Agents**(추적 에이전트), **Misc Agents**(기타 에이전트)로 묶이고, 직접 만든 에이전트는 **Custom Agents**(커스텀 에이전트) 항목에 모입니다. 카탈로그 패키지를 제거하면 그 코드와 설정이 Engine에서 지워지지만 채팅 메시지와 기록은 그대로 남습니다. 직접 만든 에이전트를 삭제하면 완전히 사라집니다.
+카탈로그에는 공식 채팅 에이전트, World Maps, Conversation의 음성 및 영상 통화, 선택형 Conversation 게임이 모두 들어 있습니다. 설치한 에이전트는 **Apps**(앱), **Writer Agents**(작가 에이전트), **Tracker Agents**(추적 에이전트), **Misc Agents**(기타 에이전트)로 묶이고, 직접 만든 에이전트는 **Custom Agents**(커스텀 에이전트) 항목에 모입니다. **Apps**는 Noodle과 Slurp처럼 전용 Home 탭이 있는 패키지이며, 채팅에 추가하지 않고 단독으로 사용합니다. 카탈로그 패키지를 제거하면 그 코드와 설정이 Engine에서 지워지지만 채팅 메시지와 기록은 그대로 남습니다. 직접 만든 에이전트를 삭제하면 완전히 사라집니다.
 
 **Rules**로 표시된 패키지는 5e (SRD 5.1) 같은 Game Mode 규칙 집합을 제공하며 에이전트 수에 포함되지 않습니다. 새 게임의 **Rules**에서 선택합니다. [규칙 선택](../game/getting-started.md#choosing-rules)을 참고하세요. 채팅별 활성화 스위치는 없습니다. 5e 패키지는 미리 보기 버전으로 현재 `staging` 브랜치 Engine의 카탈로그에서만 표시됩니다.
 

@@ -12,7 +12,7 @@ Chaque agent ci-dessous est résumé en trois points.
 - **Où ça marche** : les modes de chat dans lesquels tu peux ajouter l'agent. La plupart des agents fonctionnent dans les chats **Roleplay**. Quelques-uns fonctionnent dans d'autres modes, et chaque fiche le précise.
 - **Réglages clés** : les réglages que tu risques le plus de modifier. Ils se définissent au moment où tu ajoutes l'agent, ou plus tard dans la fiche de configuration de l'agent, dans **Chat Settings** (réglages du chat).
 
-Marinara répartit ses agents en trois catégories dans le panneau **Agents** : **Writer Agents**, **Tracker Agents** et **Misc Agents**. Cette référence reprend le même classement.
+Marinara répartit ses agents dans le panneau **Agents** entre **Apps**, **Writer Agents**, **Tracker Agents** et **Misc Agents**. Les Apps sont des packages dotés de leur propre onglet Home, comme Noodle et Slurp. Cette référence garde Noodle et Slurp dans la section Misc Agents.
 
 Un intervalle d'exécution signifie que l'agent s'exécute périodiquement, après un certain nombre de messages, les tiens et ceux de l'IA, au lieu de s'exécuter après chaque message. Cet intervalle se change dans la configuration de l'agent, jusqu'à 100.
 

@@ -378,6 +378,7 @@ Pole **Content** wpisu rozwija się jak każdy inny tekst promptu: makra promptu
 - `{{random::a::b::c}}` i `{{roll:1d6}}` – losują opcję albo rzucają kością, żeby klimat zmieniał się przy każdym uruchomieniu wpisu. Dodaj wagi po `@`, jak w `{{random::common@3::rare@1}}`, żeby część opcji wypadała częściej.
 - `{{#if ...}}...{{else}}...{{/if}}` – zmienia tekst zależnie od tego, kto mówi, od zmiennej albo od aktywnej postaci.
 - `{{getvar::name}}` i `{{setvar::name::value}}` – odczytują albo ustawiają trwałą zmienną lokalną czatu, dzięki czemu wpis reaguje na stan lub nim steruje w kolejnych turach, bez przenoszenia wartości do innych czatów.
+- `{{include::Entry name}}` – wstawia tekst innego wpisu z tego samego lorebooka, nawet wyłączonego, dzięki czemu wspólny tekst znajduje się w jednym miejscu. Zobacz [Makro dołączania wpisów lorebooka](../prompts/macros.md#lorebook-include-macro).
 
 Losowanie z wagami dobrze łączy się z **Probability** i pozwala zwinąć całą tabelę w jeden wpis. Zamiast grupy dwudziestu wpisów o potworach zrób jeden wpis "wędrujące starcie". Daj mu niskie **Probability**, żeby starcie zdarzało się tylko czasem, i ważoną listę tego, co się pojawia:
 

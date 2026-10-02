@@ -34,8 +34,8 @@
     },
     {
       "path": "agents/agents-overview.md",
-      "sha256": "19002a01a1afc2d2852509018f2cf2d6a8fc5866dc1f5b3b6944b15a837f0b36",
-      "bytes": 11143
+      "sha256": "102c014df635ceaca3714037975a1ac3001ac82eaa724bae71ac0118584f2c93",
+      "bytes": 11301
     },
     {
       "path": "agents/approvals-and-agent-suite.md",
@@ -44,8 +44,8 @@
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "72c4c1aa6eaa6268b7343c741b36e3e5f9de52aa4ec4e23e5c8283b05ab62b6e",
-      "bytes": 33058
+      "sha256": "448873ef612d49515d418ce4a3e3d58b888db744fe6358b9062f751040bd64c2",
+      "bytes": 33147
     },
     {
       "path": "agents/custom-agents.md",
@@ -534,8 +534,8 @@
     },
     {
       "path": "lorebooks/entries.md",
-      "sha256": "9f8d95006b311308c50fcaab87e9f2024cc018d103487b6ba4757c9065c968a8",
-      "bytes": 44128
+      "sha256": "f76839d8d65e526a1032f66112f86ed04f0ab2ff52d215c6bb272ff5dcd5b9d4",
+      "bytes": 44379
     },
     {
       "path": "lorebooks/import-export.md",
@@ -579,8 +579,8 @@
     },
     {
       "path": "media/image-providers.md",
-      "sha256": "dc8a3b2acca3e5ef1e113934fc1c29fbb3ed7cc208231f571c8d15e2065b29ca",
-      "bytes": 16714
+      "sha256": "a603d6259ebd0d50e923383d4e94443874d739a75a3f146d2f29471f4c68a5ca",
+      "bytes": 18029
     },
     {
       "path": "media/music.md",
@@ -619,8 +619,8 @@
     },
     {
       "path": "prompts/conditional-prompts.md",
-      "sha256": "d8ab951b8451d4fbde955519cdd0f5006d918e6f04d68e4d8037110fa9b296cd",
-      "bytes": 30108
+      "sha256": "5a67540fd15e80aa8bbcd2f442ac23df8ceeec3372b03ff0f0fe73cdf845ee33",
+      "bytes": 32492
     },
     {
       "path": "prompts/generation-parameters.md",
@@ -629,8 +629,8 @@
     },
     {
       "path": "prompts/macros.md",
-      "sha256": "eb47bd90d0c528fc92a2742b7940a3efbac6c40e10e29a2c45afcf043aa4110b",
-      "bytes": 22012
+      "sha256": "e7a0f66b00196abf355adfd8bff8081ceb7018516fc3e6b6ea26d5f7c09dccc1",
+      "bytes": 23957
     },
     {
       "path": "prompts/preset-variables.md",

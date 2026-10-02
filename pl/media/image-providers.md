@@ -23,13 +23,14 @@ Jeśli po kliknięciu **Test Image** pojawi się obrazek, połączenie jest goto
 
 ## Wybór usługi
 
-Te usługi dzieli się na trzy grupy. Usługi w chmurze wymagają klucza API i konta. Usługi darmowe nie potrzebują klucza. Usługi lokalne uruchamiają program do obrazów na twoim własnym komputerze.
+Te usługi dzieli się na trzy grupy. Usługi w chmurze wymagają konta, a większość z nich także klucza API. Usługi darmowe nie potrzebują klucza. Usługi lokalne uruchamiają program do obrazów na twoim własnym komputerze.
 
 Tabela poniżej pokazuje wszystkie usługi w skrócie. Szczegóły i haczyki opisują dalsze sekcje, po jednej na usługę.
 
 | Usługa | Klucz API | Gdzie działa |
 | --- | --- | --- |
 | OpenAI (DALL-E) | Tak | Chmura |
+| ChatGPT (Codex login) | Nie, korzysta z twojego logowania przez `codex login` | Chmura |
 | Stability AI | Tak | Chmura |
 | Together AI | Tak | Chmura |
 | NovelAI | Tak | Chmura |
@@ -51,6 +52,14 @@ Tabela poniżej pokazuje wszystkie usługi w skrócie. Szczegóły i haczyki opi
 ## OpenAI (DALL-E)
 
 Usługa w chmurze z domyślnym adresem `https://api.openai.com/v1` w polu **Base URL**. Wymaga klucza API z konta OpenAI. Udostępnia modele DALL-E oraz GPT Image. Przyjmuje do 16 obrazów referencyjnych.
+
+## ChatGPT (Codex login)
+
+Usługa w chmurze, która zamiast klucza API korzysta z twojego planu ChatGPT, więc obrazy nie wymagają kredytów API OpenAI. Na komputerze, na którym działa serwer Marinara, zainstaluj narzędzie Codex CLI i uruchom jeden raz polecenie `codex login`. Z tego samego logowania korzysta połączenie czatu **OpenAI (ChatGPT)**; kroki opisuje przewodnik [Połączenia abonamentowe z Claude, ChatGPT i Grok](../connections/subscription-clis.md#openai-chatgpt). Nie trzeba wpisywać klucza API ani adresu w polu **Base URL**. Marinara sama wpisuje model `gpt-image-2`, czyli ten, którego do obrazów używa sam Codex.
+
+**Test Connection** (test połączenia) sprawdza tylko, czy Marinara może odczytać twoje logowanie Codex. **Test Image** generuje rzeczywisty obraz i wlicza się do twoich limitów obrazów w ChatGPT. Przy obrazach referencyjnych Marinara wysyła żądanie edycji obrazu i dołącza najwyżej 16 z nich. ChatGPT może zwrócić obraz o innym rozmiarze w pikselach niż żądany, dlatego Marinara podaje też w prompcie oczekiwane proporcje.
+
+Ta usługa rozmawia z punktem końcowym ChatGPT do obrazów, z którego korzysta Codex, a nie z publicznym API OpenAI, więc OpenAI może go zmienić bez zapowiedzi.
 
 ## Stability AI
 
@@ -179,6 +188,7 @@ Każda usługa ma też pola tekstowe **Prompt Prefix** oraz **Negative Prefix**.
 | Dostawca | Obrazy referencyjne |
 | --- | --- |
 | OpenAI (DALL-E) | Do 16 |
+| ChatGPT (Codex login) | Do 16 |
 | NovelAI | Do 16, tylko model V4.5 |
 | xAI / Grok Imagine | Do 3 |
 | Venice.ai | Nieobsługiwane przy zamianie tekstu na obraz |

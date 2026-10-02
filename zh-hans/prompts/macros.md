@@ -69,7 +69,7 @@
 
 Phonetic 名称字段有两个作用。一是决定语音合成怎么念这个名字，二是给 `{{charNamePhonetic}}` 和 `{{userNamePhonetic}}` 提供内容。**Character Editor** 和 **Persona Editor** 里都有这个字段。
 
-要引用不在当前聊天里的角色，复制卡片 ID，直接放进双大括号，例如 `{{V1StGXR8_Z5jdHi6B-myT}}`。不要包含字面的 `<` 或 `>` 字符。Marinara 将宏替换为角色姓名，并把卡片的 Description、Personality、Appearance、Backstory、Scenario 和 Example Dialogue 加入系统提示词。它适用于聊天消息、提示词字段和已激活的世界书条目。卡片的初始开场白会排除。关联的已启用世界书仍遵守通常的关键词、constant、筛选、概率和 Token 预算规则。
+要引用不在当前聊天里的角色，复制卡片 ID，直接放进双大括号，例如 `{{V1StGXR8_Z5jdHi6B-myT}}`。不要包含字面的 `<` 或 `>` 字符。Marinara 将宏替换为角色姓名，并把卡片的 Description、Personality、Appearance、Backstory、Scenario 和 Example Dialogue 加入系统提示词。它适用于聊天消息、提示词字段和已激活的世界书条目。卡片的初始开场白会排除。关联的已启用世界书仍遵守通常的关键词、constant、筛选、概率和 Token 预算规则。如果角色已经在聊天里，宏照样替换为角色姓名，卡片则不会重复加入。
 
 想引用当前未启用的用户角色，请在复制的 ID 前加上 `persona-`，例如 `{{persona-P1StGXR8_Z5jdHi6B-myT}}`。Marinara 会把宏换成用户角色名，并把其 Description、Personality、Appearance、Backstory 和 Scenario 字段加入 ID Macro Cards。所附世界书仍按通常的激活规则运行。
 
@@ -136,6 +136,27 @@ Outlet 宏可以用在 Conversation、Roleplay 或 Game Mode 的提示词小节�
 未知 ID 展开为 `0`。计数包含所有条目，无论是否启用或位于文件夹中。
 
 可在提示词小节、角色卡字段、世界书条目内容或其他解析宏的位置使用。
+
+<a id="lorebook-include-macro"></a>
+
+## 世界书引入宏
+
+`{{include::ENTRY}}` 会把一个世界书条目的文本放到宏所在的位置。可以把一段共用的文字（比如房规）存在一个条目里，再在其他条目、提示词小节或角色卡里重复使用，这样要改的只有一份。将 `ENTRY` 替换为条目的 ID 或名称。名称不区分大小写。
+
+- 在世界书条目里，名称会在该条目自己所在的世界书中查找。
+- 在其他任何地方，名称会在这个聊天使用的世界书中查找：添加到聊天里的世界书、关联到聊天中角色和用户角色的世界书，以及全局世界书。
+- 用 ID 可以在任意一本世界书中找到条目。
+
+`{{include::BOOK::ENTRY}}` 从你用 ID 或名称指定的那本世界书里取出条目。这本世界书不必添加到聊天里，甚至不必启用。
+
+```text
+{{include::Rules of the arena}}
+{{include::Shared lore::Rules of the arena}}
+```
+
+被引入的条目不需要激活，也可以是关闭的，所以可以保留一些只用来被引入的条目。被引入文本里的宏照常解析，它也可以再引入其他条目。如果某次引入又绕回到它已经身处其中的条目，比如一个条目引入了自己，这次引入就会展开为空，而不会无限重复下去。找不到的条目或世界书同样展开为空。
+
+名称和 ID 要写成纯文本。写在里面的宏，比如 `{{include::{{char}}}}`，不会被展开。
 
 ## 时间宏
 
@@ -251,7 +272,7 @@ Outlet 宏可以用在 Conversation、Roleplay 或 Game Mode 的提示词小节�
 
 条件块里可以用 `||`(或)、`&&`(与) 和小括号组合多个比较。判断相等时还能用紧凑写法 `{{#if character == "Maukie" || "Pantalone"}}`。优先级、群聊示例和完整的运算符清单见[条件提示词](conditional-prompts.md)。
 
-条件也能向 Decision 模型询问场景：是/否使用 `{{#if decision:"The latest message moves the scene to a new place"}}`，多选一使用 `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}`。没有模型或没有答案时都按否处理。见[询问 Decision 模型](conditional-prompts.md#asking-the-decision-model)。陈述后加 `sticky:3 cooldown:5` 可保持是 3 回合，再休息 5 回合；见 [Sticky 与 Cooldown](conditional-prompts.md#sticky-and-cooldown)。`every:3` 只每 3 回合询问一次，`priority:high` 或 `priority:low` 决定哪些陈述进入提示词计划；见[每隔几回合检查](conditional-prompts.md#checking-every-few-turns)、[优先级](conditional-prompts.md#priority)和[限制与成本](conditional-prompts.md#limits-and-cost)。
+条件也能向 Decision 模型询问场景：是/否使用 `{{#if decision:"The latest message moves the scene to a new place"}}`，多选一使用 `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}`。没有模型或没有答案时都按否处理。见[询问 Decision 模型](conditional-prompts.md#asking-the-decision-model)。陈述后加 `sticky:3 cooldown:5` 可保持是 3 回合，再休息 5 回合；见 [Sticky 与 Cooldown](conditional-prompts.md#sticky-and-cooldown)。加 `until:"..."` 或 `while:"..."`，只要第二条陈述允许，就一直保持是；见 [Until 与 While](conditional-prompts.md#until-and-while)。`every:3` 只每 3 回合询问一次，`priority:high` 或 `priority:low` 决定哪些陈述进入提示词计划；见[每隔几回合检查](conditional-prompts.md#checking-every-few-turns)、[优先级](conditional-prompts.md#priority)和[限制与成本](conditional-prompts.md#limits-and-cost)。
 
 ## 常见错误
 

@@ -262,6 +262,42 @@ Keep combat pacing rules in effect.
 
 Zusammen passt das zu einmaligen Szenenwechseln oder Erinnerungen mit anschließender Pause sowie Stimmungen, die einige Züge anhalten sollen. Bei einem über **Decision** aktivierten Lorebook-Eintrag nutze dessen eigene Einstellungen **Sticky** und **Cooldown**: Ein gehaltener Eintrag bleibt ohne Nachfrage enthalten; ein pausierender wird nicht geprüft.
 
+<a id="until-and-while"></a>
+
+### Until und While
+
+Manche Blöcke sollen nicht für eine feste Zahl von Zügen aktiv bleiben, sondern so lange, wie etwas andauert, etwa ein Kampf. Schreib `until:` oder `while:` mit einer zweiten Aussage hinter die erste:
+
+```
+{{#if decision:"A fight starts in the latest message" until:"The fight ends in the latest message"}}
+Keep combat pacing rules in effect.
+{{/if}}
+```
+
+- Nach einem ja bleibt der Block aktiv, und die erste Aussage wird nicht gefragt, solange er aktiv ist. An ihrer Stelle wird jeden Zug die `until`-Aussage gefragt; in dem Zug, in dem sie wahr ist, schaltet sich der Block ab.
+- `while:` funktioniert umgekehrt: Der Block bleibt aktiv, solange die zugehörige Aussage wahr ist, und schaltet sich in dem Zug ab, in dem sie falsch ist.
+- Verwende nur einen der beiden Zusätze. Stehen beide da, zählt nur der erste.
+- Schaltet sich der Block ab, beginnt wie gewohnt die Cooldown-Zeit; danach wird die erste Aussage wieder gefragt.
+- Bekommt die `until`- oder `while`-Aussage in einem Zug keine Antwort, bleibt der Block aktiv.
+- Die `until`- oder `while`-Aussage zählt zu **Decision statements per turn**. Die erste Aussage zählt nicht dazu, solange der Block aktiv ist.
+- Das funktioniert mit `decision:`, nicht mit `decision_choice:`.
+
+Kombinierst du das mit **sticky**, setzt du `:and` oder `:or` direkt hinter die zweite Aussage, um festzulegen, wie beide zusammenwirken:
+
+| Schreibweise | Nach dem ja bleibt der Block aktiv |
+| --- | --- |
+| `until:"..." sticky:5` oder `until:"...":and sticky:5` | Für bis zu 5 weitere Züge; er schaltet sich früher ab, wenn die Until-Aussage wahr ist. |
+| `until:"...":or sticky:5` | Für mindestens 5 weitere Züge, danach so lange, bis die Until-Aussage wahr ist. |
+| `while:"..." sticky:5` oder `while:"...":or sticky:5` | Für mindestens 5 weitere Züge, danach so lange, wie die While-Aussage wahr ist. |
+| `while:"...":and sticky:5` | Für bis zu 5 weitere Züge; er schaltet sich früher ab, wenn die While-Aussage falsch ist. |
+
+`:restrict` bedeutet dasselbe wie `:and`, `:extend` dasselbe wie `:or`. Ohne Sticky machen sie keinen Unterschied. Zum Beispiel:
+
+```
+{{#if decision:"{{user}} casts a stealth spell in the latest message" while:"{{user}} stays still":extend sticky:5}}...{{/if}}
+{{#if decision:"{{user}} casts a stealth spell in the latest message" until:"{{user}} is spotted":restrict sticky:5}}...{{/if}}
+```
+
 <a id="checking-every-few-turns"></a>
 
 ### Alle paar Züge prüfen

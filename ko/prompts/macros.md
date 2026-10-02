@@ -69,7 +69,7 @@
 
 Phonetic 이름 필드는 2가지 역할을 합니다. 음성 합성이 이름을 어떻게 발음할지 정하고, `{{charNamePhonetic}}`과 `{{userNamePhonetic}}`에도 값을 공급합니다. 이 필드는 **Character Editor**와 **Persona Editor** 양쪽에 있습니다.
 
-현재 채팅에 없는 캐릭터를 참조하려면 카드 ID를 복사해 `{{V1StGXR8_Z5jdHi6B-myT}}`처럼 중괄호 두 개 안에 직접 넣으세요. `<`나 `>` 문자는 넣지 마세요. Marinara는 매크로를 캐릭터 이름으로 바꾸고 카드의 Description, Personality, Appearance, Backstory, Scenario, Example Dialogue를 시스템 프롬프트에 추가합니다. 채팅 메시지, 프롬프트 필드, 활성화된 로어북 항목에서 동작합니다. 카드의 첫 인사말은 제외합니다. 연결된 활성 로어북에는 원래 키워드, constant, 필터, 확률, 토큰 예산 규칙이 적용됩니다.
+현재 채팅에 없는 캐릭터를 참조하려면 카드 ID를 복사해 `{{V1StGXR8_Z5jdHi6B-myT}}`처럼 중괄호 두 개 안에 직접 넣으세요. `<`나 `>` 문자는 넣지 마세요. Marinara는 매크로를 캐릭터 이름으로 바꾸고 카드의 Description, Personality, Appearance, Backstory, Scenario, Example Dialogue를 시스템 프롬프트에 추가합니다. 채팅 메시지, 프롬프트 필드, 활성화된 로어북 항목에서 동작합니다. 카드의 첫 인사말은 제외합니다. 연결된 활성 로어북에는 원래 키워드, constant, 필터, 확률, 토큰 예산 규칙이 적용됩니다. 이미 채팅에 있는 캐릭터라면 매크로는 그대로 캐릭터 이름으로 바뀌고, 카드는 한 번 더 추가되지 않습니다.
 
 현재 선택되지 않은 페르소나를 참조하려면 복사한 ID 앞에 `persona-`를 붙이세요. 예: `{{persona-P1StGXR8_Z5jdHi6B-myT}}`. Marinara는 매크로를 페르소나 이름으로 바꾸고 Description, Personality, Appearance, Backstory, Scenario 필드를 ID Macro Cards에 추가합니다. 연결된 로어북은 평소의 활성화 규칙을 따릅니다.
 
@@ -136,6 +136,27 @@ Outlet 매크로는 Conversation, Roleplay, Game 모드의 프롬프트 섹션�
 알 수 없는 ID는 `0`이 됩니다. 활성 여부나 폴더 소속과 관계없이 모든 항목을 셉니다.
 
 프롬프트 섹션, 캐릭터 카드 필드, 로어북 항목 내용 등 매크로를 치환하는 모든 곳에서 사용하세요.
+
+<a id="lorebook-include-macro"></a>
+
+## 로어북 Include 매크로
+
+`{{include::ENTRY}}`는 로어북 항목의 텍스트를 매크로를 쓴 자리에 넣습니다. 하우스 룰처럼 여러 곳에서 함께 쓰는 텍스트는 항목 하나에 넣어 두고 다른 항목, 프롬프트 섹션, 카드에서 재사용하세요. 그러면 한 곳만 고치면 됩니다. `ENTRY`를 항목의 ID나 이름으로 바꾸세요. 이름은 대소문자를 구분하지 않습니다.
+
+- 로어북 항목 안에서는 그 항목이 들어 있는 로어북에서 이름을 찾습니다.
+- 그 밖의 곳에서는 이 채팅이 쓰는 로어북에서 이름을 찾습니다. 채팅에 추가한 로어북, 채팅의 캐릭터와 페르소나에 연결된 로어북, 전역 로어북이 여기에 해당합니다.
+- ID로는 어느 로어북에 있는 항목이든 찾을 수 있습니다.
+
+`{{include::BOOK::ENTRY}}`는 ID나 이름으로 지정한 로어북에서 항목을 가져옵니다. 그 로어북은 채팅에 추가되어 있을 필요가 없고, 꺼져 있어도 됩니다.
+
+```text
+{{include::Rules of the arena}}
+{{include::Shared lore::Rules of the arena}}
+```
+
+포함되는 항목은 활성화될 필요가 없고 꺼져 있어도 되므로, 다른 곳에 포함하는 용도로만 쓰는 항목을 따로 둘 수 있습니다. 포함된 텍스트 안의 매크로도 평소처럼 동작하고, 그 텍스트가 다른 항목을 다시 포함할 수도 있습니다. 자기 자신을 포함하는 항목처럼 include 매크로가 이미 펼쳐지는 중인 항목을 다시 가리키면, 그 매크로는 끝없이 반복되지 않고 빈 값으로 치환됩니다. 찾지 못한 항목이나 로어북도 빈 값으로 치환됩니다.
+
+이름과 ID는 일반 텍스트로 쓰세요. `{{include::{{char}}}}`처럼 그 안에 넣은 매크로는 치환되지 않습니다.
 
 ## 시간 매크로
 
@@ -251,7 +272,7 @@ Outlet 매크로는 Conversation, Roleplay, Game 모드의 프롬프트 섹션�
 
 조건부 블록에서는 `||`(OR), `&&`(AND), 괄호로 비교식을 조합할 수 있습니다. 같음 비교를 나열할 때는 `{{#if character == "Maukie" || "Pantalone"}}` 같은 축약 형태도 쓸 수 있습니다. 연산 우선순위, 그룹 채팅 예시, 전체 연산자 목록은 [조건부 프롬프트](conditional-prompts.md)를 참고하세요.
 
-조건은 Decision 모델에 장면을 물을 수도 있습니다. 예/아니요에는 `{{#if decision:"The latest message moves the scene to a new place"}}`, 옵션 선택에는 `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}`를 사용합니다. 모델이나 답이 없으면 아니요입니다. [Decision 모델에 묻기](conditional-prompts.md#asking-the-decision-model)를 참고하세요. 문장 뒤에 `sticky:3 cooldown:5`를 추가하면 예를 3턴 유지하고 5턴 쉽니다. [Sticky와 Cooldown](conditional-prompts.md#sticky-and-cooldown)을 참고하세요. `every:3`은 3턴마다 묻고 `priority:high`나 `priority:low`는 계획에 들어갈 문장을 정합니다. [몇 턴마다 확인하기](conditional-prompts.md#checking-every-few-turns), [우선순위](conditional-prompts.md#priority), [제한과 비용](conditional-prompts.md#limits-and-cost)을 참고하세요.
+조건은 Decision 모델에 장면을 물을 수도 있습니다. 예/아니요에는 `{{#if decision:"The latest message moves the scene to a new place"}}`, 옵션 선택에는 `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}`를 사용합니다. 모델이나 답이 없으면 아니요입니다. [Decision 모델에 묻기](conditional-prompts.md#asking-the-decision-model)를 참고하세요. 문장 뒤에 `sticky:3 cooldown:5`를 추가하면 예를 3턴 유지하고 5턴 쉽니다. [Sticky와 Cooldown](conditional-prompts.md#sticky-and-cooldown)을 참고하세요. `until:"..."`이나 `while:"..."`을 추가하면 두 번째 문장이 허용하는 동안 예를 유지합니다. [Until과 While](conditional-prompts.md#until-and-while)을 참고하세요. `every:3`은 3턴마다 묻고 `priority:high`나 `priority:low`는 계획에 들어갈 문장을 정합니다. [몇 턴마다 확인하기](conditional-prompts.md#checking-every-few-turns), [우선순위](conditional-prompts.md#priority), [제한과 비용](conditional-prompts.md#limits-and-cost)을 참고하세요.
 
 ## 자주 하는 실수
 

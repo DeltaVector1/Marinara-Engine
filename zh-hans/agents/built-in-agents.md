@@ -12,7 +12,7 @@
 - **适用范围**：哪些聊天模式允许添加这个智能体。多数智能体用在 **Roleplay**(角色扮演) 聊天里。少数适用于其他模式，每个条目都会写明。
 - **主要设置**：最可能需要改动的设置。添加智能体时可以设置，之后也可以在 **Chat Settings**(聊天设置) 里这个智能体的设置卡片中调整。
 
-Marinara 在 **Agents** 面板里把智能体分成三类：**Writer Agents**(写作类)、**Tracker Agents**(追踪类) 和 **Misc Agents**(杂项类)。本参考沿用同样的分类。
+Marinara 在 **Agents** 面板里把智能体分成 **Apps**(应用类)、**Writer Agents**(写作类)、**Tracker Agents**(追踪类) 和 **Misc Agents**(杂项类)。Apps 是有自己 Home 标签页的包，比如 Noodle 和 Slurp。本参考仍把 Noodle 和 Slurp 放在杂项类智能体一节。
 
 运行间隔的意思是，智能体每隔几条用户消息和 AI 回复才运行一次，而不是每条消息之后都运行。运行间隔可以在智能体的设置里改，最大 100。
 
