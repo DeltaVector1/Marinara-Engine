@@ -12,7 +12,7 @@ Cada agente de abajo muestra tres datos rápidos.
 - **Dónde funciona**: los modos de chat que te permiten añadir el agente. La mayoría de los agentes funcionan en chats de **Roleplay**. Unos pocos funcionan en otros modos, y cada entrada indica cuál.
 - **Ajustes clave**: los ajustes que es más probable que cambies. Los configuras al añadir el agente, o más tarde en la tarjeta de configuración del agente dentro de **Chat Settings** (Ajustes del chat).
 
-En el panel **Agents**, Marinara agrupa sus agentes en **Apps** (aplicaciones), **Writer Agents** (agentes escritores), **Tracker Agents** (agentes de seguimiento) y **Misc Agents** (agentes varios). Las Apps son paquetes con su propia pestaña de Home, como Noodle y Slurp. Esta referencia mantiene Noodle y Slurp en la sección Misc agents.
+En el panel **Agents**, Marinara agrupa sus agentes en **Apps** (aplicaciones), **Writer Agents** (agentes escritores), **Tracker Agents** (agentes de seguimiento) y **Misc Agents** (agentes varios). Las Apps son paquetes con su propia pestaña de Home, como Noodle y Slurp. Esta referencia describe Noodle en la sección Misc agents.
 
 Un intervalo de ejecución significa que el agente se ejecuta una vez cada varios mensajes del usuario y del asistente en lugar de después de cada mensaje. Puedes cambiar un intervalo de ejecución en la configuración del agente, hasta 100.
 

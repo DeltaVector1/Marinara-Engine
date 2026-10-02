@@ -44,8 +44,8 @@
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "8854433d454c18e7e89c6fcb1eaa24f3da1b7249a31dd4f009701efab85c1f42",
-      "bytes": 34714
+      "sha256": "3438a733a06e3cfe8f84272ab723d10eeebf20728cdc9c0a0532e5df2dd97d29",
+      "bytes": 34695
     },
     {
       "path": "agents/custom-agents.md",

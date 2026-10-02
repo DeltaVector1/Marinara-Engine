@@ -12,7 +12,7 @@ Cada agente abaixo traz três informações rápidas.
 - **Onde funciona**: os modos de chat que permitem adicionar o agente. A maioria funciona em chats de **Roleplay**. Alguns funcionam em outros modos, e cada item diz quais.
 - **Configurações principais**: as configurações que você tem mais chance de mexer. Defina essas opções na hora de adicionar o agente, ou depois, no card de configuração do agente em **Chat Settings** (configurações do chat).
 
-Marinara separa os agentes no painel **Agents** em **Apps**, **Writer Agents**, **Tracker Agents** e **Misc Agents**. Os Apps são pacotes com uma aba própria da Home, como Noodle e Slurp. Esta referência mantém Noodle e Slurp na seção Misc agents.
+Marinara separa os agentes no painel **Agents** em **Apps**, **Writer Agents**, **Tracker Agents** e **Misc Agents**. Os Apps são pacotes com uma aba própria da Home, como Noodle e Slurp. Esta referência descreve Noodle na seção Misc agents.
 
 Um intervalo de execução faz o agente rodar uma vez a cada tantas mensagens do usuário e do assistente, em vez de rodar depois de cada mensagem. O intervalo pode ser alterado na configuração do agente, até o limite de 100.
 
