@@ -270,6 +270,18 @@ export type MariChipEntity =
 
 export type MariChipTone = "default" | "danger" | "caution" | "success";
 
+/**
+ * M5b: a next-step card that acts at once on the client, with no Mari round-trip. The first three
+ * kinds are the client's own navigation targets; the prompt stays the fallback for surfaces that
+ * only render chips.
+ */
+export type MariSuggestionAction =
+  | { kind: "resource"; resource: "character" | "persona" | "preset" | "lorebook" | "agent"; id: string }
+  | { kind: "chat"; chatId: string }
+  | { kind: "panel"; panel: "characters" | "personas" | "lorebooks" | "presets" | "connections" | "agents" }
+  | { kind: "start-chat"; characterId: string }
+  | { kind: "peek-prompt"; chatId: string };
+
 export interface MariSuggestionChip {
   id: string;
   label: string;
@@ -277,6 +289,9 @@ export interface MariSuggestionChip {
   entity?: MariChipEntity;
   icon?: string;
   tone?: MariChipTone;
+  /** M5b: one short fact under the label ("3 messages since your last summary"). */
+  detail?: string;
+  action?: MariSuggestionAction;
 }
 
 /**
@@ -416,6 +431,44 @@ function normalizeMariChipEntity(value: unknown): MariChipEntity | undefined {
   return MARI_CHIP_ENTITY_ALIASES[normalized];
 }
 
+const CHIP_DETAIL_KEYS = ["detail", "fact", "hint"];
+const MARI_CHIP_DETAIL_MAX = 80;
+const MARI_ACTION_RESOURCES = new Set(["character", "persona", "preset", "lorebook", "agent"]);
+const MARI_ACTION_PANELS = new Set(["characters", "personas", "lorebooks", "presets", "connections", "agents"]);
+
+/** Only the action shapes the client knows how to run; anything else leaves a plain Mari card. */
+function sanitizeMariSuggestionAction(raw: unknown): MariSuggestionAction | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const record = raw as Record<string, unknown>;
+  const id = (key: string) => {
+    const value = record[key];
+    return typeof value === "string" && value.trim() ? truncateMariChipText(value, 120) : undefined;
+  };
+  const kind = record.kind;
+  if (kind === "resource") {
+    const resource = record.resource;
+    const resourceId = id("id");
+    return typeof resource === "string" && MARI_ACTION_RESOURCES.has(resource) && resourceId
+      ? { kind, resource: resource as Extract<MariSuggestionAction, { kind: "resource" }>["resource"], id: resourceId }
+      : undefined;
+  }
+  if (kind === "panel") {
+    const panel = record.panel;
+    return typeof panel === "string" && MARI_ACTION_PANELS.has(panel)
+      ? { kind, panel: panel as Extract<MariSuggestionAction, { kind: "panel" }>["panel"] }
+      : undefined;
+  }
+  if (kind === "start-chat") {
+    const characterId = id("characterId");
+    return characterId ? { kind, characterId } : undefined;
+  }
+  if (kind === "chat" || kind === "peek-prompt") {
+    const chatId = id("chatId");
+    return chatId ? { kind, chatId } : undefined;
+  }
+  return undefined;
+}
+
 /**
  * Models frequently drift from the exact { label, prompt } contract (plain string arrays,
  * a "text"/"title" key instead of "label", a missing "prompt" that should just reuse the
@@ -471,6 +524,15 @@ export function sanitizeMariSuggestionChips(raw: unknown, options: { maxChips?: 
       const tone = record.tone.trim().toLowerCase();
       if (MARI_CHIP_TONES.has(tone as MariChipTone)) chip.tone = tone as MariChipTone;
     }
+    const rawDetail = firstStringField(record, CHIP_DETAIL_KEYS);
+    if (rawDetail) {
+      // One line under the label: whitespace collapsed, an overlong fact cut with an ellipsis.
+      const detail = rawDetail.replace(/\s+/g, " ").trim();
+      chip.detail =
+        detail.length > MARI_CHIP_DETAIL_MAX ? `${detail.slice(0, MARI_CHIP_DETAIL_MAX - 1).trimEnd()}…` : detail;
+    }
+    const action = sanitizeMariSuggestionAction(record.action);
+    if (action) chip.action = action;
     chips.push(chip);
     if (chips.length >= maxChips) break;
   }

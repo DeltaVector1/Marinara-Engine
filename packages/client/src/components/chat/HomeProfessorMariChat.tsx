@@ -68,6 +68,7 @@ import {
   type APIConnection,
   type Chat,
   type MariGuidedPlanStep,
+  type MariSuggestionAction,
   type MariSuggestionChip,
   type MariWorkspaceSkillDetail,
   type MariWorkspaceActionResult,
@@ -209,7 +210,8 @@ import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
 import { useAgentConfigs } from "../../hooks/use-agents";
 import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
 import { MacroTextarea } from "../ui/MacroTextarea";
-import { MariSuggestionChips } from "./MariSuggestionChips";
+import { MariNextStepCards, MariSuggestionChips } from "./MariSuggestionChips";
+import { requestChatPeekPrompt } from "../../lib/chat-floating-ui-events";
 import { MariRecordAvatar, MariNote } from "./mari-primitives";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 import {
@@ -4252,6 +4254,8 @@ export function HomeProfessorMariChat({
   const suggestionsSuppressed =
     !chipRowAwaitsApproval && !["empty", "history", "completed"].includes(mariPresentationState);
   const showSuggestionPrompt = !suggestionsSuppressed && Boolean(suggestionQuestion) && chipRowChips.length > 0;
+  // M5b: plain next steps are cards under the turn; a plan step or a held change keeps its answer chips by the composer.
+  const showNextStepCards = showSuggestionPrompt && messages.length > 0 && !guidedPlanStep && !chipRowAwaitsApproval;
 
   const runRestart = useCallback(async () => {
     if (isBusy) return;
@@ -5424,6 +5428,25 @@ export function HomeProfessorMariChat({
     submitHandoffDraft(initialAskContext);
   }, [connectionsLoading, draft, initialAskContext, isBusy, omnibarMode, submitDraftRequest]);
 
+  // M5b: an action card runs the same deterministic navigation as the omnibar rows, with no Mari round-trip.
+  const runSuggestionAction = (action: MariSuggestionAction) => {
+    if (action.kind === "start-chat") {
+      useUIStore.getState().openModal("start-character-chat", {
+        characterId: action.characterId,
+        characterName: characterPreviewById.get(action.characterId)?.name ?? "",
+      });
+      useUIStore.getState().setOmnibarOpen(false);
+    } else if (action.kind === "peek-prompt") {
+      executeStateNavigation({ kind: "chat", chatId: action.chatId });
+      // ponytail: two frames for the chat view to take the new active chat before it hears the request;
+      // a chat that mounts slower misses the peek and only opens. Add a pending-request store if that shows up.
+      requestAnimationFrame(() => requestAnimationFrame(() => requestChatPeekPrompt(action.chatId)));
+    } else {
+      executeStateNavigation(action);
+    }
+    if (omnibarMode) closeChatWindow();
+  };
+
   const handleSuggestionSelect = (chip: MariSuggestionChip) => {
     if (chip.id === MARI_AUTHORIZATION_ACCEPT_CHIP.id || chip.id === MARI_AUTHORIZATION_DECLINE_CHIP.id) {
       void handleSubmit(chip.prompt);
@@ -5442,6 +5465,10 @@ export function HomeProfessorMariChat({
         );
         focusComposer();
       }
+      return;
+    }
+    if (chip.action) {
+      runSuggestionAction(chip.action);
       return;
     }
     setDraft((current) => (current.trim() ? `${current.trimEnd()} ${chip.prompt}` : chip.prompt));
@@ -6356,6 +6383,13 @@ export function HomeProfessorMariChat({
                                       </div>
                                     </TranscriptRow>
                                   ) : null}
+                                  {showNextStepCards ? (
+                                    <MariNextStepCards
+                                      chips={chipRowChips}
+                                      onSelect={handleSuggestionSelect}
+                                      disabled={isBusy}
+                                    />
+                                  ) : null}
                                 </div>
                               </>
                             )}
@@ -6392,7 +6426,10 @@ export function HomeProfessorMariChat({
                               </motion.button>
                             ) : null}
                           </AnimatePresence>
-                          {showSuggestionPrompt && suggestionQuestion && (!omnibarMode || messages.length > 0) ? (
+                          {showSuggestionPrompt &&
+                          !showNextStepCards &&
+                          suggestionQuestion &&
+                          (!omnibarMode || messages.length > 0) ? (
                             <div className="mari-workspace-question-dock mb-2">
                               {!omnibarMode ? (
                                 <div className="mari-workspace-question-dock__prompt">

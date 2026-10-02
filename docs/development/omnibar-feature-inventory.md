@@ -101,6 +101,19 @@ Rules that must survive:
     A list result shows only when her answer names it. A card opens a sheet with
     the description and Open (`mariReferenceTarget` → `executeStateNavigation`;
     an entry opens its lorebook at that entry).
+  - Next steps (M5b, slice 37) are 2-4 cards in the transcript under the newest
+    turn (`MariNextStepCards`, `.mari-next-card`), in the normal flow, not over the
+    composer: icon, label, and one fact line from the server's `detail` (bounded to
+    80 characters by `sanitizeMariSuggestionChips`; the prompt asks for a real fact
+    such as "3 messages since your last summary", never a generic description). A
+    spark card asks Mari: it puts its prompt in the composer. An arrow card has an
+    `action` (`MariSuggestionAction`: open a character/persona/preset/lorebook/agent,
+    open a chat, start a chat with a character, open a list panel such as
+    Connections, Peek prompt) and runs it at once through `executeStateNavigation`
+    or the omnibar's own start-chat / peek-prompt requests, with no Mari request.
+    Held-change Accept / Don't apply and guided-plan answers stay as chips by the
+    composer: they answer a question. The cards step aside while you type, like
+    the chips did.
   - What changed (created/updated tiles, applied reviews, answered prompts) and
     what needs your OK (held changes, install and sensitive-file prompts) render
     as ONE hairline group (`MariOutcomeGroup`); the "What changed" / "Needs your

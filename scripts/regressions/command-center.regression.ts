@@ -117,6 +117,7 @@ import {
 } from "../../packages/server/src/services/mari-db/mari-db.service.js";
 import { appDataActionLooksReadOnly } from "../../packages/server/src/services/professor-mari/workspace-agent.service.js";
 import { transcriptScrollAction } from "../../packages/client/src/lib/professor-mari-transcript-scroll.js";
+import { sanitizeMariSuggestionChips } from "../../packages/shared/src/types/professor-mari-workspace.js";
 import type { BuiltInAgentManifest } from "@marinara-engine/shared";
 
 const commands: CommandDefinition[] = [
@@ -2224,6 +2225,47 @@ assert.ok(!("mariDetailId" in mariSession));
     true,
     "scrolling back to the bottom must resume following",
   );
+}
+
+{
+  // M5b (slice 37): a next-step card's fact line and its at-once action, from the model's suggestion JSON.
+  const [summary, open, generic, bogus] = sanitizeMariSuggestionChips([
+    { label: "Summarize the chat", prompt: "Summarize it.", detail: "  38 messages since\nyour last summary " },
+    {
+      label: "Open Zylo",
+      prompt: "Open Zylo.",
+      fact: "Greeting is 14 words now",
+      action: { kind: "resource", resource: "character", id: "char-zylo" },
+    },
+    { label: "Tighten its prompt", prompt: "Tighten it." },
+    { label: "Run it", prompt: "Run it.", action: { kind: "resource", resource: "chat", id: "x" } },
+  ]);
+  assert.equal(summary.detail, "38 messages since your last summary", "a valid fact line is kept on one line");
+  assert.equal(summary.action, undefined, "a card without an action asks Mari");
+  assert.equal(open.detail, "Greeting is 14 words now", "the fact alias is accepted");
+  assert.deepEqual(open.action, { kind: "resource", resource: "character", id: "char-zylo" });
+  assert.equal(generic.detail, undefined, "a suggestion without a fact keeps no detail, not an empty line");
+  assert.equal(
+    bogus.action,
+    undefined,
+    "an action the client cannot run is dropped; the card falls back to its prompt",
+  );
+  const [long] = sanitizeMariSuggestionChips([{ label: "Check entries", prompt: "Check.", detail: "x".repeat(200) }]);
+  assert.equal(long.detail?.length, 80, "an overlong fact is bounded to one short line");
+  assert.ok(long.detail?.endsWith("…"), "a cut fact shows it was cut");
+  const [blank] = sanitizeMariSuggestionChips([
+    { label: "Peek prompt", prompt: "Peek.", detail: "   ", action: { kind: "peek-prompt", chatId: "" } },
+  ]);
+  assert.equal(blank.detail, undefined, "a blank fact is dropped");
+  assert.equal(blank.action, undefined, "an action without its id is dropped");
+  const [peek, start, panel] = sanitizeMariSuggestionChips([
+    { label: "Peek prompt", prompt: "Peek.", action: { kind: "peek-prompt", chatId: "chat-1" } },
+    { label: "Start a chat", prompt: "Start.", action: { kind: "start-chat", characterId: "char-1" } },
+    { label: "Pick a connection", prompt: "Pick.", action: { kind: "panel", panel: "connections" } },
+  ]);
+  assert.deepEqual(peek.action, { kind: "peek-prompt", chatId: "chat-1" });
+  assert.deepEqual(start.action, { kind: "start-chat", characterId: "char-1" });
+  assert.deepEqual(panel.action, { kind: "panel", panel: "connections" });
 }
 
 console.info("Command Center regression checks passed.");

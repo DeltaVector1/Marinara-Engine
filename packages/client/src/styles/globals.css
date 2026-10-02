@@ -2829,6 +2829,112 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   color: var(--muted-foreground);
 }
 
+/* M5b: what next, as cards with a fact under the turn. The spark asks Mari; the arrow does it at once. */
+.mari-next-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.mari-next-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.6rem;
+  align-items: start;
+  min-width: 0;
+  min-height: 3.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--mari-hairline);
+  border-radius: 0.875rem;
+  background: color-mix(in srgb, var(--mari-group-bg) 80%, transparent);
+  text-align: left;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+  animation: mari-welcome-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+.mari-next-card:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--foreground) 5%, var(--mari-group-bg));
+  border-color: color-mix(in srgb, var(--foreground) 20%, transparent);
+  transform: translateY(-1px);
+}
+
+.mari-next-card:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.mari-next-card:disabled {
+  opacity: 0.6;
+}
+
+.mari-next-card__icon {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--foreground) 8%, var(--background));
+  color: var(--muted-foreground);
+}
+
+.mari-next-card[data-tone="danger"] .mari-next-card__icon {
+  background: color-mix(in srgb, var(--destructive) 14%, transparent);
+  color: var(--destructive);
+}
+
+.mari-next-card__label {
+  min-width: 0;
+  padding-right: 1rem;
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.mari-next-card__detail {
+  grid-column: 2;
+  min-width: 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.mari-next-card__kind {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.65rem;
+  color: var(--muted-foreground);
+}
+
+.mari-next-card[data-kind="mari"] .mari-next-card__kind {
+  color: color-mix(in srgb, var(--mari-workspace-gold, oklch(0.82 0.11 79)) 62%, var(--foreground));
+}
+
+@media (max-width: 30rem) {
+  .mari-next-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (pointer: coarse) {
+  .mari-next-card {
+    min-height: 3.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-next-card {
+    animation: none;
+    transition: none;
+  }
+}
+
 .mari-ref-card[data-failed="true"] .mari-ref-card__tag {
   color: var(--destructive);
 }

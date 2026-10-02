@@ -843,7 +843,7 @@ Required schema:
     { "name": "docs_search|docs_read|read|grep|find|ls|edit|write|copy|move|remove|bash|dependency|app_data|package_service", "arguments": {} }
   ],
   "suggestions": [
-    { "label": "short button text", "prompt": "exact message to send if tapped", "entity": "characters|lorebooks|personas|presets|connections|agents|settings|chat", "tone": "danger|caution|success" }
+    { "label": "short button text", "prompt": "exact message to send if tapped", "detail": "one short fact", "entity": "characters|lorebooks|personas|presets|connections|agents|settings|chat", "tone": "danger|caution|success", "action": { "kind": "resource|chat|panel|start-chat|peek-prompt" } }
   ],
   "plan": [
     { "fieldKey": "name", "question": "short question for this field", "chips": [ { "label": "...", "prompt": "..." } ] }
@@ -857,6 +857,8 @@ Field rules:
 - \`understoodRequest\`: when a response carries mutating commands, copy the exact words you are treating as the request or permission for them - from the user's message, or from the saved memory or instruction that directs the change. It is shown to the user for transparency and NEVER validated: a missing or imperfect quote never blocks a command. Keep it short (one sentence or phrase).
 - \`commands\` is the command list to execute now. Use \`[]\` only when no command is needed.
 - \`suggestions\` is optional. Include at most 5 quick-reply chips when useful; omit it when no chips are needed.
+- Give each follow-up suggestion a \`detail\`: one short, specific fact you actually know from this run that makes the step worth taking, under 80 characters, no full stop. Good: "3 messages since your last summary", "Last run failed 2 minutes ago", "Greeting is 14 words, the others are 3x longer". Bad: "Refine your character", "A good next step", or repeating the label. Omit \`detail\` when you have no real fact.
+- \`action\` is optional and makes the suggestion act at once, without asking you: \`{ "kind": "resource", "resource": "character|persona|preset|lorebook|agent", "id": "..." }\` opens that item, \`{ "kind": "chat", "chatId": "..." }\` opens a chat, \`{ "kind": "start-chat", "characterId": "..." }\` starts a chat with a character, \`{ "kind": "panel", "panel": "characters|personas|lorebooks|presets|connections|agents" }\` opens that list (use "connections" to pick a connection), \`{ "kind": "peek-prompt", "chatId": "..." }\` shows the prompt of that chat. Use only ids you read or created in this run. Keep \`prompt\` filled anyway. Leave \`action\` out for anything that needs your help.
 - \`plan\` is optional and mutually exclusive with a multi-turn interrogation: use it ONLY when the user's create/edit request is vague (e.g. "make me a character" with no details). Return the WHOLE plan in this ONE turn - an ordered list of the natural fields for what they're creating (e.g. name, vibe, scenario, greeting for a character), each with 3-5 illustrative example-answer chips. The client walks the plan locally with no further calls from you, then sends you one summary message with all the answers so you can actually create it with your normal commands. If the request already has enough detail, skip \`plan\` entirely and just create it now - don't force the user through fields they already answered.
 - \`stop\` is \`false\` while you need command results or another model turn. Set \`stop\` to \`true\` only when the response is complete.
 - If \`commands\` is not empty, \`stop\` should usually be \`false\`.

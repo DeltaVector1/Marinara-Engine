@@ -1,7 +1,9 @@
 import {
+  ArrowRight,
   BookOpen,
   Bot,
   Dices,
+  Eye,
   Link2,
   MessageCircle,
   Settings,
@@ -17,10 +19,11 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type CSSProperties,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import type { MariChipEntity, MariSuggestionChip } from "@marinara-engine/shared";
+import type { MariChipEntity, MariSuggestionAction, MariSuggestionChip } from "@marinara-engine/shared";
 import { cn } from "../../lib/utils";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
@@ -73,8 +76,24 @@ const ENTITY_LABEL_MATCHERS: Array<[MariChipEntity, RegExp]> = [
   ["personas", /\b(persona|personas)\b/i],
 ];
 
+const ACTION_ENTITY: Partial<Record<string, MariChipEntity>> = {
+  character: "characters",
+  persona: "personas",
+  preset: "presets",
+  lorebook: "lorebooks",
+  agent: "agents",
+};
+
+function actionEntity(action: MariSuggestionAction): MariChipEntity | undefined {
+  if (action.kind === "resource") return ACTION_ENTITY[action.resource];
+  if (action.kind === "panel") return action.panel;
+  if (action.kind === "chat" || action.kind === "start-chat") return "chat";
+  return undefined;
+}
+
 function inferChipEntity(chip: MariSuggestionChip): MariChipEntity | undefined {
   if (chip.entity) return chip.entity;
+  if (chip.action) return actionEntity(chip.action);
   return ENTITY_LABEL_MATCHERS.find(([, matcher]) => matcher.test(chip.label))?.[0];
 }
 
@@ -247,5 +266,63 @@ export function MariSuggestionChips({ chips, onSelect, disabled = false, compact
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/**
+ * M5b: what next, as cards under the finished turn (icon, label, one fact). A spark card asks Mari
+ * (the caller puts its prompt in the composer); an arrow card has an `action` the caller runs at once.
+ */
+export function MariNextStepCards({
+  chips,
+  onSelect,
+  disabled = false,
+}: {
+  chips: MariSuggestionChip[];
+  onSelect: (chip: MariSuggestionChip) => void;
+  disabled?: boolean;
+}) {
+  const { t: localizeUi } = useUiTranslation();
+  if (chips.length === 0) return null;
+  return (
+    <div role="group" aria-label={localizeUi("ui.chat.marisuggestionchips.nextSteps")} className="mari-next-cards">
+      {chips.map((chip, index) => {
+        const entity = inferChipEntity(chip);
+        const Icon =
+          chip.action?.kind === "peek-prompt"
+            ? Eye
+            : (chip.icon && CHIP_ICONS[chip.icon]) || (entity && ENTITY_DEFAULT_ICON[entity]) || Wand2;
+        const kindLabel = localizeUi(
+          chip.action ? "ui.chat.marisuggestionchips.actsNow" : "ui.chat.marisuggestionchips.asksMari",
+        );
+        return (
+          <button
+            key={chip.id}
+            type="button"
+            className="mari-next-card"
+            data-kind={chip.action ? "action" : "mari"}
+            data-tone={chip.tone}
+            style={{ "--i": index } as CSSProperties}
+            onClick={() => onSelect(chip)}
+            disabled={disabled}
+            title={kindLabel}
+          >
+            <span className="mari-next-card__icon" aria-hidden="true">
+              <Icon size="0.875rem" />
+            </span>
+            <span className="mari-next-card__label">{chip.label}</span>
+            {chip.detail ? <span className="mari-next-card__detail">{chip.detail}</span> : null}
+            <span className="mari-next-card__kind">
+              {chip.action ? (
+                <ArrowRight size="0.75rem" aria-hidden="true" />
+              ) : (
+                <Sparkles size="0.75rem" aria-hidden="true" />
+              )}
+              <span className="sr-only">{kindLabel}</span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
