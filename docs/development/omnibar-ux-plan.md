@@ -69,7 +69,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 35  | Side panels in one surface language (M6)                         | designer      | Done    | 7160b4798 |
 | 35a | Two header lines, Mari inline in the transcript                  | designer      | Done    | e8509f10b |
 | 35b | Bring back the done check and the plop (M14)                     | worker        | Done    | c624ee0b8 |
-| 36  | A run in cards: goal, phases, outcome group (M5a)                | designer      | Pending |           |
+| 36  | A run in cards: goal, phases, outcome group (M5a)                | designer      | Done    | 7f65de826 |
 | 37  | Next-step suggestion cards with a fact line (M5b)                | designer      | Pending |           |
 | 38  | Small fixes found on the way (M10)                                | worker        | Pending |           |
 | 39  | Mari arrives with context, on every surface (M9)                 | designer      | Pending |           |
