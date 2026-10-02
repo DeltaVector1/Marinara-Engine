@@ -237,7 +237,7 @@ LOG_DISABLE_REQUEST_LOGGING=true
 
 | 变量 | 默认值 | 作用 |
 | --- | --- | --- |
-| `CHAT_GENERATION_TIMEOUT_MS` | `300000`(5 分钟) | 普通 Conversation(对话模式)、Roleplay(角色扮演) 和 Game 生成的服务商响应头、首个 Token 等待时间以及分块间隔超时，同时也是那些自身没有超时设置的后台生成任务的首字节等待额度（Noodle 时间线刷新、Noodler 回复）。有效范围：`10000`-`3600000`。它不影响智能体、媒体、嵌入或工具的超时。 |
+| `CHAT_GENERATION_TIMEOUT_MS` | `300000`(5 分钟) | 普通 Conversation(对话模式)、Roleplay(角色扮演) 和 Game 生成的服务商响应头、首个 Token 等待时间以及分块间隔超时，同时也是那些自身没有超时设置的后台生成任务的首个 Token 等待和分块间隔额度（Professor Mari、Noodle 时间线刷新、Slurp 回复）。有效范围：`10000`-`3600000`。它不影响智能体、媒体、嵌入或工具的超时。 |
 | `AGENT_CALL_TIMEOUT_MS` | `300000`(5 分钟) | 单次智能体 LLM 调用（追踪器、HTML 重排器和其他智能体）的总时长上限，即使响应仍在流式输出也照样计时。本地模型较慢、单次智能体处理超过 5 分钟时可以调高。有效范围：`10000`-`3600000`。Illustrator 至少保留其内置的 30 分钟额度。 |
 | `GAME_DYNAMIC_IMAGE_PROMPT_TIMEOUT_MS` | `45000`(45 秒) | 把当前 Game 场景转换成动态图像提示词的那次模型调用的总时长上限。本地模型较慢时可以调高。有效范围：`10000`-`3600000`。 |
 | `EMBEDDING_TIMEOUT_MS` | `300000`(5 分钟) | 单次嵌入请求允许的时间。本地嵌入服务器较慢时调高会有帮助。 |
