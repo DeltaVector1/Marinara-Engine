@@ -1,12 +1,18 @@
 import { type ChangeEvent, type RefObject, useEffect, useMemo, useRef } from "react";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
-import { ArrowDown, ChevronRight, FileUp, Loader2, Plus, Save, Search, Trash2, X } from "lucide-react";
+import { ChevronRight, FileUp, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import type { MariWorkspaceSkillDetail } from "@marinara-engine/shared";
 
 import { useUIStore } from "../../stores/ui.store";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
 import { cn } from "../../lib/utils";
-import { MariPanelSortSelect, compareMariPanelItems, type SkillDraftState } from "./MariPanelControls";
+import {
+  MariPanelSortSelect,
+  MariSidePanelHeader,
+  MariSideSearch,
+  compareMariPanelItems,
+  type SkillDraftState,
+} from "./MariPanelControls";
 
 export function ProfessorMariSkillsMenu({
   skills,
@@ -76,44 +82,19 @@ export function ProfessorMariSkillsMenu({
   }, [selectedSkill?.id, selectedSkill?.updatedAt, sortMode, normalizedQuery]);
 
   return (
-    <section
-      className={cn(
-        "flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-lg border border-[var(--border)]/70 bg-[var(--background)]/70",
-        className,
-      )}
-    >
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border)]/60 px-3 py-2">
-        <div className="min-w-0">
-          <div className="flex min-w-0 items-center gap-2">
-            <ArrowDown size="0.9rem" className="shrink-0 text-[var(--marinara-chat-chrome-button-text-active)]" />
-            <span className="truncate text-xs font-semibold text-[var(--foreground)]">
-              {localizeUi("ui.chat.professormariskillsmenu.professorMariSkills")}
-            </span>
-          </div>
-          {hasSkills && (
-            <div className="mt-0.5 truncate text-[0.6875rem] text-[var(--muted-foreground)]">
-              {enabledCount} {localizeUi("ui.chat.professormariskillsmenu.active")} {skills.length}{" "}
-              {localizeUi("ui.chat.professormariskillsmenu.total")}
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-          aria-label={t("home.professorMari.skills.close")}
-          title={t("home.professorMari.skills.close")}
-        >
-          <X size="0.95rem" />
-        </button>
-      </div>
+    <section className={cn("flex h-full min-h-0 min-w-0 flex-col", className)}>
+      <MariSidePanelHeader
+        title={localizeUi("ui.chat.professormariskillsmenu.professorMariSkills")}
+        hint={
+          hasSkills
+            ? `${enabledCount} ${localizeUi("ui.chat.professormariskillsmenu.active")} ${skills.length} ${localizeUi("ui.chat.professormariskillsmenu.total")}`
+            : localizeUi("ui.chat.professormariskillsmenu.hint")
+        }
+        onClose={onClose}
+        closeLabel={t("home.professorMari.skills.close")}
+      />
 
-      <div
-        className={cn(
-          "shrink-0 flex-wrap items-center gap-1.5 border-b border-[var(--border)]/50 px-2.5 py-2",
-          selectedSkill ? "hidden" : "flex",
-        )}
-      >
+      <div className={cn("shrink-0 flex-wrap items-center gap-2 px-3 pb-2", selectedSkill ? "hidden" : "flex")}>
         <button
           type="button"
           onClick={() => {
@@ -121,17 +102,12 @@ export function ProfessorMariSkillsMenu({
             onNew();
           }}
           disabled={saving}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--card)] px-2 text-[0.6875rem] font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="mari-btn"
         >
           <Plus size="0.78rem" />
           {localizeUi("ui.lorebooks.lorebookassignmentsection.new")}
         </button>
-        <button
-          type="button"
-          onClick={onUploadClick}
-          disabled={saving}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[var(--border)] bg-[var(--card)] px-2 text-[0.6875rem] font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <button type="button" onClick={onUploadClick} disabled={saving} className="mari-btn">
           <FileUp size="0.78rem" />
           {localizeUi("ui.characters.characterclipcard.upload")}
         </button>
@@ -145,61 +121,40 @@ export function ProfessorMariSkillsMenu({
       </div>
 
       {hasSkills && !selectedSkill && (
-        <div className="shrink-0 border-b border-[var(--border)]/50 px-2.5 py-2">
-          <div className="flex items-center gap-1.5">
-            <div className="relative flex-1">
-              <Search
-                size="0.8rem"
-                className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"
-              />
-              <input
-                value={query}
-                onChange={(event) => onQueryChange(event.target.value)}
-                placeholder={localizeUi("ui.chat.professormariskillsmenu.searchPlaceholder")}
-                aria-label={localizeUi("ui.chat.professormariskillsmenu.searchPlaceholder")}
-                className="h-8 w-full rounded-md border border-[var(--border)] bg-[var(--card)] pl-7 pr-2 text-xs text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)]/55"
-              />
-            </div>
-            <MariPanelSortSelect value={sortMode} onChange={setSortMode} />
-          </div>
+        <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
+          <MariSideSearch
+            value={query}
+            onChange={onQueryChange}
+            label={localizeUi("ui.chat.professormariskillsmenu.searchPlaceholder")}
+          />
+          <MariPanelSortSelect value={sortMode} onChange={setSortMode} />
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="space-y-1 p-2">
+      <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+        <div className="mari-edit">
           {!loading && hasSkills && filtered.length === 0 && (
-            <div className="rounded-lg border border-dashed border-[var(--border)] px-3 py-6 text-center text-xs text-[var(--muted-foreground)]">
+            <div className="px-3 py-3 text-xs text-[var(--muted-foreground)]">
               {localizeUi("ui.chat.professormariskillsmenu.noMatches")}
             </div>
           )}
           {loading ? (
-            <div className="space-y-1.5">
-              <div className="h-10 animate-pulse rounded-lg bg-[var(--muted)]/30" />
-              <div className="h-10 animate-pulse rounded-lg bg-[var(--muted)]/20" />
-            </div>
+            <div className="h-12 animate-pulse bg-[var(--muted)]/20" />
           ) : !hasSkills ? (
-            <div className="rounded-lg border border-dashed border-[var(--border)] px-3 py-6 text-center text-xs text-[var(--muted-foreground)]">
+            <div className="px-3 py-3 text-xs text-[var(--muted-foreground)]">
               {localizeUi("ui.chat.professormariskillsmenu.noCustomSkillsYet")}
             </div>
           ) : (
             (selectedSkill ? [selectedSkill] : displayed).map((skill) => {
               const active = selectedSkill?.id === skill.id;
               return (
-                <div
-                  key={skill.id}
-                  className={cn(
-                    "group w-full min-w-0 overflow-hidden rounded-lg border transition-colors",
-                    active
-                      ? "border-[var(--primary)]/45 bg-[var(--primary)]/10"
-                      : "border-[var(--border)]/70 bg-[var(--card)]/70 hover:bg-[var(--accent)]/70",
-                  )}
-                >
+                <div key={skill.id} className={cn("mari-edit__row w-full min-w-0", active && "bg-[var(--mari-hover)]")}>
                   <div className="flex w-full min-w-0 items-stretch gap-1">
                     <button
                       type="button"
                       onClick={() => onSelect(active ? null : skill.id)}
                       aria-expanded={active}
-                      className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
+                      className="flex min-h-12 min-w-0 flex-1 items-center gap-2 py-2 pl-3 pr-2 text-left hover:bg-[var(--mari-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
                     >
                       <ChevronRight
                         size="0.8rem"
@@ -209,7 +164,7 @@ export function ProfessorMariSkillsMenu({
                         )}
                       />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[0.75rem] font-semibold text-[var(--foreground)]">
+                        <span className="block truncate text-[0.8125rem] font-semibold text-[var(--foreground)]">
                           {skill.name}
                         </span>
                         {skill.description && (
@@ -219,7 +174,7 @@ export function ProfessorMariSkillsMenu({
                         )}
                       </span>
                     </button>
-                    <span className="flex shrink-0 items-center pr-1">
+                    <span className="flex shrink-0 items-center pr-3">
                       <SettingsSwitch
                         ariaLabel={
                           skill.enabled
@@ -241,7 +196,7 @@ export function ProfessorMariSkillsMenu({
                   {active && (
                     <div
                       ref={active ? activeEditorRef : undefined}
-                      className="space-y-2 border-t border-[var(--border)]/50 px-2.5 py-2.5"
+                      className="space-y-2 border-t border-[var(--mari-divider)] px-3 py-3"
                     >
                       <label className="block text-[0.6875rem] font-semibold text-[var(--muted-foreground)]">
                         {localizeUi("ui.characters.metadatatab.name")}
@@ -281,12 +236,7 @@ export function ProfessorMariSkillsMenu({
                           <Trash2 size="0.75rem" />
                           {localizeUi("lorebook.editor.batch.delete")}
                         </button>
-                        <button
-                          type="button"
-                          onClick={onSave}
-                          disabled={saving}
-                          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-[var(--primary)] px-2.5 text-[0.6875rem] font-semibold text-[var(--primary-foreground)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
-                        >
+                        <button type="button" onClick={onSave} disabled={saving} className="mari-btn mari-btn--solid">
                           {saving ? <Loader2 size="0.75rem" className="animate-spin" /> : <Save size="0.75rem" />}
                           {localizeUi("ui.noodle.noodlehome.save")}
                         </button>

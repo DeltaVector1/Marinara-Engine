@@ -149,6 +149,16 @@ Rules that must survive:
     use when Show context usage is on, Change, and the sandbox state; this
     replaced the trust strip), then one privacy line. On a phone the panel is
     an opaque canvas sheet over the transcript.
+  - Side panels (M6): Chats, Skills, Memories and What Mari sees share one
+    surface: the canvas colour, one hairline on the left beside the stream, a
+    full opaque sheet on a phone. They share `MariSidePanelHeader` (title, a
+    one-line hint, Close; on a phone Back instead; a sub-view such as an
+    attached history keeps its own Back), the `.mari-side-search` field and
+    `.mari-edit` group rows. Opening a panel focuses its first visible control;
+    closing it returns focus to the tab that opened it, so Escape still steps
+    back one level at a time (open row, then panel, then Mari). A Chats row's
+    Rename and Delete sit in its ⋮ menu (header-menu popover, Escape closes
+    only the menu); Select keeps multi-select with Delete selected.
   - The composer puts the textarea on its own row and a toolbar under it:
     attach, the connection as a labelled `.mari-chrome-control--compact` menu
     (it replaced the bare link icon; a red dot when none is set), and the

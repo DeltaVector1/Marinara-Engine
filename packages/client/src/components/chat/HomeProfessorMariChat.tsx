@@ -154,7 +154,10 @@ import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
 import { ResolvedPromptLine, WorkspaceApprovalCard } from "./MariApprovalCards";
 import {
+  MARI_SIDE_ROW_CLASS,
   MariPanelSortSelect,
+  MariSidePanelHeader,
+  MariSideSearch,
   compareMariPanelItems,
   type MemoryDraftState,
   type SkillDraftState,
@@ -314,11 +317,10 @@ const PROFESSOR_MARI_PDF_ATTACHMENT_MIME_TYPE = "application/pdf";
  * keep in step.
  */
 const MARI_PANEL_SLOT_CLASS =
-  "absolute inset-0 z-10 h-full min-h-0 min-w-0 bg-[var(--card)] sm:relative sm:inset-auto sm:z-auto sm:h-full sm:w-[24rem] sm:min-w-[24rem] sm:shrink-0 sm:border-l sm:border-[var(--border)]/60 sm:bg-transparent";
+  "mari-workspace-canvas absolute inset-0 z-10 flex h-full min-h-0 min-w-0 flex-col sm:relative sm:inset-auto sm:z-auto sm:h-full sm:w-[24rem] sm:min-w-[24rem] sm:shrink-0 sm:border-l sm:border-[var(--mari-hairline)]";
 
 /** M7: the "What Mari sees" panel's group labels and rows, on the direction A `.mari-edit` group. */
 const SEES_KICKER_CLASS = "px-1 text-[0.625rem] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]";
-const SEES_ROW_CLASS = "mari-edit__row flex min-h-12 items-center gap-3 px-3 py-2";
 
 const PROFESSOR_MARI_PANE_TRANSITION = { duration: 0.24, ease: [0.16, 1, 0.3, 1] } as const;
 
@@ -2693,6 +2695,9 @@ export function HomeProfessorMariChat({
   const [workspaceReviewActionId, setWorkspaceReviewActionId] = useState<string | null>(null);
   const [workspaceDestination, setWorkspaceDestination] = useState<ProfessorMariWorkspaceDestination>("chat");
   const [panelMenuOpen, setPanelMenuOpen] = useState(false);
+  const [chatRowMenuId, setChatRowMenuId] = useState<string | null>(null);
+  const chatRowMenuRef = useRef<HTMLDivElement>(null);
+  const chatRowPopoverRef = useRef<HTMLDivElement>(null);
   const chatHistoryOpen = workspaceDestination === "chats";
   // R52: the slot is empty by default. A user who never opens a panel sees a
   // stream and a composer, and nothing else exists for them.
@@ -3770,6 +3775,20 @@ export function HomeProfessorMariChat({
     connectionMenuOpen,
   );
   const onHeaderMenuKeyDown = useInDialogFocusScope(headerPopoverRef, () => setPanelMenuOpen(false), panelMenuOpen);
+  // M6: a Chats row's Rename/Delete live in its own ⋮ menu, which works like the header menu.
+  const onChatRowMenuKeyDown = useInDialogFocusScope(
+    chatRowPopoverRef,
+    () => setChatRowMenuId(null),
+    chatRowMenuId !== null,
+  );
+  useEffect(() => {
+    if (!chatRowMenuId) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      if (event.target instanceof Node && !chatRowMenuRef.current?.contains(event.target)) setChatRowMenuId(null);
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => document.removeEventListener("mousedown", handlePointerDown);
+  }, [chatRowMenuId]);
 
   // #5725: the server-authoritative Permissions Mode. Display rides the status
   // payload; writes go through the dedicated validated PUT. The change applies
@@ -5444,7 +5463,7 @@ export function HomeProfessorMariChat({
     onRemove?: () => void;
     action?: ReactNode;
   }) => (
-    <div key={key} className={SEES_ROW_CLASS}>
+    <div key={key} className={MARI_SIDE_ROW_CLASS}>
       <Icon size="0.85rem" className="shrink-0 text-[var(--muted-foreground)]" aria-hidden="true" />
       <span className="mari-edit__text">
         <span className="mari-edit__title">{title}</span>
@@ -6406,17 +6425,13 @@ export function HomeProfessorMariChat({
                         transition={paneTransition}
                         className={MARI_PANEL_SLOT_CLASS}
                       >
-                        <section className="flex h-full min-h-0 min-w-0 flex-col rounded-none border-0 bg-[var(--background)] sm:rounded-xl sm:border sm:border-[var(--border)]/70 sm:bg-[var(--background)] sm:shadow-2xl">
-                          <div className="flex items-center justify-between gap-2 border-b border-[var(--border)]/60 px-3 py-2">
-                            <div className="min-w-0">
-                              <div className="truncate text-xs font-semibold text-[var(--foreground)]">
-                                {t("home.professorMari.chats")}
-                              </div>
-                              <div className="truncate text-[0.625rem] text-[var(--muted-foreground)]">
-                                {localizeUi("ui.chat.homeprofessormarichat.newChatSavesTheCurrentChatHere")}
-                              </div>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-1">
+                        <MariSidePanelHeader
+                          title={t("home.professorMari.chats")}
+                          hint={localizeUi("ui.chat.homeprofessormarichat.newChatSavesTheCurrentChatHere")}
+                          onClose={() => setWorkspaceDestination("chat")}
+                          closeLabel={t("home.professorMari.closeChats")}
+                          actions={
+                            <>
                               {/* #5752: the affordance people hunt for lives where they look for it. */}
                               <button
                                 type="button"
@@ -6425,10 +6440,10 @@ export function HomeProfessorMariChat({
                                   void runRestart();
                                 }}
                                 disabled={isBusy}
-                                className="mari-chrome-control mari-chrome-control--small h-8 px-2 text-[0.625rem]"
+                                className="mari-link"
                                 title={t("home.professorMari.newChat")}
                               >
-                                <Plus size="0.75rem" />
+                                <Plus size="0.8rem" aria-hidden="true" />
                                 {localizeUi("ui.chat.homeprofessormarichat.newChat")}
                               </button>
                               <button
@@ -6442,78 +6457,61 @@ export function HomeProfessorMariChat({
                                   }
                                 }}
                                 disabled={chatHistory.length === 0 || chatHistoryLoading}
-                                className="mari-chrome-control mari-chrome-control--small h-8 px-2 text-[0.625rem]"
+                                className="mari-link"
                                 aria-pressed={chatHistorySelectionMode}
                               >
-                                <Check size="0.75rem" />
                                 {localizeUi(
                                   chatHistorySelectionMode
                                     ? "ui.chat.homeprofessormarichat.cancelSelection"
                                     : "ui.chat.homeprofessormarichat.selectChats",
                                 )}
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => setWorkspaceDestination("chat")}
-                                className="mari-chrome-control mari-chrome-control--small h-8 w-8 p-0"
-                                aria-label={t("home.professorMari.closeChats")}
-                                title={t("home.professorMari.closeChats")}
-                              >
-                                <X size="0.85rem" />
-                              </button>
-                            </div>
+                            </>
+                          }
+                        />
+                        {chatHistory.length > 0 ? (
+                          <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
+                            <MariSideSearch
+                              value={chatHistoryQuery}
+                              onChange={setChatHistoryQuery}
+                              label={localizeUi("ui.chat.homeprofessormarichat.searchChats")}
+                            />
+                            <MariPanelSortSelect value={chatHistorySortMode} onChange={setChatHistorySortMode} />
                           </div>
-                          {chatHistory.length > 0 ? (
-                            <div className="flex shrink-0 items-center gap-1.5 border-b border-[var(--border)]/50 px-2.5 py-2">
-                              <div className="relative min-w-0 flex-1">
-                                <Search
-                                  size="0.8rem"
-                                  className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"
-                                />
-                                <input
-                                  value={chatHistoryQuery}
-                                  onChange={(event) => setChatHistoryQuery(event.target.value)}
-                                  placeholder={localizeUi("ui.chat.homeprofessormarichat.searchChats")}
-                                  aria-label={localizeUi("ui.chat.homeprofessormarichat.searchChats")}
-                                  className="h-8 w-full rounded-md border border-[var(--border)] bg-[var(--card)] pl-7 pr-2 text-xs text-[var(--foreground)] outline-none transition-colors focus:border-[var(--primary)]/55"
-                                />
-                              </div>
-                              <MariPanelSortSelect value={chatHistorySortMode} onChange={setChatHistorySortMode} />
+                        ) : null}
+                        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+                          {chatHistoryLoading ? (
+                            <div className="flex h-full items-center justify-center text-xs text-[var(--muted-foreground)]">
+                              <Loader2 size="0.875rem" className="mr-2 animate-spin" />
+                              {localizeUi("ui.chat.homeprofessormarichat.loadingChats")}
                             </div>
-                          ) : null}
-                          <div className="min-h-0 flex-1 overflow-y-auto p-2">
-                            {chatHistoryLoading ? (
-                              <div className="flex h-full items-center justify-center text-xs text-[var(--muted-foreground)]">
-                                <Loader2 size="0.875rem" className="mr-2 animate-spin" />
-                                {localizeUi("ui.chat.homeprofessormarichat.loadingChats")}
-                              </div>
-                            ) : chatHistory.length === 0 ? (
-                              <div className="rounded-lg border border-dashed border-[var(--border)] px-3 py-6 text-center text-xs text-[var(--muted-foreground)]">
-                                {t("home.professorMari.noPreviousChats")}
-                              </div>
-                            ) : displayedChatHistory.length === 0 ? (
-                              <div className="rounded-lg border border-dashed border-[var(--border)] px-3 py-6 text-center text-xs text-[var(--muted-foreground)]">
-                                {localizeUi("ui.chat.homeprofessormarichat.noMatchingChats")}
-                              </div>
-                            ) : (
-                              <div className="space-y-1.5">
-                                {displayedChatHistory.map((item) => {
+                          ) : (
+                            <div className="mari-edit mari-edit--menus">
+                              {chatHistory.length === 0 ? (
+                                <p className="px-3 py-3 text-xs text-[var(--muted-foreground)]">
+                                  {t("home.professorMari.noPreviousChats")}
+                                </p>
+                              ) : displayedChatHistory.length === 0 ? (
+                                <p className="px-3 py-3 text-xs text-[var(--muted-foreground)]">
+                                  {localizeUi("ui.chat.homeprofessormarichat.noMatchingChats")}
+                                </p>
+                              ) : (
+                                displayedChatHistory.map((item) => {
                                   const active = item.id === chatId || isProfessorMariChatActive(item);
                                   const renaming = renamingChatId === item.id;
                                   const selected = selectedChatHistoryIds.has(item.id);
+                                  const menuOpen = chatRowMenuId === item.id;
+                                  const name = item.name || localizeUi("ui.chat.homeprofessormarichat.unnamedChat");
                                   return (
                                     <div
                                       key={item.id}
                                       data-professor-mari-chat-id={item.id}
-                                      className={cn(
-                                        "rounded-lg border border-[var(--border)] bg-[var(--card)]/70 p-2",
-                                        active && "border-[var(--primary)]/50 bg-[var(--primary)]/5",
-                                        selected && "ring-1 ring-[var(--primary)]",
-                                      )}
+                                      aria-current={active ? "true" : undefined}
+                                      className={cn(MARI_SIDE_ROW_CLASS, "py-1 pr-1")}
                                     >
                                       {renaming ? (
                                         <form
-                                          className="flex items-center gap-1.5"
+                                          className="flex min-w-0 flex-1 items-center gap-1.5 py-1"
                                           onSubmit={(event) => {
                                             event.preventDefault();
                                             void handleRenameProfessorChat(item.id);
@@ -6523,13 +6521,10 @@ export function HomeProfessorMariChat({
                                             value={renameDraft}
                                             onChange={(event) => setRenameDraft(event.target.value)}
                                             aria-label={localizeUi("ui.chat.homeprofessormarichat.renameChatInput")}
-                                            className="min-w-0 flex-1 rounded-md bg-[var(--background)] px-2 py-1.5 text-xs outline-none ring-1 ring-[var(--border)] focus:ring-[var(--primary)]"
+                                            className="min-w-0 flex-1 rounded-md bg-[var(--background)] px-2 py-1.5 text-xs outline-none ring-1 ring-[var(--mari-hairline)] focus:ring-[var(--primary)]"
                                             autoFocus
                                           />
-                                          <button
-                                            type="submit"
-                                            className="mari-chrome-control mari-chrome-control--primary mari-chrome-control--small h-8 px-2 text-[0.625rem]"
-                                          >
+                                          <button type="submit" className="mari-btn mari-btn--solid">
                                             {localizeUi("ui.noodle.noodlehome.save")}
                                           </button>
                                           <button
@@ -6538,15 +6533,15 @@ export function HomeProfessorMariChat({
                                               setRenamingChatId(null);
                                               setRenameDraft("");
                                             }}
-                                            className="mari-chrome-control mari-chrome-control--small h-8 px-2 text-[0.625rem]"
+                                            className="mari-link"
                                           >
                                             {localizeUi("chat.delete.dialog.cancel")}
                                           </button>
                                         </form>
                                       ) : (
-                                        <div className="flex items-start gap-2">
+                                        <>
                                           {chatHistorySelectionMode && (
-                                            <span className="mt-1 shrink-0 text-[var(--primary)]" aria-hidden="true">
+                                            <span className="shrink-0 text-[var(--primary)]" aria-hidden="true">
                                               {selected ? <Check size="0.875rem" /> : <Square size="0.875rem" />}
                                             </span>
                                           )}
@@ -6559,66 +6554,91 @@ export function HomeProfessorMariChat({
                                             }
                                             disabled={isBusy}
                                             aria-pressed={chatHistorySelectionMode ? selected : undefined}
-                                            className="min-w-0 flex-1 text-left disabled:cursor-not-allowed disabled:opacity-60"
+                                            className="mari-edit__text min-h-10 text-left disabled:cursor-not-allowed disabled:opacity-60"
                                           >
-                                            <div className="truncate text-xs font-semibold text-[var(--foreground)]">
-                                              {item.name || localizeUi("ui.chat.homeprofessormarichat.unnamedChat")}
-                                            </div>
-                                            <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[0.625rem] text-[var(--muted-foreground)]">
-                                              <span>
-                                                {item.messageCount ?? 0} {localizeUi("ui.agents.agenteditor.messages")}
-                                              </span>
-                                              {active && <span>{localizeUi("ui.characters.lorebooktab.active")}</span>}
-                                            </div>
+                                            <span className="mari-edit__title">{name}</span>
+                                            <span className="mari-edit__meta">
+                                              {item.messageCount ?? 0} {localizeUi("ui.agents.agenteditor.messages")}
+                                              {active ? (
+                                                <span className="ml-2">
+                                                  {localizeUi("ui.characters.lorebooktab.active")}
+                                                </span>
+                                              ) : null}
+                                            </span>
                                           </button>
                                           {!chatHistorySelectionMode && (
-                                            <>
+                                            <div ref={menuOpen ? chatRowMenuRef : undefined} className="relative">
                                               <button
                                                 type="button"
-                                                onClick={() => {
-                                                  setRenamingChatId(item.id);
-                                                  setRenameDraft(item.name || "");
-                                                }}
-                                                className="mari-chrome-control mari-chrome-control--small h-8 px-2 text-[0.625rem]"
+                                                onClick={() => setChatRowMenuId(menuOpen ? null : item.id)}
+                                                className="mari-omnibar-header-menu__trigger"
+                                                aria-expanded={menuOpen}
+                                                aria-label={localizeUi("ui.chat.homeprofessormarichat.chatRowActions", {
+                                                  name,
+                                                })}
                                               >
-                                                {localizeUi("ui.chat.homeprofessormarichat.renameChat")}
+                                                <EllipsisVertical size="0.9rem" aria-hidden="true" />
                                               </button>
-                                              <button
-                                                type="button"
-                                                onClick={() => void handleDeleteProfessorChat(item.id)}
-                                                className="mari-chrome-control mari-chrome-control--danger mari-chrome-control--small h-8 px-2 text-[0.625rem]"
-                                              >
-                                                {localizeUi("lorebook.editor.batch.delete")}
-                                              </button>
-                                            </>
+                                              {menuOpen ? (
+                                                <div
+                                                  ref={chatRowPopoverRef}
+                                                  className="mari-omnibar-header-menu__popover"
+                                                  onKeyDown={onChatRowMenuKeyDown}
+                                                >
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setChatRowMenuId(null);
+                                                      setRenamingChatId(item.id);
+                                                      setRenameDraft(item.name || "");
+                                                    }}
+                                                  >
+                                                    <Pencil size="0.875rem" aria-hidden="true" />
+                                                    <span>
+                                                      {localizeUi("ui.chat.homeprofessormarichat.renameChat")}
+                                                    </span>
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setChatRowMenuId(null);
+                                                      void handleDeleteProfessorChat(item.id);
+                                                    }}
+                                                  >
+                                                    <Trash2 size="0.875rem" aria-hidden="true" />
+                                                    <span>{localizeUi("lorebook.editor.batch.delete")}</span>
+                                                  </button>
+                                                </div>
+                                              ) : null}
+                                            </div>
                                           )}
-                                        </div>
+                                        </>
                                       )}
                                     </div>
                                   );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                          {chatHistorySelectionMode && (
-                            <div className="flex items-center gap-2 border-t border-[var(--border)]/60 px-3 py-2">
-                              <span className="min-w-0 flex-1 text-xs text-[var(--muted-foreground)]">
-                                {localizeUi("ui.chat.homeprofessormarichat.selectedChats", {
-                                  count: selectedChatHistoryIds.size,
-                                })}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => void handleBulkDeleteProfessorChats()}
-                                disabled={selectedChatHistoryIds.size === 0}
-                                className="mari-chrome-control mari-chrome-control--primary mari-chrome-control--small h-8 px-3 text-[0.625rem]"
-                              >
-                                <Trash2 size="0.75rem" />
-                                {localizeUi("ui.chat.homeprofessormarichat.deleteSelectedChats")}
-                              </button>
+                                })
+                              )}
                             </div>
                           )}
-                        </section>
+                        </div>
+                        {chatHistorySelectionMode && (
+                          <div className="flex items-center gap-2 border-t border-[var(--mari-hairline)] px-3 py-2">
+                            <span className="min-w-0 flex-1 text-xs text-[var(--muted-foreground)]">
+                              {localizeUi("ui.chat.homeprofessormarichat.selectedChats", {
+                                count: selectedChatHistoryIds.size,
+                              })}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => void handleBulkDeleteProfessorChats()}
+                              disabled={selectedChatHistoryIds.size === 0}
+                              className="mari-btn mari-btn--danger"
+                            >
+                              <Trash2 size="0.75rem" aria-hidden="true" />
+                              {localizeUi("ui.chat.homeprofessormarichat.deleteSelectedChats")}
+                            </button>
+                          </div>
+                        )}
                       </motion.div>
                     ) : memoriesMenuOpen ? (
                       <motion.div
@@ -6649,7 +6669,6 @@ export function HomeProfessorMariChat({
                             onToggleEnabled={handleToggleMemoryEnabled}
                             onTogglePersistent={handleToggleMemoryPersistent}
                             onQueryChange={setMemoriesQuery}
-                            className="h-full rounded-none border-0 bg-[var(--background)] sm:rounded-xl sm:border sm:bg-[var(--background)] sm:shadow-2xl"
                           />
                         </Suspense>
                       </motion.div>
@@ -6682,7 +6701,6 @@ export function HomeProfessorMariChat({
                             onDelete={(id) => void handleDeleteSkill(id)}
                             onToggle={(skill) => void handleToggleSkill(skill)}
                             onQueryChange={setSkillsQuery}
-                            className="h-full rounded-none border-0 bg-[var(--background)] sm:rounded-xl sm:border sm:bg-[var(--background)] sm:shadow-2xl"
                           />
                         </Suspense>
                       </motion.div>
@@ -6693,33 +6711,23 @@ export function HomeProfessorMariChat({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         transition={paneTransition}
-                        className={cn(MARI_PANEL_SLOT_CLASS, "mari-workspace-canvas flex flex-col")}
+                        className={MARI_PANEL_SLOT_CLASS}
                       >
-                        <div className="flex items-center gap-2 border-b border-[var(--border)]/60 px-3 py-2.5">
-                          {selectedContextId ? (
-                            <button
-                              type="button"
-                              onClick={() => setSelectedContextId(null)}
-                              className="mari-chrome-control mari-chrome-control--compact"
-                              aria-label={localizeUi("ui.chat.homeprofessormarichat.whatMariSeesBack")}
-                            >
-                              <ChevronRight size="0.8rem" className="rotate-180" />
-                            </button>
-                          ) : (
-                            <Eye size="0.9rem" className="text-[var(--muted-foreground)]" aria-hidden="true" />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <h3 className="truncate text-xs font-semibold text-[var(--foreground)]">
-                              {selectedContextId
-                                ? attachedContext?.find((item) => item.id === selectedContextId)?.label
-                                : localizeUi("ui.chat.homeprofessormarichat.whatMariSees")}
-                            </h3>
-                            <p className="truncate text-[0.625rem] text-[var(--muted-foreground)]">
-                              {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesHint")}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="min-h-0 flex-1 overflow-y-auto p-3">
+                        <MariSidePanelHeader
+                          title={
+                            (selectedContextId
+                              ? attachedContext?.find((item) => item.id === selectedContextId)?.label
+                              : undefined) ?? localizeUi("ui.chat.homeprofessormarichat.whatMariSees")
+                          }
+                          hint={localizeUi("ui.chat.homeprofessormarichat.whatMariSeesHint")}
+                          onClose={() => setWorkspaceDestination("chat")}
+                          closeLabel={localizeUi("ui.chat.homeprofessormarichat.whatMariSeesClose")}
+                          onBack={selectedContextId ? () => setSelectedContextId(null) : undefined}
+                          backLabel={
+                            selectedContextId ? localizeUi("ui.chat.homeprofessormarichat.whatMariSeesBack") : undefined
+                          }
+                        />
+                        <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
                           {selectedContextId ? (
                             (() => {
                               const selected = attachedContext?.find((item) => item.id === selectedContextId);
@@ -6803,7 +6811,10 @@ export function HomeProfessorMariChat({
                                       key={item.id}
                                       type="button"
                                       onClick={() => setSelectedContextId(item.id)}
-                                      className={cn(SEES_ROW_CLASS, "w-full text-left hover:bg-[var(--mari-hover)]")}
+                                      className={cn(
+                                        MARI_SIDE_ROW_CLASS,
+                                        "w-full text-left hover:bg-[var(--mari-hover)]",
+                                      )}
                                     >
                                       <FileText size="0.85rem" className="shrink-0 text-[var(--muted-foreground)]" />
                                       <span className="mari-edit__text">
@@ -6821,7 +6832,7 @@ export function HomeProfessorMariChat({
                                     type="button"
                                     onClick={() => void handleOpenHistoryPicker()}
                                     className={cn(
-                                      SEES_ROW_CLASS,
+                                      MARI_SIDE_ROW_CLASS,
                                       "min-h-11 w-full text-left text-xs font-semibold text-[var(--muted-foreground)] hover:bg-[var(--mari-hover)] hover:text-[var(--foreground)]",
                                     )}
                                   >
