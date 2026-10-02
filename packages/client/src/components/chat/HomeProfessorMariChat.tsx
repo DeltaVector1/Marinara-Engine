@@ -2789,7 +2789,7 @@ export function ProfessorMariPixelScene({ active }: { active: boolean }) {
     <div className="mari-professor-pixel-scene" data-state={active ? "active" : "idle"} aria-hidden="true">
       <div data-part="glow" />
       <div data-part="desk" />
-      <img src="/sprites/mari/chibi-professor-mari.png" alt="" data-part="sprite" draggable={false} />
+      <img src="/sprites/mari/chibi-professor-mari.webp" alt="" data-part="sprite" draggable={false} />
       <div data-part="laptop">
         <div data-part="screen">
           <span />

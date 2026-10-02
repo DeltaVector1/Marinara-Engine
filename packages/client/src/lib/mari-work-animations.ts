@@ -41,19 +41,19 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "Mari's familiar pixel look, with a little story for every state. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: generated("professor-mari-assistant-idle.png"),
-      blink: generated("professor-mari-assistant-blink-v3.png"),
-      arrival: generated("professor-mari-assistant-sheet.png"),
-      map: generated("professor-mari-assistant-map.png"),
-      shrug: generated("professor-mari-assistant-shrug.png"),
-      drag: generated("professor-mari-assistant-drag-sheet-v3.png"),
+      idle: generated("professor-mari-assistant-idle.webp"),
+      blink: generated("professor-mari-assistant-blink-v3.webp"),
+      arrival: generated("professor-mari-assistant-sheet.webp"),
+      map: generated("professor-mari-assistant-map.webp"),
+      shrug: generated("professor-mari-assistant-shrug.webp"),
+      drag: generated("professor-mari-assistant-drag-sheet-v3.webp"),
     },
     stories: Object.fromEntries(
       MARI_STORY_STATES.map((id) => [
         id,
         {
           id,
-          src: `/sprites/mari/basic/${id}.png`,
+          src: `/sprites/mari/basic/${id}.webp`,
         },
       ]),
     ) as Record<MariStoryState, MariWorkAnimation>,
@@ -64,15 +64,15 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "A cyan heart pin, a Dottore plush and twelve little fangirl stories. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: "/sprites/mari/dottore/portrait-idle.png",
-      blink: "/sprites/mari/dottore/portrait-blink.png",
-      arrival: "/sprites/mari/dottore/idle.png",
-      map: "/sprites/mari/dottore/portrait-map.png",
-      shrug: "/sprites/mari/dottore/portrait-shrug.png",
-      drag: "/sprites/mari/dottore/idle.png",
+      idle: "/sprites/mari/dottore/portrait-idle.webp",
+      blink: "/sprites/mari/dottore/portrait-blink.webp",
+      arrival: "/sprites/mari/dottore/idle.webp",
+      map: "/sprites/mari/dottore/portrait-map.webp",
+      shrug: "/sprites/mari/dottore/portrait-shrug.webp",
+      drag: "/sprites/mari/dottore/idle.webp",
     },
     stories: Object.fromEntries(
-      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/dottore/${id}.png` }]),
+      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/dottore/${id}.webp` }]),
     ) as Record<MariStoryState, MariWorkAnimation>,
   },
   {
@@ -81,15 +81,15 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "Shiny gold, a larger-than-life Chad expression and twelve golden stories. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: "/sprites/mari/golden/portrait-idle.png",
-      blink: "/sprites/mari/golden/portrait-blink.png",
-      arrival: "/sprites/mari/golden/idle.png",
-      map: "/sprites/mari/golden/portrait-map.png",
-      shrug: "/sprites/mari/golden/portrait-shrug.png",
-      drag: "/sprites/mari/golden/idle.png",
+      idle: "/sprites/mari/golden/portrait-idle.webp",
+      blink: "/sprites/mari/golden/portrait-blink.webp",
+      arrival: "/sprites/mari/golden/idle.webp",
+      map: "/sprites/mari/golden/portrait-map.webp",
+      shrug: "/sprites/mari/golden/portrait-shrug.webp",
+      drag: "/sprites/mari/golden/idle.webp",
     },
     stories: Object.fromEntries(
-      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/golden/${id}.png` }]),
+      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/golden/${id}.webp` }]),
     ) as Record<MariStoryState, MariWorkAnimation>,
   },
   {
@@ -98,15 +98,15 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "Safari gear, jungle discoveries and twelve little expeditions. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: "/sprites/mari/safari/portrait-idle.png",
-      blink: "/sprites/mari/safari/portrait-blink.png",
-      arrival: "/sprites/mari/safari/idle.png",
-      map: "/sprites/mari/safari/portrait-map.png",
-      shrug: "/sprites/mari/safari/portrait-shrug.png",
-      drag: "/sprites/mari/safari/idle.png",
+      idle: "/sprites/mari/safari/portrait-idle.webp",
+      blink: "/sprites/mari/safari/portrait-blink.webp",
+      arrival: "/sprites/mari/safari/idle.webp",
+      map: "/sprites/mari/safari/portrait-map.webp",
+      shrug: "/sprites/mari/safari/portrait-shrug.webp",
+      drag: "/sprites/mari/safari/idle.webp",
     },
     stories: Object.fromEntries(
-      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/safari/${id}.png` }]),
+      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/safari/${id}.webp` }]),
     ) as Record<MariStoryState, MariWorkAnimation>,
   },
 ];

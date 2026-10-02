@@ -23,12 +23,12 @@ import {
 } from "../../lib/professor-mari-navigation";
 import { cn } from "../../lib/utils";
 
-const MARI_ASSISTANT_ARRIVAL_SHEET = "/sprites/mari/generated/professor-mari-assistant-sheet.png";
-const MARI_ASSISTANT_IDLE = "/sprites/mari/generated/professor-mari-assistant-idle.png";
-const MARI_ASSISTANT_BLINK = "/sprites/mari/generated/professor-mari-assistant-blink-v3.png";
-const MARI_ASSISTANT_MAP = "/sprites/mari/generated/professor-mari-assistant-map.png";
-const MARI_ASSISTANT_SHRUG = "/sprites/mari/generated/professor-mari-assistant-shrug.png";
-const MARI_ASSISTANT_DRAG_SHEET = "/sprites/mari/generated/professor-mari-assistant-drag-sheet-v3.png";
+const MARI_ASSISTANT_ARRIVAL_SHEET = "/sprites/mari/generated/professor-mari-assistant-sheet.webp";
+const MARI_ASSISTANT_IDLE = "/sprites/mari/generated/professor-mari-assistant-idle.webp";
+const MARI_ASSISTANT_BLINK = "/sprites/mari/generated/professor-mari-assistant-blink-v3.webp";
+const MARI_ASSISTANT_MAP = "/sprites/mari/generated/professor-mari-assistant-map.webp";
+const MARI_ASSISTANT_SHRUG = "/sprites/mari/generated/professor-mari-assistant-shrug.webp";
+const MARI_ASSISTANT_DRAG_SHEET = "/sprites/mari/generated/professor-mari-assistant-drag-sheet-v3.webp";
 const MARINARA_EFFECTS_PAUSED_EVENT = "marinara:effects-paused";
 const PROFESSOR_ASSISTANT_EDGE_MARGIN = 16;
 const PROFESSOR_ASSISTANT_HANDLE_CLEARANCE = 12;

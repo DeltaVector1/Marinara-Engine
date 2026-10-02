@@ -866,6 +866,19 @@ does not keep its own copy).
   (navigation redesign, new surface) as open items for the maintainer rather than building it. Proof:
   the reviewer's findings list with screenshots in `.tmp/omnibar-ux/round4/slice-41/`; the worker's fix
   commit plus `heavy pnpm check`.
+- **M15 (slice 38a), Mari images as small WebP (new maintainer request 2026-10-02, performance).** Root
+  cause: `public/sprites/mari/` carried ~49 MB, nearly all of it full-resolution painted PNGs sized for
+  print, not screen, plus a ~16 MB `generated/` folder of narrative sprite sheets from a cut feature that
+  nothing ever loaded. Work: delete the ~16 MB of unreferenced `generated/` files (verified against both
+  literal and template-string path construction, then against a built app's network tab) plus three more
+  orphaned files found the same way; convert every remaining raster to WebP with `sharp` via a disposable
+  script — the four appearance packs (pixel art) losslessly and at native resolution, everything else
+  (root Home poses, profile, chibi, the memory wheel, the 6 used `generated/` files) resized to ~2x their
+  actual rendered CSS size at quality 85. The painted onboarding/profile/FAQ poses get only this quick
+  pass, nothing more: slice 38c replaces them with pixel art and deletes them outright. Proof: a build,
+  an HTTP sweep of every referenced sprite URL plus the removed ones (200s and 404s as expected), and
+  screenshots at 390/1440 in `.tmp/omnibar-ux/round4/slice-38a/` showing the pixel art stays unblurred and
+  the resized poses still read fine; `heavy pnpm check`.
 
 Belongs in Pasta-Devs/Marinara-Agents, not here: agent-specific arrival cards that need package knowledge
 (e.g. per-setting help for an agent); the Engine only shows names and states it already has.

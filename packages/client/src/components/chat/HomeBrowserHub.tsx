@@ -1768,7 +1768,7 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                     : "border-transparent text-[var(--muted-foreground)] hover:bg-[var(--accent)]",
                 )}
               >
-                <img src="/sprites/mari/Mari_profile.png" alt="" className="h-4 w-4 rounded-sm object-cover" />
+                <img src="/sprites/mari/Mari_profile.webp" alt="" className="h-4 w-4 rounded-sm object-cover" />
                 <span className={cn("min-w-0 truncate", activeTab === "professor" ? "block" : "hidden sm:block")}>
                   {t("home.browser.professorTab")}
                 </span>
