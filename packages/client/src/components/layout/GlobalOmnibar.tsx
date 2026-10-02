@@ -1951,7 +1951,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         return;
       case "open-lorebook-entry":
         if (!confirmLeaveEditor()) return;
-        ui().openLorebookDetail(action.lorebookId, { initialTab: "entries", initialEntryId: action.entryId });
+        ui().openLorebookDetail(action.lorebookId, { initialTab: "entries", entryId: action.entryId });
         recordUse(result.id);
         onClose();
         return;

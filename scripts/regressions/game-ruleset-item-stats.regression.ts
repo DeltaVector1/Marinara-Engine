@@ -127,6 +127,10 @@ try {
           ...catalog,
           entries: catalog.entries?.filter((entry) => entry.id !== "grave-wight"),
         }));
+        // And the loot its creatures carry, which names a table of the items block, and the coin a
+        // layer takes out of it.
+        for (const catalog of doc.catalogs) for (const entry of catalog.entries ?? []) delete entry.creature?.loot;
+        for (const layer of doc.layers ?? []) delete layer.currencies;
       }),
       "Gravewatch without items",
     );
@@ -275,8 +279,10 @@ try {
           for (const entry of catalog.entries ?? []) {
             delete entry.item?.worn;
             delete entry.item?.carried;
-            // And the 1.55 weapons.
+            // And the 1.55 weapons, and the 1.59 uses.
             delete entry.item?.attack;
+            delete entry.item?.use;
+            delete entry.item?.charges;
           }
         }
         edit(doc);

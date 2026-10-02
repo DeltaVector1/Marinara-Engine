@@ -47,6 +47,9 @@ export interface GameInventoryStack {
    *  emptied one into another and splitting it off again reloads it; a count per weapon in the stack
    *  is the upgrade if that ever matters. */
   loaded?: number;
+  /** The charges an item holds, as a ruleset fight left them. Kept on a stack of one item only, as a
+   *  loaded count is, and an item without one holds all it can. */
+  charges?: number;
 }
 
 /** Whose bag: `holder` as a stack has it, so `{}` is the player's own. */
@@ -64,10 +67,28 @@ export const GAME_INVENTORY_NAME_MAX_LENGTH = 120;
  *  through every sum a screen or a prompt makes of it. */
 export const GAME_INVENTORY_MAX_QUANTITY = 999_999;
 
-/** What a stack's `item` looks like: a catalog id and one of its entries' ids, or `invented:` and the
- *  id of an item the Game Master invented. No catalog id has a colon, so neither can share an id with
- *  the other, nor with a plain item's `plain:` one. */
-export const GAME_INVENTORY_ITEM_REF_PATTERN = /^(?:[a-z][a-z0-9_]{0,39}\/|invented:)[a-z0-9]+(?:-[a-z0-9]+)*$/;
+/** What a stack's `item` looks like: a catalog id and one of its entries' ids, `invented:` and the id
+ *  of an item the Game Master invented, or `coin:` and the id of one of the ruleset's coins. No catalog
+ *  id has a colon, so none can share an id with another, nor with a plain item's `plain:` one. */
+export const GAME_INVENTORY_ITEM_REF_PATTERN =
+  /^(?:(?:[a-z][a-z0-9_]{0,39}\/|invented:)[a-z0-9]+(?:-[a-z0-9]+)*|coin:[a-z][a-z0-9_]{0,39})$/;
+
+/** A stack of one of the ruleset's coins is held as this `item`: coins are stacks, so a purse is the
+ *  coins in one bag. */
+export const GAME_INVENTORY_COIN_PREFIX = "coin:";
+
+/** The `item` of a coin, by its unit's id. */
+export function gameInventoryCoinRef(unit: string): string {
+  return `${GAME_INVENTORY_COIN_PREFIX}${unit}`;
+}
+
+/** One of a ruleset's coins as the inventory pays with it: its `item`, its name, and what it is worth
+ *  in its family's smallest coin. */
+export interface GameInventoryCoin {
+  item: string;
+  name: string;
+  value: number;
+}
 
 /** The longest `item` kept: the longest catalog id, a slash and the longest entry id. */
 const GAME_INVENTORY_ITEM_REF_MAX_LENGTH = 121;
@@ -86,6 +107,11 @@ export interface GameInventoryRulesetItem {
   slots?: Readonly<Record<string, number>>;
   /** It has to be bound to work; `cursed` keeps it bound. Without this, it cannot be bound. */
   binds?: { cursed?: boolean };
+  /** Bought and never carried (#6917): nothing adds it to a bag. */
+  service?: true;
+  /** A use spends `cost` of the `max` charges it holds (a stack without a count is full), and the last
+   *  one spent rolls a d`die` that breaks it at `atMost` or under. */
+  charges?: { cost: number; max: number; breaksOn?: { die: number; atMost: number } };
 }
 
 /** An item the Game Master proposes, as its inventory tag gives it: every part optional, each in the
@@ -148,6 +174,9 @@ export interface GameInventoryItemRules {
     proposal: GameInventoryItemProposal,
     stacks: readonly GameInventoryStack[],
   ): { item: string; notes: string[] } | { refused: "no-invention" | "unreadable" | "too-many" };
+  /** The coin a name is (its id or label, one or many of it, any case), with every coin of its family,
+   *  largest first. Absent where the ruleset has no currencies. */
+  coinNamed?(name: string): { coin: GameInventoryCoin; family: readonly GameInventoryCoin[] } | undefined;
 }
 
 /** The most new stacks one change may start, so a small stack size can never flood a bag. */
@@ -296,8 +325,9 @@ function makeStack(stack: {
   equipped?: boolean;
   bound?: boolean;
   loaded?: number;
+  charges?: number;
 }): GameInventoryStack {
-  const { id, name, nickname, item, quantity, holder, equipped, bound, loaded } = stack;
+  const { id, name, nickname, item, quantity, holder, equipped, bound, loaded, charges } = stack;
   const named = nickname && gameInventoryNameKey(nickname) !== gameInventoryNameKey(name) ? { nickname } : {};
   return {
     id,
@@ -309,6 +339,7 @@ function makeStack(stack: {
     ...(equipped ? { equipped: true as const } : {}),
     ...(bound ? { bound: true as const } : {}),
     ...(loaded !== undefined && quantity === 1 ? { loaded } : {}),
+    ...(charges !== undefined && quantity === 1 ? { charges } : {}),
   };
 }
 
@@ -391,6 +422,10 @@ export function normalizeGameInventoryStacks(raw: unknown): GameInventoryStack[]
         loaded:
           typeof source.loaded === "number" && Number.isInteger(source.loaded) && source.loaded >= 0
             ? Math.min(GAME_INVENTORY_MAX_QUANTITY, source.loaded)
+            : undefined,
+        charges:
+          typeof source.charges === "number" && Number.isInteger(source.charges) && source.charges >= 0
+            ? Math.min(GAME_INVENTORY_MAX_QUANTITY, source.charges)
             : undefined,
         quantity,
         stored,
@@ -481,12 +516,18 @@ export interface GameInventoryTotal {
   /** How many of it are worn, and how many bound, when any are. */
   equipped?: number;
   bound?: number;
+  /** What each stack of an item that holds charges has left, for whoever reads them. */
+  charges?: Array<{ now: number; max: number }>;
 }
 
 /** One line per item: every stack of an item added together, in the order the items first appear,
  *  shown by the first stack's name. What the Game Master and a fight read, since a split is the
  *  player's own arrangement. */
-export function gameInventoryTotals(stacks: readonly GameInventoryStack[]): GameInventoryTotal[] {
+export function gameInventoryTotals(
+  stacks: readonly GameInventoryStack[],
+  /** What a stack's item holds of its charges, for an item that holds any. */
+  chargesOf?: (stack: GameInventoryStack) => { now: number; max: number } | undefined,
+): GameInventoryTotal[] {
   const totals = new Map<string, GameInventoryTotal>();
   for (const stack of stacks) {
     const item = gameInventoryItemId(stack);
@@ -503,6 +544,8 @@ export function gameInventoryTotals(stacks: readonly GameInventoryStack[]): Game
     line.quantity += stack.quantity;
     if (stack.equipped) line.equipped = (line.equipped ?? 0) + stack.quantity;
     if (stack.bound) line.bound = (line.bound ?? 0) + stack.quantity;
+    const charges = chargesOf?.(stack);
+    if (charges) line.charges = [...(line.charges ?? []), charges];
   }
   return [...totals.values()];
 }
@@ -580,6 +623,7 @@ export function gameInventoryFightEffects<T extends { name: string }>(
  *  that hold something are listed. */
 export function gameInventoryBags(
   stacks: readonly GameInventoryStack[],
+  chargesOf?: (stack: GameInventoryStack) => { now: number; max: number } | undefined,
 ): Array<{ holder?: string; items: GameInventoryTotal[] }> {
   const bags = new Map<string, { holder?: string; stacks: GameInventoryStack[] }>([["", { stacks: [] }]]);
   for (const stack of stacks) {
@@ -590,7 +634,10 @@ export function gameInventoryBags(
   }
   return [...bags.values()]
     .filter((bag) => bag.stacks.length > 0)
-    .map((bag) => ({ ...(bag.holder ? { holder: bag.holder } : {}), items: gameInventoryTotals(bag.stacks) }));
+    .map((bag) => ({
+      ...(bag.holder ? { holder: bag.holder } : {}),
+      items: gameInventoryTotals(bag.stacks, chargesOf),
+    }));
 }
 
 /** How many of an item there are, across all its stacks, or in one bag's. */
@@ -761,6 +808,8 @@ export function takeFromGameInventory(
   from?: GameInventoryBagRef,
   /** With the player's rules, a bound cursed item is never taken: the curse keeps it. */
   rules?: GameInventoryItemRules,
+  /** Only from stacks the item may be used from, as a fight uses it (`gameInventoryUsableStack`). */
+  worn = false,
 ): { stacks: GameInventoryStack[]; taken: number } {
   // Not held to one stack's bound: the stacks of an item together may hold more than one stack can.
   let left = Number.isFinite(count) ? Math.floor(count) : 0;
@@ -769,7 +818,7 @@ export function takeFromGameInventory(
   let taken = 0;
   for (const { stack, index } of stacksNamed(stacks, name, from)) {
     if (left < 1) break;
-    if (keptByCurse(stack, rules)) continue;
+    if (keptByCurse(stack, rules) || (worn && !gameInventoryUsableStack(stack, rules))) continue;
     const take = Math.min(left, stack.quantity);
     left -= take;
     taken += take;
@@ -1127,6 +1176,34 @@ export function gameInventoryOverloads(
   return pastLimit(stacks, stack.holder, weightOf(stack, rules) * amount, rules);
 }
 
+/** What a ruleset's item asks of a stack before it may be used: worn where it takes slots, bound
+ *  where it binds. The one rule the Use button, the fight menu and a fight's spends all read. */
+export function gameInventoryWearNeeds(item: { slots?: Readonly<Record<string, number>>; binds?: unknown }): {
+  equipped?: true;
+  bound?: true;
+} {
+  const takesSlots = Object.values(item.slots ?? {}).some((count) => count > 0);
+  return { ...(takesSlots ? { equipped: true as const } : {}), ...(item.binds ? { bound: true as const } : {}) };
+}
+
+/** Whether a stack is worn and bound as `needs` asks. */
+export function gameInventoryWearMet(
+  stack: Pick<GameInventoryStack, "equipped" | "bound">,
+  needs: { equipped?: boolean; bound?: boolean } | undefined,
+): boolean {
+  return (!needs?.equipped || stack.equipped === true) && (!needs?.bound || stack.bound === true);
+}
+
+/** Whether a stack may be used as its item asks (`gameInventoryWearNeeds`). A plain item, or one the
+ *  rules do not know, always may. */
+export function gameInventoryUsableStack(
+  stack: GameInventoryStack,
+  rules: GameInventoryItemRules | undefined,
+): boolean {
+  const read = stack.item ? rules?.itemOf(stack.item) : undefined;
+  return !read || gameInventoryWearMet(stack, gameInventoryWearNeeds(read));
+}
+
 /** Whether the player's own change would part them from this stack: a bound cursed item. */
 export function gameInventoryKeptByCurse(
   stack: GameInventoryStack,
@@ -1248,8 +1325,8 @@ export function mergeGameInventoryStacks(
   if (moved < 1 || gameInventoryMergeOverloads(stacks, from, into, rules)) return stacks;
   return stacks.flatMap((stack) => {
     if (stack.id === intoId) {
-      // Several weapons now, and a loaded count is one weapon's: each of them reads as loaded full.
-      const { loaded: _loaded, ...rest } = stack;
+      // Several now, and a loaded count or charges are one item's: each of them reads as full.
+      const { loaded: _loaded, charges: _charges, ...rest } = stack;
       return [{ ...rest, quantity: stack.quantity + moved }];
     }
     if (stack.id !== fromId) return [stack];

@@ -230,6 +230,10 @@ try {
     delete byDoc.layers;
     byDoc.id = "gravewatch-by-rest";
     byDoc.rests = [{ id: "breather", label: "Catch a breath", restore: [{ track: "harm", by: { const: -2 } }] }];
+    // The dawn bell's charges come back on the vigil, which this variant no longer has.
+    for (const catalog of byDoc.catalogs) {
+      for (const entry of catalog.entries ?? []) delete entry.item?.charges?.recharge;
+    }
     const parsedBy = parseRulesetDefinition(byDoc);
     assert.ok(parsedBy.ok, `the variant must validate: ${JSON.stringify(parsedBy)}`);
     const byDefinition = parsedBy.definition;
@@ -344,6 +348,8 @@ try {
     // The example's charm changes a POOL check, which a summed ruleset cannot honour and is
     // refused for elsewhere. This case is about the penalty, so it reads the file without one.
     delete summed.catalogs;
+    // And the loot tables, whose items were in those catalogs.
+    delete summed.items.lootTables;
     delete summed.sheet.lists;
     delete summed.gm.sheetSummary.lists;
     // And with the lists goes the one that adds levels to the track, and a summed roll has no per-die

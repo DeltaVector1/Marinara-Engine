@@ -634,7 +634,7 @@ The limits are 12 catalogs per ruleset, 2000 entries per catalog either way, and
 
 ## Items: what a party carries
 
-Armor, weapons, potions, gear, ammunition and money are items. An optional `items` block declares the words every item of your ruleset is written in, and a catalog with `holds: "items"` lists the items themselves. Both need Capability API 1.49; the block's `rarityCaps` and `propose`, which govern the items the Game Master invents, need 1.51, a value that reads the items a character holds (`itemStat`) needs 1.52, what an item does to checks while worn or carried, with the block's `bonus` caps, needs 1.53, what an item asks of its wearer and the abilities it changes need 1.54, a weapon's `attack` needs 1.55, what an item does in a fight needs 1.56, and what a weapon shoots and holds loaded needs 1.57.
+Armor, weapons, potions, gear, ammunition and money are items. An optional `items` block declares the words every item of your ruleset is written in, and a catalog with `holds: "items"` lists the items themselves. Both need Capability API 1.49; the block's `rarityCaps` and `propose`, which govern the items the Game Master invents, need 1.51, a value that reads the items a character holds (`itemStat`) needs 1.52, what an item does to checks while worn or carried, with the block's `bonus` caps, needs 1.53, what an item asks of its wearer and the abilities it changes need 1.54, a weapon's `attack` needs 1.55, what an item does in a fight needs 1.56, what a weapon shoots and holds loaded needs 1.57, a weapon's modes, off-hand attack, floor and conditions on a hit need 1.58, what using an item does in a fight, with the charges it holds, needs 1.59, a use that restores a pool needs 1.60, charges regained on a rest or an item that breaks when emptied need 1.61, a use that asks a check first (`gate`) needs 1.62, loot tables and a creature's loot need 1.63, a loot line that drops coins or a layer that takes coins out needs 1.64, and a market, an item's `sold` place and a `service` need 1.65.
 
 ### The items block
 
@@ -709,10 +709,12 @@ The block goes in `items` at the top level of the file. This is Ember Roads', a 
   - Two families never change into each other. A second nation's coin, or a setting's favours, is a family of its own.
   - A coin's id is unique across every family, because an item's cost names the coin alone.
   - `perWeight` (optional, and only beside `carry`) is how many of the family's coins weigh one unit of the carry stat.
+  - Coins are the party's money, carried in the bags like any item (see Money, below).
 - `rarityCaps`: optional, one per rarity at most. The most an item the Game Master invents may give at that rarity: the largest value of each number stat named in `stats`, inside that stat's own range, and a whole number for a stat that takes whole numbers, and `bonus` (Capability API 1.53), the largest flat bonus one of its worn or carried modifiers may add. At a rarity with a `bonus`, a bonus in dice is left out, since dice cannot be held to a number; a penalty is never capped. An invented item is held to it; the items your catalogs list are yours and never capped.
 - `propose`: `true` by default. `false` forbids the Game Master to invent items of your ruleset.
 - `native`: `true` by default. `false` turns off Game Mode's own untyped items in your ruleset's games (see **What reads items**). The Game Master can still invent items, written in your ruleset's words.
 - `freeform`: what an item the player types in becomes. `"plain"` (the default) keeps it as an item with no rules, as today. `"refuse"` allows only items of your ruleset.
+- `lootTables` (Capability API 1.63): optional, up to 24. What a won fight's creatures and the Game Master's `[loot:]` drop (see Loot, below).
 
 ### An item
 
@@ -744,12 +746,15 @@ Each entry carries an `item` instead of `rows` or a `creature`:
 - `category` is required. `rarity` and `tags` are optional, and all three name the block's own ids. An item can only have a rarity when the block declares some.
 - `stats`: values for the block's stats. Each one is a value its stat could hold.
 - `slots`: how many of each slot the item takes, never more than a character has.
-- `stack`: the most one stack holds, from 1 to 999,999. Without it, a stack holds as many as any Game Mode stack.
-- `cost`: a whole `amount` of one coin, named by its `unit` id.
+- `stack`: the most one stack holds, from 1 to 999,999. Without it, a stack holds as many as any Game Mode stack. An item that holds `charges` is one to a stack.
+- `cost`: a whole `amount` of one coin, named by its `unit` id. The picker shows it, and the Game Master sees it beside the item (see Money, below).
+- `sold` (Capability API 1.65): `{ "place": "city" }`, the smallest of your market's places that sells the item, over any rule that would say otherwise (see Markets, below).
+- `service` (Capability API 1.65): `true` for lodging, passage, a blessing: bought like an item and never carried. Buying it only pays; nothing else puts one in a bag (an add of one is refused as `service`), and the picker leaves services out. A service has a `cost`, and nothing about carrying or using it (`slots`, `stack`, `binds`, `worn`, `carried`, `requires`, `attack`, `use`, `charges`).
 - `binds`: the item has to be bound before it does anything while worn. `restriction` (optional) says in words who may bind it, and `cursed: true` marks one that will not let go. Only a ruleset with `binding` can have items that bind.
 - `worn` and `carried` (optional, Capability API 1.53): what the item does to its holder's checks and saves while it is worn, and while it is only carried, (1.54) the abilities it sets or raises, and (1.56) what it does in a fight. See [Checks outside a fight](#checks-outside-a-fight) and [Armor and worn effects in a fight](#armor-and-worn-effects-in-a-fight).
 - `requires` (optional, Capability API 1.54): what the item asks of whoever wears it, and what applies while they fall short. See [Checks outside a fight](#checks-outside-a-fight).
-- `attack` (optional, Capability API 1.55): what the item does as a weapon in a fight, while it is worn, and (1.57) what it shoots and holds loaded. See [Weapons in a fight](#weapons-in-a-fight) and [Ammunition and reloading](#ammunition-and-reloading).
+- `attack` (optional, Capability API 1.55): what the item does as a weapon in a fight, while it is worn, (1.57) what it shoots and holds loaded, and (1.58) its other modes, an off-hand attack, a floor to its harm and the conditions it puts on a hit. See [Weapons in a fight](#weapons-in-a-fight), [Ammunition and reloading](#ammunition-and-reloading) and [Modes, a second weapon, a floor and conditions on a hit](#modes-a-second-weapon-a-floor-and-conditions-on-a-hit).
+- `use` and `charges` (optional, Capability API 1.59): what using the item does, in a fight and outside one, and the charges it holds for that use to spend, and (1.60) a pool it restores. See [Using items in a fight](#using-items-in-a-fight) and [Using items outside a fight](#using-items-outside-a-fight).
 
 An item carries no `mechanics`: what it does is written in its `item` block.
 
@@ -761,7 +766,7 @@ Everything above is checked when the ruleset is imported, and your catalogs of i
 - **Names find your items.** A name the player types, or one the Game Master writes in `[inventory: action="add"]`, that is the `label` of one of your items, in any case, adds that item. When two items share a label, the one your catalogs list first is the one a name finds.
 - **`stack`** is kept: adding, setting, merging or giving past it fills the stack and starts a new one.
 - **`freeform: "refuse"`** leaves the player only your items: the picker, and names that are your items.
-- **`native: false`** leaves the Game Master only your items and the ones it invents: a name that is neither is refused (`not-ruleset-item`), while more of something already held can still be added, and its instructions say so. A fight no longer asks a model what the inventory's items do, and offers none to guess at: only your weapons fight, while they are held (see Weapons in a fight, below). What the player types in still follows `freeform`, and what the party carried comes back in a new session either way.
+- **`native: false`** leaves the Game Master only your items and the ones it invents: a name that is neither is refused (`not-ruleset-item`), while more of something already held can still be added, and its instructions say so. A fight no longer asks a model what the inventory's items do, so only your items fight: in a ruleset fight your held weapons and your items' uses (see Weapons in a fight, below), and in a Classic or Tactical battle your items with a `use` (see Items in Classic and Tactical battles, below). What the player types in still follows `freeform`, and what the party carried comes back in a new session either way.
 - **What an item is** shows on the selected stack: its category, rarity and tags by their labels, the stats it gives, its summary and how many one stack holds. The picker also shows its `cost`. The Game Master sees each of your items it holds with its category, rarity, tags and the stats you left `promptVisible`, such as `Hand axe [Weapon, Common, Thrown; Damage 1d6, Reach close]`.
 
 - **`slots`**: an item that takes slots can be equipped by whoever carries it, while they have those slots free, and one item of a larger stack is taken into its own stack to be worn. The inventory shows each slot in use per character.
@@ -772,8 +777,9 @@ Everything above is checked when the ruleset is imported, and your catalogs of i
 
 - **What an item does while worn or carried** shows on the selected stack and in the picker ("While worn: -1 on checks (Sneak)"), and the Game Master sees it beside the item (`worn: -1 on checks (Sneak)`). Checks outside a fight apply it (see Checks outside a fight, below).
 - **What a weapon does** shows the same way ("Attack (Action): Brawn to hit, 1d6 + Brawn cut damage"), and a fight offers it while it is held (see Weapons in a fight, below).
+- **What using an item does** shows the same way ("Use (Action): heals 1d4 + 1, range 0 paces, used up"), with the charges it has left. A fight offers it, and so do the inventory's **Use** button and the Game Master's `[inventory: action="use"]` (see Using items in a fight and Using items outside a fight, below).
 
-A fight already spends one of your items the way it spends any item, unless `native` is `false`. Whatever `native` says, the sheet can read your items (below), a held weapon is an attack in a ruleset fight, shooting what it draws from the bag, and what an item does while worn or carried counts in one (see Armor and worn effects in a fight, below). Using items by their own rules comes in a later release, and money after that.
+In a Classic or Tactical battle, each of your items with a `use` does what it says there, and one without is not offered (see Items in Classic and Tactical battles, below). Whatever `native` says, the sheet can read your items (below), a held weapon is an attack in a ruleset fight, shooting what it draws from the bag, what an item does while worn or carried counts in one (see Armor and worn effects in a fight, below), and an item with a `use` is used by its own rules, in a fight and outside one (see Using items in a fight and Using items outside a fight, below), and your `currencies` are the party's money (see Money, below).
 
 ### Items on the sheet
 
@@ -879,8 +885,6 @@ A weapon's tags are what its blows carry. A creature's `resist` or `immune` entr
 
 The weapon's details and the Game Master's line say what it does: `attack (Action): Brawn to hit, 1d6 + Brawn cut, reach 2 paces, range 10 to 20 paces`, with `1d8 with a hand free` for Ember Roads' boar spear and `at 6` beside Gravewatch's spade.
 
-Ways to fire, a second weapon in the off hand, a floor to the damage and a condition on a strong hit come in a later release.
-
 #### Ammunition and reloading
 
 A weapon may shoot something, and may keep a loaded count of its own (Capability API 1.57). Ember Roads' hunting bow shoots arrows, and Gravewatch's watch pistol holds one ball, loaded out of the warden's shot and powder:
@@ -898,6 +902,32 @@ A weapon may shoot something, and may keep a loaded count of its own (Capability
 - `clip`: a loaded count the weapon keeps on itself. `max` is how many it holds, written down or read off a number stat of the item, and `reload` is the budget a reload spends. An attack spends what is loaded instead of taking from the bag, and the weapon is offered only while it holds enough for one. A **Reload** option on the fight menu spends `reload` and fills it: out of the bag where it has `ammo` (as much as the bag still holds when that is less), and in full where it has none. The count is kept on the weapon's inventory stack, so a pistol emptied in one fight is still empty in the next. A weapon nobody has fired yet is loaded, and so is one a player pours into a stack of several of it, since a loaded count is one weapon's. A clip's rounds are not picked up after a fight, so `recover` is for a weapon without one.
 
 What a fight shoots, loads and picks up is written to the inventory as each step is taken, the way the party's health is, and the journal says what was used. A step whose stack is gone, or holds fewer than the fight counted on, is refused, as a spent item the fight cannot find is. The fight log says every shot, reload and pickup ("Hunting bow: 2 left to shoot.", "Ada loads 1 into Watch pistol: 1 of 1 loaded."), and the item's details and the Game Master's line say what the weapon shoots and holds: `ammunition Arrow (1 an attack, 50% picked up after a won fight)` and `holds 1, reload (Act)`.
+
+#### Modes, a second weapon, a floor and conditions on a hit
+
+A weapon may have other ways to make its attack, a partner in the off hand, a least harm it deals and conditions it puts on what it hits (Capability API 1.58). Ember Roads' hunting bow can loose a volley, and Gravewatch's silver coffin nail may be held in each hand and marks what it bites deep:
+
+```json
+"modes": [{ "id": "volley", "label": "Volley", "ammo": 2, "toHit": -2, "targets": 2 }]
+```
+
+```json
+"offHand": true,
+"onHit": [{ "condition": "marked", "atLeast": 2, "rounds": 2 }]
+```
+
+- `modes`: up to six other ways to make the attack, each with an `id`, a `label` and what it changes. `ammo` is how many one attack in it shoots, so the weapon has `ammo` or a `clip` to shoot from. `toHit` is what it adds to hit, dice in a pool fight and a number in a summed one. `target` moves a pool fight's per-die target by this much (from the weapon's own, else the pool's; `+1` is harder), where the pool's target can move. `targets` is how many it may be aimed at, each its own attack roll. The fight menu asks which way once the attack is picked (after its initiative style, where there are styles), each with what it is expected to do, and offers only the modes its holder has the shots for. A party member the Engine plays weighs every mode aimed at one target, and leaves a mode for several to a player. In a window, an attack is made as it is.
+- `offHand`: a weapon for the off hand. The combat block names the budget a second attack spends, and whether its damage keeps a positive ability:
+
+  ```json
+  "offHand": { "budget": "quick", "ability": "full" }
+  ```
+
+  Once its holder has attacked this turn with one weapon marked `offHand`, each other such weapon they wear offers a second attack on that budget, named "Silver coffin nail, off hand" on the menu. `ability` is `full` (the default) or `penalty-only`, which adds the damage ability only when it takes something away, as 5e's two-weapon fighting does. An off-hand attack is one blow, whatever strikes the main attack buys, and never a strike at somebody walking away. A weapon marked `offHand` needs the combat block's `offHand`.
+- `floor`: the least a hit deals, written down or read off a number stat of the item. A pool fight's harm after soak, or a summed fight's damage, is raised to it before a resistance halves it, and the log says so. A spending blow throws its maker's number and is never raised.
+- `onHit`: up to four of your conditions the target takes when the harm the blow dealt reached `atLeast`, for `rounds` of their own turns or, without it, until something takes it off. The harm is what reached them after soak and their resistances; a taking blow takes initiative rather than harm, so it puts none on.
+
+The weapon's details and the Game Master's line say all of it: `modes Volley (2 shots, -2 to hit, up to 2 targets)`, `off hand (Quick)`, `at least 1 on a hit before resistance` and `Marked for 2 rounds when a hit deals 2 or more`.
 
 ### Armor and worn effects in a fight
 
@@ -924,6 +954,167 @@ Gravewatch's cursed widow's ring costs a die on every attack, its bound Dawn bel
 A fight reads each item once, named for the stack ("Widow's ring" beside a roll in the log, and on a defense), as a check does; an unmet requirement's `otherwise` counts in a fight too, so armor too heavy for its wearer can cost speed. An item's details and the Game Master's line say all of it ("While worn: -1 on attacks", "worn: +1 on checks (Ward), immune to Rattled"). Armor that simply adds to a defense or a soak is an item stat read with `itemStat` (see Items on the sheet), as Ember Roads' Guard reads the coat worn.
 
 **Hardness.** Where initiative is a number attacks move, `combat.pool.hardness` is a fighter's hardness, read off their sheet as the fight begins (their armor's, through `itemStat`), and a creature gives its own `hardness`. A spending blow whose dice are below it lands and does nothing: the maker's number still goes back to the base, the log says so ("Ada's Grave spade lands on the warden with 5 dice, below a hardness of 6, and does nothing."), and the menu forecasts no harm for it. Only a ruleset with a style that spends may have it, and a creature written as a sheet takes it from the sheet.
+
+### Using items in a fight
+
+An item may be used in a fight (Capability API 1.59): a poultice pressed on a cut, a tonic swallowed, a bell rung. Its `use` says what using it does in the words a catalog entry's `mechanics` use (see [What a fight reads from `mechanics`](#what-a-fight-reads-from-mechanics)): `kind` (`heal`, `attack`, `buff` or `debuff`), `amount`, `damageType`, `plus`, `attackRoll`, `save`, `applies`, `temporary`, `range`, `area`, `targets`, `targetCount` and `friendlyFire`, with the `budget` it spends, or `free`. Ember Roads' poultice, and Gravewatch's warming tonic and dawn bell:
+
+```json
+"use": { "kind": "heal", "budget": "act", "range": 0, "targets": "ally", "amount": { "dice": "1d4", "flat": 1 }, "consumes": true }
+```
+
+```json
+"use": { "kind": "heal", "budget": "quick", "targets": "self", "amount": { "flat": 1 }, "consumes": true }
+```
+
+```json
+"stack": 1,
+"use": {
+  "kind": "debuff",
+  "budget": "act",
+  "targets": "enemy",
+  "save": { "save": "steel", "onSuccess": "negates" },
+  "saveDifficulty": 7,
+  "applies": [{ "condition": "rattled", "duration": { "rounds": 2 } }],
+  "charges": 1
+},
+"charges": { "max": 3 }
+```
+
+- A use is on the fight menu under **Items**, named for the item ("Poultice") whatever the stack is called. An item that takes slots or binds is used while it is worn (and bound, where it binds), as the bell is; any other while it is carried.
+- It spends a budget, or is `free`, and pays with itself: a `cost`, `perCostStep`, `check`, `concentration`, `reaction`, `scales`, `gives`, `standard` or `rider` is for a catalog entry a sheet holds, and is refused on a use.
+- `toHit`, on a use with `attackRoll`, is what it adds to hit, as a weapon's `toHit` says it (see Weapons in a fight): abilities, a skill, a bonus and, in a pool fight, a per-die target. Without it the roll adds nothing.
+- `saveDifficulty`: the number a save it asks for is rolled against (its own, one that ends a condition it applies, or a clause's without a `difficulty`), written down or read off a number stat of the item. An entry on a sheet reads that number off its catalog's source; an item has none, so it says its own.
+- `consumes: true` takes one off the item's stack each time it is used, and the menu says how many are left. The last one used takes the stack with it.
+- `restore` (Capability API 1.60) gives back some of a pool of each sheet it lands on, as a blood bag gives back blood: `{ "pool": "resolve", "amount": { "flat": 1 } }`, with `dice` and `flat` as an `amount` has them. It names one of your live pools, never the health pool (health comes back with a heal), and is on a use that helps, a `heal` or a `buff`. A creature has no pools, so it takes nothing. The log says it ("Ada gets back 1 Resolve, and is on 3 of 4."), and a party member the Engine plays leaves a full pool alone. Gravewatch's warming tonic restores a point of Resolve beside its heal.
+- `charges` spends that many of the item's own `charges`, whose `max` is how many it holds, from 1 to 100, written down or read off a number stat of the item (an item that gives that stat as less than 1 is refused, and one past 100 holds 100). The count is kept on the item's inventory stack, so a bell rung twice in one fight has one charge left in the next, and one nobody has rung is full. Charges are one item's, so an item that holds them has a `stack` of 1. A use is used up or spends charges, never both, and an item's charges are always spent by its use. Two keys of `charges` go on (Capability API 1.61), as Gravewatch's dawn bell has them:
+
+  ```json
+  "charges": { "max": 3, "recharge": { "rests": ["vigil"], "amount": "max" }, "breaksOn": { "die": 20, "atMost": 1 } }
+  ```
+
+  - `recharge`: which of your `rests` bring the charges back, and how many: `"max"` fills the item, and an amount (`{ "dice": "1d6", "flat": 1 }`) gives back that many, never past `max`. A rest brings back the charges of every item its character carries that names it, whether the sheet's Rest button takes it or the Game Master's `[sheet: op="rest"]` does; the sheet and the bag are written together, and a regenerated reply recharges only once. The sheet says what came back after the rest ("Dawn bell 3/3 charges"), and the Game Master sees each item's charges left beside it in the inventory ("2 of 3 charges left").
+  - `breaksOn`: when a use spends the last charge, the Engine rolls a d`die`, and at or under `atMost` the item breaks and is gone from the bag, in a fight and outside one. The fight log says so ("Dawn bell breaks (a 1 on its die)."), the Use button's report does ("Its last charge spent, it breaks."), and the journal counts it as lost.
+- `gate` (Capability API 1.62) is a check its user passes before the item works, as a scroll of a spell above the reader's own asks for one. `check` names what is rolled: `{ "skill": "ward" }`, `{ "ability": "wits" }`, or a value off the sheet (`{ "value": { "derived": "spell_mod" } }`, for a number that differs from one character to the next, as a 5e caster's spellcasting modifier does). `difficulty` is from 1 to 100, written down or read off a number stat of the item (an item that does not give it is left off the menu, and its Use button says it plainly). `unless` skips the check when a value on the user's sheet is at least `atLeast`. A failed check uses the item up (or spends its charges) for nothing. In a fight the check is rolled as the item is spent, with the fight's own dice (a pool in a pool fight, where `difficulty` is the successes it needs) and the sheet's number read as the fight began, and what the user's conditions and worn items add to that check counts, a skill's own included. The log says it ("Ada rolls Ward to use Page of the vigil litany: 2 successes from 2 dice at 7 or more (8, 9), needing 2 successes, a success."). Gravewatch's page of the vigil litany has one:
+
+  ```json
+  "gate": { "check": { "skill": "ward" }, "difficulty": 2, "unless": { "value": { "abilityScore": "nerve" }, "atLeast": 3 } }
+  ```
+
+What a fight uses up and the charges it leaves are written to the inventory as each step is taken, as a weapon's shots are, and the journal says what was used. The fight log says each use ("Poultice: 1 of 2 left.", "Dawn bell: 2 of 3 left."). A party member the Engine plays uses a heal only on somebody hurt, and nobody uses an item to strike at somebody walking away. The item's details and the Game Master's line say what using it does: "Use (Action): heals 1d4 + 1, range 0 paces, used up" and `use (Act): Steel 7 save negates it, Rattled, 1 of 3 charges`, and the details show the charges left. An item the Game Master invents `like=` one of yours is used as that one is, charges and all.
+
+### Items in Classic and Tactical battles
+
+A ruleset that does not resolve its own fights leaves them to Game Mode's own Classic and Tactical battles, where a model is asked what the inventory's items do when a fight begins. Your items are not guessed at: each one with a `use` does what that says, on the Engine's own numbers, and the Game Master's guess is asked only for the items that are not yours (and for none with `native: false`).
+
+- A `heal` heals and an `attack` harms by a share of the target's maximum health, from the average of its `amount`: an average of 7, a basic weapon's `1d8+3`, is a little over a fifth of it, never less than a twentieth and at most all of it. That is the scale the combat bridge reads a catalog entry's numbers on. The `damageType` is the element.
+- The first condition in `applies` goes on as a status by its own name, for its `rounds` (2 without them), and a `buff` or `debuff` is that status alone, which raises or lowers defense as the Engine's own statuses do.
+- `targets` says who it is used on. Without it, a heal or a buff goes to a friend and an attack or a debuff to a foe.
+- `consumes: true` takes one off the stack, and a use without it leaves the item where it is.
+- A roll to hit, a save, an area, temporary points and a restored pool have no place in these battles, as with a catalog entry's `mechanics` there: the item's description on the menu still says them.
+- An item that takes slots is used only while it is worn, and one that binds only while it is bound, as in a ruleset fight. One that is used up is taken from what is worn, never from a spare in the bag.
+- An item whose use spends `charges` is offered while a use is left, and the Items menu counts its uses. Each use spends them from the item's stack, the player's own first, and the last one spent rolls its `breaksOn`: broken, it is gone from the bag, and the journal counts it as lost.
+- An item that asks a check first (`gate`) has it rolled on the server when a party member uses it, with that member's sheet and what they wear (a companion with no card of their own rolls on a blank sheet, and only the player's own unit falls back on the player's card), as the Use button rolls it, and skipped when `unless` holds. Failed, the item is spent (or its charges are) and does nothing, and the log says so: "Ada rolls Ward to use Page of the vigil litany: 0 against 2, failed, and it is used up for nothing."
+- An item with no `use` is not offered in these battles, and neither is a heal without an `amount`.
+
+The Engine works each item's effect out itself, so what the screen sends never decides what one of your items does.
+
+### Loot
+
+A won fight drops loot in every Game Mode game, once, into the party's bags. Without a ruleset it comes from Game Mode's own tables (more and rarer on a harder game), and so it does in a ruleset that declares no loot tables and leaves `native` on. A ruleset that declares loot tables drops its own items instead, and one with `native: false` and no tables drops nothing.
+
+`lootTables` in the `items` block (Capability API 1.63) lists them, as Gravewatch's grave goods do:
+
+```json
+"lootTables": [
+  {
+    "id": "grave_goods",
+    "label": "Grave goods",
+    "rolls": "1d2",
+    "entries": [
+      { "item": "kit/shot-and-powder", "weight": 4, "count": "1d4" },
+      { "item": "kit/warming-tonic", "weight": 3 },
+      { "item": "kit/litany-page", "weight": 2 },
+      { "filter": { "category": "arm" }, "weight": 1 },
+      { "coins": "shilling", "weight": 2, "count": "1d6" }
+    ]
+  }
+]
+```
+
+- `rolls` is how many picks the table makes: a number from 0 to 20, or dice (`"1d2"`), 1 by default.
+- Each pick draws one line by `weight` (1 by default) against the others. A line names one of your items as `<catalog>/<entry>`, a `filter` by `rarity`, `category` and `tag`, which picks evenly among every item that matches, or (Capability API 1.64) `coins`, one of your coins by its id. `count` is how many drop, a number or dice, 1 by default. An item or a coin a layer takes out drops nothing, and neither does a filter that finds none.
+- A bestiary creature names the table it carries with `loot` (see Creatures, below). A won ruleset fight rolls the table of each creature defeated, and a fight the Engine does not resolve by your rules has no bestiary creatures, so it drops nothing.
+- What drops goes into the shared view as an add does, the player's bag asked first, and what nobody can carry is left behind. The recap the Game Master gets says what dropped and that it is already in the bags, the journal says so, and a notification shows it.
+- The Game Master rolls a table in the story with `[loot: table="grave_goods" who="Ada"]` (`who=` for one character's bag), measured from where the turn began like its inventory tags, so a regenerated reply drops once. Each item that drops is answered as an add, and its instructions list your tables.
+
+### Money
+
+Your `currencies` are the party's money. A coin is an item in the bags, a stack of each coin like any other, named by its `label`:
+
+- It weighs one unit of your carry stat for every `perWeight` of its family's coins, counts toward its bearer's load and is placed by the carrying rule when it comes in. A family without `perWeight` weighs nothing.
+- The player adds coins from the picker's **Coins** list, and splits, gives and merges them as any stack.
+- A line above the inventory's stacks shows each family's coins in view and their worth in the family's smallest coin. The Game Master sees that worth beside each bag (`Coin worth 432 pennies`), and an item's `cost` beside the item (`costs 3 shillings`).
+- The Game Master pays with `[inventory: action="pay" amount="3 shillings" who="Ada"]` and is paid with `action="earn"`. `amount` is a count and a coin, by its id or label, one of it or many, in any case (`1 penny`, `12 pennies`). A payment comes out of one bag (the player's without `who=`), in the coin's own family only: the largest coins that fit go first, then the smallest coin left that covers what is still owed is broken, and the change comes back in the family's smaller coins, largest first. The answer says what was paid and what came back: 3 shillings out of a purse holding one crown is `Paid with crowns ×1; shillings ×2 back.` A payment the bag cannot meet is refused (`cannot-afford`), and so is a coin you do not have (`unknown-coin`) and any payment in a ruleset without currencies (`no-currencies`). An earning is an add of that coin, into `who`'s bag or shared out by the carrying rule. The journal lists what was spent and earned, and a notification shows it. Its instructions list your coins, and only a ruleset with some has them.
+- Buying is a payment and then an add, or, in a ruleset with a market, a `buy` (below). There is no shop screen.
+
+### Markets
+
+A `market` in the `items` block (Capability API 1.65) says what a place sells and at what price, instead of every shop selling everything at its list price. Gravewatch's, a little shortened:
+
+```json
+"market": {
+  "prices": [
+    { "id": "cheap", "label": "cheap", "times": 0.75 },
+    { "id": "fair", "label": "fair", "times": 1, "default": true },
+    { "id": "dear", "label": "dear", "times": 1.5 }
+  ],
+  "places": [
+    { "id": "hamlet", "label": "hamlet" },
+    { "id": "village", "label": "village" },
+    { "id": "town", "label": "market town" },
+    { "id": "city", "label": "city" }
+  ],
+  "sold": [
+    { "filter": { "rarity": "rare" }, "place": "town" },
+    { "filter": { "category": "arm" }, "place": "village" }
+  ],
+  "sellers": [
+    { "id": "chandler", "label": "chandler", "sells": [{ "category": "coat" }, { "category": "tonic" }] },
+    { "id": "smith", "label": "smith", "sells": [{ "category": "arm" }], "place": "village" },
+    {
+      "id": "chapel",
+      "label": "chapel of the Vigil",
+      "sells": [{ "category": "page" }],
+      "place": "town",
+      "only": { "value": { "abilityScore": "nerve" }, "atLeast": 3, "label": "wardens of Nerve 3 or more" }
+    }
+  ]
+}
+```
+
+- `prices`: one to eight levels, each a multiplier (`times`, above 0) on an item's `cost`, and one of them the `default`. A price is the cost in its family's smallest coin times the level, rounded there (never below one coin for something that costs anything), and said in the largest coin your layers leave that pays it exactly: at `dear`, a coat that costs 8 shillings is 12 shillings. Haggling or a seller's mood moves the level, never the number.
+- `places`: one to twelve place sizes, smallest first, in your own words.
+- `sold`: rules for the smallest place that sells what a filter picks. A filter names a `rarity`, a `category` and a `tag`, any of them, and matches an item that has every one it names; the first rule that matches an item decides. An item's own `sold` wins over the rules, and an item nothing names is sold anywhere.
+- `sellers`: kinds of seller, each with what it `sells` (filters, any of which picks an item), the smallest `place` that has one (anywhere, without it), and optionally who it sells `only` to: a value off the buyer's sheet, with their live state and what they carry, at least `atLeast`, said to the Game Master as `label`. Without `sellers`, anybody at a place sells whatever that place sells.
+- An item with no `cost` is not for sale, and neither is one a layer hides or one whose coins a layer took out.
+
+**Where the party is.** The Game Master says which place a scene is in and its size with `[place: name="Millbrook" size="market town"]`, the size by its id or label, and leaves the size out for somewhere with no market (a road, the wilds). The Engine answers each tag in place, refusing a size you do not have, and the last place it answered in its own replies the player sees, from the latest conversation start, is the place in force until another is said. A place tag a player types never counts. A regenerated reply reads only what came before the telling it replaces.
+
+**Buying.** The Game Master buys with `[inventory: action="buy" item="Hand axe" count="1" level="dear" seller="smith" who="Ada"]`, `level` (the default without it) and `seller` (any seller here that sells the item, without it) optional. The Engine prices it at the place in force when the reply ends, takes the price out of the buyer's purse (the player's without `who=`) as a payment is, with change, and puts the item in their bag, or only pays for a service. Either both happen or neither does. The answer says what it cost (`price="12 shillings"`) and what was paid and given back, and a notification shows it. A buy is refused, and changes nothing, with no place said (`no-place`), a level, item or seller you do not have (`unknown-level`, `unknown-item`), no price (`not-for-sale`), a place too small for the item (`not-here`), no seller here who sells it (`no-seller`), a seller whose `only` the buyer does not meet (`not-to-you`), a purse that cannot meet it (`cannot-afford`), or a bag that cannot carry it.
+
+**What the Game Master sees.** While a scene is at a place with a market, a MARKET block names the place and its size, the price levels, and each seller there with a dozen of what they sell at the default level, cheapest first; anything they sell can be bought by name. Its instructions teach `[place:]` and `buy`, and only a ruleset with a market has them.
+
+### Using items outside a fight
+
+The same `use` works outside a fight (Capability API 1.60 for `restore`; the rest needs nothing new). The inventory's **Use** button, on one of your items with a `use`, and the Game Master's `[inventory: action="use" item="Poultice" who="Juno"]` both do what the item does to whoever carries it, with the Engine's dice:
+
+- A heal gives back health: the amount on a health pool, or one mark cleared on a wound track, as a heal in a fight does. `temporary` points go on a health pool, `restore` gives back its pool, and each condition it `applies` is put on, until something takes it off.
+- A use that harms, or is aimed at the other side (`kind` `attack` or `debuff`, or `targets` `enemy`), lands on nobody: outside a fight there is nobody on the board to hit. The item is still used, and the Game Master is told what it does, to narrate.
+- It takes one off the stack or spends its charges exactly as a fight does, and one with none left, or one that takes a slot or binds and is not worn, is refused and changes nothing. The sheet and the bag are written together.
+- A `gate` is rolled first, as a check is: the ruleset's own dice with the sheet's number, the user's wound penalty and what their conditions and worn or carried items do to that check. A failed one uses the item up for nothing, and the line says so ("Ada uses Page of the vigil litany: Ward check 1 against 2, failed; it is used up for nothing. 1 left.").
+
+What happened is said in one line: "Juno uses Poultice: heals 4 (Grit 6/11). 1 left." The Use button sends it to the Game Master in an `[item_used]` block after "I use my Poultice.", which the chat shows as a badge; the Game Master's own tag is answered with it, measured from where the turn began like its other tags, so a regenerated reply never uses an item twice. An item without a `use`, or in a game without a ruleset, is still simply said: "I use my rope."
 
 ## Battles: lending the sheet to Marinara's combat
 
@@ -1605,6 +1796,7 @@ as a `sheet`, takes `health`, `defense`, `initiativeModifier`, `speed`, `abiliti
   of those item tags is taken as it comes (Capability API 1.55, see
   [Weapons in a fight](#weapons-in-a-fight)). `conditionImmunities` names your own conditions.
 - `tier`: which rung of `combat.threat` it belongs to.
+- `loot` (Capability API 1.63): the id of the loot table a won fight rolls for it (see Loot, above).
 - `traits`: short name and text pairs the Game Master is shown. They are never resolved, so
   anything with numbers in it belongs in an action.
 - `signaturePoints`: points given back at the start of its own turn, spent on `signature` actions.
@@ -2185,7 +2377,7 @@ Said plainly, because a ruleset should not claim what the Engine does not do:
 - **A rider fires by itself.** `on` has one value, `hit`, so the first qualifying hit of the period
   takes it, and there is no moment at which you are asked whether to spend one.
 - **A number attacks move is plain.** A spending blow throws the number and nothing else, so no
-  weapon changes it and there is no floor of dice (a sturdy target soaks a taking blow, and its
+  weapon changes it, its `floor` included (a sturdy target soaks a taking blow, and its
   hardness stops a spending one, but nothing else shrinks either); a crash lifts after a fixed count
   of turns however deep it went; and an attack made
   in a window (a strike at somebody breaking away, a reaction, a signature move) is made in the
@@ -2239,6 +2431,12 @@ exactly like the ruleset itself.
   declared `filters` and exactly one comparison: `above` or `below` for a `number` filter,
   `equals` or `notIn` for a `text` or `tags` one. An entry that does not set that filter at all is
   never hidden.
+- `currencies` takes coins out: `removeUnits` names single coins and `removeFamilies` whole
+  families. A family's smallest coin goes only with its family, so every family left can still pay
+  and give change. While the layer is on, nobody earns, pays with, picks or drops a coin taken out,
+  and the purse line leaves it out. A price named in it is said in the largest coin left that pays
+  it exactly, at the same worth: Gravewatch's long night takes the crown out, so a watch pistol at 3
+  crowns costs 15 shillings. An item whose whole family is gone has no price.
 
 **What a layer cannot do.** It cannot add an enum value, add a field, a skill, a pool or a rest,
 change the resolution kind, touch live state or combat numbers, or add a model call. A value a
@@ -2252,11 +2450,12 @@ declared **later** is dropped, so the same two choices always give the same rule
 **A sheet that already holds a removed value keeps it.** Nothing rewrites a character. The editor
 simply stops offering the value, and a character who already had it shows it as what it is. Turn
 the layer off in a new game and the value is offered again. The same is true of a hidden catalog
-entry: it is left out of the picker, and a row a player already picked stays on the sheet.
+entry: it is left out of the picker, and a row a player already picked stays on the sheet. Coins a
+layer takes out that somebody already carries stay in their bag.
 
 **Limits.** 12 layers per ruleset, and 4000 characters of guidance per layer counting both strings
 together. A packaged ruleset that declares `layers`, or a base `gm.worldGuidance`, needs Capability
-API 1.25. A ruleset you import is validated by the Engine that reads it, so it needs nothing.
+API 1.25, and one whose layers take coins out needs 1.64. A ruleset you import is validated by the Engine that reads it, so it needs nothing.
 
 **Layers written by somebody else** (a Low Magic layer for a ruleset you did not write, shipped in
 its own file) are a later addition. Today a layer ships inside the ruleset it belongs to.

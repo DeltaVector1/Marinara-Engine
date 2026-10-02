@@ -277,11 +277,26 @@ try {
     const issue = (minor: number, doc: Record<string, any>, paths?: string[], files?: Map<string, unknown>) =>
       getCapabilityPackageInstallIssue(manifest(minor, paths) as any, doc, files);
     /** The examples less what their items do in a fight. */
-    /** Less what the examples' weapons shoot and load, which is 1.57's and has a lane of its own. */
+    /** Less what the examples' weapons shoot and load, the other ways they fight and what their items
+     *  do when used, which are 1.57's, 1.58's and 1.59's and have lanes of their own. */
     const withoutAmmo = (doc: Record<string, any>) => {
+      // And the loot, which is 1.63's.
+      delete doc.items?.lootTables;
+      for (const catalog of doc.catalogs) for (const entry of catalog.entries ?? []) delete entry.creature?.loot;
+      for (const layer of doc.layers ?? []) delete layer.currencies;
+      // And the market, which is 1.65's.
+      delete doc.items?.market;
+      for (const catalog of doc.catalogs ?? []) {
+        for (const entry of catalog.entries ?? []) {
+          delete entry.item?.sold;
+          delete entry.item?.service;
+        }
+      }
+      delete doc.combat?.offHand;
       for (const entry of itemCatalogOf(doc).entries) {
-        delete entry.item.attack?.ammo;
-        delete entry.item.attack?.clip;
+        for (const key of ["ammo", "clip", "modes", "offHand", "floor", "onHit"]) delete entry.item.attack?.[key];
+        delete entry.item.use;
+        delete entry.item.charges;
       }
     };
     const withoutArmor = (doc: Record<string, any>) => {

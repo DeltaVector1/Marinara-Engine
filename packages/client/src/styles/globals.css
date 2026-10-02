@@ -9408,9 +9408,17 @@ html[data-marinara-reduced-effects="true"] .omnibar-row-expansion {
     width: calc(100% - var(--mari-roleplay-mobile-avatar-space, 3rem));
   }
 
-  [data-component="ChatArea.Roleplay"][data-mobile-composer-active="true"] [data-roleplay-agent-window],
-  [data-component="ChatArea.Roleplay"]:has(.mari-roleplay-message-body--editing) [data-roleplay-agent-window] {
+  [data-component="ChatArea.Roleplay"][data-mobile-composer-active="true"]
+    [data-roleplay-agent-window]:not([data-roleplay-agent-window="echo"]),
+  [data-component="ChatArea.Roleplay"]:has(.mari-roleplay-message-body--editing)
+    [data-roleplay-agent-window]:not([data-roleplay-agent-window="echo"]) {
     display: none;
+  }
+
+  /* Echo keeps its layout box while hidden, so reactions revealed during typing still pin it to the newest one. */
+  [data-component="ChatArea.Roleplay"][data-mobile-composer-active="true"] [data-roleplay-agent-window="echo"],
+  [data-component="ChatArea.Roleplay"]:has(.mari-roleplay-message-body--editing) [data-roleplay-agent-window="echo"] {
+    visibility: hidden;
   }
 
   [data-chat-mode="conversation"] [data-chat-scroll]:has([data-chat-message-editor]) {
@@ -9489,6 +9497,19 @@ html[data-marinara-reduced-effects="true"] .omnibar-row-expansion {
 
   .chat-input-container .marinara-chat-input-shell {
     border-radius: 1em !important;
+  }
+}
+
+@media (max-width: 639px) {
+  .mari-topbar {
+    gap: 0.5rem;
+  }
+
+  .mari-topbar-action {
+    flex: 0 0 auto;
+    width: 3.5rem !important;
+    height: 2.25rem !important;
+    padding: 0 !important;
   }
 }
 

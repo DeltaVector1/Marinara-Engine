@@ -72,7 +72,7 @@ import { registerParameterPreviewRoute } from "./generate/parameter-preview-rout
 import type { FastifyInstance } from "fastify";
 import type { input as SchemaInput } from "zod";
 import { translateGeneratedMessage } from "../services/translation.service.js";
-import { randomUUID } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import {
@@ -182,6 +182,11 @@ import {
   isRoleplayCommandAllowed,
   getRoleplayCommandActivity,
   applyGameInventoryTags,
+  applyGamePlaceTags,
+  rulesetMarketPlace,
+  rulesetMarketPromptText,
+  type GameInventoryMarket,
+  type GamePlace,
   createInventoryTagRegex,
   gameInventoryBags,
   gameInventoryTellingStart,
@@ -195,12 +200,16 @@ import {
   gameInventoryBearerStatus,
   normalizeGameInventoryStacks,
   rulesetItemPromptFacts,
+  rulesetLayerOptionKey,
+  rulesetPurseText,
   type RoleplayCommandActivity,
+  type RulesetDefinition,
   type RulesetItemBook,
   type RulesetLiveStates,
 } from "@marinara-engine/shared";
 import { prepareRoleplayRoll } from "../services/generation/roleplay-rolls.js";
 import {
+  appendRoleplayMessageNotes,
   appendRoleplayPromptTail,
   appendRoleplayWhispers,
   buildRoleplayCommandsReminder,
@@ -223,11 +232,16 @@ import {
   loadTurnRulesetCatalogs,
   renderGameRulesetSheetBlocks,
   sheetCommandCards,
+  type GameRulesetSheetContext,
   type GameRulesetSheetTurn,
 } from "../services/game/ruleset-sheet-turn.service.js";
+import { gameInventoryItemUser, gameInventoryRestRecharge } from "../services/game/game-item-use.service.js";
+import { gameLootTagRoller } from "../services/game/game-loot.service.js";
+import { gamePlaceBefore, loadGameMarket } from "../services/game/game-market.service.js";
 import {
   commitGameInventoryChange,
   followGameInventoryOnRow,
+  gameRulesetLayerOptions,
   loadGameInventoryItemBook,
 } from "../services/game/game-inventory.service.js";
 import { createCustomToolsStorage } from "../services/storage/custom-tools.storage.js";
@@ -437,6 +451,7 @@ import {
   resolveCharacterActivityUpdate,
   resolveBaseUrl,
   resolveGroupGenerationMode,
+  resolveGroupIndividualHistorySpeaker,
   resolveRoleplaySummaryTail,
   resolveCharacterNameMap,
   resolvePromptCharacterIdsForTarget,
@@ -4576,6 +4591,22 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   "game-master",
                 )
               : undefined;
+          // The market where the scene is, where the ruleset has one (#6917): the place the visible
+          // messages last said (not the telling a regeneration replaces) and what its sellers sell.
+          const promptMarket =
+            pinnedGameRuleset?.status === "ok" && pinnedGameRuleset.definition.items?.market
+              ? rulesetMarketPromptText(
+                  pinnedGameRuleset.definition,
+                  promptItemBook ??
+                    (await loadGameInventoryItemBook(
+                      app.db,
+                      { metadata: chatMeta, resolved: pinnedGameRuleset, playerName: personaName || null },
+                      "game-master",
+                    )) ?? { entries: [] },
+                  await gamePlaceBefore(app.db, input.chatId, input.regenerateMessageId ?? null),
+                  gameRulesetLayerOptions(pinnedGameRuleset),
+                )
+              : undefined;
           // What each character carries, binds and wears against what they can, when the ruleset says.
           const promptBearers =
             promptItemBook?.bearer || promptItemBook?.slots
@@ -4589,6 +4620,18 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   ]),
                 )
               : undefined;
+          // What each bag's coins are worth, family by family, where the ruleset has coins.
+          const promptPurses = promptItemBook?.coins.length
+            ? Object.fromEntries(
+                [
+                  undefined,
+                  ...new Set(promptInventoryStacks.flatMap((stack) => (stack.holder ? [stack.holder] : []))),
+                ].map((holder) => [
+                  gameInventoryBagKey(holder),
+                  rulesetPurseText(promptItemBook, promptInventoryStacks, holder),
+                ]),
+              )
+            : undefined;
           const promptItemFacts = promptItemBook
             ? Object.fromEntries(
                 promptInventoryStacks.flatMap((stack) => {
@@ -4596,6 +4639,13 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   return known ? [[known.item, rulesetItemPromptFacts(known.facts)]] : [];
                 }),
               )
+            : undefined;
+          // What each stack of an item that holds charges has left: its kept count, or all of them.
+          const promptCharges = promptItemBook
+            ? (stack: (typeof promptInventoryStacks)[number]) => {
+                const max = stack.item ? promptItemBook.itemOf(stack.item)?.facts.use?.charges?.max : undefined;
+                return max === undefined ? undefined : { now: Math.min(max, stack.charges ?? max), max };
+              }
             : undefined;
           const formatReminder = resolvePromptMacros(
             buildGmFormatReminder({
@@ -4665,12 +4715,21 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               // One line per item with its total, so a stack the player split reads as one thing,
               // and the same per bag once anybody else in the party carries something.
               playerInventory: (() => {
-                const inv = gameInventoryTotals(promptInventoryStacks);
+                const inv = gameInventoryTotals(promptInventoryStacks, promptCharges);
                 return inv.length > 0 ? inv : undefined;
               })(),
-              partyInventory: gameInventoryBags(promptInventoryStacks),
+              partyInventory: gameInventoryBags(promptInventoryStacks, promptCharges),
               ...(promptItemFacts ? { inventoryItemFacts: promptItemFacts } : {}),
               ...(promptBearers ? { inventoryBearers: promptBearers } : {}),
+              ...(promptPurses ? { inventoryPurses: promptPurses } : {}),
+              ...(promptMarket ? { market: promptMarket } : {}),
+              ...(pinnedGameRuleset?.status === "ok" && pinnedGameRuleset.layers.length > 0
+                ? {
+                    rulesetLayerOptions: Object.fromEntries(
+                      pinnedGameRuleset.layers.map((layer) => [rulesetLayerOptionKey(layer.id), true]),
+                    ),
+                  }
+                : {}),
             }),
           );
           finalMessages.push({ role: "user" as const, content: formatReminder });
@@ -4924,14 +4983,31 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           latestGameState.swipeIndex === visibleGameStateAnchor.swipeIndex
             ? latestGameState
             : null;
+        // Individual group turns are saved one speaker per message, so agents can be told who spoke.
+        // Merged replies are saved under the first character and keep attribution in <speaker> tags instead.
+        const agentHistoryCharacterNamesById =
+          isGroupChat && chatMode !== "game" && groupChatMode === "individual"
+            ? await getGroupHistoryCharacterNamesById()
+            : null;
 
         const recentMsgs = agentSlice.map((m: any, index: number) => {
           const resolved = resolvedAgentSlice[index];
+          const speakerName = agentHistoryCharacterNamesById
+            ? resolveGroupIndividualHistorySpeaker(
+                {
+                  role: m.role,
+                  characterId: m.characterId,
+                  personaSnapshotName: m.role === "user" ? readPersonaSnapshotName(m.extra) : null,
+                },
+                { personaName, characterNamesById: agentHistoryCharacterNamesById },
+              )
+            : null;
           const msg: AgentContext["recentMessages"][number] = {
             id: typeof m.id === "string" ? m.id : undefined,
             role: m.role as string,
             content: resolved?.content ?? (m.content as string),
             characterId: m.characterId ?? undefined,
+            ...(speakerName ? { speakerName } : {}),
           };
           if (m.role === "assistant") {
             const messageSwipeIndex =
@@ -7633,6 +7709,15 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 ? (chatMeta.roleplayCommandNarratorId as string)
                 : null,
             );
+          // A note the user shared with the replying character is private context, like a whisper.
+          const roleplayNoteContext =
+            chatMode === "roleplay" &&
+            !input.impersonate &&
+            appendRoleplayMessageNotes(
+              preparedMessagesForGen,
+              roleplayTimeline,
+              roleplayCallerId ? { id: roleplayCallerId, kind: "character" } : null,
+            );
           const latestRoleplayMessage = roleplayTimeline.at(-1);
           const roleplayInterruptionTarget =
             chatMode === "roleplay" &&
@@ -7654,10 +7739,14 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   content: latestRoleplayMessage.content,
                 }
               : null;
+          // While the Rolls command is on, it decides who may roll. Otherwise a roll_dice the
+          // chat's Function Calling settings attached is offered and run the same way (#6945).
           const roleplayRollEnabled =
             chatMode === "roleplay" &&
             !input.impersonate &&
-            isRoleplayCommandAllowed(chatMeta, "roll", roleplayCallerId);
+            (isRoleplayCommandEnabled(chatMeta, "roll")
+              ? isRoleplayCommandAllowed(chatMeta, "roll", roleplayCallerId)
+              : chatResolvedToolNames.has("roll_dice"));
           const roleplayActivity: RoleplayCommandActivity[] = [];
           const roleplayInlinePrefixes = new Map<RoleplayCommandActivity, string>();
           const responderToolDefs =
@@ -9226,6 +9315,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           // the message before it, or, for a continuation, the row the continued message already
           // has. That is what keeps a swipe or a regenerated turn from spending twice.
           let rulesetSheetTurn: GameRulesetSheetTurn | null = null;
+          // Kept for the inventory tags below, which use items onto the same sheets.
+          let turnSheetContext: GameRulesetSheetContext | null = null;
           if (chatMode === "game" && !input.impersonate && chatMeta.gameRuleset != null) {
             // Purchases the checks above already paid for, folded onto the turn's starting state
             // one character at a time, so a member nobody spent for is untouched.
@@ -9233,6 +9324,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               checkSpendLive ? { ...(base ?? {}), ...checkSpendLive } : base;
             try {
               const sheetContext = await loadGameRulesetSheetContext(app.db, input.chatId, turnGameRuleset);
+              turnSheetContext = sheetContext;
               if (sheetContext) {
                 rulesetSheetTurn = applyGameRulesetSheetTurn(
                   sheetContext,
@@ -9272,12 +9364,51 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             messageId: string | null;
             /** The swipe a regenerated or continued telling replaced or added to. */
             replaced: number | null;
+            /** What a `use` works on: the sheets as the sheet commands left them, and the dice's seed,
+             *  so the answers worked out now and once the reply is saved roll the same. */
+            uses?: {
+              context: GameRulesetSheetContext;
+              live: RulesetLiveStates;
+              seed: number;
+              /** The rests the turn's sheet commands took, whose charges come back to what is carried. */
+              rests: Array<{ who: string; rest: string }>;
+            };
+            /** What a `[loot:]` rolls: the ruleset its tables are in, and the dice's seed. */
+            loot?: { definition: RulesetDefinition; seed: number };
+            /** Where the reply's buys are priced (#6917): the place in force, and the market there. */
+            market?: GameInventoryMarket;
           } | null = null;
-          const tellsInventory = /\[inventory:/i.test(fullResponse);
+          // ── Place tags (#6917) ──
+          // Where the scene is, for a ruleset with a market: the last place the player's visible
+          // messages said (not the telling a regeneration replaces), then the reply's own, each
+          // answered in place. The reply's buys are priced at the place it leaves the party in.
+          let turnPlace: GamePlace | null = null;
+          const turnMarket =
+            chatMode === "game" && !input.impersonate && turnGameRuleset?.status === "ok"
+              ? turnGameRuleset.definition.items?.market
+              : undefined;
+          if (turnMarket) {
+            turnPlace = await gamePlaceBefore(app.db, input.chatId, input.regenerateMessageId ?? null);
+            if (/\[place:/i.test(fullResponse)) {
+              const placed = applyGamePlaceTags(fullResponse, (word) => rulesetMarketPlace(turnMarket, word));
+              if (placed.content !== fullResponse) {
+                fullResponse = placed.content;
+                contentReplaced = true;
+              }
+              if (placed.place) turnPlace = placed.place;
+            }
+          }
+          const tellsInventory = /\[(?:inventory|loot):/i.test(fullResponse);
+          // A rest the sheet commands took may bring charges back to what the rested carry.
+          const turnRests = rulesetSheetTurn?.rests ?? [];
           const retellsInventoryTurn =
             !!input.regenerateMessageId &&
             readGameInventoryTurn(chatMeta.gameInventoryTurn)?.messageId === input.regenerateMessageId;
-          if (chatMode === "game" && !input.impersonate && (tellsInventory || retellsInventoryTurn)) {
+          if (
+            chatMode === "game" &&
+            !input.impersonate &&
+            (tellsInventory || retellsInventoryTurn || turnRests.length > 0)
+          ) {
             try {
               const party = { player: personaName || undefined, members: canonicalGamePartyNames };
               const retoldId = input.regenerateMessageId ?? input.continueMessageId ?? null;
@@ -9301,15 +9432,55 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 telling,
               );
               const requested = fullResponse;
-              const rules = tellsInventory
-                ? await loadGameInventoryItemBook(
-                    app.db,
-                    { metadata: currentMeta, resolved: turnGameRuleset, playerName: personaName || null },
-                    "game-master",
-                  )
-                : undefined;
+              const rules =
+                tellsInventory || turnRests.length > 0
+                  ? await loadGameInventoryItemBook(
+                      app.db,
+                      { metadata: currentMeta, resolved: turnGameRuleset, playerName: personaName || null },
+                      "game-master",
+                    )
+                  : undefined;
+              const uses =
+                rules && turnSheetContext && rulesetSheetTurn
+                  ? {
+                      context: turnSheetContext,
+                      live: rulesetSheetTurn.live,
+                      seed: randomInt(0, 2 ** 31 - 1),
+                      rests: turnRests,
+                    }
+                  : undefined;
+              const loot =
+                turnGameRuleset?.status === "ok" && turnGameRuleset.definition.items?.lootTables?.length
+                  ? { definition: turnGameRuleset.definition, seed: randomInt(0, 2 ** 31 - 1) }
+                  : undefined;
+              // A seller's `only` reads the turn's own live state, as the items this reply uses do.
+              const market =
+                rules && turnMarket
+                  ? await loadGameMarket(
+                      app.db,
+                      input.chatId,
+                      turnGameRuleset,
+                      rules,
+                      turnPlace,
+                      rulesetSheetTurn?.live ?? {
+                        ...((await turnStartRulesetLive()) ?? {}),
+                        ...(checkSpendLive ?? {}),
+                      },
+                    )
+                  : undefined;
               const preview = tellsInventory
-                ? applyGameInventoryTags(requested, plan.start, party, undefined, rules).content
+                ? applyGameInventoryTags(
+                    requested,
+                    plan.start,
+                    party,
+                    undefined,
+                    rules,
+                    uses && rules
+                      ? gameInventoryItemUser(uses.context, rules.itemOf, uses.live, uses.seed).useItem
+                      : undefined,
+                    loot ? gameLootTagRoller(loot.definition, rules, loot.seed) : undefined,
+                    market,
+                  ).content
                 : requested;
               if (preview !== fullResponse) {
                 fullResponse = preview;
@@ -9322,6 +9493,9 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 party,
                 tellsInventory,
                 ...(rules ? { rules } : {}),
+                ...(uses ? { uses } : {}),
+                ...(loot ? { loot } : {}),
+                ...(market ? { market } : {}),
                 messageId: retold?.id ?? null,
                 replaced: retold ? (retold.activeSwipeIndex ?? 0) : null,
               };
@@ -9692,9 +9866,13 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           // Now that the reply is saved, its tags are carried out on the stacks as they are, in one
           // save with the journal. What this telling left is remembered beside where its turn began,
           // and what its tags did is laid onto the row the reply was saved with.
+          // The sheets as the items the reply's inventory tags used left them, when any were used.
+          let inventoryLive: RulesetLiveStates | undefined;
           if (inventoryTurn && savedMsg?.id) {
             const pending = inventoryTurn;
             let carriedOut = false;
+            // The items used here change the sheets the turn saves below.
+            let user: ReturnType<typeof gameInventoryItemUser> | undefined;
             try {
               const swipeIndex = savedSwipeIndex ?? 0;
               const committed = await commitGameInventoryChange(
@@ -9706,9 +9884,38 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                     stacks,
                     pending.telling,
                   );
+                  user =
+                    pending.uses && pending.rules
+                      ? gameInventoryItemUser(
+                          pending.uses.context,
+                          pending.rules.itemOf,
+                          pending.uses.live,
+                          pending.uses.seed,
+                        )
+                      : undefined;
                   const outcome = pending.tellsInventory
-                    ? applyGameInventoryTags(pending.requested, plan.start, pending.party, undefined, pending.rules)
+                    ? applyGameInventoryTags(
+                        pending.requested,
+                        plan.start,
+                        pending.party,
+                        undefined,
+                        pending.rules,
+                        user?.useItem,
+                        pending.loot
+                          ? gameLootTagRoller(pending.loot.definition, pending.rules, pending.loot.seed)
+                          : undefined,
+                        pending.market,
+                      )
                     : { content: pending.requested, stacks: plan.start, journal: [] };
+                  // The turn's rests bring charges back on top of what its tags did, from the same start.
+                  if (pending.uses?.rests.length && pending.rules) {
+                    outcome.stacks = gameInventoryRestRecharge(
+                      pending.uses.context,
+                      pending.rules.itemOf,
+                      pending.uses.rests,
+                      pending.uses.seed,
+                    )(outcome.stacks);
+                  }
                   const turnRecord = recordGameInventoryTelling(
                     pending.messageId ?? savedMsg.id,
                     plan.before,
@@ -9743,6 +9950,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               );
               if (committed) {
                 carriedOut = true;
+                if (user?.used()) inventoryLive = user.live();
                 const { plan, content, before } = committed.value;
                 // The stacks moved while the reply was being written (the player changed them), so
                 // its saved answers are brought in line with what really happened.
@@ -9846,7 +10054,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           // and otherwise just the purchases the checks already paid for. Without the second half a
           // turn whose sheet pass was skipped or threw would keep the automatic successes a player
           // bought and quietly give the points back, which is a free success.
-          const liveAfterTurn = rulesetSheetTurn?.live ?? checkSpendLive;
+          const liveAfterTurn = inventoryLive ?? rulesetSheetTurn?.live ?? checkSpendLive;
           if (liveAfterTurn && savedMsg?.id) {
             try {
               const swipeIndex = savedSwipeIndex ?? 0;
@@ -10033,6 +10241,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               extraUpdate.roleplayPrivateContext = Boolean(
                 roleplayPersonalContext ||
                 roleplayWhisperContext ||
+                roleplayNoteContext ||
                 roleplayHadCommands ||
                 previousExtra.roleplayPrivateContext,
               );
@@ -10999,9 +11208,17 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             generatedExpressionTargetIds.add(userIdentityId);
           }
           if (generatedExpressionTargetIds.size > 0 && Array.isArray(agentContext.memory._availableSprites)) {
-            agentContext.memory._availableSprites = (
-              agentContext.memory._availableSprites as Array<{ characterId: string }>
-            ).filter((sprite) => generatedExpressionTargetIds.has(sprite.characterId));
+            // Merged narration can evaluate the whole active cast without requiring every sprite to be present.
+            const mergedRoleplayResponse =
+              chatMode === "roleplay" &&
+              isGroupChat &&
+              groupChatMode === "merged" &&
+              lastSavedMsg?.role === "assistant";
+            if (!mergedRoleplayResponse) {
+              agentContext.memory._availableSprites = (
+                agentContext.memory._availableSprites as Array<{ characterId: string }>
+              ).filter((sprite) => generatedExpressionTargetIds.has(sprite.characterId));
+            }
             agentContext.memory._expressionTargetIds = [...generatedExpressionTargetIds];
           }
           if (hasPostProcessingAgents) {

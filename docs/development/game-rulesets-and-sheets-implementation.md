@@ -1358,6 +1358,373 @@ writes to the inventory ships on its own.
   `e2e/game-ruleset-ammo.e2e.ts`, with 61 deliberate breaks each caught (one of them, the director's
   write, by the e2e).
 
+### What modes, off-hand attacks, a floor and conditions on a hit settled
+
+Capability API 1.58, for #6875. Slice I5-4 of the ruleset items plan: the rest of section 4.4.
+
+- **Modes.** A weapon's `attack.modes` (up to six) each carry an `id`, a `label` and what they
+  change: `ammo` (one attack's shots, so the weapon has `ammo` or a `clip`, and no more than a
+  written clip holds), `toHit`, `target` (a pool fight whose target can move) and `targets`.
+  `rulesetModedAction` (ammo.ts) derives the attack in a mode: the label gains the mode's in
+  brackets, `toHit` adds, a pool target moves from the weapon's own or else the pool's default, the
+  target count is the mode's, and `shots` replaces its ammunition's per-attack count. The menu lists
+  on the option the modes its holder has the shots for, each with its own forecast, and none in a
+  window. A choice's `mode` (and a held attack's `resume.mode`) makes the attack in that mode; one
+  the option does not offer is refused as `unknown-mode`. The mode travels like an initiative
+  style: the command schema, the director's command and GM-candidate paths, the client's menu step
+  (after the style step), the board and `DirectedCombatUI`.
+- **The Engine's picker weighs modes** (`modedWays` beside `styledWays`) only when aimed at one
+  target: it aims every candidate at one, and a mode for several would pay for shots it never takes
+  (a `ponytail:` note; a candidate per group of targets is the upgrade).
+- **Off hand.** `combat.offHand` (`budget`, `ability` `full` or `penalty-only`) and an item's
+  `attack.offHand`. A worn off-hand weapon's main attack carries `pairs` (its item index), and a
+  second action `offhand:<index>` on the off-hand budget carries `offHandOf`, one blow (no
+  `strikes`) with the damage ability the ruleset allows. Taking a `pairs` attack on a turn sets
+  `flags.offHand`, cleared with the other flags as the next turn begins, and `rulesetActionAvailable`
+  offers an off-hand attack only after another weapon's. `rulesetOpportunityAttack` never picks one.
+  The option says `offHand`, and the client names it "<weapon>, off hand".
+- **Floor.** `attack.floor` (a number or a number stat) is `damage.floor` on the action. The first
+  amount of a pool blow's harm after soak, or of a summed blow's damage, is raised to it before a
+  save halves it and before a resistance does; the damage event carries `floor` when it raised it,
+  and the log says so. A spending blow's path never reads it.
+- **On a hit.** `attack.onHit` entries (`condition`, `atLeast`, `rounds`) are applied through
+  `applyConditionId` after the blow, when the harm dealt (after soak and resistances) reached
+  `atLeast`, for `rounds` or with no clock; immunity is read as for any condition.
+- **Seen and said.** Item facts gain `modes`, `offHand` (the budget's label), `floor` and `onHit`
+  (the condition's label); the Game Master's line ends with `modes Volley (2 shots, -2 to hit, up to
+  2 targets)`, `off hand (Quick)`, `at least 1 on a hit before resistance` or `Marked for 2
+  rounds when a hit deals 2 or more`, and the item details say the same in localized lines.
+- **Examples.** Ember Roads' hunting bow gains a volley. Gravewatch gains `combat.offHand` on its
+  quick budget; its silver coffin nail is an off-hand weapon that marks what it harms twice or more
+  for two rounds, and its grave spade never deals less than one on a hit.
+- **Proven** by `scripts/regressions/game-ruleset-weapon-modes.regression.ts` (import and the gate,
+  a volley at two and at one, a mode refused or not offered, a pool mode's target, the off hand after
+  another weapon and not after a spade or alone, never in passing, `penalty-only`, a floor in a pool
+  and a summed fight and under a resistance, conditions on a hit at and below the number, lasting
+  and resisted, the director's command, the Engine's picker choosing a mode, facts and the log),
+  lanes that pin older gates, the examples or the Game Master's lines, and
+  `e2e/game-ruleset-weapon-modes.e2e.ts`, with 60 deliberate breaks each caught (two of them, in the
+  client's mode step and its command, by the e2e).
+
+### What using items in a fight settled
+
+Capability API 1.59, for #6880. Slice I6-1 of the ruleset items plan, split from using items outside
+a fight (the Use button, the Game Master's `use`, scroll gates, charges regained on rests and
+`breaksOn`, now I6-2) so the fight side ships on its own.
+
+- **The keys.** An item gains `use` and `charges`. `use` is the `mechanics` vocabulary less what only
+  a sheet row can mean (`cost`, `perCostStep`, `check`, `concentration`, `reaction`, `scales`,
+  `gives`, `standard`, `rider`, and the kinds `utility` and `rider`), plus a weapon-style `toHit`
+  (only with `attackRoll`), a `saveDifficulty` (a number or a number stat, required when anything in
+  it asks a save, since an item has no catalog source to read one off), `consumes` and a `charges`
+  cost. `charges.max` is a number or a number stat. A use is used up or spends charges, never both;
+  charges need a use that spends them and a `stack` of 1. With a combat block, a use needs a budget
+  or `free`, its budget and its to-hit are checked as a weapon's are, a pool fight's harm dice are the
+  pool's die, and a wound track refuses its `temporary` as it refuses an ability's.
+- **One action per use.** `mechanicsAction` (lifted out of `abilityAction`) builds the action from
+  either; `itemUseActions` adds `use:<index>` of a new kind `item` for each held item with a use, worn
+  where it takes slots or binds, with `itemUse` (the item's index, `consumes`, and the charges' cost
+  and max). Only a sheet row carries `use` (the pool payment), so an item pays with itself. Charges or
+  a save's number read off a stat the item does not give leave the use off the menu.
+- **Counted on the fighter.** `rulesetItemUseLeft` reads what is left: the stack's quantity less
+  `itemsUsed`, or `charges` on the combatant, else the stack's kept count, else `max`.
+  `rulesetShotsAvailable` asks it, so the menu, windows and sequences see an item with none left the
+  same way; `spendRulesetShots` spends one off the stack or the charges and emits the existing `uses`
+  event. `rulesetOpportunityAttack` never picks a use.
+- **Charges, on the stack.** `GameInventoryStack.charges` is kept on a stack of one only and read into
+  `RulesetSheetItem.charges`; pouring stacks together forgets it, as `loaded` is forgotten.
+- **Written back.** `RulesetFightItemChange` gains `charges`; the director's `save()` writes it
+  through the same `applyGameInventoryChangeHeld` path as shots and loads, and a stack gone refuses
+  the step.
+- **Seen and said.** The menu has an **Items** group after abilities, and the board counts a use as
+  something to do in reach. Item facts gain `use` (budget label, kind, amount, type, to-hit, save,
+  conditions, temporary, range, area, the distance unit, `consumes`, charges); the Game Master's line
+  ends with `use (Action): heals 1d4 + 1, range 0 paces, used up`, the item details say the same in
+  localized lines and show the charges left.
+- **Invented items.** An item made `like=` one with a use copies `use` and `charges`, and `stack`
+  already came with it.
+- **Examples.** Ember Roads gains a poultice (a heal on the Action, used up). Gravewatch's warming
+  tonic heals a box of harm on the quick budget, used up, and its dawn bell, worn and bound, spends
+  one of three charges to rattle what fails a Steel save against 7.
+- **Proven** by `scripts/regressions/game-ruleset-item-use.regression.ts` (import and the gate, a
+  poultice on its holder and a friend and never a foe, used up and refused, the Items group, a tonic
+  on the quick budget beside a blow, a bell only while worn, its charges spent and kept, a use that
+  spends two, charges read off a stat, never in passing, the write-back by stack id, charges on a
+  stack of one, the Engine's own party member healing whoever is hurt, facts, the Game Master's
+  lines and invented items), lanes that pin older gates, the examples or the menu's groups, and
+  `e2e/game-ruleset-item-use.e2e.ts`, with 69 deliberate breaks each caught.
+
+### What using items outside a fight settled
+
+Capability API 1.60, for #6881. Slice I6-2 of the ruleset items plan, split again from charges
+regained on rests, `breaksOn` and scroll `gate`s (now I6-3), so the inventory and generate seams ship
+on their own.
+
+- **`restore`.** A use's `restore` (`pool`, `amount`) is a declared live pool that is not the health
+  pool, on a heal or a buff, with an amount. In a fight it is `action.restore`, written to each
+  target with a sheet after its temporary points, with a `restored` event; the option carries
+  `restores`, and the Engine's picker skips a target (or a shape of friends) whose pool is full.
+- **One use, outside a fight.** `useRulesetItemOutsideFight` (shared `item-use.ts`) is pure: it finds
+  the stack and its item, refuses one that is not a ruleset item, has no use, is not worn where it
+  takes slots or binds, or has too few charges, then applies to its user what lands on them (a heal or
+  a buff not aimed at the enemy): a heal through the same op a fight uses (a pool's `restore`, or one
+  wound mark cleared), `temp`, the `restore`, and each condition on. A harmful or enemy-aimed use
+  applies nothing and says what it does (`rulesetItemUseDoes`). It spends through
+  `applyRulesetFightItemChanges`, journals a use of charges as "used", and returns the said parts;
+  `rulesetItemUseLine` is the Game Master's sentence.
+- **The Use button.** `POST /api/game/inventory/use` (`useGameRulesetItem`) runs inside the chat's
+  metadata queue and one transaction: the bag through `applyGameInventoryChangeHeld`, and the carrier's
+  live sheet on the visible game-state row, rolled with `rollDieSecurely`. The client sends it through
+  the same ordered path as other inventory saves (`sendInventory`), catches the game-state store up,
+  and sends "I use my X." with an `[item_used]` block holding the line. The block is a reserved tag
+  name, stripped with the combat recap (`stripEngineResultBlocks`) and shown as a badge. An item
+  without a use still sends the plain sentence.
+- **The Game Master's `use`.** `InventoryTagAction` gains `use`; `applyGameInventoryTags` takes a
+  `GameInventoryItemUser`, supplied by the generate route from `gameInventoryItemUser` over the sheet
+  commands' live and a per-turn seed (`rulesetCombatRoller`), so the preview answers and the saved ones
+  roll the same. The answer carries the line as its `note`; the sheets the uses left replace the turn's
+  live before it is saved. The prompt offers the tag in rulesets with item catalogs and explains
+  `[item_used]`, and the client announces "You used Poultice."
+- **Examples.** Gravewatch's warming tonic also restores a point of Resolve.
+- **Proven** by `scripts/regressions/game-ruleset-item-use-outside.regression.ts` and
+  `e2e/game-ruleset-item-use-outside.e2e.ts`, with 48 deliberate breaks each caught.
+
+### What charges over time settled
+
+Capability API 1.61, for #6888. Slice I6-3 of the ruleset items plan, split from scroll gates (now
+I6-4) so the rest seam and the check seam ship on their own.
+
+- **The keys.** An item's `charges` gains `recharge` (`rests`, one to twelve of the ruleset's rest
+  ids; `amount`, `"max"` or an amount) and `breaksOn` (`die` 2 to 100, `atMost` no more than the
+  die). An unknown rest and an empty amount are refused at import.
+- **Breaking.** A fight's use carries `breaksOn` on `itemUse.charges`; `breakRulesetItem` (ammo.ts),
+  called by `spendAvailability` right after a spend that emptied the item, rolls the fight's die and
+  on a break takes the item off its stack of one and marks it `broken`, with a `broke` event. The
+  write-back journals what was taken as "lost". Outside a fight `useRulesetItemOutsideFight` rolls the
+  same way and says `broke`.
+- **Recharging.** `rechargeRulesetItems` (item-use.ts) refills the items one bag carries for one rest,
+  never past `max`, dropping the kept count once full. The sheet's Rest button, where the ruleset has
+  items, goes through `POST /api/game/inventory/rest` (`restGameRulesetCharacter`): the rest on the
+  character's sheet and the recharge of their bag (the player's own for the player's card) in one
+  transaction, after any sheet edit still waiting to be saved has landed. The Game Master's rests come
+  back from `applySheetCommandTags` as `rests` (per card, so a party rest counts each member), and the
+  generate route's inventory pass runs for them too, recharging from the turn's start with a die
+  kept apart from the uses' (`gameInventoryRestRecharge`).
+- **Seen and said.** The Game Master's inventory line gives each charged stack's charges left
+  (`gameInventoryTotals`' `chargesOf`); item facts and details say what recharges and what breaks, and
+  a use's cost now reads "spends 1 of 3 charges".
+- **Examples.** Gravewatch's dawn bell regains its charges on standing down from the vigil and may
+  crack when rung empty.
+- **Proven** by `scripts/regressions/game-ruleset-item-charges.regression.ts`, the Game Master's rest in
+  `game-inventory-turn.regression.ts`, and `e2e/game-ruleset-item-charges.e2e.ts`, with 35 deliberate
+  breaks each caught.
+
+### What item gates settled
+
+Capability API 1.62, for #6892. Slice I6-4 of the ruleset items plan, the check seam split from
+charges over time.
+
+- **The key.** A use's `gate`: `check` is exactly one of a skill, an ability or a value ref (the value
+  form is for a number that differs per character, as a 5e caster's spellcasting modifier does);
+  `difficulty` is 1 to 100 or an item stat; `unless` is a value ref and `atLeast`. Unknown skills,
+  abilities, value refs and item stats are refused at import.
+- **Worked out once.** `rulesetItemGateCheck` (check-effects.ts) answers null when `unless` is met and
+  otherwise the target, the sheet's number (`rulesetCheckModifier`, or the value) with
+  `resolution.adjust`, and the difficulty (`rulesetItemGateDifficulty`, item-book.ts, which a missing
+  stat leaves undefined: the fight drops the use and the Use button refuses it as `no-use`).
+- **In a fight.** `itemUseActions` puts the gate on `itemUse.gate` as the fight begins (no gate when
+  `unless` is met). The main choice path rolls it right after `spendAvailability` (`passesGate`,
+  shaped as `rollSave`): a pool in a pool fight, the fight's dice otherwise, with the "checks"
+  modifiers and roll mode of the user's conditions and worn items. `rulesetConditionModifiers` and
+  `rulesetCheckMode` now let a named skill through, so what is narrowed to it counts; contests still
+  name none. A failed gate emits a `gate` event and ends the action with the item spent. Item uses
+  are never reactions, sequence parts or signatures, so no other spend path needs it.
+- **Outside a fight.** `useRulesetItemOutsideFight` rolls it before anything is applied, with the
+  user's own items (`rulesetSheetItems` for the stack's holder), the ruleset's roller
+  (`rollDiceSumCheck`, or `rollDicePoolCheck` with the difficulty clamped to what a pool can count),
+  the wound penalty and `rulesetCheckEffects`. A failure spends the item and applies nothing; `said.gate`
+  carries the roll into the line.
+- **Seen and said.** Item facts carry `gate` (check label, difficulty, `unless` as a value label); the
+  Game Master's line says "needs a Ward check against 2 first, unless Nerve is 3 or more; failed, it
+  is used up for nothing", the details say the same, and the fight log has pass and fail lines.
+- **Examples.** Gravewatch's page of the vigil litany restores two Resolve behind a Ward gate that
+  Nerve 3 skips.
+- **Proven** by `scripts/regressions/game-ruleset-item-gate.regression.ts` and
+  `e2e/game-ruleset-item-gate.e2e.ts`, with 36 deliberate breaks each caught.
+
+### What loot settled
+
+Capability API 1.63, for #6894 and the loot drift of #6758. Slice I7-1 of the ruleset items plan,
+split from money (I7-2). The user ruled on 2026-09-30 that games without a ruleset get the native drops
+the combat guide always promised.
+
+- **The keys.** `items.lootTables` (`rolls` a number or dice, `entries` of an `item` ref or a
+  `filter` by rarity, category and tag, each with a `weight` and a `count`), and a bestiary creature's
+  `loot` naming a table. Unknown catalogs, items of inline catalogs, words and tables are refused at
+  import. The install gate asks for 1.63 last, after every older check, so a package declaring an
+  older minor hears first about what that minor lacks.
+- **One source rule.** `planGameVictoryLoot` (game-loot.service.ts): a ruleset with loot tables rolls
+  the tables of the defeated (`rollRulesetLootTable`, features/rulesets/loot.ts), into the shared view
+  (`among` the player's card first, the player's card chosen as the Use and Rest routes choose it);
+  otherwise, with native items on, `generateCombatLoot` (loot.service.ts, its randomness now injected)
+  drops plain items into the player's bag; otherwise nothing.
+- **Once per fight.** A directed fight (every ruleset fight, and Classic or Tactical with the combat
+  director) drops on the step that wins, inside that step's transaction (`save()` in
+  combat-director.routes.ts), and keeps it on `CombatDirectorState.loot`, which `sync()` copies into the
+  summary, empty when nothing dropped. The fight state keeps each bestiary opponent's table
+  (`RulesetFightState.lootTables`) as the fight is built. A fight played on the screen alone asks
+  `POST /api/game/inventory/loot` (`lootGameFight`), keyed by the message that started it and
+  remembered in `gameLootedFights` beside the stacks. The unused `/game/combat/loot` and
+  `/game/loot/generate` routes are gone.
+- **Said.** `handleCombatEnd` waits for the drop before the recap: "Loot (already in the party's
+  bags)", what was left behind, the journal line and a notification; the "decide a reward" line only
+  when nothing dropped.
+- **The Game Master's `[loot:]`.** Parsed beside the inventory tags (`createLootTagRegex`,
+  `parseLootTagBody`), rolled by a hook `applyGameInventoryTags` takes, seeded per turn
+  (`gameLootTagRoller`, kept apart from the use and rest dice), and answered as resolved adds, so the
+  screen announces it and the next turn reads it as any add; a table that drops nothing or a refused
+  tag keeps its own place. Reserved, stripped from narration, a badge in the session log, and listed in
+  the Game Master's instructions only where the ruleset has tables. Mari's instructions say what
+  really happens.
+- **Examples.** Gravewatch's grave goods, carried by the hollow warden and the grave wight, with a
+  filter line for any arm. Ember Roads keeps none, so the lanes that cut it down stay as they were.
+- **Proven** by `scripts/regressions/game-ruleset-loot.regression.ts` (a directed Ember fight won
+  through the routes among it), the `[loot:]` turn in `game-inventory-turn.regression.ts`, and
+  `e2e/game-ruleset-loot.e2e.ts`, with 40 deliberate breaks each caught.
+
+### What money settled
+
+Capability API 1.64, for #6901. Slice I7-2 of the ruleset items plan, after loot (I7-1).
+
+- **Coins are stacks.** A coin is an inventory stack whose `item` is `coin:<unit id>`
+  (`GAME_INVENTORY_ITEM_REF_PATTERN`), named by the unit's label, so it gets everything a stack
+  already has: bags, giving, splitting, merging, carry-over, a turn's restart and branching. The item
+  book (`rulesetItemBook`) answers a book entry for each coin, weighing `1 / perWeight` of the carry
+  stat, and `coinNamed` finds a coin by id or label, singular or plural. No new storage.
+- **Paying and earning.** `[inventory: action="pay" amount="3 shillings" who="..."]` and
+  `action="earn"`. A payment is `payGameInventoryCoins` (game-inventory-coins.ts): one bag, one
+  family, largest coins first, then the smallest coin that covers the rest is broken and the change
+  given greedily in smaller coins; refused `cannot-afford`, `unknown-coin` or `no-currencies`. The
+  journal lists what was spent and what came back. An earning is an add of the coin, placed by the
+  carrying rule.
+- **Said.** The purse line above the inventory's stacks (`ui.game.gameinventory.purse`), the picker's
+  Coins list, a notification per payment and earning, and for the Game Master each bag's worth per
+  family (`rulesetPurseText`), an item's cost in its facts, and the pay and earn line only where the
+  ruleset has coins.
+- **Layers hide coins, never rewrite them.** A layer's `currencies` (`removeUnits`,
+  `removeFamilies`; a family's smallest coin only with its family) is read by
+  `rulesetLayeredCurrencies`, the way `catalogEntryHiddenByLayers` hides catalog entries: the effective
+  definition keeps every coin, so an item priced in a coin that is gone still validates, and its price
+  is said at the same worth in the largest coin left that pays it exactly. Taking the coins out of the
+  effective definition instead failed the layered definition's validation (Gravewatch prices two items
+  in crowns), which silently dropped the whole layer.
+- **Loot drops coins.** A loot line may name `coins` (a unit id) instead of an item or a filter.
+- **The browser keeps a layer over loot tables.** Since I7-1 a loot line's item was checked against
+  its catalog's inline entries in the layered definition too, and the browser's listing sends catalogs
+  without their entries, so the check failed there and the client dropped every layer of a ruleset with
+  loot tables while the server kept it. A layered definition (`layersApplied`) now skips that check:
+  the file was checked at import.
+- **The install gate** asks for 1.64 for a layer's `currencies` or a loot line's `coins`, after the
+  1.63 check.
+- **Examples.** Gravewatch's grave goods drop a few shillings, and its long night takes the crown out.
+- **Proven** by `scripts/regressions/game-ruleset-money.regression.ts` and
+  `e2e/game-ruleset-money.e2e.ts`, with 55 deliberate breaks each caught. Two more found conditions
+  in the payment that could never change its result, which were deleted.
+
+### What items in Classic and Tactical battles settled
+
+No Capability API change: slice I8-1 of the ruleset items plan (#6905) reads keys that shipped with 1.59.
+
+- **Effects from `use`.** `rulesetItemFightEffect` (features/rulesets/item-fight.ts) turns an item's
+  `use` into a `CombatItemEffect` marked `ruleset: true`: heal or damage by a share of the target's
+  maximum health (`average / AVERAGE_AMOUNT_PER_POWER * 0.22`, from 0.05 to 1, the bridge's scale
+  measured against the Engine's typical hit of 11 to 15 out of about 60), the damage type as the
+  element, the first applied condition as a status by its label, `targets` or a default by kind, and
+  `consumes`. The description is the item's own use text.
+- **Which items a battle offers.** `gameFightItems` keeps a plain item while `native` is on, and one
+  of the ruleset's items only when it has an effect; only a guess a plain item takes is kept (so one
+  made for the ruleset's items is dropped, and a plain item sharing a ruleset item's name keeps its
+  own whichever is listed first), and one that claims to be the ruleset's is dropped. Without an item
+  book every item is guessed at, as before. The server's `loadGameFightItems` reads it for the
+  encounter's start (whose prompt names the ruleset's items the model must leave alone), the combat
+  director's start (which no longer trusts the screen's effects for them) and, in a game with ruleset
+  items, the Classic round route (which refuses an item the battle does not offer and puts the
+  worked-out effect on one of the ruleset's). The screen lists an item of the ruleset only when the
+  battle's effects include it.
+- **A ruleset heal sets its strength.** `resolveItemAction` heals by `power` for a ruleset effect; a
+  guessed heal still goes by what its name suggests, as it did.
+- **Split from I8-2.** An item whose use spends charges or asks a check first was left out of these
+  battles until I8-2 (below). Screen-played Tactical battles offer no items at all, as before, and
+  their route, whose engine heals with any item it is handed, now takes only a plain item the battle
+  offers.
+- **Proven** by `scripts/regressions/game-ruleset-classic-items.regression.ts` and
+  `e2e/game-ruleset-classic-items.e2e.ts`, with 39 deliberate breaks each caught. A fortieth showed a
+  check on the guesses that could never change the result once only guesses a plain item takes are
+  kept, and it was deleted.
+
+### What charges and gates in Classic and Tactical battles settled
+
+No Capability API change: slice I8-2 of the ruleset items plan (#6909).
+
+- **Offered by uses, from the stacks they may be used from.** An effect carries `charges` (cost and
+  most) and `wear` (worn and bound where the item asks it). `gameFightOffers`, which the server and the
+  screen both read, counts a charged line in uses over the usable stacks (a stack without a count
+  full) and offers a line only while one is left. This also closes an I8-1 gap: an item that takes
+  slots or binds was offered unworn.
+- **Spent by a `charge` operation.** New inventory op: `count` uses by own name, each off the first
+  usable stack with enough, the player's own first (or one bag with `from`); a stack emptied rolls the
+  item's `breaksOn` with the dice the caller passes (`applyGameInventoryOps` takes a `roll`; the
+  inventory route and the director pass `rollDieSecurely`), gone when it breaks. The book's items
+  carry their charge rules (`GameInventoryRulesetItem.charges`). The screen sends it for a charged
+  item after a round; the director turns a charged line's spends into it when it saves a step.
+- **Used up from a stack it may be used from.** The `take` op's new `worn` flag
+  (`gameInventoryUsableStack`, shared with the `charge` op) spends only a worn, and where it binds
+  bound, stack; the screen and the director set it. Without it a fight counted the worn tonic but
+  drank a spare from the bag, and a worn cursed ring used spare rings up in its place.
+  One rule, `gameInventoryWearNeeds` with `gameInventoryWearMet`, says what worn means for the Use
+  button, the fight menu and these spends alike, so they cannot drift apart again.
+- **Gates rolled on the server.** `rollRulesetItemGate` (item-use.ts), extracted from the Use
+  button's path, rolls it for the user's sheet, live state and worn items. `rollGameFightItemGate`
+  (game-item-use.service.ts) finds the user's card by the unit's name; only the player's own unit (the
+  player's card, or the persona's name) falls back on the player's card, and anyone else without one
+  rolls on a blank sheet from their own bag, as a ruleset fight builds them.
+  The Classic round route rolls it for the unit the round gives the item to; the director's command
+  route rolls it before a player's classic or tactical item command and marks the action `failed`.
+  A failed use is a miss that does nothing and carries a `note` the log shows instead of its usual line.
+- **Proven** by the charges-and-gates sections of
+  `scripts/regressions/game-ruleset-classic-items.regression.ts` and by
+  `e2e/game-ruleset-classic-items.e2e.ts`, with 40 deliberate breaks each caught.
+
+### What markets settled
+
+Capability API 1.65: slice I9-1 of the ruleset items plan (#6917).
+
+- **The market lives in the items block.** `items.market` holds price levels (`times` on an item's
+  cost, one `default`), place sizes (a ladder, smallest first), `sold` rules (filters read as a loot
+  line's are, the first match deciding) and `sellers` (filters, a smallest place, an `only` read off
+  the buyer's sheet as a gate's `unless` is). An item may carry its own `sold` place, and a `service`
+  mark for something bought and never carried. `market.ts` works everything out: a place by id or
+  label, the rank an item is sold from, the sellers at a rank, the price (worked out in the smallest
+  coin, rounded there and said in the largest coin the layers leave that pays it exactly, as
+  `itemPrice` says a cost), the quoter a buy is answered with, and the Game Master's block.
+- **The place comes from the chat, not from stored state.** The Game Master's `[place:]` tag is
+  answered in place (`game-place-tag.ts`), and the place in force is the last one answered in the
+  Game Master's replies the player sees (a tag a player types never counts) from the latest conversation start (`gamePlaceBefore`, which reads only
+  what came before the telling a regeneration replaces), then the reply's own. So swipes, deletions and branches need nothing of their own. `place` is a
+  reserved GM tag name. The worldgen plan will fill the same seam from a generated world.
+- **A buy is a payment and an add, or neither.** The `buy` action quotes, pays with
+  `payGameInventoryCoins` out of the buyer's bag, then adds on the paid stacks; a refused add, or one
+  that fits only some of what was bought, leaves the stacks as they were. A service is refused by the
+  add itself (`service`), so nothing puts one in a bag, and the picker leaves services out. The market is built once per turn (`loadGameMarket`) and kept on the
+  inventory turn, so the preview and the save answer alike. `only` is checked against the buyer's own
+  card (the player's for no name or the player's own; a blank sheet for a member with none), with
+  what they carry at that tag (the stacks the reply's earlier tags left) and the turn's own live state, the one its items are used with (never a replaced
+  telling's row).
+- **Said to the Game Master** only where the ruleset has a market: the place and buy lines, and a
+  MARKET block listing each seller present with a dozen wares, cheapest first.
+- **Proven** by `scripts/regressions/game-ruleset-markets.regression.ts` and
+  `e2e/game-ruleset-markets.e2e.ts`, with 61 deliberate breaks each caught.
+
 ## Gaps a ruleset author found
 
 The author of [Marinara-RPG-Extension](https://github.com/Kenhito/Marinara-RPG-Extension), who

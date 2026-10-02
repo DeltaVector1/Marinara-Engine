@@ -686,7 +686,7 @@ interface UIState {
   characterDetailInitialTab: string | null;
   /** One-shot tab the lorebook editor should open to. */
   lorebookDetailInitialTab: string | null;
-  /** One-shot entry the lorebook editor should open and scroll to. */
+  /** One-shot entry the lorebook editor should open expanded. */
   lorebookDetailInitialEntryId: string | null;
   /** One-shot tab the persona editor should open to. */
   personaDetailInitialTab: string | null;
@@ -1118,7 +1118,7 @@ interface UIState {
   setAgentPanelSort: (sort: ResourcePanelSort) => void;
   openCharacterDetail: (id: string, options?: { preserveCharacterLibrary?: boolean; initialTab?: string }) => void;
   closeCharacterDetail: () => void;
-  openLorebookDetail: (id: string, options?: { initialTab?: string; initialEntryId?: string }) => void;
+  openLorebookDetail: (id: string, options?: { initialTab?: string; entryId?: string }) => void;
   closeLorebookDetail: () => void;
   setLorebookLinkClipboard: (links: NonNullable<UIState["lorebookLinkClipboard"]>) => void;
   openPresetDetail: (id: string, options?: { initialTab?: string }) => void;
@@ -2229,7 +2229,7 @@ export const useUIStore = create<UIState>()(
           set((s) => ({
             lorebookDetailId: id,
             lorebookDetailInitialTab: options?.initialTab ?? null,
-            lorebookDetailInitialEntryId: options?.initialEntryId ?? null,
+            lorebookDetailInitialEntryId: options?.entryId ?? null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             botBrowserOpen: false,

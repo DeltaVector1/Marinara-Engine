@@ -89,7 +89,122 @@ function rulesetItemAttackLines(facts: RulesetItemFacts, t: TFunction): string[]
       : "",
     attack.clip ? t("ui.game.gameinventory.attackClip", { max: attack.clip.max, budget: attack.clip.reload }) : "",
   ].filter(Boolean);
-  return [first, ...(second.length ? [second.join(", ")] : []), ...(third.length ? [third.join(", ")] : [])];
+  const signed = (value: number) => (value > 0 ? `+${value}` : String(value));
+  const modes = (attack.modes ?? []).map((mode) => {
+    const parts = [
+      mode.ammo !== undefined ? t("ui.game.gameinventory.modeShots", { count: mode.ammo }) : "",
+      mode.toHit !== undefined ? t("ui.game.gameinventory.modeToHit", { change: signed(mode.toHit) }) : "",
+      mode.target !== undefined ? t("ui.game.gameinventory.modeTarget", { change: signed(mode.target) }) : "",
+      mode.targets !== undefined ? t("ui.game.gameinventory.modeTargets", { count: mode.targets }) : "",
+    ].filter(Boolean);
+    return parts.length
+      ? t("ui.game.gameinventory.modeWith", { label: mode.label, parts: parts.join(", ") })
+      : mode.label;
+  });
+  const fourth = [
+    attack.offHand ? t("ui.game.gameinventory.attackOffHand", { budget: attack.offHand.budget }) : "",
+    attack.floor !== undefined ? t("ui.game.gameinventory.attackFloor", { floor: attack.floor }) : "",
+    ...(attack.onHit ?? []).map((entry) =>
+      entry.rounds !== undefined
+        ? t("ui.game.gameinventory.attackOnHitRounds", {
+            condition: entry.condition,
+            atLeast: entry.atLeast,
+            rounds: entry.rounds,
+          })
+        : t("ui.game.gameinventory.attackOnHit", { condition: entry.condition, atLeast: entry.atLeast }),
+    ),
+  ].filter(Boolean);
+  return [
+    first,
+    ...(second.length ? [second.join(", ")] : []),
+    ...(third.length ? [third.join(", ")] : []),
+    ...(modes.length ? [t("ui.game.gameinventory.attackModes", { modes: modes.join(", ") })] : []),
+    ...(fourth.length ? [fourth.join(", ")] : []),
+  ];
+}
+
+/** A use's save: "Steel save of 7 for half", or without its number where the item does not give it. */
+function rulesetItemUseSaveText(save: NonNullable<NonNullable<RulesetItemFacts["use"]>["save"]>, t: TFunction): string {
+  const saved =
+    save.difficulty !== undefined
+      ? t("ui.game.gameinventory.useSaveOf", { save: save.save, difficulty: save.difficulty })
+      : t("ui.game.gameinventory.useSave", { save: save.save });
+  if (save.onSuccess === "half") return t("ui.game.gameinventory.useSaveHalf", { save: saved });
+  if (save.onSuccess === "negates") return t("ui.game.gameinventory.useSaveNegates", { save: saved });
+  return saved;
+}
+
+/** What using an item does, in one line: "Use (Action): heals 1d4+1, used up". Empty for an item
+ *  nobody uses. */
+function rulesetItemUseLine(facts: RulesetItemFacts, t: TFunction): string {
+  const use = facts.use;
+  if (!use) return "";
+  const distance = (value: number) =>
+    use.unit ? t("game.ruleset.catalog.mechanics.distance", { value, unit: use.unit }) : String(value);
+  const parts = [
+    use.kind === "heal" && use.amount ? t("ui.game.gameinventory.useHeals", { amount: use.amount }) : "",
+    use.kind !== "heal" && use.amount
+      ? use.type
+        ? t("ui.game.gameinventory.useDamageTyped", { amount: use.amount, type: use.type })
+        : t("ui.game.gameinventory.useDamage", { amount: use.amount })
+      : "",
+    use.toHit
+      ? use.target !== undefined
+        ? t("ui.game.gameinventory.useToHitAt", { toHit: use.toHit, target: use.target })
+        : t("ui.game.gameinventory.useToHit", { toHit: use.toHit })
+      : "",
+    use.save ? rulesetItemUseSaveText(use.save, t) : "",
+    use.applies?.length ? t("ui.game.gameinventory.useApplies", { conditions: use.applies.join(", ") }) : "",
+    use.temporary ? t("ui.game.gameinventory.useTemporary", { amount: use.temporary }) : "",
+    use.restore ? t("ui.game.gameinventory.useRestore", { amount: use.restore.amount, pool: use.restore.pool }) : "",
+    use.range !== undefined ? t("game.ruleset.catalog.mechanics.range", { distance: distance(use.range) }) : "",
+    use.area
+      ? t("game.ruleset.catalog.mechanics.area", {
+          shape: t(`game.ruleset.catalog.shape.${use.area.shape}`),
+          distance: distance(use.area.size),
+        })
+      : "",
+    use.consumes ? t("ui.game.gameinventory.useConsumes") : "",
+    use.charges ? t("ui.game.gameinventory.useCharges", { cost: use.charges.cost, max: use.charges.max }) : "",
+    use.charges?.recharge
+      ? use.charges.recharge.amount === "max"
+        ? t("ui.game.gameinventory.useRechargeAll", { rests: use.charges.recharge.rests.join(", ") })
+        : t("ui.game.gameinventory.useRecharge", {
+            amount: use.charges.recharge.amount,
+            rests: use.charges.recharge.rests.join(", "),
+          })
+      : "",
+    use.charges?.breaksOn
+      ? t(
+          use.charges.breaksOn.atMost === 1
+            ? "ui.game.gameinventory.useBreaksOnOne"
+            : "ui.game.gameinventory.useBreaksOnFaces",
+          { die: use.charges.breaksOn.die, atMost: use.charges.breaksOn.atMost },
+        )
+      : "",
+    use.gate
+      ? use.gate.unless
+        ? t("ui.game.gameinventory.useGateUnless", {
+            check: use.gate.check,
+            difficulty: use.gate.difficulty ?? "?",
+            what: rulesetSheetValueWords(use.gate.unless, t),
+            atLeast: use.gate.unless.atLeast,
+          })
+        : t("ui.game.gameinventory.useGate", { check: use.gate.check, difficulty: use.gate.difficulty ?? "?" })
+      : "",
+  ].filter(Boolean);
+  return use.budget
+    ? t("ui.game.gameinventory.use", { budget: use.budget, does: parts.join(", ") })
+    : t("ui.game.gameinventory.useFree", { does: parts.join(", ") });
+}
+
+/** A value off the sheet an item reads, in words: "Wits modifier", "Charm items", or its label. */
+function rulesetSheetValueWords(value: { what: string; of?: "modifier" | "items" }, t: TFunction): string {
+  if (value.of === "modifier") return t("ui.game.gameinventory.requiresModifier", { name: value.what });
+  if (value.of !== "items") return value.what;
+  return value.what
+    ? t("ui.game.gameinventory.requiresItemsOf", { name: value.what })
+    : t("ui.game.gameinventory.requiresItems");
 }
 
 /** What an item does while worn, and while only carried, one line each: "While worn: -1 on Sneak
@@ -148,8 +263,10 @@ export function rulesetItemEffectLines(facts: RulesetItemFacts, t: TFunction): s
       ? t("ui.game.gameinventory.effectOnNamedSaves", { change, names })
       : t("ui.game.gameinventory.effectOnSaves", { change });
   };
+  const useLine = rulesetItemUseLine(facts, t);
   return [
     ...rulesetItemAttackLines(facts, t),
+    ...(useLine ? [useLine] : []),
     ...(["worn", "carried"] as const).flatMap((when) =>
       facts[when]?.length
         ? [
@@ -161,20 +278,16 @@ export function rulesetItemEffectLines(facts: RulesetItemFacts, t: TFunction): s
     ),
     ...(facts.requires ?? []).map((need) =>
       t("ui.game.gameinventory.requires", {
-        what:
-          need.of === "modifier"
-            ? t("ui.game.gameinventory.requiresModifier", { name: need.what })
-            : need.of === "items"
-              ? need.what
-                ? t("ui.game.gameinventory.requiresItemsOf", { name: need.what })
-                : t("ui.game.gameinventory.requiresItems")
-              : need.what,
+        what: rulesetSheetValueWords(need, t),
         atLeast: need.atLeast,
         effects: need.otherwise.map(phrase).join("; "),
       }),
     ),
   ];
 }
+
+/** The picker's list of the ruleset's coins, beside its catalogs. */
+const COINS_LIST = ":coins";
 
 export function RulesetItemPicker({
   open,
@@ -199,7 +312,13 @@ export function RulesetItemPicker({
     [definition.catalogs],
   );
   const [catalogId, setCatalogId] = useState(catalogs[0]?.id ?? "");
-  const catalog = catalogs.find((each) => each.id === catalogId) ?? catalogs[0];
+  // The ruleset's coins are offered beside its catalogs, as one more list: no catalog id has a colon.
+  const coinsChosen = catalogId === COINS_LIST && book.coins.length > 0;
+  const catalog = coinsChosen ? undefined : (catalogs.find((each) => each.id === catalogId) ?? catalogs[0]);
+  const lists = [
+    ...catalogs.map((each) => ({ id: each.id, label: each.label })),
+    ...(book.coins.length > 0 ? [{ id: COINS_LIST, label: t("game.ruleset.items.coins") }] : []),
+  ];
   const [search, setSearch] = useState("");
   // Null until the user touches a filter, like the sheet editor's picker.
   const [chosen, setChosen] = useState<Record<string, string> | null>(null);
@@ -207,7 +326,11 @@ export function RulesetItemPicker({
 
   // The same cached query the book was built from: only its loading and failure are read here.
   const query = useRulesetCatalog(definition.id, catalog?.id ?? "", definition.version, open && Boolean(catalog));
-  const items = useMemo(() => book.entries.filter((each) => each.catalogId === catalog?.id), [book, catalog]);
+  const items = useMemo(
+    () =>
+      coinsChosen ? [...book.coins] : book.entries.filter((each) => each.catalogId === catalog?.id && !each.service),
+    [book, catalog, coinsChosen],
+  );
   const entries = useMemo(() => items.map((each) => each.entry), [items]);
   const build = useMemo(() => defaultRulesetSheetBuild(definition), [definition]);
   const views = useMemo(
@@ -228,7 +351,7 @@ export function RulesetItemPicker({
       if (!next.delete(item)) next.add(item);
       return next;
     });
-  const picks = book.entries.filter((each) => selected.has(each.item));
+  const picks = [...book.entries, ...book.coins].filter((each) => selected.has(each.item));
 
   return (
     <Modal
@@ -253,18 +376,18 @@ export function RulesetItemPicker({
               className={inputClass}
             />
           </label>
-          {catalogs.length > 1 && (
+          {lists.length > 1 && (
             <label className="flex min-w-0 basis-36 flex-col gap-1">
               <span className={labelClass}>{t("game.ruleset.items.catalog")}</span>
               <select
-                value={catalog?.id ?? ""}
+                value={coinsChosen ? COINS_LIST : (catalog?.id ?? "")}
                 onChange={(event) => {
                   setCatalogId(event.target.value);
                   setChosen(null);
                 }}
                 className={inputClass}
               >
-                {catalogs.map((each) => (
+                {lists.map((each) => (
                   <option key={each.id} value={each.id}>
                     {each.label}
                   </option>

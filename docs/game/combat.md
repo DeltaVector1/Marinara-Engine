@@ -71,7 +71,7 @@ On your turn, you pick one action from the menu. The six actions are:
 - **Skills**: use a special ability. Skills can cost MP. Some heal an ally, some hit an enemy, and some apply a buff or debuff.
 - **Special**: type a free-form action in your own words, then press **Ask GM**. For example, "I kick sand into the Ruin Guard's cracked lens." The GM decides what happens.
 - **Defend**: raise your Defense for the rest of the round to take less damage.
-- **Items**: use an item from your bag. Choose **Full inventory** to open your full item list from here. In a game whose ruleset turns off Game Mode's own items, a fight offers no items until the ruleset says what they do.
+- **Items**: use an item from your bag. Choose **Full inventory** to open your full item list from here. In a game with a ruleset, the ruleset's own items do what the ruleset says: how much they heal or harm, and the conditions they put on. One that holds charges is offered while a use is left, and one that asks a check first has it rolled when it is used: failed, it is spent for nothing. One the ruleset gives no use to is not offered. The rest of your items do what the Game Master judged when the fight began, unless the ruleset turns off Game Mode's own items.
 - **Flee**: leave the fight at once. Fleeing ends combat immediately.
 
 After you choose, the round plays out. The results appear as floating damage numbers, changing health bars, and lines in the combat log.
@@ -122,7 +122,7 @@ Example reactions include Melt, Shatter, Overload, Superconduct, Toxic Blaze, Pu
 
 Strong enemies can have boss mechanics, which are special rules the GM writes for that fight. A mechanic can trigger on a schedule, such as every few rounds, or when the boss drops below a set health level. Mechanics can hit your whole party, buff the boss, or apply a status effect. When one triggers, the effect appears in the combat log so you can react.
 
-When you win a fight, the enemies drop loot. Each item has a rarity, from most to least common: common, uncommon, rare, epic, and legendary. Harder difficulty tilts the drops toward rarer items and hands out slightly more of them. A **Victory!** banner appears when you win, and a **Defeat...** banner appears if your party falls.
+When you win a fight, the enemies drop loot, and it goes straight into the party's bags once the fight ends. Each item has a rarity, from most to least common: common, uncommon, rare, epic, and legendary. Harder difficulty tilts the drops toward rarer items and hands out slightly more of them. A notification says what dropped, and the Game Master is told it is already in your bags. In a game whose ruleset has its own loot tables, the enemies drop the ruleset's items instead, and a ruleset that turns Game Mode's own items off drops only its own. A **Victory!** banner appears when you win, and a **Defeat...** banner appears if your party falls.
 
 ## Interrupting the GM
 

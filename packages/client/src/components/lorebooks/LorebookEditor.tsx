@@ -80,7 +80,6 @@ import {
   FolderPlus,
   RefreshCw,
   Info,
-  MessageCircleQuestion,
   FileUp,
   FileSpreadsheet,
 } from "lucide-react";
@@ -88,7 +87,6 @@ import { cn, copyToClipboard } from "../../lib/utils";
 import { HelpTooltip } from "../ui/HelpTooltip";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
 import { api } from "../../lib/api-client";
-import { requestProfessorMariOpen } from "../../lib/professor-mari-open";
 import {
   LOCAL_SIDECAR_CONNECTION_ID,
   LIMITS,
@@ -1115,21 +1113,21 @@ export function LorebookEditor() {
         const row = contentRef.current?.querySelector<HTMLElement>(
           `[data-lorebook-entry-row-id="${CSS.escape(entryId)}"]`,
         );
-        // Anchored, so the section scroller does not pull the view back to the top
-        // of Entries while the expanded row and its images grow.
+        // Anchored, so the drawer opening below the row cannot scroll it away.
         if (row) scrollToElement(row);
       });
     },
     [contentRef, entries, folders, lorebookId, scrollToElement],
   );
-  // Opened at an entry (an omnibar hit): reveal it once the entries have loaded.
+
+  // Open the entry an opener asked for once, e.g. one just made from selected chat text (#6899).
   const initialEntryIdRef = useRef(useUIStore.getState().lorebookDetailInitialEntryId);
   useEffect(() => {
     const entryId = initialEntryIdRef.current;
-    if (!entryId || !entries.some((entry) => entry.id === entryId)) return;
+    if (!entryId || isLoading || !entries.some((entry) => entry.id === entryId)) return;
     initialEntryIdRef.current = null;
     jumpToEntry(entryId);
-  }, [entries, jumpToEntry]);
+  }, [entries, isLoading, jumpToEntry]);
   const entryNameById = useMemo(() => new Map(entries.map((entry) => [entry.id, entry.name])), [entries]);
   const activeChatForTest = useMemo(
     () =>
@@ -2117,26 +2115,6 @@ export function LorebookEditor() {
         />
 
         <div className="mari-editor-actions flex">
-          <button
-            type="button"
-            onClick={() => {
-              if (!lorebookId) return;
-              requestProfessorMariOpen({
-                destination: "omnibar",
-                draft: localizeUi("professorMari.handoff.explainResourceDraft"),
-                context: {
-                  source: "lorebook-editor",
-                  capability: "explain",
-                  resource: { kind: "lorebook", id: lorebookId, label: lorebook.name },
-                },
-              });
-            }}
-            className="mari-editor-action inline-flex"
-            title={localizeUi("professorMari.handoff.ask")}
-            aria-label={localizeUi("professorMari.handoff.ask")}
-          >
-            <MessageCircleQuestion size="0.8125rem" />
-          </button>
           <button
             onClick={handleSaveLorebook}
             disabled={!lorebookDirty || saving}

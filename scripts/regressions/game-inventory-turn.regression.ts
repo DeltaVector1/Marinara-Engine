@@ -534,7 +534,7 @@ try {
       .join("\n");
     assert.match(
       prompt,
-      /PLAYER INVENTORY \(Body 0 of 1, Hands 0 of 2\): Road rations ×10 \[Provisions, Common; Bulk 1\]; Arrows ×4; Lamp; Arrows ×2 \[Ammunition, Common, Arrow; Bulk 1\]/,
+      /PLAYER INVENTORY \(Body 0 of 1, Hands 0 of 2\): Road rations ×10 \[Provisions, Common; Bulk 1; costs 5 bits\]; Arrows ×4; Lamp; Arrows ×2 \[Ammunition, Common, Arrow; Bulk 1; costs 1 marks\]/,
     );
     assert.match(prompt, /an item named exactly as one of them becomes that item/);
 
@@ -1132,6 +1132,329 @@ try {
     const carried = await app.inject({ method: "POST", url: "/api/game/session/start", payload: { gameId } });
     assert.equal(carried.statusCode, 200, carried.body);
     assert.deepEqual(await stacksOf(carried.json().sessionChat.id), ["Old Map 1"]);
+  }
+
+  // ── Using an item (#6881): a turn's `use` heals from the turn's start and spends the item once ──
+  {
+    const ember = {
+      ...(JSON.parse(
+        readFileSync(fileURLToPath(new URL("../../docs/examples/rulesets/ember-roads.json", import.meta.url)), "utf8"),
+      ) as Record<string, any>),
+      id: "ember-use-turn",
+    };
+    await createGameRulesetsStorage(db).put({
+      rulesetId: "local/ember-use-turn",
+      version: ember.version,
+      sourceKind: "local",
+      definition: JSON.stringify(ember),
+    });
+    const connection = (await createConnectionsStorage(db).list())[0]!;
+    const used = await chats.create({
+      name: "Using",
+      mode: "game",
+      characterIds: [],
+      connectionId: connection.id,
+      promptPresetId: null,
+    });
+    assert.ok(used);
+    // With no persona the first card is the player's: Ada, down to no Grit.
+    await chats.patchMetadata(used.id, {
+      enableAgents: false,
+      enableTools: false,
+      gameRuleset: { id: "local/ember-use-turn", version: ember.version, packageId: null, options: {} },
+      gameCharacterCards: [
+        {
+          name: "Ada",
+          rulesetSheet: { v: 1, build: { abilities: { brawn: 0, wits: 0, heart: 0 }, fields: {}, lists: {} } },
+        },
+      ],
+      gameInventory: [{ id: "st-poultice", name: "Poultice", quantity: 2, item: "outfitter/poultice" }],
+    });
+    const states = createGameStateStorage(db);
+    const before = await chats.createMessage({ chatId: used.id, role: "assistant", content: "Ada is bleeding." });
+    await states.create({
+      chatId: used.id,
+      messageId: before.id,
+      swipeIndex: 0,
+      date: null,
+      time: null,
+      location: null,
+      weather: null,
+      temperature: null,
+      presentCharacters: [],
+      recentEvents: [],
+      playerStats: null,
+      personaStats: null,
+    });
+    await states.updateLatest(used.id, { rulesetLive: { ada: { pools: { grit: { value: 0 } } } } });
+    const gritOn = async (messageId: string, swipe: number) => {
+      const row = await states.getByChatAndMessage(used.id, messageId, swipe);
+      const live = row?.rulesetLive ? (JSON.parse(row.rulesetLive as string) as Record<string, any>) : {};
+      return live.ada?.pools?.grit?.value as number | undefined;
+    };
+    const poultices = async () =>
+      normalizeGameInventoryStacks(JSON.parse((await chats.getById(used.id))!.metadata as string).gameInventory).find(
+        (stack) => stack.id === "st-poultice",
+      )?.quantity;
+    reply = `Ada presses a poultice to the cut. [inventory: action="use" item="Poultice"]`;
+    await chats.createMessage({ chatId: used.id, role: "user", content: "I tend the wound." });
+    const told = await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: used.id, streaming: true },
+    });
+    assert.equal(told.statusCode, 200, told.body);
+    const saved = (await chats.listMessages(used.id)).at(-1)!;
+    const [answer] = readResolvedInventoryTags(saved.content);
+    assert.deepEqual(answer && [answer.action, answer.ok, answer.count, answer.now], ["use", true, 1, 1]);
+    assert.match(saved.content, /note="Ada uses Poultice: heals [2-5] \(Grit [2-5]\/\d+\)\. 1 left\."/);
+    assert.equal(await poultices(), 1);
+    const healed = await gritOn(saved.id, 0);
+    assert.ok(healed !== undefined && healed >= 2 && healed <= 5, `the turn saved Ada healed, not ${healed}`);
+    assert.match(told.body, /"type":"game_state_patch"[^\n]*"grit"/, "the client is told the sheet changed");
+    // Told again, it starts from where the turn began: one poultice used, not two, and Ada healed from 0.
+    await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: used.id, streaming: true, regenerateMessageId: saved.id },
+    });
+    assert.equal(await poultices(), 1);
+    const retold = await gritOn(saved.id, 1);
+    assert.ok(retold !== undefined && retold >= 2 && retold <= 5, `the retelling healed from 0, not ${retold}`);
+  }
+
+  // ── A rest (#6888): the Game Master's rest refills what the rested carry, once per turn ──
+  {
+    const grave = {
+      ...(JSON.parse(
+        readFileSync(fileURLToPath(new URL("../../docs/examples/rulesets/gravewatch.json", import.meta.url)), "utf8"),
+      ) as Record<string, any>),
+      id: "gravewatch-rest-turn",
+    };
+    // One charge back a rest, so a turn told twice would show two.
+    const bellItem = grave.catalogs
+      .find((catalog: { holds?: string }) => catalog.holds === "items")
+      .entries.find((entry: { id: string }) => entry.id === "dawn-bell").item;
+    bellItem.charges.recharge = { rests: ["vigil"], amount: { flat: 1 } };
+    await createGameRulesetsStorage(db).put({
+      rulesetId: "local/gravewatch-rest-turn",
+      version: grave.version,
+      sourceKind: "local",
+      definition: JSON.stringify(grave),
+    });
+    const connection = (await createConnectionsStorage(db).list())[0]!;
+    const rested = await chats.create({
+      name: "Resting",
+      mode: "game",
+      characterIds: [],
+      connectionId: connection.id,
+      promptPresetId: null,
+    });
+    assert.ok(rested);
+    await chats.patchMetadata(rested.id, {
+      enableAgents: false,
+      enableTools: false,
+      gameRuleset: { id: "local/gravewatch-rest-turn", version: grave.version, packageId: null, options: {} },
+      gameCharacterCards: [{ name: "Ada" }],
+      gameInventory: [
+        {
+          id: "st-bell",
+          name: "Dawn bell",
+          quantity: 1,
+          item: "kit/dawn-bell",
+          equipped: true,
+          bound: true,
+          charges: 0,
+        },
+      ],
+    });
+    const bellCharges = async () =>
+      normalizeGameInventoryStacks(JSON.parse((await chats.getById(rested.id))!.metadata as string).gameInventory).find(
+        (stack) => stack.id === "st-bell",
+      )?.charges;
+    reply = `The watch stands down at dawn. [sheet: who="Ada" op="rest" rest="vigil"]`;
+    await chats.createMessage({ chatId: rested.id, role: "user", content: "We rest." });
+    const told = await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: rested.id, streaming: true },
+    });
+    assert.equal(told.statusCode, 200, told.body);
+    assert.equal(await bellCharges(), 1, "one charge back");
+    const saved = (await chats.listMessages(rested.id)).at(-1)!;
+    // Told again, it starts from where the turn began: still one, not two.
+    await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: rested.id, streaming: true, regenerateMessageId: saved.id },
+    });
+    assert.equal(await bellCharges(), 1, "a retelling recharges once");
+    // And the next turn's prompt shows the Game Master what the bell has left.
+    reply = "Morning.";
+    await chats.createMessage({ chatId: rested.id, role: "user", content: "We go on." });
+    await app.inject({ method: "POST", url: "/api/generate/", payload: { chatId: rested.id, streaming: true } });
+    assert.match(JSON.stringify(prompts.at(-1)), /Dawn bell \(1 worn, 1 bound, 1 of 3 charges left\)/);
+  }
+
+  // ── Loot (#6894): the Game Master's [loot:] rolls a table into the bags, once per telling ──
+  {
+    const grave = {
+      ...(JSON.parse(
+        readFileSync(fileURLToPath(new URL("../../docs/examples/rulesets/gravewatch.json", import.meta.url)), "utf8"),
+      ) as Record<string, any>),
+      id: "gravewatch-loot-turn",
+    };
+    await createGameRulesetsStorage(db).put({
+      rulesetId: "local/gravewatch-loot-turn",
+      version: grave.version,
+      sourceKind: "local",
+      definition: JSON.stringify(grave),
+    });
+    const connection = (await createConnectionsStorage(db).list())[0]!;
+    const looting = await chats.create({
+      name: "Looting",
+      mode: "game",
+      characterIds: [],
+      connectionId: connection.id,
+      promptPresetId: null,
+    });
+    assert.ok(looting);
+    await chats.patchMetadata(looting.id, {
+      enableAgents: false,
+      enableTools: false,
+      gameRuleset: { id: "local/gravewatch-loot-turn", version: grave.version, packageId: null, options: {} },
+      gameCharacterCards: [{ name: "Ada" }],
+      gameInventory: [],
+    });
+    const held = async () =>
+      normalizeGameInventoryStacks(JSON.parse((await chats.getById(looting.id))!.metadata as string).gameInventory);
+    /** How many the saved reply says it added: what the bags must hold. */
+    const said = async () => {
+      const last = (await chats.listMessages(looting.id)).at(-1)!;
+      const text = typeof last.content === "string" ? last.content : "";
+      assert.doesNotMatch(text, /\[loot:/, "every drop answered as an add");
+      return [...text.matchAll(/\[inventory: action="add"[^\]]*count="(\d+)" result="ok"/g)].reduce(
+        (sum, match) => sum + Number(match[1]),
+        0,
+      );
+    };
+    const total = (stacks: Awaited<ReturnType<typeof held>>) => stacks.reduce((sum, stack) => sum + stack.quantity, 0);
+    reply = `The wight falls apart. [loot: table="grave_goods"]`;
+    await chats.createMessage({ chatId: looting.id, role: "user", content: "We search it." });
+    const told = await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: looting.id, streaming: true },
+    });
+    assert.equal(told.statusCode, 200, told.body);
+    assert.match(
+      JSON.stringify(prompts.at(-1)),
+      /\[loot: table=\\"id\\" who=\\"Name\\"\].*grave_goods \(Grave goods\)/,
+    );
+    const first = await said();
+    assert.ok(first >= 1, "the table dropped something");
+    assert.equal(total(await held()), first, "the bags hold what the saved reply says");
+    assert.ok(
+      (await held()).every((stack) => stack.item?.startsWith("kit/") || stack.item?.startsWith("coin:")),
+      "the ruleset's own items and coins",
+    );
+    // Told again, it starts from where the turn began: only the new telling's drop is held.
+    const saved = (await chats.listMessages(looting.id)).at(-1)!;
+    await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: looting.id, streaming: true, regenerateMessageId: saved.id },
+    });
+    assert.equal(total(await held()), await said(), "a retelling drops its own loot, not both");
+  }
+
+  // ── Money (#6901): the Game Master pays and earns in the ruleset's coins, the layers' coins only ──
+  {
+    const grave = {
+      ...(JSON.parse(
+        readFileSync(fileURLToPath(new URL("../../docs/examples/rulesets/gravewatch.json", import.meta.url)), "utf8"),
+      ) as Record<string, any>),
+      id: "gravewatch-money-turn",
+    };
+    await createGameRulesetsStorage(db).put({
+      rulesetId: "local/gravewatch-money-turn",
+      version: grave.version,
+      sourceKind: "local",
+      definition: JSON.stringify(grave),
+    });
+    const connection = (await createConnectionsStorage(db).list())[0]!;
+    const market = await chats.create({
+      name: "Market",
+      mode: "game",
+      characterIds: [],
+      connectionId: connection.id,
+      promptPresetId: null,
+    });
+    assert.ok(market);
+    // The long night is on, so crowns are out of the coin.
+    await chats.patchMetadata(market.id, {
+      enableAgents: false,
+      enableTools: false,
+      gameRuleset: {
+        id: "local/gravewatch-money-turn",
+        version: grave.version,
+        packageId: null,
+        options: { "layer.long_night": true },
+      },
+      gameCharacterCards: [{ name: "Ada" }],
+      gameInventory: [
+        { id: "s1", name: "shillings", item: "coin:shilling", quantity: 2 },
+        { id: "s2", name: "pennies", item: "coin:penny", quantity: 30 },
+        { id: "s3", name: "Watch pistol", item: "kit/watch-pistol", quantity: 1 },
+      ],
+    });
+    const held = async () =>
+      normalizeGameInventoryStacks(JSON.parse((await chats.getById(market.id))!.metadata as string).gameInventory).map(
+        (stack) => [stack.name, stack.quantity],
+      );
+    reply = `She counts it out. [inventory: action="pay" amount="30 pennies"] [inventory: action="earn" amount="5 pennies"]`;
+    await chats.createMessage({ chatId: market.id, role: "user", content: "I pay the ferryman." });
+    const told = await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: market.id, streaming: true },
+    });
+    assert.equal(told.statusCode, 200, told.body);
+    const prompt = JSON.stringify(prompts.at(-1));
+    assert.match(
+      prompt,
+      /PLAYER INVENTORY \([^)]*; Coin worth 54 pennies\): shillings ×2 \[Coin\]; pennies ×30 \[Coin\]/,
+      "the purse's worth beside the bag, and each coin as an item of its family",
+    );
+    assert.match(prompt, /Watch pistol \[[^\]]*costs 15 shillings/, "a price in crowns, in the coins left");
+    assert.match(prompt, /amount=\\"5 shillings\\".*\(Coin: shillings, pennies\)/, "taught the coins left");
+    assert.doesNotMatch(prompt, /crowns/);
+    const saved = (await chats.listMessages(market.id)).at(-1)!;
+    assert.match(
+      String(saved.content),
+      /\[inventory: action="pay" item="pennies" count="30" result="ok" now="24" note="Paid with shillings ×2 and pennies ×6\."\]/,
+      "the largest coins first",
+    );
+    assert.deepEqual(await held(), [
+      ["pennies", 29],
+      ["Watch pistol", 1],
+    ]);
+    // Told again, it pays from where the turn began, once.
+    const retold = await app.inject({
+      method: "POST",
+      url: "/api/generate/",
+      payload: { chatId: market.id, streaming: true, regenerateMessageId: saved.id },
+    });
+    assert.equal(retold.statusCode, 200, retold.body);
+    assert.match(
+      String((await chats.listMessages(market.id)).at(-1)!.content),
+      /\[inventory: action="pay" item="pennies" count="30" result="ok"/,
+      "the retelling paid again",
+    );
+    assert.deepEqual(await held(), [
+      ["pennies", 29],
+      ["Watch pistol", 1],
+    ]);
   }
 
   console.info("game inventory turn regressions passed.");

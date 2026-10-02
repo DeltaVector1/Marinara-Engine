@@ -8,6 +8,8 @@ import {
   getRoleplayCommandContentOffset,
   ROLEPLAY_COMMAND_KEYS,
   normalizeChatSummaryEntries,
+  readMessagePrivateNote,
+  readMessagePrivateNoteRecipientId,
   type RoleplayCommandKey,
   type RoleplayCommand,
   type RoleplayCommandActivity,
@@ -379,6 +381,26 @@ export function appendRoleplayWhispers(
   return added;
 }
 
+/** Attach a message's private note for the one character the user shared it with. */
+export function appendRoleplayMessageNotes(
+  prompt: Array<{ id?: string | null; contextKind?: string; content: string }>,
+  history: readonly HistoryMessage[],
+  viewer: RoleplayWhisperRecipient | null,
+): boolean {
+  if (viewer?.kind !== "character") return false;
+  const sources = new Map(history.map((message) => [message.id, message]));
+  let added = false;
+  for (const message of prompt) {
+    if (!message.id || message.contextKind !== "history") continue;
+    const source = sources.get(message.id);
+    const note = readMessagePrivateNote(source?.extra);
+    if (!note || readMessagePrivateNoteRecipientId(source?.extra) !== viewer.id) continue;
+    message.content += `\n\n[The user's private note on this message, shown only to you]\n${note}\n[End of private note]`;
+    added = true;
+  }
+  return added;
+}
+
 export function readRoleplayPersonalState(
   messages: readonly HistoryMessage[],
   audienceCharacterId?: string,
@@ -539,7 +561,7 @@ export function buildRoleplayCommandsReminder(args: {
     );
   if (args.privateAvailable && enabled("whisper"))
     lines.push(
-      '- [whisper: character="name" text="text hidden from anyone but the specified character"] Hides a part of the message and makes it available only to a selected character. No one else will be able to access it, except for the appointed narrator. This can be used to whisper secrets, show visions, etc. Name exactly one chat character or the user\'s persona. Put the command where the secret belongs in the message, and do not repeat its text in public narration.',
+      '- [whisper: character="name" text="text hidden from anyone but the specified character"] Hides a part of the message and makes it available only to a selected character. No one else will be able to access it, except for the appointed narrator. This can be used to whisper secrets, show visions, etc. Name exactly one chat character or the user\'s persona. Put the command where the secret belongs in the message, and do not repeat its text in public narration. The text may span several lines and quote dialogue as is, for example text=""I love you."".',
     );
   if (enabled("roll"))
     lines.push(

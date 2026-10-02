@@ -4,7 +4,7 @@ import {
   gameInventoryBags,
   gameInventoryBagKey,
   gameInventoryFightEffects,
-  gameInventoryFightLines,
+  gameFightOffers,
   gameInventoryNameKey,
   gameInventoryStackLabel,
   normalizeGameInventoryStacks,
@@ -15,6 +15,7 @@ import {
   type RulesetItemBookSheets,
   type GameInventoryStack,
   type PlayerStats,
+  type RulesetLiveStates,
   rulesetCardItems,
   rulesetReadsItems,
 } from "@marinara-engine/shared";
@@ -112,7 +113,7 @@ import { useGenerateSpatialMapDraft, useSpatialContext } from "../../hooks/use-s
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { spriteKeys, useUploadAvatar, useUploadPersonaAvatar, type SpriteInfo } from "../../hooks/use-characters";
 import { lorebookKeys } from "../../hooks/use-lorebooks";
-import { api, getJsonRepairRequest, type JsonRepairRequest } from "../../lib/api-client";
+import { api, ApiError, getJsonRepairRequest, type JsonRepairRequest } from "../../lib/api-client";
 import { useRenderTimer } from "../../lib/perf-diagnostics";
 import { isGenerationSendBlocked } from "../../lib/generation-stream-policy";
 import { showConfirmDialog } from "../../lib/app-dialogs";
@@ -222,7 +223,7 @@ import type { GameCharacterSheetGameCard, GameCharacterSheetRuleset } from "@/co
 import { describeRefusedSheetCommands } from "./GameRulesetSheet";
 import { useGameRuleset } from "../../hooks/use-game-ruleset";
 import { useRulesetItemBook } from "../../hooks/use-ruleset-item-book";
-import { useGameStatePatcher } from "../../hooks/use-game-state-patcher";
+import { flushGameStatePatch, useGameStatePatcher } from "../../hooks/use-game-state-patcher";
 import { GameDiceResult } from "./GameDiceResult";
 import { GameSkillCheckResult } from "./GameSkillCheckResult";
 import { GameElementReaction } from "./GameElementReaction";
@@ -3026,17 +3027,24 @@ function GameSurfaceComponent({
   const inventoryItemsRef = useRef(inventoryItems);
   /** The screen's inventory saves: how many were sent, the newest whose answer is on screen, and
    *  whether the chat changed while one was on its way (and so was not read then). */
-  const inventoryCommitSeq = useRef({ sent: 0, applied: 0, skippedResync: false });
+  const inventoryCommitSeq = useRef({ sent: 0, applied: 0, sheetApplied: 0, skippedResync: false });
   // What a fight offers: one line per item, however the player split its stacks.
   // What a fight lists: one line per item, each under a name no other line has, with each item's
   // effect found under that line's name.
   const gameRuleset = useGameRuleset(chatMeta);
-  // A ruleset that turns Game Mode's own items off keeps them out of fights, as the server does: no
-  // item is offered until the ruleset says what it does.
-  const itemsOutOfFights = gameRuleset.status === "ok" && gameRuleset.definition.items?.native === false;
+  // In a game with ruleset items, one of the ruleset's items is offered only when the fight's effects
+  // (worked out by the server from its `use`, #6905) say what it does, one that holds charges counted in
+  // uses while any is left (#6909), and the rest only while the ruleset leaves Game Mode's own items on,
+  // as the server offers them.
+  const rulesetItems = gameRuleset.status === "ok" ? gameRuleset.definition.items : undefined;
   const fightInventoryLines = useMemo(
-    () => (itemsOutOfFights ? [] : gameInventoryFightLines(inventoryItems)),
-    [inventoryItems, itemsOutOfFights],
+    () =>
+      gameFightOffers(
+        inventoryItems,
+        combatItemEffects,
+        rulesetItems ? { native: rulesetItems.native !== false } : undefined,
+      ),
+    [inventoryItems, rulesetItems, combatItemEffects],
   );
   const fightItemEffects = useMemo(
     () => gameInventoryFightEffects(fightInventoryLines, combatItemEffects),
@@ -3475,6 +3483,22 @@ function GameSurfaceComponent({
             ? localizeUi("ui.game.gamesurfacecomponent.inventoryWhoLost", { who: update.who, item })
             : localizeUi("ui.game.gamesurfacecomponent.inventoryYouLost", { item });
         }
+        if (update.action === "use") {
+          return update.who
+            ? localizeUi("ui.game.gamesurfacecomponent.inventoryWhoUsed", { who: update.who, item })
+            : localizeUi("ui.game.gamesurfacecomponent.inventoryYouUsed", { item });
+        }
+        if (update.action === "pay") {
+          return update.who
+            ? localizeUi("ui.game.gamesurfacecomponent.inventoryWhoPaid", { who: update.who, item })
+            : localizeUi("ui.game.gamesurfacecomponent.inventoryYouPaid", { item });
+        }
+        if (update.action === "buy") {
+          const price = update.price ?? "";
+          return update.who
+            ? localizeUi("ui.game.gamesurfacecomponent.inventoryWhoBought", { who: update.who, item, price })
+            : localizeUi("ui.game.gamesurfacecomponent.inventoryYouBought", { item, price });
+        }
         if (
           update.action === "equip" ||
           update.action === "unequip" ||
@@ -3495,7 +3519,12 @@ function GameSurfaceComponent({
         update.ok && update.count > 0
           ? [
               {
-                gain: update.action === "add" || update.action === "equip" || update.action === "bind",
+                gain:
+                  update.action === "add" ||
+                  update.action === "earn" ||
+                  update.action === "buy" ||
+                  update.action === "equip" ||
+                  update.action === "bind",
                 text: describe(update, inventoryLabel(update.item, update.count)),
               },
             ]
@@ -7595,9 +7624,11 @@ function GameSurfaceComponent({
    * writes the stacks, the detailed inventory and the journal together. Resolves to one result per
    * operation; throws when the request itself fails, and then nothing changed.
    */
-  const commitInventory = useCallback(
-    async (ops: GameInventoryOp[]): Promise<GameInventoryOpResult[]> => {
-      if (!activeChatId) return [];
+  const sendInventory = useCallback(
+    async <T extends { inventory: GameInventoryStack[]; playerStats?: PlayerStats; rulesetLive?: RulesetLiveStates }>(
+      send: (chatId: string) => Promise<T>,
+    ): Promise<T | null> => {
+      if (!activeChatId) return null;
       // Anything read of the chat before this save holds older stacks. A metadata save already on its
       // way would write them back into the chat when it answers, so the fields this route writes
       // are claimed as newer, as a metadata save claims its own; a plain read still on its way is
@@ -7605,9 +7636,9 @@ function GameSurfaceComponent({
       claimChatMetadataFields(activeChatId, ["gameInventory", "gameJournal"]);
       await queryClient.cancelQueries({ queryKey: chatKeys.detail(activeChatId) });
       const seq = ++inventoryCommitSeq.current.sent;
-      let response: { inventory: GameInventoryStack[]; results: GameInventoryOpResult[]; playerStats?: PlayerStats };
+      let response: T;
       try {
-        response = await api.post("/game/inventory", { chatId: activeChatId, ops });
+        response = await send(activeChatId);
       } catch (error) {
         // A save that failed changed nothing and is settled, so the chat is read again: a change the
         // resync skipped while this save was on its way reaches the screen now.
@@ -7624,12 +7655,22 @@ function GameSurfaceComponent({
           void queryClient.invalidateQueries({ queryKey: chatKeys.detail(activeChatId) });
         }
       };
+      // The sheet a route wrote with the bag (a use, a rest) is ordered on its own: an answer older than one
+      // whose sheet is already shown never puts that sheet back, while one overtaken only by a plain
+      // inventory save, which carries no sheet, still has the newest.
+      if (response.rulesetLive && seq > inventoryCommitSeq.current.sheetApplied) {
+        inventoryCommitSeq.current.sheetApplied = seq;
+        const shown = useGameStateStore.getState().current;
+        if (shown?.chatId === activeChatId) {
+          useGameStateStore.getState().setGameState({ ...shown, rulesetLive: response.rulesetLive });
+        }
+      }
       // The server applies requests in order, so an answer to an older one that arrives after a
       // newer one describes stacks that are already out of date: its results still count, but it
       // must not put an older inventory back on screen.
       if (seq < inventoryCommitSeq.current.applied) {
         settle();
-        return response.results;
+        return response;
       }
       inventoryCommitSeq.current.applied = seq;
       const inventory = normalizeGameInventoryStacks(response.inventory);
@@ -7642,9 +7683,21 @@ function GameSurfaceComponent({
         useGameStateStore.getState().setGameState({ ...currentGameState, playerStats: response.playerStats });
       }
       settle();
-      return response.results;
+      return response;
     },
     [activeChatId, queryClient, syncInventoryToChatCache],
+  );
+  const commitInventory = useCallback(
+    async (ops: GameInventoryOp[]): Promise<GameInventoryOpResult[]> =>
+      (
+        await sendInventory((chatId) =>
+          api.post<{ inventory: GameInventoryStack[]; results: GameInventoryOpResult[]; playerStats?: PlayerStats }>(
+            "/game/inventory",
+            { chatId, ops },
+          ),
+        )
+      )?.results ?? [],
+    [sendInventory],
   );
 
   const showInventoryNotification = useCallback((text: string, gain: boolean) => {
@@ -7668,6 +7721,8 @@ function GameSurfaceComponent({
               : localizeUi("ui.game.gamesurfacecomponent.youCannotCarryValue1", { value1 });
         case "cursed":
           return localizeUi("ui.game.gamesurfacecomponent.cursedValue1", { value1 });
+        case "service":
+          return localizeUi("ui.game.gamesurfacecomponent.serviceValue1", { value1 });
         case "no-slot":
           return localizeUi("ui.game.gamesurfacecomponent.noSlotValue1", { value1 });
         case "not-wearable":
@@ -8059,8 +8114,16 @@ function GameSurfaceComponent({
       const spentName =
         fightInventoryLines.find((line) => gameInventoryNameKey(line.name) === gameInventoryNameKey(itemName))
           ?.ownName ?? normalizedItemName;
+      // One of the ruleset's items that holds charges spends a use of them, not the item (#6909).
+      const charged = combatItemEffects.some(
+        (effect) => effect.charges && gameInventoryNameKey(effect.name) === gameInventoryNameKey(itemName),
+      );
       try {
-        const [result] = await commitInventory([{ op: "take", name: spentName, count: 1, as: "used" }]);
+        const [result] = await commitInventory([
+          charged
+            ? { op: "charge", name: spentName, count: 1 }
+            : { op: "take", name: spentName, count: 1, as: "used", worn: true },
+        ]);
         if (!result?.ok) {
           toast.error(
             localizeUi("ui.game.gamesurfacecomponent.value1IsNoLongerInYourInventory", {
@@ -8082,7 +8145,7 @@ function GameSurfaceComponent({
         );
       }
     },
-    [activeChatId, commitInventory, fightInventoryLines, showInventoryNotification, localizeUi],
+    [activeChatId, commitInventory, fightInventoryLines, combatItemEffects, showInventoryNotification, localizeUi],
   );
 
   /**
@@ -8714,6 +8777,69 @@ function GameSurfaceComponent({
     };
   }, [chatMeta.gameCharacterCards, gameRuleset, inventoryPlayerName]);
   const inventoryItemBook = useRulesetItemBook(gameRuleset, inventorySheets, chatMeta.gameInventedItems);
+  /** The Use button. One of the ruleset's items with a `use` is used by the Engine first: what it does
+   *  to whoever carries it lands on their sheet, it is spent, and the Game Master is told what happened
+   *  in an `[item_used]` block. Anything else is simply said, and the Game Master decides. */
+  const handleUseInventoryStack = useCallback(
+    async (stackId: string, label: string) => {
+      setInventoryOpen(false);
+      const stack = inventoryItemsRef.current.find((entry) => entry.id === stackId);
+      const said = () => sendMessage(`I use my ${label}.`);
+      // Only an item the screen already knows has no use is simply said. One it cannot tell about yet
+      // (the ruleset or its catalogs still loading) goes to the Engine, which always knows.
+      const known = stack?.item ? inventoryItemBook?.itemOf(stack.item) : undefined;
+      if (!stack?.item || gameRuleset.status === "none" || (known && !known.entry.item?.use)) {
+        said();
+        return;
+      }
+      const usedIn = activeChatId;
+      let used: { rulesetLive: RulesetLiveStates; line: string } | null;
+      try {
+        // A sheet edit still waiting to be saved lands first, so the use starts from it and is not
+        // written over by it afterwards.
+        if (usedIn) await flushGameStatePatch(usedIn);
+        used = await sendInventory((chatId) =>
+          api.post<{
+            inventory: GameInventoryStack[];
+            rulesetLive: RulesetLiveStates;
+            line: string;
+            playerStats?: PlayerStats;
+          }>("/game/inventory/use", { chatId, stackId }),
+        );
+      } catch (error) {
+        const reason =
+          error instanceof ApiError && error.payload && typeof error.payload === "object"
+            ? (error.payload as { reason?: unknown }).reason
+            : undefined;
+        // Nothing the Engine uses: it is said as any other item is.
+        if (reason === "no-use" || reason === "not-ruleset-item" || reason === "no-ruleset") {
+          if (useChatStore.getState().activeChatId === usedIn) said();
+          return;
+        }
+        toast.error(
+          localizeUi(
+            reason === "none-left"
+              ? "ui.game.gamesurfacecomponent.itemUseNoneLeft"
+              : reason === "not-worn"
+                ? "ui.game.gamesurfacecomponent.itemUseNotWorn"
+                : "ui.game.gamesurfacecomponent.itemUseFailed",
+            { item: label },
+          ),
+        );
+        return;
+      }
+      if (!used) return;
+      // The item is used either way. When the Game Master cannot be told (the player moved to another
+      // chat meanwhile, or the message did not go), the player is, so it is never spent in silence.
+      const sent =
+        useChatStore.getState().activeChatId === usedIn &&
+        (await sendMessage(`I use my ${label}.\n\n[item_used]\n${used.line}\n[/item_used]`).catch(() => false)) !==
+          false;
+      if (!sent) toast.error(localizeUi("ui.game.gamesurfacecomponent.itemUsedNotSent", { item: label }));
+    },
+    [activeChatId, gameRuleset.status, inventoryItemBook, localizeUi, sendInventory, sendMessage],
+  );
+
   // Who an item added in the shared view may go to, in order: the player, then the party.
   const inventoryPlaceAmong = useMemo(
     () => ["", ...partyMembers.filter((member) => !member.id.startsWith("persona:")).map((member) => member.name)],
@@ -10099,6 +10225,39 @@ function GameSurfaceComponent({
     [activeChatId, localizeUi, patchGameStateField],
   );
 
+  /** A rest from the in-game sheet, in a game whose ruleset has items: the server takes it, so the
+   *  charges it brings back to what the character carries are written with the sheet. Answers with
+   *  what the sheet shows after it, or null when it was not taken. */
+  const handleRulesetRest = useCallback(
+    async (cardTitle: string, rest: string): Promise<string | null> => {
+      if (!activeChatId) return null;
+      try {
+        // A sheet edit still waiting to be saved lands first, so the rest starts from it.
+        await flushGameStatePatch(activeChatId);
+        const rested = await sendInventory((chatId) =>
+          api.post<{
+            inventory: GameInventoryStack[];
+            rulesetLive: RulesetLiveStates;
+            now: string;
+            recharged: Array<{ item: string; now: number; max: number }>;
+            playerStats?: PlayerStats;
+          }>("/game/inventory/rest", { chatId, character: cardTitle, rest }),
+        );
+        if (!rested) return null;
+        return [
+          rested.now,
+          ...rested.recharged.map((entry) =>
+            localizeUi("game.ruleset.sheet.restRecharged", { item: entry.item, now: entry.now, max: entry.max }),
+          ),
+        ].join("; ");
+      } catch {
+        toast.error(localizeUi("game.ruleset.sheet.restFailed"));
+        return null;
+      }
+    },
+    [activeChatId, localizeUi, sendInventory],
+  );
+
   const characterSheetRuleset = useMemo<GameCharacterSheetRuleset | undefined>(() => {
     if (gameRuleset.status === "none" || gameRuleset.status === "loading") return undefined;
     if (gameRuleset.status === "unavailable") return { status: "unavailable" };
@@ -10130,6 +10289,8 @@ function GameSurfaceComponent({
       envelope: parsed?.success ? parsed.data : undefined,
       live: gameSnapshot?.rulesetLive?.[normalizeCharacterLookupName(cardTitle)],
       onLiveChange: (next) => handleRulesetLiveChange(cardTitle, next),
+      // Where the ruleset has items, a rest may bring charges back to what is carried.
+      ...(inventoryItemBook ? { onRest: (rest: string) => handleRulesetRest(cardTitle, rest) } : {}),
       onEnvelopeSave: (next) => handleSaveRulesetSheet(cardTitle, next),
       ...(items ? { items } : {}),
     };
@@ -10139,6 +10300,7 @@ function GameSurfaceComponent({
     gameRuleset,
     gameSnapshot?.rulesetLive,
     handleRulesetLiveChange,
+    handleRulesetRest,
     handleSaveRulesetSheet,
     inventoryItemBook,
     inventoryItems,
@@ -10788,6 +10950,8 @@ function GameSurfaceComponent({
   // Combat end handler — clear combat state and notify GM
   const handleCombatEnd = useCallback(
     (outcome: "victory" | "defeat" | "flee", summary: CombatSummary) => {
+      // The message that started the fight names it, so a win reported twice drops its loot once.
+      const fightKey = combatStartMessageId;
       setCombatParty(null);
       setCombatEnemies(null);
       setCombatSceneMeta(null);
@@ -10859,87 +11023,125 @@ function GameSurfaceComponent({
       }
       rulesetBattleSeedsRef.current = null;
 
-      // Build a compact, model-friendly recap so the GM can narrate the aftermath.
-      const defeatedEnemies = summary.enemies.filter((e) => e.defeated).map((e) => e.name);
-      const survivingEnemies = summary.enemies.filter((e) => !e.defeated);
-      const partyStatus = summary.party.map((p) => {
-        const hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
-        const effects = p.statusEffects.length > 0 ? ` [${p.statusEffects.join(", ")}]` : "";
-        const ko = p.ko ? " KO" : "";
-        const resources = [
-          p.mp !== undefined ? `${p.mp}/${p.maxMp ?? p.mp} MP` : "",
-          p.spellSlots ? `remaining spell slots ${JSON.stringify(p.spellSlots)}` : "",
-        ]
-          .filter(Boolean)
+      // A won fight drops its loot into the bags before the recap goes out, so the Game Master is told
+      // what is already there. A directed fight dropped its own on the step that won it, and its
+      // summary says so even when that was nothing; one played on the screen alone asks for it now,
+      // known by the message that started it. Without that message it cannot be dropped only once, so
+      // it is not asked for, and the Game Master decides the reward as before.
+      const endedIn = activeChatId;
+      const fallen = summary.enemies.filter((enemy) => enemy.defeated).length;
+      const looted: Promise<CombatSummary["loot"]> =
+        outcome !== "victory" || summary.loot !== undefined || fallen === 0 || !endedIn || !fightKey
+          ? Promise.resolve(summary.loot)
+          : sendInventory((chatId) =>
+              api.post<{ loot: NonNullable<CombatSummary["loot"]>; inventory: GameInventoryStack[] }>(
+                "/game/inventory/loot",
+                { chatId, fight: fightKey, defeated: Math.min(20, fallen) },
+              ),
+            )
+              .then((answer) => answer?.loot)
+              .catch(() => undefined);
+      const tellCombatEnd = (loot: CombatSummary["loot"]) => {
+        // Build a compact, model-friendly recap so the GM can narrate the aftermath.
+        const defeatedEnemies = summary.enemies.filter((e) => e.defeated).map((e) => e.name);
+        const survivingEnemies = summary.enemies.filter((e) => !e.defeated);
+        const partyStatus = summary.party.map((p) => {
+          const hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
+          const effects = p.statusEffects.length > 0 ? ` [${p.statusEffects.join(", ")}]` : "";
+          const ko = p.ko ? " KO" : "";
+          const resources = [
+            p.mp !== undefined ? `${p.mp}/${p.maxMp ?? p.mp} MP` : "",
+            p.spellSlots ? `remaining spell slots ${JSON.stringify(p.spellSlots)}` : "",
+          ]
+            .filter(Boolean)
+            .join(", ");
+          return `${p.name}: ${p.hp}/${p.maxHp} HP (${hpPct}%)${resources ? `; ${resources}` : ""}${effects}${ko}`;
+        });
+        const count = (name: string, quantity?: number) => (quantity && quantity > 1 ? `${name} ×${quantity}` : name);
+        const lootText = (loot ?? [])
+          .filter((drop) => (drop.quantity ?? 1) > 0)
+          .map((drop) => count(drop.name, drop.quantity))
           .join(", ");
-        return `${p.name}: ${p.hp}/${p.maxHp} HP (${hpPct}%)${resources ? `; ${resources}` : ""}${effects}${ko}`;
-      });
-      const lootText =
-        summary.loot && summary.loot.length > 0
-          ? summary.loot.map((l) => (l.quantity && l.quantity > 1 ? `${l.name} ×${l.quantity}` : l.name)).join(", ")
-          : "";
+        const leftText = (loot ?? [])
+          .filter((drop) => (drop.left ?? 0) > 0)
+          .map((drop) => count(drop.name, drop.left))
+          .join(", ");
+        // Only a player still looking at this chat is shown what dropped.
+        if (lootText && useChatStore.getState().activeChatId === endedIn) {
+          showInventoryNotification(localizeUi("ui.game.gamesurfacecomponent.lootDropped", { items: lootText }), true);
+        }
 
-      // Flee on round 1 means no round actually resolved — phrase it accordingly.
-      const rounds = fought ? fought.ruleset.rounds : summary.rounds;
-      const roundsPhrase =
-        outcome === "flee" && rounds <= 1 ? "before combat began" : `after ${rounds} round${rounds === 1 ? "" : "s"}`;
+        // Flee on round 1 means no round actually resolved — phrase it accordingly.
+        const rounds = fought ? fought.ruleset.rounds : summary.rounds;
+        const roundsPhrase =
+          outcome === "flee" && rounds <= 1 ? "before combat began" : `after ${rounds} round${rounds === 1 ? "" : "s"}`;
 
-      const recapLines: string[] = [];
-      recapLines.push(`OUTCOME: ${outcome.toUpperCase()} (${roundsPhrase})`);
-      if (defeatedEnemies.length > 0) recapLines.push(`Defeated: ${defeatedEnemies.join(", ")}`);
-      if (survivingEnemies.length > 0 && !fought) {
-        recapLines.push(`Survived: ${survivingEnemies.map((e) => `${e.name} (${e.hp}/${e.maxHp} HP)`).join(", ")}`);
-      }
-      // The ruleset's own numbers in place of the percentage lines: the fight was not fought on a
-      // share of a maximum, so the Game Master is never shown one.
-      if (fought) recapLines.push(...rulesetCombatRecapLines(fought.definition, fought.ruleset));
-      else recapLines.push(`Party: ${partyStatus.join("; ")}`);
-      if (sheetRecapLine) recapLines.push(sheetRecapLine);
-      if (summary.battlefieldSummary?.trim()) recapLines.push(`Battlefield: ${summary.battlefieldSummary.trim()}`);
-      if (lootText) recapLines.push(`Loot: ${lootText}`);
-      else
-        recapLines.push(
-          'Rewards: If a reward is narratively appropriate, decide it now and add it with [inventory: action="add" item="..."].',
-        );
+        const recapLines: string[] = [];
+        recapLines.push(`OUTCOME: ${outcome.toUpperCase()} (${roundsPhrase})`);
+        if (defeatedEnemies.length > 0) recapLines.push(`Defeated: ${defeatedEnemies.join(", ")}`);
+        if (survivingEnemies.length > 0 && !fought) {
+          recapLines.push(`Survived: ${survivingEnemies.map((e) => `${e.name} (${e.hp}/${e.maxHp} HP)`).join(", ")}`);
+        }
+        // The ruleset's own numbers in place of the percentage lines: the fight was not fought on a
+        // share of a maximum, so the Game Master is never shown one.
+        if (fought) recapLines.push(...rulesetCombatRecapLines(fought.definition, fought.ruleset));
+        else recapLines.push(`Party: ${partyStatus.join("; ")}`);
+        if (sheetRecapLine) recapLines.push(sheetRecapLine);
+        if (summary.battlefieldSummary?.trim()) recapLines.push(`Battlefield: ${summary.battlefieldSummary.trim()}`);
+        // What dropped is already in the bags, so the Game Master narrates it and never adds it again.
+        if (lootText) recapLines.push(`Loot (already in the party's bags): ${lootText}`);
+        if (leftText) recapLines.push(`Left behind (nobody could carry it): ${leftText}`);
+        if (!lootText && !leftText)
+          recapLines.push(
+            'Rewards: If a reward is narratively appropriate, decide it now and add it with [inventory: action="add" item="..."].',
+          );
 
-      const recap = recapLines.join("\n");
-      let prefix: string;
-      if (outcome === "victory") prefix = "*The battle is won.*";
-      else if (outcome === "defeat") prefix = "*The party has been defeated...*";
-      else prefix = "*The party flees from battle!*";
+        const recap = recapLines.join("\n");
+        let prefix: string;
+        if (outcome === "victory") prefix = "*The battle is won.*";
+        else if (outcome === "defeat") prefix = "*The party has been defeated...*";
+        else prefix = "*The party flees from battle!*";
 
-      // Wrap the recap in a clearly-labelled block so the GM treats it as canonical combat
-      // context (the core prompt rule teaches how to narrate it). The block is stripped from
-      // the user-visible bubble by stripGmTags / stripGmTagsKeepReadables, leaving only the
-      // cosmetic italic prefix. State is flipped above via transitionGameState so no
-      // [state:] tag is needed here.
-      sendMessage(`${prefix}\n\n[combat_result]\n${recap}\n[/combat_result]`);
+        // Wrap the recap in a clearly-labelled block so the GM treats it as canonical combat
+        // context (the core prompt rule teaches how to narrate it). The block is stripped from
+        // the user-visible bubble by stripGmTags / stripGmTagsKeepReadables, leaving only the
+        // cosmetic italic prefix. State is flipped above via transitionGameState so no
+        // [state:] tag is needed here.
+        sendMessage(`${prefix}\n\n[combat_result]\n${recap}\n[/combat_result]`);
 
-      // Journal: record combat outcome. The server's addCombatEntry only persists
-      // (description, outcome) into JournalEntry.content, so fold the structured recap
-      // into the description itself to preserve rounds / party status for players.
-      const journalDescLines: string[] = [];
-      if (outcome === "victory") journalDescLines.push(`Victory (${roundsPhrase})`);
-      else if (outcome === "defeat") journalDescLines.push(`The party was defeated (${roundsPhrase})`);
-      else journalDescLines.push(`The party fled from battle (${roundsPhrase})`);
-      if (defeatedEnemies.length > 0) journalDescLines.push(`Defeated: ${defeatedEnemies.join(", ")}`);
-      journalDescLines.push(`Party status: ${partyStatus.join("; ")}`);
-      if (lootText) journalDescLines.push(`Loot: ${lootText}`);
+        // Journal: record combat outcome. The server's addCombatEntry only persists
+        // (description, outcome) into JournalEntry.content, so fold the structured recap
+        // into the description itself to preserve rounds / party status for players.
+        const journalDescLines: string[] = [];
+        if (outcome === "victory") journalDescLines.push(`Victory (${roundsPhrase})`);
+        else if (outcome === "defeat") journalDescLines.push(`The party was defeated (${roundsPhrase})`);
+        else journalDescLines.push(`The party fled from battle (${roundsPhrase})`);
+        if (defeatedEnemies.length > 0) journalDescLines.push(`Defeated: ${defeatedEnemies.join(", ")}`);
+        journalDescLines.push(`Party status: ${partyStatus.join("; ")}`);
+        if (lootText) journalDescLines.push(`Loot: ${lootText}`);
 
-      api
-        .post("/game/journal/entry", {
-          chatId: activeChatId,
-          type: "combat",
-          data: {
-            description: journalDescLines.join(" — "),
-            outcome: outcome === "flee" ? "fled" : outcome,
-          },
-        })
-        .catch(() => {});
+        api
+          .post("/game/journal/entry", {
+            chatId: activeChatId,
+            type: "combat",
+            data: {
+              description: journalDescLines.join(" — "),
+              outcome: outcome === "flee" ? "fled" : outcome,
+            },
+          })
+          .catch(() => {});
+      };
+      // The recap belongs to the chat the fight ended in, whichever one is open by then (`sendMessage`
+      // keeps that chat): without it the Game Master never learns the outcome, and reopening the chat
+      // would start the same fight again.
+      void looted.then(tellCombatEnd);
     },
     [
       sendMessage,
       activeChatId,
+      combatStartMessageId,
+      sendInventory,
+      showInventoryNotification,
       chatMeta.gameCharacterCards,
       clearCombatSnapshot,
       gameRuleset,
@@ -13680,10 +13882,7 @@ function GameSurfaceComponent({
                 onGiveItem={handleGiveInventoryStack}
                 onSwapItems={handleSwapInventoryStacks}
                 canInteract={sessionInteractive && narrationDone && !isStreaming}
-                onUseItem={(itemName) => {
-                  setInventoryOpen(false);
-                  sendMessage(`I use my ${itemName}.`);
-                }}
+                onUseItem={handleUseInventoryStack}
               />
 
               {/* Readable document display (Notes / Books) */}

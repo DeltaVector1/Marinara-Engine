@@ -575,10 +575,31 @@ const line = (definition: RulesetDefinition, state: RulesetEncounterState, event
     ],
     ["heal", say({ type: "heal", targetId: "corwin", rolls: [5], flat: 4, amount: 9, health: 29, maxHealth: 38 })],
     ["temporary", say({ type: "temporary", targetId: "brenna", rolls: [3], flat: 2, amount: 5 })],
+    [
+      "restored",
+      say({ type: "restored", targetId: "corwin", pool: "Ki", rolls: [], flat: 2, amount: 2, value: 5, max: 7 }),
+    ],
     ["condition", say({ type: "condition", targetId: "brenna", condition: "prone", active: true, reason: "applied" })],
     ["spend", say({ type: "spend", actorId: "corwin", pool: "slots_1", label: "1st-level slots", amount: 1 })],
     ["budget", say({ type: "budget", actorId: "brenna", budget: "bonus", left: 0 })],
     ["uses", say({ type: "uses", actorId: "lurker", optionId: "thorns", label: "Thorns", left: 1, of: 3 })],
+    ["broke", say({ type: "broke", actorId: "corwin", optionId: "use:0", label: "Wand of sparks", roll: 1 })],
+    [
+      "gate",
+      say({
+        type: "gate",
+        actorId: "corwin",
+        optionId: "use:1",
+        label: "Scroll of fireball",
+        check: "Arcana",
+        rolls: [6],
+        kept: 6,
+        modifier: 3,
+        total: 9,
+        difficulty: 13,
+        success: false,
+      }),
+    ],
     [
       "recharge",
       say({
@@ -725,6 +746,12 @@ const line = (definition: RulesetDefinition, state: RulesetEncounterState, event
 
   // The exact strings, so rewording one is a decision rather than an accident.
   assert.equal(printed.get("window"), "Brenna breaks away, and Thorn Lurker may strike.");
+  assert.equal(printed.get("restored"), "Corwin gets back 2 Ki, and is on 5 of 7.");
+  assert.equal(printed.get("broke"), "Wand of sparks breaks (a 1 on its die).");
+  assert.equal(
+    printed.get("gate"),
+    "Corwin rolls Arcana to use Scroll of fireball: 6 + 3 = 9 against 13, a failure. It is used up for nothing.",
+  );
   assert.equal(printed.get("cancelled"), "Thorn Lurker stops Brenna: Fireball never happens.");
   assert.equal(
     printed.get("hardness"),
@@ -1279,6 +1306,15 @@ function drawn(...rows: string[]): TacticalGrid {
   const sword = menu.find((option) => option.label === "Longsword")!;
   assert.deepEqual(sword.targetIds, [], "six squares away is further than a sword reaches");
   assert.equal(rulesetNothingInReach(view), true);
+  // A flask that can be thrown at it from here is something to do.
+  assert.equal(
+    rulesetNothingInReach({
+      ...view,
+      options: [...view.options!, { ...sword, id: "use:0", kind: "item", label: "Flask", targetIds: ["lurker"] }],
+    }),
+    false,
+    "an item used at an opponent in reach counts",
+  );
   // A fight with no board never says it, and neither does one whose opponents are all down.
   assert.equal(rulesetNothingInReach(viewOf(state)), false);
   assert.equal(
@@ -1454,7 +1490,7 @@ function drawn(...rows: string[]): TacticalGrid {
 {
   assert.deepEqual(
     [...RULESET_MENU_KINDS],
-    ["move", "attack", "reload", "ability", "block", "contest", "standard", "end-turn"],
+    ["move", "attack", "reload", "ability", "item", "block", "contest", "standard", "end-turn"],
   );
   const grid = drawn(".....", ".....");
   const state = createRulesetEncounter({

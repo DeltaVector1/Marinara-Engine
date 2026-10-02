@@ -227,13 +227,36 @@ try {
         delete entry.item.attack?.clip;
       }
     };
-    for (const text of [emberText, gravewatchText]) {
+    /** Less the other ways their weapons fight and what their items do when used, which are 1.58's
+     *  and 1.59's and have lanes of their own. */
+    const withoutWays = (doc: Record<string, any>) => {
+      // And the loot, which is 1.63's.
+      delete doc.items?.lootTables;
+      for (const catalog of doc.catalogs) for (const entry of catalog.entries ?? []) delete entry.creature?.loot;
+      for (const layer of doc.layers ?? []) delete layer.currencies;
+      // And the market, which is 1.65's.
+      delete doc.items?.market;
+      for (const catalog of doc.catalogs ?? []) {
+        for (const entry of catalog.entries ?? []) {
+          delete entry.item?.sold;
+          delete entry.item?.service;
+        }
+      }
+      delete doc.combat?.offHand;
+      for (const entry of itemCatalogOf(doc).entries) {
+        for (const key of ["modes", "offHand", "floor", "onHit"]) delete entry.item.attack?.[key];
+        delete entry.item.use;
+        delete entry.item.charges;
+      }
+    };
+    for (const text of [emberText, gravewatchText].map((each) => JSON.stringify(variant(each, withoutWays)))) {
       assert.match(issue(56, variant(text)) ?? "", gateIssue);
       assert.equal(issue(57, variant(text)), null);
       assert.equal(issue(56, variant(text, withoutAmmo)), null, "the rest of the example stays 1.56");
     }
     const onlyClip = variant(gravewatchText, (doc) => {
       withoutAmmo(doc);
+      withoutWays(doc);
       itemEntry(doc, "watch-pistol").item.attack.clip = { max: 1, reload: "act" };
     });
     assert.match(issue(56, onlyClip) ?? "", gateIssue, "a clip alone");
@@ -244,7 +267,7 @@ try {
       delete catalog.entries;
       catalog.asset = "catalogs/outfitter.json";
     });
-    const entries = itemCatalogOf(variant(emberText)).entries;
+    const entries = itemCatalogOf(variant(emberText, withoutWays)).entries;
     const paths = ["ruleset.json", "catalogs/outfitter.json"];
     const files = new Map<string, unknown>([["catalogs/outfitter.json", { entries }]]);
     assert.match(issue(56, inFile, paths, files) ?? "", gateIssue, "a catalog file");
@@ -822,7 +845,7 @@ try {
     });
     assert.match(
       rulesetItemPromptFacts(rulesetItemFacts(ember, bow)),
-      /, range 30 to 60 paces, ammunition Arrow \(1 an attack, 50% picked up after a won fight\)$/,
+      /, range 30 to 60 paces, ammunition Arrow \(1 an attack, 50% picked up after a won fight\), modes Volley/,
     );
     assert.match(
       rulesetItemPromptFacts(rulesetItemFacts(gravewatch, pistol)),

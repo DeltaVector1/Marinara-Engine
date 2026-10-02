@@ -15,8 +15,10 @@ import {
   gameInventoryBagKey,
   rulesetDefenseLabel,
   rulesetItemStatsRead,
+  rulesetLayeredCurrencies,
   wrapGameInstructions,
   type GameInventoryBearerStatus,
+  type RulesetLayerOptions,
 } from "@marinara-engine/shared";
 import type { CharacterSpriteInfo } from "./sprite.service.js";
 
@@ -108,6 +110,7 @@ export interface GmPromptContext {
     item?: string;
     equipped?: number;
     bound?: number;
+    charges?: Array<{ now: number; max: number }>;
   }>;
   /** Each bag's totals, the player's first (no `holder`). Read instead of `playerInventory` once
    *  anybody but the player carries something, so the Game Master knows who holds what. */
@@ -120,6 +123,7 @@ export interface GmPromptContext {
       item?: string;
       equipped?: number;
       bound?: number;
+      charges?: Array<{ now: number; max: number }>;
     }>;
   }>;
   /** What each ruleset item held is, by item id, as one line (`rulesetItemPromptFacts`). */
@@ -127,6 +131,14 @@ export interface GmPromptContext {
   /** What each character carries, binds and wears against what they can, by bag key
    *  (`gameInventoryBagKey`, the player's is ""), in a game whose ruleset says so. */
   inventoryBearers?: Record<string, GameInventoryBearerStatus>;
+  /** What each bag's coins are worth ("Coin worth 432 bits"), by bag key, where the ruleset has coins. */
+  inventoryPurses?: Record<string, string>;
+  /** The market block for the place the scene is in (`rulesetMarketPromptText`), where the ruleset
+   *  has a market (#6917). */
+  market?: string;
+  /** The layers the game's ruleset really plays with, for what a layer hides without rewriting the
+   *  ruleset (its coins). */
+  rulesetLayerOptions?: RulesetLayerOptions;
   /** Language for all narration and dialogue */
   language?: string;
   /** User-overridable GM instruction body. Wrapped in <instructions> before sending. */
@@ -475,6 +487,27 @@ function bearerNote(status: GameInventoryBearerStatus | undefined, bindingLabel:
 
 /** The tag line for wearing: only the actions this ruleset has, putting on for slots and binding for a
  *  binding limit, so a model is never offered one the Engine would refuse every time. */
+/** The ruleset's coins, family by family, largest first: "Coin: sovereigns, marks, bits; Salt: cakes,
+ *  pinches". */
+function promptCoins(
+  families: ReadonlyArray<{ label: string; units: ReadonlyArray<{ label: string; value: number }> }>,
+): string {
+  return families
+    .map(
+      (family) =>
+        `${normalizePromptText(family.label)}: ${[...family.units]
+          .sort((a, b) => b.value - a.value)
+          .map((unit) => normalizePromptText(unit.label))
+          .join(", ")}`,
+    )
+    .join("; ");
+}
+
+/** The ruleset's loot tables as the Game Master names them: "grave_goods (Grave goods)". */
+function promptLootTables(tables: ReadonlyArray<{ id: string; label: string }>): string {
+  return tables.map((table) => `${table.id} (${normalizePromptText(table.label)})`).join(", ");
+}
+
 function wearGrammarLine(slots: boolean, bindingLabel: string | undefined): string {
   const binding = bindingLabel === undefined ? undefined : normalizePromptText(bindingLabel);
   const actions = [...(slots ? ["equip", "unequip"] : []), ...(binding !== undefined ? ["bind", "unbind"] : [])];
@@ -1141,6 +1174,9 @@ export function buildGmFormatReminder(
     | "partyInventory"
     | "inventoryItemFacts"
     | "inventoryBearers"
+    | "inventoryPurses"
+    | "market"
+    | "rulesetLayerOptions"
     | "language"
     | "rating"
     | "enableQuickTimeEvents"
@@ -1233,16 +1269,29 @@ export function buildGmFormatReminder(
   // How many of an item are worn and bound, in the ruleset's own word for bound.
   const bindingName = normalizePromptText(ctx.ruleset?.items?.binding?.label);
   const bindingLabel = bindingName.toLowerCase();
-  const itemWorn = (item: { equipped?: unknown; bound?: unknown } | undefined) => {
+  const itemWorn = (
+    item: { equipped?: unknown; bound?: unknown; charges?: Array<{ now: number; max: number }> } | undefined,
+  ) => {
     const count = (value: unknown) => (typeof value === "number" && Number.isFinite(value) && value > 0 ? value : 0);
+    // What an item that holds charges has left, each stack's: "2 of 3 charges left".
+    const charges = Array.isArray(item?.charges)
+      ? item.charges.filter((entry) => Number.isFinite(entry?.now) && Number.isFinite(entry?.max))
+      : [];
     const worn = [
       ...(count(item?.equipped) ? [`${count(item?.equipped)} worn`] : []),
       ...(count(item?.bound) ? [`${count(item?.bound)} ${bindingLabel || "bound"}`] : []),
+      ...(charges.length ? [`${charges.map((entry) => `${entry.now} of ${entry.max}`).join(", ")} charges left`] : []),
     ].join(", ");
     return worn ? { worn } : {};
   };
+  const coins = ctx.ruleset ? rulesetLayeredCurrencies(ctx.ruleset, ctx.rulesetLayerOptions) : [];
   const bearerFor = (holder: string | undefined) =>
-    bearerNote(ctx.inventoryBearers?.[gameInventoryBagKey(holder)], bindingName);
+    [
+      bearerNote(ctx.inventoryBearers?.[gameInventoryBagKey(holder)], bindingName),
+      normalizePromptText(ctx.inventoryPurses?.[gameInventoryBagKey(holder)]),
+    ]
+      .filter(Boolean)
+      .join("; ");
   const playerInventory = Array.isArray(ctx.playerInventory)
     ? ctx.playerInventory.flatMap((item) => {
         const name = inventoryName(item);
@@ -1438,6 +1487,27 @@ export function buildGmFormatReminder(
           ...(ctx.ruleset?.items?.slots?.length || ctx.ruleset?.items?.binding
             ? [wearGrammarLine(Boolean(ctx.ruleset.items.slots?.length), ctx.ruleset.items.binding?.label)]
             : []),
+          ...(ctx.ruleset?.catalogs?.some((catalog) => catalog.holds === "items")
+            ? [
+                `- [inventory: action="use" item="Name" who="Name"] - when a character uses one of the ruleset's items whose [brackets] say "use (...)". The Engine rolls what it does to whoever uses it, writes that on their sheet and spends the item, and the answer says what happened: narrate that, and what it does to anybody else. A player's message may end with an [item_used] block: the Engine already used that item the same way, so narrate it and never use or remove it again.`,
+              ]
+            : []),
+          ...(coins.length
+            ? [
+                `- [inventory: action="pay" amount="5 ${coins[0]!.units.at(-1)!.label}" who="Name"] and [inventory: action="earn" amount="12 ${coins[0]!.units[0]!.label}" who="Name"] - when a character pays for something or is paid, in the ruleset's coins (${promptCoins(coins)}). Coins are items in each character's purse: a payment comes out of that character's purse (the player's with who left out), inside the coin's own family, with change in its smaller coins, and one they cannot afford is refused; an earning goes into the bags as an add does. The answer says what was paid and what is left: narrate exactly that. ${ctx.ruleset?.items?.market ? "Buying is a buy (below)" : "Buying is a payment and then an add"}; never add or remove coins any other way.`,
+              ]
+            : []),
+          ...(ctx.ruleset?.items?.market
+            ? [
+                `- [place: name="Name" size="${ctx.ruleset.items.market.places.at(-1)!.label}"] - whenever the scene moves to a new place, with its size, one of: ${ctx.ruleset.items.market.places.map((place) => place.label).join(", ")} (smallest first). Leave size out for somewhere with no market (a road, the wilds). The Engine keeps the last place said until you say another, and the MARKET block below shows what it sells.`,
+                `- [inventory: action="buy" item="Name" count="1" level="${ctx.ruleset.items.market.prices.find((level) => level.default)!.label}" seller="Seller" who="Name"] - when a character buys something, instead of paying and adding it yourself. Levels: ${ctx.ruleset.items.market.prices.map((level) => `${level.label} ×${level.times}${level.default ? " (the default)" : ""}`).join(", ")}; haggling or a seller's mood moves the level, never the price. The Engine checks the place and the seller sell it, prices it, takes the price from the buyer's purse (the player's with who left out) and puts it in their bag (a service only pays), and the answer says what it cost or why not: narrate exactly that.`,
+              ]
+            : []),
+          ...(ctx.ruleset?.items?.lootTables?.length
+            ? [
+                `- [loot: table="id" who="Name"] - when the party finds a hoard, searches the fallen or is rewarded, instead of adding the items yourself. The Engine rolls the ruleset's table and puts what it drops into the bags as an add would (who="..." for one character's), and the answer says what dropped: narrate exactly that. Tables: ${promptLootTables(ctx.ruleset.items.lootTables)}. A won fight already dropped its own loot, which the combat result lists: never roll a table for it again.`,
+              ]
+            : []),
         ]),
     `- [Note: contents] or [Book: contents] - when a new readable note or book is acquired and should be tracked in the journal.`,
     `- [state: exploration|dialogue|combat|travel_rest] - only on actual mode transitions. If you're planning to use [state: combat], this one ALWAYS has to be at the end of the turn, as it initiates a new combat generation and UI.`,
@@ -1582,6 +1652,8 @@ export function buildGmFormatReminder(
     const note = bearerFor(undefined);
     lines.push(``, `PLAYER INVENTORY${note ? ` (${note})` : ""}: ${buildCompactInventoryLine(playerInventory)}`);
   }
+
+  if (ctx.market) lines.push(``, ctx.market);
 
   const specialInstructions = normalizePromptText(ctx.gameSpecialInstructions);
   if (specialInstructions) {

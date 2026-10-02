@@ -327,6 +327,7 @@ export function rulesetCombatEventLine(
         }),
       );
       if (event.critical) lines.push(key("damageCritical"));
+      if (event.floor !== undefined) lines.push(key("damageFloor", { floor: event.floor }));
       if (event.adjust !== "none") lines.push(key(`damage${event.adjust[0]!.toUpperCase()}${event.adjust.slice(1)}`));
       if (event.saved) lines.push(key("damageSaved"));
       if (event.toTemp > 0) lines.push(key("damageTemporary", { amount: event.toTemp }));
@@ -366,6 +367,14 @@ export function rulesetCombatEventLine(
       });
     case "temporary":
       return key("temporary", { target: names.combatant(event.targetId), amount: event.amount });
+    case "restored":
+      return key("restored", {
+        target: names.combatant(event.targetId),
+        amount: event.amount,
+        pool: event.pool,
+        value: event.value,
+        max: event.max,
+      });
     case "condition":
       return key(`condition${event.reason[0]!.toUpperCase()}${event.reason.slice(1)}`, {
         target: names.combatant(event.targetId),
@@ -419,6 +428,25 @@ export function rulesetCombatEventLine(
       });
     case "uses":
       return key("uses", { label: event.label, left: event.left, of: event.of });
+    case "broke":
+      return key("broke", { label: event.label, roll: event.roll });
+    case "gate":
+      if (event.pool) {
+        return key(event.success ? "gatePoolSuccess" : "gatePoolFailure", {
+          actor: names.combatant(event.actorId),
+          check: event.check,
+          label: event.label,
+          roll: rulesetPoolRollText({ ...event, pool: event.pool }, t, bonusNamer(names, t)),
+          needed: t("game.combat.ruleset.roll.needed", { count: event.difficulty }),
+        });
+      }
+      return key(event.success ? "gateSuccess" : "gateFailure", {
+        actor: names.combatant(event.actorId),
+        check: event.check,
+        label: event.label,
+        roll: rulesetRollText(event, t, bonusNamer(names, t)),
+        difficulty: event.difficulty,
+      });
     case "recharge":
       return key(event.back ? "rechargeBack" : "rechargeNot", {
         label: event.label,

@@ -7,7 +7,7 @@
 // naming several items becomes one tag per item, so every item carries its own outcome.
 // ──────────────────────────────────────────────
 
-import type { GameInventoryItemProposal } from "./game-inventory-stacks.js";
+import { GAME_INVENTORY_MAX_QUANTITY, type GameInventoryItemProposal } from "./game-inventory-stacks.js";
 import { readGmTagAttributes } from "./skill-check-tag.js";
 
 /** Longest body an inventory tag can carry, so a reply full of unclosed heads stays cheap to scan. */
@@ -21,7 +21,8 @@ const MAX_TAG_NOTE_LENGTH = 600;
 /** The most parts one proposed item's list (its tags, stats or slots) is read for. */
 const MAX_PROPOSAL_PARTS = 24;
 
-export type InventoryTagAction = "add" | "remove" | "give" | "equip" | "unequip" | "bind" | "unbind";
+export type InventoryTagAction =
+  "add" | "remove" | "give" | "equip" | "unequip" | "bind" | "unbind" | "use" | "pay" | "earn" | "buy";
 
 const INVENTORY_TAG_ACTIONS: readonly InventoryTagAction[] = [
   "add",
@@ -31,6 +32,10 @@ const INVENTORY_TAG_ACTIONS: readonly InventoryTagAction[] = [
   "unequip",
   "bind",
   "unbind",
+  "use",
+  "pay",
+  "earn",
+  "buy",
 ];
 
 function readAction(value: string | undefined): InventoryTagAction | undefined {
@@ -48,6 +53,9 @@ export interface InventoryTagRequest {
   to?: string;
   /** An add that proposes an item of the ruleset: the parts the Game Master gave it. */
   proposal?: Omit<GameInventoryItemProposal, "name">;
+  /** A buy's price level and seller, as the Game Master named them (#6917). */
+  level?: string;
+  seller?: string;
 }
 
 /** "damage=1d8, bulk: 2; hands" as parts: each `key=value` or `key: value`, split only before the
@@ -145,25 +153,77 @@ export function parseInventoryTagBody(body: string): InventoryTagRequest | null 
   let action: InventoryTagAction = readAction(actionValue) ?? "add";
   if (actionValue === undefined) {
     // A bare word, read only before the first attribute so an item's own name never counts.
-    const bare = /\b(add|remove|give|equip|unequip|bind|unbind)\b/i.exec(
+    const bare = /\b(add|remove|give|equip|unequip|bind|unbind|use|pay|earn|buy)\b/i.exec(
       body.slice(0, Math.min(attributes[0]?.start ?? body.length, 40)),
     );
     if (bare) action = bare[1]!.toLowerCase() as InventoryTagAction;
   }
 
-  const items = (values.get("items") ?? values.get("item") ?? "")
+  // A payment or an earning names its coins as an amount ("5 gold"), or as an item and a count.
+  const amount =
+    action === "pay" || action === "earn" ? /^(\d{1,9})\s*(\S.*)$/.exec(values.get("amount")?.trim() ?? "") : null;
+  const items = (amount ? amount[2]! : (values.get("items") ?? values.get("item") ?? ""))
     .split(",")
     .map((item) => cleanName(unquote(item)))
     .filter((item): item is string => Boolean(item));
   if (items.length === 0) return null;
 
-  const countText = values.get("count") ?? values.get("quantity") ?? values.get("qty");
+  const countText = amount?.[1] ?? values.get("count") ?? values.get("quantity") ?? values.get("qty");
   const parsedCount = countText && /^\d{1,9}$/.test(countText.trim()) ? Number.parseInt(countText, 10) : 1;
-  const count = parsedCount > 0 ? Math.min(parsedCount, INVENTORY_TAG_COUNT_MAX) : 1;
+  // Coins come by the thousand, so a payment or an earning is held only to what one stack may hold.
+  const most = action === "pay" || action === "earn" ? GAME_INVENTORY_MAX_QUANTITY : INVENTORY_TAG_COUNT_MAX;
+  const count = parsedCount > 0 ? Math.min(parsedCount, most) : 1;
   const who = cleanName(values.get("who"));
   const to = cleanName(values.get("to"));
   const proposal = action === "add" ? readProposal(values) : undefined;
-  return { action, items, count, ...(who ? { who } : {}), ...(to ? { to } : {}), ...(proposal ? { proposal } : {}) };
+  const level = action === "buy" ? cleanName(values.get("level")) : undefined;
+  const seller = action === "buy" ? cleanName(values.get("seller")) : undefined;
+  return {
+    action,
+    items,
+    count,
+    ...(who ? { who } : {}),
+    ...(to ? { to } : {}),
+    ...(proposal ? { proposal } : {}),
+    ...(level ? { level } : {}),
+    ...(seller ? { seller } : {}),
+  };
+}
+
+/** The Game Master's `[loot: table="..." who="..."]`: one of the ruleset's loot tables, rolled. */
+export function createLootTagRegex(): RegExp {
+  return new RegExp(`\\[loot:([^\\]]{0,${MAX_INVENTORY_TAG_BODY}})\\]`, "gi");
+}
+
+/** One loot tag body read leniently, as an inventory tag's is: the table (or a bare word naming it) and
+ *  whose bag, if any. Null when it names no table. */
+export function parseLootTagBody(body: string): { table: string; who?: string } | null {
+  const values = new Map<string, string>();
+  for (const attribute of readGmTagAttributes(body)) {
+    const key = attribute.key.trim().toLowerCase();
+    if (key && !values.has(key)) values.set(key, unquote(attribute.rawValue));
+  }
+  const table = cleanName(values.get("table") ?? (values.size === 0 ? body : undefined));
+  if (!table) return null;
+  const who = cleanName(values.get("who"));
+  return { table, ...(who ? { who } : {}) };
+}
+
+/** A loot tag that dropped nothing, answered in place: rolled and empty, or refused and why. What it did
+ *  drop is answered as the inventory's own resolved adds instead. */
+export function serializeLootTag(input: { table: string; who?: string } | { raw: string }, refused?: string): string {
+  const parts: string[] = [];
+  const attribute = (key: string, value: string) => parts.push(`${key}="${sanitize(value)}"`);
+  if ("raw" in input) attribute("raw", input.raw);
+  else {
+    attribute("table", input.table);
+    if (input.who) attribute("who", input.who);
+  }
+  if (refused) {
+    attribute("result", "refused");
+    attribute("reason", refused);
+  } else attribute("result", "nothing");
+  return `[loot: ${parts.join(" ")}]`;
 }
 
 /** What the Engine did with one item of a tag. `count` is how many really moved and `now` how many
@@ -181,7 +241,19 @@ function sanitize(value: string, max = MAX_TAG_NAME_LENGTH): string {
 /** The canonical form of one resolved item, built from what the Engine read and did, never spliced
  *  out of what the model wrote. `raw` stands in for a body nothing could be read from. */
 export function serializeInventoryTag(
-  input: { action: InventoryTagAction; item: string; count: number; who?: string; to?: string } | { raw: string },
+  input:
+    | {
+        action: InventoryTagAction;
+        item: string;
+        count: number;
+        who?: string;
+        to?: string;
+        /** A buy's level and seller, and, bought, what it cost (#6917). */
+        level?: string;
+        seller?: string;
+        price?: string;
+      }
+    | { raw: string },
   outcome: InventoryTagOutcome,
   /** What the Engine changed about an item the Game Master invented. */
   note?: string,
@@ -196,10 +268,13 @@ export function serializeInventoryTag(
     attribute("count", outcome.ok ? outcome.count : input.count);
     if (input.who) attribute("who", input.who);
     if (input.to) attribute("to", input.to);
+    if (input.level) attribute("level", input.level);
+    if (input.seller) attribute("seller", input.seller);
   }
   if (outcome.ok) {
     attribute("result", "ok");
     attribute("now", outcome.now);
+    if (!("raw" in input) && input.price) attribute("price", input.price);
   } else {
     attribute("result", "refused");
     attribute("reason", outcome.reason);
@@ -217,6 +292,8 @@ export interface ResolvedInventoryTag {
   ok: boolean;
   now?: number;
   reason?: string;
+  /** What a buy cost, said in the ruleset's coins. */
+  price?: string;
 }
 
 /** Read one resolved tag body, or null for one the Engine has not answered. */
@@ -236,6 +313,7 @@ export function readResolvedInventoryTagBody(body: string): ResolvedInventoryTag
   const who = cleanName(values.get("who"));
   const to = cleanName(values.get("to"));
   const reason = values.get("reason")?.trim();
+  const price = values.get("price")?.trim();
   return {
     action,
     item,
@@ -246,6 +324,7 @@ export function readResolvedInventoryTagBody(body: string): ResolvedInventoryTag
     ok: result === "ok",
     ...(result === "ok" && Number.isFinite(now) ? { now } : {}),
     ...(reason && result !== "ok" ? { reason } : {}),
+    ...(price && result === "ok" && action === "buy" ? { price } : {}),
   };
 }
 

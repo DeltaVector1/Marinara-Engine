@@ -123,6 +123,7 @@ import {
   readAnnouncedChatToolbarPanelAction,
   readChatToolbarFloatingPanelAnchor,
 } from "./ChatToolbarControls";
+import { SelectionLorebookButton } from "./SelectionLorebookButton";
 import { mirrorCharacterSpritePlacements, mirrorSpritePlacements, normalizeSpritePlacements } from "./sprite-placement";
 import {
   loadLocalSpriteVisualSettings,
@@ -565,7 +566,12 @@ export const ChatArea = memo(function ChatArea() {
       </Suspense>
     );
   }
-  return <LocalChatArea />;
+  return (
+    <>
+      <LocalChatArea />
+      <SelectionLorebookButton />
+    </>
+  );
 });
 
 const LocalChatArea = memo(function LocalChatArea() {

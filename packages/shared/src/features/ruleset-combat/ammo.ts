@@ -1,4 +1,5 @@
-// What a weapon shoots and what it has loaded, as a fight counts them.
+// What a weapon shoots and what it has loaded, and what using an item spends of it, as a fight counts
+// them.
 //
 // A weapon's `ammo` draws from the items its holder carries with that tag, in the order the bag keeps
 // them; its `clip` is a loaded count the weapon keeps on itself. Both are counted on the fighter
@@ -10,7 +11,38 @@
 
 import type { GameInventoryJournalEntry } from "../../utils/game-inventory-ops.js";
 import { GAME_INVENTORY_MAX_QUANTITY, type GameInventoryStack } from "../../utils/game-inventory-stacks.js";
+import type { RulesetDefinition } from "../../schemas/ruleset.schema.js";
 import type { RulesetCombatAction, RulesetCombatant, RulesetCombatEvent, RulesetEncounterState } from "./types.js";
+
+/** How many one attack shoots: what its mode says, else what its ammunition says, else one. */
+function shotsPer(action: RulesetCombatAction): number {
+  return action.shots ?? action.ammo?.per ?? 1;
+}
+
+/**
+ * An attack made in one of its weapon's modes: named for it, adding what the mode adds to hit (dice
+ * in a pool fight), moving a pool fight's per-die target (from the weapon's own, else the pool's),
+ * aimed at as many as the mode says, and shooting what one attack in it shoots. Null for a mode the
+ * weapon does not have.
+ */
+export function rulesetModedAction(
+  definition: RulesetDefinition,
+  action: RulesetCombatAction,
+  modeId: string,
+): RulesetCombatAction | null {
+  const mode = action.modes?.find((entry) => entry.id === modeId);
+  if (!mode) return null;
+  const poolTarget = definition.resolution.kind === "dice-pool" ? definition.resolution.target.default : undefined;
+  const base = action.target ?? poolTarget;
+  return {
+    ...action,
+    label: `${action.label} (${mode.label})`,
+    ...(mode.toHit !== undefined && action.toHit !== undefined ? { toHit: action.toHit + mode.toHit } : {}),
+    ...(mode.target !== undefined && base !== undefined ? { target: base + mode.target } : {}),
+    ...(mode.targets !== undefined ? { targets: { ...action.targets, count: mode.targets } } : {}),
+    ...(mode.ammo !== undefined ? { shots: mode.ammo } : {}),
+  };
+}
 
 /** How many of the items with this tag the fighter still carries. */
 export function rulesetAmmoLeft(actor: RulesetCombatant, tag: string): number {
@@ -28,14 +60,29 @@ export function rulesetLoaded(actor: RulesetCombatant, clip: NonNullable<Ruleset
   return Math.max(0, Math.min(clip.max, now));
 }
 
+/** How many uses an item has left in a fight: one per item still in its stack where a use takes one,
+ *  and otherwise its charges now (what the fight left it, else what its stack kept, else all of them). */
+export function rulesetItemUseLeft(actor: RulesetCombatant, use: NonNullable<RulesetCombatAction["itemUse"]>): number {
+  const held = actor.sheet?.items?.[use.item];
+  if (use.consumes) return Math.max(0, (held?.quantity ?? 0) - (actor.itemsUsed?.[use.item] ?? 0));
+  if (!use.charges) return Number.POSITIVE_INFINITY;
+  const now = actor.charges?.[use.item] ?? held?.charges ?? use.charges.max;
+  return Math.max(0, Math.min(use.charges.max, now));
+}
+
 /** Whether what an action shoots or loads lets it happen now: an attack needs a shot loaded or
- *  carried, a reload a clip with room in it and, where it loads from the bag, something to load. */
+ *  carried, a reload a clip with room in it and, where it loads from the bag, something to load. An
+ *  item's use needs one of it left, or the charges it spends. */
 export function rulesetShotsAvailable(actor: RulesetCombatant, action: RulesetCombatAction): boolean {
+  if (action.itemUse) {
+    const left = rulesetItemUseLeft(actor, action.itemUse);
+    return action.itemUse.consumes ? left >= 1 : left >= (action.itemUse.charges?.cost ?? 0);
+  }
   if (action.kind === "reload") {
     if (!action.clip || rulesetLoaded(actor, action.clip) >= action.clip.max) return false;
     return !action.ammo || rulesetAmmoLeft(actor, action.ammo.tag) > 0;
   }
-  const per = action.ammo?.per ?? 1;
+  const per = shotsPer(action);
   if (action.clip) return rulesetLoaded(actor, action.clip) >= per;
   if (action.ammo) return rulesetAmmoLeft(actor, action.ammo.tag) >= per;
   return true;
@@ -64,8 +111,20 @@ function draw(actor: RulesetCombatant, tag: string, count: number, recover?: num
  *  bag. Null for an action that shoots nothing. */
 export function spendRulesetShots(actor: RulesetCombatant, action: RulesetCombatAction): RulesetCombatEvent | null {
   if (action.kind === "reload") return null;
+  const use = action.itemUse;
+  if (use && (use.consumes || use.charges)) {
+    const said = { type: "uses" as const, actorId: actor.id, optionId: action.id, label: action.label };
+    if (use.consumes) {
+      const quantity = actor.sheet?.items?.[use.item]?.quantity ?? 0;
+      (actor.itemsUsed ??= {})[use.item] = (actor.itemsUsed?.[use.item] ?? 0) + 1;
+      return { ...said, left: rulesetItemUseLeft(actor, use), of: quantity };
+    }
+    const left = Math.max(0, rulesetItemUseLeft(actor, use) - use.charges!.cost);
+    (actor.charges ??= {})[use.item] = left;
+    return { ...said, left, of: use.charges!.max };
+  }
   const said = { type: "shot" as const, actorId: actor.id, optionId: action.id, label: action.label };
-  const per = action.ammo?.per ?? 1;
+  const per = shotsPer(action);
   if (action.clip) {
     const left = Math.max(0, rulesetLoaded(actor, action.clip) - per);
     (actor.loaded ??= {})[action.clip.item] = left;
@@ -119,6 +178,23 @@ export function recoverRulesetAmmo(state: RulesetEncounterState): RulesetCombatE
   return events;
 }
 
+/** An item whose use just spent its last charge rolls its `breaksOn` die, and at or under `atMost` it
+ *  breaks: taken off its stack of one, so the fight's write-back removes it. Null when it holds on. */
+export function breakRulesetItem(
+  actor: RulesetCombatant,
+  action: RulesetCombatAction,
+  roll: (sides: number) => number,
+): RulesetCombatEvent | null {
+  const use = action.itemUse;
+  const breaks = use?.charges?.breaksOn;
+  if (!use || !breaks || rulesetItemUseLeft(actor, use) > 0 || actor.broken?.[use.item]) return null;
+  const face = roll(breaks.die);
+  if (face > breaks.atMost) return null;
+  (actor.itemsUsed ??= {})[use.item] = (actor.itemsUsed?.[use.item] ?? 0) + 1;
+  (actor.broken ??= {})[use.item] = true;
+  return { type: "broke", actorId: actor.id, optionId: action.id, label: action.label, roll: face };
+}
+
 /** What one step of a fight did to one of the party's inventory stacks: how many it took out of it
  *  (fewer than none when a won fight gave some back) and what a weapon has loaded now. */
 export interface RulesetFightItemChange {
@@ -127,6 +203,10 @@ export interface RulesetFightItemChange {
   name: string;
   taken: number;
   loaded?: number;
+  /** What an item with charges holds now. */
+  charges?: number;
+  /** It broke when its last charge was spent: what was taken is lost, not used. */
+  broke?: true;
 }
 
 /**
@@ -141,19 +221,25 @@ export function rulesetFightItemChanges(
   const changes: RulesetFightItemChange[] = [];
   for (const combatant of after.combatants) {
     const items = combatant.sheet?.items;
-    if (combatant.side !== "party" || !items || (!combatant.itemsUsed && !combatant.loaded)) continue;
+    if (combatant.side !== "party" || !items || (!combatant.itemsUsed && !combatant.loaded && !combatant.charges)) {
+      continue;
+    }
     const earlier = before?.combatants.find((entry) => entry.id === combatant.id);
     items.forEach((held, index) => {
       if (!held.stack) return;
       const taken = (combatant.itemsUsed?.[index] ?? 0) - (earlier?.itemsUsed?.[index] ?? 0);
       const loaded = combatant.loaded?.[index];
       const reloaded = loaded !== undefined && loaded !== earlier?.loaded?.[index];
-      if (taken === 0 && !reloaded) return;
+      const charges = combatant.charges?.[index];
+      const spent = charges !== undefined && charges !== earlier?.charges?.[index];
+      if (taken === 0 && !reloaded && !spent) return;
       changes.push({
         stack: { ...held.stack },
         name: held.name ?? held.stack.ref,
         taken,
         ...(reloaded ? { loaded } : {}),
+        ...(spent ? { charges } : {}),
+        ...(combatant.broken?.[index] && !earlier?.broken?.[index] ? { broke: true as const } : {}),
       });
     });
   }
@@ -176,7 +262,9 @@ export function applyRulesetFightItemChanges(
   const journal: GameInventoryJournalEntry[] = [];
   for (const change of changes) {
     const at = next.findIndex((stack) => stack.id === change.stack.id);
-    if (change.taken > 0) journal.push({ item: change.name, action: "used", quantity: change.taken });
+    if (change.taken > 0) {
+      journal.push({ item: change.name, action: change.broke ? "lost" : "used", quantity: change.taken });
+    }
     if (change.taken < 0) journal.push({ item: change.name, action: "acquired", quantity: -change.taken });
     if (at < 0) {
       // Only what came back may land where nothing is left: a shot or a load needed the stack.
@@ -199,7 +287,12 @@ export function applyRulesetFightItemChanges(
       next = next.filter((_, index) => index !== at);
       continue;
     }
-    next[at] = { ...stack, quantity, ...(change.loaded !== undefined ? { loaded: change.loaded } : {}) };
+    next[at] = {
+      ...stack,
+      quantity,
+      ...(change.loaded !== undefined ? { loaded: change.loaded } : {}),
+      ...(change.charges !== undefined ? { charges: change.charges } : {}),
+    };
   }
   return { stacks: next, journal };
 }

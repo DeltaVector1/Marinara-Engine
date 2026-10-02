@@ -59,6 +59,8 @@ export interface InventoryItem {
   bound?: true;
   /** What a weapon with a clip has loaded, as a fight left it. Absent reads as full. */
   loaded?: number;
+  /** What an item that holds charges has left, as a fight left it. Absent reads as full. */
+  charges?: number;
 }
 
 /** One party member's bag: `holder` as a stack has it (absent for the player), and the name shown. */
@@ -100,7 +102,7 @@ interface GameInventoryProps {
    *  it is in afterwards (one item of a larger stack is taken into its own). */
   onWearItem?: (stackId: string, wear: GameInventoryWear) => Promise<string | null> | string | null;
   /** Called when the user wants to use an item during input phase */
-  onUseItem?: (itemName: string) => void;
+  onUseItem?: (stackId: string, itemName: string) => void;
   /** Called when the user gives a stack a nickname, or its own name back. Resolves to the stack's id. */
   onRenameItem?: (stackId: string, nextName: string) => Promise<string | null> | string | null;
   /** Called when the user sets a stack's count: the +1 and -1 buttons, or a typed amount. 0 removes it. */
@@ -193,8 +195,8 @@ export function GameInventory({
   }, []);
 
   const handleUse = useCallback(
-    (itemName: string) => {
-      onUseItem?.(itemName);
+    (stackId: string, itemName: string) => {
+      onUseItem?.(stackId, itemName);
       setSelectedItem(null);
     },
     [onUseItem],
@@ -321,6 +323,39 @@ export function GameInventory({
   const statusOf = (holder: string | undefined) =>
     itemBook && (itemBook.bearer || itemBook.slots) ? gameInventoryBearerStatus(items, holder, itemBook) : undefined;
   const bagStatus = activeBag ? statusOf(activeBag.holder) : !showBags ? statusOf(undefined) : undefined;
+  /** The coins in view, family by family, largest first, with their worth in the family's smallest. */
+  const purse = useMemo(() => {
+    const families = new Map<
+      string,
+      {
+        id: string;
+        label: string;
+        worth: number;
+        smallest: string;
+        coins: Array<{ name: string; count: number; value: number }>;
+      }
+    >();
+    for (const coin of itemBook?.coins ?? []) {
+      const family = coin.coin!.family;
+      const known = families.get(family) ?? {
+        id: family,
+        label: coin.facts.category,
+        worth: 0,
+        smallest: coin.name,
+        coins: [],
+      };
+      if (coin.coin!.value === 1) known.smallest = coin.name;
+      const count = visibleItems
+        .filter((item) => item.item === coin.item)
+        .reduce((sum, item) => sum + item.quantity, 0);
+      if (count > 0) known.coins.push({ name: coin.name, count, value: coin.coin!.value });
+      known.worth += count * coin.coin!.value;
+      families.set(family, known);
+    }
+    return [...families.values()]
+      .filter((family) => family.coins.length > 0)
+      .map((family) => ({ ...family, coins: family.coins.sort((a, b) => b.value - a.value) }));
+  }, [itemBook, visibleItems]);
   // The picker is offered only with something to offer; a ruleset that takes only its own items has
   // no typed-in name to add.
   const picksItems = Boolean(itemBook && rulesetDefinition && onAddRulesetItems);
@@ -547,6 +582,28 @@ export function GameInventory({
             </div>
           )}
 
+          {/* The coins in view, family by family, and what they are worth: the purse of the bag in view,
+              or the whole party's in the shared view. */}
+          {purse.length > 0 && (
+            <div className="flex flex-wrap gap-1 border-b border-white/8 px-3 py-1.5">
+              {purse.map((family) => (
+                <span
+                  key={family.id}
+                  className="rounded bg-white/8 px-1.5 py-0.5 text-[0.6rem] tabular-nums text-white/70"
+                >
+                  {localizeUi("ui.game.gameinventory.purse", {
+                    family: family.label,
+                    coins: family.coins
+                      .map((coin) => `${coin.name} ${localizeUi("ui.panels.imagedimensionrow.x")}${coin.count}`)
+                      .join(", "),
+                    worth: family.worth,
+                    smallest: family.smallest,
+                  })}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* Item list */}
           <div className="flex-1 overflow-y-auto p-3">
             {visibleItems.length > 0 ? (
@@ -636,6 +693,7 @@ export function GameInventory({
                 details={selectedRulesetItem}
                 bound={selectedInventoryItem?.bound === true}
                 loaded={selectedInventoryItem?.loaded}
+                charges={selectedInventoryItem?.charges}
               />
             )}
             {onRenameItem && selectedInventoryItem && (
@@ -936,6 +994,7 @@ export function GameInventory({
                     // A nickname is said with the item's own name, in the "Nickname (Name)" form the Game
                     // Master's inventory block uses, so it knows what it is.
                     handleUse(
+                      selectedInventoryItem.id,
                       selectedInventoryItem.nickname
                         ? `${selectedLabel} (${selectedInventoryItem.name})`
                         : selectedLabel,
@@ -1060,14 +1119,17 @@ function RulesetItemDetails({
   details,
   bound,
   loaded,
+  charges,
 }: {
   details: RulesetItemBookEntry;
   bound: boolean;
   loaded?: number;
+  charges?: number;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const { facts } = details;
   const clip = facts.attack?.clip;
+  const chargesMax = facts.use?.charges?.max;
   const binds = details.entry.item?.binds;
   const kind = [facts.category, facts.rarity, ...facts.tags].filter((word): word is string => !!word);
   const stats = rulesetItemStatsLine(facts);
@@ -1089,6 +1151,14 @@ function RulesetItemDetails({
       {clip && (
         <div className="text-[0.65rem] leading-tight text-white/70">
           {localizeUi("ui.game.gameinventory.loaded", { now: Math.min(loaded ?? clip.max, clip.max), max: clip.max })}
+        </div>
+      )}
+      {chargesMax !== undefined && (
+        <div className="text-[0.65rem] leading-tight text-white/70">
+          {localizeUi("ui.game.gameinventory.chargesLeft", {
+            now: Math.min(charges ?? chargesMax, chargesMax),
+            max: chargesMax,
+          })}
         </div>
       )}
       {details.summary && <div className="text-[0.65rem] leading-tight text-white/55">{details.summary}</div>}

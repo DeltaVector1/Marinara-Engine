@@ -956,6 +956,111 @@ function entriesCarryAmmo(entries: unknown): boolean {
   );
 }
 
+const WEAPON_WAYS_ISSUE =
+  "A ruleset whose weapons have modes, an off-hand attack, a floor or conditions on a hit, or whose combat block names an off-hand budget, requires schemaVersion 2 and capabilityApi 1.58 or newer";
+
+/** A weapon's `modes`, `offHand`, `floor` or `onHit`, which are 1.58: new keys on the strict attack. */
+function entriesCarryWeaponWays(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const attack = plainRecord(plainRecord(plainRecord(entry)?.item)?.attack);
+      return ["modes", "offHand", "floor", "onHit"].some((key) => attack?.[key] !== undefined);
+    })
+  );
+}
+
+const ITEM_USE_ISSUE =
+  "A ruleset whose items are used in a fight or hold charges requires schemaVersion 2 and capabilityApi 1.59 or newer";
+
+/** An item's `use` or `charges`, which are 1.59: new keys on the strict item. */
+function entriesCarryItemUse(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const item = plainRecord(plainRecord(entry)?.item);
+      return item?.use !== undefined || item?.charges !== undefined;
+    })
+  );
+}
+
+const ITEM_RESTORE_ISSUE =
+  "A ruleset whose items restore a pool when used requires schemaVersion 2 and capabilityApi 1.60 or newer";
+
+/** A use's `restore`, which is 1.60: a new key on the strict use. */
+function entriesCarryItemRestore(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => plainRecord(plainRecord(plainRecord(entry)?.item)?.use)?.restore !== undefined)
+  );
+}
+
+const CHARGES_OVER_TIME_ISSUE =
+  "A ruleset whose items regain charges on a rest or break when emptied requires schemaVersion 2 and capabilityApi 1.61 or newer";
+
+/** An item's `charges.recharge` or `charges.breaksOn`, which are 1.61: new keys on the strict charges. */
+function entriesCarryChargesOverTime(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const charges = plainRecord(plainRecord(plainRecord(entry)?.item)?.charges);
+      return charges?.recharge !== undefined || charges?.breaksOn !== undefined;
+    })
+  );
+}
+
+const ITEM_GATE_ISSUE =
+  "A ruleset whose items ask a check before they work requires schemaVersion 2 and capabilityApi 1.62 or newer";
+
+/** A use's `gate`, which is 1.62: a new key on the strict use. */
+function entriesCarryItemGate(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => plainRecord(plainRecord(plainRecord(entry)?.item)?.use)?.gate !== undefined)
+  );
+}
+
+const MONEY_ISSUE =
+  "A ruleset whose layers remove coins, or whose loot tables drop coins, requires schemaVersion 2 and capabilityApi 1.64 or newer";
+
+/** A layer's `currencies`, or a loot line's `coins`, which are 1.64: new keys on the strict layer and line. */
+function rulesetCarriesMoney164(ruleset: { layers?: unknown; items?: unknown } | undefined): boolean {
+  const layers = Array.isArray(ruleset?.layers) ? ruleset.layers : [];
+  const tables = plainRecord(ruleset?.items)?.lootTables;
+  return (
+    layers.some((layer) => plainRecord(layer)?.currencies !== undefined) ||
+    (Array.isArray(tables) &&
+      tables.some((table) => {
+        const entries = plainRecord(table)?.entries;
+        return Array.isArray(entries) && entries.some((entry) => plainRecord(entry)?.coins !== undefined);
+      }))
+  );
+}
+
+const MARKET_ISSUE =
+  "A ruleset with a market, or whose items name where they are sold or are services, requires schemaVersion 2 and capabilityApi 1.65 or newer";
+
+/** An item's `sold` or `service`, which are 1.65: new keys on the strict item. */
+function entriesCarryMarket(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) &&
+    entries.some((entry) => {
+      const item = plainRecord(plainRecord(entry)?.item);
+      return item?.sold !== undefined || item?.service !== undefined;
+    })
+  );
+}
+
+const LOOT_ISSUE =
+  "A ruleset with loot tables, or creatures that carry loot, requires schemaVersion 2 and capabilityApi 1.63 or newer";
+
+/** A bestiary creature's `loot`, which is 1.63: a new key on the strict creature. */
+function entriesCarryCreatureLoot(entries: unknown): boolean {
+  return (
+    Array.isArray(entries) && entries.some((entry) => plainRecord(plainRecord(entry)?.creature)?.loot !== undefined)
+  );
+}
+
 /** A level that reads a derived value, which is 1.54: a new key on the strict level. */
 function rulesetCarriesDerivedLevels154(ruleset: { combat?: unknown } | undefined): boolean {
   const levels = plainRecord(ruleset?.combat)?.levels;
@@ -1132,6 +1237,9 @@ export function getCapabilityPackageInstallIssue(
       : undefined;
   const api = manifest.schemaVersion === 2 ? manifest.capabilityApi : null;
   const declaresApi = (minor: number) => !!api && (api.major > 1 || (api.major === 1 && api.minor >= minor));
+  /** Whether a catalog, inline or in its own file, gives a creature its loot: 1.63, asked last. */
+  let carriesLoot = false;
+  let carriesMarket = false;
   const catalogs = ruleset?.catalogs;
   if (Array.isArray(catalogs) && catalogs.length > 0) {
     if (!declaresApi(21)) {
@@ -1198,6 +1306,13 @@ export function getCapabilityPackageInstallIssue(
       if (entriesCarryWeapons(header.entries) && !declaresApi(55)) return WEAPONS_ISSUE;
       if (entriesCarryArmor(header.entries) && !declaresApi(56)) return ARMOR_ISSUE;
       if (entriesCarryAmmo(header.entries) && !declaresApi(57)) return AMMO_ISSUE;
+      if (entriesCarryWeaponWays(header.entries) && !declaresApi(58)) return WEAPON_WAYS_ISSUE;
+      if (entriesCarryItemUse(header.entries) && !declaresApi(59)) return ITEM_USE_ISSUE;
+      if (entriesCarryItemRestore(header.entries) && !declaresApi(60)) return ITEM_RESTORE_ISSUE;
+      if (entriesCarryChargesOverTime(header.entries) && !declaresApi(61)) return CHARGES_OVER_TIME_ISSUE;
+      if (entriesCarryItemGate(header.entries) && !declaresApi(62)) return ITEM_GATE_ISSUE;
+      if (entriesCarryCreatureLoot(header.entries)) carriesLoot = true;
+      if (entriesCarryMarket(header.entries)) carriesMarket = true;
       const asset = header.asset;
       if (typeof asset !== "string") continue;
       // A path that does not normalize is never a declared one, whatever else failed to normalize.
@@ -1228,6 +1343,13 @@ export function getCapabilityPackageInstallIssue(
       if (entriesCarryWeapons(fileEntries) && !declaresApi(55)) return WEAPONS_ISSUE;
       if (entriesCarryArmor(fileEntries) && !declaresApi(56)) return ARMOR_ISSUE;
       if (entriesCarryAmmo(fileEntries) && !declaresApi(57)) return AMMO_ISSUE;
+      if (entriesCarryWeaponWays(fileEntries) && !declaresApi(58)) return WEAPON_WAYS_ISSUE;
+      if (entriesCarryItemUse(fileEntries) && !declaresApi(59)) return ITEM_USE_ISSUE;
+      if (entriesCarryItemRestore(fileEntries) && !declaresApi(60)) return ITEM_RESTORE_ISSUE;
+      if (entriesCarryChargesOverTime(fileEntries) && !declaresApi(61)) return CHARGES_OVER_TIME_ISSUE;
+      if (entriesCarryItemGate(fileEntries) && !declaresApi(62)) return ITEM_GATE_ISSUE;
+      if (entriesCarryCreatureLoot(fileEntries)) carriesLoot = true;
+      if (entriesCarryMarket(fileEntries)) carriesMarket = true;
     }
   }
   // The battle block lives inside the ruleset file too, so it is read the same way and for the same
@@ -1333,6 +1455,7 @@ export function getCapabilityPackageInstallIssue(
   if (!declaresApi(56) && plainRecord(plainRecord(plainRecord(ruleset?.combat)?.pool))?.hardness !== undefined) {
     return ARMOR_ISSUE;
   }
+  if (!declaresApi(58) && plainRecord(ruleset?.combat)?.offHand !== undefined) return WEAPON_WAYS_ISSUE;
   // Values that read the items someone holds, which are 1.52's. Same file (and the same catalog
   // files), same reason.
   if (
@@ -1426,6 +1549,11 @@ export function getCapabilityPackageInstallIssue(
       return "A ruleset that lets a check spend a resource requires schemaVersion 2 and capabilityApi 1.30 or newer";
     }
   }
+  // Loot tables in the items block and a creature's loot, which are 1.63's. Same files, same reason;
+  // asked last, so a package that declares an older minor hears first about what that minor lacks.
+  if (!declaresApi(63) && (carriesLoot || plainRecord(ruleset?.items)?.lootTables !== undefined)) return LOOT_ISSUE;
+  if (!declaresApi(64) && rulesetCarriesMoney164(ruleset)) return MONEY_ISSUE;
+  if (!declaresApi(65) && (carriesMarket || plainRecord(ruleset?.items)?.market !== undefined)) return MARKET_ISSUE;
   return null;
 }
 

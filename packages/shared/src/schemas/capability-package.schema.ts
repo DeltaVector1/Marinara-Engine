@@ -510,7 +510,46 @@ const capabilityPackageManifestBaseSchema = z
 //        inventory. Not a soft seam, for the same reason as 1.20 through 1.56: an Engine that cannot
 //        read these refuses the whole ruleset or catalog file, so a package that ships any of them
 //        declares 1.57. No permission.
-export const supportedCapabilityApi = Object.freeze({ major: 1, minor: 57 } as const);
+// 1.58: a weapon's attack may have other `modes` of making it, be an `offHand` weapon (with the
+//        combat block's `offHand` budget), deal at least a `floor` on a hit, and put conditions on a
+//        target `onHit`. Not a soft seam, for the same reason as 1.20 through 1.57: an Engine that
+//        cannot read these refuses the whole ruleset or catalog file, so a package that ships any of
+//        them declares 1.58. No permission.
+// 1.59: an item may be `use`d in a fight (a heal, an attack, a buff or a debuff, on a budget or
+//        free, that is used up or spends the item's `charges`), and a ruleset fight writes what it
+//        used up and the charges left to the inventory. Not a soft seam, for the same reason as 1.20
+//        through 1.58: an Engine that cannot read these refuses the whole ruleset or catalog file, so
+//        a package that ships any of them declares 1.59. No permission.
+// 1.60: an item's `use` may `restore` a pool, and an item is used outside a fight too (the Use
+//        button and the Game Master's `[inventory: action="use"]`). Not a soft seam, for the same
+//        reason as 1.20 through 1.59: an Engine that cannot read `restore` refuses the whole ruleset
+//        or catalog file, so a package that ships it declares 1.60. No permission.
+// 1.61: an item's `charges` may `recharge` on the ruleset's rests (all of them, or an amount) and may
+//        break when a use spends the last one (`breaksOn`), and a rest writes the charges it brings
+//        back to the inventory. Not a soft seam, for the same reason as 1.20 through 1.60: an Engine
+//        that cannot read these refuses the whole ruleset or catalog file, so a package that ships
+//        either declares 1.61. No permission.
+// 1.62: an item's `use` may have a `gate`, a check its user passes before it works unless a value
+//        on their sheet is high enough; a failed check uses the item up for nothing. Not a soft seam,
+//        for the same reason as 1.20 through 1.61: an Engine that cannot read `gate` refuses the whole
+//        ruleset or catalog file, so a package that ships it declares 1.62. No permission.
+// 1.63: the items block may declare `lootTables`, and a bestiary creature may name the `loot` table a
+//        won fight rolls for it; a ruleset with loot tables drops its own items instead of Game Mode's
+//        native loot. Not a soft seam, for the same reason as 1.20 through 1.62: an Engine that cannot
+//        read these refuses the whole ruleset or catalog file, so a package that ships either declares
+//        1.63. No permission.
+// 1.64: a layer may take coins out of the ruleset's currencies (`currencies.removeUnits` and
+//        `removeFamilies`), and a loot line may drop coins (`coins`); coins are held as inventory stacks
+//        (`coin:<unit>`) that the Game Master pays and earns with. Not a soft seam, for the same reason as
+//        1.20 through 1.63: an Engine that cannot read these refuses the whole ruleset file, so a package
+//        that ships either declares 1.64. No permission.
+// 1.65: the items block may declare a `market` (price levels, place sizes, what each place sells, and
+//        kinds of seller), and an item may name the smallest place that sells it (`sold`) or be a
+//        `service`, bought and never carried; the Game Master buys with `[inventory: action="buy"]` and
+//        says where the party is with `[place:]`. Not a soft seam, for the same reason as 1.20 through
+//        1.64: an Engine that cannot read these refuses the whole ruleset or catalog file, so a package
+//        that ships any of them declares 1.65. No permission.
+export const supportedCapabilityApi = Object.freeze({ major: 1, minor: 65 } as const);
 
 const capabilityApiVersionSchema = z
   .object({

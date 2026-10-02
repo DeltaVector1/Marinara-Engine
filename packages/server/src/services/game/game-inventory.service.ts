@@ -9,12 +9,16 @@ import {
   followGameInventoryDetails,
   normalizeCharacterLookupName,
   forgetGameInventoryTelling,
+  gameFightItems,
   gameInventoryForTelling,
   normalizeGameInventoryStacks,
   readGameInventoryTurn,
   readRulesetInventedItems,
   rulesetItemBook,
   rulesetLayerOptionKey,
+  type RulesetLayerOptions,
+  type CombatItemEffect,
+  type GameInventoryFightLine,
   type GameInventoryJournalEntry,
   type GameInventoryStack,
   type InventoryItem,
@@ -66,7 +70,8 @@ export interface GameInventoryCommitted<T> {
   value: T;
 }
 
-function readMetadata(raw: unknown): Record<string, unknown> {
+/** A chat's metadata as an object, or an empty one when it is missing or will not parse. */
+export function readMetadata(raw: unknown): Record<string, unknown> {
   if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw as Record<string, unknown>;
   if (typeof raw !== "string" || !raw) return {};
   try {
@@ -100,6 +105,12 @@ function parsePlayerStats(raw: unknown): PlayerStats | null {
  * identity when it is not given, as a turn reads it), or the first card when no card has that name,
  * as a check falls back to it. The inventory screen reads it the same way.
  */
+/** The layers a game turned on, as the ruleset's layer options: what its item book and market read
+ *  their coins and items by. */
+export function gameRulesetLayerOptions(resolved: Extract<ResolvedGameRuleset, { status: "ok" }>): RulesetLayerOptions {
+  return Object.fromEntries(resolved.layers.map((layer) => [rulesetLayerOptionKey(layer.id), true]));
+}
+
 export async function loadGameInventoryItemBook(
   db: DB,
   source:
@@ -163,7 +174,7 @@ export async function loadGameInventoryItemBook(
   const player =
     (playerKey ? cards.find((card) => normalizeCharacterLookupName(card.name) === playerKey) : undefined) ?? cards[0];
   return rulesetItemBook(definition, entries, {
-    layerOptions: Object.fromEntries(resolved.layers.map((layer) => [rulesetLayerOptionKey(layer.id), true])),
+    layerOptions: gameRulesetLayerOptions(resolved),
     // The player's typed-in items follow the ruleset's `freeform`; the Game Master's untyped ones follow
     // `native`, which leaves it the ruleset's items and the ones it invents.
     plain: (who === "player" ? definition.items?.freeform === "refuse" : definition.items?.native === false)
@@ -187,6 +198,25 @@ export async function loadGameInventoryItemBook(
  * no model what the items do and offers none: they have no fight effect until the ruleset says what
  * they do. A game whose ruleset cannot be read keeps Game Mode's own.
  */
+/**
+ * The items one of the Engine's own fights (Classic or Tactical) offers in this game, and what each
+ * does (#6905): the ruleset's items by their `use`, the rest by `guessed`, and none of the rest where
+ * the ruleset turns Game Mode's own items off. A game without ruleset items (`ruleset` false) offers
+ * every item as guessed, as it always has, and its routes check nothing more than they did.
+ */
+export async function loadGameFightItems(
+  db: DB,
+  metadata: Record<string, unknown>,
+  guessed: readonly CombatItemEffect[],
+): Promise<{ lines: GameInventoryFightLine[]; effects: CombatItemEffect[]; ruleset: boolean }> {
+  const stacks = normalizeGameInventoryStacks(metadata.gameInventory);
+  const resolved = metadata.gameRuleset == null ? null : resolveGameRuleset(metadata, await loadRulesetRegistry(db));
+  const native = resolved?.status !== "ok" || resolved.definition.items?.native !== false;
+  const book =
+    resolved?.status === "ok" ? await loadGameInventoryItemBook(db, { metadata, resolved }, "player") : undefined;
+  return { ...gameFightItems(stacks, book, native, guessed), ruleset: book !== undefined };
+}
+
 export async function gameRulesetTurnsNativeItemsOff(db: DB, metadata: Record<string, unknown>): Promise<boolean> {
   if (metadata.gameRuleset == null) return false;
   const resolved = resolveGameRuleset(metadata, await loadRulesetRegistry(db));
