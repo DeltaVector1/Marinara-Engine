@@ -1,5 +1,6 @@
 import type { ProfessorMariNavigationTarget } from "./professor-mari-navigation";
 import type { OmnibarSettingsDestination } from "./omnibar-settings";
+import type { MariWorkspaceTraceItem } from "@marinara-engine/shared";
 
 // What Professor Mari looked at during a run, so her reply can show it as cards (a character's avatar
 // and name, a lorebook, an agent and whether it is on, a chat, a lorebook entry, a setting) instead of
@@ -37,6 +38,23 @@ const MAX_REFERENCES = 4;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+/** The server always stores a string (or null) trace output on disk; a record with any other
+ *  `output` is dropped here instead of trusting disk data and crashing downstream `string` ops. */
+export function isWorkspaceTraceItem(value: unknown): value is MariWorkspaceTraceItem {
+  const record = asRecord(value);
+  if (!record || typeof record.type !== "string") return false;
+  if (["text", "thinking", "status"].includes(record.type)) return typeof record.content === "string";
+  if (record.type !== "tool") return false;
+  const tool = asRecord(record.tool);
+  return (
+    !!tool &&
+    typeof tool.id === "string" &&
+    typeof tool.name === "string" &&
+    ["running", "done", "error"].includes(String(tool.status)) &&
+    (tool.output === null || tool.output === undefined || typeof tool.output === "string")
+  );
 }
 
 function recordName(record: Record<string, unknown>): string | null {

@@ -202,6 +202,7 @@ import { executeStateNavigation } from "../../lib/state-navigation";
 import {
   collectMariReferencedResources,
   findMariSettingReferences,
+  isWorkspaceTraceItem,
   mariReferenceTarget,
   selectMariReplyReferences,
   type MariReferencedResource,
@@ -675,20 +676,6 @@ function formatToolName(name: string) {
     .replace(/^functions\./, "")
     .replace(/^multi_tool_use\./, "")
     .replace(/_/g, " ");
-}
-
-function isWorkspaceTraceItem(value: unknown): value is MariWorkspaceTraceItem {
-  const record = asRecord(value);
-  if (!record || typeof record.type !== "string") return false;
-  if (["text", "thinking", "status"].includes(record.type)) return typeof record.content === "string";
-  if (record.type !== "tool") return false;
-  const tool = asRecord(record.tool);
-  return (
-    !!tool &&
-    typeof tool.id === "string" &&
-    typeof tool.name === "string" &&
-    ["running", "done", "error"].includes(String(tool.status))
-  );
 }
 
 function getMessageWorkspaceTrace(message: Message): MariWorkspaceTraceItem[] | null {

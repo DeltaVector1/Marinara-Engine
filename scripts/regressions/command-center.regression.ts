@@ -90,6 +90,7 @@ import {
 import {
   collectMariReferencedResources,
   findMariSettingReferences,
+  isWorkspaceTraceItem,
   mariReferenceTarget,
   selectMariReplyReferences,
 } from "../../packages/client/src/lib/mari-referenced-resources.js";
@@ -2266,6 +2267,36 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.deepEqual(peek.action, { kind: "peek-prompt", chatId: "chat-1" });
   assert.deepEqual(start.action, { kind: "start-chat", characterId: "char-1" });
   assert.deepEqual(panel.action, { kind: "panel", panel: "connections" });
+}
+
+{
+  // M10: the server always stores a string trace output on disk, but a stored
+  // record with any other `output` must not pass the type guard - a downstream
+  // `string.indexOf` call on it would crash the omnibar instead of just
+  // dropping the malformed item.
+  const toolBase = { id: "tool-1", name: "character.get", status: "done" } as const;
+  for (const output of [{ foo: "bar" }, 42]) {
+    assert.equal(
+      isWorkspaceTraceItem({ type: "tool", tool: { ...toolBase, output } }),
+      false,
+      `a non-string output (${typeof output}) is rejected`,
+    );
+  }
+  assert.equal(
+    isWorkspaceTraceItem({ type: "tool", tool: { ...toolBase, output: null } }),
+    true,
+    "a null output is accepted",
+  );
+  assert.equal(
+    isWorkspaceTraceItem({ type: "tool", tool: { ...toolBase, output: undefined } }),
+    true,
+    "a missing output is accepted",
+  );
+  assert.equal(
+    isWorkspaceTraceItem({ type: "tool", tool: { ...toolBase, output: "stdout:\n{}" } }),
+    true,
+    "a string output is accepted",
+  );
 }
 
 console.info("Command Center regression checks passed.");
