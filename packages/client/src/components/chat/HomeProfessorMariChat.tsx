@@ -1704,36 +1704,6 @@ function MariLiveHeadline({ text, subject }: { text: string; subject?: string | 
   );
 }
 
-/**
- * Grows and shrinks its height smoothly, anchored at the bottom: new content pushes what is above it up,
- * while the bottom line (Mari's live line) stays put. Off when inactive or under reduced motion.
- */
-function MariSmoothGrow({ enabled, children }: { enabled: boolean; children: ReactNode }) {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const outer = outerRef.current;
-    const inner = innerRef.current;
-    if (!outer || !inner) return;
-    if (!enabled) {
-      outer.style.height = "";
-      return;
-    }
-    const sync = () => {
-      outer.style.height = `${inner.offsetHeight}px`;
-    };
-    sync();
-    const observer = new ResizeObserver(sync);
-    observer.observe(inner);
-    return () => observer.disconnect();
-  }, [enabled]);
-  return (
-    <div ref={outerRef} className="mari-smooth-grow" data-enabled={enabled ? "true" : undefined}>
-      <div ref={innerRef}>{children}</div>
-    </div>
-  );
-}
-
 /** A finished step's icon comes from its verb: read, search, create, delete, edit, or a command. */
 const STEP_ICONS: ReadonlyArray<[RegExp, LucideIcon]> = [
   [/^(search|find|grep|look)/i, Search],
@@ -1854,13 +1824,15 @@ function MariWorkTimeline({
             });
             const StepIcon = stepFailed ? AlertTriangle : stepIcon(presentation.title);
             return (
+              // M3: append-only - no layout animation (it fought MariSmoothGrow's height transition and
+              // produced a frame of overlapping/ghost rows) and no y/blur slide, opacity only so a row
+              // appears in its final position immediately.
               <motion.li
-                layout={!reduceMotion}
                 key={id}
                 data-status={tool.status}
-                initial={reduceMotion ? false : { opacity: 0, y: 6, filter: "blur(4px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.16, 1, 0.3, 1] }}
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: reduceMotion ? 0 : 0.15 }}
               >
                 <details className="mari-live-work__step-details group">
                   <summary>
@@ -1921,70 +1893,68 @@ function MariWorkTimeline({
 
   return (
     <TranscriptRow layout="document" marker={null}>
-      <MariSmoothGrow enabled={active && !reduceMotion}>
-        <section
-          className="mari-work-timeline"
-          data-active={active ? "true" : "false"}
-          data-outcome={failed ? "failed" : undefined}
-          data-folded={folded ? "true" : undefined}
-          aria-label={t("mari.workCard.label")}
-          aria-busy={active}
-        >
-          <MariResourceSubject character={character} lorebook={lorebook} className="mari-work-timeline__subject" />
+      <section
+        className="mari-work-timeline"
+        data-active={active ? "true" : "false"}
+        data-outcome={failed ? "failed" : undefined}
+        data-folded={folded ? "true" : undefined}
+        aria-label={t("mari.workCard.label")}
+        aria-busy={active}
+      >
+        <MariResourceSubject character={character} lorebook={lorebook} className="mari-work-timeline__subject" />
 
-          {renderSegments(blocks)}
-          {children}
+        {renderSegments(blocks)}
+        {children}
 
-          {active ? (
-            // The live line is always the last line, and working Mari leads it on the left: new work lands above
-            // it and pushes the older lines up, so she is never left behind on an old step or clipped.
-            <div className="mari-work-timeline__live">
-              {liveScene ? <MariSprite scene={liveScene} role="working" /> : null}
-              <MariLiveHeadline text={headline.text} subject={headline.subject} />
-              <span
-                className="mari-work-timeline__timer"
-                aria-label={t("mari.workCard.elapsed", { seconds: elapsedSeconds })}
-              >
-                {[...String(elapsedSeconds), "s"].map((char, index, chars) => (
-                  // Keyed by place and value, so only the digit that changed rolls in.
-                  <span key={`${chars.length - index}:${char}`} aria-hidden="true">
-                    {char}
-                  </span>
-                ))}
-              </span>
-            </div>
-          ) : toolItems.length > 0 ? (
-            // Done: where the live line was, one line says how long she worked and folds the work away. On the
-            // newest turn she still stands on it (her story, then rest); older turns keep only the words.
-            <div className="mari-work-timeline__live" data-past={restStory ? undefined : "true"}>
-              {restStory ? (
-                <MariStorySprite
-                  key={restStory}
-                  state={restStory}
-                  settleTo={restStory === "success" ? "idle" : undefined}
-                />
-              ) : null}
-              <button
-                type="button"
-                className="mari-work-timeline__header"
-                aria-expanded={!folded}
-                onClick={() => setFolded((current) => !current)}
-              >
-                {failed ? (
-                  <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
-                ) : (
-                  <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
-                    <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
-                    <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
-                  </svg>
-                )}
-                <span className="mari-work-timeline__status">{workedFor}</span>
-                <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />
-              </button>
-            </div>
-          ) : null}
-        </section>
-      </MariSmoothGrow>
+        {active ? (
+          // The live line is always the last line, and working Mari leads it on the left: new work lands above
+          // it and pushes the older lines up, so she is never left behind on an old step or clipped.
+          <div className="mari-work-timeline__live">
+            {liveScene ? <MariSprite scene={liveScene} role="working" /> : null}
+            <MariLiveHeadline text={headline.text} subject={headline.subject} />
+            <span
+              className="mari-work-timeline__timer"
+              aria-label={t("mari.workCard.elapsed", { seconds: elapsedSeconds })}
+            >
+              {[...String(elapsedSeconds), "s"].map((char, index, chars) => (
+                // Keyed by place and value, so only the digit that changed rolls in.
+                <span key={`${chars.length - index}:${char}`} aria-hidden="true">
+                  {char}
+                </span>
+              ))}
+            </span>
+          </div>
+        ) : toolItems.length > 0 ? (
+          // Done: where the live line was, one line says how long she worked and folds the work away. On the
+          // newest turn she still stands on it (her story, then rest); older turns keep only the words.
+          <div className="mari-work-timeline__live" data-past={restStory ? undefined : "true"}>
+            {restStory ? (
+              <MariStorySprite
+                key={restStory}
+                state={restStory}
+                settleTo={restStory === "success" ? "idle" : undefined}
+              />
+            ) : null}
+            <button
+              type="button"
+              className="mari-work-timeline__header"
+              aria-expanded={!folded}
+              onClick={() => setFolded((current) => !current)}
+            >
+              {failed ? (
+                <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
+              ) : (
+                <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
+                  <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
+                  <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
+                </svg>
+              )}
+              <span className="mari-work-timeline__status">{workedFor}</span>
+              <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
+      </section>
     </TranscriptRow>
   );
 }
@@ -2263,6 +2233,70 @@ function MariResourceSubject({
   return null;
 }
 
+/** What a finished run made: reference pills, applied-change rows, reply actions, then any reviews it
+ * is waiting on. Shared by the historic-turn render and the active turn's own timeline (M3) so the
+ * two never diverge. */
+function MariWorkTimelineOutcome({
+  content,
+  items,
+  actionResults,
+  characterPreviews,
+  lorebookPreviews,
+  onOpenResource,
+  onOpenActionResult,
+  onReviewActionResult,
+  onRegenerate,
+  onDelete,
+  reviews,
+}: {
+  content: string;
+  items: WorkspaceTimelineItem[];
+  actionResults: MariWorkspaceActionResult[];
+  characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
+  lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
+  onOpenResource: (kind: MariReferencedResourceKind, id: string) => void;
+  onOpenActionResult: (result: MariWorkspaceActionResult) => void;
+  onReviewActionResult: (reviewId: string) => void;
+  onRegenerate?: () => void;
+  onDelete?: () => void;
+  reviews?: ReactNode;
+}) {
+  return (
+    <div className="min-w-0">
+      <MariReferencedResources
+        resources={selectMariReplyReferences(
+          collectMariReferencedResources(items.flatMap((item) => (item.type === "tool" ? [item.tool] : []))),
+          content,
+        ).filter(
+          (resource) =>
+            !actionResults.some(
+              (result) => result.resource.kind === resource.kind && result.resource.id === resource.id,
+            ),
+        )}
+        characterPreviews={characterPreviews}
+        lorebookPreviews={lorebookPreviews}
+        onOpen={onOpenResource}
+      />
+      {actionResults.map((result) => (
+        <MariWorkspaceActionResultRow
+          key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
+          result={result}
+          onOpen={onOpenActionResult}
+          onReview={onReviewActionResult}
+          character={characterPreviews.get(result.resource.id)}
+          lorebook={lorebookPreviews.get(result.resource.id)}
+        />
+      ))}
+      <MariReplyActions
+        content={stripProfessorMariSpeakerPrefix(content)}
+        onRegenerate={onRegenerate}
+        onDelete={onDelete}
+      />
+      {reviews ? <div className="mt-3 space-y-3">{reviews}</div> : null}
+    </div>
+  );
+}
+
 const CompactMariMessage = memo(function CompactMariMessage({
   message,
   thinking,
@@ -2379,35 +2413,35 @@ const CompactMariMessage = memo(function CompactMariMessage({
           attachments={attachments}
           onRemove={onRemoveAttachment ? (index) => onRemoveAttachment(message.id, index) : undefined}
         />
-        {(onDelete || onEdit) && (
-          <div className={MARI_MESSAGE_ACTIONS_CLASS}>
-            {onEdit && (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditContent(content);
-                  setIsEditing(true);
-                }}
-                className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
-                aria-label={localizeUi("ui.chat.homeprofessormarichat.editMessage")}
-                title={localizeUi("ui.chat.homeprofessormarichat.editMessage")}
-              >
-                <Pencil size="0.8rem" />
-              </button>
-            )}
-            {onDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete(message.id)}
-                className={MARI_MESSAGE_ACTION_BUTTON_CLASS}
-                aria-label={localizeUi("ui.chat.homeprofessormarichat.deleteMessage")}
-                title={localizeUi("ui.chat.homeprofessormarichat.deleteMessage")}
-              >
-                <Trash2 size="0.8rem" />
-              </button>
-            )}
-          </div>
-        )}
+        {/* M3: the row's own existence (not just its buttons) is reserved regardless of busy state -
+          onEdit/onDelete only go from disabled to enabled, so this row never pops in and pushes the
+          timeline below it down the instant a run finishes. */}
+        <div className={MARI_MESSAGE_ACTIONS_CLASS}>
+          <button
+            type="button"
+            onClick={() => {
+              if (!onEdit) return;
+              setEditContent(content);
+              setIsEditing(true);
+            }}
+            disabled={!onEdit}
+            className={cn(MARI_MESSAGE_ACTION_BUTTON_CLASS, "disabled:cursor-not-allowed disabled:opacity-40")}
+            aria-label={localizeUi("ui.chat.homeprofessormarichat.editMessage")}
+            title={localizeUi("ui.chat.homeprofessormarichat.editMessage")}
+          >
+            <Pencil size="0.8rem" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete?.(message.id)}
+            disabled={!onDelete}
+            className={cn(MARI_MESSAGE_ACTION_BUTTON_CLASS, "disabled:cursor-not-allowed disabled:opacity-40")}
+            aria-label={localizeUi("ui.chat.homeprofessormarichat.deleteMessage")}
+            title={localizeUi("ui.chat.homeprofessormarichat.deleteMessage")}
+          >
+            <Trash2 size="0.8rem" />
+          </button>
+        </div>
       </TranscriptRow>
     );
   }
@@ -2424,38 +2458,19 @@ const CompactMariMessage = memo(function CompactMariMessage({
           active={false}
           restStory={restStory}
         >
-          <div className="min-w-0">
-            <MariReferencedResources
-              resources={selectMariReplyReferences(
-                collectMariReferencedResources(traceItems.flatMap((item) => (item.type === "tool" ? [item.tool] : []))),
-                content,
-              ).filter(
-                (resource) =>
-                  !actionResults.some(
-                    (result) => result.resource.kind === resource.kind && result.resource.id === resource.id,
-                  ),
-              )}
-              characterPreviews={characterPreviews}
-              lorebookPreviews={lorebookPreviews}
-              onOpen={onOpenResource}
-            />
-            {actionResults.map((result) => (
-              <MariWorkspaceActionResultRow
-                key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
-                result={result}
-                onOpen={onOpenActionResult}
-                onReview={onReviewActionResult}
-                character={characterPreviews.get(result.resource.id)}
-                lorebook={lorebookPreviews.get(result.resource.id)}
-              />
-            ))}
-            <MariReplyActions
-              content={stripProfessorMariSpeakerPrefix(content)}
-              onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
-              onDelete={onDelete ? () => onDelete(message.id) : undefined}
-            />
-            {reviews ? <div className="mt-3 space-y-3">{reviews}</div> : null}
-          </div>
+          <MariWorkTimelineOutcome
+            content={content}
+            items={traceItems}
+            actionResults={actionResults}
+            characterPreviews={characterPreviews}
+            lorebookPreviews={lorebookPreviews}
+            onOpenResource={onOpenResource}
+            onOpenActionResult={onOpenActionResult}
+            onReviewActionResult={onReviewActionResult}
+            onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
+            onDelete={onDelete ? () => onDelete(message.id) : undefined}
+            reviews={reviews}
+          />
         </MariWorkTimeline>
       </div>
     );
@@ -3130,10 +3145,7 @@ export function HomeProfessorMariChat({
   }, [initialAskContext]);
 
   const loadMessages = useCallback(
-    async (
-      id: string,
-      options: { restoreFocus?: boolean; shouldApply?: () => boolean; onApplied?: () => void } = {},
-    ) => {
+    async (id: string, options: { restoreFocus?: boolean; shouldApply?: () => boolean } = {}) => {
       messageLoadAbortRef.current?.abort();
       const controller = new AbortController();
       messageLoadAbortRef.current = controller;
@@ -3150,10 +3162,7 @@ export function HomeProfessorMariChat({
           return;
         }
         const normalizedMessages = items.map((message) => ({ ...message, extra: toMessageExtra(message) }));
-        // M4: the caller's onApplied runs in this same synchronous block, so a live timeline it clears
-        // commits in the same React batch as these reloaded messages — never a frame with neither.
         setMessages(normalizedMessages);
-        options.onApplied?.();
         let restoredContext: ProfessorMariAskContext | null = null;
         for (let index = normalizedMessages.length - 1; index >= 0; index -= 1) {
           const messageContext = getProfessorMariMessageContext(normalizedMessages[index]!);
@@ -3599,8 +3608,9 @@ export function HomeProfessorMariChat({
   }, [pendingChangeReviews]);
 
   const workspaceTimelineActive = workspaceActive || hasActiveGeneration;
-  // M4: the live timeline stays mounted (and keeps the transcript's height) until the reloaded
-  // messages apply, even after the stream itself has closed - see loadMessages' onApplied callback.
+  // M4/M3: the timeline stays mounted (and keeps the transcript's height) through the reload that
+  // applies the reply, and keeps showing workspaceTimeline (now with active=false) as the turn's
+  // permanent record afterward - it is only cleared when the next send or chat switch starts a new run.
   const workspaceTimelineVisible = workspaceTimelineActive || workspaceTimeline.length > 0;
   // When a run ends, the composer halo flashes once and lets go instead of vanishing mid-turn.
   const [composerHaloEnding, setComposerHaloEnding] = useState(false);
@@ -4914,11 +4924,11 @@ export function HomeProfessorMariChat({
       let messagesReloaded = false;
       try {
         if (workspaceRunIdRef.current !== runId || activeChatIdRef.current !== completedChatId) return;
+        // M3: workspaceTimeline is left as the frozen record of this run - the active turn's
+        // MariWorkTimeline call site keeps reading it (now with active=false) instead of swapping to a
+        // second, freshly-mounted instance. The next send (or a chat switch) resets it for the next run.
         await loadMessages(completedChatId, {
           shouldApply: () => workspaceRunIdRef.current === runId && activeChatIdRef.current === completedChatId,
-          // M4: clear the live timeline in the same synchronous block that applies the reloaded
-          // messages, so the transcript never renders a frame holding only the question.
-          onApplied: () => setWorkspaceTimeline([]),
         });
         messagesReloaded = true;
       } catch (error) {
@@ -6055,13 +6065,50 @@ export function HomeProfessorMariChat({
                                   data-component="HomeProfessorMariChat.ActiveTurn"
                                   className="space-y-3"
                                 >
-                                  {activeTurnMessages.map(renderDisplayMessage)}
+                                  {/* M3: one timeline per turn. The unified MariWorkTimeline call site below never
+                                    changes between the live run and the persisted reply - only its props do - so
+                                    React updates it in place instead of unmounting and remounting it (which
+                                    replayed every row's entrance animation and snapped its height). The persisted
+                                    assistant reply it stands in for is skipped here (not merely hidden - an
+                                    empty sibling would still add its own space-y-3 gap and shift every row). */}
+                                  {activeTurnMessages
+                                    .filter(
+                                      (message) =>
+                                        !(
+                                          message.id === latestMessage?.id &&
+                                          workspaceTimelineVisible &&
+                                          message.role === "assistant"
+                                        ),
+                                    )
+                                    .map(renderDisplayMessage)}
                                   {workspaceTimelineVisible ? (
                                     <MariWorkTimeline
                                       items={workspaceTimeline}
                                       character={focusedCharacter}
                                       lorebook={focusedLorebook}
-                                    />
+                                      active={workspaceTimelineActive}
+                                      restStory={latestTurnRestStory}
+                                    >
+                                      {!workspaceTimelineActive && latestMessage?.role === "assistant" ? (
+                                        <MariWorkTimelineOutcome
+                                          content={latestMessage.content ?? ""}
+                                          items={workspaceTimeline}
+                                          actionResults={latestActionResults}
+                                          characterPreviews={characterPreviewById}
+                                          lorebookPreviews={lorebookPreviewById}
+                                          onOpenResource={openReferencedResource}
+                                          onOpenActionResult={openActionResult}
+                                          onReviewActionResult={reviewActionResult}
+                                          onRegenerate={
+                                            !isBusy ? () => handleRegenerateMessage(latestMessage.id) : undefined
+                                          }
+                                          onDelete={!isBusy ? () => handleDeleteMessage(latestMessage.id) : undefined}
+                                          reviews={reviewsByTurn.byMessageId
+                                            .get(latestMessage.id)
+                                            ?.map(renderTurnPrompt)}
+                                        />
+                                      ) : null}
+                                    </MariWorkTimeline>
                                   ) : null}
                                   {/* A failed send is its red line under your message, not also a line of hers.
                                     Held back while the live timeline is still mounted (M4): the reload that

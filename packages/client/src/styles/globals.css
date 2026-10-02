@@ -2487,22 +2487,6 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   gap: 0.5rem;
 }
 
-/* Mari's live reply grows its height smoothly, bottom-anchored: new work pushes older lines up while the
-   live line stays where it is. */
-.mari-smooth-grow[data-enabled="true"] {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  overflow: clip;
-  overflow-clip-margin: 0.25rem;
-  /* Ease-out cubic, not expo: an expo curve covers most of the distance in the first frame and reads as a jump. */
-  transition: height 0.5s cubic-bezier(0.33, 1, 0.68, 1);
-}
-
-.mari-smooth-grow[data-enabled="true"] > div {
-  flex-shrink: 0;
-}
-
 .mari-stream-word {
   animation: mari-word-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
