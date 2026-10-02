@@ -52,7 +52,7 @@ Branch: `feat/omnibar-professor-mari`. Push only with
 | 28  | Reply-fix review card (L6)                                      | designer      | Done    | 617a47e05 |
 | 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Done    | 2ea1f7f65 |
 | 29  | Review of slices 23-28b (L7)                                    | reviewer      | Done    | 112cf53c1 |
-| 30  | Composer over the transcript, one always-on fade (M1, M2)       | worker        | Pending |           |
+| 30  | Composer over the transcript, one always-on fade (M1, M2)       | worker        | Done    | 167ffaa0a |
 | 31  | No scroll back to the question at the end of a run (M4)         | worker        | Pending |           |
 | 32  | Stable run layout: append only, no layout animation (M3)        | worker        | Pending |           |
 | 33  | One header row in Mari mode, no header Mari (M8)                 | designer      | Pending |           |
@@ -622,7 +622,7 @@ suggestion cards with a fact line), never long paragraphs. Treat the mockup as t
 
 | #   | Slice                                                        | Owner profile | Status  | Commit |
 | --- | ------------------------------------------------------------ | ------------- | ------- | ------ |
-| 30  | Composer over the transcript, one always-on fade (M1, M2)    | worker        | Pending |        |
+| 30  | Composer over the transcript, one always-on fade (M1, M2)    | worker        | Done    | 167ffaa0a |
 | 31  | No scroll back to the question at the end of a run (M4)      | worker        | Pending |        |
 | 32  | Stable run layout: append only, no layout animation (M3)     | worker        | Pending |        |
 | 33  | One header row in Mari mode, no header Mari (M8)             | designer      | Pending |        |
