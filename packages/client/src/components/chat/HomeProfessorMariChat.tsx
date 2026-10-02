@@ -199,6 +199,7 @@ import { rafThrottle } from "../../lib/raf-throttle";
 import { prepareImageAttachment } from "../../lib/chat-attachment-images";
 import { cn, copyToClipboard } from "../../lib/utils";
 import { executeStateNavigation } from "../../lib/state-navigation";
+import type { MariArrival, MariArrivalAction } from "../../lib/mari-arrival";
 import {
   collectMariReferencedResources,
   findMariSettingReferences,
@@ -1684,7 +1685,7 @@ function MariSprite({ scene, role }: { scene: MariWorkAnimation; role: "working"
       data-scene={scene.id}
       data-role={role}
       data-appearance-pack={appearance.id}
-      data-mari-pull-target="mari"
+      data-mari-pull-target="mari-current"
       aria-hidden="true"
     >
       <span
@@ -2825,6 +2826,10 @@ type HomeProfessorMariChatProps = {
   omnibarHeaderSlot?: HTMLElement | null;
   /** Her status line under "Professor Mari" in the omnibar header's first row. */
   omnibarStatusSlot?: HTMLElement | null;
+  /** M9: what the empty pane says about the screen she was opened from; null keeps the generic welcome. */
+  arrival?: MariArrival | null;
+  /** Runs the arrival cards only the omnibar can (back to its settings search, K5's Undo). */
+  onArrivalAction?: (action: MariArrivalAction) => void;
   onChatWindowOpenChange?: (open: boolean) => void;
   onChatWindowExitComplete?: () => void;
 };
@@ -2842,6 +2847,8 @@ export function HomeProfessorMariChat({
   pendingReviewRequest = 0,
   omnibarHeaderSlot = null,
   omnibarStatusSlot = null,
+  arrival = null,
+  onArrivalAction,
   onChatWindowOpenChange,
   onChatWindowExitComplete,
 }: HomeProfessorMariChatProps) {
@@ -3296,12 +3303,16 @@ export function HomeProfessorMariChat({
 
   // Direct prop channel (e.g. the omnibar Mari pane) — avoids the global open
   // event so a co-mounted Home instance never steals the handoff context.
+  // Read when the history load lands, not when it starts: M9's arrival context can come in a commit
+  // after this pane mounted, and the load must not then restore an older focus over it.
+  const initialAskContextRef = useRef(initialAskContext);
   useEffect(() => {
+    initialAskContextRef.current = initialAskContext;
     if (initialAskContext) setHandoffContext(initialAskContext);
   }, [initialAskContext]);
 
   const loadMessages = useCallback(
-    async (id: string, options: { restoreFocus?: boolean; shouldApply?: () => boolean } = {}) => {
+    async (id: string, options: { restoreFocus?: boolean | (() => boolean); shouldApply?: () => boolean } = {}) => {
       messageLoadAbortRef.current?.abort();
       const controller = new AbortController();
       messageLoadAbortRef.current = controller;
@@ -3326,7 +3337,9 @@ export function HomeProfessorMariChat({
           restoredContext = messageContext;
           break;
         }
-        if (options.restoreFocus !== false) setHandoffContext(persistentResourceContext(restoredContext));
+        const restoreFocus =
+          typeof options.restoreFocus === "function" ? options.restoreFocus() : options.restoreFocus !== false;
+        if (restoreFocus) setHandoffContext(persistentResourceContext(restoredContext));
         setLoadedMessagesChatId(id);
       } catch (error) {
         if (controller.signal.aborted) return;
@@ -3568,7 +3581,7 @@ export function HomeProfessorMariChat({
           setSelectedConnectionId(restoredConnectionId);
           rememberConnectionId(restoredConnectionId);
         }
-        return loadMessages(chat.id, { restoreFocus: !initialAskContext });
+        return loadMessages(chat.id, { restoreFocus: () => !initialAskContextRef.current });
       })
       .catch((error) => {
         console.error("[Professor Mari] Failed to load home assistant", error);
@@ -3578,15 +3591,7 @@ export function HomeProfessorMariChat({
         });
       })
       .finally(() => setLoadingHistory(false));
-  }, [
-    connectionOptions,
-    connectionsLoading,
-    ensureProfessorMariChat,
-    initialAskContext,
-    loadMessages,
-    selectedConnectionId,
-    localizeUi,
-  ]);
+  }, [connectionOptions, connectionsLoading, ensureProfessorMariChat, loadMessages, selectedConnectionId, localizeUi]);
 
   // Missing workspace tools (often just no admin secret) are a calm note in the transcript, not a toast
   // that covers her header every time she opens. Status, skills and memories all report here once.
@@ -3764,6 +3769,8 @@ export function HomeProfessorMariChat({
   }, [pendingChangeReviews]);
 
   const workspaceTimelineActive = workspaceActive || hasActiveGeneration;
+  const emptyStateReady =
+    omnibarMode && messages.length === 0 && !isBusy && chatId !== null && loadedMessagesChatId === chatId;
   // M4/M3: the timeline stays mounted (and keeps the transcript's height) through the reload that
   // applies the reply, and keeps showing workspaceTimeline (now with active=false) as the turn's
   // permanent record afterward - it is only cleared when the next send or chat switch starts a new run.
@@ -6247,7 +6254,52 @@ export function HomeProfessorMariChat({
                                   </MariNote>
                                 ) : null}
                                 {transcriptHeadMessages.map(renderDisplayMessage)}
-                                {omnibarMode && messages.length === 0 && !isBusy && loadedMessagesChatId === chatId ? (
+                                {/* Not before her chat has loaded: null === null would show the empty state, then the
+                                  history loader, then the empty state again. */}
+                                {emptyStateReady && arrival ? (
+                                  // M9: she arrives knowing the screen she was opened from. Nothing is sent until
+                                  // a card is picked or you type (R22); the composer's chips say what would go.
+                                  <div className="mari-arrival" data-component="HomeProfessorMariChat.Arrival">
+                                    <div className="mari-arrival__head">
+                                      <MariStorySprite state="idle" />
+                                      <div className="mari-arrival__copy mari-arrival-content">
+                                        <p className="mari-arrival__line">
+                                          {arrival.strong && arrival.line.includes(arrival.strong) ? (
+                                            <>
+                                              {arrival.line.slice(0, arrival.line.indexOf(arrival.strong))}
+                                              <b>{arrival.strong}</b>
+                                              {arrival.line.slice(
+                                                arrival.line.indexOf(arrival.strong) + arrival.strong.length,
+                                              )}
+                                            </>
+                                          ) : (
+                                            arrival.line
+                                          )}
+                                        </p>
+                                        {arrival.meta.length > 0 ? (
+                                          <p className="mari-arrival__meta">{arrival.meta.join(" · ")}</p>
+                                        ) : null}
+                                        <MariReferencedResources
+                                          resources={arrival.refs}
+                                          characterPreviews={characterPreviewById}
+                                          lorebookPreviews={lorebookPreviewById}
+                                          onOpen={openReferencedResource}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="mari-arrival-content">
+                                      <MariNextStepCards
+                                        chips={arrival.cards}
+                                        onSelect={(card) =>
+                                          card.action?.kind === "find-setting" || card.action?.kind === "undo-setting"
+                                            ? onArrivalAction?.(card.action)
+                                            : handleSuggestionSelect(card as MariSuggestionChip)
+                                        }
+                                        disabled={isBusy}
+                                      />
+                                    </div>
+                                  </div>
+                                ) : emptyStateReady ? (
                                   <div className="mari-omnibar-empty-welcome">
                                     <span className="mari-welcome-story" aria-hidden="true">
                                       <MariStorySprite state="idle" />

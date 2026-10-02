@@ -18,6 +18,7 @@ import type {
   Character,
   Chat,
   ChatMode,
+  Message,
   ProfessorMariAskContext,
   ProfessorMariEntryPoint,
 } from "@marinara-engine/shared";
@@ -45,6 +46,7 @@ import { useTranslation } from "react-i18next";
 import { useAgentConfigs } from "../../hooks/use-agents";
 import { useCharacter, useCharacters, usePersonas } from "../../hooks/use-characters";
 import {
+  chatKeys,
   useChats,
   useChatMessageCount,
   useChatMessagePeek,
@@ -68,7 +70,17 @@ import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packa
 import { dispatchCardAssetInsert } from "../../lib/card-asset-links";
 import { HOME_FAQ_ITEMS, getFaqSearchText } from "../chat/HomeFaq";
 import { useDocsCommandSearchProvider } from "../../hooks/use-docs-command-search";
-import { useLorebookEntrySearch, useLorebooks, useLorebookEntries, useUpdateLorebook } from "../../hooks/use-lorebooks";
+import {
+  lorebookKeys,
+  useLorebookEntrySearch,
+  useLorebooks,
+  useLorebookEntries,
+  useUpdateLorebook,
+  type ActiveLorebookScan,
+} from "../../hooks/use-lorebooks";
+import { useQueryClient } from "@tanstack/react-query";
+import { buildMariArrival, type MariArrivalAction } from "../../lib/mari-arrival";
+import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
 import { useOmnibarAside } from "../../hooks/use-omnibar-aside";
@@ -99,6 +111,8 @@ import {
   readCommandCenterSessionState,
   readCommandRankingState,
   advanceMariHandoff,
+  isApplePlatform,
+  isAskMariShortcut,
   recordCommandUse,
   setCommandPinned,
   writeCommandRankingState,
@@ -159,6 +173,7 @@ import { omnibarCompletionActions, type OmnibarCompletionAction } from "../../li
 import { buildProfessorMariCommandCenterContext } from "../../lib/professor-mari-command-center-context";
 import {
   consumeProfessorMariOpenRequest,
+  peekProfessorMariOpenRequest,
   PROFESSOR_MARI_OPEN_EVENT,
   type ProfessorMariOpenDetail,
 } from "../../lib/professor-mari-open";
@@ -221,6 +236,12 @@ const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
 /** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
 /** Chats the empty omnibar offers to switch back to. */
 const IDLE_RECENT_CHATS = 4;
+/**
+ * K5's last flip, kept past the dialog's unmount so Mari's arrival in Settings can offer the same Undo
+ * as the toast. ponytail: one slot, cleared by either Undo; a flip made in the Settings panel itself
+ * is not tracked here.
+ */
+let lastSettingFlip: { label: string; undo: () => void } | null = null;
 const MARI_EDITABLE_CATEGORIES = new Set<OmnibarCategory>(["chat", "character", "persona", "lorebook", "preset"]);
 
 /**
@@ -1233,6 +1254,143 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       t,
     ],
   );
+  // M9: what Mari says when she opens on this screen. Built here, where the omnibar context already is,
+  // so every door (⌘J, the pull, Home, ⌘K) shows the same thing. Names, counts and times only (R22).
+  const queryClient = useQueryClient();
+  const arrivalChat = activeChat && activeChat.id === activeChatId ? activeChat : null;
+  const arrivalMessageCount = useChatMessageCount(
+    mariEnabled && omnibarContext.surface === "chat" ? (arrivalChat?.id ?? null) : null,
+  );
+  const [settingUndoVersion, setSettingUndoVersion] = useState(0);
+  const mariArrival = useMemo(() => {
+    const metadata = arrivalChat ? parseChatMetadata(arrivalChat.metadata) : null;
+    // ponytail: the newest reply and the active-entries count come from what is already cached; the
+    // arrival never fetches messages or runs a scan of its own. A chat not loaded yet shows fewer facts.
+    const newestPage = arrivalChat
+      ? queryClient.getQueryData<{ pages: Message[][] }>(chatKeys.messages(arrivalChat.id))?.pages[0]
+      : undefined;
+    const lastReply = newestPage?.findLast((message) => message.role === "assistant" || message.role === "narrator");
+    const count = arrivalMessageCount.data?.count ?? null;
+    const summaryEnds = Array.isArray(metadata?.summaryEntries)
+      ? (metadata.summaryEntries as { rangeEndIndex?: unknown }[]).flatMap((entry) =>
+          typeof entry?.rangeEndIndex === "number" ? [entry.rangeEndIndex] : [],
+        )
+      : [];
+    const agentRow = openAgentId
+      ? agents.data?.find((agent) => agent.id === openAgentId || agent.type === openAgentId)
+      : undefined;
+    let agentSettingsCount = 0;
+    try {
+      agentSettingsCount = Object.keys(JSON.parse(agentRow?.settings || "{}") ?? {}).length;
+    } catch {
+      // A malformed settings blob only hides the "what do its settings do" card.
+    }
+    const activeAgentIds: unknown[] = Array.isArray(metadata?.activeAgentIds) ? metadata.activeAgentIds : [];
+    const resource = omnibarContext.openResource;
+    const listName = (list: readonly unknown[] | undefined, id: string) =>
+      readNamedRow((list ?? []).find((item) => readNamedRow(item)?.id === id))?.name;
+    const editorName = !resource
+      ? undefined
+      : resource.kind === "character"
+        ? characterNameById.get(resource.id)
+        : resource.kind === "persona"
+          ? listName(personas.data, resource.id)
+          : resource.kind === "lorebook"
+            ? listName(lorebooks.data, resource.id)
+            : resource.kind === "preset"
+              ? listName(presets.data, resource.id)
+              : resource.kind === "connection"
+                ? connectionById.get(resource.id)?.name
+                : undefined;
+    const destinations = getOmnibarSettingsDestinations();
+    const destinationTitle = (id: string) => {
+      const title = destinations.find((destination) => destination.id === id)?.title;
+      return title ? localize(title) : null;
+    };
+    return buildMariArrival(omnibarContext, {
+      t,
+      now: Date.now(),
+      gameSetupStep,
+      chat: arrivalChat
+        ? {
+            name: arrivalChat.name,
+            mode: arrivalChat.mode,
+            characters: getChatCharacterIds(arrivalChat).flatMap((id) => {
+              const name = characterNameById.get(id);
+              return name ? [{ id, name }] : [];
+            }),
+            lorebooks: deriveActiveLorebookViews({
+              activeLorebookIds: getChatActiveLorebookIds(arrivalChat),
+              excludedLorebookIds: getChatExcludedLorebookIds(arrivalChat),
+              dropExcluded: true,
+              chat: arrivalChat,
+              lorebooks: lorebooks.data ?? [],
+            }).map((lorebook) => ({ id: lorebook.id, name: lorebook.name })),
+            messageCount: count,
+            lastReply: lastReply
+              ? { createdAt: lastReply.createdAt, finishReason: lastReply.extra?.generationInfo?.finishReason }
+              : null,
+            messagesSinceSummary:
+              count != null && summaryEnds.length > 0 ? Math.max(0, count - 1 - Math.max(...summaryEnds)) : null,
+            activeEntries:
+              queryClient.getQueryData<ActiveLorebookScan>(lorebookKeys.active(arrivalChat.id))?.entries.length ?? null,
+          }
+        : null,
+      replyFailed: lastAppError?.action === "Generate reply",
+      agent: agentRow
+        ? {
+            type: agentRow.type,
+            name: agentRow.name,
+            enabled: String(agentRow.enabled) === "true",
+            promptLength: agentRow.promptTemplate?.length ?? 0,
+            settingsCount: agentSettingsCount,
+            onForChat:
+              arrivalChat &&
+              metadata?.enableAgents === true &&
+              (activeAgentIds.includes(agentRow.id) || activeAgentIds.includes(agentRow.type))
+                ? arrivalChat.name
+                : null,
+            lastError:
+              lastAppError?.retry?.kind === "open-agent" && lastAppError.retry.id === agentRow.type
+                ? lastAppError.message
+                : null,
+          }
+        : null,
+      editor: editorName ? { name: editorName, field: activeEditorField?.label } : null,
+      settings: settingsPanelVisible
+        ? {
+            section:
+              (settingsTab ? destinationTitle(`settings-section:${settingsTab}`) : null) ??
+              t("omnibar.categories.settings", "Settings"),
+            control: settingsTargetControlId ? destinationTitle(`settings-control:${settingsTargetControlId}`) : null,
+          }
+        : null,
+      undoLabel: lastSettingFlip?.label ?? null,
+    });
+    // settingUndoVersion: lastSettingFlip is module state; the version re-reads it after an Undo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeEditorField?.label,
+    agents.data,
+    arrivalChat,
+    arrivalMessageCount.data?.count,
+    characterNameById,
+    connectionById,
+    gameSetupStep,
+    lastAppError,
+    localize,
+    lorebooks.data,
+    omnibarContext,
+    openAgentId,
+    personas.data,
+    presets.data,
+    queryClient,
+    settingUndoVersion,
+    settingsPanelVisible,
+    settingsTab,
+    settingsTargetControlId,
+    t,
+  ]);
   const attachedResultIds = useMemo(
     () => new Set(omnibarContext.activeChat?.resultIds ?? []),
     [omnibarContext.activeChat?.resultIds],
@@ -1659,15 +1817,26 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
 
   // Returning from Mari puts focus back on the row that opened her, so the
   // keyboard position survives the round trip; the input is the fallback.
-  const focusMariReturnRow = () => {
-    requestAnimationFrame(() => {
+  // The search header comes back after the Mari header's exit animation, so wait (a few frames at
+  // most) until the row or the search field is there again.
+  const [mariReturnFocus, setMariReturnFocus] = useState(0);
+  useEffect(() => {
+    if (!mariReturnFocus) return;
+    let frame = 0;
+    let tries = 40;
+    const focusReturn = () => {
       const resultId = mariReturnResultIdRef.current;
       const row = resultId
         ? listRef.current?.querySelector<HTMLElement>(`[data-result-id="${CSS.escape(resultId)}"]`)
         : null;
-      (row?.querySelector<HTMLElement>("button") ?? inputRef.current)?.focus();
-    });
-  };
+      const target = row?.querySelector<HTMLElement>("button") ?? inputRef.current;
+      if (target) target.focus();
+      else if (tries-- > 0) frame = requestAnimationFrame(focusReturn);
+    };
+    frame = requestAnimationFrame(focusReturn);
+    return () => cancelAnimationFrame(frame);
+  }, [mariReturnFocus]);
+  const focusMariReturnRow = () => setMariReturnFocus((current) => current + 1);
   /** Measures the search field's flight to the composer dock. See fieldFlight. */
   const startFieldFlight = () => {
     if (reduceMotion || pane === "mari") return;
@@ -1704,11 +1873,29 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     setPane("mari");
   };
   const enterRequestedMariPane = useEffectEvent((request: ProfessorMariOpenDetail) => {
+    // M9: a door that brings nothing (the pull, Home's "Ask Professor Mari", ⌘J) arrives with this
+    // screen's context, exactly like ⌘K's own Ask Mari with an empty query. A left-over query is not sent along.
+    if (!request.context && !request.draft) {
+      openProfessorMari(null, { arrival: true });
+      return;
+    }
     // A scope prefix like "faq:" is omnibar search syntax, not part of the
     // message text — strip it before it lands in Mari's composer.
     const rawDraft = request.draft ?? request.context?.query ?? "";
     enterMariPane(request.context, request.submitDraft ?? false, parseOmnibarScope(rawDraft).query);
   });
+  // A cold door (the omnibar was shut): the host left its request for this dialog to pick up. Read
+  // before anything renders, because the Mari chat below consumes open requests in its own (earlier,
+  // child-first) mount effect.
+  const [coldMariRequest] = useState(() => {
+    const pending = peekProfessorMariOpenRequest();
+    return (pending?.destination ?? "omnibar") === "omnibar" ? pending : null;
+  });
+  useEffect(() => {
+    if (!coldMariRequest) return;
+    consumeProfessorMariOpenRequest("omnibar");
+    enterRequestedMariPane(coldMariRequest);
+  }, [coldMariRequest]);
   useEffect(() => {
     const openRequestedProfessorMari = (event: Event) => {
       const request = (event as CustomEvent<ProfessorMariOpenDetail>).detail;
@@ -2052,27 +2239,24 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     const previousPulse = isAccentPair ? useUIStore.getState().appAccentPulseMode : undefined;
     const previousRgb = isAccentPair ? useUIStore.getState().appAccentRgbMode : undefined;
     control.onChange(nextValue);
-    toast.success(
-      t("commandCenter.actions.settingToggled", "{{label}}: {{state}}", {
-        label: result.title,
-        state: nextValue
-          ? t("commandCenter.values.enabled", "Enabled")
-          : t("commandCenter.values.disabled", "Disabled"),
-      }),
-      {
-        action: {
-          label: t("ui.chat.chatresourcedropoverlay.undo", "Undo"),
-          onClick: () => {
-            if (isAccentPair) {
-              useUIStore.getState().setAppAccentPulseMode(previousPulse!);
-              useUIStore.getState().setAppAccentRgbMode(previousRgb!);
-            } else {
-              control.onChange(previousValue);
-            }
-          },
-        },
+    const label = t("commandCenter.actions.settingToggled", "{{label}}: {{state}}", {
+      label: result.title,
+      state: nextValue ? t("commandCenter.values.enabled", "Enabled") : t("commandCenter.values.disabled", "Disabled"),
+    });
+    const flip = {
+      label,
+      undo: () => {
+        if (lastSettingFlip === flip) lastSettingFlip = null;
+        if (isAccentPair) {
+          useUIStore.getState().setAppAccentPulseMode(previousPulse!);
+          useUIStore.getState().setAppAccentRgbMode(previousRgb!);
+        } else {
+          control.onChange(previousValue);
+        }
       },
-    );
+    };
+    lastSettingFlip = flip;
+    toast.success(label, { action: { label: t("ui.chat.chatresourcedropoverlay.undo", "Undo"), onClick: flip.undo } });
   };
   const selectResult = (result: RankedOmnibarResult) => {
     if (chooseChoiceOption(result)) return;
@@ -2333,6 +2517,37 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     setPane("results");
     focusMariReturnRow();
   };
+  /** M9: the arrival cards only the omnibar can run. */
+  const runArrivalAction = (action: MariArrivalAction) => {
+    if (action.kind === "undo-setting") {
+      lastSettingFlip?.undo();
+      setSettingUndoVersion((current) => current + 1);
+    } else if (action.kind === "find-setting") {
+      setMariChatOpen(false);
+      setPane("results");
+      setQuery(omnibarScopePrefix("settings"));
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  };
+  // M18: ⌘J asks Mari about this screen; with her already open it goes back to the search. The host
+  // opens the omnibar for it while it is shut; from here on this listener owns the shortcut.
+  const toggleMariPane = useEffectEvent(() => {
+    if (pane === "mari") leaveDetail();
+    else openProfessorMari(null, { arrival: !query.trim() });
+  });
+  useEffect(() => {
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.defaultPrevented || event.isComposing || !isAskMariShortcut(event)) return;
+      if (!useUIStore.getState().commandCenterMariEnabled) return;
+      // A dialog opened above the omnibar (a confirm from Mari, say) keeps the keyboard, as with ⌘K.
+      const dialog = event.target instanceof Element ? event.target.closest('[aria-modal="true"]') : null;
+      if (dialog && !dialog.closest('[data-component="GlobalOmnibar"]')) return;
+      event.preventDefault();
+      toggleMariPane();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
   /** Ranked rows and plain context rows both feed the Mari handoff. */
   type OmnibarAskFocus = Pick<OmnibarResult, "id" | "title" | "category"> | null;
   /** Quick and full Mari hand over the same context, so they read the same surroundings. */
@@ -2378,13 +2593,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   };
   const openProfessorMari = (
     selectedResult: OmnibarAskFocus = null,
-    options: { reviewPending?: boolean; submitDraft?: boolean } = {},
+    options: { reviewPending?: boolean; submitDraft?: boolean; arrival?: boolean } = {},
   ) => {
     // A scope prefix like "faq:" is omnibar search syntax, not part of the
-    // message text — strip it before it lands in Mari's composer.
-    const draft = parseOmnibarScope(query.trim()).query;
+    // message text — strip it before it lands in Mari's composer. M9: an arrival
+    // brings no text, and the open chat travels as its own facet, not also as a
+    // "Current chat" resource.
+    const draft = options.arrival ? "" : parseOmnibarScope(query.trim()).query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
-    const focusResult = selectedResult ?? contextResults[0] ?? null;
+    const firstContext = contextResults[0] ?? null;
+    const focusResult =
+      selectedResult ?? (options.arrival && firstContext?.id === `chat:${activeChat?.id}` ? null : firstContext);
     rememberMariReturn(focusResult);
     // The focused-field row is about the open editor, so Mari gets that resource beside the field.
     const askFocus =
@@ -2825,6 +3044,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                     ? t("commandCenter.backToFind", "Back to search")
                     : t("commandCenter.backToResults", "Back to results")
                 }
+                // M18: ⌘J goes back to the search from Mari, so the button says so.
+                title={mariSurface ? t("commandCenter.keyboard.backToSearch", "Back to search (Ctrl/⌘+J)") : undefined}
+                aria-keyshortcuts={mariSurface ? (isApplePlatform() ? "Meta+J" : "Control+J") : undefined}
                 className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-[var(--muted-foreground)] hover:bg-[var(--accent)] sm:size-9"
               >
                 <ChevronLeft size={18} />
@@ -3039,6 +3261,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               onCompletionAction={runCompletionAction}
               omnibarHeaderSlot={mariHeaderSlot}
               omnibarStatusSlot={mariStatusSlot}
+              arrival={mariArrival}
+              onArrivalAction={runArrivalAction}
             />
           </Suspense>
         ) : null}
@@ -3248,6 +3472,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               ) : null}
             </span>
             <span className="flex min-w-0 items-center gap-3">
+              {mariEnabled ? (
+                <span className="hidden sm:inline">
+                  {t("commandCenter.keyboard.askMariShortcut", "Ctrl/⌘+J Ask Mari")}
+                </span>
+              ) : null}
               {!idle ? (
                 <span className="hidden sm:inline">{t("commandCenter.keyboard.escape", "Esc close")}</span>
               ) : null}

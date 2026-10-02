@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import type { ProfessorMariAskContext } from "@marinara-engine/shared";
 
+import type { MariArrival, MariArrivalAction } from "../../../lib/mari-arrival";
 import type { OmnibarCompletionAction } from "../../../lib/omnibar-completion-actions";
 
 const OmnibarProfessorMariChat = lazy(() =>
@@ -25,6 +26,8 @@ export interface OmnibarMariPaneProps {
   onCompletionAction: (action: OmnibarCompletionAction) => void;
   omnibarHeaderSlot: HTMLElement | null;
   omnibarStatusSlot: HTMLElement | null;
+  arrival: MariArrival | null;
+  onArrivalAction: (action: MariArrivalAction) => void;
 }
 
 export function OmnibarMariPane({
@@ -40,6 +43,8 @@ export function OmnibarMariPane({
   onCompletionAction,
   omnibarHeaderSlot,
   omnibarStatusSlot,
+  arrival,
+  onArrivalAction,
 }: OmnibarMariPaneProps) {
   const { t } = useTranslation();
   return (
@@ -73,6 +78,8 @@ export function OmnibarMariPane({
           chatWindowOpen={mariChatOpen}
           omnibarHeaderSlot={omnibarHeaderSlot}
           omnibarStatusSlot={omnibarStatusSlot}
+          arrival={arrival}
+          onArrivalAction={onArrivalAction}
           onChatWindowOpenChange={onChatWindowOpenChange}
         />
       </Suspense>

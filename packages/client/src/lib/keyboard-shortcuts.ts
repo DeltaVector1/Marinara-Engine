@@ -26,6 +26,8 @@ export const KEYBOARD_SHORTCUT_GROUPS: readonly KeyboardShortcutGroup[] = [
     shortcuts: [
       // GlobalOmnibarHost (not while another dialog is open)
       { keys: [["Mod", "K"]], labelKey: "shortcuts.general.omnibar" },
+      // GlobalOmnibarHost while the omnibar is shut, GlobalOmnibar's own listener while it is open
+      { keys: [["Mod", "J"]], labelKey: "shortcuts.general.askMari" },
       // GlobalOmnibar result list
       { keys: [["↑"], ["↓"], ["Enter"]], labelKey: "shortcuts.general.omnibarNavigate" },
       // GlobalOmnibar ghost completion

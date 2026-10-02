@@ -64,6 +64,33 @@ Rules that must survive:
   lorebook's first entry), and at most three `--small` action chips (`--danger`
   for remove). It opens with a 180 ms `grid-template-rows` + opacity animation,
   none under reduced motion or Reduce ambient effects.
+- **Mari arrives with context** (M9). Every door that brings no text (⌘J, the
+  pull's right half and the desktop drag, Home's "Ask Professor Mari") goes
+  through one path, `openProfessorMari(null, { arrival: true })`: it attaches
+  this screen's context (the same `buildAskContext` as every handoff; the open
+  chat travels as its outlined chat chip, not also as a "Current chat"
+  resource) and, while her chat is empty, shows the arrival instead of the
+  generic welcome: her sprite, one line, the facts, reference cards and 2-4
+  next-step cards (`MariNextStepCards`; a spark card fills the composer, an
+  arrow card acts at once). `buildMariArrival` (`lib/mari-arrival.ts`, pure,
+  pinned per surface by the command-center regression) builds it on the client
+  from `createOmnibarContext`, the chat store, cached query data and
+  `lastAppError`; it gets names, counts and times only, never message text,
+  and nothing is sent to a model until a card is picked or you type (R22).
+  Surfaces: a chat ("You're in <chat> with <character>." · mode · messages ·
+  last reply; Fix the last reply when it was cut at the token cap or failed,
+  Why didn't an entry fire with an active lorebook, Summarize since the last
+  summary, Peek at the prompt); the agent editor ("This is <agent>, one of your
+  agents." · on for <chat> · last run failed; Pick a connection when the error
+  names one, Why did the last run fail, Tighten its prompt, What do its
+  settings do); a character, persona, lorebook, preset or connection editor
+  (the open field and unsaved state; Improve <field>, Check consistency, for
+  lorebooks Entries that never fire); Settings (the open section; Explain this
+  section, Find a setting, which returns to the search scoped to `set:`, and
+  Undo last change while a K5 flip can still be undone); the game setup wizard
+  (its step as a label only). Home with nothing open keeps the generic
+  welcome. The empty state waits for her chat to load, so it never shows,
+  gives way to the history loader and comes back.
 - The `mari` pane follows direction A (`docs/development/mockups/mari-v3/index.html`):
   text first, chrome last, and the accent only on her name.
   - Steps are quiet one-line disclosures: a verb icon, a past-tense label
@@ -379,13 +406,25 @@ The omnibar reuses the app's global chat search; it has no search of its own.
 
 This is the part most likely to break silently. All of it must survive.
 
-- Opening: `⌘K` / `Ctrl+K`; on the phone shell a long press on Home, or a
-  pull down on the top bar (and the safe-area strip above it). The pull is
-  touch only, locks after 10 px when it is at least 45° downward, and opens on
+- Opening: `⌘K` / `Ctrl+K`; `⌘J` / `Ctrl+J` ("Ask Mari about this", M18) opens
+  it straight in Mari's pane with the screen's context (the same arrival as every
+  other door, see "Mari arrives with context" in section 1); with Mari already open `⌘J` goes back to the
+  search, and like `⌘K` it opens over any dialog. The host owns `⌘J` while the
+  omnibar is shut, the dialog's own window listener while it is open
+  (`isAskMariShortcut`, `lib/command-center.ts`; it is in the **?** list and the
+  footer says "Ctrl/⌘+J Ask Mari", the Mari Back button's tooltip "Back to
+  search (Ctrl/⌘+J)"). Tab is not a Mari door: in the field it accepts the ghost
+  completion and otherwise moves focus through the panel.
+  On the phone shell a long press on Home, or a
+  pull down on the top bar (and the safe-area strip above it). On desktop the
+  same gesture is a mouse drag that starts on empty top-bar space, never on a
+  control (M18), with the same threshold and halves. The pull
+  locks after 10 px when it is at least 45° downward, and opens on
   release past 30% of the height (160-280 px) or on a flick (> 0.5 px/ms after
   40 px). Where the finger is at release picks the target: the left half opens
   the omnibar on search, the right half opens it in Mari's pane (the same door
-  as Home's "Ask Professor Mari"), with a 28 px dead zone around the middle so
+  as Home's "Ask Professor Mari"; it leaves an open editor open, since she
+  arrives with it as context), with a 28 px dead zone around the middle so
   the side cannot flicker; with Mari switched off the whole bar opens search.
   Pulling back under 85% of the threshold, a second finger or `pointercancel`
   cancels it. It never starts while the software keyboard or the omnibar itself
@@ -404,12 +443,19 @@ This is the part most likely to break silently. All of it must survive.
   vibration; 6 ms when the side changes) the sheet thins, lets go of the circle
   and draws back into the bar. On release the circle pops the dialog open
   (`takePullHandoff` hands over the panel, clipped to the circle before its
-  first paint; the dialog skips its own pop-in) and the magnifier or portrait
-  docks onto the search icon, or onto the head end of Mari's sprite in the
-  transcript (`data-mari-pull-target="mari"` on `MariStorySprite` and the
-  live-line sprite: the welcome sprite, her resting sprite beside the newest
-  reply, or the working one), never the header. If that sprite is scrolled out
-  of view, her circle reveals the dialog where it was let go and fades. The overlay is removed even if the dialog never mounts. The
+  first paint; the dialog skips its own pop-in) and the magnifier docks onto the
+  search icon. On the Mari side the circle morphs into the present Mari (M17):
+  the one sprite marked `data-mari-pull-target="mari-current"` (the live-line
+  sprite while she works, else the one resting beside her newest reply, else
+  the arrival/welcome sprite), scrolled into view first and re-measured every
+  frame. Her head in the circle grows into the sprite's box (transform, opacity
+  and the clip only; `pullMorphFrame`), cross-fades to the sprite's current
+  sheet frame, and the real sprite shows under the identical morph before it
+  fades, so there is never a double Mari. The arrival's line and cards wait at
+  their first frame until she has landed. If no sprite appears within 2.5 s the
+  circle reveals the dialog where it was let go and fades. The springs follow
+  the pointer once per frame (a fast mouse or a 1000 Hz one cannot fling them).
+  The overlay is removed even if the dialog never mounts. The
   recognizer, the target choice and the sheet geometry are pure
   (`lib/pull-to-open.ts`) and pinned by the command-center regression. Under
   reduced motion there is no sheet: a label above the finger, and the target
@@ -583,7 +629,7 @@ Do not "fix" these; each was a decision.
   editor; she is a place you go.
 - **Escape does not walk a pane stack.** There is one level to step back from.
 - **Her sprite does not appear in the header or on older messages.** She has
-  exactly one sprite in the transcript: the welcome sprite when it is empty,
+  exactly one sprite in the transcript: the arrival (or welcome) sprite when it is empty,
   the live line while she works, and a resting sprite beside her newest reply
   (on its "Worked for" line only when the turn has no words). Her transcript rows are
   labelled instead.

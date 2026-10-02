@@ -9,6 +9,7 @@ import {
   createPullRecognizer,
   pullCirclePath,
   pullCircleTarget,
+  pullMorphFrame,
   pullOnScreenX,
   pullOpenThreshold,
   pullRemnantPath,
@@ -37,7 +38,8 @@ const SNAP: SpringSpec = [80, 18]; // below the threshold everything slurps back
 const REM: SpringSpec = [110, 19]; // the freed sheet draws back into the bar
 const TAIL: SpringSpec = [150, 17]; // the circle pulls in its tail
 const OPEN: SpringSpec = [210, 21]; // the circle pops open into the view
-const DOCK: SpringSpec = [200, 27]; // the magnifier / portrait settles into the view's header
+const DOCK: SpringSpec = [200, 27]; // the magnifier settles into the search field
+const MORPH: SpringSpec = [190, 24]; // M17: the circle becomes the present Mari (~0.4 s, a hint of overshoot)
 /** Soft light from within; a very faint accent around the circle once armed. */
 const GLOW_REST = 0.02;
 const GLOW_PULL = 0.07;
@@ -48,24 +50,55 @@ const TINT_ARMED = 8;
 const POP_DELAY_MS = 130;
 /** If the dialog never mounts, the overlay still leaves. */
 const HANDOFF_TIMEOUT_MS = 1500;
+/** How long the morph waits for her sprite to mount in the (lazy) Mari pane before it gives up. */
+const MORPH_WAIT_MS = 2500;
+/** Where the pull lands in the opened dialog: the magnifier, or the one Mari on screen now (M17). */
+const PULL_LANDING_SELECTOR: Record<PullTarget, string> = {
+  search: '[data-mari-pull-target="search"]',
+  mari: '[data-mari-pull-target="mari-current"]',
+};
+/** A desktop drag starts on empty bar space only, never on a control (M18). */
+const BAR_CONTROL_SELECTOR = 'button, a, input, select, textarea, [role="button"], [role="menuitem"], [role="tab"]';
 /** The magnifier's size in px at the circle's full radius (see `OmnibarPullDrop`). */
 export const PULL_ICON_SIZE = 26;
 
 // L8 (slice 28b) deliberately dropped slice 15's "no pull under a modal" guard:
 // the omnibar now opens ON TOP of any dialog, and Escape hands focus back to it.
+// Which pointer may pull where (touch on a phone, a mouse on desktop) is decided at pointerdown.
 function pullBlocked() {
   const ui = useUIStore.getState();
-  return (
-    !isMobileShellViewport() ||
-    ui.omnibarOpen ||
-    document.documentElement.hasAttribute("data-mari-software-keyboard-open")
-  );
+  return ui.omnibarOpen || document.documentElement.hasAttribute("data-mari-software-keyboard-open");
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const clamp01 = (value: number) => clamp(value, 0, 1);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const px = (value: number) => Math.round(value * 10) / 10;
+
+const wait = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
+
+/** Polls once a frame until `find` returns an element, or gives up after `timeout` ms. */
+function waitForElement(find: () => HTMLElement | null, timeout: number) {
+  return new Promise<HTMLElement | null>((resolve) => {
+    const started = performance.now();
+    const tick = () => {
+      const found = find();
+      if (found || performance.now() - started > timeout) resolve(found);
+      else requestAnimationFrame(tick);
+    };
+    tick();
+  });
+}
+
+/** The sprite's current frame (sheet, size and step) onto the morph's image, so the two match exactly. */
+function copySpriteFrame(target: HTMLElement, into: HTMLElement | null | undefined) {
+  if (!into) return;
+  const frame = target.firstElementChild instanceof HTMLElement ? target.firstElementChild : target;
+  const style = getComputedStyle(frame);
+  into.style.backgroundImage = style.backgroundImage;
+  into.style.backgroundSize = style.backgroundSize;
+  into.style.backgroundPosition = style.backgroundPosition;
+}
 
 function go(value: MotionValue<number>, to: number, [stiffness, damping]: SpringSpec, velocity = value.getVelocity()) {
   return animate(value, to, {
@@ -82,7 +115,7 @@ function go(value: MotionValue<number>, to: number, [stiffness, damping]: Spring
 /** What the gesture reads from a pointer event: a React one from the bar, or a native one from the document. */
 type PullPointerEvent = Pick<
   PointerEvent,
-  "pointerId" | "pointerType" | "isPrimary" | "clientX" | "clientY" | "timeStamp"
+  "pointerId" | "pointerType" | "isPrimary" | "clientX" | "clientY" | "timeStamp" | "button" | "target"
 > & {
   currentTarget: EventTarget | null;
 };
@@ -107,6 +140,10 @@ export interface PullDropElements {
   tagSearch?: HTMLSpanElement | null;
   tagMari?: HTMLSpanElement | null;
   chip?: HTMLDivElement | null;
+  /** M17: her head in the circle, opening into her sprite where she is in the Mari pane. */
+  morph?: HTMLDivElement | null;
+  morphPortrait?: HTMLSpanElement | null;
+  morphSprite?: HTMLSpanElement | null;
 }
 
 export interface PullDropVisuals {
@@ -157,6 +194,7 @@ export function usePullToOpenOmnibar({
     rem: motionValue(0),
     tail: motionValue(0),
     open: motionValue(0),
+    morph: motionValue(0),
   }).current;
 
   // Gesture state lives in refs: a move never renders.
@@ -179,6 +217,10 @@ export function usePullToOpenOmnibar({
       from: { x: number; y: number; r: number };
       target: PullTarget;
     },
+    follow: null as null | { x: number; fingerY: number; pull: number; armed: boolean },
+    followQueued: false,
+    /** M17: the circle turning into this sprite; `from` is the circle's head when it started. */
+    morph: null as null | { target: HTMLElement; rect: DOMRect; from: { x: number; y: number; r: number } },
     gesture: 0,
   }).current;
   const swallowClickRef = useRef(false);
@@ -292,7 +334,8 @@ export function usePullToOpenOmnibar({
       icon.style.transform = `translate3d(${px(cx)}px, ${px(y)}px, 0) translate(-50%, -50%) scale(${px((radius / PULL_CIRCLE_MAX) * 1000) / 1000})`;
     }
     if (portrait) {
-      portrait.style.opacity = String(px(show * clamp01(t * 1.6 - 0.6) * 100) / 100);
+      // While she morphs, the morph element carries her head instead.
+      portrait.style.opacity = g.morph ? "0" : String(px(show * clamp01(t * 1.6 - 0.6) * 100) / 100);
       portrait.style.filter = blur;
       portrait.style.transform = `translate3d(${px(cx)}px, ${px(y)}px, 0) translate(-50%, -50%) scale(${px((Math.max(0, 2 * radius - 8) / 72) * 1000) / 1000})`;
     }
@@ -312,6 +355,25 @@ export function usePullToOpenOmnibar({
       const rect = panel.getBoundingClientRect();
       const reach = Math.hypot(Math.max(fx - rect.left, rect.right - fx), Math.max(fy - rect.top, rect.bottom - fy));
       panel.style.clipPath = `circle(${px(lerp(fr, reach, Math.max(0, open)))}px at ${px(fx - rect.left)}px ${px(fy - rect.top)}px)`;
+    }
+
+    // M17: the circle opens into the present Mari's sprite box, read every frame so a pane still settling
+    // (or a transcript that scrolled it into view) is followed. Transform, opacity and the clip only.
+    const morph = g.morph;
+    if (morph && els.morph) {
+      // A re-render may replace her sprite element mid-flight; follow the new one.
+      if (!morph.target.isConnected) {
+        morph.target = g.landing?.panel?.querySelector<HTMLElement>(PULL_LANDING_SELECTOR.mari) ?? morph.target;
+      }
+      const rect = morph.target.isConnected ? morph.target.getBoundingClientRect() : morph.rect;
+      morph.rect = rect;
+      const f = pullMorphFrame(morph.from, rect, mv.morph.get());
+      els.morph.style.transform = `translate3d(${f.x}px, ${f.y}px, 0) scale(${f.scale})`;
+      els.morph.style.clipPath = f.clip;
+      // Shown by the paint that places it, so it never shows a frame at the corner.
+      els.morph.style.opacity = "1";
+      if (els.morphPortrait) els.morphPortrait.style.opacity = String(f.portrait);
+      if (els.morphSprite) els.morphSprite.style.opacity = String(f.sprite);
     }
 
     // The sheet lets go once the pinch has closed its waist.
@@ -407,33 +469,71 @@ export function usePullToOpenOmnibar({
         if (panel) panel.style.clipPath = "";
         delete document.documentElement.dataset.mariPullLanding;
         g.landing = null;
+        g.morph = null;
         hide();
       };
+      const landed = () => g.gesture === gesture && g.mode === "land";
+      /**
+       * M17: the circle becomes the present Mari, wherever she is in the pane: the live-line sprite, the
+       * one resting beside her newest reply, or the arrival sprite (`mari-current`, only ever one). Her
+       * head in the circle grows into her sprite box and cross-fades to the same sheet frame; then the
+       * real sprite shows under the identical morph, which fades. False when she never appeared.
+       */
+      const morphInto = async (panel: HTMLElement | null) => {
+        const target = await waitForElement(() => {
+          const found = panel?.querySelector<HTMLElement>(PULL_LANDING_SELECTOR.mari) ?? null;
+          return found && found.getBoundingClientRect().width > 0 ? found : null;
+        }, MORPH_WAIT_MS);
+        const box = els.morph;
+        if (!target || !box || !landed()) return false;
+        target.scrollIntoView({ block: "nearest" });
+        const rect = target.getBoundingClientRect();
+        const head = Math.min(rect.width, rect.height);
+        box.style.width = `${rect.width}px`;
+        box.style.height = `${rect.height}px`;
+        if (els.morphPortrait) {
+          els.morphPortrait.style.left = `${(rect.width - head) / 2}px`;
+          els.morphPortrait.style.width = `${head}px`;
+          els.morphPortrait.style.height = `${head}px`;
+        }
+        copySpriteFrame(target, els.morphSprite);
+        g.morph = {
+          target,
+          rect,
+          from: { x: g.geom.cx, y: g.originY + g.geom.cy, r: Math.max(4, mv.radius.get() - 4) },
+        };
+        mv.morph.set(0);
+        await go(mv.morph, 1, MORPH, 0);
+        if (!landed()) return true;
+        copySpriteFrame(g.morph?.target ?? target, els.morphSprite);
+        // She is there now: her sprite shows under the identical morph (and the arrival plays), then it fades.
+        delete document.documentElement.dataset.mariPullLanding;
+        box.classList.add("mari-pull-fadeout");
+        await wait(220);
+        return true;
+      };
       const popOpen = () => {
-        if (!mounted || !delayed || g.gesture !== gesture || g.mode !== "land") return;
+        if (!mounted || !delayed || !landed()) return;
         const panel = g.landing?.panel ?? null;
-        // Where the magnifier lives in the opened dialog, or Mari in her transcript (the welcome sprite, the one
-        // resting under her newest reply, or the one on the live line). Her circle lands on the head end of that
-        // full-height sprite; a sprite scrolled out of view leaves the dialog revealed where it was let go.
-        const dock = panel?.querySelector<HTMLElement>(`[data-mari-pull-target="${side}"]`)?.getBoundingClientRect();
         mv.open.set(0);
         const opening = go(mv.open, 1, OPEN, 0);
-        if (dock && dock.width > 0 && dock.top >= 0 && dock.bottom <= window.innerHeight) {
-          go(mv.x, dock.left + dock.width / 2, DOCK, 0);
-          go(mv.y, (side === "mari" ? dock.top + dock.width / 2 : dock.top + dock.height / 2) - g.originY, DOCK, 0);
-          // Sized so the portrait / the magnifier inside the circle matches what it lands on.
-          go(
-            mv.radius,
-            side === "mari" ? (dock.width + 8) / 2 : (dock.width * PULL_CIRCLE_MAX) / PULL_ICON_SIZE,
-            DOCK,
-            0,
-          );
-        }
         els.glass?.classList.add("mari-pull-fadeout");
         els.rim?.classList.add("mari-pull-fadeout");
         els.shadow?.classList.add("mari-pull-fadeout");
         els.tag?.classList.add("mari-pull-fadeout");
-        Promise.all([opening, new Promise((resolve) => window.setTimeout(resolve, 420))]).then(finish);
+        if (side === "mari") {
+          void morphInto(panel).then((morphed) => Promise.all([opening, morphed ? null : wait(420)]).then(finish));
+          return;
+        }
+        // The magnifier docks in the search field; one scrolled out of view leaves the dialog revealed where it was let go.
+        const dock = panel?.querySelector<HTMLElement>(PULL_LANDING_SELECTOR.search)?.getBoundingClientRect();
+        if (dock && dock.width > 0 && dock.top >= 0 && dock.bottom <= window.innerHeight) {
+          go(mv.x, dock.left + dock.width / 2, DOCK, 0);
+          go(mv.y, dock.top + dock.height / 2 - g.originY, DOCK, 0);
+          // Sized so the magnifier inside the circle matches the one it lands on.
+          go(mv.radius, (dock.width * PULL_CIRCLE_MAX) / PULL_ICON_SIZE, DOCK, 0);
+        }
+        Promise.all([opening, wait(420)]).then(finish);
       };
       window.setTimeout(() => {
         delayed = true;
@@ -476,21 +576,24 @@ export function usePullToOpenOmnibar({
       g.detached = false;
       g.side = null;
       g.landing = null;
+      g.morph = null;
       g.mariEnabled = useUIStore.getState().commandCenterMariEnabled;
       if (reduceMotion) {
         setLabelOnly(true);
         setShown(true);
         return;
       }
-      for (const key of ["show", "tag", "pop", "pinch", "rem", "tail", "open", "tint"] as const) mv[key].set(0);
-      mv.radius.set(PULL_CIRCLE_MIN * 0.6);
-      mv.base.set(PULL_CIRCLE_MIN + 14);
-      mv.x.set(x);
-      mv.y.set(0);
+      for (const key of ["show", "tag", "pop", "pinch", "rem", "tail", "open", "tint", "morph"] as const)
+        mv[key].set(0);
+      // jump, not set: a set reads as a velocity to the first follow spring and flings the circle away.
+      mv.radius.jump(PULL_CIRCLE_MIN * 0.6);
+      mv.base.jump(PULL_CIRCLE_MIN + 14);
+      mv.x.jump(x);
+      mv.y.jump(0);
       mv.side.set(pullTarget(null, x, g.width, g.mariEnabled) === "mari" ? 1 : 0);
       mv.glow.set(0);
       go(mv.glow, GLOW_REST, GLOW);
-      for (const el of [els.glass, els.rim, els.shadow, els.tag]) el?.classList.remove("mari-pull-fadeout");
+      for (const el of [els.glass, els.rim, els.shadow, els.tag, els.morph]) el?.classList.remove("mari-pull-fadeout");
       setTarget(pullTarget(null, x, g.width, g.mariEnabled));
       setArmed(false);
       setShown(true);
@@ -507,7 +610,12 @@ export function usePullToOpenOmnibar({
         if (g.pointerId !== event.pointerId) snapBack();
         return;
       }
-      if (event.pointerType !== "touch" || !event.isPrimary || g.mode === "land" || pullBlocked()) return;
+      if (!event.isPrimary || g.mode === "land" || pullBlocked()) return;
+      // Touch pulls on a phone; on desktop the mouse drags from empty bar space, never from a control (M18).
+      if (event.pointerType === "mouse") {
+        const onControl = event.target instanceof Element && event.target.closest(BAR_CONTROL_SELECTOR);
+        if (isMobileShellViewport() || event.button !== 0 || onControl) return;
+      } else if (event.pointerType !== "touch" || !isMobileShellViewport()) return;
       g.width = window.innerWidth;
       g.height = window.innerHeight;
       g.threshold = pullOpenThreshold(g.height);
@@ -583,18 +691,28 @@ export function usePullToOpenOmnibar({
         return;
       }
 
-      const fingerY = event.clientY - g.originY;
-      const circle = pullCircleTarget(fingerY, pull);
-      go(mv.radius, circle.radius, GROW);
-      go(mv.tag, circle.tag, SHOW);
-      // The circle grows out of the bar edge and never rises above it.
-      go(mv.y, circle.centerY, FOLLOW);
-      go(mv.x, x, FOLLOW);
-      go(mv.show, clamp01((circle.radius - 16) / 10) * clamp01((pull - PULL_SIDE_FROM) / 0.2), SHOW);
-      go(mv.base, pullSheetBase(circle.radius, pull, g.width), BASE);
-      if (g.side) go(mv.side, g.side === "mari" ? 1 : 0, SIDE);
-      else mv.side.set(pullTarget(null, x, g.width, g.mariEnabled) === "mari" ? 1 : 0);
-      if (step !== "armed") go(mv.glow, GLOW_REST + GLOW_PULL * clamp01(pull), GLOW);
+      // The springs follow once per frame with the newest pointer: re-aiming them on every event (a
+      // 1000 Hz mouse, or Playwright's) restarts them from a velocity measured over ~0 ms and flings them.
+      g.follow = { x, fingerY: event.clientY - g.originY, pull, armed: step === "armed" };
+      if (!g.followQueued) {
+        g.followQueued = true;
+        frame.update(() => {
+          g.followQueued = false;
+          const f = g.follow;
+          if (g.mode !== "pull" || !f) return;
+          const circle = pullCircleTarget(f.fingerY, f.pull);
+          go(mv.radius, circle.radius, GROW);
+          go(mv.tag, circle.tag, SHOW);
+          // The circle grows out of the bar edge and never rises above it.
+          go(mv.y, circle.centerY, FOLLOW);
+          go(mv.x, f.x, FOLLOW);
+          go(mv.show, clamp01((circle.radius - 16) / 10) * clamp01((f.pull - PULL_SIDE_FROM) / 0.2), SHOW);
+          go(mv.base, pullSheetBase(circle.radius, f.pull, g.width), BASE);
+          if (g.side) go(mv.side, g.side === "mari" ? 1 : 0, SIDE);
+          else mv.side.set(pullTarget(null, f.x, g.width, g.mariEnabled) === "mari" ? 1 : 0);
+          if (!f.armed) go(mv.glow, GLOW_REST + GLOW_PULL * clamp01(f.pull), GLOW);
+        });
+      }
       if (armedNow) {
         // A soft flare from within, a faint accent around the circle, and the sheet lets go.
         go(mv.glow, GLOW_ARMED, GLOW, mv.glow.getVelocity() + GLOW_FLARE);

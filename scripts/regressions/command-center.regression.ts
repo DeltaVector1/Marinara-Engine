@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import {
   COMMAND_CENTER_MAX_RESULTS,
+  isAskMariShortcut,
   isOmnibarShortcut,
   normalizeCommandCenterSessionState,
   normalizeCommandRankingState,
@@ -97,6 +98,7 @@ import {
 import {
   createPullRecognizer,
   pullCircleTarget,
+  pullMorphFrame,
   pullOnScreenX,
   pullOpenThreshold,
   pullSheetBase,
@@ -106,6 +108,7 @@ import {
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 import { formatCapabilityAgentGroundingLines } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
 import { buildOmnibarChatRows } from "../../packages/client/src/lib/omnibar-entity-rows.js";
+import { buildMariArrival, type MariArrivalData } from "../../packages/client/src/lib/mari-arrival.js";
 import {
   matchOmnibarCapabilityAgentPackageIds,
   OMNIBAR_CAPABILITY_AGENT_KEYWORDS,
@@ -851,6 +854,17 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(isOmnibarShortcut(key({ ctrlKey: true, key: "л" }), false), true);
   // A Latin layout with a different letter on the K position does not.
   assert.equal(isOmnibarShortcut(key({ ctrlKey: true, key: "t" }), false), false);
+  // M18: ⌘J / Ctrl+J asks Mari, by the same rules; it is not ⌘K.
+  const j = (overrides: Partial<Parameters<typeof isAskMariShortcut>[0]>) =>
+    key({ key: "j", code: "KeyJ", ...overrides });
+  assert.equal(isAskMariShortcut(j({ ctrlKey: true }), false), true);
+  assert.equal(isAskMariShortcut(j({ metaKey: true }), true), true);
+  assert.equal(isAskMariShortcut(j({ ctrlKey: true }), true), false, "macOS: Ctrl+J is not ⌘J");
+  assert.equal(isAskMariShortcut(j({ ctrlKey: true, shiftKey: true }), false), false);
+  assert.equal(isAskMariShortcut(j({ ctrlKey: true, repeat: true }), false), false);
+  assert.equal(isAskMariShortcut(j({ ctrlKey: true, key: "о" }), false), true, "physical J on a non-Latin layout");
+  assert.equal(isAskMariShortcut(key({ ctrlKey: true }), false), false, "Ctrl+K is not Ask Mari");
+  assert.equal(isOmnibarShortcut(j({ ctrlKey: true }), false), false, "Ctrl+J is not the omnibar");
 }
 
 {
@@ -2296,6 +2310,184 @@ assert.ok(!("mariDetailId" in mariSession));
     isWorkspaceTraceItem({ type: "tool", tool: { ...toolBase, output: "stdout:\n{}" } }),
     true,
     "a string output is accepted",
+  );
+}
+
+// M9: Mari's arrival, per surface, built from names/counts/times only. No model call is made to build it,
+// and it can never carry message text: the data types have no content, and a smuggled one is not read.
+{
+  const t: MariArrivalData["t"] = (_key, fallback, options) =>
+    fallback.replace(/\{\{(\w+)\}\}/g, (_, name: string) => String(options?.[name] ?? ""));
+  const now = Date.parse("2026-10-02T12:00:00Z");
+  const SECRET = "SECRET-MESSAGE-TEXT";
+  const chatContext = createOmnibarContext({
+    surface: "chat",
+    activeChat: { id: "chat-1", mode: "roleplay", resultIds: [] },
+  });
+  const chatData = (overrides: Partial<NonNullable<MariArrivalData["chat"]>> = {}): MariArrivalData => ({
+    t,
+    now,
+    chat: {
+      name: "Neon Harbor",
+      mode: "roleplay",
+      characters: [{ id: "c1", name: "Zylo" }],
+      lorebooks: [{ id: "lb1", name: "Harbor lore" }],
+      messageCount: 214,
+      // A message object as the cache holds it, content and all: the builder must ignore the content.
+      lastReply: { createdAt: "2026-10-02T11:57:00Z", finishReason: "length", content: SECRET } as never,
+      messagesSinceSummary: 38,
+      activeEntries: 3,
+      ...overrides,
+    },
+  });
+  const chat = buildMariArrival(chatContext, chatData())!;
+  assert.equal(chat.line, "You're in Neon Harbor with Zylo.");
+  assert.equal(chat.strong, "Neon Harbor");
+  assert.deepEqual(
+    chat.cards.map((card) => card.id),
+    ["arrival:fix-reply", "arrival:why-entry", "arrival:summarize", "arrival:peek-prompt"],
+    "chat: fix (cut off), why an entry, summarize since, peek",
+  );
+  assert.deepEqual(chat.cards.at(-1)?.action, { kind: "peek-prompt", chatId: "chat-1" }, "peek acts at once");
+  assert.ok(
+    chat.cards.slice(0, 3).every((card) => !card.action),
+    "the others ask Mari",
+  );
+  assert.ok(
+    chat.meta.some((fact) => fact.includes("214")),
+    "message count in the meta line",
+  );
+  assert.deepEqual(
+    chat.refs.map((ref) => `${ref.kind}:${ref.id}`),
+    ["character:c1", "lorebook:lb1"],
+  );
+  assert.ok(!JSON.stringify(chat).includes(SECRET), "the arrival reads no message text");
+  assert.doesNotMatch(
+    readFileSync(new URL("../../packages/client/src/lib/mari-arrival.ts", import.meta.url), "utf8"),
+    /\.content\b|\bcontent\s*[:?]/u,
+    "the arrival builder never touches a message's content",
+  );
+  const clean = buildMariArrival(
+    chatContext,
+    chatData({ lastReply: { createdAt: "2026-10-02T11:57:00Z", finishReason: "stop" }, lorebooks: [] }),
+  )!;
+  assert.ok(
+    !clean.cards.some((card) => card.id === "arrival:fix-reply"),
+    "no fix card for a reply that ended normally",
+  );
+  assert.ok(
+    !clean.cards.some((card) => card.id === "arrival:why-entry"),
+    "no lorebook card without an active lorebook",
+  );
+  const failed = buildMariArrival(chatContext, { ...chatData({ lastReply: null }), replyFailed: true })!;
+  assert.equal(failed.cards[0]?.id, "arrival:fix-reply", "a failed generation leads with the fix");
+  const empty = buildMariArrival(chatContext, chatData({ messageCount: 0, lastReply: null, lorebooks: [] }))!;
+  assert.ok(empty.cards.length >= 2 && empty.cards.length <= 4, "an empty chat still gets 2-4 cards");
+
+  const agentContext = createOmnibarContext({
+    surface: "editor",
+    openResource: { kind: "agent", id: "illustrator", resultId: "agent:illustrator" },
+  });
+  const agent = buildMariArrival(agentContext, {
+    t,
+    now,
+    agent: {
+      type: "illustrator",
+      name: "Illustrator",
+      enabled: true,
+      promptLength: 4960,
+      settingsCount: 6,
+      onForChat: "Neon Harbor",
+      lastError: "No image connection selected",
+    },
+  })!;
+  assert.equal(agent.line, "This is Illustrator, one of your agents.");
+  assert.deepEqual(
+    agent.cards.map((card) => card.id),
+    ["arrival:pick-connection", "arrival:why-failed", "arrival:tighten-prompt", "arrival:agent-settings"],
+  );
+  assert.deepEqual(agent.cards[0]?.action, { kind: "panel", panel: "connections" }, "L2's picker fix acts at once");
+  assert.equal(agent.refs[0]?.state, "failed");
+  assert.ok(agent.meta.includes("On for Neon Harbor"));
+  const calmAgent = buildMariArrival(agentContext, {
+    t,
+    now,
+    agent: { type: "illustrator", name: "Illustrator", enabled: false, promptLength: 0, settingsCount: 0 },
+  })!;
+  assert.ok(calmAgent.cards.length >= 2, "an agent with nothing to fix still gets two cards");
+
+  const characterContext = createOmnibarContext({
+    surface: "editor",
+    editorDirty: true,
+    openResource: { kind: "character", id: "c1", resultId: "character:c1" },
+  });
+  const character = buildMariArrival(characterContext, { t, now, editor: { name: "Zylo", field: "Description" } })!;
+  assert.equal(character.line, "You're editing Zylo.");
+  assert.deepEqual(character.meta, ["Description open", "Unsaved changes"]);
+  assert.deepEqual(
+    character.cards.map((card) => card.id),
+    ["arrival:improve-field", "arrival:consistency"],
+  );
+  const lorebook = buildMariArrival(
+    createOmnibarContext({
+      surface: "editor",
+      openResource: { kind: "lorebook", id: "lb1", resultId: "lorebook:lb1" },
+    }),
+    { t, now, editor: { name: "Harbor lore" } },
+  )!;
+  assert.ok(
+    lorebook.cards.some((card) => card.id === "arrival:never-fired"),
+    "lorebooks: entries that never fire",
+  );
+
+  const settingsContext = createOmnibarContext({
+    surface: "settings",
+    settingsTarget: { tab: "general", resultId: "settings" },
+  });
+  const settings = buildMariArrival(settingsContext, {
+    t,
+    now,
+    settings: { section: "General" },
+    undoLabel: "Reduce motion: Enabled",
+  })!;
+  assert.equal(settings.line, "You're in Settings · General.");
+  assert.deepEqual(
+    settings.cards.map((card) => card.action?.kind ?? "mari"),
+    ["mari", "find-setting", "undo-setting"],
+    "explain (Mari), find (search), undo (K5)",
+  );
+  const noUndo = buildMariArrival(settingsContext, { t, now, settings: { section: "General" } })!;
+  assert.ok(!noUndo.cards.some((card) => card.action?.kind === "undo-setting"), "no Undo without a flip to undo");
+
+  const game = buildMariArrival(createOmnibarContext({ surface: "home" }), { t, now, gameSetupStep: "World" })!;
+  assert.deepEqual(game.meta, ["World"], "game setup: the wizard step as a label only");
+  assert.equal(buildMariArrival(createOmnibarContext({ surface: "home" }), { t, now }), null, "Home keeps the welcome");
+}
+
+// M17: the pull circle morphs into the present Mari's sprite box.
+{
+  const from = { x: 200, y: 120, r: 30 };
+  const to = { left: 40, top: 500, width: 48, height: 72 };
+  const start = pullMorphFrame(from, to, 0);
+  // At 0 the box's top square (her head) is exactly the circle.
+  assert.equal(start.scale * to.width, 2 * from.r, "the head square is the circle's diameter");
+  assert.equal(start.x + (start.scale * to.width) / 2, from.x, "centred on the circle (x)");
+  assert.equal(start.y + (start.scale * to.width) / 2, from.y, "centred on the circle (y)");
+  assert.equal(start.clip, "inset(0px 0px 24px 0px round 24px)", "clipped to a circle around the head");
+  assert.equal(start.portrait, 1);
+  assert.equal(start.sprite, 0);
+  const end = pullMorphFrame(from, to, 1);
+  assert.deepEqual([end.x, end.y, end.scale], [40, 500, 1], "lands on the sprite's exact box");
+  assert.equal(end.clip, "inset(0px 0px 0px 0px round 0px)", "the sprite's own box shape");
+  assert.equal(end.portrait, 0);
+  assert.equal(end.sprite, 1);
+  const overshoot = pullMorphFrame(from, to, 1.08);
+  assert.equal(overshoot.clip, "inset(0px 0px 0px 0px round 0px)", "a spring overshoot never inverts the clip");
+  assert.ok(overshoot.sprite === 1 && overshoot.portrait === 0);
+  const mid = pullMorphFrame(from, to, 0.5);
+  assert.ok(
+    Math.min(start.scale, 1) < mid.scale && mid.scale < Math.max(start.scale, 1),
+    "the size animates between the two",
   );
 }
 

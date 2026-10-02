@@ -2316,6 +2316,61 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   }
 }
 
+/* M9: she arrives knowing the screen she came from: her sprite, one line, the things in it, then cards. */
+.mari-arrival {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  padding-block: 1rem 0.5rem;
+}
+
+.mari-arrival__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.mari-arrival__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.35rem;
+  padding-bottom: 0.4rem;
+  animation: mari-welcome-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mari-arrival__line {
+  color: var(--foreground);
+  font-size: 1rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.mari-arrival__line b {
+  font-weight: 650;
+}
+
+.mari-arrival__meta {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.mari-arrival__copy > .mari-ref-cards {
+  margin-top: 0.3rem;
+}
+
+/* M17: the line and cards wait (at their first frame) until the pull's circle has become her sprite. */
+html[data-mari-pull-landing] .mari-arrival-content,
+html[data-mari-pull-landing] .mari-arrival-content * {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-arrival__copy {
+    animation: none;
+  }
+}
+
 .omnibar-horizontal-strip {
   scroll-padding-inline: 0.75rem;
 }
@@ -8490,6 +8545,40 @@ strong {
 }
 
 .mari-pull-portrait img {
+  position: absolute;
+  top: -9%;
+  left: 50%;
+  width: 150%;
+  max-width: none;
+  transform: translateX(-46%);
+  image-rendering: pixelated;
+}
+
+/* M17: sized like her sprite by the hook and moved from its top-left corner; the clip turns the circle
+   around her head into the sprite's box. */
+.mari-pull-morph {
+  transform-origin: 0 0;
+  will-change: transform, opacity, clip-path;
+}
+
+.mari-pull-morph__sprite,
+.mari-pull-morph__portrait {
+  position: absolute;
+  top: 0;
+}
+
+.mari-pull-morph__sprite {
+  inset: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.mari-pull-morph__portrait {
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.mari-pull-morph__portrait img {
   position: absolute;
   top: -9%;
   left: 50%;

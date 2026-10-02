@@ -94,6 +94,13 @@ export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
       <div ref={(el) => void (els.portrait = el)} className="mari-pull-lay mari-pull-portrait">
         <img src={appearance.portraits.idle} alt="" draggable={false} />
       </div>
+      {/* M17: on landing her head grows into her sprite where she is in the pane (sized and moved by the hook). */}
+      <div ref={(el) => void (els.morph = el)} className="mari-pull-lay mari-pull-morph">
+        <span ref={(el) => void (els.morphSprite = el)} className="mari-pull-morph__sprite" />
+        <span ref={(el) => void (els.morphPortrait = el)} className="mari-pull-morph__portrait">
+          <img src={appearance.portraits.idle} alt="" draggable={false} />
+        </span>
+      </div>
       <div ref={(el) => void (els.tag = el)} className="mari-pull-lay mari-pull-tag">
         {(["search", "mari"] as const).map((side) => {
           const [idle, release] = tagLabel(side);

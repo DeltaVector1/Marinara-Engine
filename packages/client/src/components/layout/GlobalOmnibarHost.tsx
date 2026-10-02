@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import {
   DEFAULT_COMMAND_CENTER_SESSION_STATE,
+  isAskMariShortcut,
   isOmnibarShortcut,
   readCommandCenterSessionState,
   writeCommandCenterSessionState,
@@ -13,6 +14,7 @@ import { parseOmnibarScope } from "../../lib/omnibar-scope";
 import {
   consumeProfessorMariOpenRequest,
   PROFESSOR_MARI_OPEN_EVENT,
+  requestProfessorMariOpen,
   type ProfessorMariOpenDetail,
 } from "../../lib/professor-mari-open";
 import { useMariPresence } from "../../hooks/use-mari-presence";
@@ -112,6 +114,11 @@ export function GlobalOmnibar() {
         if (ui.omnibarOpen && dialog && !dialog.closest('[data-component="GlobalOmnibar"]')) return;
         event.preventDefault();
         setOpen(!ui.omnibarOpen);
+      } else if (isAskMariShortcut(event) && !ui.omnibarOpen && ui.commandCenterMariEnabled) {
+        // M18: ⌘J opens Mari with this screen's context, over any dialog like ⌘K (L8). While the
+        // omnibar is open its dialog owns ⌘J (back to search, or into Mari).
+        event.preventDefault();
+        requestProfessorMariOpen();
       } else if (
         isShortcutsHelpKey(event) &&
         !ui.omnibarOpen &&
@@ -133,7 +140,9 @@ export function GlobalOmnibar() {
     const openProfessorMari = (event: Event) => {
       const request = (event as CustomEvent<ProfessorMariOpenDetail>).detail;
       if ((request.destination ?? "omnibar") !== "omnibar") return;
-      consumeProfessorMariOpenRequest("omnibar");
+      // M9: a request that brings nothing stays pending for the dialog, which arrives with the
+      // context of the screen it opens over.
+      if (request.context || request.draft) consumeProfessorMariOpenRequest("omnibar");
       if (!useUIStore.getState().omnibarOpen) {
         const current = readCommandCenterSessionState();
         writeCommandCenterSessionState({

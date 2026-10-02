@@ -5,8 +5,12 @@ import "./mari-appearance.css";
 
 /**
  * One story, then a resting pose. The surrounding UI supplies the status text. With `settleTo`, the
- * story plays once and then that one takes over (a finished run: success, then idle). She is also where
- * the slice 15 pull-to-open circle lands (`data-mari-pull-target`): only one story sprite is on screen.
+ * story plays once and then that one takes over (a finished run: success, then idle).
+ *
+ * M17: she is also the present Mari the pull-to-open circle morphs into (`mari-current`). Exactly one
+ * Mari sprite is on screen at a time, by construction: the live-line `MariSprite` while a run is live
+ * (the transcript's `latestTurnRestStory` is null then), else the one resting beside the newest reply
+ * (only the latest turn gets a `restStory`), else the arrival/welcome one (only in an empty chat).
  */
 export function MariStorySprite({ state, settleTo }: { state: MariStoryState; settleTo?: MariStoryState }) {
   const pack = useMariAppearancePack();
@@ -17,7 +21,7 @@ export function MariStorySprite({ state, settleTo }: { state: MariStoryState; se
       className="mari-story-sprite"
       data-state={shown}
       data-appearance-pack={pack.id}
-      data-mari-pull-target="mari"
+      data-mari-pull-target="mari-current"
       aria-hidden="true"
     >
       <span

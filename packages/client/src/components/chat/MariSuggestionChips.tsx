@@ -4,11 +4,15 @@ import {
   Bot,
   Dices,
   Eye,
+  FileText,
   Link2,
   MessageCircle,
+  Pencil,
+  Search,
   Settings,
   SlidersHorizontal,
   Sparkles,
+  Undo2,
   UserPlus,
   UserRound,
   Wand2,
@@ -57,6 +61,12 @@ const CHIP_ICONS: Record<string, LucideIcon> = {
   UserRound,
   Wand2,
   Dices,
+  // M9 arrival cards.
+  FileText,
+  Link2,
+  Pencil,
+  Search,
+  Undo2,
 };
 
 const ENTITY_DEFAULT_ICON: Partial<Record<MariChipEntity, LucideIcon>> = {
@@ -273,13 +283,13 @@ export function MariSuggestionChips({ chips, onSelect, disabled = false, compact
  * M5b: what next, as cards under the finished turn (icon, label, one fact). A spark card asks Mari
  * (the caller puts its prompt in the composer); an arrow card has an `action` the caller runs at once.
  */
-export function MariNextStepCards({
+export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"> & { action?: { kind: string } }>({
   chips,
   onSelect,
   disabled = false,
 }: {
-  chips: MariSuggestionChip[];
-  onSelect: (chip: MariSuggestionChip) => void;
+  chips: readonly Chip[];
+  onSelect: (chip: Chip) => void;
   disabled?: boolean;
 }) {
   const { t: localizeUi } = useUiTranslation();
@@ -287,7 +297,8 @@ export function MariNextStepCards({
   return (
     <div role="group" aria-label={localizeUi("ui.chat.marisuggestionchips.nextSteps")} className="mari-next-cards">
       {chips.map((chip, index) => {
-        const entity = inferChipEntity(chip);
+        // M9's omnibar-only actions name no entity, so the shared inference reads them as none.
+        const entity = inferChipEntity(chip as MariSuggestionChip);
         const Icon =
           chip.action?.kind === "peek-prompt"
             ? Eye

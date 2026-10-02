@@ -249,6 +249,47 @@ export function pullRemnantPath(x: number, halfWidth: number, depth: number, ori
   );
 }
 
+// ── The morph into the present Mari (M17) ──────────────────────────────────
+// Box coordinates: the morph element has the target sprite's size and is moved
+// with `translate(x, y) scale(scale)` from its top-left corner; the clip is in
+// its own (unscaled) pixels.
+
+export interface PullMorphFrame {
+  x: number;
+  y: number;
+  scale: number;
+  clip: string;
+  /** The pull circle's portrait, fading out over the sprite. */
+  portrait: number;
+  /** The target sprite's own image, fading in under it. */
+  sprite: number;
+}
+
+/**
+ * The circle (centre `from.x/y`, radius `from.r`) becoming the sprite box `to`
+ * at progress `t` (0-1, a spring may overshoot a little). At 0 the box is
+ * shrunk so the square at its top - her head - is exactly the circle; at 1 it
+ * is the box itself, unclipped.
+ */
+export function pullMorphFrame(
+  from: { x: number; y: number; r: number },
+  to: { left: number; top: number; width: number; height: number },
+  t: number,
+): PullMorphFrame {
+  const side = Math.max(1, Math.min(to.width, to.height));
+  const start = (2 * from.r) / side;
+  const rest = Math.max(0, 1 - t);
+  const scale = lerp(start, 1, t);
+  return {
+    x: px(lerp(from.x - (start * to.width) / 2, to.left, t)),
+    y: px(lerp(from.y - (start * side) / 2, to.top, t)),
+    scale: Math.round(scale * 1000) / 1000,
+    clip: `inset(0px ${px(((to.width - side) / 2) * rest)}px ${px((to.height - side) * rest)}px ${px(((to.width - side) / 2) * rest)}px round ${px((side / 2) * rest)}px)`,
+    portrait: Math.round((1 - smooth((t - 0.3) / 0.5)) * 100) / 100,
+    sprite: Math.round(smooth((t - 0.1) / 0.5) * 100) / 100,
+  };
+}
+
 // ── Hand-off to the dialog ─────────────────────────────────────────────────
 // The omnibar dialog is lazy and mounts after the release. It calls this with its
 // panel once it is on screen, so the circle can pop it open and dock in it.

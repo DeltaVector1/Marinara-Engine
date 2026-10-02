@@ -851,6 +851,26 @@ does not keep its own copy).
   (and that it reads no message text); e2e from a chat and from the agent editor: the arrival line and
   cards render with zero requests to `/professor-mari/*/prompt`; desktop drag opens Mari, a drag that
   starts on a top-bar button does not; screenshots next to `mock/chat-900.png`, `mock/agent-*.png`.
+- **M17 (slice 39), the pull-drop morphs into the present Mari (maintainer feedback 2026-10-02).** "The
+  Mari you pull down with the liquid thing should morph into the present Mari, wherever she is." Today
+  (35a) the circle flies to the first `[data-mari-pull-target="mari"]` match and fades. Work: mark exactly
+  one sprite `mari-current` (live-line sprite while a run is live, else the one beside the newest reply,
+  else the arrival sprite); scroll it into view; the circle's head grows into its box (clip circle → box,
+  size, position; transform/opacity/clip only, spring ~0.4 s, pure `pullMorphFrame` in
+  `lib/pull-to-open.ts`), cross-fades to the sprite's own sheet frame, the real sprite shows under the
+  identical morph before it fades; the arrival's line and cards wait until she has landed; reduced motion
+  skips the flight. Proof: regression asserts for the morph frames; frame logs + screenshots on
+  mobile-chromium and mobile-webkit for an empty chat, a chat with replies and a live run, landing on the
+  right sprite each time.
+- **M18 (slice 39), a desktop door with context (maintainer feedback 2026-10-02).** "On mobile we go from a
+  chat to Mari with the pull; how on desktop, with context?" Work: `⌘J` / `Ctrl+J` "Ask Mari about this"
+  opens Mari through the same arrival path as M9 (no model call until a card or typing), over any dialog
+  (L8), and goes back to the search when Mari is open; listed in `keyboard-shortcuts.ts` (the **?** list)
+  and the omnibar footer. Tab-to-Mari only if Tab is free in the omnibar (it is not: ghost completion and
+  focus order). The desktop mouse drag of decision 2 ships here (empty bar space only, same threshold and
+  halves). Proof: regression asserts for the shortcut matcher; e2e on desktop-chromium, -webkit and
+  -firefox that Ctrl+J opens Mari with context from a chat, toggles back, works over a dialog and is
+  taken from the browser (`preventDefault`); desktop drag right/left/from a button.
 - **M11 (slice 40).** Reviewer pass over 30-39 (read-only findings, then a worker fixes the confirmed
   ones in the same slice): R22 on the arrival builder and the new facets, no write without a review, the
   scroll rule under real network latency, both themes, both visual themes (`default`, `sillytavern`),

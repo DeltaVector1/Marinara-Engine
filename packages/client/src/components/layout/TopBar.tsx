@@ -220,11 +220,11 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
   const handlePullOpen = useCallback(
     (target: PullTarget) => {
       if (target === "search") return handleOmnibarClick();
-      // The same door as Home's "Ask Professor Mari": the omnibar, straight in Mari's pane.
-      prepareMobileTopbarNavigation();
+      // The same door as Home's "Ask Professor Mari": the omnibar, straight in Mari's pane. The open editor
+      // stays open, because she arrives with what is on screen (M9).
       requestProfessorMariOpen();
     },
-    [handleOmnibarClick, prepareMobileTopbarNavigation],
+    [handleOmnibarClick],
   );
 
   const pull = usePullToOpenOmnibar({ onPullStart: clearHomeLongPress, onOpen: handlePullOpen });
@@ -440,7 +440,7 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
       onPointerOver={handleTopbarPointerOver}
       className={cn(
         "mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between bg-[var(--marinara-topbar-surface)] px-3 backdrop-blur-sm",
-        mobileTopbarNavigation && "touch-none",
+        mobileTopbarNavigation ? "touch-none" : "select-none",
       )}
     >
       {/* Subtle bottom border only */}
@@ -572,7 +572,8 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
         )}
       />
       {header}
-      {mobileTopbarNavigation && <OmnibarPullDrop visuals={pull.visuals} />}
+      {/* Phones pull with a finger, desktop drags with the mouse from empty bar space (M18). */}
+      <OmnibarPullDrop visuals={pull.visuals} />
     </>
   );
 }

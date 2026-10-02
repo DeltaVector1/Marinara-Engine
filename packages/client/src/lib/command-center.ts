@@ -754,8 +754,17 @@ export function isApplePlatform(): boolean {
  * matched through `code`. Held-down repeats would toggle the bar open and shut.
  */
 export function isOmnibarShortcut(event: OmnibarShortcutEvent, apple = isApplePlatform()): boolean {
+  return isModLetterShortcut(event, "k", apple);
+}
+
+/** M18: Cmd+J / Ctrl+J, "Ask Mari about this". Same rules as {@link isOmnibarShortcut}. */
+export function isAskMariShortcut(event: OmnibarShortcutEvent, apple = isApplePlatform()): boolean {
+  return isModLetterShortcut(event, "j", apple);
+}
+
+function isModLetterShortcut(event: OmnibarShortcutEvent, letter: string, apple: boolean): boolean {
   const modifier = apple ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
   if (!modifier || event.altKey || event.shiftKey || event.repeat) return false;
   const key = event.key.toLowerCase();
-  return key === "k" || (!/^[a-z]$/.test(key) && event.code === "KeyK");
+  return key === letter || (!/^[a-z]$/.test(key) && event.code === `Key${letter.toUpperCase()}`);
 }
