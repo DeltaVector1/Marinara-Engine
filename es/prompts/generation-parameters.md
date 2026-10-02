@@ -125,9 +125,13 @@ Déjalo activado a menos que tengas una razón clara para volver a alimentar el 
 
 Usa esto para modelos que no pueden ver imágenes. Cuando lo actives, elige una conexión en el menú desplegable **Captioning Connection**. Un endpoint de solo texto puede fallar si lo apuntas a la conexión equivocada. Este ajuste está desactivado de forma predeterminada.
 
+El cuadro **Captioning Prompt** (Prompt de descripción) que está debajo del menú desplegable contiene las instrucciones que se envían con cada imagen. Edítalo para cambiar las descripciones, por ejemplo para pedir más detalle. El botón para restablecer que está junto a la etiqueta recupera el prompt predeterminado, y vaciar el cuadro tiene el mismo efecto. El prompt se guarda solo para este chat, y **Save as Connection Default** (Guardar como predeterminado de la conexión) no lo copia.
+
+Si falla la descripción de imágenes, por ejemplo porque la conexión que genera las descripciones está rota, se eliminó o no devuelve nada, la respuesta se detiene con el error **Image captioning failed**. Marinara no envía la imagen misma en su lugar. Repara o cambia esa conexión, o desactiva Image Captioning.
+
 ## Save as Connection Default
 
-En la parte inferior de **Advanced Parameters**, el botón **Save as Connection Default** (Guardar como predeterminado de la conexión) escribe tus valores de parámetros actuales en la conexión misma. Después de eso, los chats nuevos que usan esa misma conexión parten de estos valores.
+En la parte inferior de **Advanced Parameters**, el botón **Save as Connection Default** escribe tus valores de parámetros actuales en la conexión misma. Después de eso, los chats nuevos que usan esa misma conexión parten de estos valores.
 
 El botón solo aparece para una conexión normal y guardada. Está oculto para el grupo de conexiones aleatorias y para el modelo local integrado.
 

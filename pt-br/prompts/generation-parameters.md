@@ -125,6 +125,10 @@ A opção **Image Captioning** muda a forma como a IA lida com imagens anexadas.
 
 Use isso com modelos que não enxergam imagens. Ao ativar, escolha uma conexão no menu suspenso **Captioning Connection**. Um endpoint que só aceita texto pode falhar se você apontar para a conexão errada. Essa configuração vem desativada por padrão.
 
+A caixa **Captioning Prompt** (prompt de descrição), abaixo do menu suspenso, guarda as instruções enviadas com cada imagem. Edite o texto para mudar as descrições, por exemplo para pedir mais detalhes. O botão de redefinir ao lado do rótulo traz de volta o prompt padrão, e esvaziar a caixa tem o mesmo efeito. O prompt fica salvo só neste chat, e o botão **Save as Connection Default** não o copia.
+
+Se a descrição falhar, por exemplo porque a conexão usada nas descrições está com defeito, foi excluída ou não devolve nada, a resposta é interrompida com o erro **Image captioning failed** (falha na descrição da imagem). Marinara não envia a própria imagem no lugar. Corrija ou troque essa conexão, ou desative a opção Image Captioning.
+
 ## Save as Connection Default
 
 No fim da seção **Advanced Parameters**, o botão **Save as Connection Default** salva os valores atuais dos parâmetros na própria conexão. Depois disso, todo chat novo que usar aquela conexão parte desses valores.

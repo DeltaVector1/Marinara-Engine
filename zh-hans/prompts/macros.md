@@ -69,7 +69,7 @@
 
 Phonetic 名称字段有两个作用。一是决定语音合成怎么念这个名字，二是给 `{{charNamePhonetic}}` 和 `{{userNamePhonetic}}` 提供内容。**Character Editor** 和 **Persona Editor** 里都有这个字段。
 
-要引用不在当前聊天里的角色，复制卡片 ID，直接放进双大括号，例如 `{{V1StGXR8_Z5jdHi6B-myT}}`。不要包含字面的 `<` 或 `>` 字符。Marinara 将宏替换为角色姓名，并把卡片的 Description、Personality、Appearance、Backstory、Scenario 和 Example Dialogue 加入系统提示词。它适用于聊天消息、提示词字段和已激活的世界书条目。卡片的初始开场白会排除。关联的已启用世界书仍遵守通常的关键词、constant、筛选、概率和 Token 预算规则。如果角色已经在聊天里，宏照样替换为角色姓名，卡片则不会重复加入。
+要引用不在当前聊天里的角色，复制卡片 ID，直接放进双大括号，例如 `{{V1StGXR8_Z5jdHi6B-myT}}`。不要包含字面的 `<` 或 `>` 字符。Marinara 将宏替换为角色姓名。在使用提示词预设的 Roleplay 聊天里，还会把卡片的 Description、Personality、Appearance、Backstory、Scenario 和 Example Dialogue 加入系统提示词；在其他聊天里，宏只会变成姓名。它适用于聊天消息和提示词字段；在使用预设的 Roleplay 聊天里，也适用于已激活的世界书条目。卡片的初始开场白会排除。关联的已启用世界书仍遵守通常的关键词、constant、筛选、概率和 Token 预算规则。如果角色已经在聊天里，宏照样替换为角色姓名，卡片则不会重复加入。
 
 想引用当前未启用的用户角色，请在复制的 ID 前加上 `persona-`，例如 `{{persona-P1StGXR8_Z5jdHi6B-myT}}`。Marinara 会把宏换成用户角色名，并把其 Description、Personality、Appearance、Backstory 和 Scenario 字段加入 ID Macro Cards。所附世界书仍按通常的激活规则运行。
 
