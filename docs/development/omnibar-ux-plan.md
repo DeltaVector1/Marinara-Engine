@@ -68,6 +68,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 34  | "Context" becomes "What Mari sees" (M7)                          | designer      | Done    | b4586bd4f |
 | 35  | Side panels in one surface language (M6)                         | designer      | Done    | 7160b4798 |
 | 35a | Two header lines, Mari inline in the transcript                  | designer      | Done    | e8509f10b |
+| 35b | Bring back the done check and the plop (M14)                     | worker        | Done    | c624ee0b8 |
 | 36  | A run in cards: goal, phases, outcome group (M5a)                | designer      | Pending |           |
 | 37  | Next-step suggestion cards with a fact line (M5b)                | designer      | Pending |           |
 | 38  | Small fixes found on the way (M10)                                | worker        | Pending |           |
