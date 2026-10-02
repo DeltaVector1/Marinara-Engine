@@ -3126,7 +3126,12 @@ test("NovelAI style plate upload keeps the connection editor mounted", async ({ 
     await editor.locator('input[type="file"][accept*="image/png"]').setInputFiles({
       name: "style-plate.png",
       mimeType: "image/png",
-      buffer: readFileSync(new URL("../packages/client/public/sprites/mari/Mari_wave.png", import.meta.url)),
+      buffer: readFileSync(
+        new URL(
+          "../packages/client/assets/imagegen/mari-generated-originals/professor-mari-assistant-map-source.png",
+          import.meta.url,
+        ),
+      ),
     });
 
     await expect(editor).toBeVisible();
@@ -7941,7 +7946,7 @@ test("Roleplay Tracker preserves named characters with missing or malformed card
     characterId = (await characterResponse.json()).id;
     const avatarResponse = await request.post(`/api/characters/${characterId}/avatar`, {
       data: {
-        avatar: `data:image/png;base64,${readFileSync(new URL("../packages/client/public/sprites/mari/Mari_wave.png", import.meta.url)).toString("base64")}`,
+        avatar: `data:image/png;base64,${readFileSync(new URL("../packages/client/assets/imagegen/mari-generated-originals/professor-mari-assistant-map-source.png", import.meta.url)).toString("base64")}`,
         filename: "tracker-fixture.png",
       },
     });
@@ -12804,18 +12809,18 @@ test("Professor Mari visibly arrives on Home and navigates without AI", async ({
   ).toBeVisible();
   await expect(assistant.locator(".mari-home-professor-popup__idle")).toHaveAttribute(
     "src",
-    "/sprites/mari/generated/professor-mari-assistant-idle.png",
+    /\/sprites\/mari\/basic\/portrait-idle\.webp\?v=/,
   );
   await expect(assistant.locator(".mari-home-professor-popup__blink")).toHaveAttribute(
     "src",
-    "/sprites/mari/generated/professor-mari-assistant-blink-v3.png",
+    /\/sprites\/mari\/basic\/portrait-blink\.webp\?v=/,
   );
   await assistant.getByRole("button", { name: "Minimize Professor Mari navigation", exact: true }).click();
   await expect(assistant).toBeHidden();
   const recallButton = page.getByRole("button", { name: "Help Me Navigate", exact: true });
   await expect(recallButton).toBeVisible();
   const recallSprite = recallButton.locator("img");
-  await expect(recallSprite).toHaveAttribute("src", "/sprites/mari/generated/professor-mari-assistant-idle.png");
+  await expect(recallSprite).toHaveAttribute("src", /\/sprites\/mari\/basic\/portrait-idle\.webp\?v=/);
   await expect(recallSprite).toHaveCSS("object-position", "calc(50% + 1.5px) 100%");
   const [recallBounds, viewportWidth] = await Promise.all([
     recallButton.boundingBox(),
@@ -12843,7 +12848,7 @@ test("Professor Mari visibly arrives on Home and navigates without AI", async ({
   await expect(assistant.getByText("Here, found it!", { exact: true })).toBeVisible();
   await expect(assistant.locator(".mari-home-professor-popup__state-image--map")).toHaveAttribute(
     "src",
-    "/sprites/mari/generated/professor-mari-assistant-map.png",
+    /\/sprites\/mari\/basic\/portrait-map\.webp\?v=/,
   );
   await expect(assistant.locator(".mari-home-professor-popup__idle-stage")).toHaveCSS("opacity", "0");
   await expect(page.locator('[data-component="HomeProfessorMariChat.Window"]')).toBeVisible();

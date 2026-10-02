@@ -4,7 +4,11 @@ import { createRequire } from "node:module";
 import {
   getMariAppearancePack,
   MARI_APPEARANCE_PACKS,
+  MARI_ASSET_TIER,
+  MARI_POSES,
+  MARI_SPRITE_VERSION,
   MARI_STORY_STATES,
+  mariAssetUrls,
   resolveMariRestStory,
   selectMariWorkAnimation,
 } from "../../packages/client/src/lib/mari-work-animations.ts";
@@ -29,12 +33,45 @@ assert.equal(resolveMariRestStory({ ...idle, hasAppliedChanges: true, cancelled:
 assert.equal(resolveMariRestStory({ ...idle, hasAppliedChanges: true, failed: true }), "retry");
 assert.equal(resolveMariRestStory({ ...idle, working: true, hasAppliedChanges: true }), null);
 
+// M16: every URL is versioned and lives in its own pack's folder, so one pack never loads another's files.
+const publicFile = (url) => new URL(`../../packages/client/public${url.split("?")[0]}`, import.meta.url);
+for (const appearance of MARI_APPEARANCE_PACKS) {
+  const urls = [
+    ...Object.values(appearance.portraits),
+    ...Object.values(appearance.stories).map(({ src }) => src),
+    ...Object.values(appearance.poses),
+  ];
+  for (const url of urls) {
+    assert.ok(url.startsWith(`/sprites/mari/${appearance.id}/`), `${url} must stay inside its pack folder`);
+    assert.ok(url.endsWith(`?v=${MARI_SPRITE_VERSION}`), `${url} must carry the sprite version`);
+  }
+  for (const pose of MARI_POSES) assert.ok(readFileSync(publicFile(appearance.poses[pose])).length);
+  const prefetch = mariAssetUrls(appearance, 2);
+  const preload = mariAssetUrls(appearance, 1);
+  assert.deepEqual(
+    preload.sort(),
+    [appearance.poses.profile, appearance.poses.chibi].sort(),
+    "tier 1 is first paint only",
+  );
+  assert.ok(prefetch.length > 0 && prefetch.every((url) => urls.includes(url)), "prefetch only the selected pack");
+  assert.ok(!prefetch.some((url) => preload.includes(url)), "the idle prefetch never repeats the startup preload");
+  assert.ok(!prefetch.includes(appearance.stories.research.src), "tier 3 stories are never prefetched");
+  assert.ok(!prefetch.includes(appearance.poses.wave), "tier 3 poses are never prefetched");
+}
+for (const [group, keys] of [
+  ["stories", MARI_STORY_STATES],
+  ["poses", MARI_POSES],
+  ["portraits", Object.keys(pack.portraits)],
+]) {
+  assert.deepEqual(Object.keys(MARI_ASSET_TIER[group]).sort(), [...keys].sort(), `every ${group} slot has one tier`);
+}
+
 const require = createRequire(new URL("../../packages/server/package.json", import.meta.url));
 const sharp = require("sharp");
 for (const appearance of MARI_APPEARANCE_PACKS) {
   assert.equal(getMariAppearancePack(appearance.id), appearance, "registered packs must resolve without fallback");
   for (const url of Object.values(appearance.portraits)) {
-    assert.ok(readFileSync(new URL(`../../packages/client/public${url}`, import.meta.url)).length);
+    assert.ok(readFileSync(publicFile(url)).length);
   }
   for (const state of MARI_STORY_STATES) {
     const chosen = selectMariWorkAnimation({
@@ -44,7 +81,7 @@ for (const appearance of MARI_APPEARANCE_PACKS) {
       state,
     });
     assert.equal(chosen, appearance.stories[state], "explicit state must beat tool keywords");
-    const image = sharp(new URL(`../../packages/client/public${chosen.src}`, import.meta.url).pathname);
+    const image = sharp(publicFile(chosen.src).pathname);
     const metadata = await image.metadata();
     assert.equal(metadata.width, 512, "four equal cells");
     assert.equal(metadata.height, 192, "consistent scale across stories");
@@ -62,4 +99,6 @@ for (const [name, state] of [
 ]) {
   assert.equal(selectMariWorkAnimation({ activity: "", toolNames: [name], packId: "stale" }).id, state);
 }
-console.info("Mari appearance pack: fallback, lifecycle outcomes, activity selection and all sprite assets passed.");
+console.info(
+  "Mari appearance pack: fallback, lifecycle outcomes, activity selection, per-pack isolation, loading tiers and all sprite assets passed.",
+);

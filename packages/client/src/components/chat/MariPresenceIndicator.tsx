@@ -1,4 +1,5 @@
 import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import { MARI_ASSET_TIER, mariImgLoading } from "../../lib/mari-work-animations";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -63,8 +64,20 @@ export function MariPresenceIndicator() {
         data-mari-glow={working ? "true" : "false"}
       >
         <span className="mari-workspace-portrait" data-state={visualState} data-conversation="true" aria-hidden="true">
-          <img src={appearance.portraits.idle} alt="" draggable={false} data-part="idle" />
-          <img src={appearance.portraits.blink} alt="" draggable={false} data-part="blink" />
+          <img
+            src={appearance.portraits.idle}
+            {...mariImgLoading(MARI_ASSET_TIER.portraits.idle)}
+            alt=""
+            draggable={false}
+            data-part="idle"
+          />
+          <img
+            src={appearance.portraits.blink}
+            {...mariImgLoading(MARI_ASSET_TIER.portraits.blink)}
+            alt=""
+            draggable={false}
+            data-part="blink"
+          />
         </span>
         {pendingCount > 1 && <span data-part="count">{pendingCount}</span>}
       </button>

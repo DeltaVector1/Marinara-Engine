@@ -14,6 +14,7 @@ import {
 import { flushSync } from "react-dom";
 import { ArrowLeft, GripVertical, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
 import { useReducedAmbientEffects } from "../../hooks/use-reduced-ambient-effects";
 import {
   PROFESSOR_MARI_NAVIGATOR_POSITION_STORAGE_KEY,
@@ -21,14 +22,9 @@ import {
   professorMariNavigatorRuntime,
   type ProfessorMariNavigationTarget,
 } from "../../lib/professor-mari-navigation";
+import { MARI_ASSET_TIER, mariImgLoading } from "../../lib/mari-work-animations";
 import { cn } from "../../lib/utils";
 
-const MARI_ASSISTANT_ARRIVAL_SHEET = "/sprites/mari/generated/professor-mari-assistant-sheet.webp";
-const MARI_ASSISTANT_IDLE = "/sprites/mari/generated/professor-mari-assistant-idle.webp";
-const MARI_ASSISTANT_BLINK = "/sprites/mari/generated/professor-mari-assistant-blink-v3.webp";
-const MARI_ASSISTANT_MAP = "/sprites/mari/generated/professor-mari-assistant-map.webp";
-const MARI_ASSISTANT_SHRUG = "/sprites/mari/generated/professor-mari-assistant-shrug.webp";
-const MARI_ASSISTANT_DRAG_SHEET = "/sprites/mari/generated/professor-mari-assistant-drag-sheet-v3.webp";
 const MARINARA_EFFECTS_PAUSED_EVENT = "marinara:effects-paused";
 const PROFESSOR_ASSISTANT_EDGE_MARGIN = 16;
 const PROFESSOR_ASSISTANT_HANDLE_CLEARANCE = 12;
@@ -157,6 +153,7 @@ export function ProfessorMariNavigator({
   const { t } = useTranslation();
   const reduceMotion = useReducedAmbientEffects();
   const effectsPaused = useMarinaraEffectsPaused();
+  const { portraits } = useMariAppearancePack();
   const runtime = layout === "omnibar" ? omnibarNavigatorRuntime : professorMariNavigatorRuntime;
   const [visible, setVisible] = useState(() => pageActive && enabled && runtime.hasAppeared && !runtime.minimized);
   const [minimized, setMinimized] = useState(runtime.minimized);
@@ -272,13 +269,13 @@ export function ProfessorMariNavigator({
       else markReady();
     };
     image.addEventListener("load", decode, { once: true });
-    image.src = MARI_ASSISTANT_DRAG_SHEET;
+    image.src = portraits.drag;
     if (image.complete) decode();
     return () => {
       active = false;
       image.removeEventListener("load", decode);
     };
-  }, [desktopDragEnabled, dragSpriteReady, enabled, minimized, pageActive]);
+  }, [desktopDragEnabled, dragSpriteReady, enabled, minimized, pageActive, portraits.drag]);
 
   const syncDragLayout = useCallback(() => {
     if (!desktopDragEnabled || dragRef.current) return;
@@ -610,7 +607,8 @@ export function ProfessorMariNavigator({
         )}
       >
         <img
-          src={MARI_ASSISTANT_IDLE}
+          src={portraits.idle}
+          {...mariImgLoading(MARI_ASSET_TIER.portraits.idle)}
           alt=""
           aria-hidden="true"
           className="h-[92%] w-[92%] object-contain [image-rendering:pixelated]"
@@ -709,7 +707,7 @@ export function ProfessorMariNavigator({
           <span
             ref={dragAnimationRef}
             className="mari-home-professor-popup__drag-frame absolute z-[5] bg-no-repeat [background-size:400%_100%]"
-            style={{ backgroundImage: `url(${MARI_ASSISTANT_DRAG_SHEET})` }}
+            style={{ backgroundImage: `url(${portraits.drag})` }}
             aria-hidden="true"
             data-component="HomeBrowserHub.ProfessorDragAnimation"
           />
@@ -720,7 +718,7 @@ export function ProfessorMariNavigator({
               "mari-home-professor-popup__arrival-frame absolute inset-0 z-[2] bg-no-repeat opacity-0 [background-size:400%_100%]",
               phase === "arriving" && "opacity-100",
             )}
-            style={{ backgroundImage: `url(${MARI_ASSISTANT_ARRIVAL_SHEET})` }}
+            style={{ backgroundImage: `url(${portraits.arrival})` }}
           />
           <span
             className={cn(
@@ -729,13 +727,15 @@ export function ProfessorMariNavigator({
             )}
           >
             <img
-              src={MARI_ASSISTANT_IDLE}
+              src={portraits.idle}
+              {...mariImgLoading(MARI_ASSET_TIER.portraits.idle)}
               alt=""
               draggable={false}
               className="mari-home-professor-popup__idle absolute inset-0 h-full w-full object-contain object-bottom"
             />
             <img
-              src={MARI_ASSISTANT_BLINK}
+              src={portraits.blink}
+              {...mariImgLoading(MARI_ASSET_TIER.portraits.blink)}
               alt=""
               draggable={false}
               className="mari-home-professor-popup__blink absolute inset-0 h-full w-full object-contain object-bottom"
@@ -743,7 +743,7 @@ export function ProfessorMariNavigator({
           </span>
           {phase === "map" || phase === "shrug" ? (
             <img
-              src={phase === "map" ? MARI_ASSISTANT_MAP : MARI_ASSISTANT_SHRUG}
+              src={phase === "map" ? portraits.map : portraits.shrug}
               alt=""
               draggable={false}
               className={cn(

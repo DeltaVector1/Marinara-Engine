@@ -92,6 +92,8 @@ import { resolveRunSeconds, resolveRunStartMs, type RunStepTiming } from "../../
 import { buildLorebookPreviewModel, type LorebookPreviewModel } from "../../lib/lorebook-preview";
 import { completeInline } from "../../lib/inline-completion";
 import {
+  MARI_ASSET_TIER,
+  mariImgLoading,
   resolveMariRestStory,
   selectMariWorkAnimation,
   stableHash,
@@ -2786,11 +2788,20 @@ function classifyProfessorMariFailure(error: unknown): ProfessorMariRecovery["ki
 }
 
 export function ProfessorMariPixelScene({ active }: { active: boolean }) {
+  const { poses } = useMariAppearancePack();
   return (
     <div className="mari-professor-pixel-scene" data-state={active ? "active" : "idle"} aria-hidden="true">
       <div data-part="glow" />
       <div data-part="desk" />
-      <img src="/sprites/mari/chibi-professor-mari.webp" alt="" data-part="sprite" draggable={false} />
+      <img
+        src={poses.chibi}
+        {...mariImgLoading(MARI_ASSET_TIER.poses.chibi)}
+        width={94}
+        height={128}
+        alt=""
+        data-part="sprite"
+        draggable={false}
+      />
       <div data-part="laptop">
         <div data-part="screen">
           <span />
@@ -6096,6 +6107,7 @@ export function HomeProfessorMariChat({
                               ) : (
                                 <img
                                   src={appearance.portraits.idle}
+                                  {...mariImgLoading(MARI_ASSET_TIER.portraits.idle)}
                                   alt=""
                                   className="h-full w-full object-cover object-top"
                                 />

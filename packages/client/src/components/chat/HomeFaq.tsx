@@ -17,6 +17,8 @@ import { Modal } from "../ui/Modal";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import { useTranslation as useUiTranslation } from "react-i18next";
 import { requestProfessorMariOpen } from "../../lib/professor-mari-open";
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import { MARI_ASSET_TIER, mariImgLoading } from "../../lib/mari-work-animations";
 
 export interface HomeFaqItem {
   id: string;
@@ -608,6 +610,7 @@ export function HomeFaq({
 }: HomeFaqProps = {}) {
   const { t: localizeUi } = useUiTranslation();
   const localize = useLocalizedUiText();
+  const { poses } = useMariAppearancePack();
   const [expandedInternal, setExpandedInternal] = useState(defaultExpanded);
   const [openItemIdInternal, setOpenItemIdInternal] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -916,9 +919,10 @@ export function HomeFaq({
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                     <div className="mx-auto flex h-28 w-20 shrink-0 items-start justify-center overflow-hidden rounded-[1.25rem] border border-[var(--border)] bg-[var(--card)]/80 shadow-[0_10px_24px_rgba(0,0,0,0.22)] sm:mx-0 sm:h-32 sm:w-24">
                       <img
-                        src="/sprites/mari/Mari_explaining.webp"
+                        src={poses.explaining}
+                        {...mariImgLoading(MARI_ASSET_TIER.poses.explaining)}
                         alt={localizeUi("ui.chat.homefaq.professorMari")}
-                        className="h-full w-full object-cover object-[center_14%]"
+                        className="h-full w-full object-cover object-[center_14%] [image-rendering:pixelated]"
                       />
                     </div>
                     <div className="min-w-0 text-center sm:text-left">

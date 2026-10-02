@@ -54,8 +54,8 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
     .first()
     .click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+k");
-  await expect(omnibar.locator('img[src="/sprites/mari/safari/portrait-idle.png"]').first()).toBeVisible();
-  await expect(omnibar.locator('img[src="/sprites/mari/safari/portrait-idle.png"]').first()).toHaveJSProperty(
+  await expect(omnibar.locator('img[src^="/sprites/mari/safari/portrait-idle.webp?v="]').first()).toBeVisible();
+  await expect(omnibar.locator('img[src^="/sprites/mari/safari/portrait-idle.webp?v="]').first()).toHaveJSProperty(
     "naturalWidth",
     512,
   );
@@ -68,8 +68,8 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
     .first()
     .click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+k");
-  await expect(omnibar.locator('img[src="/sprites/mari/golden/portrait-idle.png"]').first()).toBeVisible();
-  await expect(omnibar.locator('img[src="/sprites/mari/golden/portrait-idle.png"]').first()).toHaveJSProperty(
+  await expect(omnibar.locator('img[src^="/sprites/mari/golden/portrait-idle.webp?v="]').first()).toBeVisible();
+  await expect(omnibar.locator('img[src^="/sprites/mari/golden/portrait-idle.webp?v="]').first()).toHaveJSProperty(
     "naturalWidth",
     512,
   );

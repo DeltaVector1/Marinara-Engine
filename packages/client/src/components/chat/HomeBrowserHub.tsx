@@ -50,6 +50,8 @@ import {
 import { useTranslation } from "react-i18next";
 import { useAgentConfigs } from "../../hooks/use-agents";
 import { useChats } from "../../hooks/use-chats";
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import { MARI_ASSET_TIER, mariImgLoading } from "../../lib/mari-work-animations";
 import { useAllCharacterCatalog, usePersonas } from "../../hooks/use-characters";
 import {
   selectHomeBrowserPackages,
@@ -869,6 +871,7 @@ function ShortcutIcon({ tone, children }: { tone: string; children: ReactNode })
 }
 
 export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProps) {
+  const { poses: mariPoses } = useMariAppearancePack();
   const { t, i18n } = useTranslation();
   const installedChannel = useQuery<{ channel: "stable" | "staging" }>({
     queryKey: ["update-channel"],
@@ -1768,7 +1771,14 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                     : "border-transparent text-[var(--muted-foreground)] hover:bg-[var(--accent)]",
                 )}
               >
-                <img src="/sprites/mari/Mari_profile.webp" alt="" className="h-4 w-4 rounded-sm object-cover" />
+                <img
+                  src={mariPoses.profile}
+                  {...mariImgLoading(MARI_ASSET_TIER.poses.profile)}
+                  width={16}
+                  height={16}
+                  alt=""
+                  className="h-4 w-4 rounded-sm object-cover"
+                />
                 <span className={cn("min-w-0 truncate", activeTab === "professor" ? "block" : "hidden sm:block")}>
                   {t("home.browser.professorTab")}
                 </span>

@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import { useTranslation as useUiTranslation } from "react-i18next";
 import { useDialogFocusScope } from "../../hooks/use-dialog-focus-scope";
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import { MARI_ASSET_TIER, mariImgLoading, type MariPose } from "../../lib/mari-work-animations";
 
 // ─── Step definitions ─────────────────────────
 
@@ -46,7 +48,7 @@ interface TourStep {
   /** Render the documentation-language picker inside this step's card */
   docsLanguagePicker?: boolean;
   /** Professor Mari sprite to display */
-  sprite?: { src: string; flip?: boolean };
+  sprite?: { pose: MariPose; flip?: boolean };
 }
 
 function resolveTourStepTitle(step: TourStep, localizeUi: (key: string) => string, localize: (text: string) => string) {
@@ -58,7 +60,7 @@ const STEPS: TourStep[] = [
     target: null,
     title: "Welcome to Marinara Engine!",
     body: "Hi! I'm Professor Mari, your assistant and guide! First time around? Allow me to show you around. This is a quick orientation tour, so you can skip it if you already know your way around, but skipping will make me sad a little.",
-    sprite: { src: "/sprites/mari/Mari_wave.webp" },
+    sprite: { pose: "wave" },
   },
   {
     target: "panel-characters",
@@ -66,7 +68,7 @@ const STEPS: TourStep[] = [
     body: "Characters are who your AI is going to play or speak as. Create them, edit their descriptions, dialogue examples, organize them into folders, or make them pretty (I can also create those for you).",
     side: "bottom",
     openPanel: "characters",
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "panel-personas",
@@ -74,7 +76,7 @@ const STEPS: TourStep[] = [
     body: "Personas define who you are in a chat. Give yourself a name, avatar, description, scenario details, and pretty colors, so characters know who they are speaking to.",
     side: "bottom",
     openPanel: "personas",
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "panel-lorebooks",
@@ -82,7 +84,7 @@ const STEPS: TourStep[] = [
     body: "Lorebooks hold compendiums about worlds, memories, rules, locations, and extra character details. Entries trigger when their keys appear, giving the model extra context only when it matters (and saving your wallet from sending 200k tokens each turn).",
     side: "bottom",
     openPanel: "lorebooks",
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "panel-presets",
@@ -90,7 +92,7 @@ const STEPS: TourStep[] = [
     body: "Presets control prompt structure. They're templates that build what the model receives and in what order. If you're new to prompt engineering, you can leave this alone for now and use the default preset (or download one from the community).",
     side: "bottom",
     openPanel: "presets",
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "panel-connections",
@@ -98,7 +100,7 @@ const STEPS: TourStep[] = [
     body: "Connections are the first thing to set up before chatting. Add your provider, model, endpoint, and API key here, so you can chat with your AI.",
     side: "bottom",
     openPanel: "connections",
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "panel-agents",
@@ -106,7 +108,7 @@ const STEPS: TourStep[] = [
     body: "Agents add optional features without making the base app heavy. Open Download Agents here to browse and install image and video generation, trackers, writers, maps, audio and video calls, and various chat games, then enable the ones you want for each chat. You can update or uninstall them from the same catalog.",
     side: "bottom",
     openPanel: "agents",
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "panel-settings",
@@ -115,7 +117,7 @@ const STEPS: TourStep[] = [
     side: "bottom",
     openPanel: "settings",
     settingsTab: "general",
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "sidebar-toggle",
@@ -123,7 +125,7 @@ const STEPS: TourStep[] = [
     body: "Now let's open the Chats tab. This is where your Conversations, Roleplays, and Games live. You can create new chats, switch between them, and manage them here.",
     side: "right",
     openSidebar: true,
-    sprite: { src: "/sprites/mari/Mari_point_middle_left.webp" },
+    sprite: { pose: "point-middle" },
   },
   {
     target: "chat-mode-conversation",
@@ -131,7 +133,7 @@ const STEPS: TourStep[] = [
     body: "Conversation mode is like chatting via DMs or groups on Discord. Use it for general texting with your characters. Mind that they have their lives, can trade selfies with you and even message you on their own!",
     side: "right",
     chatMode: "conversation",
-    sprite: { src: "/sprites/mari/Mari_point_middle_left.webp" },
+    sprite: { pose: "point-middle" },
   },
   {
     target: "chat-mode-roleplay",
@@ -139,7 +141,7 @@ const STEPS: TourStep[] = [
     body: "Roleplay mode is for roleplaying scenes and immersive stories. It supports richer narration, lorebooks, agents, long-time memory systems, author's notes, trackers, and co-writing controls.",
     side: "right",
     chatMode: "roleplay",
-    sprite: { src: "/sprites/mari/Mari_point_middle_left.webp" },
+    sprite: { pose: "point-middle" },
   },
   {
     target: "chat-mode-game",
@@ -147,7 +149,7 @@ const STEPS: TourStep[] = [
     body: "Game mode turns the chat into a cinematic RPG-style adventure with an AI Game Master. Sit back and enjoy the game, having party members, goals, maps, dice rolls, session history, journals, combat, and custom HUD widgets.",
     side: "right",
     chatMode: "game",
-    sprite: { src: "/sprites/mari/Mari_point_middle_left.webp" },
+    sprite: { pose: "point-middle" },
   },
   {
     target: "home-hub",
@@ -155,7 +157,7 @@ const STEPS: TourStep[] = [
     bodyKey: "onboarding.homeHub.body",
     side: "bottom",
     openHome: true,
-    sprite: { src: "/sprites/mari/Mari_explaining.webp" },
+    sprite: { pose: "explaining" },
   },
   {
     target: "home-navigation",
@@ -163,7 +165,7 @@ const STEPS: TourStep[] = [
     bodyKey: "onboarding.homeNavigation.body",
     openHome: true,
     centerCard: true,
-    sprite: { src: "/sprites/mari/Mari_point_middle_left.webp" },
+    sprite: { pose: "point-middle" },
   },
   {
     target: "home-documentation",
@@ -172,7 +174,7 @@ const STEPS: TourStep[] = [
     bodyKey: "onboarding.homeTools.body",
     side: "bottom",
     openHome: true,
-    sprite: { src: "/sprites/mari/Mari_point_up_left.webp", flip: true },
+    sprite: { pose: "point-up", flip: true },
   },
   {
     target: "panel-settings",
@@ -181,7 +183,7 @@ const STEPS: TourStep[] = [
     side: "bottom",
     openPanel: "settings",
     settingsTab: "import",
-    sprite: { src: "/sprites/mari/Mari_thinking.webp" },
+    sprite: { pose: "thinking" },
   },
   {
     target: "panel-connections",
@@ -189,7 +191,7 @@ const STEPS: TourStep[] = [
     body: "I'm available from the Home page whenever you need help, and my starter chips can guide you through common first steps without making you type everything. For your first real step, set up a Connection. After that, try creating a new chat. Don't worry, I will be there to guide you. Thank you for trying Marinara Engine. Have fun, and please report bugs or rough edges through our Discord or GitHub so we can keep improving it.",
     side: "bottom",
     openPanel: "connections",
-    sprite: { src: "/sprites/mari/Mari_greet.webp" },
+    sprite: { pose: "greet" },
   },
   {
     target: "home-documentation",
@@ -198,7 +200,7 @@ const STEPS: TourStep[] = [
     side: "top",
     openHome: true,
     docsLanguagePicker: true,
-    sprite: { src: "/sprites/mari/Mari_explaining.webp" },
+    sprite: { pose: "explaining" },
   },
 ];
 
@@ -453,6 +455,7 @@ function TourCardContent({
 }) {
   const { t: localizeUi } = useUiTranslation();
   const localize = useLocalizedUiText();
+  const { poses } = useMariAppearancePack();
   const localizedBody = currentStep.bodyKey ? localizeUi(currentStep.bodyKey) : localize(currentStep.body ?? "");
   const localizedTitle = resolveTourStepTitle(currentStep, localizeUi, localize);
   return (
@@ -461,9 +464,10 @@ function TourCardContent({
       {currentStep.sprite && (
         <div className="mb-2 flex justify-center">
           <img
-            src={currentStep.sprite.src}
+            src={poses[currentStep.sprite.pose]}
+            {...mariImgLoading(MARI_ASSET_TIER.poses[currentStep.sprite.pose])}
             alt={localizeUi("ui.onboarding.tourcardcontent.professorMari")}
-            className="h-32 max-h-[15vh] w-auto object-contain drop-shadow-lg"
+            className="h-32 max-h-[15vh] w-auto object-contain drop-shadow-lg [image-rendering:pixelated]"
             style={currentStep.sprite.flip ? { transform: "scaleX(-1)" } : undefined}
             draggable={false}
           />

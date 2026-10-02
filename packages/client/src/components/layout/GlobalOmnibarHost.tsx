@@ -17,7 +17,9 @@ import {
   requestProfessorMariOpen,
   type ProfessorMariOpenDetail,
 } from "../../lib/professor-mari-open";
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
 import { useMariPresence } from "../../hooks/use-mari-presence";
+import { mariAssetUrls } from "../../lib/mari-work-animations";
 import { useUIStore } from "../../stores/ui.store";
 
 // The dialog carries the whole Command Center (search, browse, Mari panes), so it
@@ -101,6 +103,30 @@ export function GlobalOmnibar() {
     const timer = window.setTimeout(preload, 2_000);
     return () => window.clearTimeout(timer);
   }, []);
+
+  // M16 tier 2: once the page has loaded, warm the selected pack's omnibar sprites at idle, so the
+  // first ⌘K, ⌘J or pull shows Mari at once. Only this pack; a switch warms the new one (its tier 1
+  // sprites come from the Home <img> tags themselves).
+  const pack = useMariAppearancePack();
+  useEffect(() => {
+    let idleId: number | undefined;
+    let timer: number | undefined;
+    const prefetch = () => {
+      for (const url of mariAssetUrls(pack, 2)) new Image().src = url;
+    };
+    const schedule = () => {
+      if (typeof window.requestIdleCallback === "function")
+        idleId = window.requestIdleCallback(prefetch, { timeout: 5_000 });
+      else timer = window.setTimeout(prefetch, 2_000);
+    };
+    if (document.readyState === "complete") schedule();
+    else window.addEventListener("load", schedule, { once: true });
+    return () => {
+      window.removeEventListener("load", schedule);
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      window.clearTimeout(timer);
+    };
+  }, [pack]);
 
   useEffect(() => {
     const onKeyDown = (event: globalThis.KeyboardEvent) => {

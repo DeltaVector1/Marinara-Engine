@@ -16,6 +16,21 @@ export const MARI_STORY_STATES = [
 export type MariStoryState = (typeof MARI_STORY_STATES)[number];
 export type MariWorkAnimation = { id: MariStoryState; src: string };
 
+/** Pixel poses for onboarding, FAQ, the Home profile tab and the chibi (M16). */
+export const MARI_POSES = [
+  "wave",
+  "greet",
+  "point-up",
+  "point-middle",
+  "point-down",
+  "explaining",
+  "thinking",
+  "profile",
+  "chibi",
+] as const;
+
+export type MariPose = (typeof MARI_POSES)[number];
+
 export interface MariAppearancePack {
   id: string;
   label: string;
@@ -30,9 +45,28 @@ export interface MariAppearancePack {
     drag: string;
   };
   stories: Record<MariStoryState, MariWorkAnimation>;
+  /** Every pack ships all nine; the Record type makes a missing pose a compile error, not a broken image. */
+  poses: Record<MariPose, string>;
 }
 
-const generated = (filename: string) => `/sprites/mari/generated/${filename}`;
+/**
+ * Sprites keep their file names when art is replaced, and the service worker serves them CacheFirst
+ * (`mari-sprites` in vite.config.ts). Bump this whenever any Mari art changes.
+ */
+export const MARI_SPRITE_VERSION = "38c1";
+
+/** Every Mari URL is loaded by URL from its own pack folder, never imported into the bundle. */
+const sprite = (path: string) => `/sprites/mari/${path}?v=${MARI_SPRITE_VERSION}`;
+const packStories = (packId: string) =>
+  Object.fromEntries(MARI_STORY_STATES.map((id) => [id, { id, src: sprite(`${packId}/${id}.webp`) }])) as Record<
+    MariStoryState,
+    MariWorkAnimation
+  >;
+const packPoses = (packId: string) =>
+  Object.fromEntries(MARI_POSES.map((pose) => [pose, sprite(`${packId}/pose-${pose}.webp`)])) as Record<
+    MariPose,
+    string
+  >;
 
 export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
@@ -41,22 +75,15 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "Mari's familiar pixel look, with a little story for every state. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: generated("professor-mari-assistant-idle.webp"),
-      blink: generated("professor-mari-assistant-blink-v3.webp"),
-      arrival: generated("professor-mari-assistant-sheet.webp"),
-      map: generated("professor-mari-assistant-map.webp"),
-      shrug: generated("professor-mari-assistant-shrug.webp"),
-      drag: generated("professor-mari-assistant-drag-sheet-v3.webp"),
+      idle: sprite("basic/portrait-idle.webp"),
+      blink: sprite("basic/portrait-blink.webp"),
+      arrival: sprite("basic/portrait-arrival.webp"),
+      map: sprite("basic/portrait-map.webp"),
+      shrug: sprite("basic/portrait-shrug.webp"),
+      drag: sprite("basic/portrait-drag.webp"),
     },
-    stories: Object.fromEntries(
-      MARI_STORY_STATES.map((id) => [
-        id,
-        {
-          id,
-          src: `/sprites/mari/basic/${id}.webp`,
-        },
-      ]),
-    ) as Record<MariStoryState, MariWorkAnimation>,
+    stories: packStories("basic"),
+    poses: packPoses("basic"),
   },
   {
     id: "dottore",
@@ -64,16 +91,15 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "A cyan heart pin, a Dottore plush and twelve little fangirl stories. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: "/sprites/mari/dottore/portrait-idle.webp",
-      blink: "/sprites/mari/dottore/portrait-blink.webp",
-      arrival: "/sprites/mari/dottore/idle.webp",
-      map: "/sprites/mari/dottore/portrait-map.webp",
-      shrug: "/sprites/mari/dottore/portrait-shrug.webp",
-      drag: "/sprites/mari/dottore/idle.webp",
+      idle: sprite("dottore/portrait-idle.webp"),
+      blink: sprite("dottore/portrait-blink.webp"),
+      arrival: sprite("dottore/idle.webp"),
+      map: sprite("dottore/portrait-map.webp"),
+      shrug: sprite("dottore/portrait-shrug.webp"),
+      drag: sprite("dottore/idle.webp"),
     },
-    stories: Object.fromEntries(
-      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/dottore/${id}.webp` }]),
-    ) as Record<MariStoryState, MariWorkAnimation>,
+    stories: packStories("dottore"),
+    poses: packPoses("dottore"),
   },
   {
     id: "golden",
@@ -81,16 +107,15 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "Shiny gold, a larger-than-life Chad expression and twelve golden stories. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: "/sprites/mari/golden/portrait-idle.webp",
-      blink: "/sprites/mari/golden/portrait-blink.webp",
-      arrival: "/sprites/mari/golden/idle.webp",
-      map: "/sprites/mari/golden/portrait-map.webp",
-      shrug: "/sprites/mari/golden/portrait-shrug.webp",
-      drag: "/sprites/mari/golden/idle.webp",
+      idle: sprite("golden/portrait-idle.webp"),
+      blink: sprite("golden/portrait-blink.webp"),
+      arrival: sprite("golden/idle.webp"),
+      map: sprite("golden/portrait-map.webp"),
+      shrug: sprite("golden/portrait-shrug.webp"),
+      drag: sprite("golden/idle.webp"),
     },
-    stories: Object.fromEntries(
-      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/golden/${id}.webp` }]),
-    ) as Record<MariStoryState, MariWorkAnimation>,
+    stories: packStories("golden"),
+    poses: packPoses("golden"),
   },
   {
     id: "safari",
@@ -98,18 +123,64 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     description:
       "Safari gear, jungle discoveries and twelve little expeditions. Shared by the workspace, omnibar and top bar.",
     portraits: {
-      idle: "/sprites/mari/safari/portrait-idle.webp",
-      blink: "/sprites/mari/safari/portrait-blink.webp",
-      arrival: "/sprites/mari/safari/idle.webp",
-      map: "/sprites/mari/safari/portrait-map.webp",
-      shrug: "/sprites/mari/safari/portrait-shrug.webp",
-      drag: "/sprites/mari/safari/idle.webp",
+      idle: sprite("safari/portrait-idle.webp"),
+      blink: sprite("safari/portrait-blink.webp"),
+      arrival: sprite("safari/idle.webp"),
+      map: sprite("safari/portrait-map.webp"),
+      shrug: sprite("safari/portrait-shrug.webp"),
+      drag: sprite("safari/idle.webp"),
     },
-    stories: Object.fromEntries(
-      MARI_STORY_STATES.map((id) => [id, { id, src: `/sprites/mari/safari/${id}.webp` }]),
-    ) as Record<MariStoryState, MariWorkAnimation>,
+    stories: packStories("safari"),
+    poses: packPoses("safari"),
   },
 ];
+
+/**
+ * Loading tier per asset, for the selected pack only (M16). 1: on screen at first paint (the Home
+ * profile tab and the Home Mari widget): started from `main.tsx` with the page at high priority, then
+ * `fetchpriority="high"` on the `<img>`. 2: likely next (omnibar, Mari pane, top-bar presence, the Home
+ * Mari header): prefetched once the app has loaded and is idle. The portraits stay tier 2 because some
+ * packs' portraits weigh ~330 KB. 3: behind another step (onboarding, FAQ, the other stories, the pack
+ * chooser): lazy, only when that surface renders. The memory wheel is CSS-only and loads with its surface.
+ */
+export const MARI_ASSET_TIER: {
+  portraits: Record<keyof MariAppearancePack["portraits"], 1 | 2 | 3>;
+  stories: Record<MariStoryState, 1 | 2 | 3>;
+  poses: Record<MariPose, 1 | 2 | 3>;
+} = {
+  portraits: { idle: 2, blink: 2, shrug: 2, arrival: 3, map: 3, drag: 3 },
+  stories: { ...(Object.fromEntries(MARI_STORY_STATES.map((id) => [id, 3])) as Record<MariStoryState, 3>), idle: 2 },
+  poses: {
+    profile: 1,
+    chibi: 1,
+    wave: 3,
+    greet: 3,
+    "point-up": 3,
+    "point-middle": 3,
+    "point-down": 3,
+    explaining: 3,
+    thinking: 3,
+  },
+};
+
+/** `<img>` loading attributes for a tier. */
+export function mariImgLoading(tier: 1 | 2 | 3) {
+  if (tier === 1) return { fetchPriority: "high", decoding: "async" } as const;
+  if (tier === 2) return { decoding: "async" } as const;
+  return { loading: "lazy", decoding: "async" } as const;
+}
+
+/** The pack's URLs of one tier: tier 1 for the startup preload, tier 2 for the idle prefetch. */
+export function mariAssetUrls(pack: MariAppearancePack, tier: 1 | 2): string[] {
+  const urls = new Set<string>();
+  for (const [slot, slotTier] of Object.entries(MARI_ASSET_TIER.portraits))
+    if (slotTier === tier) urls.add(pack.portraits[slot as keyof MariAppearancePack["portraits"]]);
+  for (const [id, slotTier] of Object.entries(MARI_ASSET_TIER.stories))
+    if (slotTier === tier) urls.add(pack.stories[id as MariStoryState].src);
+  for (const [pose, slotTier] of Object.entries(MARI_ASSET_TIER.poses))
+    if (slotTier === tier) urls.add(pack.poses[pose as MariPose]);
+  return [...urls];
+}
 
 export function getMariAppearancePack(id: unknown): MariAppearancePack {
   return MARI_APPEARANCE_PACKS.find((pack) => pack.id === id) ?? MARI_APPEARANCE_PACKS[0]!;

@@ -74,6 +74,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 38  | Small fixes found on the way (M10)                                | worker        | Done    | 45eedf3c5 |
 | 38a | Mari images as small WebP (M15)                                   | worker        | Done    | f030f7b6e |
 | 39  | Mari arrives with context, on every surface (M9, M17, M18)       | designer      | Done    | c01583495 |
+| 38c | The selected Mari everywhere (M16)                                | designer      | Pending |           |
 | 40  | Review of slices 30-39 (M11)                                      | reviewer      | Pending |           |
 | 41  | Fresh-eyes flow pass (M12)                                        | reviewer      | Pending |           |
 
@@ -900,6 +901,28 @@ does not keep its own copy).
   an HTTP sweep of every referenced sprite URL plus the removed ones (200s and 404s as expected), and
   screenshots at 390/1440 in `.tmp/omnibar-ux/round4/slice-38a/` showing the pixel art stays unblurred and
   the resized poses still read fine; `heavy pnpm check`.
+
+- **M16 (slice 38c), the selected Mari everywhere (maintainer-confirmed 2026-10-02, pixel poses approved).**
+  Root cause: the appearance packs skinned only the omnibar portraits and stories; onboarding, the Home
+  Professor tab, the Home Mari widget, the FAQ, the chibi toast and the "Help me navigate" Mari
+  (`ProfessorMariNavigator`) hard-coded painted or Basic-only images, so a chosen pack stopped at the
+  omnibar. Work: (A) nine pixel poses per pack (`wave`, `greet`, `point-up/-middle/-down`, `explaining`,
+  `thinking`, `profile`, `chibi`; `MARI_POSES`, `pack.poses`) imported losslessly from `.tmp/mari-skins/`
+  at native size as `public/sprites/mari/<pack>/pose-<pose>.webp` (the `pose-` prefix keeps them apart from
+  the `thinking` story), prompts in `assets/imagegen/mari-<pack>/pose-prompts.json`; every hard-coded use
+  reads the selected pack; the painted `Mari_*.webp` and `chibi-professor-mari.webp` are deleted. Basic's
+  six portraits move from `generated/` into `basic/`. The server's character avatar path
+  `/sprites/mari/Mari_profile.png` (stored in user data, missing since 38a) is back as the Basic pixel
+  profile. (B) The pull/morph targets (`MariStorySprite`, the live-line sprite) are untouched. (C) Split:
+  nothing is imported into the bundle; every URL lives in its own pack folder and carries
+  `?v=MARI_SPRITE_VERSION`; a Workbox `CacheFirst` rule (`mari-sprites`, 120 entries, 30 days) keeps a
+  used pack offline; `**/sprites/**` stays out of the precache; the pack chooser shows each pack's profile
+  pose lazily, only while open. (D) `MARI_ASSET_TIER` next to the packs: tier 1 (profile, chibi: Home at
+  first paint) starts from `main.tsx` at high priority; tier 2 (portraits idle/blink/shrug, the idle
+  story) is prefetched by `GlobalOmnibarHost` after `load` at idle; tier 3 (other poses and stories, the
+  previews) is `loading="lazy"`. Proof: regression asserts (per-pack folders, versions, tiers, files);
+  e2e network log (selected pack only, tier timing, switch loads only the new pack, live switch); screenshots
+  for 4 packs at 390/1440 and LCP before/after in `.tmp/omnibar-ux/round4/slice-38c/`.
 
 Belongs in Pasta-Devs/Marinara-Agents, not here: agent-specific arrival cards that need package knowledge
 (e.g. per-setting help for an agent); the Engine only shows names and states it already has.

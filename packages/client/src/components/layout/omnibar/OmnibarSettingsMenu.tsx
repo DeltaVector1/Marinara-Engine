@@ -9,7 +9,7 @@
 // Escape or the arrow returns to where you were. It is not a separate `Modal`, so the omnibar's
 // dialog, focus and Escape handling stay in one place.
 
-import { useRef, type CSSProperties } from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, Settings2 } from "lucide-react";
 import { LOCAL_SIDECAR_CONNECTION_ID } from "@marinara-engine/shared";
@@ -17,7 +17,7 @@ import { LOCAL_SIDECAR_CONNECTION_ID } from "@marinara-engine/shared";
 import { useInDialogFocusScope } from "../../../hooks/use-in-dialog-focus-scope";
 import { useSidecarStore } from "../../../stores/sidecar.store";
 import { useUIStore } from "../../../stores/ui.store";
-import { MARI_APPEARANCE_PACKS } from "../../../lib/mari-work-animations";
+import { MARI_APPEARANCE_PACKS, mariImgLoading } from "../../../lib/mari-work-animations";
 import { OMNIBAR_ASIDE_DELAY_CHOICES_MS } from "../../../lib/omnibar-aside-text";
 import { cn } from "../../../lib/utils";
 import "../../chat/mari-appearance.css";
@@ -44,7 +44,10 @@ function SettingRow({
   );
 }
 
-/** Appearance packs are exclusive: portraits and stories always switch together. */
+/**
+ * Appearance packs are exclusive: portraits and stories always switch together. Each preview is that
+ * pack's profile pose, tier 3: requested only while this menu is open, never at app load.
+ */
 function AppearancePacks() {
   const { t } = useTranslation();
   const selected = useUIStore((state) => state.mariAppearancePackId);
@@ -57,10 +60,13 @@ function AppearancePacks() {
           className="omnibar-settings-menu__pack"
           data-enabled={selected === pack.id ? "true" : "false"}
         >
-          <span
+          <img
             className="omnibar-settings-menu__pack-sprite"
-            aria-hidden="true"
-            style={{ "--mari-work-sprite": `url(${pack.stories.idle.src})` } as CSSProperties}
+            src={pack.poses.profile}
+            {...mariImgLoading(3)}
+            width={32}
+            height={32}
+            alt=""
           />
           <span className="min-w-0">
             <span className="omnibar-settings-menu__label">
