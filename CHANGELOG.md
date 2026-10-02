@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari's header is now one row instead of two: Back, Chats, Skills, Memories and Context, New chat, settings and Close sit in a single bar, and the duplicate portrait, name and status line above it are gone (she and her progress already show in the conversation). On a phone the tabs show their icon and count so none of them is cut off ("Cor…"); the full names are in the ⋮ menu.
 - Professor Mari's work steps no longer overlap or flash a ghost row while she works, and her reply no longer re-renders from scratch the moment she finishes: the same row list grows in place from start to end, with one quiet fade-in per step instead of a sliding, overlapping entrance.
 - Professor Mari's transcript no longer jumps back to your question once her reply has landed: sending a message now puts your question under the header once, her answer grows into reserved space below it, and if you scroll up to read while she works the view stays put through completion instead of snapping back down or getting stuck.
 - Professor Mari's composer now floats over the transcript instead of sitting below it as a solid block: scrolled text passes under it with one soft, always-on fade at the top and bottom edges (no more hard cut or flicker while scrolling), and her working glow shows through that fade instead of being boxed in behind the composer.

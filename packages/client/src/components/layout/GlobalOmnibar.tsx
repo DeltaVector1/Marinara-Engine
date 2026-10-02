@@ -2,7 +2,6 @@ import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
 import {
   lazy,
   Suspense,
-  useCallback,
   useDeferredValue,
   useEffect,
   useEffectEvent,
@@ -182,7 +181,6 @@ import { InlineGhostText } from "../ui/InlineGhostText";
 import { CommandCenterResultRow } from "../command-center/CommandCenterResultRow";
 import { CommandCenterSegmentedChoice } from "../command-center/CommandCenterSegmentedChoice";
 import { CommandCenterToggle } from "../command-center/CommandCenterToggle";
-import type { ProfessorMariVisualState } from "../../lib/professor-mari-visual-state";
 import {
   getCommandCenterCategoryVisual,
   getCommandCenterChatModeVisual,
@@ -454,18 +452,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     from: { top: number; left: number; width: number; height: number };
     to: { top: number; left: number; width: number; height: number };
   } | null>(null);
-  const [mariVisualState, setMariVisualState] = useState<ProfessorMariVisualState>("idle");
-  const [mariHasConversation, setMariHasConversation] = useState(false);
-  const [mariStatusLabel, setMariStatusLabel] = useState("");
   const [mariHeaderSlot, setMariHeaderSlot] = useState<HTMLDivElement | null>(null);
-  const handleMariVisualStateChange = useCallback(
-    (state: ProfessorMariVisualState, hasConversation: boolean, statusLabel: string) => {
-      setMariVisualState(state);
-      setMariHasConversation(hasConversation);
-      setMariStatusLabel(statusLabel);
-    },
-    [],
-  );
   const mariReturnResultIdRef = useRef<string | null>(mariReturnResultId);
   const [ranking, setRanking] = useState<CommandRankingState>(() => readCommandRankingState());
   const chats = useChats();
@@ -2821,8 +2808,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         <header className="relative z-50 shrink-0 overflow-visible pt-[env(safe-area-inset-top)]">
           <div
             className={cn(
-              "flex h-16 items-center gap-3 border-b border-[var(--border)] px-3 sm:h-14 sm:px-4",
-              mariSurface && "mari-workspace-header",
+              "flex items-center border-b border-[var(--border)]",
+              mariSurface ? "mari-workspace-header h-12 px-2" : "h-16 gap-3 px-3 sm:h-14 sm:px-4",
             )}
           >
             {pane !== "results" ? (
@@ -2855,40 +2842,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={reduceMotion ? undefined : { opacity: 0, x: -10 }}
                   transition={reduceMotion ? { duration: 0 } : { duration: 0.16, ease: "easeOut" }}
-                  className="flex min-w-0 flex-1 items-center gap-2"
-                >
-                  <span
-                    className="mari-portrait-glow-anchor"
-                    data-mari-glow={mariVisualState === "thinking" || mariWorkingInBackground ? "true" : "false"}
-                  >
-                    <span
-                      className="mari-workspace-portrait"
-                      data-mari-pull-target="mari"
-                      data-state={mariVisualState}
-                      data-conversation={mariHasConversation ? "true" : "false"}
-                      aria-hidden="true"
-                    >
-                      <img src={appearance.portraits.idle} alt="" draggable={false} data-part="idle" />
-                      <img src={appearance.portraits.blink} alt="" draggable={false} data-part="blink" />
-                    </span>
-                  </span>
-                  <span className="mari-omnibar-header-copy min-w-0">
-                    <span className="block text-sm font-semibold leading-tight text-[var(--foreground)]">
-                      {t("omnibar.categories.professor", "Professor Mari")}
-                    </span>
-                    <span
-                      className="mari-status-shimmer block text-[0.6875rem] font-medium leading-tight text-[var(--muted-foreground)]"
-                      data-active={mariVisualState === "thinking" ? "true" : undefined}
-                    >
-                      {mariStatusLabel ||
-                        (mariVisualState === "thinking"
-                          ? t("ui.chat.homeprofessormarichat.workingOnIt", "Working on it...")
-                          : mariVisualState === "warning"
-                            ? t("mari.presence.needsYouShort", "Needs your answer")
-                            : t("commandCenter.mode.work", "Ask Mari"))}
-                    </span>
-                  </span>
-                </motion.div>
+                  ref={setMariHeaderSlot}
+                  className="mari-omnibar-header-slot min-w-0 flex-1"
+                />
               ) : (
                 <motion.div
                   key="omnibar-search-header"
@@ -2986,7 +2942,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               <X size={18} />
             </button>
           </div>
-          {mariSurface ? <div ref={setMariHeaderSlot} className="mari-omnibar-header-row" /> : null}
           {!query.trim() && !mariSurface ? (
             <div
               role="toolbar"
@@ -3068,7 +3023,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               completionActions={completionActions}
               onCompletionAction={runCompletionAction}
               omnibarHeaderSlot={mariHeaderSlot}
-              onVisualStateChange={handleMariVisualStateChange}
             />
           </Suspense>
         ) : null}

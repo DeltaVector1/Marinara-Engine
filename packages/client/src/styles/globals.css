@@ -1125,27 +1125,10 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 .mari-workspace-header {
   position: relative;
   z-index: 50;
-  gap: 0.5rem;
+  gap: 0.25rem;
   overflow: visible;
   background: color-mix(in srgb, var(--card) 96%, var(--mari-workspace-hoodie));
   border-color: color-mix(in srgb, var(--mari-workspace-blush) 18%, var(--border));
-}
-
-@media (max-width: 39.999rem) {
-  .mari-workspace-header .mari-workspace-portrait {
-    width: 2.25rem;
-    height: 2.25rem;
-  }
-
-  .mari-workspace-header .mari-workspace-portrait img {
-    width: 2.25rem;
-  }
-}
-
-@media (max-width: 22rem) {
-  .mari-omnibar-header-copy {
-    display: none;
-  }
 }
 
 .mari-workspace-portrait {
@@ -1191,14 +1174,6 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   filter: blur(0.5rem);
   translate: -50% 0;
   animation: gradient-rotate 2.6s linear infinite;
-}
-
-/* The header portrait is small, so her hair is as wide as the box: the glow must be larger to show around it. */
-.mari-portrait-glow-anchor {
-  display: inline-flex;
-  flex: 0 0 auto;
-  --mari-glow-top: -0.4rem;
-  --mari-glow-size: 3.7rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1984,27 +1959,9 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   background: color-mix(in srgb, var(--foreground) 7%, var(--card));
 }
 
-.mari-omnibar-header-slot {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.mari-omnibar-header-row {
-  position: relative;
-  z-index: 50;
-  min-height: 2.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--mari-workspace-blush) 16%, var(--border));
-  background: color-mix(in srgb, var(--card) 92%, var(--mari-workspace-hoodie));
-  padding-inline: 0.5rem;
-}
-
-.mari-omnibar-header-row .mari-omnibar-header-controls {
-  min-height: 2.75rem;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.mari-omnibar-header-row .mari-omnibar-header-destinations {
+/* One header row in Mari mode: Back, the destinations, New chat, ⋮, settings, Close. She is in the
+   transcript, so the header has no portrait or status of its own. */
+.mari-omnibar-header-slot .mari-omnibar-header-destinations {
   display: flex;
   flex: 1 1 auto;
   justify-content: safe center;
@@ -2012,25 +1969,44 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   scrollbar-width: none;
 }
 
-.mari-omnibar-header-row .mari-omnibar-header-destinations::-webkit-scrollbar {
+.mari-omnibar-header-slot .mari-omnibar-header-destinations::-webkit-scrollbar {
   display: none;
 }
 
-.mari-omnibar-header-row .mari-omnibar-header-destinations button {
+.mari-omnibar-header-slot .mari-omnibar-header-destinations button {
   flex: 0 0 auto;
+  white-space: nowrap;
 }
 
-/* The status may wrap to a second line on a phone rather than end in "…". */
-.mari-omnibar-header-copy {
-  max-width: 14rem;
-}
+/* A phone shows icon + count; the labels stay for screen readers and in the ⋮ menu. The four share the
+   free width and the count sits on the icon's corner, so none of them clips at 390 px. */
+@media (max-width: 30rem) {
+  .mari-omnibar-header-slot .mari-omnibar-header-destinations button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 2.75rem;
+    justify-content: center;
+    padding-inline: 0;
+  }
 
-.mari-omnibar-header-copy > span {
-  display: -webkit-box;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  .mari-omnibar-header-slot .mari-omnibar-header-destinations b {
+    position: absolute;
+    top: 0.3rem;
+    left: calc(50% + 0.2rem);
+    min-width: 0.9rem;
+    height: 0.9rem;
+    padding-inline: 0.2rem;
+    font-size: 0.5625rem;
+  }
+
+  .mari-omnibar-header-slot .mari-omnibar-header-destinations button > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 
 .mari-omnibar-header-controls {
@@ -2064,22 +2040,14 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 .mari-omnibar-header-destinations button {
   position: relative;
   min-height: 2.25rem;
+  border-radius: 0.5rem;
   padding-inline: 0.55rem;
 }
 
 .mari-omnibar-header-destinations button:hover,
 .mari-omnibar-header-destinations button[data-active="true"] {
   color: var(--foreground);
-}
-
-.mari-omnibar-header-destinations button[data-active="true"]::after {
-  position: absolute;
-  right: 0.45rem;
-  bottom: -0.55rem;
-  left: 0.45rem;
-  height: 1px;
-  content: "";
-  background: color-mix(in srgb, var(--mari-workspace-blush) 72%, var(--primary));
+  background: var(--accent);
 }
 
 .mari-omnibar-header-destinations b,
@@ -2667,31 +2635,6 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   animation: mari-stroke-draw 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
 }
 
-/* Her header status shimmers while she works, like Claude's thinking text. */
-.mari-status-shimmer[data-active="true"] {
-  background: linear-gradient(100deg, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%) 0
-    0 / 250% 100%;
-  background-clip: text;
-  color: transparent;
-  animation: mari-text-shimmer 2.2s linear infinite;
-}
-
-@keyframes mari-text-shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: -150% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mari-status-shimmer[data-active="true"] {
-    animation: none;
-    background: none;
-    color: var(--muted-foreground);
-  }
-}
 
 @keyframes mari-headline-sheen {
   from {
@@ -8244,19 +8187,10 @@ strong {
   transition: opacity 220ms ease-out !important;
 }
 
-/* While the circle docks in the opened dialog, what it lands on stays hidden,
-   and Mari's title waits for her portrait to arrive. */
+/* While the circle docks in the opened dialog, what it lands on stays hidden. */
 html[data-mari-pull-landing] [data-mari-pull-target],
 html[data-mari-pull-landing] [data-mari-pull-target] * {
   visibility: hidden !important;
-}
-
-.mari-omnibar-header-copy {
-  transition: opacity 180ms ease-out;
-}
-
-html[data-mari-pull-landing="mari"] .mari-omnibar-header-copy {
-  opacity: 0;
 }
 
 @keyframes omnibar-row-in {

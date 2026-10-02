@@ -407,7 +407,8 @@ export function usePullToOpenOmnibar({
       const popOpen = () => {
         if (!mounted || !delayed || g.gesture !== gesture || g.mode !== "land") return;
         const panel = g.landing?.panel ?? null;
-        // Where the magnifier / the portrait lives in the opened dialog.
+        // Where the magnifier lives in the opened dialog. Mari's pane has no header portrait any more, so
+        // her circle reveals the dialog where it was let go, until her arrival sprite (slice 39) takes the target.
         const dock = panel?.querySelector<HTMLElement>(`[data-mari-pull-target="${side}"]`)?.getBoundingClientRect();
         mv.open.set(0);
         const opening = go(mv.open, 1, OPEN, 0);

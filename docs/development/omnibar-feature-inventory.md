@@ -129,10 +129,13 @@ Rules that must survive:
     (`.mari-send-failed`), not a line of hers. A workspace-status error and
     missing workspace tools are `MariNote` lines (R43).
   - The end-of-run glow is a small, low, faint green band that sinks within
-    3.5 s. The header status wraps to a second line on a phone instead of
-    ending in "…", and waiting on a review reads "Needs your answer".
-  - The header is one calm row of tabs (Chats, Skills, Memories, Context), New
-    chat and, below 64rem, the overflow menu. It has no mode control.
+    3.5 s.
+  - The header is one row: Back, the tabs (Chats, Skills, Memories, Context
+    with its count), New chat, below 64rem the ⋮ menu, settings and Close. It
+    has no portrait, name or status (she and her state are in the transcript)
+    and no mode control. Below 30rem the tabs show icon + count only and share
+    the free width; their labels stay for screen readers, as a tooltip and in
+    the ⋮ menu.
   - The composer puts the textarea on its own row and a toolbar under it:
     attach, the connection as a labelled `.mari-chrome-control--compact` menu
     (it replaced the bare link icon; a red dot when none is set), and the
@@ -329,8 +332,8 @@ This is the part most likely to break silently. All of it must survive.
   and draws back into the bar. On release the circle pops the dialog open
   (`takePullHandoff` hands over the panel, clipped to the circle before its
   first paint; the dialog skips its own pop-in) and the magnifier or portrait
-  docks onto the search icon or Mari's header portrait, whose title fades in
-  after it. The overlay is removed even if the dialog never mounts. The
+  docks onto the search icon. Mari's header has no portrait, so her circle
+  reveals the dialog where it was let go and fades. The overlay is removed even if the dialog never mounts. The
   recognizer, the target choice and the sheet geometry are pure
   (`lib/pull-to-open.ts`) and pinned by the command-center regression. Under
   reduced motion there is no sheet: a label above the finger, and the target
@@ -503,9 +506,9 @@ Do not "fix" these; each was a decision.
   indicator that shows state and opens her. She cannot sit beside an open
   editor; she is a place you go.
 - **Escape does not walk a pane stack.** There is one level to step back from.
-- **Her sprite does not appear on messages.** Her pose in the header carries
-  her state; the only other sprite is on the live line while she works and on
-  the newest turn's "Worked for" line. Her transcript rows are labelled instead.
+- **Her sprite does not appear on messages or in the header.** Her only sprite
+  is on the live line while she works and on the newest turn's "Worked for"
+  line; the live line carries her state. Her transcript rows are labelled instead.
 - **A prose rewrite is not painted red and green.** That reads as
   wrong-and-right, when it is a rewrite. Old text is struck and muted, new text
   is underlined on a light tint, so colour is never the only signal. Structural

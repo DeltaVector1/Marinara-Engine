@@ -114,7 +114,6 @@ import { homeFeedKeys } from "../../hooks/use-home-feed";
 import { filterLanguageGenerationConnections } from "../../lib/connection-filters";
 import { api, ApiError, getPrivilegedActionErrorMessage, isPassiveStreamDisconnect } from "../../lib/api-client";
 import { describeProfessorMariError } from "../../lib/professor-mari-errors";
-import { resolveProfessorMariVisualState, type ProfessorMariVisualState } from "../../lib/professor-mari-visual-state";
 import {
   assignReviewsToTurns,
   isPersistentProfessorMariContext,
@@ -2678,7 +2677,6 @@ type HomeProfessorMariChatProps = {
   omnibarHeaderSlot?: HTMLElement | null;
   onChatWindowOpenChange?: (open: boolean) => void;
   onChatWindowExitComplete?: () => void;
-  onVisualStateChange?: (state: ProfessorMariVisualState, hasConversation: boolean, statusLabel: string) => void;
 };
 
 export function HomeProfessorMariChat({
@@ -2695,7 +2693,6 @@ export function HomeProfessorMariChat({
   omnibarHeaderSlot = null,
   onChatWindowOpenChange,
   onChatWindowExitComplete,
-  onVisualStateChange,
 }: HomeProfessorMariChatProps) {
   const appearance = useMariAppearancePack();
   const { t: localizeUi } = useUiTranslation();
@@ -3686,31 +3683,6 @@ export function HomeProfessorMariChat({
     : composerHaloEnding && composerGlowTone !== "broken"
       ? "ending"
       : undefined;
-  const mariVisualState = resolveProfessorMariVisualState({
-    busy: isBusy,
-    hasActionResult: latestActionResults.length > 0,
-    hasAssistantReply: latestMessage?.role === "assistant",
-    hasConversation: messages.length > 0,
-    needsAttention: Boolean(recovery) || visiblePendingChangeReviews.length > 0,
-  });
-  const mariStatusLabel = workspaceTimelineActive
-    ? focusedCharacter || focusedLorebook
-      ? localizeUi("ui.chat.homeprofessormarichat.workingOnValue1", {
-          value1: focusedCharacter?.name ?? focusedLorebook?.name ?? "",
-        })
-      : localizeUi("ui.chat.homeprofessormarichat.workingOnIt")
-    : visiblePendingChangeReviews.length > 0
-      ? localizeUi("mari.presence.needsYouShort")
-      : focusedCharacter
-        ? localizeUi("ui.chat.homeprofessormarichat.aboutCharacterValue1", { value1: focusedCharacter.name })
-        : focusedLorebook
-          ? localizeUi("ui.chat.homeprofessormarichat.aboutLorebookValue1", { value1: focusedLorebook.name })
-          : localizeUi("ui.chat.homeprofessormarichat.readyToHelp");
-
-  useEffect(() => {
-    if (!omnibarMode) return;
-    onVisualStateChange?.(mariVisualState, messages.length > 0, mariStatusLabel);
-  }, [mariStatusLabel, mariVisualState, messages.length, omnibarMode, onVisualStateChange]);
 
   useEffect(() => {
     const node = scrollRef.current;
@@ -5468,6 +5440,7 @@ export function HomeProfessorMariChat({
                   disabled={id === "chats" && isBusy}
                   data-destination={id}
                   data-active={workspaceDestination === id ? "true" : "false"}
+                  title={label}
                 >
                   <Icon size="0.8rem" aria-hidden="true" />
                   <span>{label}</span>
