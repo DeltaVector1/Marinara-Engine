@@ -1143,11 +1143,7 @@ export function App() {
                 ? "bottom-center"
                 : "top-center"
           }
-          swipeDirections={[
-            "left",
-            "right",
-            omnibarOpen || notificationPosition === "bottom" ? "bottom" : "top",
-          ]}
+          swipeDirections={["left", "right", omnibarOpen || notificationPosition === "bottom" ? "bottom" : "top"]}
           offset="4rem"
           mobileOffset={{ top: "calc(env(safe-area-inset-top) + 3.5rem)", bottom: "1rem" }}
           theme={theme}
