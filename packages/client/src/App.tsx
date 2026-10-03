@@ -31,6 +31,7 @@ import {
   getDefaultAppAccentColor,
   getDefaultAppBackgroundColor,
   getDefaultChatChromeTextColor,
+  isMobileShellViewport,
   MOBILE_SHELL_MEDIA_QUERY,
   useUIStore,
 } from "./stores/ui.store";
@@ -487,6 +488,8 @@ export function App() {
   useRefreshLocalContext();
   const theme = useUIStore((s) => s.theme);
   const notificationPosition = useUIStore((s) => s.notificationPosition);
+  const omnibarOpen = useUIStore((s) => s.omnibarOpen);
+  const [isMobileShell, setIsMobileShell] = useState(isMobileShellViewport);
   const isLite = import.meta.env.VITE_MARINARA_LITE === "true";
   const fontSize = useUIStore((s) => s.fontSize);
   const language = useUIStore((s) => s.language);
@@ -533,6 +536,19 @@ export function App() {
   // [#3104 diagnostic] warn on long main-thread tasks (see lib/perf-diagnostics.ts)
   useEffect(() => {
     installLongTaskWarner();
+  }, []);
+
+  // Toast position switches to bottom-center/bottom-right while the omnibar is open (N3), so it
+  // never covers the search field; same viewport check AppShell uses for layout decisions.
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_SHELL_MEDIA_QUERY);
+    const handler = () => setIsMobileShell(isMobileShellViewport());
+    mq.addEventListener("change", handler);
+    window.addEventListener("resize", handler);
+    return () => {
+      mq.removeEventListener("change", handler);
+      window.removeEventListener("resize", handler);
+    };
   }, []);
 
   // Hardware / gesture back dismisses the topmost overlay instead of exiting.
@@ -1118,8 +1134,20 @@ export function App() {
         }}
       >
         <Toaster
-          position={notificationPosition === "bottom" ? "bottom-center" : "top-center"}
-          swipeDirections={["left", "right", notificationPosition === "bottom" ? "bottom" : "top"]}
+          position={
+            omnibarOpen
+              ? isMobileShell
+                ? "bottom-center"
+                : "bottom-right"
+              : notificationPosition === "bottom"
+                ? "bottom-center"
+                : "top-center"
+          }
+          swipeDirections={[
+            "left",
+            "right",
+            omnibarOpen || notificationPosition === "bottom" ? "bottom" : "top",
+          ]}
           offset="4rem"
           mobileOffset={{ top: "calc(env(safe-area-inset-top) + 3.5rem)", bottom: "1rem" }}
           theme={theme}
