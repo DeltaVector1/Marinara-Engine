@@ -50,6 +50,7 @@ export type OmnibarAction =
       name: string;
     }
   | { kind: "start-character-chat"; characterId: string; characterName: string }
+  | { kind: "start-chat"; mode: "conversation" | "roleplay" | "game" }
   | {
       kind: "open-chat-tool";
       chatId: string;

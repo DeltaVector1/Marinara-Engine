@@ -66,6 +66,7 @@ import {
 } from "../../lib/chat-floating-ui-events";
 import { useDebouncedValue } from "../../hooks/use-debounced-value";
 import { useConnections } from "../../hooks/use-connections";
+import { useStartNewChatMode } from "../../hooks/use-start-new-chat-mode";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { dispatchCardAssetInsert } from "../../lib/card-asset-links";
 import { HOME_FAQ_ITEMS, getFaqSearchText } from "../chat/HomeFaq";
@@ -149,6 +150,7 @@ import {
   buildOmnibarAddSuggestions,
   buildOmnibarVerbSuggestions,
   buildOmnibarIntentShortcuts,
+  buildOmnibarNewChatCommands,
   CHAT_CONTEXT_MAX_RESULTS,
   buildOmnibarRemovalSuggestions,
   buildOmnibarSearchResults,
@@ -487,6 +489,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const lorebooks = useLorebooks(undefined, { includeHidden: true });
   const presets = usePresets();
   const connections = useConnections();
+  const startNewChatMode = useStartNewChatMode();
   const languageConnections = useMemo(
     () =>
       (connections.data ?? []).flatMap((value) => {
@@ -1512,6 +1515,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         : [],
     [characterNameById, deferredQuery, t],
   );
+  // N2: doors into the same new-chat flow as Home's Conversation/Roleplay/Game
+  // buttons, findable by typing (not shown idle, matching the create-* commands).
+  const newChatCommands = useMemo<OmnibarResult[]>(
+    () => (deferredQuery.trim() ? buildOmnibarNewChatCommands({ query: deferredQuery, t }) : []),
+    [deferredQuery, t],
+  );
   const recentChatResults = useMemo<OmnibarResult[]>(() => {
     const rowById = new Map(searchableEntityResults.map((row) => [row.id, row] as const));
     const lastActive = (chat: Chat) => chat.lastMessageAt ?? chat.updatedAt;
@@ -1533,6 +1542,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         : deferredQuery.trim()
           ? [
               ...intentShortcuts,
+              ...newChatCommands,
               ...slashResults,
               ...verbSuggestions,
               ...addSuggestions,
@@ -1564,6 +1574,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       removedResultIds,
       contextResults,
       intentShortcuts,
+      newChatCommands,
       recentChatResults,
       approvalResults,
       continueResult,
@@ -2132,6 +2143,18 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         });
         recordUse(result.id);
         onClose();
+        return;
+      case "start-chat":
+        if (!confirmLeaveEditor()) return;
+        recordUse(result.id);
+        // Closing unmounts this dialog (and the mutation hook inside
+        // `startNewChatMode`), so wait for it to settle first — otherwise the
+        // chat gets created but the unmount drops its success callback.
+        void startNewChatMode(action.mode)
+          .catch(() => {
+            /* The create mutation's own onError already surfaces a toast. */
+          })
+          .finally(() => onClose());
         return;
       case "open-lorebook-entry":
         if (!confirmLeaveEditor()) return;
@@ -2748,6 +2771,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       case "create-named":
         return t("commandCenter.enter.create", "Create");
       case "start-character-chat":
+      case "start-chat":
         return t("commandCenter.enter.start", "Start");
     }
     if (activeChat && CHAT_RESOURCE_KIND[result.category] && isDirectActiveChatAction(query, result, searchResults)) {

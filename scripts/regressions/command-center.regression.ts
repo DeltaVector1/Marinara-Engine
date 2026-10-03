@@ -38,6 +38,7 @@ import {
   buildOmnibarContextResults,
   buildOmnibarControlResults,
   buildOmnibarIntentShortcuts,
+  buildOmnibarNewChatCommands,
   buildOmnibarSearchResults,
   buildOmnibarVerbSuggestions,
   findMentionedResults,
@@ -470,6 +471,45 @@ const categorizedCommands = searchOmnibar("command", {
 });
 assert.equal(categorizedCommands.find((result) => result.id === "custom-settings-command")?.category, "settings");
 assert.equal(categorizedCommands.find((result) => result.id === "settings-looking-navigation")?.category, "navigation");
+
+// N2 (slice 43): omnibar commands to start a new chat of each mode. These are
+// doors into the same `useStartNewChatMode` flow Home's Conversation/Roleplay/
+// Game buttons use, not a new modal, so they are built directly as rows
+// (action.kind: "start-chat") rather than through the create-* modal pipeline.
+const stubT = (key: string, fallback: string) => fallback;
+const unrelatedCreateCommands = searchOmnibar("new chat", {
+  commands: systemCommands,
+  chats: [],
+  resources: [],
+  connections: [],
+}).filter((result) => /^create-/.test(result.id));
+const newChatRows = buildOmnibarNewChatCommands({ query: "new chat", t: stubT });
+assert.deepEqual(
+  newChatRows.map((row) => row.id),
+  ["create-conversation", "create-roleplay", "create-game"],
+);
+const conversationRow = newChatRows.find((row) => row.id === "create-conversation")!;
+assert.equal(conversationRow.title, "New conversation");
+assert.equal(conversationRow.action?.kind, "start-chat");
+assert.deepEqual(conversationRow.action, { kind: "start-chat", mode: "conversation" });
+// "New conversation" ranks first among the three, and above any create-*
+// unrelated command (character/persona/lorebook/preset/connection/agent).
+assert.ok(newChatRows.every((row) => (row.id === "create-conversation" ? true : row.score < conversationRow.score)));
+assert.ok(unrelatedCreateCommands.every((command) => command.score < conversationRow.score));
+
+const newRpRow = buildOmnibarNewChatCommands({ query: "new rp", t: stubT }).find((row) => row.id === "create-roleplay")!;
+const newRoleplayRow = buildOmnibarNewChatCommands({ query: "new roleplay", t: stubT }).find(
+  (row) => row.id === "create-roleplay",
+)!;
+const roleplayBaseline = buildOmnibarNewChatCommands({ query: "", t: stubT }).find(
+  (row) => row.id === "create-roleplay",
+)!;
+assert.ok(newRpRow.score > roleplayBaseline.score);
+assert.ok(newRoleplayRow.score > roleplayBaseline.score);
+
+const newGameRow = buildOmnibarNewChatCommands({ query: "new game", t: stubT }).find((row) => row.id === "create-game")!;
+const gameBaseline = buildOmnibarNewChatCommands({ query: "", t: stubT }).find((row) => row.id === "create-game")!;
+assert.ok(newGameRow.score > gameBaseline.score);
 
 const naturalRequestResults = searchOmnibar("make Luna warmer", {
   commands: [],

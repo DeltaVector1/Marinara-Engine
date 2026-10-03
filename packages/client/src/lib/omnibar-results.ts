@@ -9,6 +9,7 @@
 import {
   normalizeTextForMatch,
   type Chat,
+  type ChatMode,
   type GlobalChatSearchResult,
   type Lorebook,
   type LorebookEntry,
@@ -918,6 +919,78 @@ export function buildOmnibarIntentShortcuts({
       kind: "action" as const,
       icon: "chats" as const,
     }));
+}
+
+/**
+ * Omnibar doors into the exact same new-chat flow Home's Conversation/
+ * Roleplay/Game buttons use (N2): `action.kind: "start-chat"` is handled by
+ * the same `useStartNewChatMode` mutation those buttons call, so nothing new
+ * runs behind the row. Scored like the other intent shortcuts (600) on an
+ * exact alias hit, so "new chat" outranks unrelated `create-*` commands;
+ * otherwise kept at a system-command baseline (160) so the rows stay findable
+ * idle and by partial typing.
+ */
+const NEW_CHAT_COMMANDS: readonly {
+  mode: ChatMode;
+  aliases: readonly string[];
+  titleKey: string;
+  titleFallback: string;
+  descriptionKey: string;
+  descriptionFallback: string;
+  icon: "chats" | "game-assets";
+}[] = [
+  {
+    mode: "conversation",
+    aliases: ["new chat", "new conversation", "start conversation", "conversation"],
+    titleKey: "commandCenter.newChat.conversation",
+    titleFallback: "New conversation",
+    descriptionKey: "commandCenter.newChat.conversationDescription",
+    descriptionFallback: "Opens the same new-chat flow as Home’s Conversation button.",
+    icon: "chats",
+  },
+  {
+    mode: "roleplay",
+    aliases: ["new rp", "rp", "new roleplay", "start roleplay", "roleplay"],
+    titleKey: "commandCenter.newChat.roleplay",
+    titleFallback: "New roleplay",
+    descriptionKey: "commandCenter.newChat.roleplayDescription",
+    descriptionFallback: "Opens the same new-chat flow as Home’s Roleplay button.",
+    icon: "chats",
+  },
+  {
+    mode: "game",
+    aliases: ["new game", "game", "start game"],
+    titleKey: "commandCenter.newChat.game",
+    titleFallback: "New game",
+    descriptionKey: "commandCenter.newChat.gameDescription",
+    descriptionFallback: "Opens the same new-chat flow as Home’s Game button.",
+    icon: "game-assets",
+  },
+];
+
+export function buildOmnibarNewChatCommands({ query, t }: { query: string; t: OmnibarTranslate }): OmnibarResult[] {
+  const normalizedQuery = normalizeTextForMatch(query.trim());
+  return NEW_CHAT_COMMANDS.map(
+    ({ mode, aliases, titleKey, titleFallback, descriptionKey, descriptionFallback, icon }) => {
+      const normalizedAliases = aliases.map((alias) => normalizeTextForMatch(alias));
+      const exactMatch = normalizedQuery.length > 0 && normalizedAliases.includes(normalizedQuery);
+      const partialMatch =
+        !exactMatch &&
+        normalizedQuery.length >= 2 &&
+        normalizedAliases.some((alias) => alias.includes(normalizedQuery) || normalizedQuery.includes(alias));
+      return {
+        id: `create-${mode === "conversation" ? "conversation" : mode}`,
+        action: { kind: "start-chat" as const, mode },
+        title: t(titleKey, titleFallback),
+        description: t(descriptionKey, descriptionFallback),
+        category: "chat" as const,
+        aliases,
+        score: exactMatch ? 600 : partialMatch ? 250 : 160,
+        kind: "action" as const,
+        icon,
+      };
+    },
+  );
 }
 
 export function buildOmnibarSlashResults({
