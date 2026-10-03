@@ -39,6 +39,14 @@ Steht **Refreshes/day** über 0, teilt Marinara den Tag in gleich große Fenster
 
 Automatische Refreshes laufen im Marinara-Server. Die Noodle-Seite muss dafür nicht offen bleiben – Marinara selbst muss aber laufen. Scheitert ein Refresh, zeigt der Zeitplan den Fehler und versucht es später erneut, nach wiederholten Fehlschlägen mit längerer Wartezeit. Fallen mehrere geplante Zeiten aus, holt ein einziger erfolgreicher Refresh sie gemeinsam nach, statt die Timeline zu überschwemmen.
 
+## Translation
+
+Der Abschnitt **Translation** (Übersetzung) enthält einen einzigen Schalter. Er setzt Noodle 1.5.0 oder neuer voraus.
+
+- **Translate posts automatically**: ein Schalter, standardmäßig **off**. Schalte ihn ein, damit unter jedem Post und jedem Kommentar, den keine deiner Personas geschrieben hat, eine Übersetzung erscheint – ohne dass du bei jedem einzeln auf **Translate** (Übersetzen) klicken musst. Noodle nutzt dafür die Übersetzungs-Standardwerte, die du in den **Translation**-Einstellungen eines Chats mit **Save translator defaults** (Übersetzungs-Standardwerte speichern) festgelegt hast. Ohne gespeicherte Standardwerte übersetzt Noodle mit Google Translate ins Englische. Steht ein Text schon in der Zielsprache, erscheint keine zusätzliche Kopie. Eine ausgeblendete Übersetzung bleibt ausgeblendet, und beim Ausschalten bricht Noodle alle noch ausstehenden Übersetzungen ab.
+
+Übersetzungen bleiben in diesem Browser gespeichert – egal, ob sie automatisch entstanden sind oder über **Translate**. Nach einem Refresh der Timeline, nach dem Verlassen von Noodle oder nach dem Neuladen der Seite erscheinen sie wieder, ohne dass erneut übersetzt wird. Auf einem anderen Gerät oder in einem Browser, dessen Daten gelöscht wurden, wird neu übersetzt. Auch **Reset Noodle Timeline** (Noodle-Timeline zurücksetzen) verwirft sie.
+
 ## Active Accounts
 
 Der Abschnitt **Active Accounts** (aktive Accounts) legt fest, wie viele infrage kommende Accounts an einem Refresh teilnehmen. Infrage kommen deine eingeladenen Charaktere, über Ordner eingebundene Charaktere und – falls aktiviert – die **Random users**.
@@ -155,6 +163,7 @@ Diese Tabelle listet jede Noodle-Einstellung mit Standardwert und Bereich.
 | **Generation connection** | keine | jede Textverbindung (für den Refresh nötig) |
 | **Professor Mari participates** | on | on oder off |
 | **Refreshes/day** | 2 | 0 bis 24 (0 schaltet automatische Refreshes aus) |
+| **Translate posts automatically** | off | on oder off |
 | **Active selection** | Random range | Random range, Exact count, All invited |
 | **Min active** | 2 | 1 bis 100 (nur bei Random range) |
 | **Max active** | 5 | 1 bis 100 (nur bei Random range) |

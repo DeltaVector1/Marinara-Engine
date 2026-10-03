@@ -83,7 +83,7 @@ Znacznik (**marker**) to sekcja wypełniana automatycznie. Nie ma własnego teks
 
 Sekcja będąca znacznikiem ma w swoim wierszu plakietkę **MARKER**. Po rozwinięciu widać notatkę z nazwą typu znacznika. W większości znaczników nie da się wpisać treści, bo Marinara generuje ją sama.
 
-Kiedy preset nie ma włączonego znacznika **Dialogue Examples**, niepuste przykłady dialogów trafiają do sekcji **Character Info**, zaraz za Scenario. Używają formatowania presetu: XML, Markdown albo bez opakowania. Dodaj znacznik Dialogue Examples, jeśli chcesz sam zdecydować o jego umiejscowieniu; Marinara nie wstawi go dwa razy.
+Kiedy preset nie ma włączonego znacznika **Dialogue Examples**, niepuste przykłady dialogów trafiają do sekcji **Character Info**, zaraz za Scenario. Używają formatowania presetu: XML, Markdown albo bez opakowania. Dodaj znacznik Dialogue Examples, jeśli chcesz samodzielnie zdecydować o jego umiejscowieniu; Marinara nie wstawi go dwa razy.
 
 Jeśli czat ma aktywne lorebooki, a preset nie ma żadnego znacznika lorebooka, pojawia się ostrzeżenie. Jego treść brzmi: "Add a lorebook marker when this preset should receive active lorebook entries." Dodaj znacznik lorebooka, żeby te wpisy dotarły do AI. Zobacz [Lorebooki – przegląd](../lorebooks/overview.md).
 
@@ -124,6 +124,8 @@ Pole **Wrap Format** w zakładce **Overview** decyduje o tym, jak każda sekcja 
 - **NONE**: nic nie jest dodawane. Treść sekcji leci dokładnie w takiej formie, w jakiej ją zapisano.
 
 XML to dobry domyślny wybór dla większości modeli. Po **MARKDOWN** albo **NONE** sięgaj tylko wtedy, gdy model wyraźnie lepiej odpowiada bez tagów.
+
+Jeśli jedna sekcja **Prompt Block** ma trafić do AI bez swojego tagu czy nagłówka, a reszta presetu ma zostać opakowana, rozwiń tę sekcję w zakładce **Sections** i włącz przełącznik **Send without wrapper** (wysyłanie bez opakowania). Treść bloku jest wtedy wysyłana dokładnie w takiej formie, w jakiej ją zapisano. Gdy blok należy do grupy, tag lub nagłówek grupy nadal może go otaczać – jeśli blok ma być zupełnie bez opakowania, usuń go z grupy. Znaczniki zawsze zachowują swoje opakowanie, dlatego przełącznik pojawia się tylko w sekcjach **Prompt Block**. Jest też ukryty, gdy preset ma format opakowania **NONE**, bo wtedy nic nie jest opakowywane.
 
 ## Przypisywanie presetu do czatu
 

@@ -1,6 +1,6 @@
 {
   "language": "ru",
-  "sourceCommit": "9c124806894cf1aa338bd9eb6145f8f114b68304",
+  "sourceCommit": "d642daa534b2ee538dd01aa6bb23cfc920676852",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -474,8 +474,8 @@
     },
     {
       "path": "home/professor-mari.md",
-      "sha256": "c55e5d03eb007ae792d949a601abae99c80083f823748509039af2c03dda32d9",
-      "bytes": 35773
+      "sha256": "4f608f991782a9072b56bc75737ebe97104b50be7dc8b89d457461066bf801eb",
+      "bytes": 35801
     },
     {
       "path": "home/tutorial.md",
@@ -614,8 +614,8 @@
     },
     {
       "path": "noodle/settings.md",
-      "sha256": "ad090d52c241c8ba28513b93ce3a9f6cb353c7c3d5ff3c424722da2dc1f7ed6d",
-      "bytes": 29819
+      "sha256": "44871c7396660b018849b93f7c1f822e06988325922cedeec81077a6b75d19c9",
+      "bytes": 31857
     },
     {
       "path": "prompts/conditional-prompts.md",
@@ -639,8 +639,8 @@
     },
     {
       "path": "prompts/presets.md",
-      "sha256": "e5a03f7fc5b3b61a4c93a7b3c193563db6aeac6cc3f5840d1b4ef788185de43f",
-      "bytes": 21075
+      "sha256": "a99b085502cbd7618be6007570a460bd680d152da44dbe70b0660891e7f061e6",
+      "bytes": 22153
     },
     {
       "path": "prompts/prompt-overrides.md",

@@ -92,7 +92,7 @@ Eine Einschränkung: **PNG-Kartenexporte enthalten die Galerie nicht**. Teile de
 
 ## Verwandte Anleitungen
 
-- [Charaktere erstellen und bearbeiten](creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](creating-and-editing-characters.md)
 - [Personas erstellen und bearbeiten](personas.md)
 - [Eigene Emojis, Sticker und GIFs](../conversation/emoji-stickers-gifs.md)
 - [Szenenhintergründe und die Galerie](../media/scene-backgrounds.md)

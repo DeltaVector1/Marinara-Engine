@@ -125,6 +125,8 @@ O campo **Wrap Format**, na aba **Overview**, controla como cada seção é enve
 
 XML é um bom padrão para a maioria dos modelos. Teste **MARKDOWN** ou **NONE** só quando um modelo parecer responder melhor sem marcações.
 
+Para enviar um único **Prompt Block** sem a marcação ou o título dele, mantendo o restante do preset envelopado, expanda o bloco na aba **Sections** e ative **Send without wrapper** (enviar sem envelopamento). O conteúdo do bloco é enviado exatamente como foi escrito. Se o bloco pertencer a um grupo, a marcação ou o título do grupo ainda pode ficar em volta dele; tire o bloco do grupo quando quiser enviá-lo totalmente sem envelopamento. Os marcadores sempre mantêm o envelopamento, por isso esse botão liga/desliga só aparece nos blocos de prompt. Ele também fica oculto quando o formato de envelopamento do preset é **NONE**, porque nesse caso nada é envelopado.
+
 ## Atribuir um preset a um chat
 
 O preset não faz nada até ser atribuído a um chat. Há duas formas de fazer isso em um chat de **Roleplay**.

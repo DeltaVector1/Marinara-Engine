@@ -601,3 +601,30 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 - Build output is **die gebauten App-Dateien** (cf. `INSTALLATION.md:28`
   „fertig gebaute Version“); the folder is the inline-code compound
   **`dist`-Ordner**, the same pattern as `` `.zip`-Archiv `` (`FAQ.md:144`).
+
+## Send without wrapper (2026-10-03)
+
+- A section's *wrapper* (its tag or heading) is **die Umschließung**, the noun of
+  the verb the pack already uses for wrapping (`prompts/presets.md`, „wie jeder
+  Abschnitt … umschlossen wird“). Do not use `Wrapper` in this sense; that loan is
+  reserved for the Android app and code wrappers (`FAQ.md`, `development/`).
+- **Send without wrapper** is glossed once as *(ohne Umschließung senden)*.
+  A plural reference to prompt blocks in prose is **Prompt Blocks** (loan plural
+  `-s`, §6), so a search for „Prompt Block“ still finds it.
+- Link text to `characters/creating-and-editing-characters.md` is the guide's H1,
+  **Charaktere anlegen und bearbeiten**, never „Charaktere erstellen und
+  bearbeiten“ (all 17 links aligned on 2026-10-03).
+
+## Noodle auto-translation (2026-10-03)
+
+- The Noodle settings section **Translation** keeps the pack's *(Übersetzung)*
+  gloss (`integrations/message-translation.md`), and **Translate** keeps
+  *(Übersetzen)*.
+- *Translator defaults* are **Übersetzungs-Standardwerte**, hyphenated like the
+  pack's `Verbindungs-Standardwerte` and `Bild-Standardwerte`. **Save translator
+  defaults** is glossed once as *(Übersetzungs-Standardwerte speichern)*; reuse
+  it when `integrations/message-translation.md` documents that button.
+- The toggle **Translate posts automatically** stays unglossed in
+  `noodle/settings.md`, like that file's other setting bullets.
+- **Reset Noodle Timeline** now first appears in the new `## Translation`
+  section, so its one-time gloss *(Noodle-Timeline zurücksetzen)* sits there.

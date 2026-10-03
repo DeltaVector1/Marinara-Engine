@@ -584,3 +584,11 @@ Glosses for the Character Editor's **Voice** tab (`characters/creating-and-editi
 | the original of an AU copy | AU 사본의 원본 |
 
 `ko.json` now renders the Text to Speech card title as `TTS`, so new label glosses use (TTS), while prose keeps 음성 합성 for the concept (`Text to Speech(음성 합성)` on first prose mention). The older card gloss `**Text to Speech**(음성 합성)` at `media/tts-setup.md:7` predates that string. Align it in a consistency pass, not in a mirror commit. These are translation choices, not a new native-reader review.
+
+## Send without wrapper (2026-10-03)
+
+`prompts/presets.md` glosses the **Prompt Block** switch as **Send without wrapper**(래퍼 없이 전송). `ko.json` has no `ui.presets.sectionstab.sendWithoutWrapper` value yet, so the gloss follows its nearest shipped strings: 래퍼 (`ui.ui.thinkingtagsinput.oneWrapperPerLine`) and the "X 없이 전송" pattern (`ui.chat.chatsettingsdrawer.messagesSentWithoutPersona`). Per §A-2 the particle follows the label (래퍼, no batchim → 를). Prose keeps 래핑 형식 and 감싸다 as before. Re-check the gloss once `ko.json` ships the key. This is a translation choice, not a new native-reader review.
+
+## Noodle post translation (2026-10-03)
+
+`noodle/settings.md` glosses the Noodle **Translation** switch as **Translate posts automatically**(게시물 자동 번역). `ko.json` has no key for it yet, so the gloss follows the shipped "X 자동 번역" pattern of `ui.chatSettings.translationsection.autoTranslateResponses` (응답 자동 번역). **Save translator defaults**(번역기 기본값 저장) is byte-exact `chat.translation.defaults.save`; **Translate** and **Translation** keep (번역). Google Translate stays Latin and takes 를 (트랜슬레이트, no batchim). Re-check the switch gloss once `ko.json` ships the key. This is a translation choice, not a new native-reader review.

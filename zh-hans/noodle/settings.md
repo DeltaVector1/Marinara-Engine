@@ -39,6 +39,14 @@ Noodle 的所有设置都是全局的，对每一个用户角色、每一个聊�
 
 自动刷新在 Marinara 服务器里执行。Noodle 页面不必一直开着，但 Marinara 本身必须在运行。刷新失败时，日程表里会显示错误并在稍后重试，连续失败会让等待时间越来越长。如果连着错过好几个日程时刻，Marinara 只用一次成功的补跑刷新把它们一起补上，不会把时间线刷屏。
 
+## Translation(翻译)
+
+**Translation** 这一节只有一个开关，需要 Noodle 1.5.0 或更高版本。
+
+- **Translate posts automatically**(自动翻译帖子)：开关，默认 **off**。开启后，凡是不由你的用户角色发出的帖子和评论，下方都会显示译文，不用再逐条点击 **Translate**(翻译)。Noodle 沿用你在某个聊天的 **Translation** 设置里，用 **Save translator defaults**(保存翻译默认设置) 保存下来的翻译默认设置。没有保存过默认设置时，它用 Google Translate 翻译成英语。本来就是目标语言的文字不会再多出一份译文；你隐藏的译文会一直保持隐藏；关闭这个开关后，还在排队等待的翻译会停止。
+
+不管是自动翻译的，还是点 **Translate** 翻译的，译文都保存在当前这个浏览器里。刷新时间线、离开 Noodle 或者重新加载页面之后，译文会直接重新显示，不会再翻译一遍。换一台设备，或者清除了浏览器数据，就会重新翻译。**Reset Noodle Timeline**(重置 Noodle 时间线) 也会清掉这些译文。
+
 ## Active Accounts(活跃账号)
 
 **Active Accounts** 这一节决定一次刷新有多少个符合条件的账号参与。符合条件的账号包括受邀角色、因文件夹而纳入的角色，以及开启了随机用户之后的随机用户。
@@ -155,6 +163,7 @@ Noodle 和聊天可以双向共享上下文。这是两个各自独立的功能�
 | **Generation connection** | 无 | 任意文本连接（刷新必需） |
 | **Professor Mari participates** | on | on 或 off |
 | **Refreshes/day** | 2 | 0 到 24(设为 0 关闭自动刷新) |
+| **Translate posts automatically** | off | on 或 off |
 | **Active selection** | Random range | Random range、Exact count、All invited |
 | **Min active** | 2 | 1 到 100(仅 Random range) |
 | **Max active** | 5 | 1 到 100(仅 Random range) |

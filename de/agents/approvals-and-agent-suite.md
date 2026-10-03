@@ -104,4 +104,4 @@ Einfügungen von **Knowledge Retrieval** und **Knowledge Router** lassen sich in
 
 - [Agenten im Überblick](agents-overview.md)
 - [Referenz der herunterladbaren Agenten](built-in-agents.md)
-- [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md)

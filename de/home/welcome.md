@@ -24,7 +24,7 @@ Arbeite diese Schritte der Reihe nach ab, dann steht der erste Chat.
 
 1. Installiere Marinara Engine und öffne die App im Browser. Deine Plattform findest du unter [Marinara Engine installieren](../INSTALLATION.md).
 2. Lege eine Verbindung an, damit die App einen KI-Dienst erreicht. Eine Verbindung speichert Anbieter, API-Key und Modell. Ein API-Key ist ein geheimer Zugangscode, ähnlich einem Passwort, den du beim KI-Anbieter bekommst. Siehe [Mit einem KI-Anbieter verbinden](../connections/connecting-to-a-provider.md).
-3. Erstelle oder importiere einen Charakter zum Chatten. Öffne das Panel **Characters** (Charaktere) und klick auf **New** (Neu), um das Fenster **Create Character** (Charakter erstellen) zu öffnen. Über **Import** holst du stattdessen eine Charakterkarte aus einer Datei herein. Siehe [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md).
+3. Erstelle oder importiere einen Charakter zum Chatten. Öffne das Panel **Characters** (Charaktere) und klick auf **New** (Neu), um das Fenster **Create Character** (Charakter erstellen) zu öffnen. Über **Import** holst du stattdessen eine Charakterkarte aus einer Datei herein. Siehe [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md).
 4. Starte einen Chat. Wähle in der Chat-Seitenleiste einen Modus-Tab und klick dann auf die Schaltfläche **+**. Passend zum Tab heißt sie **New Conversation**, **New Roleplay** oder **New Game**. Der neue Chat öffnet sich mit einem Einrichtungsfenster, das dich durch den Rest führt. Ist noch keine Verbindung gespeichert, erscheint zuerst ein Fenster **Set Up Conversation**, **Set Up Roleplay** oder **Set Up Game**. Wähle dort die Verbindung aus und klick auf **Create Chat** (Chat erstellen).
 
 Wenn du bei einem Schritt hängen bleibst, frag die eingebaute Assistentin. Was sie alles kann, steht in [Professor Mari, deine Assistentin in der App](professor-mari.md).
@@ -52,7 +52,7 @@ Wenn etwas kaputt ist oder nicht funktioniert, hilft [Fehlerbehebung in Marinara
 
 - [Marinara Engine installieren](../INSTALLATION.md)
 - [Mit einem KI-Anbieter verbinden](../connections/connecting-to-a-provider.md)
-- [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md)
 - [Das Tutorial beim ersten Start](tutorial.md)
 - [Professor Mari, deine Assistentin in der App](professor-mari.md)
 - [Conversation Mode: Erste Schritte](../conversation/getting-started.md)

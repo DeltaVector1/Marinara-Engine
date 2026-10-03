@@ -125,6 +125,8 @@ Im aufgeklappten Editor hat jeder Abschnitt die Einstellung **Position**.
 
 Für die meisten Modelle ist XML eine gute Grundeinstellung. Probier **MARKDOWN** oder **NONE** nur, wenn ein Modell ohne Tags besser zu reagieren scheint.
 
+Soll ein einzelner **Prompt Block** ohne sein Tag oder seine Überschrift gesendet werden, während der Rest des Presets umschlossen bleibt, klapp ihn auf dem Tab **Sections** auf und schalte **Send without wrapper** (ohne Umschließung senden) ein. Der Inhalt des Blocks geht dann exakt so raus, wie du ihn geschrieben hast. Gehört der Block zu einer Gruppe, kann ihn das Tag oder die Überschrift der Gruppe weiterhin umschließen. Nimm ihn aus der Gruppe, wenn er völlig ohne Umschließung bei der KI ankommen soll. Marker behalten ihre Umschließung immer, deshalb gibt es den Schalter nur bei Prompt Blocks. Steht das Wrap-Format des Presets auf **NONE**, ist er außerdem ausgeblendet, weil dann ohnehin nichts umschlossen wird.
+
 ## Ein Preset einem Chat zuweisen
 
 Ein Preset wirkt erst, wenn du es einem Chat zuweist. In einem **Roleplay**-Chat gibt es dafür zwei Wege.

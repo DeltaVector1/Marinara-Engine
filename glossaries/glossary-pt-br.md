@@ -645,3 +645,13 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 - **Preview** on the Character Editor's **Voice** tab is glossed **(ouvir)**. That button renders `settings.notifications.customSound.actions.preview`, which `ui/pt-BR.json` translates as "Ouvir" (lowercased per §5.2), so the gloss matches what a reader with the Portuguese UI sees. The live color preview in `characters/colors-and-stats.md` stays **(pré-visualização)**. Both labels render that same UI string, so the Portuguese UI shows "Ouvir" on both; the guides gloss each by sense (a sound sample versus a visual preview), so do not harmonise the two glosses.
 - The text-to-speech same-name fallback (a card that has no voice of its own uses the one set for a card with a matching name) is **um card com nome correspondente**, and "the original of an AU copy" is **o original de uma cópia AU**.
 - The Connections panel's **Text to Speech** card stays **o card Text to Speech**, as in `media/tts-setup.md:7,15` and the other Connections cards (`connections/local-model.md`, `FAQ.md:193`). The §3 card (UI panel/tile) row records this as its one exception.
+
+## Send without wrapper (2026-10-03)
+
+- The **Prompt Block** toggle **Send without wrapper** in `prompts/presets.md` is glossed **(enviar sem envelopamento)**, lowercased per §5.2. Neither `ui/pt-BR.json` nor the app ships a Portuguese string for it, so the gloss follows the file's own wrap vocabulary: *wrap* is **envelopar**, a *wrapper* is **envelopamento** (as in `**NONE**: nenhum envelopamento é acrescentado`), a *tag* is **marcação** and a *heading* is **título**. Do not introduce `invólucro` or `envoltório` for the wrapper.
+- The toggle is **o botão liga/desliga** (§3), and the lowercase generic "prompt blocks" is **blocos de prompt**; the bold label **Prompt Block** stays English, as elsewhere in the file.
+
+## Noodle auto-translation (2026-10-03)
+
+- In `noodle/settings.md`, the toggle **Translate posts automatically** is glossed **(traduzir posts automaticamente)**, using the file's own **post**; the per-post button **Translate** is glossed **(traduzir)**, as in `chats/messages.md`. The section heading `## Translation` and the **Translation** section label stay English and unglossed, like the file's other section names and `integrations/message-translation.md`.
+- The chat-translation button **Save translator defaults** is glossed **(salvar padrões do tradutor)**, lowercased per §5.2, and the saved settings are **os padrões do tradutor**. Neither `ui/pt-BR.json` nor the app ships a Portuguese string for it.

@@ -1,6 +1,6 @@
 {
   "language": "pl",
-  "sourceCommit": "9c124806894cf1aa338bd9eb6145f8f114b68304",
+  "sourceCommit": "d642daa534b2ee538dd01aa6bb23cfc920676852",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -109,8 +109,8 @@
     },
     {
       "path": "characters/creating-and-editing-characters.md",
-      "sha256": "4ef7a0e9efc3525dbf03480915e20188293876a81831b9e1c6d38c0db02d7a97",
-      "bytes": 14131
+      "sha256": "9b992c1853af641b4bc23dc57a04a4d3b17cfa5f4a5fac2e2af7916dc2cd8f13",
+      "bytes": 14140
     },
     {
       "path": "characters/galleries.md",
@@ -159,8 +159,8 @@
     },
     {
       "path": "chats/group-chats.md",
-      "sha256": "e1b1c58a17da26932aecdbac663d796c2d0cd880c0fb6e9d66cdf45d0ce20870",
-      "bytes": 14140
+      "sha256": "17847fce4702150f6779c1b954df110a6765ccaef74930fc95c81cbebaacaf8d",
+      "bytes": 14149
     },
     {
       "path": "chats/guided-and-impersonate.md",
@@ -604,8 +604,8 @@
     },
     {
       "path": "media/tts-setup.md",
-      "sha256": "efe0fa3af2661d3760086ef9045e4b7558d561db5b9bad68b059fc3791e1d966",
-      "bytes": 17151
+      "sha256": "c76d6fd8f1dacc30d7b6f62092d011e2aee4e03a5ec096f1146e40020e90137e",
+      "bytes": 17161
     },
     {
       "path": "noodle/overview.md",
@@ -614,8 +614,8 @@
     },
     {
       "path": "noodle/settings.md",
-      "sha256": "20e644e0e33ee848808b08a05b6233f5c81d0c08d97e5fedd9cfeb7ad015ca37",
-      "bytes": 18778
+      "sha256": "fd8104f25c0417e4bcb483b5b0f4b6d57fa40a771b85a02a24308dc522016ebd",
+      "bytes": 20233
     },
     {
       "path": "prompts/conditional-prompts.md",
@@ -639,8 +639,8 @@
     },
     {
       "path": "prompts/presets.md",
-      "sha256": "e3dadea7467a1cc845e1983fed181043d07b9d045892ace22bea184bb73ea06d",
-      "bytes": 13852
+      "sha256": "58ea511181e306e4f23e0e16afcf6c6d432dde93093e2922b8219352e4426812",
+      "bytes": 14552
     },
     {
       "path": "prompts/prompt-overrides.md",

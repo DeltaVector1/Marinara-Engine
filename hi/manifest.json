@@ -1,6 +1,6 @@
 {
   "language": "hi",
-  "sourceCommit": "9c124806894cf1aa338bd9eb6145f8f114b68304",
+  "sourceCommit": "d642daa534b2ee538dd01aa6bb23cfc920676852",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -614,8 +614,8 @@
     },
     {
       "path": "noodle/settings.md",
-      "sha256": "49e2eb51eee6ecee1fcbcc8ad06b9cc4c31cf602146901600fa22e8c48828fc4",
-      "bytes": 36151
+      "sha256": "61e8b271cffe12f97fd72ba28b675f38a1aa14cca8b1a61158d543d92fdc412a",
+      "bytes": 38717
     },
     {
       "path": "prompts/conditional-prompts.md",
@@ -639,8 +639,8 @@
     },
     {
       "path": "prompts/presets.md",
-      "sha256": "2dcdcd5fdb0969e5129c4223fb69f338122d5dabe559248103654ad25edc4537",
-      "bytes": 27290
+      "sha256": "4ac9f27230e0ded1bd11381f6ef720e73e7a7803124f9b7220c6956e303d9bab",
+      "bytes": 28828
     },
     {
       "path": "prompts/prompt-overrides.md",

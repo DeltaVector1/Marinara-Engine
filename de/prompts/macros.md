@@ -290,5 +290,5 @@ Eine Bedingung kann auch dein Decision-Modell zur Szene befragen: `{{#if decisio
 - [Preset-Variablen](preset-variables.md)
 - [Preset-Editor und Prompt Manager](presets.md)
 - [Peek Prompt](../chats/peek-prompt.md)
-- [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md)
 - [Conversation-Mode-Profile](../conversation/profiles.md)

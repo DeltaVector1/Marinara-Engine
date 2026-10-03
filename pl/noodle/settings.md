@@ -39,6 +39,14 @@ Kiedy **Refreshes/day** ma wartość powyżej 0, Marinara dzieli dobę na równe
 
 Automatyczne odświeżenia działają wewnątrz serwera Marinara. Strona Noodle nie musi być otwarta, ale sama aplikacja Marinara Engine musi działać. Jeśli odświeżenie się nie uda, harmonogram pokazuje błąd i ponawia próbę później, a po kolejnych niepowodzeniach czeka coraz dłużej. Jeśli kilka zaplanowanych godzin przepadnie, jedno udane odświeżenie nadrabiające pokrywa je wszystkie, zamiast zalewać oś czasu.
 
+## Translation
+
+Sekcja **Translation** (tłumaczenie) ma jeden przełącznik. Wymaga wersji Noodle 1.5.0 lub nowszej.
+
+- **Translate posts automatically** (automatyczne tłumaczenie wpisów): przełącznik, domyślnie **off**. Włącz go, żeby pod każdym wpisem i komentarzem, którego autorem nie jest żadna z twoich person, pojawiało się tłumaczenie bez klikania przycisku **Translate** (tłumaczenie) przy każdym z nich. Noodle korzysta z domyślnych ustawień tłumaczenia, które zapisuje przycisk **Save translator defaults** (zapisanie domyślnych ustawień tłumaczenia) w sekcji **Translation** ustawień czatu. Bez zapisanych ustawień domyślnych używa usługi Google Translate i tłumaczy na angielski. Pod tekstem, który już jest w języku docelowym, nie pojawia się dodatkowa kopia. Tłumaczenie, które ukryjesz, pozostaje ukryte, a wyłączenie przełącznika zatrzymuje wszystkie jeszcze oczekujące tłumaczenia.
+
+Tłumaczenia, zarówno automatyczne, jak i wykonane przyciskiem **Translate**, są przechowywane w tej przeglądarce. Po odświeżeniu osi czasu, wyjściu z zakładki Noodle albo odświeżeniu strony pojawiają się znowu i nie trzeba ich tłumaczyć jeszcze raz. Na innym urządzeniu albo w przeglądarce po wyczyszczeniu jej danych teksty są tłumaczone od nowa. Przycisk **Reset Noodle Timeline** (wyczyszczenie osi czasu Noodle) również je usuwa.
+
 ## Active Accounts
 
 Sekcja **Active Accounts** (aktywne konta) ustala, ile uprawnionych kont bierze udział w jednym odświeżeniu. Uprawnione konta to zaproszone postacie, postacie dołączone przez folder oraz losowi użytkownicy, jeśli zostali włączeni.
@@ -155,6 +163,7 @@ Ta tabela wypisuje każde ustawienie Noodle razem z wartością domyślną i zak
 | **Generation connection** | brak | dowolne połączenie tekstowe (wymagane do odświeżenia) |
 | **Professor Mari participates** | on | on lub off |
 | **Refreshes/day** | 2 | 0 do 24 (0 wyłącza automatyczne odświeżenia) |
+| **Translate posts automatically** | off | on lub off |
 | **Active selection** | Random range | Random range, Exact count, All invited |
 | **Min active** | 2 | 1 do 100 (tylko przy Random range) |
 | **Max active** | 5 | 1 do 100 (tylko przy Random range) |

@@ -106,7 +106,7 @@ dagegen manuell komplett wieder her, bleiben die verschlüsselten Keys erhalten,
 
 ## Was ist eine Charakterkarte?
 
-Eine **Charakterkarte** ist das gespeicherte Profil eines KI-Charakters: Name, Avatar, Persönlichkeit, Vorgeschichte und Begrüßung. Angelegt und bearbeitet werden Karten im **Character Editor** (Charakter-Editor). Karten aus anderen Apps lassen sich außerdem importieren. Siehe [Charaktere erstellen und bearbeiten](characters/creating-and-editing-characters.md).
+Eine **Charakterkarte** ist das gespeicherte Profil eines KI-Charakters: Name, Avatar, Persönlichkeit, Vorgeschichte und Begrüßung. Angelegt und bearbeitet werden Karten im **Character Editor** (Charakter-Editor). Karten aus anderen Apps lassen sich außerdem importieren. Siehe [Charaktere anlegen und bearbeiten](characters/creating-and-editing-characters.md).
 
 ## Was ist ein Lorebook, und wie nutze ich eines für mehrere Charaktere?
 

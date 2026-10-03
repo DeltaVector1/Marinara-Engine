@@ -1,6 +1,6 @@
 {
   "language": "de",
-  "sourceCommit": "9c124806894cf1aa338bd9eb6145f8f114b68304",
+  "sourceCommit": "d642daa534b2ee538dd01aa6bb23cfc920676852",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -9,8 +9,8 @@
     },
     {
       "path": "FAQ.md",
-      "sha256": "769407b73e0c63ef03a7e73bb6a08c791ff75705ded7da75f4c7446b71e680a1",
-      "bytes": 25209
+      "sha256": "a802bf73099d26f7717d347794276bf8ef8ac9ce22170207c8dc37c527a5f86d",
+      "bytes": 25207
     },
     {
       "path": "INSTALLATION.md",
@@ -39,8 +39,8 @@
     },
     {
       "path": "agents/approvals-and-agent-suite.md",
-      "sha256": "9a5224c8fcf32d3998872d819eedf392483389ca8c822931ea8543ee767f2934",
-      "bytes": 8230
+      "sha256": "540926857caaf26f205d2dcedbdff30dfb4fe3358ba8b99a1526f7faf497bd3f",
+      "bytes": 8228
     },
     {
       "path": "agents/built-in-agents.md",
@@ -74,8 +74,8 @@
     },
     {
       "path": "appearance/card-css-theming.md",
-      "sha256": "1d302a87378b26449f66fc5efbaf63c618229daad24d4e8766358c5284840075",
-      "bytes": 28744
+      "sha256": "78cb5f12f7598ba10c2838badbdc00136add5a1d18a919d59c272fd56ddff459",
+      "bytes": 28742
     },
     {
       "path": "appearance/chat-backgrounds.md",
@@ -104,8 +104,8 @@
     },
     {
       "path": "characters/colors-and-stats.md",
-      "sha256": "2f16d612c9ed0ed8b36c3e09118363383d7a813cc0cef87b55e1257d3aaed8b6",
-      "bytes": 9024
+      "sha256": "112d1ceb9c801705aebe7d026c3c3611e1b7f2af1ebc67e8e4e2ff29a5c61ec0",
+      "bytes": 9022
     },
     {
       "path": "characters/creating-and-editing-characters.md",
@@ -114,28 +114,28 @@
     },
     {
       "path": "characters/galleries.md",
-      "sha256": "4d7bcdca7305d790c69d684447540ed07ae348fc631bc40bcb4a57c25a299eca",
-      "bytes": 7944
+      "sha256": "4eb8c1cf481320c21443b6c203d1883a635640b2635c0d38beed2e1fe39fcaa2",
+      "bytes": 7942
     },
     {
       "path": "characters/import-export.md",
-      "sha256": "d24ecf33de34ac00d5991ec7db638920ca3a3cd42abc2f88ac7806ec08935547",
-      "bytes": 6730
+      "sha256": "60380bdbc2094e008a7c07a2a0a52ad727efd0623aa6cae7e399d293741370fe",
+      "bytes": 6728
     },
     {
       "path": "characters/library-organization.md",
-      "sha256": "370e05c90fe0828118a6c0a6e89639a73d860abe51869a2f4d0db17759ec43f3",
-      "bytes": 8480
+      "sha256": "52906c56bd0b96356fd946e276b8f774f83f41d9dc10d9963927ffdc82bad06d",
+      "bytes": 8478
     },
     {
       "path": "characters/personas.md",
-      "sha256": "8b785b8ec65c8af2b4c407651b69ddd1c6465bb55555200588f52d12bebaae08",
-      "bytes": 15758
+      "sha256": "a3f1d33240c2421c2e4dd5e891f5ced87fd5cd4c34c63614073746733ce7746f",
+      "bytes": 15754
     },
     {
       "path": "characters/sprites.md",
-      "sha256": "32203c64e6b5b13495ec1d587f1c50bd4fc6aade6be7f9f75bfa5cfbabb5b5c0",
-      "bytes": 13484
+      "sha256": "042a82f20d41e33ca13e537c5955acaec745751788d2145e3f53528453387926",
+      "bytes": 13482
     },
     {
       "path": "chats/branches.md",
@@ -259,8 +259,8 @@
     },
     {
       "path": "conversation/profiles.md",
-      "sha256": "6a10400ec0bf51b4f50ab3d079da6a5f1983d94f99b2aa5c4057446a362f6ff2",
-      "bytes": 9086
+      "sha256": "9258a1b56826f6d415bed8f50d76c9f3f5eee59e69f49dc107bbe0eefa5c70cb",
+      "bytes": 9084
     },
     {
       "path": "conversation/schedules.md",
@@ -484,8 +484,8 @@
     },
     {
       "path": "home/welcome.md",
-      "sha256": "9b95ebc1e860a0ddac985f888e1b9de1ea9acca259b1c9acc3602e93e42689b6",
-      "bytes": 5628
+      "sha256": "73380bb336b533310e28f5e5399381b81664077d6de377823c1f098e213d18f2",
+      "bytes": 5624
     },
     {
       "path": "installation/android-termux.md",
@@ -544,8 +544,8 @@
     },
     {
       "path": "lorebooks/linking-to-characters.md",
-      "sha256": "a355523bcf7c0989c417995240330c060a5878019b3f8ba8cf003715f66d1586",
-      "bytes": 9155
+      "sha256": "166f9b90a4cc45fc33966172cea361cf0ba4ab547d0c912b436de9ed0ba4e5e6",
+      "bytes": 9153
     },
     {
       "path": "lorebooks/overview.md",
@@ -604,8 +604,8 @@
     },
     {
       "path": "media/tts-setup.md",
-      "sha256": "ade5df644b26cfb4e29fcf04fe56f9f830c09ecfd1d2c0bc4966d36119fd7f0b",
-      "bytes": 17187
+      "sha256": "056f4d5874b1aaa2ef3eba1b780f01624f27ac687c1f4d3ce1fa255af08abb56",
+      "bytes": 17183
     },
     {
       "path": "noodle/overview.md",
@@ -614,8 +614,8 @@
     },
     {
       "path": "noodle/settings.md",
-      "sha256": "3ba8114c13c34a656dab36f5c36872ae67bd375c74689fd1ab034eaf2b872aed",
-      "bytes": 19142
+      "sha256": "5a82d1278d7e2cc63f412e378fdf33e6bd54a6a0d784bc6144cc65579a5de4d8",
+      "bytes": 20575
     },
     {
       "path": "prompts/conditional-prompts.md",
@@ -629,8 +629,8 @@
     },
     {
       "path": "prompts/macros.md",
-      "sha256": "fa22913ab093484d4b71a3126efdfb3bcd40333cf606b500c74b233c2472c1af",
-      "bytes": 25565
+      "sha256": "9ad2dd9949bd22d3743456d6c33a36091fe2c4c0b14f4d7f304e1d8c6aa1400d",
+      "bytes": 25563
     },
     {
       "path": "prompts/preset-variables.md",
@@ -639,8 +639,8 @@
     },
     {
       "path": "prompts/presets.md",
-      "sha256": "02d5a398ce11fbe1e7af029877ffedbb4b4b95cb9d095e3728670281dedbe808",
-      "bytes": 14012
+      "sha256": "5197cdbd4eab61600c626680f25fed4ddc328742150687e207e845ff0a9f3fcb",
+      "bytes": 14750
     },
     {
       "path": "prompts/prompt-overrides.md",

@@ -52,7 +52,7 @@ Zakładka **Metadata** zbiera dane o tożsamości karty i jej porządkowaniu. Po
 - **Character ID**. Wartość tylko do odczytu, widoczna dopiero po zapisaniu karty. Kliknij przycisk **Copy**, żeby ją skopiować.
 - **Name**. Wyświetlana nazwa. W promptach używa się jej jako `{{char}}`.
 - **Creator**. Osoba, która stworzyła kartę, do podania przy udostępnianiu.
-- **Version**. Numer wersji, który ustawiasz sam, na przykład `1.0`.
+- **Version**. Numer wersji, który ustawiasz samodzielnie, na przykład `1.0`.
 - **Talkativeness**. Suwak od 0 do 100 procent. Decyduje o tym, jak często ta postać odzywa się na czatach grupowych. Domyślnie 50 procent.
 - **Tags**. Wpisz jeden lub więcej tagów w polu dodawania tagu i naciśnij Enter albo kliknij przycisk **Add**. Kilka tagów naraz rozdziel przecinkami. Pojedynczy tag usuwa jego X, a wszystkie naraz przycisk **Remove All**.
 - **Creator Notes**. Prywatne notatki, które nigdy nie trafiają do AI. W bibliotece widać je za to jako krótkie podsumowanie.

@@ -39,6 +39,14 @@ Noodle 설정은 모두 전역 설정입니다. 채팅 하나가 아니라 모�
 
 자동 새로고침은 Marinara 서버 안에서 실행됩니다. Noodle 페이지를 계속 열어 둘 필요는 없지만, Marinara 자체는 실행 중이어야 합니다. 새로고침이 실패하면 스케줄에 오류를 표시하고 나중에 다시 시도하며, 실패가 거듭되면 더 오래 기다립니다. 예정된 시각을 여러 번 놓쳤을 때는 타임라인이 넘치지 않도록 성공한 만회 새로고침 한 번으로 대신합니다.
 
+## Translation(번역)
+
+**Translation** 섹션에는 스위치가 하나 있습니다. Noodle 1.5.0 이상이 필요합니다.
+
+- **Translate posts automatically**(게시물 자동 번역): 토글이고 기본값은 **off**입니다. 켜면 내 페르소나가 쓰지 않은 모든 게시물과 댓글 아래에 번역을 표시하므로, 하나하나 **Translate**(번역)를 클릭할 필요가 없습니다. Noodle은 채팅의 **Translation** 설정에서 **Save translator defaults**(번역기 기본값 저장)로 저장한 번역기 기본값을 사용합니다. 저장된 기본값이 없으면 Google Translate를 사용해 영어로 번역합니다. 이미 대상 언어로 쓰인 글에는 번역을 따로 붙이지 않고, 직접 숨긴 번역은 계속 숨겨 둡니다. 스위치를 끄면 아직 대기 중인 번역을 중단합니다.
+
+번역은 자동으로 만든 것이든 **Translate**로 만든 것이든 이 브라우저에 저장됩니다. 타임라인을 새로 고치거나, Noodle에서 나갔다가 돌아오거나, 페이지를 다시 불러와도 번역을 새로 하지 않고 저장된 번역을 그대로 보여 줍니다. 다른 기기나 데이터를 삭제한 브라우저에서는 처음부터 다시 번역합니다. **Reset Noodle Timeline**(Noodle 타임라인 초기화)도 저장된 번역을 지웁니다.
+
 ## Active Accounts(활성 계정)
 
 **Active Accounts** 섹션에서는 새로고침 한 번에 몇 개의 계정이 참여할지 정합니다. 대상이 되는 계정은 초대한 캐릭터, 폴더로 포함된 캐릭터, 그리고 켜 두었다면 랜덤 유저입니다.
@@ -155,6 +163,7 @@ Noodle 활동을 채팅에 나타나게 하려면 해당하는 **Carryover to ch
 | **Generation connection** | 없음 | 텍스트 연결 전체(새로고침에 필수) |
 | **Professor Mari participates** | on | on 또는 off |
 | **Refreshes/day** | 2 | 0에서 24(0이면 자동 새로고침 끔) |
+| **Translate posts automatically** | off | on 또는 off |
 | **Active selection** | Random range | Random range, Exact count, All invited |
 | **Min active** | 2 | 1에서 100(Random range일 때만) |
 | **Max active** | 5 | 1에서 100(Random range일 때만) |

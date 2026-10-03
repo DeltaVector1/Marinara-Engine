@@ -159,7 +159,7 @@ Die Kategorie **Clips** im Tab **Sprites** ist eine eigene Funktion. Damit entst
 
 ## Verwandte Anleitungen
 
-- [Charaktere erstellen und bearbeiten](creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](creating-and-editing-characters.md)
 - [Roleplay Mode: Erste Schritte](../roleplay/getting-started.md)
 - [Game Mode: Erste Schritte](../game/getting-started.md)
 - [Sprach- und Videoanrufe in Conversation](../conversation/calls.md)

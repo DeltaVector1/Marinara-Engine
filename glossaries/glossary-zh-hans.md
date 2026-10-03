@@ -588,3 +588,20 @@ Keep **Decision model**, **Jev**, backend names, and executable statement exampl
 | Open Text to Speech settings | 打开语音合成设置 | Keeps the pack's 语音合成, not the app's 文本转语音 (§5.4). |
 
 **Phonetic name** keeps 读音名, not the app's 名称读音 (§7.5 P1). An AU copy is an **AU 副本**; the card it was copied from is the **原版卡**. These are translation choices, not a new native-reader review.
+
+## Prompt Block wrapper switch (2026-10-03)
+
+| English label | Gloss | Note |
+| --- | --- | --- |
+| Send without wrapper (Prompt Block switch on the Sections tab) | 不加包装发送 | `ui.presets.sectionstab.sendWithoutWrapper` has no zh-Hans string, so the switch renders in English. The gloss keeps the pack's 包装 (`prompts/presets.md`: 包装格式, 不加任何包装), not the app's 包裹 (§5.4). |
+
+The bare result is described with 按原样发出, the same phrase as the **NONE** bullet, so one search finds both. These are translation choices, not a new native-reader review.
+
+## Noodle automatic translation (2026-10-03)
+
+| English label | Gloss | Note |
+| --- | --- | --- |
+| Translate posts automatically (Noodle settings toggle) | 自动翻译帖子 | Follows the app's 自动翻译回复 pattern for **Auto-Translate Responses**. |
+| Save translator defaults (chat **Translation** settings button) | 保存翻译默认设置 | `chat.translation.defaults.save` has no zh-Hans string, so the button renders in English. "translator defaults" in prose is **翻译默认设置**; the pack already uses 默认设置 for saved defaults. |
+
+**Translate** keeps (翻译) and a hidden translation is 隐藏, matching **Hide translation**(隐藏译文) in `integrations/message-translation.md`. A translation shown under a post is **译文**. These are translation choices, not a new native-reader review.

@@ -75,7 +75,7 @@ Bei **ElevenLabs** musst du eine Stimme wählen. Marinara lädt die seitenweise 
 
 Die Stimme eines Charakters kannst du auch im **Character Editor** auf dem Tab **Voice** wählen. Die Auswahl dort ändert dieselbe Zeile, deshalb zeigen beide Stellen immer dieselbe Stimme.
 
-Die Schaltfläche **Refresh** im Bereich Character Voices lädt dieselbe Anbieter-Bibliothek neu, ohne zurück in den Modus mit einer Stimme zu wechseln. Die Charaktere müssen vorher angelegt sein. Fehlen sie noch, weist die App darauf hin, zuerst im Tab Characters Charaktere anzulegen. Ein Charakter ohne eigene Stimme verwendet die Stimme, die für eine Karte mit passendem Namen festgelegt ist – etwa für das Original einer AU-Kopie. Andernfalls greift er auf die globale Stimme zurück. Siehe [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md).
+Die Schaltfläche **Refresh** im Bereich Character Voices lädt dieselbe Anbieter-Bibliothek neu, ohne zurück in den Modus mit einer Stimme zu wechseln. Die Charaktere müssen vorher angelegt sein. Fehlen sie noch, weist die App darauf hin, zuerst im Tab Characters Charaktere anzulegen. Ein Charakter ohne eigene Stimme verwendet die Stimme, die für eine Karte mit passendem Namen festgelegt ist – etwa für das Original einer AU-Kopie. Andernfalls greift er auf die globale Stimme zurück. Siehe [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md).
 
 ## Narrator Voice
 
@@ -174,5 +174,5 @@ Diese Vorgabe greift ausschließlich bei Audio- und Videoanrufen in Conversation
 - [Roleplay Mode: Erste Schritte](../roleplay/getting-started.md)
 - [Game Mode: Erste Schritte](../game/getting-started.md)
 - [Unterstützte KI-Anbieter](../connections/providers-reference.md)
-- [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md)
 - [Referenz der Server-Konfiguration](../CONFIGURATION.md)

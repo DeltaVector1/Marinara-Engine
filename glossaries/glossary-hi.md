@@ -737,3 +737,17 @@ These are documented catchup choices, not a claim of independent native-reader r
 - A character's TTS voice is **आवाज़**, not वॉइस. A card with a matching name is **मेल खाते नाम वाला कार्ड**; the card an AU copy came from is its **मूल कार्ड**.
 
 These are translation choices, not a new native-reader review.
+
+## Prompt Block wrapper switch (2026-10-03)
+
+- **Send without wrapper** is glossed **(रैपर के बिना भेजें)**, an आप-imperative per §5 Pattern A. `ui/hi.json` has no string for it. The wrapper around a section is **रैपर**; wrapping stays **लपेटना**/**लिपटना** and **रैप फ़ॉर्मैट**, as in `prompts/presets.md`. The control is a **स्विच**, as EN calls it.
+
+These are translation choices, not a new native-reader review.
+
+## Noodle automatic translation (2026-10-03)
+
+- The **Translation** heading in `noodle/settings.md` is glossed **(अनुवाद)**, as in `integrations/message-translation.md:11`. `chats/chat-settings.md:80` glosses the same label (ट्रांसलेशन); align it in a later sweep.
+- "translator defaults" is **अनुवाद के डिफ़ॉल्ट**. Noun **डिफ़ॉल्ट** is masculine (`agents/agents-overview.md:15`, `एक सही डिफ़ॉल्ट पहले से रहता है`), so `सेव किए हुए डिफ़ॉल्ट`.
+- **Translate posts automatically** and **Save translator defaults** stay unglossed, like the other bullet labels and buttons in `noodle/settings.md`; the sentence around each explains it. `ui/hi.json` has no string for either. EN's "switch" is **स्विच** and "toggle" is **टॉगल**. Post comments are **कमेंट**, as at `noodle/settings.md:33`.
+
+These are translation choices, not a new native-reader review.
