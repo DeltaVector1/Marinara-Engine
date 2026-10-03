@@ -596,6 +596,7 @@ const LocalChatArea = memo(function LocalChatArea() {
   const intuitiveSwipeRerollLatest = useUIStore((s) => s.intuitiveSwipeRerollLatest);
   const editLastMessageOnArrowUp = useUIStore((s) => s.editLastMessageOnArrowUp);
   const ttsLineVolume = useUIStore((s) => s.ttsLineVolume);
+  const lastAppError = useUIStore((s) => s.lastAppError);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef(0);
@@ -814,6 +815,25 @@ const LocalChatArea = memo(function LocalChatArea() {
   const branchChat = useBranchChat();
   const branchPendingRef = useRef(false);
   const { generate, retryAgents } = useGenerate();
+  // N1: a failed reply leaves a quiet "Failed · Retry" line under the user message that
+  // triggered it — conversation/roleplay only, derived from K1's lastAppError (no new storage).
+  // Dismissed on edit (see handleEdit/handleRoleplayEdit below); naturally clears on delete
+  // since the message drops out of `messages`, and on the next successful reply since
+  // lastAppError itself clears or moves on to a different action.
+  const [dismissedFailedReplyId, setDismissedFailedReplyId] = useState<string | null>(null);
+  useEffect(() => {
+    setDismissedFailedReplyId(null);
+  }, [lastAppError]);
+  const failedReplyMessageId = useMemo(() => {
+    if (lastAppError?.action !== "Generate reply" || lastAppError.chatId !== activeChatId) return null;
+    const last = messages?.[messages.length - 1];
+    if (!last || last.role !== "user" || last.id === dismissedFailedReplyId) return null;
+    return last.id;
+  }, [lastAppError, activeChatId, messages, dismissedFailedReplyId]);
+  const handleRetryFailedReply = useCallback(() => {
+    if (!activeChatId || isStreaming) return;
+    void generate({ chatId: activeChatId, connectionId: null });
+  }, [activeChatId, isStreaming, generate]);
   const generateGallerySelfie = useGenerateGallerySelfie(activeChatId ?? "");
   const { mutateAsync: setActiveSwipe } = useSetActiveSwipe(activeChatId);
   const setActiveChatId = useChatStore((s) => s.setActiveChatId);
@@ -2258,15 +2278,17 @@ const LocalChatArea = memo(function LocalChatArea() {
   const handleEdit = useCallback(
     (messageId: string, content: string) => {
       updateMessage({ messageId, content });
+      if (messageId === failedReplyMessageId) setDismissedFailedReplyId(messageId);
     },
-    [updateMessage],
+    [updateMessage, failedReplyMessageId],
   );
 
   const handleRoleplayEdit = useCallback(
     async (messageId: string, content: string) => {
       await updateMessageAsync({ messageId, content });
+      if (messageId === failedReplyMessageId) setDismissedFailedReplyId(messageId);
     },
-    [updateMessageAsync],
+    [updateMessageAsync, failedReplyMessageId],
   );
 
   const handleToggleConversationStart = useCallback(
@@ -3321,6 +3343,9 @@ const LocalChatArea = memo(function LocalChatArea() {
             onDelete={handleDelete}
             onRegenerate={handleRegenerate}
             onEdit={handleEdit}
+            failedReplyMessageId={failedReplyMessageId}
+            failedReplyReason={lastAppError?.message}
+            onRetryFailedReply={handleRetryFailedReply}
             onSetActiveSwipe={handleSetActiveSwipe}
             onToggleHiddenFromAI={handleToggleHiddenFromAI}
             onPeekPrompt={handlePeekPrompt}
@@ -3460,6 +3485,9 @@ const LocalChatArea = memo(function LocalChatArea() {
           onDelete={handleDelete}
           onRegenerate={handleRegenerate}
           onEdit={handleRoleplayEdit}
+          failedReplyMessageId={failedReplyMessageId}
+          failedReplyReason={lastAppError?.message}
+          onRetryFailedReply={handleRetryFailedReply}
           onSetActiveSwipe={handleSetActiveSwipe}
           onToggleConversationStart={handleToggleConversationStart}
           onToggleHiddenFromAI={handleToggleHiddenFromAI}

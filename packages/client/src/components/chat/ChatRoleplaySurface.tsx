@@ -1328,6 +1328,10 @@ type RoleplaySurfaceProps = {
   onDelete: (messageId: string) => void;
   onRegenerate: (messageId: string) => void;
   onEdit: (messageId: string, content: string) => void | Promise<void>;
+  /** N1: the user message whose reply failed, if any — drives the "Failed · Retry" line. */
+  failedReplyMessageId?: string | null;
+  failedReplyReason?: string;
+  onRetryFailedReply?: () => void;
   onSetActiveSwipe: (messageId: string, index: number) => void;
   onToggleConversationStart: (
     messageId: string,
@@ -1451,6 +1455,9 @@ export function ChatRoleplaySurface({
   onDelete,
   onRegenerate,
   onEdit,
+  failedReplyMessageId,
+  failedReplyReason,
+  onRetryFailedReply,
   onSetActiveSwipe,
   onToggleConversationStart,
   onToggleHiddenFromAI,
@@ -2730,6 +2737,9 @@ export function ChatRoleplaySurface({
                           onDelete={onDelete}
                           onRegenerate={onRegenerate}
                           onEdit={onEdit}
+                          failedReply={msg.id === failedReplyMessageId}
+                          failedReplyReason={failedReplyReason}
+                          onRetryFailedReply={onRetryFailedReply}
                           onSetActiveSwipe={onSetActiveSwipe}
                           onToggleConversationStart={onToggleConversationStart}
                           onToggleHiddenFromAI={onToggleHiddenFromAI}

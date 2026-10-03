@@ -7,7 +7,7 @@ import { useMessagePresetVariables } from "../../hooks/use-message-preset-variab
 // ──────────────────────────────────────────────
 import { useState, useCallback, useRef, useEffect, memo, useMemo, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import { Phone, PhoneIncoming, PhoneOff, Trash2 } from "lucide-react";
+import { AlertTriangle, Phone, PhoneIncoming, PhoneOff, Trash2 } from "lucide-react";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import {
   formatTextQuotes,
@@ -101,6 +101,10 @@ interface ConversationMessageProps {
   onDelete?: (messageId: string) => void;
   onRegenerate?: (messageId: string) => void;
   onEdit?: (messageId: string, content: string) => void;
+  /** N1: this message's reply failed — renders the quiet "Failed · Retry" line. */
+  failedReply?: boolean;
+  failedReplyReason?: string;
+  onRetryFailedReply?: () => void;
   onSetActiveSwipe?: (messageId: string, index: number) => void;
   onToggleHiddenFromAI?: (messageId: string, current: boolean) => void;
   onPeekPrompt?: () => void;
@@ -143,6 +147,9 @@ export const ConversationMessage = memo(function ConversationMessage({
   onDelete,
   onRegenerate,
   onEdit,
+  failedReply,
+  failedReplyReason,
+  onRetryFailedReply,
   onSetActiveSwipe,
   onToggleHiddenFromAI,
   onPeekPrompt,
@@ -1162,6 +1169,22 @@ export const ConversationMessage = memo(function ConversationMessage({
         </div>
         <div className="px-4">
           <MessageMarkIndicators message={message} className="px-1" />
+          {isUser && failedReply && (
+            <p className="mari-send-failed" role="alert" title={failedReplyReason}>
+              <AlertTriangle size="0.8rem" aria-hidden="true" />
+              <button
+                type="button"
+                className="mari-send-failed__text bg-transparent p-0 text-start"
+                onClick={() => failedReplyReason && toast(failedReplyReason)}
+              >
+                {localizeUi("ui.chat.conversationmessage.failedReply")}
+              </button>
+              <span aria-hidden="true">·</span>
+              <button type="button" onClick={onRetryFailedReply} className="mari-link">
+                {localizeUi("ui.chat.conversationmessage.retryFailedReply")}
+              </button>
+            </p>
+          )}
           {reactionRow}
           {(!hideActions || (hasReasoning && !isUser)) && (
             <ConversationMessageActions

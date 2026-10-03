@@ -106,7 +106,7 @@ function withIllustratorFailureTargets(
 }
 
 /** Show a persistent, copyable error toast and log to console */
-function showError(msg: string, options?: Pick<ExternalToast, "action" | "id">) {
+function showError(msg: string, options?: Pick<ExternalToast, "action" | "id" | "duration">) {
   const formatted = formatGenerationParameterError(msg);
   console.error("[Generation]", msg);
   toast.error(formatted, { duration: 15000, ...options });
@@ -3197,7 +3197,17 @@ export function useGenerate() {
               setProcessingRun(agentProcessingRunId, false, params.chatId);
               clearMariPhaseForThisChat();
               replyErrorSeen = true;
-              setGenerateReplyError(showError((event.data as string) || "Generation failed"), params.chatId, qc);
+              setGenerateReplyError(
+                // N1: conversation/roleplay now carry the failure as a persistent "Failed · Retry"
+                // line under the message, so the toast can be brief there. Game mode has no such
+                // line (its own retry UI), so it keeps the long-lived toast.
+                showError(
+                  (event.data as string) || "Generation failed",
+                  chatModeForGeneration === "game" ? undefined : { duration: 6000 },
+                ),
+                params.chatId,
+                qc,
+              );
               window.dispatchEvent(new CustomEvent("marinara:generation-error", { detail: { chatId: params.chatId } }));
               break;
             }
@@ -3343,7 +3353,11 @@ export function useGenerate() {
         }
         const msg = error instanceof Error ? error.message : "Generation failed";
         replyErrorSeen = true;
-        setGenerateReplyError(showError(msg), params.chatId, qc);
+        setGenerateReplyError(
+          showError(msg, chatModeForGeneration === "game" ? undefined : { duration: 6000 }),
+          params.chatId,
+          qc,
+        );
         window.dispatchEvent(new CustomEvent("marinara:generation-error", { detail: { chatId: params.chatId } }));
         return await confirmDurableSubmittedUserTurn();
       } finally {

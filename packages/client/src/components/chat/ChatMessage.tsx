@@ -52,6 +52,7 @@ import {
   Eye,
   Search,
   ScrollText,
+  AlertTriangle,
   Brain,
   Languages,
   Volume2,
@@ -959,6 +960,10 @@ interface ChatMessageProps {
   onDelete?: (messageId: string) => void;
   onRegenerate?: (messageId: string) => void;
   onEdit?: (messageId: string, content: string) => void | Promise<void>;
+  /** N1: this message's reply failed — renders the quiet "Failed · Retry" line. */
+  failedReply?: boolean;
+  failedReplyReason?: string;
+  onRetryFailedReply?: () => void;
   onSetActiveSwipe?: (messageId: string, index: number) => void;
   onToggleConversationStart?: ToggleConversationStart;
   memoryStartCharacterIds?: string[];
@@ -1835,6 +1840,9 @@ export const ChatMessage = memo(function ChatMessage({
   onDelete,
   onRegenerate,
   onEdit,
+  failedReply,
+  failedReplyReason,
+  onRetryFailedReply,
   onSetActiveSwipe,
   onToggleConversationStart,
   memoryStartCharacterIds,
@@ -4044,6 +4052,23 @@ export const ChatMessage = memo(function ChatMessage({
 
             <MessageMarkIndicators message={message} className="px-1" />
 
+            {isUser && failedReply && (
+              <p className="mari-send-failed" role="alert" title={failedReplyReason}>
+                <AlertTriangle size="0.8rem" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="mari-send-failed__text bg-transparent p-0 text-start"
+                  onClick={() => failedReplyReason && toast(failedReplyReason)}
+                >
+                  {localizeUi("ui.chat.chatmessage.failedReply")}
+                </button>
+                <span aria-hidden="true">·</span>
+                <button type="button" onClick={onRetryFailedReply} className="mari-link">
+                  {localizeUi("ui.chat.chatmessage.retryFailedReply")}
+                </button>
+              </p>
+            )}
+
             {/* Hover actions (tap to toggle on mobile) */}
             <div
               onClickCapture={() => {
@@ -4470,6 +4495,23 @@ export const ChatMessage = memo(function ChatMessage({
           )}
 
           <MessageMarkIndicators message={message} className="px-3" />
+
+          {isUser && failedReply && (
+            <p className="mari-send-failed" role="alert" title={failedReplyReason}>
+              <AlertTriangle size="0.8rem" aria-hidden="true" />
+              <button
+                type="button"
+                className="mari-send-failed__text bg-transparent p-0 text-start"
+                onClick={() => failedReplyReason && toast(failedReplyReason)}
+              >
+                {localizeUi("ui.chat.chatmessage.failedReply")}
+              </button>
+              <span aria-hidden="true">·</span>
+              <button type="button" onClick={onRetryFailedReply} className="mari-link">
+                {localizeUi("ui.chat.chatmessage.retryFailedReply")}
+              </button>
+            </p>
+          )}
 
           {/* Hover actions (tap to toggle on mobile) */}
           <div

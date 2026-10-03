@@ -53,6 +53,10 @@ type ConversationSurfaceProps = {
   onDelete: (messageId: string) => void;
   onRegenerate: (messageId: string) => void;
   onEdit: (messageId: string, content: string) => void;
+  /** N1: the user message whose reply failed, if any — drives the "Failed · Retry" line. */
+  failedReplyMessageId?: string | null;
+  failedReplyReason?: string;
+  onRetryFailedReply?: () => void;
   onSetActiveSwipe: (messageId: string, index: number) => void;
   onToggleHiddenFromAI: (messageId: string, current: boolean) => void;
   onPeekPrompt: (messageId?: string) => void;
@@ -122,6 +126,9 @@ export function ChatConversationSurface({
   onDelete,
   onRegenerate,
   onEdit,
+  failedReplyMessageId,
+  failedReplyReason,
+  onRetryFailedReply,
   onSetActiveSwipe,
   onToggleHiddenFromAI,
   onPeekPrompt,
@@ -178,6 +185,9 @@ export function ChatConversationSurface({
           onDelete={onDelete}
           onRegenerate={onRegenerate}
           onEdit={onEdit}
+          failedReplyMessageId={failedReplyMessageId}
+          failedReplyReason={failedReplyReason}
+          onRetryFailedReply={onRetryFailedReply}
           onSetActiveSwipe={onSetActiveSwipe}
           onToggleHiddenFromAI={onToggleHiddenFromAI}
           onPeekPrompt={onPeekPrompt}

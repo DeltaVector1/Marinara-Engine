@@ -93,6 +93,9 @@ interface ConversationViewProps {
   onDelete: (messageId: string) => void;
   onRegenerate: (messageId: string) => void;
   onEdit: (messageId: string, content: string) => void;
+  failedReplyMessageId?: string | null;
+  failedReplyReason?: string;
+  onRetryFailedReply?: () => void;
   onSetActiveSwipe: (messageId: string, index: number) => void;
   onToggleHiddenFromAI: (messageId: string, current: boolean) => void;
   onPeekPrompt: (messageId?: string) => void;
@@ -338,6 +341,9 @@ export function ConversationView({
   onDelete,
   onRegenerate,
   onEdit,
+  failedReplyMessageId,
+  failedReplyReason,
+  onRetryFailedReply,
   onSetActiveSwipe,
   onToggleHiddenFromAI,
   onPeekPrompt,
@@ -1440,6 +1446,9 @@ export function ConversationView({
                 onDelete={onDelete}
                 onRegenerate={onRegenerate}
                 onEdit={onEdit}
+                failedReply={msg.id === failedReplyMessageId}
+                failedReplyReason={failedReplyReason}
+                onRetryFailedReply={onRetryFailedReply}
                 onSetActiveSwipe={onSetActiveSwipe}
                 onToggleHiddenFromAI={onToggleHiddenFromAI}
                 onPeekPrompt={() => onPeekPrompt(msg.id)}
