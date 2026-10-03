@@ -80,7 +80,13 @@ import {
   type ActiveLorebookScan,
 } from "../../hooks/use-lorebooks";
 import { useQueryClient } from "@tanstack/react-query";
-import { buildMariArrival, isMariReplyFailure, type MariArrivalAction } from "../../lib/mari-arrival";
+import {
+  buildMariArrival,
+  isMariReplyFailure,
+  mariFallbackFocus,
+  mariFixRowId,
+  type MariArrivalAction,
+} from "../../lib/mari-arrival";
 import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
@@ -2584,6 +2590,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
+  const fixRowId = mariFixRowId(lastAppError);
   /** Ranked rows and plain context rows both feed the Mari handoff. */
   type OmnibarAskFocus = Pick<OmnibarResult, "id" | "title" | "category"> | null;
   /** Quick and full Mari hand over the same context, so they read the same surroundings. */
@@ -2595,10 +2602,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // The "fix this" row built from lastAppError is the only row that opens through
     // the chat-error door (R22: unasked Mari calls carry no user content either way).
     // L2: the row can point at a connection or, for a failed agent run, the agent.
+    // N6: callers pass it only as a deliberate pick; a fallback focus never is the Fix row.
     const source =
-      lastAppError?.retry &&
-      focusResult?.id ===
-        `${lastAppError.retry.kind === "open-agent" ? "agent" : "connection"}:${lastAppError.retry.id}`
+      fixRowId && focusResult?.id === fixRowId
         ? ("chat-error" as const)
         : gameSetupStep
           ? ("game-setup" as const)
@@ -2637,9 +2643,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // "Current chat" resource.
     const draft = options.arrival ? "" : parseOmnibarScope(query.trim()).query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
-    const firstContext = contextResults[0] ?? null;
     const focusResult =
-      selectedResult ?? (options.arrival && firstContext?.id === `chat:${activeChat?.id}` ? null : firstContext);
+      selectedResult ?? mariFallbackFocus(contextResults, fixRowId, options.arrival ? `chat:${activeChat?.id}` : null);
     rememberMariReturn(focusResult);
     // The focused-field row is about the open editor, so Mari gets that resource beside the field.
     const askFocus =
@@ -2667,7 +2672,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (!asideLive) return;
     const draft = question ?? asideState.query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
-    const focusResult = contextResults[0] ?? null;
+    const focusResult = mariFallbackFocus(contextResults, fixRowId);
     rememberMariReturn(focusResult);
     enterMariPane(
       buildAskContext(draft, focusResult, {
@@ -3302,6 +3307,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               arrival={mariArrival}
               arrivalAppendRequest={mariArrivalAppendRequest}
               onArrivalAction={runArrivalAction}
+              // N6: what an arrival Fix card sends with: the same handoff as a deliberate pick of the Fix row.
+              arrivalFixContext={buildAskContext("", contextResults.find((row) => row.id === fixRowId) ?? null)}
             />
           </Suspense>
         ) : null}

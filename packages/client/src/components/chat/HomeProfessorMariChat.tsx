@@ -2877,6 +2877,8 @@ type HomeProfessorMariChatProps = {
   arrivalAppendRequest?: number;
   /** Runs the arrival cards only the omnibar can (back to its settings search, K5's Undo). */
   onArrivalAction?: (action: MariArrivalAction) => void;
+  /** N6 (R22): the handoff an arrival Fix card sends with; the only arrival path that carries the error text. */
+  arrivalFixContext?: ProfessorMariAskContext | null;
   onChatWindowOpenChange?: (open: boolean) => void;
   onChatWindowExitComplete?: () => void;
 };
@@ -2897,6 +2899,7 @@ export function HomeProfessorMariChat({
   arrival = null,
   arrivalAppendRequest = 0,
   onArrivalAction,
+  arrivalFixContext = null,
   onChatWindowOpenChange,
   onChatWindowExitComplete,
 }: HomeProfessorMariChatProps) {
@@ -5510,7 +5513,11 @@ export function HomeProfessorMariChat({
     if (omnibarMode) closeChatWindow();
   };
 
-  const handleSuggestionSelect = (chip: MariSuggestionChip) => {
+  /**
+   * N4: a Mari card sends at once; `draft` (Shift, or a long press on touch) puts it in the composer
+   * instead. `context` replaces the handoff for that one card (N6: an arrival Fix card's error).
+   */
+  const handleSuggestionSelect = (chip: MariSuggestionChip, draft = false, context?: ProfessorMariAskContext) => {
     if (chip.id === MARI_AUTHORIZATION_ACCEPT_CHIP.id || chip.id === MARI_AUTHORIZATION_DECLINE_CHIP.id) {
       void handleSubmit(chip.prompt);
       return;
@@ -5534,6 +5541,11 @@ export function HomeProfessorMariChat({
       runSuggestionAction(chip.action);
       return;
     }
+    if (!draft) {
+      void handleSubmit(chip.prompt, undefined, context);
+      return;
+    }
+    if (context) setHandoffContext(context);
     setDraft((current) => (current.trim() ? `${current.trimEnd()} ${chip.prompt}` : chip.prompt));
     focusComposer();
   };
@@ -6377,10 +6389,14 @@ export function HomeProfessorMariChat({
                                     <div className="mari-arrival-content">
                                       <MariNextStepCards
                                         chips={arrival.cards}
-                                        onSelect={(card) =>
+                                        onSelect={(card, draft) =>
                                           card.action?.kind === "find-setting" || card.action?.kind === "undo-setting"
                                             ? onArrivalAction?.(card.action)
-                                            : handleSuggestionSelect(card as MariSuggestionChip)
+                                            : handleSuggestionSelect(
+                                                card as MariSuggestionChip,
+                                                draft,
+                                                (card.fix && arrivalFixContext) || undefined,
+                                              )
                                         }
                                         disabled={isBusy}
                                       />
@@ -6396,7 +6412,7 @@ export function HomeProfessorMariChat({
                                       <p>{localizeUi("ui.chat.homeprofessormarichat.emptyWelcomeDescription")}</p>
                                       <MariSuggestionChips
                                         chips={chipRowChips}
-                                        onSelect={handleSuggestionSelect}
+                                        onSelect={(chip) => handleSuggestionSelect(chip, true)}
                                         disabled={isBusy}
                                       />
                                     </div>
@@ -6564,10 +6580,14 @@ export function HomeProfessorMariChat({
                                     <div className="mari-arrival-content">
                                       <MariNextStepCards
                                         chips={appendedArrival.cards}
-                                        onSelect={(card) =>
+                                        onSelect={(card, draft) =>
                                           card.action?.kind === "find-setting" || card.action?.kind === "undo-setting"
                                             ? onArrivalAction?.(card.action)
-                                            : handleSuggestionSelect(card as MariSuggestionChip)
+                                            : handleSuggestionSelect(
+                                                card as MariSuggestionChip,
+                                                draft,
+                                                (card.fix && arrivalFixContext) || undefined,
+                                              )
                                         }
                                         disabled={isBusy}
                                       />
@@ -6625,7 +6645,8 @@ export function HomeProfessorMariChat({
                               <div className="mari-workspace-answer-strip">
                                 <MariSuggestionChips
                                   chips={chipRowChips}
-                                  onSelect={handleSuggestionSelect}
+                                  // N4 covers the next-step cards; the starter and plan/approval chips still draft.
+                                  onSelect={(chip) => handleSuggestionSelect(chip, true)}
                                   disabled={isBusy}
                                 />
                               </div>

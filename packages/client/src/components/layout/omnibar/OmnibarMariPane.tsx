@@ -30,6 +30,7 @@ export interface OmnibarMariPaneProps {
   /** Increments on every arrival-door open (⌘J, the pull, the drag, Home's "Ask Professor Mari"). */
   arrivalAppendRequest: number;
   onArrivalAction: (action: MariArrivalAction) => void;
+  arrivalFixContext: ProfessorMariAskContext | null;
 }
 
 export function OmnibarMariPane({
@@ -48,6 +49,7 @@ export function OmnibarMariPane({
   arrival,
   arrivalAppendRequest,
   onArrivalAction,
+  arrivalFixContext,
 }: OmnibarMariPaneProps) {
   const { t } = useTranslation();
   return (
@@ -84,6 +86,7 @@ export function OmnibarMariPane({
           arrival={arrival}
           arrivalAppendRequest={arrivalAppendRequest}
           onArrivalAction={onArrivalAction}
+          arrivalFixContext={arrivalFixContext}
           onChatWindowOpenChange={onChatWindowOpenChange}
         />
       </Suspense>

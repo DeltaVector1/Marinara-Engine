@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -28,6 +29,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { MariChipEntity, MariSuggestionAction, MariSuggestionChip } from "@marinara-engine/shared";
+import { mariCardIntent } from "../../lib/mari-arrival";
 import { cn } from "../../lib/utils";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
@@ -49,6 +51,9 @@ interface ChipFadeState {
   left: boolean;
   right: boolean;
 }
+
+// N4: how long a touch press on a Mari card waits before it drafts instead of sending.
+const CARD_LONG_PRESS_MS = 500;
 
 // Pointer travel before a press turns into a scroll drag. Small enough that flicking the row
 // feels immediate, large enough that a normal click on a chip never registers as a drag.
@@ -280,8 +285,9 @@ export function MariSuggestionChips({ chips, onSelect, disabled = false, compact
 }
 
 /**
- * M5b: what next, as cards under the finished turn (icon, label, one fact). A spark card asks Mari
- * (the caller puts its prompt in the composer); an arrow card has an `action` the caller runs at once.
+ * M5b: what next, as cards under the finished turn (icon, label, one fact). An arrow card has an
+ * `action` the caller runs at once. N4: a spark card asks Mari at once; with Shift held, or after a
+ * long press on touch, `draft` is true and the caller puts its prompt in the composer instead.
  */
 export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"> & { action?: { kind: string } }>({
   chips,
@@ -289,10 +295,19 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
   disabled = false,
 }: {
   chips: readonly Chip[];
-  onSelect: (chip: Chip) => void;
+  onSelect: (chip: Chip, draft: boolean) => void;
   disabled?: boolean;
 }) {
   const { t: localizeUi } = useUiTranslation();
+  const longPressRef = useRef<{ timer: ReturnType<typeof setTimeout> | null; fired: boolean }>({
+    timer: null,
+    fired: false,
+  });
+  const clearLongPress = () => {
+    if (longPressRef.current.timer) clearTimeout(longPressRef.current.timer);
+    longPressRef.current.timer = null;
+  };
+  useEffect(() => clearLongPress, []);
   if (chips.length === 0) return null;
   return (
     <div role="group" aria-label={localizeUi("ui.chat.marisuggestionchips.nextSteps")} className="mari-next-cards">
@@ -314,9 +329,35 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
             data-kind={chip.action ? "action" : "mari"}
             data-tone={chip.tone}
             style={{ "--i": index } as CSSProperties}
-            onClick={() => onSelect(chip)}
+            onPointerDown={(event) => {
+              clearLongPress();
+              longPressRef.current.fired = false;
+              if (event.pointerType !== "touch" || chip.action) return;
+              longPressRef.current.timer = setTimeout(() => {
+                longPressRef.current = { timer: null, fired: true };
+                onSelect(chip, mariCardIntent(chip, { longPress: true }) === "draft");
+              }, CARD_LONG_PRESS_MS);
+            }}
+            onPointerUp={clearLongPress}
+            onPointerCancel={clearLongPress}
+            onPointerLeave={clearLongPress}
+            // The long press already drafted: no system menu, and no trailing click that would send.
+            // A long press that ended without a click must not swallow a later keyboard activation.
+            onKeyDown={() => {
+              longPressRef.current.fired = false;
+            }}
+            onContextMenu={(event) => {
+              if (longPressRef.current.fired) event.preventDefault();
+            }}
+            onClick={(event) => {
+              if (longPressRef.current.fired) {
+                longPressRef.current.fired = false;
+                return;
+              }
+              onSelect(chip, mariCardIntent(chip, { shiftKey: event.shiftKey }) === "draft");
+            }}
             disabled={disabled}
-            title={kindLabel}
+            title={chip.action ? kindLabel : localizeUi("ui.chat.marisuggestionchips.asksMariHint")}
           >
             <span className="mari-next-card__icon" aria-hidden="true">
               <Icon size="0.875rem" />

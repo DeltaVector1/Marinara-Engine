@@ -11,7 +11,44 @@ import { formatRelativeContact } from "./relative-time";
 
 /** Two actions only the omnibar can run: back to its search on settings, and K5's Undo. */
 export type MariArrivalAction = MariSuggestionAction | { kind: "find-setting" } | { kind: "undo-setting" };
-export type MariArrivalCard = Omit<MariSuggestionChip, "action"> & { action?: MariArrivalAction };
+export type MariArrivalCard = Omit<MariSuggestionChip, "action"> & {
+  action?: MariArrivalAction;
+  /** N6 (R22): picking this card is the deliberate "fix" act, so only its send carries the live error text. */
+  fix?: true;
+};
+
+/** K1/L2: the "fix this" row a lastAppError points at: the connection, or the agent for a failed run. */
+export function mariFixRowId(
+  lastAppError: { retry?: { kind: "open-connection" | "open-agent"; id: string } } | null | undefined,
+): string | null {
+  const retry = lastAppError?.retry;
+  return retry ? `${retry.kind === "open-agent" ? "agent" : "connection"}:${retry.id}` : null;
+}
+
+/**
+ * N6 (R22): the row Mari is handed when nothing was picked. Never the Fix row, whose error text goes
+ * to her only on a deliberate pick; on an arrival, never the open chat either (it is its own facet).
+ */
+export function mariFallbackFocus<Row extends { id: string }>(
+  rows: readonly Row[],
+  fixRowId: string | null,
+  arrivalChatRowId?: string | null,
+): Row | null {
+  const first = rows[0] ?? null;
+  return first && (first.id === fixRowId || first.id === arrivalChatRowId) ? null : first;
+}
+
+/**
+ * N4: what a next-step card does. An action card acts at once; a Mari card sends its prompt at once,
+ * or drafts it into the composer when Shift is held (desktop) or the card is long-pressed (touch).
+ */
+export function mariCardIntent(
+  card: { action?: unknown },
+  modifiers: { shiftKey?: boolean; longPress?: boolean } = {},
+): "action" | "send" | "draft" {
+  if (card.action) return "action";
+  return modifiers.shiftKey || modifiers.longPress ? "draft" : "send";
+}
 
 export interface MariArrival {
   line: string;
@@ -134,15 +171,16 @@ export function buildMariArrival(context: OmnibarContext, data: MariArrivalData)
       );
     }
     if (failed) {
-      cards.push(
-        mari(
+      cards.push({
+        ...mari(
           "why-failed",
           t("mari.arrival.cards.whyFailed", "Why did the last run fail?"),
           `Why did the last ${agent.name} run fail, and how do I fix it?`,
           agent.lastError!.slice(0, 80),
           "Search",
         ),
-      );
+        fix: true,
+      });
     }
     if (agent.promptLength > 0) {
       cards.push(
@@ -316,8 +354,8 @@ export function buildMariArrival(context: OmnibarContext, data: MariArrivalData)
     const cards: MariArrivalCard[] = [];
     const cutOff = chat.lastReply?.finishReason === "length";
     if (cutOff || data.replyFailed) {
-      cards.push(
-        mari(
+      cards.push({
+        ...mari(
           "fix-reply",
           t("mari.arrival.cards.fixReply", "Fix the last reply"),
           data.replyFailed
@@ -328,7 +366,8 @@ export function buildMariArrival(context: OmnibarContext, data: MariArrivalData)
             : t("mari.arrival.cards.fixReplyCut", "It stopped mid-sentence"),
           "Pencil",
         ),
-      );
+        ...(data.replyFailed ? { fix: true as const } : {}),
+      });
     }
     if (chat.lorebooks.length > 0) {
       cards.push(

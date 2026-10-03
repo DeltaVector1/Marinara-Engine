@@ -114,6 +114,9 @@ import { buildOmnibarChatRows } from "../../packages/client/src/lib/omnibar-enti
 import {
   buildMariArrival,
   isMariReplyFailure,
+  mariCardIntent,
+  mariFallbackFocus,
+  mariFixRowId,
   type MariArrivalData,
 } from "../../packages/client/src/lib/mari-arrival.js";
 import {
@@ -497,7 +500,9 @@ assert.deepEqual(conversationRow.action, { kind: "start-chat", mode: "conversati
 assert.ok(newChatRows.every((row) => (row.id === "create-conversation" ? true : row.score < conversationRow.score)));
 assert.ok(unrelatedCreateCommands.every((command) => command.score < conversationRow.score));
 
-const newRpRow = buildOmnibarNewChatCommands({ query: "new rp", t: stubT }).find((row) => row.id === "create-roleplay")!;
+const newRpRow = buildOmnibarNewChatCommands({ query: "new rp", t: stubT }).find(
+  (row) => row.id === "create-roleplay",
+)!;
 const newRoleplayRow = buildOmnibarNewChatCommands({ query: "new roleplay", t: stubT }).find(
   (row) => row.id === "create-roleplay",
 )!;
@@ -507,7 +512,9 @@ const roleplayBaseline = buildOmnibarNewChatCommands({ query: "", t: stubT }).fi
 assert.ok(newRpRow.score > roleplayBaseline.score);
 assert.ok(newRoleplayRow.score > roleplayBaseline.score);
 
-const newGameRow = buildOmnibarNewChatCommands({ query: "new game", t: stubT }).find((row) => row.id === "create-game")!;
+const newGameRow = buildOmnibarNewChatCommands({ query: "new game", t: stubT }).find(
+  (row) => row.id === "create-game",
+)!;
 const gameBaseline = buildOmnibarNewChatCommands({ query: "", t: stubT }).find((row) => row.id === "create-game")!;
 assert.ok(newGameRow.score > gameBaseline.score);
 
@@ -1276,7 +1283,12 @@ assert.ok(!("mariDetailId" in mariSession));
 
 // Slice 41 (F2): "import" lists import rows, not create rows; "new" stays create-only.
 {
-  const createCharacter: OmnibarResult = { id: "create-character", title: "Create Character", category: "character", score: 1 };
+  const createCharacter: OmnibarResult = {
+    id: "create-character",
+    title: "Create Character",
+    category: "character",
+    score: 1,
+  };
   const createPersona: OmnibarResult = { id: "create-persona", title: "Create Persona", category: "persona", score: 1 };
   const importData: OmnibarResult = { id: "import-data", title: "Import data", category: "data", score: 1 };
   const verbInput = { allLocalResults: [createCharacter, createPersona, importData] };
@@ -1300,7 +1312,15 @@ assert.ok(!("mariDetailId" in mariSession));
     activeChat: null,
     activeChatId: null,
     agents: [],
-    allLocalResults: [{ id: "connection:conn1", title: "My Connection", category: "connection", score: 0, description: "openai" } as OmnibarResult],
+    allLocalResults: [
+      {
+        id: "connection:conn1",
+        title: "My Connection",
+        category: "connection",
+        score: 0,
+        description: "openai",
+      } as OmnibarResult,
+    ],
     characterById: new Map(),
     connectionById: new Map([["conn1", { id: "conn1", provider: "openai" }]]) as never,
     connections: [{ id: "conn1", name: "My Connection", provider: "openai" }] as never,
@@ -2559,16 +2579,93 @@ assert.ok(!("mariDetailId" in mariSession));
   const empty = buildMariArrival(chatContext, chatData({ messageCount: 0, lastReply: null, lorebooks: [] }))!;
   assert.ok(empty.cards.length >= 2 && empty.cards.length <= 4, "an empty chat still gets 2-4 cards");
 
+  // N6 (R22): the arrival may say a reply failed, but the error text reaches Mari only through a
+  // deliberate Fix pick. The omnibar hands her `mariFallbackFocus` when nothing was picked, and
+  // attaches the error only when the focus is the Fix row (GlobalOmnibar `buildAskContext`).
+  const liveError = {
+    message: "SECRET-ERROR 401 invalid key",
+    retry: { kind: "open-connection" as const, id: "conn-1" },
+  };
+  const fixRowId = mariFixRowId(liveError);
+  assert.equal(fixRowId, "connection:conn-1");
+  assert.equal(mariFixRowId({ retry: { kind: "open-agent", id: "illustrator" } }), "agent:illustrator");
+  assert.equal(mariFixRowId(null), null);
+  const arrivalRows = [
+    { id: "connection:conn-1", title: "Fix: Generate reply failed", category: "connection" as const },
+    { id: "chat:chat-1", title: "Neon Harbor", category: "chat" as const },
+  ];
+  const askPayload = (message: string, focus: (typeof arrivalRows)[number] | null) =>
+    buildProfessorMariCommandCenterContext(message, focus, [], focus?.id, {
+      activeChat: { id: "chat-1", label: "Neon Harbor", mode: "roleplay" },
+      error: focus?.id === fixRowId ? { message: liveError.message } : undefined,
+      source: focus?.id === fixRowId ? "chat-error" : undefined,
+    });
+  const arrivalFocus = mariFallbackFocus(arrivalRows, fixRowId, "chat:chat-1");
+  assert.equal(arrivalFocus, null, "an arrival with a live error never falls back to the Fix row");
+  assert.equal(
+    mariFallbackFocus(arrivalRows, fixRowId),
+    null,
+    "nor does any other unpicked door (Ask Mari row, aside)",
+  );
+  assert.equal(
+    mariFallbackFocus(arrivalRows.slice(1), fixRowId)?.id,
+    "chat:chat-1",
+    "without a Fix row the first row stays",
+  );
+  const typedAfterArrival = askPayload("how do I add a lorebook?", arrivalFocus);
+  assert.ok(
+    !JSON.stringify(typedAfterArrival).includes("SECRET-ERROR"),
+    "an unrelated typed question carries no error text",
+  );
+  assert.equal(typedAfterArrival.source, "command-center");
+  const pickedFix = askPayload("", arrivalRows[0]!);
+  assert.equal(pickedFix.source, "chat-error", "a deliberate Fix pick opens through the chat-error door");
+  assert.equal(pickedFix.error?.message, liveError.message, "and only then carries the error text");
+  assert.equal(
+    failed.cards.find((card) => card.id === "arrival:fix-reply")?.fix,
+    true,
+    "the failed reply's Fix card is the deliberate pick",
+  );
+  assert.equal(
+    chat.cards.find((card) => card.id === "arrival:fix-reply")?.fix,
+    undefined,
+    "a cut-off reply has no error to carry",
+  );
+  assert.ok(failed.cards.filter((card) => card.fix).length === 1, "no other arrival card carries the error");
+  assert.ok(
+    !JSON.stringify(failed).includes("SECRET-ERROR"),
+    "the arrival itself holds names only, never the error text",
+  );
+
+  // N4: a Mari card sends at once; Shift (desktop) or a long press (touch) drafts it; an action card acts.
+  const sparkCard = failed.cards.find((card) => !card.action)!;
+  const actionCard = failed.cards.find((card) => card.action)!;
+  assert.equal(mariCardIntent(sparkCard), "send", "a Mari card sends its prompt at once");
+  assert.equal(mariCardIntent(sparkCard, { shiftKey: true }), "draft", "Shift-click drafts instead");
+  assert.equal(mariCardIntent(sparkCard, { longPress: true }), "draft", "a long press drafts instead");
+  assert.equal(mariCardIntent(actionCard), "action", "an action card still acts at once");
+  assert.equal(mariCardIntent(actionCard, { shiftKey: true }), "action", "Shift never turns an action into a draft");
+
   // D1: an arrival door should still show the arrival (appended at the transcript's bottom) when her
   // chat already has messages, not only when it is empty — otherwise ⌘J's "ask Mari about this" on a
   // return visit shows nothing but old history.
   assert.equal(
-    shouldAppendMariArrival({ omnibarMode: true, messageCount: 4, chatId: "mari-chat-1", loadedMessagesChatId: "mari-chat-1" }),
+    shouldAppendMariArrival({
+      omnibarMode: true,
+      messageCount: 4,
+      chatId: "mari-chat-1",
+      loadedMessagesChatId: "mari-chat-1",
+    }),
     true,
     "a chat with history, loaded, in the omnibar: show the appended arrival",
   );
   assert.equal(
-    shouldAppendMariArrival({ omnibarMode: true, messageCount: 0, chatId: "mari-chat-1", loadedMessagesChatId: "mari-chat-1" }),
+    shouldAppendMariArrival({
+      omnibarMode: true,
+      messageCount: 0,
+      chatId: "mari-chat-1",
+      loadedMessagesChatId: "mari-chat-1",
+    }),
     false,
     "an empty chat keeps the existing empty-state arrival instead, not the appended one",
   );
@@ -2578,7 +2675,12 @@ assert.ok(!("mariDetailId" in mariSession));
     "her history has not loaded yet: wait rather than append over a stale list",
   );
   assert.equal(
-    shouldAppendMariArrival({ omnibarMode: false, messageCount: 4, chatId: "mari-chat-1", loadedMessagesChatId: "mari-chat-1" }),
+    shouldAppendMariArrival({
+      omnibarMode: false,
+      messageCount: 4,
+      chatId: "mari-chat-1",
+      loadedMessagesChatId: "mari-chat-1",
+    }),
     false,
     "a normal (non-omnibar) continue-chatting surface never appends the arrival",
   );

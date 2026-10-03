@@ -71,10 +71,16 @@ Rules that must survive:
   chat travels as its outlined chat chip, not also as a "Current chat"
   resource) and, while her chat is empty, shows the arrival instead of the
   generic welcome: her sprite, one line, the facts, reference cards and 2-4
-  next-step cards (`MariNextStepCards`; a spark card fills the composer and is
-  labeled "Drafts a message", an arrow card acts at once and is labeled "Opens
-  now" — both as visible text next to the icon, not only `title`/screen-reader
-  text, so the kind is clear before the click (F7/b2, slice 41)). `buildMariArrival` (`lib/mari-arrival.ts`, pure,
+  next-step cards (`MariNextStepCards`; a spark card sends its prompt to Mari at
+  once and is labeled "Asks Mari" — Shift-click or a touch long-press drafts it
+  into the composer instead (N4, slice 45, `mariCardIntent`) — an arrow card acts
+  at once and is labeled "Opens now"; both labels are visible text next to the
+  icon, not only `title`/screen-reader text, so the kind is clear before the
+  click (F7/b2, slice 41)). N6 (R22): the arrival never falls back to the "Fix"
+  row as its focus (`mariFallbackFocus`), so a typed question after an arrival
+  carries no error text; only the failed-reply "Fix the last reply" card and the
+  agent's "Why did the last run fail" card (`fix: true`) send with the error,
+  through the same `chat-error` handoff as a deliberate pick of the Fix row. `buildMariArrival` (`lib/mari-arrival.ts`, pure,
   pinned per surface by the command-center regression) builds it on the client
   from `createOmnibarContext`, the chat store, cached query data and
   `lastAppError`; it gets names, counts and times only, never message text,
@@ -141,7 +147,8 @@ Rules that must survive:
     composer: icon, label, and one fact line from the server's `detail` (bounded to
     80 characters by `sanitizeMariSuggestionChips`; the prompt asks for a real fact
     such as "3 messages since your last summary", never a generic description). A
-    spark card asks Mari: it puts its prompt in the composer. An arrow card has an
+    spark card asks Mari: it sends its prompt at once (N4, slice 45); Shift-click or
+    a touch long-press (500 ms) puts it in the composer to edit first. An arrow card has an
     `action` (`MariSuggestionAction`: open a character/persona/preset/lorebook/agent,
     open a chat, start a chat with a character, open a list panel such as
     Connections, Peek prompt) and runs it at once through `executeStateNavigation`
@@ -297,7 +304,7 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Lorebook entries (name, keys, content)                                         | `buildOmnibarLorebookEntryResults`                                                            | Server-backed (`GET /api/lorebooks/search/entries?q=&limit=`), same typing pause and 3-character minimum as message search, with no scope or `lore:`. Choosing one opens the lorebook on Entries with that entry expanded and scrolled to. `⌘↵` on the row (or typing "why didn't X fire") hands Mari the entry's id plus the active chat; she calls the read-only `lorebook.testScan` action (wraps the same scanner the "Test" tool and real generations use) and answers with the exact gate reason and the setting to change, never the scanned chat text |
 | Professor Mari's own conversations                                             | `buildOmnibarMariChatResults`                                                                 | They sit behind an internal marker and are absent from the chat list                                                                                                                                                                                                                                                             |
 | Slash commands                                                                 | `buildOmnibarSlashResults`                                                                    | Chat surface only. Choosing one types it into the chat input rather than running it, so arguments stay visible                                                                                                                                                                                                                   |
-| Context rows                                                                   | `buildOmnibarContextResults`                                                                  | "What am I on?": the open editor, the current chat and everything attached to it, the last error, an unfinished creation session. A failed reply's "Fix: Generate reply failed" row and a failed agent run's "Fix: Run <agent name> failed" row (keyed on `agent:<type>`, Enter opens the agent editor) are the only rows that hand Mari the error through the `chat-error` source door (`GlobalOmnibar.tsx`'s `buildAskContext`); every other unasked Mari call carries no user content |
+| Context rows                                                                   | `buildOmnibarContextResults`                                                                  | "What am I on?": the open editor, the current chat and everything attached to it, the last error, an unfinished creation session. A failed reply's "Fix: Generate reply failed" row and a failed agent run's "Fix: Run <agent name> failed" row (keyed on `agent:<type>`, Enter opens the agent editor) are the only rows that hand Mari the error through the `chat-error` source door (`GlobalOmnibar.tsx`'s `buildAskContext`), and only when picked deliberately (⌘↵ on the row, or the arrival's Fix card); a door that picks nothing (the arrival, the "Ask Mari" row, the aside's ⌘↵) never falls back to them (`mariFallbackFocus`, N6); every other unasked Mari call carries no user content |
 | Chat tool rows (chat surface)                                                  | `buildOmnibarContextResults`                                                                  | Search this chat, Active lorebook entries, Peek prompt, Summary (roleplay only) and Regenerate reply. Each dispatches a `chat-floating-ui-events.ts` request the chat's own toolbar/composer already listens for, so the row opens or runs the existing UI — nothing new behind it. Continue is already reachable via the idle `/continue` slash row, so it gets no new row. Game mode gets only Active lorebook entries and Peek prompt: it has its own turn-retry reset (`GameSurface`'s `handleRetryTurn`) instead of plain Regenerate, and no listener for Search this chat |
 | Idle rows                                                                      | `buildOmnibarIdleResults`                                                                     | Unfinished setup first (capped at 2), then recents, then surface commands                                                                                                                                                                                                                                                        |
 | Intent shortcuts                                                               | `buildOmnibarIntentShortcuts`                                                                 | "new character Bob" / "create a lorebook called Silver Court" open the create window with the typed name (casing kept); "chat with Shrek" / "new chat Dottore" / "talk to Eliza" open the start-chat window for each character whose name the text starts (up to three). Current-work group; nothing is created from the omnibar |
