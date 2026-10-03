@@ -16,7 +16,7 @@ Decision 모델은 한 종류의 질문에 답합니다. 채팅의 최근 메시
 - **[프롬프트 판정문](../prompts/conditional-prompts.md#asking-the-decision-model)**은 채팅이나 에이전트 프롬프트를 준비할 때 텍스트를 선택합니다. 답이 없으면 아니요로 처리하므로 단순 판정 블록은 `{{else}}` 분기가 있으면 그 분기를 사용합니다.
 - **[로어북 Decision 필드](../lorebooks/entries.md#decision-activation)**는 채팅의 로어북 스캔 중 Require나 Trigger를 확인합니다. 답이 없으면 Require는 새 항목을 통과시키지 못하고 Trigger는 활성화 경로를 추가하지 않습니다. 기존 Sticky 유지와 Trigger 항목의 일반 활성화 경로는 계속 적용됩니다.
 - **[Smart 응답 순서](../chats/group-chats.md#response-order-individual-only)**는 켜져 있을 때 그룹 채팅의 다음 발언자를 평가합니다. 답이 없으면 Smart 순서가 원래의 AI 호출을 사용합니다.
-- **[Advanced Memory Recall](../agents/memory.md#optional-jev-decisions)**은 Roleplay의 장면 경계와 기억 선택에 별도의 판단 연결을 사용할 수 있습니다. 해당 채팅의 Advanced Memory 설정에서 **Use Decision model (Jev)**를 켜세요. 요약은 보조 모델이 작성합니다. 판단에 실패하면 일반 회상이나 장면 검사를 사용합니다.
+- **[Advanced Memory Recall](../agents/memory.md#optional-decision-model)**은 Roleplay의 장면 경계와 기억 선택에 별도의 판단 연결을 사용할 수 있습니다. 해당 채팅의 Advanced Memory 설정에서 **Use Decision model**을 켜세요. 요약은 보조 모델이 작성합니다. 판단에 실패하면 일반 회상이나 장면 검사를 사용합니다.
 
 활성화 질문은 에이전트의 실행 여부를 제어하고, 프롬프트 안의 판정문은 실행 중인 에이전트에 전달할 내용을 제어합니다. 예/아니요 프롬프트 조건에는 `{{#if decision:"..."}}`을, 여러 답 중 선택에는 `{{#if decision_choice:"..." == "..."}}`을 사용하세요.
 
@@ -35,7 +35,7 @@ Decision 모델은 한 종류의 질문에 답합니다. 채팅의 최근 메시
 - 문장의 매크로를 먼저 치환하므로 `{{char}}`은 캐릭터 이름으로 전달됩니다.
 - 메시지가 모델 예산에 들어가지 않으면 오래된 메시지부터 제외합니다. 호스팅 예산은 [Decision 연결 설정하기](#set-up-a-decision-connection)를 참고하세요.
 
-**Advanced Memory는 채팅별 전용 연결을 사용합니다.** 장면 검사는 관련 기록 범위를 읽습니다. 회상은 캐릭터 접근 권한을 확인한 뒤 최근 대화와 접근 가능한 보관 요약 또는 원문 후보를 전송하며, 최근 5개 메시지 규칙을 적용하지 않습니다. 호스팅 제공자는 이 텍스트를 여러 제한된 묶음으로 받을 수 있습니다. 응답 전 회상은 총 10초가 지나면 대체 처리로 전환합니다. [선택 사항인 Jev 판단](../agents/memory.md#optional-jev-decisions)을 참고하세요.
+**Advanced Memory는 채팅별 전용 연결을 사용합니다.** 장면 검사는 관련 기록 범위를 읽습니다. 회상은 캐릭터 접근 권한을 확인한 뒤 최근 대화와 접근 가능한 보관 요약 또는 원문 후보를 전송하며, 최근 5개 메시지 규칙을 적용하지 않습니다. 호스팅 제공자는 이 텍스트를 여러 제한된 묶음으로 받을 수 있습니다. 응답 전 회상은 총 10초가 지나면 대체 처리로 전환합니다. [선택 사항인 Decision 모델](../agents/memory.md#optional-decision-model)을 참고하세요.
 
 ## Decision 모델 선택하기
 
@@ -103,8 +103,8 @@ Marinara는 예/아니요 질문 하나를 보내 토큰 하나를 생성하게 
 ## Decision 연결 설정하기
 
 1. **Connections**에서 제공자를 **Decision**으로 지정해 연결을 만드세요.
-2. **TypeSafe**, **OpenRouter**, **Custom System One endpoint**(사용자 지정 System One 엔드포인트) 또는 **OpenAI-compatible chat model**을 선택하세요. 호스팅 소스에는 API 키가 필요합니다. Custom은 Open-Jev를 포함한 기존 System One 서버를 지원합니다. `/v1/systemone` 없는 기본 URL과 지원하는 모델 이름을 입력하세요. Ollama나 LM Studio 같은 채팅 모델 서버는 System One을 사용하지 않습니다. [이미 실행 중인 서버에서 사용하기](#on-a-server-you-already-run)에 따라 **OpenAI-compatible chat model**을 선택하세요.
-3. OpenRouter는 **API key source**(API 키 소스)에서 저장된 연결을 선택하거나 별도 키를 입력하세요. 편집기의 **Use this key for decisions (Jev)**(이 키를 결정에 사용)도 이용할 수 있습니다. 연결된 키는 이후 변경을 자동으로 반영합니다. Custom System One 및 OpenAI-compatible chat model 연결은 두 URL의 출처(스킴, 호스트, 포트)가 같을 때만 사용자 지정 채팅 연결의 키를 빌릴 수 있습니다.
+2. **TypeSafe**, **OpenRouter**, **Custom System One endpoint**(사용자 지정 System One 엔드포인트) 또는 **OpenAI-compatible chat model**을 선택하세요. 호스팅 소스에는 API 키가 필요합니다. Custom은 Open-Jev나 [Strands decider](#run-strands-decider-yourself)를 포함한 기존 System One 서버를 지원합니다. `/v1/systemone` 없는 기본 URL과 지원하는 모델 이름을 입력하세요. Ollama나 LM Studio 같은 채팅 모델 서버는 System One을 사용하지 않습니다. [이미 실행 중인 서버에서 사용하기](#on-a-server-you-already-run)에 따라 **OpenAI-compatible chat model**을 선택하세요.
+3. OpenRouter는 **API key source**(API 키 소스)에서 저장된 연결을 선택하거나 별도 키를 입력하세요. 편집기의 **Use this key for decisions**(이 키를 결정에 사용)도 이용할 수 있습니다. 이 옵션으로 OpenRouter를 통해 Jev를 설정합니다. 연결된 키는 이후 변경을 자동으로 반영합니다. Custom System One 및 OpenAI-compatible chat model 연결은 두 URL의 출처(스킴, 호스트, 포트)가 같을 때만 사용자 지정 채팅 연결의 키를 빌릴 수 있습니다.
 4. 저장하고 **Decision model**에서 선택한 뒤 **Test**를 클릭하세요. 성공하면 확률, 응답 시간과 연결의 시간 제한을 보여 줍니다. Test는 최소 10초를 기다리고 제한이 더 길면 그보다 5초 더 기다리므로 느린 답도 실제 시간으로 보고합니다. 제한을 넘겼다면 결과에 표시합니다. 채팅에서는 그 답을 답 없음으로 처리합니다.
 
 Decision 기본값은 채팅, 에이전트, 이미지, 동영상, 오디오 기본값과 별개입니다. **None**을 선택하면 활성화 질문이나 판정문을 삭제하지 않고 판정을 끕니다.
@@ -114,6 +114,27 @@ Decision 기본값은 채팅, 에이전트, 이미지, 동영상, 오디오 기�
 **Time limit (seconds)**(시간 제한, 초)는 채팅 중 Decision 연결이 각 문의 응답을 기다리는 시간입니다. 범위는 0.5~30초이고 기본값은 1.5초, **OpenAI-compatible chat model** 연결은 4초입니다. 한 요청에 여러 문이 있으면 각 문에 이 시간이 주어집니다. 늦은 응답은 응답 없음으로 처리됩니다. 호스팅 제공자가 가끔 1.5초를 넘기면 Decision이 무작위로 실패하는 것처럼 보일 수 있습니다. **Test**를 여러 번 실행하고 가장 느린 응답보다 제한을 높이세요. 다만 프리셋의 Decision이나 답변 전에 실행되는 에이전트의 활성화 질문처럼 답변 전 평가되는 문은 각각 이 시간만큼 답변을 지연시킬 수 있습니다.
 
 연결한 키의 원본 연결을 삭제하면 경고가 나오고 Decision 연결에 다시 연결해야 합니다. 독립 연결 파일을 가져온 경우도 키나 링크를 복원해야 합니다. 파일에는 API 키나 빌린 연결 ID가 들어 있지 않습니다.
+
+<a id="run-strands-decider-yourself"></a>
+
+### Strands decider 직접 실행하기
+
+[Strands decider 2B](https://huggingface.co/StrandsAgents/strands-decider-2B-hobson-v19)는 System One을 지원하는 또 다른 공개 Decision 모델(Apache-2.0)입니다. Marinara에서 설치할 수는 없지만, 직접 실행한 상태로 유지하면 **Custom System One endpoint**로 사용할 수 있습니다.
+
+1. Python 3.10 이상 환경에서 설치하고 서버를 시작하세요.
+
+   ```bash
+   pip install strands-decider
+   strands-decider serve StrandsAgents/strands-decider-2B-hobson-v19 --port 8000
+   ```
+
+   NVIDIA GPU나 Apple silicon이 있으면 사용하고, 없으면 프로세서에서 더 느리게 실행됩니다. 처음 시작할 때 모델과 약 4.6 GB의 기본 가중치를 다운로드하며, Python 패키지는 약 5.5 GB를 차지합니다. 서버에 비밀번호가 없으므로 `127.0.0.1`에서만 실행하세요.
+2. 소스가 **Custom System One endpoint**이고 기본 URL이 `http://127.0.0.1:8000`인 Decision 연결을 만드세요. 모델 이름은 무엇이든 사용할 수 있습니다.
+3. **Decision model**에서 이 연결을 선택하고 **Test**를 클릭하세요. 시작 후 첫 응답은 약 2초로 기본 **Time limit**보다 오래 걸리므로, 채팅 전에 한 번 테스트하세요.
+
+확률이 보정되어 있으므로 자체 호스팅 Open-Jev와 달리 사용자 지정 연결의 기본 임계값 0.5가 적합합니다([임계값](#thresholds) 참고). RTX 5090에서 80개 문장을 사용한 소규모 Roleplay 테스트에서는 Open-Jev 2B의 74개에 비해 73개를 맞혔고, GPU 메모리를 약 5.1 GB(4.7 GiB) 사용했습니다. 문장 1~8개에 0.04~0.1초가 걸렸으며, Open-Jev 2B는 0.1~0.14초가 걸렸습니다. 긴 채팅에서는 둘 다 약 0.3초가 걸렸습니다. 답변이 문구에 더 크게 좌우되므로 [문장 작성하기](../prompts/conditional-prompts.md#writing-statements)를 따르고 자신의 채팅 턴으로 테스트하세요.
+
+이 모델과 Decision sidecar 사이를 전환하려면 **Decision model**에서 둘 중 하나를 선택하세요. 두 설정은 모두 유지됩니다.
 
 <a id="let-marinara-install-a-decision-model"></a>
 

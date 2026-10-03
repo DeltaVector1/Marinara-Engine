@@ -98,10 +98,11 @@ Marinara 的部分容器构建版本叫 Marinara Lite，它把 Memory Recall 完
 在**Access memories for this chat**中打开摘要，选择底部的**Delete summary**(删除摘要)，确认摘要及受众。旧版**Continuity**(连续性)和**Ongoing scene**(进行中场景)条目也支持删除。常规准备不会重新生成已删除的场景摘要。原始消息保持完整。新常驻摘要位于**Chat Summaries**，复用现有编辑、启用、合并和删除功能；记忆库中的旧版连续性不再作为额外常驻摘要使用。
 
 <a id="optional-jev-decisions"></a>
+<a id="optional-decision-model"></a>
 
-### 可选的Jev决策
+### 可选的 Decision 模型
 
-在Advanced Memory中启用**Use Decision model (Jev)**(使用决策模型)，然后选择已保存的**Memory Decision connection**(记忆决策连接)。在**Connections**中使用TypeSafe、OpenRouter或兼容的决策来源创建连接，参见[决策模型](../connections/decision-models.md)。此选项默认关闭，按Roleplay聊天保存。所选连接独立于全局默认决策模型。
+在Advanced Memory中启用**Use Decision model**(使用决策模型)，然后选择已保存的**Memory Decision connection**(记忆决策连接)。在**Connections**中使用TypeSafe、OpenRouter或兼容的决策来源创建连接，参见[决策模型](../connections/decision-models.md)。此选项默认关闭，按Roleplay聊天保存。所选连接独立于全局默认决策模型。
 
 所选模型在历史准备和聊天期间的检查中识别场景边界，并在新回复前选择相关的场景摘要和原文摘录。边界不确定时，场景会保持开放。所有摘要和连续性更新仍由**Helper model**撰写。场景数量、摘录长度、角色访问权限和词元预算仍遵循现有限制。有效的决策也可以不选择任何记忆。
 
@@ -109,7 +110,7 @@ Marinara 的部分容器构建版本叫 Marinara Lite，它把 Memory Recall 完
 
 回忆决策的总时限为10秒。连接缺失、答案不完整、候选内容过大、错误或超时都会回退到普通回忆；场景决策不可用时则使用现有场景检查。启用期间，准备过程只建立文本索引，不创建新嵌入。已有向量仍可用于回退搜索。关闭后，如需为决策模式下准备的记录生成嵌入，请使用**Reindex**。
 
-提示词检查仍为只读，使用普通回忆进行预览，不调用决策服务。在 **Peek Prompt → Decision diagnostics**(Peek Prompt → 决策诊断) 中，**Advanced Memory activity**(Advanced Memory 活动) 会显示最近一次检索和场景结束检查的已保存结果：模型、用时、分数、选中的记忆或结束位置，以及备用处理状态。报告从本次更新后的新调用开始记录，每份最多保留 128 个结果，选中的结果优先。这是过去的活动记录，不是对预览的预测；打开面板或测试提示词语句不会重新执行记忆决策。Jev 场景结束检查始终使用独立请求，与追踪器和智能体的批量请求分开。回忆记录会标明决策及回退情况。兼容的回复变体和续写会复用已保存的选择；更改这些设置会使不兼容的记忆快照失效。
+提示词检查仍为只读，使用普通回忆进行预览，不调用决策服务。在 **Peek Prompt → Decision diagnostics**(Peek Prompt → 决策诊断) 中，**Advanced Memory activity**(Advanced Memory 活动) 会显示最近一次检索和场景结束检查的已保存结果：模型、用时、分数、选中的记忆或结束位置，以及备用处理状态。报告从本次更新后的新调用开始记录，每份最多保留 128 个结果，选中的结果优先。这是过去的活动记录，不是对预览的预测；打开面板或测试提示词语句不会重新执行记忆决策。Decision 模型的场景结束检查始终使用独立请求，与追踪器和智能体的批量请求分开。回忆记录会标明决策及回退情况。兼容的回复变体和续写会复用已保存的选择；更改这些设置会使不兼容的记忆快照失效。
 
 ### 聊天过程
 

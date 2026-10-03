@@ -16,7 +16,7 @@ Decisionモデルは、特定の種類の問いに答えます。チャットの
 - **[プロンプト内の判定文](../prompts/conditional-prompts.md#asking-the-decision-model)**は、チャットやエージェントのプロンプトを準備するときにテキストを選びます。回答がなければ判定はいいえとなり、単純な判定ブロックは`{{else}}`分岐があればそれを使います。
 - **[ロアブックのDecision欄](../lorebooks/entries.md#decision-activation)**は、チャットのロアブックスキャン中にRequireまたはTriggerを確認します。回答がなければRequireは新しいエントリーを通せず、Triggerは起動経路を追加しません。既存のStickyによる保持と、Triggerエントリーの通常の起動経路は引き続き適用されます。
 - **[Smart応答順](../chats/group-chats.md#response-order-individual-only)**は、有効な場合、グループチャットで次に誰が話すかを採点します。回答がなければSmart順序は通常のAI呼び出しを行います。
-- **[Advanced Memory Recall](../agents/memory.md#optional-jev-decisions)**はRoleplayのシーン境界と記憶選択に別の判断接続を使用できます。そのチャットのAdvanced Memory設定で**Use Decision model (Jev)**をオンにしてください。要約は引き続き補助モデルが作成します。判断に失敗すると通常の記憶検索またはシーン確認に戻ります。
+- **[Advanced Memory Recall](../agents/memory.md#optional-decision-model)**はRoleplayのシーン境界と記憶選択に別の判断接続を使用できます。そのチャットのAdvanced Memory設定で**Use Decision model**をオンにしてください。要約は引き続き補助モデルが作成します。判断に失敗すると通常の記憶検索またはシーン確認に戻ります。
 
 起動質問はエージェントを実行するかを制御し、プロンプト内の判定文は、実行中のエージェントに何を伝えるかを制御します。はい・いいえのプロンプト条件には`{{#if decision:"..."}}`を、複数の回答からの選択には`{{#if decision_choice:"..." == "..."}}`を使います。
 
@@ -35,7 +35,7 @@ Decisionモデルは、特定の種類の問いに答えます。チャットの
 - 判定文のマクロは先に展開されるため、`{{char}}`はキャラクター名として渡ります。
 - メッセージがモデルの予算に収まらない場合は、古いメッセージから除外します。ホスト型の予算は[Decision接続の設定](#set-up-a-decision-connection)を参照してください。
 
-**Advanced Memoryはチャットごとの専用接続を使います。**シーン確認は関連する履歴の範囲を読み取ります。記憶検索はキャラクターのアクセス権を確認したうえで最近の会話とアクセス可能な過去の要約や原文候補を送ります。直近5件という固定ルールは適用されません。ホスト型プロバイダーには複数の制限付きバッチでこれらのテキストが送られる場合があります。返信前の検索は合計10秒で代替処理に切り替わります。[任意のJev判断](../agents/memory.md#optional-jev-decisions)を参照してください。
+**Advanced Memoryはチャットごとの専用接続を使います。**シーン確認は関連する履歴の範囲を読み取ります。記憶検索はキャラクターのアクセス権を確認したうえで最近の会話とアクセス可能な過去の要約や原文候補を送ります。直近5件という固定ルールは適用されません。ホスト型プロバイダーには複数の制限付きバッチでこれらのテキストが送られる場合があります。返信前の検索は合計10秒で代替処理に切り替わります。[任意のDecisionモデル](../agents/memory.md#optional-decision-model)を参照してください。
 
 ## Decisionモデルの選択
 
@@ -103,8 +103,8 @@ Ollama、LM Studio、llama.cppなどのOpenAI互換サーバーですでに動�
 ## Decision接続の設定
 
 1. **Connections**で、プロバイダーが**Decision**の接続を作成します。
-2. **TypeSafe**、**OpenRouter**、**Custom System One endpoint**(カスタムSystem Oneエンドポイント)、**OpenAI-compatible chat model**から選びます。ホスト型にはAPIキーが必要です。CustomではOpen-Jevなど稼働中のSystem Oneサーバーを使えます。`/v1/systemone`を含まないベースURLと対応モデル名を入力します。OllamaやLM StudioなどのチャットモデルサーバーはSystem Oneに対応しません。[稼働中のサーバーでの利用](#on-a-server-you-already-run)に従って**OpenAI-compatible chat model**を選んでください。
-3. OpenRouterでは**API key source**(APIキーの取得元)で保存済み接続を選ぶか、別のキーを入力します。接続エディターの**Use this key for decisions (Jev)**(このキーをDecisionに使用)も利用できます。リンクしたキーは後からの変更に自動追従します。Custom System One接続とOpenAI-compatible chat model接続がカスタムチャット接続のキーを借りられるのは、両方のURLが同一オリジン(スキーム、ホスト、ポート)の場合だけです。
+2. **TypeSafe**、**OpenRouter**、**Custom System One endpoint**(カスタムSystem Oneエンドポイント)、**OpenAI-compatible chat model**から選びます。ホスト型にはAPIキーが必要です。CustomではOpen-Jevや[Strands decider](#run-strands-decider-yourself)など稼働中のSystem Oneサーバーを使えます。`/v1/systemone`を含まないベースURLと対応モデル名を入力します。OllamaやLM StudioなどのチャットモデルサーバーはSystem Oneに対応しません。[稼働中のサーバーでの利用](#on-a-server-you-already-run)に従って**OpenAI-compatible chat model**を選んでください。
+3. OpenRouterでは**API key source**(APIキーの取得元)で保存済み接続を選ぶか、別のキーを入力します。接続エディターの**Use this key for decisions**(このキーをDecisionに使用)も利用できます。これを使うとOpenRouter経由でJevを設定できます。リンクしたキーは後からの変更に自動追従します。Custom System One接続とOpenAI-compatible chat model接続がカスタムチャット接続のキーを借りられるのは、両方のURLが同一オリジン(スキーム、ホスト、ポート)の場合だけです。
 4. 保存後、**Decision model**で選択して**Test**をクリックします。成功すると確率、回答までの時間、接続の制限時間が表示されます。Testは最低10秒、制限時間がそれより長い場合はその5秒後まで待つため、遅い回答も実際の所要時間で報告されます。制限時間を超えた場合はその旨が表示され、チャットでは回答なしとして扱われることがわかります。
 
 Decisionのデフォルトは、チャット、エージェント、画像、動画、音声のデフォルトとは別です。**None**を選ぶと、起動質問や判定文を削除せずに判定をオフにできます。
@@ -114,6 +114,27 @@ Decisionのデフォルトは、チャット、エージェント、画像、動
 **Time limit (seconds)**(制限時間、秒)はチャット中に各Decision接続が文ごとの回答を待つ時間です。0.5～30秒で、既定は1.5秒、**OpenAI-compatible chat model**接続では4秒です。1回のリクエストに複数の文がある場合、それぞれにこの時間が割り当てられます。遅れた回答は回答なしと扱います。ホスト型プロバイダーは時々1.5秒を超え、Decisionが不規則に失敗するように見えることがあります。**Test**を数回実行し、最も遅い回答より長い制限にしてください。ただし、プリセット内のDecisionや返信前に動くエージェントの起動質問など、返信前に判定する文は、それぞれ最大でこの時間だけ返信を遅らせます。
 
 リンクしたキーの提供元接続を削除すると警告が表示され、Decision接続は再リンクが必要になります。単体の接続ファイルをインポートした場合も、キーまたはリンクを復元する必要があります。これらのファイルにはAPIキーも借用元接続IDも含まれません。
+
+<a id="run-strands-decider-yourself"></a>
+
+### Strands deciderのセルフホスト
+
+[Strands decider 2B](https://huggingface.co/StrandsAgents/strands-decider-2B-hobson-v19)は、System Oneに対応した別のオープンなDecisionモデル(Apache-2.0)です。Marinaraからはインストールできませんが、自分で起動したままにすれば**Custom System One endpoint**として利用できます。
+
+1. Python 3.10以降の環境でインストールし、サーバーを起動してください。
+
+   ```bash
+   pip install strands-decider
+   strands-decider serve StrandsAgents/strands-decider-2B-hobson-v19 --port 8000
+   ```
+
+   NVIDIA GPUかApple siliconが見つかればそれを使い、なければプロセッサーで動作しますが遅くなります。初回起動時にモデルと約4.6 GBのベース重みをダウンロードし、Pythonパッケージは約5.5 GBを使います。サーバーにパスワードはないので、`127.0.0.1`で運用してください。
+2. ソースを**Custom System One endpoint**、ベースURLを`http://127.0.0.1:8000`にしたDecision接続を作成してください。モデル名は何でも使えます。
+3. **Decision model**でその接続を選び、**Test**をクリックしてください。起動後の最初の応答には約2秒かかり、デフォルトの**Time limit**を超えるため、チャットを始める前に1回テストしてください。
+
+確率は校正済みなので、セルフホストのOpen-Jevと異なり、カスタム接続のデフォルト閾値0.5が適しています([閾値](#thresholds)を参照)。RTX 5090で80件の判定文を使った小規模なRoleplayテストでは、Open-Jev 2Bの74件に対して73件に正しく答え、GPUメモリを約5.1 GB(4.7 GiB)使いました。1～8件の判定文には0.04～0.1秒かかり、Open-Jev 2Bでは0.1～0.14秒でした。長いチャットでは両方とも約0.3秒でした。回答が文の表現に左右されやすいため、[判定文の書き方](../prompts/conditional-prompts.md#writing-statements)に従い、自分のチャットのターンでテストしてください。
+
+このモデルとDecision sidecarを切り替えるには、**Decision model**でどちらかを選んでください。両方の設定は残ります。
 
 <a id="let-marinara-install-a-decision-model"></a>
 
