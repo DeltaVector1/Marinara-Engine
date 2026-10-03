@@ -27,61 +27,66 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 
 ## Status
 
-| #   | Slice                                                           | Owner profile | Status  | Commit    |
-| --- | --------------------------------------------------------------- | ------------- | ------- | --------- |
-| 1   | Handoff bugs (A1-A6)                                            | worker        | Done    | 7a1eef06d |
-| 2   | Quick answers: cheap wins (B1-B5)                               | worker        | Done    | 2b4dd9866 |
-| 3   | Quick answers: grounding in docs + setting names (B6)           | worker        | Done    | f14039aa0 |
-| 4   | Carry aside answer into Mari, show what she received (C1-C3)    | worker        | Done    | 892f2acea |
-| 5   | Review of slices 1-4                                            | reviewer      | Done    | 532479233 |
-| 6   | Expanded row redesign (D1-D6)                                   | designer      | Done    | 2e81ef9de |
-| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)           | designer      | Done    | dbbf886db |
-| 7b  | Rework Mari output to the approved direction A (I1-I7)          | designer      | Done    | 627bfcada |
-| 8   | Migrate install/file/created cards to MariCard (E4-E5)          | designer      | Done    | 8aa390372 |
-| 9   | Review of slices 6-8                                            | reviewer      | Done    | ad7bfc33b |
-| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)     | designer      | Done    | 3a04b5342 |
-| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5)   | designer      | Done    | 18237a07a |
-| 12  | Mari composer redesign with mode + model pickers (H1-H4)        | designer      | Done    | 7c9f5f8e0 |
-| 13  | DB review card + MariEditEasyViewer in direction A (E6)         | designer      | Done    | ff125a4ad |
-| 14  | Final review of slices 7b-13                                    | reviewer      | Done    | daddf5a02 |
-| 15  | Slime pull-to-open from the approved drop prototype (J1-J5)     | designer      | Done    | bb4f786d0 |
-| 16  | Failed replies feed the "fix this" context row (K1)             | worker        | Done    | a74161ca4 |
-| 17  | Relative time on recent-chat rows (K2)                          | worker        | Done    | 117cb21b8 |
-| 18  | Rows for existing chat tools on the chat surface (K3)           | worker        | Done    | 81393ea47 |
-| 19  | Agent-catalog grounding for the quick answer (K4)               | worker        | Done    | 3ba6e78c9 |
-| 20  | Flip more boolean settings in place, with Undo (K5)             | worker        | Done    | 3e7f5a89e |
-| 21  | Measure omnibar open time; cache only if needed (K6)            | worker        | Done    | f138ad970 |
-| 22  | Review of slices 15-21                                          | reviewer      | Done    | ee502bf2d |
-| 23  | Mari reads installed agents and their runs (L1)                 | worker        | Done    | ce1d1495f |
-| 24  | Failed agent runs feed the "fix this" row (L2)                  | worker        | Done    | 5cdebfb7e |
-| 25  | Agent editor as Mari context, agent edits as reviews (L3)       | designer      | Done    | 3535853a6 |
-| 26  | Why a lorebook entry did not fire (L4)                          | worker        | Done    | 6991cf90d |
-| 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker        | Done    | f41a106d6 |
-| 28  | Reply-fix review card (L6)                                      | designer      | Done    | 617a47e05 |
-| 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer      | Done    | 2ea1f7f65 |
-| 29  | Review of slices 23-28b (L7)                                    | reviewer      | Done    | 112cf53c1 |
-| 30  | Composer over the transcript, one always-on fade (M1, M2)       | worker        | Done    | 167ffaa0a |
-| 31  | No scroll back to the question at the end of a run (M4)         | worker        | Done    | 887b6ac44 |
-| 32  | Stable run layout: append only, no layout animation (M3)        | worker        | Done    | 6bb1ba18f |
-| 33  | One header row in Mari mode, no header Mari (M8)                 | designer      | Done, amended by 35a | 7506b89ed |
-| 33b | Pull drop: accent rim, full width at the edges (M13)             | designer      | Done    | 1df476615 |
-| 34  | "Context" becomes "What Mari sees" (M7)                          | designer      | Done    | b4586bd4f |
-| 35  | Side panels in one surface language (M6)                         | designer      | Done    | 7160b4798 |
-| 35a | Two header lines, Mari inline in the transcript                  | designer      | Done    | e8509f10b |
-| 35b | Bring back the done check and the plop (M14)                     | worker        | Done    | c624ee0b8 |
-| 36  | A run in cards: goal, phases, outcome group (M5a)                | designer      | Done    | 7f65de826 |
-| 37  | Next-step suggestion cards with a fact line (M5b)                | designer      | Done    | a35066d2d |
-| 38  | Small fixes found on the way (M10)                                | worker        | Done    | 45eedf3c5 |
-| 38a | Mari images as small WebP (M15)                                   | worker        | Done    | f030f7b6e |
-| 39  | Mari arrives with context, on every surface (M9, M17, M18)       | designer      | Done    | c01583495 |
-| 38c | The selected Mari everywhere (M16)                                | designer      | Done    | 38473569d |
-| 40  | Review of slices 30-39 (M11)                                      | reviewer, worker | Done | 9aeba3739 |
-| 41  | Fresh-eyes flow pass (M12)                                        | reviewer, worker | Done | a6e98da25 |
+| #   | Slice                                                           | Owner profile    | Status               | Commit    |
+| --- | --------------------------------------------------------------- | ---------------- | -------------------- | --------- |
+| 1   | Handoff bugs (A1-A6)                                            | worker           | Done                 | 7a1eef06d |
+| 2   | Quick answers: cheap wins (B1-B5)                               | worker           | Done                 | 2b4dd9866 |
+| 3   | Quick answers: grounding in docs + setting names (B6)           | worker           | Done                 | f14039aa0 |
+| 4   | Carry aside answer into Mari, show what she received (C1-C3)    | worker           | Done                 | 892f2acea |
+| 5   | Review of slices 1-4                                            | reviewer         | Done                 | 532479233 |
+| 6   | Expanded row redesign (D1-D6)                                   | designer         | Done                 | 2e81ef9de |
+| 7   | Mari card mockup + MariCard primitive + notes (E1-E3)           | designer         | Done                 | dbbf886db |
+| 7b  | Rework Mari output to the approved direction A (I1-I7)          | designer         | Done                 | 627bfcada |
+| 8   | Migrate install/file/created cards to MariCard (E4-E5)          | designer         | Done                 | 8aa390372 |
+| 9   | Review of slices 6-8                                            | reviewer         | Done                 | ad7bfc33b |
+| 10  | Mobile pull-down from the top bar opens the omnibar (F1-F5)     | designer         | Done                 | 3a04b5342 |
+| 11  | Quick answer inside the top Ask Mari row, plus polish (G1-G5)   | designer         | Done                 | 18237a07a |
+| 12  | Mari composer redesign with mode + model pickers (H1-H4)        | designer         | Done                 | 7c9f5f8e0 |
+| 13  | DB review card + MariEditEasyViewer in direction A (E6)         | designer         | Done                 | ff125a4ad |
+| 14  | Final review of slices 7b-13                                    | reviewer         | Done                 | daddf5a02 |
+| 15  | Slime pull-to-open from the approved drop prototype (J1-J5)     | designer         | Done                 | bb4f786d0 |
+| 16  | Failed replies feed the "fix this" context row (K1)             | worker           | Done                 | a74161ca4 |
+| 17  | Relative time on recent-chat rows (K2)                          | worker           | Done                 | 117cb21b8 |
+| 18  | Rows for existing chat tools on the chat surface (K3)           | worker           | Done                 | 81393ea47 |
+| 19  | Agent-catalog grounding for the quick answer (K4)               | worker           | Done                 | 3ba6e78c9 |
+| 20  | Flip more boolean settings in place, with Undo (K5)             | worker           | Done                 | 3e7f5a89e |
+| 21  | Measure omnibar open time; cache only if needed (K6)            | worker           | Done                 | f138ad970 |
+| 22  | Review of slices 15-21                                          | reviewer         | Done                 | ee502bf2d |
+| 23  | Mari reads installed agents and their runs (L1)                 | worker           | Done                 | ce1d1495f |
+| 24  | Failed agent runs feed the "fix this" row (L2)                  | worker           | Done                 | 5cdebfb7e |
+| 25  | Agent editor as Mari context, agent edits as reviews (L3)       | designer         | Done                 | 3535853a6 |
+| 26  | Why a lorebook entry did not fire (L4)                          | worker           | Done                 | 6991cf90d |
+| 27  | `chat.updateMessage`: a reviewed reply fix kept as a swipe (L5) | worker           | Done                 | f41a106d6 |
+| 28  | Reply-fix review card (L6)                                      | designer         | Done                 | 617a47e05 |
+| 28b | Omnibar and Mari above every overlay, game setup included (L8)  | designer         | Done                 | 2ea1f7f65 |
+| 29  | Review of slices 23-28b (L7)                                    | reviewer         | Done                 | 112cf53c1 |
+| 30  | Composer over the transcript, one always-on fade (M1, M2)       | worker           | Done                 | 167ffaa0a |
+| 31  | No scroll back to the question at the end of a run (M4)         | worker           | Done                 | 887b6ac44 |
+| 32  | Stable run layout: append only, no layout animation (M3)        | worker           | Done                 | 6bb1ba18f |
+| 33  | One header row in Mari mode, no header Mari (M8)                | designer         | Done, amended by 35a | 7506b89ed |
+| 33b | Pull drop: accent rim, full width at the edges (M13)            | designer         | Done                 | 1df476615 |
+| 34  | "Context" becomes "What Mari sees" (M7)                         | designer         | Done                 | b4586bd4f |
+| 35  | Side panels in one surface language (M6)                        | designer         | Done                 | 7160b4798 |
+| 35a | Two header lines, Mari inline in the transcript                 | designer         | Done                 | e8509f10b |
+| 35b | Bring back the done check and the plop (M14)                    | worker           | Done                 | c624ee0b8 |
+| 36  | A run in cards: goal, phases, outcome group (M5a)               | designer         | Done                 | 7f65de826 |
+| 37  | Next-step suggestion cards with a fact line (M5b)               | designer         | Done                 | a35066d2d |
+| 38  | Small fixes found on the way (M10)                              | worker           | Done                 | 45eedf3c5 |
+| 38a | Mari images as small WebP (M15)                                 | worker           | Done                 | f030f7b6e |
+| 39  | Mari arrives with context, on every surface (M9, M17, M18)      | designer         | Done                 | c01583495 |
+| 38c | The selected Mari everywhere (M16)                              | designer         | Done                 | 38473569d |
+| 40  | Review of slices 30-39 (M11)                                    | reviewer, worker | Done                 | 9aeba3739 |
+| 41  | Fresh-eyes flow pass (M12)                                      | reviewer, worker | Done                 | a6e98da25 |
+| 42  | A failed reply leaves a "Failed · Retry" line in the chat (N1)  | worker           | Pending              |           |
+| 43  | Omnibar commands to start a new chat of each mode (N2)          | worker           | Pending              |           |
+| 44  | Toasts move to the bottom while the omnibar is open (N3)        | worker           | Pending              |           |
+| 45  | Mari cards send at once; arrival errors stay strict (N4, N6)    | designer         | Pending              |           |
+| 46  | Review of slices 42-45 (N5)                                     | reviewer         | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Remaining order: 30-41 (section M). Stop after 41.
+slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Slices 30-41 (section M) are Done. Remaining order: 42-46 (section N). Stop after 46.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
@@ -607,7 +612,6 @@ L-open resolved 2026-10-01: the maintainer decided "Omnibar and Mari should be a
   (2147483000) stay above; they already sit above sonner (999999999), so outranking them would mean
   moving the toaster into the 2^31 range too. The regression pins both exceptions.
 
-
 ### M. The Professor Mari window, round 4 (slices 30-41) — maintainer feedback 2026-10-01/02
 
 Source: the maintainer's nine points on the Mari window, reproduced with a mocked long run (temporary
@@ -624,6 +628,7 @@ Order: bugs first (30-32, small, worker), then the redesign (33-38, designer), a
 (40), fresh-eyes flow pass (41).
 
 Maintainer decisions (2026-10-01), YES to all four open questions:
+
 1. The header portrait goes away in Mari mode; slice 15's portrait flight lands on the arrival
    sprite instead (already the plan for M8/M9 below). **Amended by maintainer decision
    2026-10-02 (slice 35a):** no header portrait (slice 33 stays correct), but Mari must always be
@@ -637,8 +642,8 @@ Maintainer decisions (2026-10-01), YES to all four open questions:
    the action-card half of M5b below.
 4. `MariSuggestionChip` gains an optional `detail` field from the server — already specified in
    M5b below.
-Also: Mari output must be things you read and act on (reference pills, the hairline row group,
-suggestion cards with a fact line), never long paragraphs. Treat the mockup as the target.
+   Also: Mari output must be things you read and act on (reference pills, the hairline row group,
+   suggestion cards with a fact line), never long paragraphs. Treat the mockup as the target.
 
 Slice table for 30-41: see the top-level Status table (the single source of truth; this section
 does not keep its own copy).
@@ -697,10 +702,10 @@ does not keep its own copy).
   The maintainer asked for the green done check and the entrance "plop" back, reading M3/slice 32 as
   having deleted both. Checked with `git show 6bb1ba18f^:…HomeProfessorMariChat.tsx` against the current
   file: the `mari-work-timeline__done-mark` svg and `settleTo={restStory === "success" ? "idle" :
-  undefined}` were never removed — slice 32 only dedented them when it deleted the `MariSmoothGrow`
+undefined}` were never removed — slice 32 only dedented them when it deleted the `MariSmoothGrow`
   wrapper, and slice 35a's inline-sprite rework (M8/M9) kept both on the same `.mari-work-timeline__live`
   line without touching them. What slice 32 did cut on purpose was the step row's entrance: `motion.li
-  layout` with a `y`/blur slide became opacity-only (150 ms), because the slide was fighting
+layout` with a `y`/blur slide became opacity-only (150 ms), because the slide was fighting
   `MariSmoothGrow`'s height transition (M3 root cause above) and produced ghost/overlapping rows. That
   part is the real gap: steps now fade in with no "plop", and a step's running→done/error transition is
   silent.
@@ -719,7 +724,7 @@ does not keep its own copy).
   transcript gets `padding-bottom: var(--mari-dock-h)`, set from one `ResizeObserver` on the form (the
   composer grows with attachments and chips). Replace the `[data-following]` rule with one always-on mask:
   `linear-gradient(to bottom, transparent 0, #000 2rem, #000 calc(100% - var(--mari-dock-h) - 2.5rem),
-  transparent calc(100% - var(--mari-dock-h) + 1.25rem))`; delete the `node.dataset.following` writes. Move
+transparent calc(100% - var(--mari-dock-h) + 1.25rem))`; delete the `node.dataset.following` writes. Move
   the band out of the dock pseudo-elements into one `aria-hidden` sibling under the transcript (the faded
   edge shows it, no box); `html[data-marinara-effects-paused="true"]` / `reduceAmbientEffects` hides it.
   `.mari-jump-to-latest` stays anchored to the form. Same for the non-omnibar window (shared JSX).
@@ -736,7 +741,7 @@ does not keep its own copy).
   reaches the bottom (existing `isProfessorMariTranscriptNearBottom`). Drop `data-anchor="bottom"` once a
   conversation has a turn (keep it for the empty state). (3) Completion never scrolls. Put the decision in a
   pure helper in `lib/professor-mari-transcript-scroll.ts` (`transcriptScrollAction({ event:
-  "send"|"grow"|"complete"|"user-scroll", nearBottom, following })`) with asserts in
+"send"|"grow"|"complete"|"user-scroll", nearBottom, following })`) with asserts in
   `scripts/regressions/command-center.regression.ts`. Proof: e2e with the per-frame recorder (mock SSE via
   a `window.fetch` override in an init script; `page.route` cannot stream): at completion the scroll height
   never drops and `scrollTop` never decreases; a reader who scrolled up stays at the same text.
@@ -786,7 +791,7 @@ does not keep its own copy).
   `motion.li` key becomes `${id}:${tool.status}`, so a status change (running → done/error) remounts just
   that row while an unrelated re-render (the live timer ticking, a sibling row updating) keeps the same
   key and replays nothing. `initial`/`animate` grow from `{opacity: 0, scale: 0.96, y: 4}` to `{opacity:
-  1, scale: 1, y: 0}` on a short spring (`visualDuration: 0.22`, `bounce: 0.25`) instead of the opacity-only
+1, scale: 1, y: 0}` on a short spring (`visualDuration: 0.22`, `bounce: 0.25`) instead of the opacity-only
   150 ms fade — transform and opacity only, no `layout` prop, no height animation, so M3's no-jump
   guarantee holds. `prefers-reduced-motion` keeps `initial={false}` (no pop, instant). Proof: re-run M3's
   per-100ms frame-overlap/no-ghost-row check (still holds) plus new frames showing the pop on a new row and
@@ -840,18 +845,18 @@ does not keep its own copy).
     consistency, For lorebooks: entries that never fired;
   - settings: the open section; Explain this section, Find a setting, Undo last change (K5 Undo);
   - game setup (L8): the wizard step as label only.
-  The current generic welcome stays only for Home with nothing open. The inline resting-Mari
-  sprite for the empty/idle and finished states already exists as of slice 35a (`MariStorySprite`
-  in the welcome and under the newest reply, also the slice 15 pull target): slice 39 builds the
-  surface-aware arrival content (cards, reference pills, the deterministic line) around and near
-  this existing sprite and does not duplicate the sprite mechanism. Desktop pull: **build it**
-  (maintainer decision 2026-10-01, decision 2) — a mouse drag on the top bar: reuse the slice 15
-  recognizer with `pointerType === "mouse"`, start only on empty bar space (never on a button),
-  threshold 30 % like touch, same left/right split; the recognizer and the slime visuals already
-  exist. ⌘K and the Mari button remain the primary desktop doors alongside it. Proof: regression asserts for `buildMariArrival` per surface
-  (and that it reads no message text); e2e from a chat and from the agent editor: the arrival line and
-  cards render with zero requests to `/professor-mari/*/prompt`; desktop drag opens Mari, a drag that
-  starts on a top-bar button does not; screenshots next to `mock/chat-900.png`, `mock/agent-*.png`.
+    The current generic welcome stays only for Home with nothing open. The inline resting-Mari
+    sprite for the empty/idle and finished states already exists as of slice 35a (`MariStorySprite`
+    in the welcome and under the newest reply, also the slice 15 pull target): slice 39 builds the
+    surface-aware arrival content (cards, reference pills, the deterministic line) around and near
+    this existing sprite and does not duplicate the sprite mechanism. Desktop pull: **build it**
+    (maintainer decision 2026-10-01, decision 2) — a mouse drag on the top bar: reuse the slice 15
+    recognizer with `pointerType === "mouse"`, start only on empty bar space (never on a button),
+    threshold 30 % like touch, same left/right split; the recognizer and the slime visuals already
+    exist. ⌘K and the Mari button remain the primary desktop doors alongside it. Proof: regression asserts for `buildMariArrival` per surface
+    (and that it reads no message text); e2e from a chat and from the agent editor: the arrival line and
+    cards render with zero requests to `/professor-mari/*/prompt`; desktop drag opens Mari, a drag that
+    starts on a top-bar button does not; screenshots next to `mock/chat-900.png`, `mock/agent-*.png`.
 - **M17 (slice 39), the pull-drop morphs into the present Mari (maintainer feedback 2026-10-02).** "The
   Mari you pull down with the liquid thing should morph into the present Mari, wherever she is." Today
   (35a) the circle flies to the first `[data-mari-pull-target="mari"]` match and fades. Work: mark exactly
@@ -887,6 +892,7 @@ does not keep its own copy).
   - `e2e/expression-active-sprites.e2e.ts` asserts 1 active sprite but sees 2: the client keeps the
     previous active set after the server stores a new one (pre-round-4 `resolveLatestSpriteExpressionTurn`
     behaviour), unrelated to any round-4 commit.
+
 - **M12 (slice 41), Fresh-eyes flow pass.** Reviewer profile, then a worker. The reviewer acts as a new
   user on the real running app at 390 and 1440, with no knowledge of the code or this plan, and does these
   jobs: find and reopen a chat; find a message; change a setting; run a command; ask a quick question; hand
@@ -919,6 +925,7 @@ does not keep its own copy).
      deliberate ⌘↵ on the error row as K1 specifies; the arrival's "Fix the last reply" chip also duplicates
      the error chip. Suggested fix: treat the Fix row like the current-chat row in the arrival branch. Needs
      a maintainer or the slice 40 reviewer to confirm before a worker changes R22 semantics.
+
 - **M15 (slice 38a), Mari images as small WebP (new maintainer request 2026-10-02, performance).** Root
   cause: `public/sprites/mari/` carried ~49 MB, nearly all of it full-resolution painted PNGs sized for
   print, not screen, plus a ~16 MB `generated/` folder of narrative sprite sheets from a cut feature that
@@ -957,3 +964,38 @@ does not keep its own copy).
 
 Belongs in Pasta-Devs/Marinara-Agents, not here: agent-specific arrival cards that need package knowledge
 (e.g. per-setting help for an agent); the Engine only shows names and states it already has.
+
+### N. Round 5: open items from the slice 41 flow pass (slices 42-46) — maintainer decision 2026-10-03
+
+Source: `.tmp/omnibar-ux/round4/slice-41/review.md` § "Open items for the maintainer". The maintainer approved
+items 2-7 with the recommended option and declined item 1 for now (no new visible top-bar door; the pull and
+the long-press stay the phone doors, ⌘K and ⌘J stay the desktop doors). The North star and every earlier house
+rule apply. Find the real code paths first; reuse what exists.
+
+- N1 (item 2) A failed reply leaves a trace: in normal chats (conversation, roleplay; check game mode and skip
+  it if it has its own retry), the user message whose reply failed shows one quiet line under it: "Failed ·
+  Retry" (plus the short reason on hover or tap). Retry runs the same regenerate path the existing Retry/
+  Regenerate uses. The line goes away on the next successful reply or when the user edits or deletes the
+  message. Client state only unless the failure is already stored; do not change chat storage. Keep the toast,
+  but it may get shorter. Proof: e2e mocks a 500 from generate, the line shows, Retry succeeds and removes it;
+  390/1440 dark+light.
+- N2 (item 3) "new chat" works: omnibar commands "New conversation", "New roleplay" and "New game" that open
+  the same start flows as the Home buttons (same modal/wizard, nothing new behind them). Typed "new chat" ranks
+  "New conversation" first; "new rp"/"new roleplay" and "new game" match. Proof: regression asserts on ranking;
+  e2e opens each flow from ⌘K.
+- N3 (item 4) Toasts while the omnibar is open: sonner moves to the bottom (bottom-center on phones, bottom-right
+  on desktop) while the omnibar is open, and back when it closes; it stays above the omnibar layer (Undo must
+  stay visible). Proof: screenshots of an error toast with the omnibar open at 390/1440; the search field is
+  never covered.
+- N4 (item 5) Mari cards send at once: a spark (Mari) suggestion/next-step card sends its prompt immediately
+  instead of drafting it into the composer; its visible kind label reads "Asks Mari". Action (arrow) cards stay
+  as they are. Undo is not needed (sending is not a write; writes still go through review). Keep a way to edit
+  first: if the user holds Shift (or long-presses on touch), it drafts instead. Proof: e2e both paths.
+- N6 (item 7) Arrival + live error stays strict (R22): the arrival block may show that a reply/agent failed
+  (local, names only), but the error TEXT is never put into Mari's context or prompt unless the user picks the
+  deliberate "Fix" card/row. Check the slice 39/40 arrival and the N4 change: an arrival "Fix the last reply"
+  card that now sends at once must send only after that deliberate pick, and its prompt may carry the error text
+  only then. Regression assert on the arrival prompt payloads.
+- N5 Review of 42-45 (reviewer read-only findings, then a worker fixes the confirmed ones). Plan-mode reviewer
+  children end on ExitPlanMode: the orchestrator must check `list_pending_permissions` and answer it.
+- Item 6 (D1 with a real model) is the maintainer's own manual test after the next deploy; nothing to build.
