@@ -102,7 +102,7 @@ Marinara Lite라고 부르는 일부 컨테이너 빌드에서는 Memory Recall�
 
 ### 선택 사항인 Decision 모델
 
-Advanced Memory에서 **Use Decision model**(판단 모델 사용)를 켜고 저장된 **Memory Decision connection**(기억용 판단 연결)을 선택하세요. **Connections**에서 TypeSafe, OpenRouter 또는 호환되는 판단 소스로 만드세요. [판단 모델](../connections/decision-models.md)을 참고하세요. 기본값은 꺼짐이며 Roleplay 채팅별로 저장됩니다. 이 연결은 전역 기본 판단 모델과 별개입니다.
+Advanced Memory에서 **Use Decision model**(판단 모델 사용)을 켜고 저장된 **Memory Decision connection**(기억용 판단 연결)을 선택하세요. **Connections**에서 TypeSafe, OpenRouter 또는 호환되는 판단 소스로 만드세요. [판단 모델](../connections/decision-models.md)을 참고하세요. 기본값은 꺼짐이며 Roleplay 채팅별로 저장됩니다. 이 연결은 전역 기본 판단 모델과 별개입니다.
 
 선택한 모델은 기록 준비와 채팅 중 검사에서 장면 경계를 식별하고, 새 응답 전에 관련 장면 요약과 원문 발췌를 선택합니다. 경계가 불확실하면 장면을 열린 상태로 둡니다. 모든 요약과 연속성 갱신은 **Helper model**이 계속 작성합니다. 장면 수, 발췌 길이, 캐릭터 접근 권한, 토큰 예산의 기존 제한을 유지합니다. 유효한 판단이라도 아무것도 선택하지 않을 수 있습니다.
 

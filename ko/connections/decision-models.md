@@ -16,7 +16,7 @@ Decision 모델은 한 종류의 질문에 답합니다. 채팅의 최근 메시
 - **[프롬프트 판정문](../prompts/conditional-prompts.md#asking-the-decision-model)**은 채팅이나 에이전트 프롬프트를 준비할 때 텍스트를 선택합니다. 답이 없으면 아니요로 처리하므로 단순 판정 블록은 `{{else}}` 분기가 있으면 그 분기를 사용합니다.
 - **[로어북 Decision 필드](../lorebooks/entries.md#decision-activation)**는 채팅의 로어북 스캔 중 Require나 Trigger를 확인합니다. 답이 없으면 Require는 새 항목을 통과시키지 못하고 Trigger는 활성화 경로를 추가하지 않습니다. 기존 Sticky 유지와 Trigger 항목의 일반 활성화 경로는 계속 적용됩니다.
 - **[Smart 응답 순서](../chats/group-chats.md#response-order-individual-only)**는 켜져 있을 때 그룹 채팅의 다음 발언자를 평가합니다. 답이 없으면 Smart 순서가 원래의 AI 호출을 사용합니다.
-- **[Advanced Memory Recall](../agents/memory.md#optional-decision-model)**은 Roleplay의 장면 경계와 기억 선택에 별도의 판단 연결을 사용할 수 있습니다. 해당 채팅의 Advanced Memory 설정에서 **Use Decision model**를 켜세요. 요약은 보조 모델이 작성합니다. 판단에 실패하면 일반 회상이나 장면 검사를 사용합니다.
+- **[Advanced Memory Recall](../agents/memory.md#optional-decision-model)**은 Roleplay의 장면 경계와 기억 선택에 별도의 판단 연결을 사용할 수 있습니다. 해당 채팅의 Advanced Memory 설정에서 **Use Decision model**을 켜세요. 요약은 보조 모델이 작성합니다. 판단에 실패하면 일반 회상이나 장면 검사를 사용합니다.
 
 활성화 질문은 에이전트의 실행 여부를 제어하고, 프롬프트 안의 판정문은 실행 중인 에이전트에 전달할 내용을 제어합니다. 예/아니요 프롬프트 조건에는 `{{#if decision:"..."}}`을, 여러 답 중 선택에는 `{{#if decision_choice:"..." == "..."}}`을 사용하세요.
 

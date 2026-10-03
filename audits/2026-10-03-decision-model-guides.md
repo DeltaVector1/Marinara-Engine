@@ -41,7 +41,21 @@ catchup audit.
 
 - Local `coderabbit review --agent --base origin/docs-i18n --committed --fresh`
   completed at `615927ae2d53cf34f5bd6860a1b4bcc9badeb214`: all 51 changed files
-  reviewed, zero findings. The only later change records that result here.
+  reviewed, zero findings at that revision.
+
+## Review follow-up
+
+- GitHub review [5398103493](https://github.com/Pasta-Devs/Marinara-Engine/pull/6989#pullrequestreview-5398103493)
+  identified incorrect Korean object particles after the renamed label. Fixed
+  the two reported occurrences in memory and FAQ, the matching object particle
+  in Decision models, and the subject particle in Peek Prompt. No label,
+  command, link or other language changed. Refreshed the Korean manifest.
+- Korean pack validation (136/136 guides), the complete focused Markdown and
+  manifest checks, and `git diff --check` passed again. Engine baseline
+  `pnpm install` and `pnpm check` also passed again at the revision above.
+- A local `coderabbit review --agent --uncommitted` rerun was attempted but
+  stopped before review because the free OSS quota was exhausted (the service
+  reported a 10-minute wait). It is not a passing review of this follow-up.
 
 Native-language proofreading and in-app reading remain manual checks. The
 translated server commands and benchmark figures were checked against English,
