@@ -1,6 +1,6 @@
 {
   "language": "hi",
-  "sourceCommit": "822320d354bd6abfd8cc68c4bb51094a6d3a0bb6",
+  "sourceCommit": "ed542bc5681d323282ab5b6c0400e412d180f31a",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -9,8 +9,8 @@
     },
     {
       "path": "FAQ.md",
-      "sha256": "ef7e47656ad67336596ca6742175f83d03469a231dedc67a06f01470123fc206",
-      "bytes": 47371
+      "sha256": "de8fe67060bb73337beb4366fc395a44fb7bcf22a2f08740ff2885433cbdd088",
+      "bytes": 47365
     },
     {
       "path": "INSTALLATION.md",
@@ -64,8 +64,8 @@
     },
     {
       "path": "agents/memory.md",
-      "sha256": "b0e6d6124c6fc3ecd7aa9d52a586ba4fcb26dfc797aa6ac2f02f04fcf44c1dc8",
-      "bytes": 73739
+      "sha256": "47465d16f2bfc7acd312e54a58c5d2d08956a41b72e423ae5b4756b45cf3e06a",
+      "bytes": 73807
     },
     {
       "path": "appearance/appearance-settings.md",
@@ -179,8 +179,8 @@
     },
     {
       "path": "chats/peek-prompt.md",
-      "sha256": "122652393f8ff09d2cb8503adc6ff88e499e74196cff428f4a9f5467723f6fd2",
-      "bytes": 18847
+      "sha256": "cba26e2743534aa36bd7c7baf85f14e100be1b3eb75111d5e8f3c165a6fdd0e5",
+      "bytes": 18869
     },
     {
       "path": "chats/sending-and-streaming.md",
@@ -209,8 +209,8 @@
     },
     {
       "path": "connections/decision-models.md",
-      "sha256": "94da1de8939d591641a311f55edf88adabfef19be99fff360931d0dee373cee4",
-      "bytes": 50864
+      "sha256": "a6e90dfa2fbc9b8acf593d3b9ec49e38f18f82a73545df9d81ef4300e6eddb65",
+      "bytes": 54763
     },
     {
       "path": "connections/local-model.md",

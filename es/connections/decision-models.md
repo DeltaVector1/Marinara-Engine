@@ -16,7 +16,7 @@ Sus respuestas controlan el comportamiento de Marinara; no se publican como resp
 - Las **[declaraciones en prompts](../prompts/conditional-prompts.md#asking-the-decision-model)** eligen texto al preparar el prompt de un chat o agente. Sin respuesta, la decisión se interpreta como no, así que un bloque de decisión simple usa su rama `{{else}}`, si existe.
 - Los **[campos Decision de lorebooks](../lorebooks/entries.md#decision-activation)** comprueban Require o Trigger durante el análisis de lorebooks del chat. Sin respuesta, Require no puede admitir una entrada nueva y Trigger no añade una vía de activación. Siguen aplicándose las retenciones Sticky existentes y las vías ordinarias de activación de las entradas Trigger.
 - El **[orden de respuesta Smart](../chats/group-chats.md#response-order-individual-only)** puntúa quién debería hablar después en un chat grupal, si está activado. Sin respuesta, el orden Smart hace su llamada habitual a la IA.
-- **[Advanced Memory Recall](../agents/memory.md#optional-jev-decisions)** puede usar una conexión de decisión independiente para detectar límites de escena y seleccionar recuerdos en Roleplay. Activa **Use Decision model (Jev)** en los ajustes de Advanced Memory de ese chat. Los resúmenes siguen a cargo del modelo auxiliar. Las decisiones fallidas recurren a la recuperación o comprobación de escenas habitual.
+- **[Advanced Memory Recall](../agents/memory.md#optional-decision-model)** puede usar una conexión de decisión independiente para detectar límites de escena y seleccionar recuerdos en Roleplay. Activa **Use Decision model** en los ajustes de Advanced Memory de ese chat. Los resúmenes siguen a cargo del modelo auxiliar. Las decisiones fallidas recurren a la recuperación o comprobación de escenas habitual.
 
 Una pregunta de activación controla si un agente se ejecuta; una declaración de decisión dentro de su prompt controla qué instrucciones recibe ese agente al ejecutarse. Usa `{{#if decision:"..."}}` para condiciones de prompt de sí/no y `{{#if decision_choice:"..." == "..."}}` para elegir entre respuestas.
 
@@ -35,7 +35,7 @@ Para las preguntas de activación y las declaraciones de prompts/lorebooks, el m
 - Las macros de la declaración se completan primero, así que `{{char}}` llega como el nombre del personaje.
 - Cuando los mensajes no caben en el presupuesto del modelo, se descartan primero los más antiguos. Consulta [Configurar una conexión Decision](#set-up-a-decision-connection) para el presupuesto alojado.
 
-**Advanced Memory usa su propia conexión por chat.** Las comprobaciones de escena leen la ventana pertinente del historial. La recuperación envía conversación reciente y resúmenes archivados o mensajes originales accesibles tras comprobar el acceso de los personajes; no usa la regla fija de las últimas 5 intervenciones. Los proveedores alojados reciben esos textos, a veces en varios lotes limitados. Tras un total de 10 segundos, la recuperación previa a la respuesta usa su alternativa habitual. Consulta [Decisiones opcionales con Jev](../agents/memory.md#optional-jev-decisions).
+**Advanced Memory usa su propia conexión por chat.** Las comprobaciones de escena leen la ventana pertinente del historial. La recuperación envía conversación reciente y resúmenes archivados o mensajes originales accesibles tras comprobar el acceso de los personajes; no usa la regla fija de las últimas 5 intervenciones. Los proveedores alojados reciben esos textos, a veces en varios lotes limitados. Tras un total de 10 segundos, la recuperación previa a la respuesta usa su alternativa habitual. Consulta [Modelo de decisión opcional](../agents/memory.md#optional-decision-model).
 
 ## Elegir un modelo de decisión
 
@@ -103,8 +103,8 @@ Se consulta igual que un modelo local: una palabra de sí/no por declaración, l
 ## Configurar una conexión Decision
 
 1. En **Connections**, crea una conexión con el proveedor **Decision** (decisión).
-2. Elige **TypeSafe**, **OpenRouter**, **Custom System One endpoint** (endpoint System One personalizado) u **OpenAI-compatible chat model**. Las fuentes alojadas necesitan una clave de API. Custom acepta un servidor System One que ya ejecutes, incluido Open-Jev; introduce su URL base sin `/v1/systemone` y usa un nombre de modelo compatible. Un servidor de modelos de chat como Ollama o LM Studio no habla System One: usa **OpenAI-compatible chat model**, como se explica en [En un servidor que ya ejecutas](#on-a-server-you-already-run).
-3. Para OpenRouter, elige una conexión OpenRouter guardada en **API key source** (origen de la clave de API) o introduce una clave aparte. Su editor también ofrece **Use this key for decisions (Jev)** (usar esta clave para decisiones). Las claves vinculadas siguen automáticamente los cambios posteriores. Las conexiones Custom System One y OpenAI-compatible chat model solo pueden tomar la clave de una conexión de chat personalizada cuando ambas URL tienen el mismo origen: esquema, host y puerto.
+2. Elige **TypeSafe**, **OpenRouter**, **Custom System One endpoint** (endpoint System One personalizado) u **OpenAI-compatible chat model**. Las fuentes alojadas necesitan una clave de API. Custom acepta un servidor System One que ya ejecutes, incluido Open-Jev o [Strands decider](#run-strands-decider-yourself); introduce su URL base sin `/v1/systemone` y usa un nombre de modelo compatible. Un servidor de modelos de chat como Ollama o LM Studio no habla System One: usa **OpenAI-compatible chat model**, como se explica en [En un servidor que ya ejecutas](#on-a-server-you-already-run).
+3. Para OpenRouter, elige una conexión OpenRouter guardada en **API key source** (origen de la clave de API) o introduce una clave aparte. Su editor también ofrece **Use this key for decisions** (usar esta clave para decisiones), que configura Jev a través de OpenRouter. Las claves vinculadas siguen automáticamente los cambios posteriores. Las conexiones Custom System One y OpenAI-compatible chat model solo pueden tomar la clave de una conexión de chat personalizada cuando ambas URL tienen el mismo origen: esquema, host y puerto.
 4. Guarda, selecciónala en **Decision model** y haz clic en **Test**. Un resultado correcto muestra la probabilidad, cuánto tardó la respuesta y el límite de tiempo de la conexión. Test espera al menos 10 segundos y 5 segundos más que un límite mayor, para informar la duración real de una respuesta lenta. Si superó el límite, el resultado lo indica: durante un chat esa respuesta contaría como ausencia de respuesta.
 
 El valor predeterminado de Decision es independiente de los de chat, agentes, imágenes, video y audio. Elegir **None** desactiva las decisiones sin borrar preguntas de activación ni declaraciones de decisión.
@@ -114,6 +114,27 @@ Las decisiones alojadas envían los mensajes recientes seleccionados y las decla
 **Time limit (seconds)** (límite de tiempo en segundos) indica cuánto espera cada conexión Decision la respuesta de cada declaración durante los chats, de 0,5 a 30 segundos (1,5 de forma predeterminada o 4 para una conexión **OpenAI-compatible chat model**). Un turno que pregunta varias declaraciones en una solicitud recibe ese tiempo para cada una. Una respuesta posterior cuenta como ausencia de respuesta. Algunos proveedores alojados a veces tardan más de 1,5 segundos, lo que hace que las decisiones parezcan fallar al azar. Haz clic en **Test** varias veces y fija el límite por encima de la respuesta más lenta. La contrapartida es que cada declaración anterior a la respuesta, como una decisión en un preset o una pregunta de activación de un agente previo a la respuesta, puede retrasarla hasta ese tiempo.
 
 Al eliminar una conexión usada para una clave vinculada se muestra una advertencia y la conexión Decision queda pendiente de volver a vincularse. Los archivos de conexión independientes importados también necesitan que se restauren sus claves o vínculos; nunca contienen claves de API ni IDs de conexiones prestadas.
+
+<a id="run-strands-decider-yourself"></a>
+
+### Ejecutar Strands decider por tu cuenta
+
+[Strands decider 2B](https://huggingface.co/StrandsAgents/strands-decider-2B-hobson-v19) es otro modelo de decisión abierto (Apache-2.0) que usa System One. Marinara no puede instalarlo, pero funciona como **Custom System One endpoint** mientras lo mantengas en ejecución.
+
+1. En un entorno con Python 3.10 o posterior, instálalo e inicia su servidor:
+
+   ```bash
+   pip install strands-decider
+   strands-decider serve StrandsAgents/strands-decider-2B-hobson-v19 --port 8000
+   ```
+
+   Usa una GPU NVIDIA o Apple silicon si encuentra uno de ellos; en caso contrario, usa el procesador, con menor velocidad. El primer inicio descarga el modelo y unos 4,6 GB de pesos base, y sus paquetes de Python ocupan unos 5,5 GB. El servidor no tiene contraseña, así que mantenlo en `127.0.0.1`.
+2. Crea una conexión de decisión con la fuente **Custom System One endpoint** y la URL base `http://127.0.0.1:8000`. Cualquier nombre de modelo funciona.
+3. Selecciónala en **Decision model** y haz clic en **Test**. La primera respuesta tras iniciarse tarda unos 2 segundos, más que el **Time limit** predeterminado, así que pruébalo una vez antes de chatear.
+
+Sus probabilidades están calibradas, por lo que el umbral predeterminado de 0,5 de una conexión personalizada resulta adecuado, a diferencia de Open-Jev autoalojado (consulta [Umbrales](#thresholds)). En una pequeña prueba de Roleplay con 80 declaraciones en una RTX 5090, respondió correctamente a 73, frente a las 74 de Open-Jev 2B, y usó unos 5,1 GB (4,7 GiB) de memoria de GPU. Procesar de una a ocho declaraciones le tomó de 0,04 a 0,1 segundos, frente a los 0,1 a 0,14 de Open-Jev 2B; en un chat largo, ambos tardaron unos 0,3 segundos. Sus respuestas dependen más de cómo redactes las declaraciones, así que sigue [Redactar declaraciones](../prompts/conditional-prompts.md#writing-statements) y prueba turnos de tus propios chats.
+
+Para alternar entre este modelo y el Decision sidecar, elige uno de los dos en **Decision model**. Ambos siguen configurados.
 
 <a id="let-marinara-install-a-decision-model"></a>
 

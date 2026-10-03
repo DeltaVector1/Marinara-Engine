@@ -16,7 +16,7 @@ Decision 模型回答一种特定问题。它接收聊天的最近消息及一�
 - **[提示词陈述](../prompts/conditional-prompts.md#asking-the-decision-model)**在准备聊天或智能体提示词时选择文本。没有答案时，判定按否处理，因此简单判定块会使用 `{{else}}` 分支（如果有）。
 - **[世界书 Decision 字段](../lorebooks/entries.md#decision-activation)**在聊天的世界书扫描期间检查 Require 或 Trigger。没有答案时，Require 无法放行新条目，Trigger 不会增加激活路径。已有 Sticky 保持和 Trigger 条目的普通激活路径仍然适用。
 - **[Smart 回复顺序](../chats/group-chats.md#response-order-individual-only)**启用后，会为群聊的下一位发言者打分。没有答案时，Smart 顺序会执行原有的 AI 调用。
-- **[Advanced Memory Recall](../agents/memory.md#optional-jev-decisions)**可使用单独选定的决策连接处理Roleplay场景边界和记忆选择。在该聊天的Advanced Memory设置中启用**Use Decision model (Jev)**。摘要仍由辅助模型生成。决策失败时回退到普通回忆或场景检查。
+- **[Advanced Memory Recall](../agents/memory.md#optional-decision-model)**可使用单独选定的决策连接处理Roleplay场景边界和记忆选择。在该聊天的Advanced Memory设置中启用**Use Decision model**。摘要仍由辅助模型生成。决策失败时回退到普通回忆或场景检查。
 
 激活问题控制是否运行智能体；智能体提示词内的判定陈述控制运行时告诉它什么。是/否提示词条件使用 `{{#if decision:"..."}}`，多选一使用 `{{#if decision_choice:"..." == "..."}}`。
 
@@ -35,7 +35,7 @@ Decision 模型回答一种特定问题。它接收聊天的最近消息及一�
 - 陈述里的宏先展开，因此 `{{char}}` 会以角色姓名传入。
 - 消息超出模型预算时，先丢弃旧消息。托管服务的预算见[设置 Decision 连接](#set-up-a-decision-connection)。
 
-**Advanced Memory按聊天使用独立连接。**场景检查读取相关的历史窗口。回忆功能检查角色访问权限后，发送最近对话及可访问的历史摘要或原文候选内容，不使用上述固定的最近5条消息规则。托管服务可能分多个有限批次收到这些文本。回复前的回忆在总计10秒后使用回退方案。参见[可选的Jev决策](../agents/memory.md#optional-jev-decisions)。
+**Advanced Memory按聊天使用独立连接。**场景检查读取相关的历史窗口。回忆功能检查角色访问权限后，发送最近对话及可访问的历史摘要或原文候选内容，不使用上述固定的最近5条消息规则。托管服务可能分多个有限批次收到这些文本。回复前的回忆在总计10秒后使用回退方案。参见[可选的 Decision 模型](../agents/memory.md#optional-decision-model)。
 
 ## 选择 Decision 模型
 
@@ -103,8 +103,8 @@ Marinara 向模型提出一个是/否问题，让它生成一个 Token，再从�
 ## 设置 Decision 连接
 
 1. 在 **Connections** 中创建连接，将服务商设为 **Decision**。
-2. 选择 **TypeSafe**、**OpenRouter**、**Custom System One endpoint**(自定义 System One 端点) 或 **OpenAI-compatible chat model**。托管来源需要 API 密钥。Custom 接受已有的 System One 服务器，包括 Open-Jev；输入不含 `/v1/systemone` 的基础 URL 和受支持的模型名称。Ollama、LM Studio 等聊天模型服务器不使用 System One：请按[使用已运行的服务器](#on-a-server-you-already-run)选择 **OpenAI-compatible chat model**。
-3. 对于 OpenRouter，在 **API key source**(API 密钥来源) 下选择已保存的连接，或输入单独的密钥。其编辑器也提供 **Use this key for decisions (Jev)**(将此密钥用于判定)。关联的密钥会自动跟随后续更改。Custom System One 和 OpenAI-compatible chat model 连接只有在两个 URL 同源（协议、主机和端口相同）时，才能借用自定义聊天连接的密钥。
+2. 选择 **TypeSafe**、**OpenRouter**、**Custom System One endpoint**(自定义 System One 端点) 或 **OpenAI-compatible chat model**。托管来源需要 API 密钥。Custom 接受已有的 System One 服务器，包括 Open-Jev 或 [Strands decider](#run-strands-decider-yourself)；输入不含 `/v1/systemone` 的基础 URL 和受支持的模型名称。Ollama、LM Studio 等聊天模型服务器不使用 System One：请按[使用已运行的服务器](#on-a-server-you-already-run)选择 **OpenAI-compatible chat model**。
+3. 对于 OpenRouter，在 **API key source**(API 密钥来源) 下选择已保存的连接，或输入单独的密钥。其编辑器也提供 **Use this key for decisions**(将此密钥用于判定)，用于通过 OpenRouter 配置 Jev。关联的密钥会自动跟随后续更改。Custom System One 和 OpenAI-compatible chat model 连接只有在两个 URL 同源（协议、主机和端口相同）时，才能借用自定义聊天连接的密钥。
 4. 保存后在 **Decision model** 下选择它，再点击 **Test**。成功后显示概率、回答耗时和连接的时限。Test 至少等待 10 秒；时限更长时，等待时限再加 5 秒，因此慢回答也会按实际耗时报告。如果超过时限，结果会注明：在聊天中，这样的回答会视为没有答案。
 
 Decision 默认值独立于聊天、智能体、图像、视频和音频默认值。选择 **None** 会关闭判定，不会删除激活问题或判定陈述。
@@ -114,6 +114,27 @@ Decision 默认值独立于聊天、智能体、图像、视频和音频默认�
 **Time limit (seconds)**(时限，秒) 指聊天中 Decision 连接等待每条陈述答案的时间，范围为 0.5 到 30 秒，默认 1.5 秒，**OpenAI-compatible chat model** 连接则为 4 秒。一次请求中有多条陈述时，每条都获得这段时间。超时答案视为没有答案。部分托管服务商偶尔超过 1.5 秒，看起来像随机失灵；请多次点击 **Test**，把时限设在最慢答案的耗时以上。代价是回复前询问的每条陈述，例如预设中的判定或回复前智能体的激活问题，都可能让回复等待最多这么长时间。
 
 删除作为关联密钥来源的连接时，会显示警告，Decision 连接也需要重新关联。导入独立连接文件后同样需要恢复密钥或关联；这些文件从不包含 API 密钥或借用的连接 ID。
+
+<a id="run-strands-decider-yourself"></a>
+
+### 自行运行 Strands decider
+
+[Strands decider 2B](https://huggingface.co/StrandsAgents/strands-decider-2B-hobson-v19) 是另一个支持 System One 的开放 Decision 模型（Apache-2.0）。Marinara 无法安装它，但只要你保持它运行，就能作为 **Custom System One endpoint** 使用。
+
+1. 在 Python 3.10 或更新版本的环境中安装它并启动服务器：
+
+   ```bash
+   pip install strands-decider
+   strands-decider serve StrandsAgents/strands-decider-2B-hobson-v19 --port 8000
+   ```
+
+   检测到 NVIDIA GPU 或 Apple silicon 时会使用对应硬件，否则在处理器上运行，速度较慢。首次启动会下载模型和约 4.6 GB 的基础权重，Python 包约占 5.5 GB。服务器没有密码，因此应保持在 `127.0.0.1` 上运行。
+2. 创建一个 Decision 连接，来源选择 **Custom System One endpoint**，基础 URL 填写 `http://127.0.0.1:8000`。模型名称可以任意填写。
+3. 在 **Decision model** 中选择该连接并点击 **Test**。启动后的第一次回答约需 2 秒，超过默认的 **Time limit**，因此开始聊天前先测试一次。
+
+它的概率经过校准，因此自定义连接的默认阈值 0.5 适合它，这点与自行托管的 Open-Jev 不同（参见[阈值](#thresholds)）。在 RTX 5090 上进行的一次小型 Roleplay 测试中，80 条语句里它答对了 73 条，Open-Jev 2B 答对了 74 条；它使用了约 5.1 GB（4.7 GiB）GPU 显存。处理 1 到 8 条语句耗时 0.04 到 0.1 秒，Open-Jev 2B 为 0.1 到 0.14 秒；在较长的聊天中，两者都约需 0.3 秒。它的回答更受措辞影响，因此请遵循[编写语句](../prompts/conditional-prompts.md#writing-statements)的建议，并用自己的聊天轮次测试。
+
+要在它和 Decision sidecar 之间切换，只需在 **Decision model** 中选择其中一个。两者的配置都会保留。
 
 <a id="let-marinara-install-a-decision-model"></a>
 

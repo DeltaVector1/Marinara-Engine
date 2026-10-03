@@ -19,5 +19,26 @@ catchup audit.
 
 ## Validation
 
-Implementation, manifest regeneration, pack validation and local review are
-pending. Native-language proofreading and in-app reading remain manual checks.
+- Regenerated all ten manifests using `scripts/docs-i18n/build-manifest.mjs`
+  with `--source-commit ed542bc5681d323282ab5b6c0400e412d180f31a`.
+- `scripts/docs-i18n/validate-pack.mjs` passed for every pack: 136 translated
+  guides against 136 English guides, without missing or orphaned guide paths.
+  Both scripts ran from an archive of the captured English source revision.
+- Focused Markdown checks passed for all 40 changed guides: leading headings,
+  unchanged existing code and inline code, exact English commands and link
+  targets in the new section, its three-step list structure, new/changed
+  fragment targets, and preservation of the legacy memory anchors.
+- Checked added lines for NFC normalization, hidden whitespace and full-width
+  Latin letters/digits. Verified hashes and byte sizes for all 1,360 manifest
+  entries. Only the four intended guide entries changed in each manifest.
+- Confirmed the complete diff contains 40 guides, ten manifests and this audit.
+  UI packs and deferred Game Mode guides are unchanged. `git diff --check` passed.
+- `pnpm install` and `pnpm check` passed in the Engine checkout at
+  `c295139588437b01bfdedbdbde336b64bbaf5f82`. This is an Engine baseline check,
+  not a runtime test of the source feature. The initial sandboxed check failed
+  while reading generated Impeccable context; the permitted retry passed.
+  Existing chunk-size and circular-chunk build warnings remained nonblocking.
+
+Local CodeRabbit review is pending. Native-language proofreading and in-app
+reading remain manual checks. The translated server commands and benchmark
+figures were checked against English, not independently executed or measured.
