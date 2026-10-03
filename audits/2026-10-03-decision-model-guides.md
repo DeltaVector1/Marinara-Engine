@@ -39,6 +39,10 @@ catchup audit.
   while reading generated Impeccable context; the permitted retry passed.
   Existing chunk-size and circular-chunk build warnings remained nonblocking.
 
-Local CodeRabbit review is pending. Native-language proofreading and in-app
-reading remain manual checks. The translated server commands and benchmark
-figures were checked against English, not independently executed or measured.
+- Local `coderabbit review --agent --base origin/docs-i18n --committed --fresh`
+  completed at `615927ae2d53cf34f5bd6860a1b4bcc9badeb214`: all 51 changed files
+  reviewed, zero findings. The only later change records that result here.
+
+Native-language proofreading and in-app reading remain manual checks. The
+translated server commands and benchmark figures were checked against English,
+not independently executed or measured.
