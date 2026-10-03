@@ -73,7 +73,9 @@ W przypadku źródła **ElevenLabs** wybór głosu jest obowiązkowy. Marinara w
 4. Wskaż postać na liście rozwijanej po lewej, a głos na liście po prawej.
 5. Powtórz to dla każdej postaci, która ma dostać własny głos.
 
-Przycisk **Refresh** w ramce Character Voices wczytuje ponownie tę samą bibliotekę dostawcy, bez wracania do trybu jednego głosu. Postacie trzeba utworzyć wcześniej. Jeśli nie ma jeszcze żadnej, aplikacja poprosi o dodanie postaci w zakładce Characters przed przypisywaniem głosów. Postacie bez własnego głosu korzystają z głosu globalnego. Zobacz [Tworzenie i edycja postaci](../characters/creating-and-editing-characters.md).
+Głos postaci można też wybrać w oknie **Character Editor**, na zakładce **Voice**. Ten wybór zmienia ten sam wiersz, więc w obu miejscach zawsze widać ten sam głos.
+
+Przycisk **Refresh** w ramce Character Voices wczytuje ponownie tę samą bibliotekę dostawcy, bez wracania do trybu jednego głosu. Postacie trzeba utworzyć wcześniej. Jeśli nie ma jeszcze żadnej, aplikacja poprosi o dodanie postaci w zakładce Characters przed przypisywaniem głosów. Postać bez własnego głosu korzysta z głosu ustawionego dla karty o pasującej nazwie, na przykład dla oryginału kopii AU. W przeciwnym razie używa głosu globalnego. Zobacz [Tworzenie i edycja postaci](../characters/creating-and-editing-characters.md).
 
 ## Narrator Voice
 
@@ -154,7 +156,7 @@ Ta sama konfiguracja TTS obsługuje każdy tryb, a każdy z nich dokłada kilka 
 
 ## Phonetic name (wymowa w rozmowach)
 
-Jeśli nazwa postaci albo persony jest zapisana tak, że głos ją przekręca, uzupełnij pole **Phonetic name** (nazwa fonetyczna). W oknie **Character Editor** pole to sąsiaduje z polem **Name** postaci. W oknie **Persona Editor** znajduje się przy pozostałych podstawowych informacjach. Wpisz, jak nazwa ma brzmieć.
+Jeśli nazwa postaci albo persony jest zapisana tak, że głos ją przekręca, uzupełnij pole **Phonetic name** (nazwa fonetyczna). W oknie **Character Editor** pole to jest na zakładce **Voice**. W oknie **Persona Editor** znajduje się przy pozostałych podstawowych informacjach. Wpisz, jak nazwa ma brzmieć.
 
 Ta zmiana działa wyłącznie podczas rozmów audio i wideo w trybie Conversation. Zwykły przycisk **Speak** przy wiadomości, automatyczne odtwarzanie w czacie ani narracja w trybie Game Mode nie sięgają po to pole.
 

@@ -73,7 +73,9 @@ Bei **ElevenLabs** musst du eine Stimme wählen. Marinara lädt die seitenweise 
 4. Wähle links einen Charakter und rechts eine Stimme.
 5. Wiederhol das für jeden Charakter, der eine eigene Stimme bekommen soll.
 
-Die Schaltfläche **Refresh** im Bereich Character Voices lädt dieselbe Anbieter-Bibliothek neu, ohne zurück in den Modus mit einer Stimme zu wechseln. Die Charaktere müssen vorher angelegt sein. Fehlen sie noch, weist die App darauf hin, zuerst im Tab Characters Charaktere anzulegen. Charaktere ohne eigene Stimme greifen auf die globale Stimme zurück. Siehe [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md).
+Die Stimme eines Charakters kannst du auch im **Character Editor** auf dem Tab **Voice** wählen. Die Auswahl dort ändert dieselbe Zeile, deshalb zeigen beide Stellen immer dieselbe Stimme.
+
+Die Schaltfläche **Refresh** im Bereich Character Voices lädt dieselbe Anbieter-Bibliothek neu, ohne zurück in den Modus mit einer Stimme zu wechseln. Die Charaktere müssen vorher angelegt sein. Fehlen sie noch, weist die App darauf hin, zuerst im Tab Characters Charaktere anzulegen. Ein Charakter ohne eigene Stimme verwendet die Stimme, die für eine Karte mit passendem Namen festgelegt ist – etwa für das Original einer AU-Kopie. Andernfalls greift er auf die globale Stimme zurück. Siehe [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md).
 
 ## Narrator Voice
 
@@ -154,7 +156,7 @@ Dieselbe TTS-Einrichtung bedient alle Modi, mit ein paar Extras je Modus:
 
 ## Phonetic name (Aussprache in Anrufen)
 
-Wird ein Charakter- oder Persona-Name so geschrieben, dass die Stimme ihn falsch ausspricht, hilft ein **Phonetic name** (phonetischer Name). Im **Character Editor** steht das Feld neben dem Feld **Name** des Charakters. Im **Persona Editor** liegt es bei den übrigen Basisangaben. Trag dort ein, wie der Name klingen soll.
+Wird ein Charakter- oder Persona-Name so geschrieben, dass die Stimme ihn falsch ausspricht, hilft ein **Phonetic name** (phonetischer Name). Im **Character Editor** findest du das Feld auf dem Tab **Voice**. Im **Persona Editor** liegt es bei den übrigen Basisangaben. Trag dort ein, wie der Name klingen soll.
 
 Diese Vorgabe greift ausschließlich bei Audio- und Videoanrufen in Conversation. Die normale Schaltfläche **Speak** an einer Nachricht, die automatische Wiedergabe im Chat und die Erzählung im Game Mode lesen das Feld nicht aus.
 

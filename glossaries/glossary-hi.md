@@ -729,3 +729,11 @@ unchanged.
 - **Narration Passthrough** replaces the old **LTX Director Video** formatter label. PocketTTS defaults to the official server; the existing wrapper is still supported.
 
 These are documented catchup choices, not a claim of independent native-reader review.
+
+## Character Editor Voice tab (2026-10-03)
+
+- **Preview** that plays a voice sample is glossed **(सुनें)**. This is the button's shipped string in `ui/hi.json` (`settings.notifications.customSound.actions.preview`), so readers using the Hindi UI can match it on screen. It is plain in-register Hindi, so the register concern behind "Never copy a gloss from `hi.json`" (§5) does not apply. Visual previews keep (प्रीव्यू) (`characters/colors-and-stats.md:13`).
+- **Use a voice per character** (हर कैरेक्टर के लिए अलग आवाज़ इस्तेमाल करें) and **Open Text to Speech settings** (टेक्स्ट टू स्पीच सेटिंग्स खोलें) use आप-imperative glosses. The path **Connections → Text to Speech** is glossed whole, as (कनेक्शन → टेक्स्ट टू स्पीच).
+- A character's TTS voice is **आवाज़**, not वॉइस. A card with a matching name is **मेल खाते नाम वाला कार्ड**; the card an AU copy came from is its **मूल कार्ड**.
+
+These are translation choices, not a new native-reader review.

@@ -1,6 +1,6 @@
 # Crear y editar personajes
 
-Esta guía te muestra cómo crear un personaje en Marinara Engine. También te muestra cómo usar el Character Editor (editor de personajes) para escribir, guardar y gestionar versiones de una tarjeta. Cubre las pestañas Metadata, Card y Advanced, los avatares y el historial de versiones guardadas.
+Esta guía te muestra cómo crear un personaje en Marinara Engine. También te muestra cómo usar el Character Editor (editor de personajes) para escribir, guardar y gestionar versiones de una tarjeta. Cubre las pestañas Metadata, Card, Voice y Advanced, los avatares y el historial de versiones guardadas.
 
 ## Qué es una tarjeta de personaje
 
@@ -35,9 +35,9 @@ Arriba a la derecha tienes estos botones:
 
 Si intentas salir con trabajo sin guardar, un aviso dice `You have unsaved changes. Close without saving?` Te ofrece **Keep editing** (Seguir editando), **Discard & close** (Descartar y cerrar) y **Save & close** (Guardar y cerrar).
 
-El editor está dividido en pestañas. En una pantalla ancha las pestañas van por el lado izquierdo. En una pantalla estrecha se convierten en una tira desplazable en la parte superior. Las pestañas, en orden, son **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Stats** y **Advanced**.
+El editor está dividido en pestañas. En una pantalla ancha las pestañas van por el lado izquierdo. En una pantalla estrecha se convierten en una tira desplazable en la parte superior. Las pestañas, en orden, son **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Voice**, **Stats** y **Advanced**.
 
-Esta guía cubre **Metadata**, **Card** y **Advanced**, además de los avatares y el historial de versiones. Las otras pestañas tienen sus propias guías:
+Esta guía cubre **Metadata**, **Card**, **Voice** y **Advanced**, además de los avatares y el historial de versiones. Las otras pestañas tienen sus propias guías:
 
 - **Convo**: [Perfiles de Conversation Mode](../conversation/profiles.md).
 - **Lorebook**: [Vincular lorebooks a personajes](../lorebooks/linking-to-characters.md).
@@ -51,7 +51,6 @@ La pestaña **Metadata** contiene los detalles de identidad y organización. Est
 
 - **Character ID**. Un valor de solo lectura que se muestra solo después de guardar la tarjeta. Haz clic en **Copy** (Copiar) para copiarlo.
 - **Name**. El nombre mostrado. Se usa como `{{char}}` en los prompts.
-- **Phonetic name**. Una escritura opcional que se usa solo para corregir la pronunciación en el texto a voz. Déjalo vacío para usar el nombre normal.
 - **Creator**. La persona que creó la tarjeta, para dar crédito cuando la compartes.
 - **Version**. Un número de versión que tú defines, como `1.0`.
 - **Talkativeness**. Un control deslizante del 0 al 100 por ciento. Define con qué frecuencia habla este personaje en los chats grupales. El valor predeterminado es 50 por ciento.
@@ -110,6 +109,16 @@ La opción de avatar con IA aparece solo cuando tienes al menos una conexión de
 7. Cuando te guste el resultado, haz clic en **Use Avatar** (Usar avatar).
 
 El tamaño de la imagen viene del ajuste de tamaño de imagen **Portraits** en los ajustes de generación de imágenes, que por predeterminado es 1024 por 1024. Si has activado **Expose media prompts before sending** (Mostrar los prompts de medios antes de enviarlos), aparece un paso de revisión del prompt antes de cada solicitud.
+
+## Pestaña Voice
+
+La pestaña **Voice** define cómo suena el personaje cuando Text to Speech (texto a voz) lee sus mensajes en voz alta.
+
+- **Voice**. La voz que usa Text to Speech para este personaje. Cada cambio se guarda de inmediato, sin hacer clic en **Save**. Es el mismo ajuste que la fila de este personaje en **Connections → Text to Speech** (Conexiones → Text to Speech), así que ambos lugares siempre coinciden. Deja el campo vacío para usar la voz predeterminada. Si una tarjeta con un nombre coincidente tiene una voz, como el original de una copia AU, el campo vacío muestra el nombre de esa voz, porque esta tarjeta también la usa.
+- **Preview** (Probar). Reproduce una frase corta con esa voz. La frase dice el nombre del personaje, o el Phonetic name si hay uno definido, para que puedas oír cómo suena.
+- **Phonetic name**. Una escritura opcional que se usa solo para corregir la pronunciación en el texto a voz. Déjalo vacío para usar el nombre normal. A diferencia de la voz, forma parte de la tarjeta, así que haz clic en **Save** para conservarlo.
+
+Si Text to Speech está desactivado, o todos los personajes comparten una sola voz, una nota breve reemplaza el campo **Voice**. Con una sola voz compartida, la nota ofrece el botón **Use a voice per character** (Usar una voz por personaje). El botón **Open Text to Speech settings** (Abrir los ajustes de Text to Speech) abre el panel Connections, donde la tarjeta **Text to Speech** reúne todos los ajustes. Consulta [Configuración de Text to Speech (TTS)](../media/tts-setup.md).
 
 ## Pestaña Advanced
 

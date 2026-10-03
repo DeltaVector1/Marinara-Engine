@@ -1,6 +1,6 @@
 # 创建和编辑角色
 
-本指南介绍如何在 Marinara Engine 里做出一个角色，以及如何用 Character Editor(角色编辑器) 撰写、保存和管理角色卡的各个版本。内容涵盖 Metadata(元数据)、Card(卡片) 和 Advanced(高级) 三个选项卡，还有头像和已保存的版本历史。
+本指南介绍如何在 Marinara Engine 里做出一个角色，以及如何用 Character Editor(角色编辑器) 撰写、保存和管理角色卡的各个版本。内容涵盖 Metadata(元数据)、Card(卡片)、Voice(声音) 和 Advanced(高级) 四个选项卡，还有头像和已保存的版本历史。
 
 ## 什么是角色卡
 
@@ -35,9 +35,9 @@ Character Editor 会把聊天区域换成一整页的工作区，顶部横贯的
 
 如果改动还没保存就想离开，会出现一条提示：`You have unsaved changes. Close without saving?`，并给出 **Keep editing**(继续编辑)、**Discard & close**(放弃并关闭) 和 **Save & close**(保存并关闭) 三个选择。
 
-编辑器分成若干选项卡。屏幕够宽时，选项卡竖排在左侧；屏幕较窄时，它们变成顶部一条可横向滚动的条。选项卡依次是 **Metadata**、**Card**、**Convo**(对话)、**Lorebook**(世界书)、**Sprites**(立绘)、**Gallery**(图库)、**Colors**(颜色)、**Stats**(属性) 和 **Advanced**。
+编辑器分成若干选项卡。屏幕够宽时，选项卡竖排在左侧；屏幕较窄时，它们变成顶部一条可横向滚动的条。选项卡依次是 **Metadata**、**Card**、**Convo**(对话)、**Lorebook**(世界书)、**Sprites**(立绘)、**Gallery**(图库)、**Colors**(颜色)、**Voice**、**Stats**(属性) 和 **Advanced**。
 
-本指南讲 **Metadata**、**Card**、**Advanced**，以及头像和版本历史。其余选项卡各有专门的指南：
+本指南讲 **Metadata**、**Card**、**Voice**、**Advanced**，以及头像和版本历史。其余选项卡各有专门的指南：
 
 - **Convo**：[Conversation Mode 个人资料](../conversation/profiles.md)。
 - **Lorebook**：[把世界书关联到角色](../lorebooks/linking-to-characters.md)。
@@ -51,7 +51,6 @@ Character Editor 会把聊天区域换成一整页的工作区，顶部横贯的
 
 - **Character ID**。只读值，角色卡保存之后才会显示。点击 **Copy**(复制) 可以复制。
 - **Name**(名字)。显示用的名字，在提示词（Marinara Engine 发给 AI 的那段文字）里以 `{{char}}` 的形式使用。
-- **Phonetic name**(读音名)。可选的拼写方式，只用来纠正语音合成的发音。留空就按正常名字念。
 - **Creator**(作者)。角色卡的作者，分享时用来署名。
 - **Version**(版本)。自己设定的版本号，比如 `1.0`。
 - **Talkativeness**(发言频率)。0 到 100 的百分比滑块，决定这个角色在群聊里发言的频繁程度，默认 50%。
@@ -110,6 +109,16 @@ Character Editor 会把聊天区域换成一整页的工作区，顶部横贯的
 7. 对结果满意后，点击 **Use Avatar**。
 
 图片尺寸取自图像生成设置里的 **Portraits** 尺寸选项，默认是 1024 × 1024。如果开启了 **Expose media prompts before sending**，每次请求前都会多出一步提示词确认。
+
+## Voice 选项卡
+
+**Voice** 选项卡设置 Text to Speech(语音合成) 朗读这个角色时用的声音。
+
+- **Voice**。Text to Speech 给这个角色用的声音。改动会立刻保存，不需要点 **Save**。它和 **Connections → Text to Speech**(连接 → 语音合成) 里这个角色的那一行是同一项设置，所以两边始终一致。留空则使用默认声音。如果某张名字匹配的角色卡设置了声音（比如某个 AU 副本对应的原版卡），这个字段留空时会显示那个声音，因为这张卡也会用它。
+- **Preview**(试听)。用这个声音播放一句简短的台词。台词会说出角色的名字，设置了 Phonetic name(读音名) 的话就改用它，方便你听听实际效果。
+- **Phonetic name**。可选的拼写方式，只用来纠正语音合成的发音。留空就按正常名字念。和声音设置不同，它属于角色卡本身，所以要点击 **Save** 才能保留。
+
+如果 Text to Speech 没有开启，或者所有角色共用一个声音，**Voice** 字段的位置会换成一段简短的说明。所有角色共用一个声音时，说明里会提供 **Use a voice per character**(为每个角色单独配声) 按钮。**Open Text to Speech settings**(打开语音合成设置) 会打开 Connections，那里的 **Text to Speech** 卡片包含全部相关设置。参见 [Text to Speech (TTS) 设置](../media/tts-setup.md)。
 
 ## Advanced 选项卡
 

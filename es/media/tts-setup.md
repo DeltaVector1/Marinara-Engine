@@ -10,8 +10,6 @@ La app envía las solicitudes de TTS a través de su propio servidor. Tu API key
 
 Activar TTS no hace que nada hable por sí solo. Solo revela el botón **Speak** (Hablar) en cada mensaje y las opciones de **Auto-play** (Reproducción automática). Tú sigues eligiendo qué se lee y cuándo.
 
-Los mismos ajustes de reproducción permiten activar **Skip text inside HTML and custom tags** (omitir texto dentro de etiquetas HTML y personalizadas), **Skip fenced code blocks** (omitir bloques de código delimitados) o **Skip text inside square brackets** (omitir texto entre corchetes). Los bloques de código se omiten de forma predeterminada; los otros dos filtros empiezan desactivados. El filtro de etiquetas elimina el texto encerrado, como un bloque oculto `<simulation>...</simulation>`, pero conserva las etiquetas de hablante usadas para elegir voces. Estos filtros se aplican a la reproducción manual y automática, incluida la narración Game y la identificación de hablantes en Roleplay.
-
 ## Paso 1: Activa TTS y elige un Source
 
 1. Abre el panel **Connections** y expande la tarjeta **Text to Speech**.
@@ -75,7 +73,9 @@ Para **ElevenLabs**, debes elegir una voz. Marinara carga la biblioteca paginada
 4. Elige un personaje en el menú desplegable de la izquierda y una voz en el de la derecha.
 5. Repite para cada personaje al que quieras dar una voz personalizada.
 
-El botón **Refresh** del cuadro **Character Voices** vuelve a cargar la misma biblioteca del proveedor sin cambiar al modo de una sola voz. Primero debes crear tus personajes. Si aún no tienes ninguno, la app te indica que añadas personajes en la pestaña **Characters** antes de asignar voces. Los personajes sin una voz personal recurren a la voz global. Consulta [Crear y editar personajes](../characters/creating-and-editing-characters.md).
+También puedes elegir la voz de un personaje en el **Character Editor** (Editor de personajes), en su pestaña **Voice**. Esa pestaña cambia la misma fila, así que ambos lugares siempre muestran la misma voz.
+
+El botón **Refresh** del cuadro **Character Voices** vuelve a cargar la misma biblioteca del proveedor sin cambiar al modo de una sola voz. Primero debes crear tus personajes. Si aún no tienes ninguno, la app te indica que añadas personajes en la pestaña **Characters** antes de asignar voces. Un personaje sin una voz personal usa la voz asignada a una tarjeta con un nombre coincidente, como el original de una copia AU. De lo contrario, recurre a la voz global. Consulta [Crear y editar personajes](../characters/creating-and-editing-characters.md).
 
 ## Narrator Voice
 
@@ -126,6 +126,8 @@ Bajo el encabezado **Auto-play**, cada interruptor le indica a la app que lea un
 
 La reproducción automática se dispara una sola vez, en la respuesta más reciente, en el momento en que termina. No vuelve a leer los mensajes antiguos cuando reabres o desplazas un chat.
 
+Los mismos ajustes de reproducción permiten activar **Skip text inside HTML and custom tags** (omitir texto dentro de etiquetas HTML y personalizadas), **Skip fenced code blocks** (omitir bloques de código delimitados) o **Skip text inside square brackets** (omitir texto entre corchetes). Los bloques de código se omiten de forma predeterminada; los otros dos filtros empiezan desactivados. El filtro de etiquetas elimina el texto encerrado, como un bloque oculto `<simulation>...</simulation>`, pero conserva las etiquetas de hablante usadas para elegir voces. Estos filtros se aplican a la reproducción manual y automática, incluida la narración Game y la identificación de hablantes en Roleplay.
+
 ## Hablar un solo mensaje
 
 Una vez que TTS está activado, aparece un botón **Speak** (un icono de micrófono) en la barra de herramientas debajo de cada mensaje de personaje o de narrador. Lee ese único mensaje cuando lo pidas.
@@ -154,7 +156,7 @@ La misma configuración de TTS sirve para todos los modos, con algunos extras po
 
 ## Phonetic name (pronunciación en las llamadas)
 
-Si el nombre de un personaje o de una persona está escrito de una forma que la voz pronuncia mal, puedes añadir un **Phonetic name**. En el **Character Editor**, el campo está junto al campo **Name** del personaje. En el **Persona Editor**, está con los demás campos de información básica. Escribe cómo debería sonar el nombre.
+Si el nombre de un personaje o de una persona está escrito de una forma que la voz pronuncia mal, puedes añadir un **Phonetic name**. En el **Character Editor**, el campo está en la pestaña **Voice**. En el **Persona Editor**, está con los demás campos de información básica. Escribe cómo debería sonar el nombre.
 
 Esta anulación se usa solo durante las llamadas de audio y video de Conversation. El botón **Speak** normal por mensaje, la reproducción automática del chat y la narración de Game Mode no leen este campo.
 

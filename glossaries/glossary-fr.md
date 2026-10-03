@@ -419,3 +419,12 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 - Preserve the different no-answer fallbacks for agents, prompts, lorebooks and Smart response order. Preserve phase budgets, cache lifetimes, thresholds, request limits and hardware qualification without generalizing them.
 - Preserve API identifiers, code examples, model names, URLs and English link fragments. Prompt examples and selectable example strings remain English, as in the source.
 - API 1.16 state writes do not rewind; transient events can be lost. The translated contract retains these limitations and the historical combat proposal status; it does not claim a new validation run.
+
+## Character Voice tab and built-file guard (2026-10-03)
+
+Precedent from the #6999 / #7004 mirror (`characters/creating-and-editing-characters.md`, `media/tts-setup.md`, `home/professor-mari.md`):
+
+- An AU (alternate universe) copy of a card is a **copie AU**, glossed once per file: "l'original d'une copie AU (univers alternatif)" (`characters/creating-and-editing-characters.md:117`, `media/tts-setup.md:78`). Before this, AU appeared only inside the code span `Modern AU version`.
+- Marinara's built app files, the `dist` folders, are **les fichiers compilés de Marinara** (`home/professor-mari.md:51`). The adjective follows "L'application Marinara compilée" (`TROUBLESHOOTING.md:376`). It does not lift the §3.4 ban on `version compilée` for a build.
+- **Preview** on the Character Editor's Voice tab is glossed **(écouter)** (`characters/creating-and-editing-characters.md:118`), the `ui/fr.json` wording for its key `settings.notifications.customSound.actions.preview`. The Text to Speech card's **Preview** (aperçu) gloss (`media/tts-setup.md:169`) uses the same key and was left unchanged. Take only the wording from `ui/fr.json`: it uses vouvoiement and curly apostrophes, so T2 applies to it too.
+- The Voice section keeps the existing forms "le Text to Speech (synthèse vocale)" and **Phonetic name** (nom phonétique).

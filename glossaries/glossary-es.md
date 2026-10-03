@@ -409,3 +409,8 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 - Preserve the different no-answer fallbacks for agents, prompts, lorebooks and Smart response order. Preserve phase budgets, cache lifetimes, thresholds, request limits and hardware qualification without generalizing them.
 - Preserve API identifiers, code examples, model names, URLs and English link fragments. Prompt examples and selectable example strings remain English, as in the source.
 - API 1.16 state writes do not rewind; transient events can be lost. The translated contract retains these limitations and the historical combat proposal status; it does not claim a new validation run.
+
+## Character Voice tab (2026-10-03)
+
+- **Preview** on the Character Editor's **Voice** tab is glossed **(Probar)**. That button renders `settings.notifications.customSound.actions.preview`, which `ui/es.json` translates as "Probar", so the gloss matches what a reader with the Spanish UI sees. The live color preview in `characters/colors-and-stats.md` stays **(Vista previa)**. Both labels render that same UI string, so the Spanish UI shows "Probar" on both; the guides gloss each by sense (a sound sample versus a visual preview), so do not harmonise the two glosses.
+- The text-to-speech same-name fallback (a card that has no voice of its own uses the one set for a card with a matching name) is **una tarjeta con un nombre coincidente**, and "the original of an AU copy" is **el original de una copia AU**. Matching is looser than an identical name, so avoid **el mismo nombre**.

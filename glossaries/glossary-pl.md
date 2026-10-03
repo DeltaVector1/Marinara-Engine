@@ -869,3 +869,26 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 - **Narration Passthrough** replaces the old formatter label **LTX Director Video**; preserve this exact current UI name. PocketTTS now uses the official server by default, with the existing wrapper still supported.
 
 These are documented choices for this catchup, not a claim of independent native-reader review.
+
+## Voice tab and per-character voices (2026-10-03)
+
+- **Preview** is glossed by sense. On an audio control (the Voice tab's
+  sample-line button) it is *(Odsłuchaj)*: verbatim the shipped `pl.json` string
+  `settings.notifications.customSound.actions.preview` that this button renders,
+  hence the capital (RR-4). A visual preview keeps *(podgląd)*
+  (`appearance/custom-css-themes.md:26`, `characters/colors-and-stats.md:13`). Do
+  not unify the two.
+- *AU copy* is **kopia AU** (frozen acronym behind a carrier noun, R-123); *the
+  original of an AU copy* is **oryginał kopii AU**. Keep it identical in
+  `characters/creating-and-editing-characters.md` and `media/tts-setup.md`.
+- The character editor's **Voice** tab gets its one-time gloss *(głos)* in the
+  lead sentence of `## Zakładka Voice`, not in the intro and tab-order lists,
+  where that file leaves every tab name unglossed.
+- Unbolded *Text to Speech* (the feature) takes the carrier **funkcja Text to
+  Speech** (`TROUBLESHOOTING.md:260`), glossed once as *(synteza mowy)*; the TTS
+  card in **Connections** stays a **sekcja**, never a *karta* (R-81).
+- New button glosses: **Use a voice per character** *(osobny głos dla każdej
+  postaci)*; **Open Text to Speech settings** *(otwarcie ustawień syntezy mowy)*.
+- Build output is **zbudowane pliki aplikacji Marinara Engine** (cf.
+  `INSTALLATION.md:28` "gotową, zbudowaną aplikację"); the folder stays in
+  backticks behind a carrier noun: **foldery `dist`**.

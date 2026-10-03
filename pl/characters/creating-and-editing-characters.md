@@ -1,6 +1,6 @@
 # Tworzenie i edycja postaci
 
-Ten przewodnik wyjaśnia, jak stworzyć postać w aplikacji Marinara Engine. Pokazuje też, jak pisać, zapisywać i porządkować wersje karty w edytorze **Character Editor** (edytor postaci). Opisuje zakładki **Metadata**, **Card** i **Advanced**, awatary oraz zapisaną historię wersji.
+Ten przewodnik wyjaśnia, jak stworzyć postać w aplikacji Marinara Engine. Pokazuje też, jak pisać, zapisywać i porządkować wersje karty w edytorze **Character Editor** (edytor postaci). Opisuje zakładki **Metadata**, **Card**, **Voice** i **Advanced**, awatary oraz zapisaną historię wersji.
 
 ## Czym jest karta postaci
 
@@ -35,9 +35,9 @@ Po prawej stronie u góry są takie przyciski:
 
 Przy próbie wyjścia z niezapisaną pracą pojawia się baner o treści `You have unsaved changes. Close without saving?` Daje do wyboru **Keep editing**, **Discard & close** oraz **Save & close**.
 
-Edytor dzieli się na zakładki. Na szerokim ekranie biegną one wzdłuż lewej krawędzi. Na wąskim zamieniają się w przewijany pasek u góry. Zakładki po kolei to **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Stats** i **Advanced**.
+Edytor dzieli się na zakładki. Na szerokim ekranie biegną one wzdłuż lewej krawędzi. Na wąskim zamieniają się w przewijany pasek u góry. Zakładki po kolei to **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Voice**, **Stats** i **Advanced**.
 
-Ten przewodnik omawia zakładki **Metadata**, **Card** i **Advanced**, a do tego awatary i historię wersji. Pozostałe zakładki mają własne przewodniki:
+Ten przewodnik omawia zakładki **Metadata**, **Card**, **Voice** i **Advanced**, a do tego awatary i historię wersji. Pozostałe zakładki mają własne przewodniki:
 
 - **Convo**: [Profile w trybie Conversation Mode (nazwa wyświetlana, About Me, zachowanie)](../conversation/profiles.md).
 - **Lorebook**: [Podpinanie lorebooków do postaci i person](../lorebooks/linking-to-characters.md).
@@ -51,7 +51,6 @@ Zakładka **Metadata** zbiera dane o tożsamości karty i jej porządkowaniu. Po
 
 - **Character ID**. Wartość tylko do odczytu, widoczna dopiero po zapisaniu karty. Kliknij przycisk **Copy**, żeby ją skopiować.
 - **Name**. Wyświetlana nazwa. W promptach używa się jej jako `{{char}}`.
-- **Phonetic name**. Opcjonalny zapis, który poprawia wyłącznie wymowę w syntezie mowy. Puste pole oznacza zwykłą nazwę.
 - **Creator**. Osoba, która stworzyła kartę, do podania przy udostępnianiu.
 - **Version**. Numer wersji, który ustawiasz sam, na przykład `1.0`.
 - **Talkativeness**. Suwak od 0 do 100 procent. Decyduje o tym, jak często ta postać odzywa się na czatach grupowych. Domyślnie 50 procent.
@@ -110,6 +109,16 @@ Opcja awatara AI pojawia się dopiero wtedy, gdy skonfigurowane jest co najmniej
 7. Kiedy wynik się podoba, kliknij przycisk **Use Avatar**.
 
 Rozmiar obrazka bierze się z ustawienia rozmiaru **Portraits** w ustawieniach generowania obrazów, a domyślnie wynosi 1024 na 1024. Przy włączonej opcji **Expose media prompts before sending** przed każdym żądaniem pojawia się dodatkowy krok z podglądem promptu.
+
+## Zakładka Voice
+
+Zakładka **Voice** (głos) ustala, jak brzmi postać, kiedy funkcja Text to Speech (synteza mowy) czyta jej wypowiedzi na głos.
+
+- **Voice**. Głos, którego funkcja Text to Speech używa dla tej postaci. Zmiana zapisuje się od razu, bez klikania przycisku **Save**. To ustawienie jest wspólne z wierszem tej postaci w sekcji **Connections → Text to Speech** (Połączenia → synteza mowy), więc oba miejsca zawsze się zgadzają. Puste pole oznacza głos domyślny. Jeśli karta o pasującej nazwie, na przykład oryginał kopii AU, ma własny głos, w pustym polu widać nazwę tego głosu, bo bieżąca karta również z niego korzysta.
+- **Preview** (Odsłuchaj). Odtwarza krótką kwestię tym głosem. Pada w niej nazwa postaci albo, jeśli jest ustawiona, nazwa z pola Phonetic name, więc od razu słychać, jak brzmi.
+- **Phonetic name**. Opcjonalny zapis, który poprawia wyłącznie wymowę w syntezie mowy. Puste pole oznacza zwykłą nazwę. W odróżnieniu od głosu ten zapis należy do karty, więc kliknij przycisk **Save**, żeby go zachować.
+
+Kiedy funkcja Text to Speech jest wyłączona albo wszystkie postacie mają jeden wspólny głos, w miejscu pola **Voice** pojawia się krótka uwaga. Przy jednym wspólnym głosie uwaga ma też przycisk **Use a voice per character** (osobny głos dla każdej postaci). Przycisk **Open Text to Speech settings** (otwarcie ustawień syntezy mowy) otwiera panel Connections, w którym sekcja **Text to Speech** zbiera wszystkie ustawienia. Zobacz [Konfiguracja syntezy mowy (TTS)](../media/tts-setup.md).
 
 ## Zakładka Advanced
 

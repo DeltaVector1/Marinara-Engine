@@ -1,6 +1,6 @@
 # Charaktere anlegen und bearbeiten
 
-In dieser Anleitung erfährst du, wie du in Marinara Engine einen Charakter anlegst. Sie zeigt außerdem, wie du im Character Editor Kartenversionen schreibst, speicherst und verwaltest. Thema sind die Tabs **Metadata**, **Card** und **Advanced**, dazu Avatare und der gespeicherte Versionsverlauf.
+In dieser Anleitung erfährst du, wie du in Marinara Engine einen Charakter anlegst. Sie zeigt außerdem, wie du im Character Editor Kartenversionen schreibst, speicherst und verwaltest. Thema sind die Tabs **Metadata**, **Card**, **Voice** und **Advanced**, dazu Avatare und der gespeicherte Versionsverlauf.
 
 ## Was eine Charakterkarte ist
 
@@ -35,9 +35,9 @@ Oben rechts liegen diese Schaltflächen:
 
 Willst du den Editor mit ungespeicherter Arbeit verlassen, erscheint ein Hinweisbanner: `You have unsaved changes. Close without saving?` Zur Auswahl stehen **Keep editing**, **Discard & close** und **Save & close**.
 
-Der Editor ist in Tabs unterteilt. Auf einem breiten Bildschirm laufen sie links senkrecht herunter, auf einem schmalen werden sie zu einem scrollbaren Streifen am oberen Rand. Die Reihenfolge lautet **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Stats** und **Advanced**.
+Der Editor ist in Tabs unterteilt. Auf einem breiten Bildschirm laufen sie links senkrecht herunter, auf einem schmalen werden sie zu einem scrollbaren Streifen am oberen Rand. Die Reihenfolge lautet **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Voice**, **Stats** und **Advanced**.
 
-Diese Anleitung behandelt **Metadata**, **Card** und **Advanced** sowie Avatare und den Versionsverlauf. Für die übrigen Tabs gibt es eigene Anleitungen:
+Diese Anleitung behandelt **Metadata**, **Card**, **Voice** und **Advanced** sowie Avatare und den Versionsverlauf. Für die übrigen Tabs gibt es eigene Anleitungen:
 
 - **Convo**: [Profile für den Conversation Mode](../conversation/profiles.md).
 - **Lorebook**: [Lorebooks mit Charakteren verknüpfen](../lorebooks/linking-to-characters.md).
@@ -51,7 +51,6 @@ Der Tab **Metadata** enthält Angaben zu Identität und Organisation. Sie helfen
 
 - **Character ID**. Ein schreibgeschützter Wert, der erst nach dem Speichern erscheint. Mit **Copy** kopierst du ihn.
 - **Name**. Der angezeigte Name. In Prompts – also im Text, den Marinara an die KI schickt – steht er als `{{char}}`.
-- **Phonetic name**. Eine optionale Schreibweise, die ausschließlich die Aussprache für die Sprachausgabe (Text to Speech) korrigiert. Lass das Feld leer, um den normalen Namen zu verwenden.
 - **Creator**. Die Person, die die Karte erstellt hat – für die Namensnennung beim Teilen.
 - **Version**. Eine Versionsnummer deiner Wahl, etwa `1.0`.
 - **Talkativeness**. Ein Schieberegler von 0 bis 100 Prozent. Er legt fest, wie oft dieser Charakter in Gruppenchats zu Wort kommt. Der Standard sind 50 Prozent.
@@ -110,6 +109,16 @@ Die KI-Avatar-Option erscheint nur, wenn mindestens eine Verbindung zur Bildgene
 7. Gefällt dir das Ergebnis, klick auf **Use Avatar**.
 
 Die Bildgröße stammt aus der Einstellung **Portraits** in den Einstellungen zur Bildgenerierung; standardmäßig sind das 1024 mal 1024. Ist **Expose media prompts before sending** aktiviert, kommt vor jeder Anfrage noch ein Prüfschritt für den Prompt dazu.
+
+## Tab „Voice“
+
+Der Tab **Voice** (Stimme) legt fest, wie der Charakter klingt, wenn Text to Speech (Sprachausgabe) seine Nachrichten vorliest.
+
+- **Voice**. Die Stimme, die Text to Speech für diesen Charakter verwendet. Eine Änderung wird sofort gespeichert, ohne dass du auf **Save** klicken musst. Es ist dieselbe Einstellung wie in der Zeile dieses Charakters unter **Connections → Text to Speech** (Verbindungen → Sprachausgabe), deshalb stimmen beide Stellen immer überein. Lass das Feld leer, um die Standardstimme zu verwenden. Hat eine Karte mit passendem Namen eine Stimme – etwa das Original einer AU-Kopie –, zeigt das leere Feld deren Stimme an, denn sie gilt auch für die aktuelle Karte.
+- **Preview** (Vorschau). Spielt eine kurze Zeile mit dieser Stimme ab. Darin fällt der Name des Charakters oder, falls eingetragen, der Phonetic name – so hörst du, wie er klingt.
+- **Phonetic name**. Eine optionale Schreibweise, die ausschließlich die Aussprache für die Sprachausgabe korrigiert. Lass das Feld leer, um den normalen Namen zu verwenden. Anders als die Stimme gehört diese Schreibweise zur Karte – klick also auf **Save**, um sie zu behalten.
+
+Ist Text to Speech ausgeschaltet oder teilen sich alle Charaktere eine Stimme, ersetzt ein kurzer Hinweis das Feld **Voice**. Bei einer gemeinsamen Stimme enthält der Hinweis außerdem die Schaltfläche **Use a voice per character** (eigene Stimme pro Charakter verwenden). Ein Klick auf **Open Text to Speech settings** (Text-to-Speech-Einstellungen öffnen) bringt dich zum Panel Connections, in dem die Karte **Text to Speech** sämtliche Einstellungen enthält. Siehe [Text to Speech (TTS) einrichten](../media/tts-setup.md).
 
 ## Tab „Advanced“
 

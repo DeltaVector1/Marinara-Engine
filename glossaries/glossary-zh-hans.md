@@ -577,3 +577,14 @@ term is distinct from a Game save (**存档**) and an account archive (**档案*
 | wound track | 伤势轨道 |
 
 Keep **Decision model**, **Jev**, backend names, and executable statement examples unchanged. Translate their surrounding explanations. Activation questions decide whether an agent runs; statements inside its prompt select the instructions for an agent that is already running. These are translation choices, not a new native-reader review.
+
+## Character Editor Voice tab (2026-10-03)
+
+| English label | Gloss | Note |
+| --- | --- | --- |
+| Voice (Character Editor tab and field) | 声音 | The pack's word for a TTS voice (`media/tts-setup.md`: 全局声音, 单独配声). `editor.tabs.voice` has no zh-Hans string, so the tab renders in English. |
+| Preview (plays a voice sample) | 试听 | Matches `settings.notifications.customSound.actions.preview` in `ui/zh-Hans.json`. Visual previews keep 预览. `media/tts-setup.md:169` still glosses the TTS card's voice **Preview** as 预览; align it in a later cleanup. |
+| Use a voice per character | 为每个角色单独配声 | Reuses 单独配声. |
+| Open Text to Speech settings | 打开语音合成设置 | Keeps the pack's 语音合成, not the app's 文本转语音 (§5.4). |
+
+**Phonetic name** keeps 读音名, not the app's 名称读音 (§7.5 P1). An AU copy is an **AU 副本**; the card it was copied from is the **原版卡**. These are translation choices, not a new native-reader review.

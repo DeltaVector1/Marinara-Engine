@@ -1,6 +1,6 @@
 # Créer et modifier des personnages
 
-Ce guide explique comment créer un personnage dans Marinara Engine. Il montre aussi comment se servir de l'éditeur **Character Editor** (éditeur de fiche de personnage) pour écrire, enregistrer et gérer les versions d'une fiche. Au programme : les onglets **Metadata**, **Card** et **Advanced**, les avatars et l'historique des versions enregistrées.
+Ce guide explique comment créer un personnage dans Marinara Engine. Il montre aussi comment se servir de l'éditeur **Character Editor** (éditeur de fiche de personnage) pour écrire, enregistrer et gérer les versions d'une fiche. Au programme : les onglets **Metadata**, **Card**, **Voice** et **Advanced**, les avatars et l'historique des versions enregistrées.
 
 ## Ce qu'est une fiche de personnage
 
@@ -35,9 +35,9 @@ En haut à droite, tu disposes de ces boutons :
 
 Si tu essaies de partir avec des modifications non enregistrées, un bandeau affiche `You have unsaved changes. Close without saving?` Il propose **Keep editing**, **Discard & close** et **Save & close**.
 
-L'éditeur est découpé en onglets. Sur un écran large, ils s'alignent verticalement à gauche. Sur un écran étroit, ils deviennent une bande défilante en haut. Les onglets, dans l'ordre, sont **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Stats** et **Advanced**.
+L'éditeur est découpé en onglets. Sur un écran large, ils s'alignent verticalement à gauche. Sur un écran étroit, ils deviennent une bande défilante en haut. Les onglets, dans l'ordre, sont **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Voice**, **Stats** et **Advanced**.
 
-Ce guide traite des onglets **Metadata**, **Card** et **Advanced**, ainsi que des avatars et de l'historique des versions. Les autres onglets ont leur propre guide :
+Ce guide traite des onglets **Metadata**, **Card**, **Voice** et **Advanced**, ainsi que des avatars et de l'historique des versions. Les autres onglets ont leur propre guide :
 
 - **Convo** : [Profils du mode Conversation](../conversation/profiles.md).
 - **Lorebook** : [Lier des lorebooks à des personnages](../lorebooks/linking-to-characters.md).
@@ -51,7 +51,6 @@ L'onglet **Metadata** rassemble les informations d'identité et de classement. E
 
 - **Character ID**. Une valeur en lecture seule, visible seulement après l'enregistrement de la fiche. Clique sur **Copy** pour la copier.
 - **Name**. Le nom affiché. Il correspond à `{{char}}` dans les prompts, c'est-à-dire dans le texte que Marinara envoie à l'IA.
-- **Phonetic name**. Une orthographe facultative, utilisée uniquement pour corriger la prononciation en synthèse vocale (Text to Speech). Laisse le champ vide pour garder le nom normal.
 - **Creator**. La personne qui a créé la fiche, pour la créditer lors du partage.
 - **Version**. Un numéro de version que tu choisis, par exemple `1.0`.
 - **Talkativeness**. Un curseur de 0 à 100 pour cent. Il règle la fréquence à laquelle ce personnage prend la parole dans les chats de groupe. La valeur par défaut est 50 pour cent.
@@ -110,6 +109,16 @@ L'option d'avatar IA n'apparaît que si au moins une connexion de génération d
 7. Quand le résultat te convient, clique sur **Use Avatar**.
 
 La taille de l'image vient du réglage de taille **Portraits**, dans les réglages de génération d'images, qui vaut 1024 par 1024 par défaut. Si tu as activé **Expose media prompts before sending**, une étape de relecture du prompt s'intercale avant chaque requête.
+
+## Onglet Voice
+
+L'onglet **Voice** (voix) définit la voix que prend le personnage quand le Text to Speech (synthèse vocale) lit ses répliques à voix haute.
+
+- **Voice**. La voix que le Text to Speech utilise pour ce personnage. Toute modification est enregistrée aussitôt, sans passer par **Save**. C'est le même réglage que la ligne de ce personnage dans **Connections → Text to Speech** (Connexions → Synthèse vocale) : les deux concordent donc toujours. Laisse le champ vide pour utiliser la voix par défaut. Si une fiche au nom correspondant a une voix, par exemple l'original d'une copie AU (univers alternatif), le champ vide affiche le nom de cette voix, car cette fiche l'utilise aussi.
+- **Preview** (écouter). Joue une courte phrase avec cette voix. La phrase dit le nom du personnage, ou le nom phonétique s'il est défini, pour que tu entendes comment il est prononcé.
+- **Phonetic name** (nom phonétique). Une orthographe facultative, utilisée uniquement pour corriger la prononciation en synthèse vocale. Laisse le champ vide pour garder le nom normal. Contrairement à la voix, ce champ fait partie de la fiche : clique donc sur **Save** pour le conserver.
+
+Si le Text to Speech est désactivé, ou si tous les personnages partagent une seule voix, une courte note remplace le champ **Voice**. Avec une voix commune, la note propose le bouton **Use a voice per character** (utiliser une voix par personnage). Le bouton **Open Text to Speech settings** (ouvrir les réglages de synthèse vocale) ouvre le panneau Connections, où la carte **Text to Speech** regroupe tous les réglages. Voir [Configuration du Text to Speech (TTS)](../media/tts-setup.md).
 
 ## Onglet Advanced
 

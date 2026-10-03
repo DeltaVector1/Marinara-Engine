@@ -12,8 +12,6 @@ Mit ihr sprichst du in ganz normaler Sprache. Tipp eine Nachricht in das Feld un
 
 Die allererste Nachricht an sie schaltet die Errungenschaft **Hello World** frei.
 
-Die **Professor-Mari-Präsenzanzeige**, ein normaler Charakterchat mit Professor Mari und der Arbeitsbereich-Chat auf Home verwenden dasselbe Übergabeformat.
-
 ## Was sie kann
 
 Professor Mari ist mehr als ein Frage-Feld. Sie erklärt die App, hilft bei der Einrichtung und baut auf Zuruf Dinge für dich.
@@ -50,6 +48,7 @@ Die Vertrauensgrenze in einfachen Worten:
 - In deinen gespeicherten Datenordner, in dem Charaktere und Chats liegen, kann sie nicht direkt schreiben. Stattdessen nutzt sie den weiter unten beschriebenen Prüfablauf.
 - Reine Shell-Befehle haben keinen Netzwerkzugriff, erben keine Server-Geheimnisse und dürfen nur gewöhnliche Dateien im Arbeitsbereich sowie ein privates temporäres Verzeichnis beschreiben.
 - Normale Quelldateien darf sie weiterhin direkt bearbeiten. Änderungen an Abhängigkeits-Manifesten, Lockfiles, Startern, Installern und CI-Workflows werden vorgemerkt und dir gezeigt, bevor Marinara sie anwendet.
+- Die gebauten App-Dateien von Marinara – die `dist`-Ordner, aus denen die App ausgeführt wird – kann sie lesen, aber nicht anlegen, bearbeiten, verschieben oder löschen. Stattdessen ändert sie die Quelldateien.
 - Braucht eine Quelltext-Änderung eine öffentliche npm-Bibliothek, fordert sie ein konkretes Paket an. Marinara löst `latest` zu einer exakten Version auf, zeigt die Registry-Integrität in einer Prüfkarte und installiert erst nach deiner Freigabe. Lifecycle-Skripte der Pakete bleiben abgeschaltet.
 - Kann Marinara seine Shell-Sandbox unter macOS oder Linux nicht bereitstellen, sind reine Shell-Befehle deaktiviert. Die sichereren strukturierten Werkzeuge für Dateien und App-Daten stehen ihr weiterhin zur Verfügung.
 - Befehle, die sie ausführt, brechen nach kurzer Zeit von selbst ab. Ein hängender Befehl läuft also nicht endlos weiter.
