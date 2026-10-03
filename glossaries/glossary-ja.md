@@ -485,3 +485,11 @@ Glosses for the Character Editor's **Voice** tab (`characters/creating-and-editi
 | the original of an AU copy | AU版のコピー元 |
 
 The moved **Phonetic name** bullet keeps its (読み仮名) gloss, while `media/tts-setup.md` glosses the same label (読み方). Align them in a consistency pass, not in a mirror commit. These are translation choices, not a new native-reader review.
+
+## Send without wrapper (2026-10-03)
+
+`prompts/presets.md` glosses the **Prompt Block** switch as **Send without wrapper**(囲みなしで送信). `ja.json` has no preset-editor strings, so the gloss follows the file's own wrap vocabulary: 囲み形式 for the wrap format and 囲みなし for unwrapped output. This is a translation choice, not a new native-reader review.
+
+## Noodle post translation (2026-10-03)
+
+`noodle/settings.md` glosses the Noodle **Translation** switch as **Translate posts automatically**(投稿を自動翻訳), on the pattern of **Auto-Translate Responses**(AIの返信を自動翻訳) in `integrations/message-translation.md`. The chat **Translation** setting **Save translator defaults** is glossed (翻訳のデフォルト設定を保存), keeping デフォルト for *default*. `ja.json` has neither string. **Translate** and **Translation** keep (翻訳), and Google Translate stays Latin. These are translation choices, not a new native-reader review.

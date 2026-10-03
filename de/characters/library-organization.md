@@ -122,5 +122,5 @@ Richtest du einen Chat mit mehreren Charakteren ein, halt nach der Option **Add 
 ## Verwandte Anleitungen
 
 - [Charakterkarten importieren und exportieren](import-export.md)
-- [Charaktere erstellen und bearbeiten](creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](creating-and-editing-characters.md)
 - [Gruppenchats und Gruppengespräche](../chats/group-chats.md)

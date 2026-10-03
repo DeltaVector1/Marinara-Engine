@@ -8,7 +8,7 @@ Prawie wszystkie ustawienia TTS mieszczą się w jednym miejscu. Otwórz panel *
 
 Aplikacja wysyła żądania TTS przez własny serwer. Marinara szyfruje klucz API dostawcy i tak zaszyfrowany trzyma go na serwerze. Po zapisaniu klucza pole pokazuje wartość zamaskowaną, czyli rząd kropek, a nie prawdziwy klucz. Prawdziwy klucz nigdy nie wraca do przeglądarki.
 
-Samo włączenie TTS niczego jeszcze nie odczyta. Odsłania tylko przycisk **Speak** (Mów) przy każdej wiadomości oraz opcje **Auto-play** (automatyczne odtwarzanie). O tym, co i kiedy zostanie przeczytane, nadal decydujesz sam.
+Samo włączenie TTS niczego jeszcze nie odczyta. Odsłania tylko przycisk **Speak** (Mów) przy każdej wiadomości oraz opcje **Auto-play** (automatyczne odtwarzanie). O tym, co i kiedy zostanie przeczytane, nadal decydujesz ty.
 
 ## Krok 1: włącz TTS i wybierz Source
 
@@ -46,7 +46,7 @@ W przypadku źródła **ElevenLabs** pole **Model** wczytuje modele mowy dostęp
 
 ### PocketTTS to osobny program
 
-PocketTTS nie jest wbudowany w Marinara Engine. Zainstaluj osobno [oficjalny serwer PocketTTS](https://github.com/kyutai-labs/pocket-tts), a następnie uruchom go poleceniem `uvx pocket-tts serve`. Marinara nie pobiera go ani nim nie zarządza.
+PocketTTS nie jest wbudowany w aplikację Marinara Engine. Zainstaluj osobno [oficjalny serwer PocketTTS](https://github.com/kyutai-labs/pocket-tts), a następnie uruchom go poleceniem `uvx pocket-tts serve`. Marinara nie pobiera go ani nim nie zarządza.
 
 Oficjalny serwer domyślnie używa `http://localhost:8000`. Zostaw tę wartość **Base URL**, chyba że zmienisz host lub port. Marinara automatycznie wykrywa oficjalne wieloczęściowe API `/tts`. Istniejące własne adresy [adaptera PocketTTS zgodnego z OpenAI](https://github.com/teddybear082/pocket-tts-openai_streaming_server) pozostają obsługiwane.
 

@@ -90,7 +90,7 @@ Sind Werte aktiviert, erscheinen sie während des Chats im HUD-Widget. HUD steht
 
 ## Verwandte Anleitungen
 
-- [Charaktere erstellen und bearbeiten](creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](creating-and-editing-characters.md)
 - [Personas: erstellen und bearbeiten](personas.md)
 - [HUD und Tracker](../roleplay/hud-and-trackers.md)
 - [Referenz der herunterladbaren Agenten](../agents/built-in-agents.md)

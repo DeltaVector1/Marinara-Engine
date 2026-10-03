@@ -173,12 +173,12 @@ Ein Sammelexport lädt eine einzelne ZIP-Datei herunter, mit je einer Datei pro 
 
 In der Kopfzeile des **Persona Editor** sitzt das Symbol **Add persona as character**. Es legt eine neue Charakterkarte in der Charakter-Bibliothek an. Die neue Karte übernimmt Name, Beschreibung, Persönlichkeit, Szenario, Vorgeschichte, Aussehen, Tags, Ersteller, Version und Avatar der Persona.
 
-Praktisch ist das, wenn du eine frühere Persona lieber als Charakter spielen willst. Die ursprüngliche Persona bleibt unverändert und wird nicht gelöscht. Wie du Charaktere bearbeitest, steht unter [Charaktere erstellen und bearbeiten](creating-and-editing-characters.md).
+Praktisch ist das, wenn du eine frühere Persona lieber als Charakter spielen willst. Die ursprüngliche Persona bleibt unverändert und wird nicht gelöscht. Wie du Charaktere bearbeitest, steht unter [Charaktere anlegen und bearbeiten](creating-and-editing-characters.md).
 
 ## Verwandte Anleitungen
 
 - [Die Persona für einen Chat wählen](choosing-your-persona.md)
 - [Charakterfarben und RPG-Werte](colors-and-stats.md)
-- [Charaktere erstellen und bearbeiten](creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](creating-and-editing-characters.md)
 - [Profile im Conversation Mode](../conversation/profiles.md)
 - [Makros](../prompts/macros.md)

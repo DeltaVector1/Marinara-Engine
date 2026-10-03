@@ -414,3 +414,13 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 
 - **Preview** on the Character Editor's **Voice** tab is glossed **(Probar)**. That button renders `settings.notifications.customSound.actions.preview`, which `ui/es.json` translates as "Probar", so the gloss matches what a reader with the Spanish UI sees. The live color preview in `characters/colors-and-stats.md` stays **(Vista previa)**. Both labels render that same UI string, so the Spanish UI shows "Probar" on both; the guides gloss each by sense (a sound sample versus a visual preview), so do not harmonise the two glosses.
 - The text-to-speech same-name fallback (a card that has no voice of its own uses the one set for a card with a matching name) is **una tarjeta con un nombre coincidente**, and "the original of an AU copy" is **el original de una copia AU**. Matching is looser than an identical name, so avoid **el mismo nombre**.
+
+## Send without wrapper (2026-10-03)
+
+- The **Prompt Block** switch **Send without wrapper** in `prompts/presets.md` is glossed **(Enviar sin envoltura)**. Neither `ui/es.json` nor the app ships a Spanish string for it, so the gloss follows the file's own wrap vocabulary: *wrap* is **envolver**, a *wrapper* is **envoltura** (as in `**NONE**: no se agrega ninguna envoltura`), a *tag* is **etiqueta** and a *heading* is **encabezado**. Do not introduce `envoltorio` or `contenedor` for the wrapper.
+- The switch itself is **el interruptor**, and the lowercase generic "prompt blocks" is **bloques de prompt**, matching the file's `**Prompt Block** (Bloque de prompt)` gloss.
+
+## Noodle auto-translation (2026-10-03)
+
+- In `noodle/settings.md`, the toggle **Translate posts automatically** is glossed **(Traducir publicaciones automáticamente)**, using the file's own **publicación** for a post; the per-post button **Translate** is glossed **(Traducir)**, as in `chats/messages.md`. The section heading `## Translation` stays English like its sibling section headings, with **(Traducción)** glossed in its first sentence as in `integrations/message-translation.md`.
+- The chat-translation button **Save translator defaults** is glossed **(Guardar valores predeterminados del traductor)**, and the saved settings are **los valores predeterminados del traductor** (§ 3: *default* is **predeterminado**, never `por defecto`). Neither `ui/es.json` nor the app ships a Spanish string for it.

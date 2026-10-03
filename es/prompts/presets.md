@@ -125,6 +125,8 @@ Usa **Depth** para recordatorios que quieres que la IA vea cerca de los mensajes
 
 XML es un buen valor predeterminado para la mayoría de los modelos. Prueba **MARKDOWN** o **NONE** solo si un modelo parece responder mejor sin etiquetas.
 
+Para enviar un solo **Prompt Block** sin su etiqueta ni su encabezado mientras el resto del preset sigue envuelto, expándelo en la pestaña **Sections** y activa **Send without wrapper** (Enviar sin envoltura). El contenido del bloque se envía exactamente como está escrito. Si el bloque pertenece a un grupo, la etiqueta o el encabezado del grupo pueden seguir rodeándolo; quítalo del grupo cuando quieras enviarlo completamente sin envoltura. Los marcadores siempre conservan su envoltura, así que el interruptor solo aparece en los bloques de prompt. También se oculta cuando el formato de envoltura del preset es **NONE**, porque en ese caso no se envuelve nada.
+
 ## Asignar un preset a un chat
 
 Un preset no hace nada hasta que lo asignas a un chat. Hay dos maneras de hacerlo en un chat de **Roleplay**.

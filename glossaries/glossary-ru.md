@@ -672,3 +672,11 @@ Precedent from the #6999 / #7004 mirror (`characters/creating-and-editing-charac
 - Marinara's built app files, the `dist` folders, are **собранные файлы приложения Marinara Engine** (`home/professor-mari.md:51`), matching `сборка` for build and "собранная копия приложения" (`INSTALLATION.md:28`).
 - **Preview** on the Character Editor's Voice tab is glossed **(прослушать)** (`characters/creating-and-editing-characters.md:118`), the `ui/ru.json` wording for its key `settings.notifications.customSound.actions.preview`. Take only the wording: `ui/ru.json` uses `ё` and an em dash, which §4 still bans here (the §5 "never copy from `ru.json`" ruling applies to it as well).
 - Text to Speech in prose stays **синтез речи**. The Latin form appears only in bold labels: **Connections → Text to Speech** (подключения → синтез речи) and the **Text to Speech** card.
+
+## Noodle automatic translation (2026-10-03)
+
+Precedent from the #7023 mirror (`noodle/settings.md`, section `## Раздел **Translation**`):
+
+- Translator defaults are **настройки перевода по умолчанию**; the chat button **Save translator defaults** is glossed **(сохранить настройки перевода по умолчанию)**. `ui/ru.json` has no key for it.
+- **Translate** keeps the pack's **(перевести)** gloss (`chats/messages.md:15`, `integrations/message-translation.md:91`); Noodle's **Translation** section is glossed **(перевод)**, like the chat section. **Translate posts automatically** follows this file's convention for field bullets: no gloss, the sentence explains it.
+- Target language stays **язык перевода** (`integrations/message-translation.md:30`). Refreshing the timeline stays **обновление ленты**; page reload is **перезагрузка страницы**, to keep it apart from the Noodle refresh.

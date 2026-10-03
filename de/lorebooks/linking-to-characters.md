@@ -105,5 +105,5 @@ Was aktiv ist, lässt sich für diesen einen Chat ändern.
 - [Lorebooks – Überblick](overview.md)
 - [Lorebook-Token-Budgets und Rekursion](token-budgets.md)
 - [Lorebooks importieren und exportieren](import-export.md)
-- [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md)
 - [Chat Settings – Überblick](../chats/chat-settings.md)

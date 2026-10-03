@@ -39,6 +39,13 @@ Quand **Refreshes/day** est au-dessus de 0, Marinara découpe la journée en fen
 
 Les rafraîchissements automatiques s'exécutent dans le serveur Marinara. La page Noodle n'a pas besoin de rester ouverte, mais Marinara doit tourner. Si un rafraîchissement échoue, la planification affiche l'erreur et retente plus tard, en attendant de plus en plus longtemps après des échecs répétés. Si plusieurs horaires prévus sont manqués, un seul rafraîchissement de rattrapage les couvre, ce qui évite d'inonder le fil.
 
+## Translation
+
+La section **Translation** (traduction) ne contient qu'un interrupteur. Elle demande Noodle 1.5.0 ou une version plus récente.
+
+- **Translate posts automatically** (traduire automatiquement les posts) : un interrupteur, désactivé (**off**) par défaut. Active-le pour afficher une traduction sous chaque post et chaque commentaire qui ne vient pas de l'un de tes personas, sans avoir à cliquer sur **Translate** (traduire) pour chacun. Noodle utilise les réglages de traduction par défaut enregistrés depuis la section **Translation** des réglages d'un chat, avec le bouton **Save translator defaults** (enregistrer les réglages de traduction par défaut). Sans réglages par défaut enregistrés, Noodle traduit vers l'anglais avec Google Translate. Un texte déjà écrit dans la langue cible n'est pas doublé d'une traduction, une traduction que tu masques reste masquée, et désactiver l'interrupteur arrête les traductions encore en attente.
+
+Les traductions, automatiques ou obtenues avec **Translate**, sont conservées dans ce navigateur. Rafraîchir le fil, quitter Noodle ou recharger la page les réaffiche sans refaire la traduction. Sur un autre appareil, ou dans un navigateur dont les données ont été effacées, la traduction est refaite. Le bouton **Reset Noodle Timeline** les efface aussi.
 
 ## Active Accounts
 
@@ -156,6 +163,7 @@ Ce tableau liste chaque réglage de Noodle avec sa valeur par défaut et sa plag
 | **Generation connection** | aucune | toute connexion de texte (obligatoire pour un rafraîchissement) |
 | **Professor Mari participates** | on | on ou off |
 | **Refreshes/day** | 2 | 0 à 24 (0 désactive les rafraîchissements automatiques) |
+| **Translate posts automatically** | off | on ou off |
 | **Active selection** | Random range | Random range, Exact count, All invited |
 | **Min active** | 2 | 1 à 100 (Random range uniquement) |
 | **Max active** | 5 | 1 à 100 (Random range uniquement) |

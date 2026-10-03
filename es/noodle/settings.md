@@ -39,6 +39,13 @@ Cuando **Refreshes/day** está por encima de 0, Marinara divide el día en venta
 
 Los refrescos automáticos se ejecutan dentro del servidor de Marinara. La página de Noodle no necesita quedarse abierta, pero el propio Marinara debe estar en ejecución. Si un refresco falla, el horario muestra el error y reintenta más tarde, esperando más tras fallos repetidos. Si se pierden varios momentos planificados, un solo refresco de recuperación con éxito los cubre en lugar de inundar el timeline.
 
+## Translation
+
+La sección **Translation** (Traducción) tiene un solo interruptor. Requiere Noodle 1.5.0 o posterior.
+
+- **Translate posts automatically** (Traducir publicaciones automáticamente): un interruptor, predeterminado **off**. Actívalo para mostrar una traducción bajo cada publicación y cada comentario que no hayan escrito tus personas, sin hacer clic en **Translate** (Traducir) en cada uno. Noodle usa los valores predeterminados del traductor guardados con **Save translator defaults** (Guardar valores predeterminados del traductor) en los ajustes de **Translation** de un chat. Si no hay valores predeterminados guardados, usa Google Translate para traducir al inglés. El texto que ya está en el idioma de destino no recibe una copia extra, una traducción que ocultas sigue oculta, y apagar el interruptor detiene las traducciones que aún están pendientes.
+
+Las traducciones se guardan en este navegador, tanto las automáticas como las que haces con **Translate**. Si refrescas el timeline, sales de Noodle o recargas la página, vuelven a aparecer sin traducirse otra vez. En otro dispositivo, o en un navegador cuyos datos se hayan borrado, se vuelven a traducir. El botón **Reset Noodle Timeline** (Restablecer el timeline de Noodle) también las borra.
 
 ## Active Accounts
 
@@ -156,6 +163,7 @@ Esta tabla lista cada ajuste de Noodle con su valor predeterminado y su rango.
 | **Generation connection** | none | cualquier conexión de texto (requerida para el refresco) |
 | **Professor Mari participates** | on | on u off |
 | **Refreshes/day** | 2 | 0 a 24 (0 desactiva los refrescos automáticos) |
+| **Translate posts automatically** | off | on u off |
 | **Active selection** | Random range | Random range, Exact count, All invited |
 | **Min active** | 2 | 1 a 100 (solo Random range) |
 | **Max active** | 5 | 1 a 100 (solo Random range) |

@@ -93,7 +93,7 @@ Kiedy ustawienie **Mode** stoi na **Individual**, pojawia się ustawienie **Resp
   Jeśli wybierzesz **Decision model** (model decyzyjny; zobacz [Modele decyzyjne](../connections/decision-models.md)), możesz włączyć pod nim **Also use it to pick who speaks in Smart response order** (wybieraj nim także mówiącego w kolejności Smart). Kolejność Smart prosi wtedy o osobny wynik tak/nie dla każdego kandydata. Pytania współdzielą pięć ostatnich wiadomości i listę kandydatów z imionami, statusem, aktywnością, rozmownością oraz krótkim fragmentem osobowości lub opisu. Zdalny dostawca też otrzymuje tę listę; zobacz [Co widzi model](../connections/decision-models.md#what-the-model-sees).
 
   Te wyniki mogą przyjść szybciej niż pełna odpowiedź AI, ale szybkość i koszt zależą od modelu i liczby kandydatów. W trybie Roleplay Marinara wybiera najbardziej prawdopodobnego mówiącego. W Conversation odpowiada każdy, kto ma powód, w kolejności prawdopodobieństwa. Postać, która właśnie mówiła, czeka, jeśli ktoś inny ma powód odpowiedzieć. Gdy model decyzyjny nie odpowie, Smart wykonuje zwykłe wywołanie AI.
-- **Manual** wyłącza wszystkie automatyczne odpowiedzi. Wtedy sam wskazujesz mówiącego listą **Trigger Response** na pasku wiadomości.
+- **Manual** wyłącza wszystkie automatyczne odpowiedzi. Wtedy samodzielnie wskazujesz mówiącego listą **Trigger Response** na pasku wiadomości.
 
 Przy kolejności **Smart** AI potrafi ustawić w kolejce więcej niż jedną postać. Od razu odpowiada tylko pierwsza. Kolejnego mówiącego wskaże lista **Trigger Response** na pasku wiadomości. Inna opcja: wyślij pustą wiadomość, a odezwie się następna postać z kolejki.
 

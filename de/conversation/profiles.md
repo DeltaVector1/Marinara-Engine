@@ -94,7 +94,7 @@ Die vollständige Liste steht unter [Makros](../prompts/macros.md).
 ## Verwandte Anleitungen
 
 - [Conversation Mode: Erste Schritte](getting-started.md)
-- [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md)
 - [Personas erstellen und bearbeiten](../characters/personas.md)
 - [Referenz der herunterladbaren Agenten](../agents/built-in-agents.md)
 - [Makros](../prompts/macros.md)

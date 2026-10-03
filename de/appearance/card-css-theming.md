@@ -564,4 +564,4 @@ Output a single <style> block I can paste into Creator Notes.
 
 - [Einstellungen zur Darstellung](appearance-settings.md)
 - [Eigene CSS-Themes (Theme-Bibliothek)](custom-css-themes.md)
-- [Charaktere erstellen und bearbeiten](../characters/creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](../characters/creating-and-editing-characters.md)

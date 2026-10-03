@@ -428,3 +428,11 @@ Precedent from the #6999 / #7004 mirror (`characters/creating-and-editing-charac
 - Marinara's built app files, the `dist` folders, are **les fichiers compilés de Marinara** (`home/professor-mari.md:51`). The adjective follows "L'application Marinara compilée" (`TROUBLESHOOTING.md:376`). It does not lift the §3.4 ban on `version compilée` for a build.
 - **Preview** on the Character Editor's Voice tab is glossed **(écouter)** (`characters/creating-and-editing-characters.md:118`), the `ui/fr.json` wording for its key `settings.notifications.customSound.actions.preview`. The Text to Speech card's **Preview** (aperçu) gloss (`media/tts-setup.md:169`) uses the same key and was left unchanged. Take only the wording from `ui/fr.json`: it uses vouvoiement and curly apostrophes, so T2 applies to it too.
 - The Voice section keeps the existing forms "le Text to Speech (synthèse vocale)" and **Phonetic name** (nom phonétique).
+
+## Noodle automatic translation (2026-10-03)
+
+Precedent from the #7023 mirror (`noodle/settings.md`, section `## Translation`):
+
+- Translator defaults are **les réglages de traduction par défaut**; the chat button **Save translator defaults** is glossed **(enregistrer les réglages de traduction par défaut)**. `ui/fr.json` has no key for it, so the wording follows the §3.6 `réglages` row.
+- **Translate posts automatically** is glossed **(traduire automatiquement les posts)**; **Translate** keeps the pack's **(traduire)** gloss (`chats/messages.md:15`, `integrations/message-translation.md:3`), and Noodle's **Translation** section keeps **(traduction)**.
+- Target language stays **la langue cible** (`integrations/message-translation.md:30`). Refreshing the timeline stays **rafraîchir le fil**, the `noodle/settings.md` usage, not `actualiser`.

@@ -84,6 +84,6 @@ Die Schritte oben gelten für Karten, die du selbst aussuchst. Um eine komplette
 
 ## Verwandte Anleitungen
 
-- [Charaktere erstellen und bearbeiten](creating-and-editing-characters.md)
+- [Charaktere anlegen und bearbeiten](creating-and-editing-characters.md)
 - [Card Browser: Charaktere finden und importieren](bot-browser.md)
 - [Aus SillyTavern importieren](../data/importing-from-sillytavern.md)

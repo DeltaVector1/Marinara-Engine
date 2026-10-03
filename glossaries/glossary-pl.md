@@ -892,3 +892,34 @@ These are documented choices for this catchup, not a claim of independent native
 - Build output is **zbudowane pliki aplikacji Marinara Engine** (cf.
   `INSTALLATION.md:28` "gotową, zbudowaną aplikację"); the folder stays in
   backticks behind a carrier noun: **foldery `dist`**.
+
+## Send without wrapper (2026-10-03)
+
+- A section's *wrapper* (its tag or heading) is **opakowanie**, matching the
+  pack's existing **format opakowania** / **bez opakowania**
+  (`prompts/presets.md`). **Send without wrapper** is a **przełącznik** (R-76)
+  glossed once as *(wysyłanie bez opakowania)*.
+- Reader-gendered `sam`/`sama` ("decydujesz sam", "ustawiasz sam") is replaced by
+  the adverb **samodzielnie** or an emphatic **ty** ("nadal decydujesz ty"), per
+  R-3/R-4. Fixed on 2026-10-03 in `media/tts-setup.md`,
+  `characters/creating-and-editing-characters.md`, `prompts/presets.md` and
+  `chats/group-chats.md`.
+
+## Noodle auto-translation (2026-10-03)
+
+- The Noodle settings section **Translation** keeps the pack's *(tłumaczenie)*
+  gloss (`integrations/message-translation.md`), and so does the **Translate**
+  button.
+- *Translator defaults* are **domyślne ustawienia tłumaczenia** (not *tłumacza*,
+  which reads as a human translator). **Save translator defaults** is glossed once
+  as *(zapisanie domyślnych ustawień tłumaczenia)*; reuse it when
+  `integrations/message-translation.md` documents that button.
+- The toggle **Translate posts automatically** is glossed *(automatyczne
+  tłumaczenie wpisów)*, following the file's **Professor Mari participates**
+  bullet; *post* stays **wpis** in `noodle/settings.md`.
+- *Google Translate* in prose takes the carrier **usługa Google Translate**
+  (R-13). *Leaving Noodle* is **wyjście z zakładki Noodle**, the carrier from
+  `noodle/overview.md`.
+- **Reset Noodle Timeline** now first appears in the new `## Translation`
+  section, so its one-time gloss *(wyczyszczenie osi czasu Noodle)* sits there,
+  parallel to the section gloss *(wyczyszczenie Noodle)*.

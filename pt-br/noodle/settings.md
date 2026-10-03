@@ -39,6 +39,13 @@ Quando **Refreshes/day** está acima de 0, Marinara divide o dia em janelas igua
 
 As atualizações automáticas rodam dentro do servidor Marinara. A página do Noodle não precisa ficar aberta, mas Marinara precisa estar em execução. Se uma atualização falhar, a programação mostra o erro e tenta de novo mais tarde, esperando mais a cada nova falha. Se vários horários previstos forem perdidos, uma única atualização de recuperação cobre todos eles, em vez de inundar a linha do tempo.
 
+## Translation
+
+A seção **Translation** tem um único botão liga/desliga. Ela exige Noodle 1.5.0 ou mais recente.
+
+- **Translate posts automatically** (traduzir posts automaticamente): um botão liga/desliga, padrão **off**. Ative para mostrar uma tradução abaixo de cada post e comentário que não foi escrito pelas suas personas, sem precisar clicar em **Translate** (traduzir) em cada um. Noodle usa os padrões do tradutor salvos com **Save translator defaults** (salvar padrões do tradutor) nas configurações de **Translation** de um chat. Sem padrões salvos, Noodle traduz para o inglês com o Google Translate. Um texto que já está no idioma de destino não ganha uma cópia extra, uma tradução que você oculta continua oculta, e desativar o botão interrompe as traduções que ainda estão na fila.
+
+As traduções ficam salvas neste navegador, tanto as automáticas quanto as feitas com **Translate**. Atualizar a linha do tempo, sair do Noodle ou recarregar a página mostra as traduções de novo, sem traduzir outra vez. Em outro dispositivo, ou em um navegador cujos dados foram limpos, tudo é traduzido de novo. O botão **Reset Noodle Timeline** também apaga essas traduções.
 
 ## Active Accounts
 
@@ -156,6 +163,7 @@ Esta tabela lista todas as configurações do Noodle com o valor padrão e a fai
 | **Generation connection** | nenhuma | qualquer conexão de texto (obrigatória para a atualização) |
 | **Professor Mari participates** | on | on ou off |
 | **Refreshes/day** | 2 | 0 a 24 (0 desliga as atualizações automáticas) |
+| **Translate posts automatically** | off | on ou off |
 | **Active selection** | Random range | Random range, Exact count, All invited |
 | **Min active** | 2 | 1 a 100 (só em Random range) |
 | **Max active** | 5 | 1 a 100 (só em Random range) |

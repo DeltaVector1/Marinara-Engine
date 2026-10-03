@@ -125,6 +125,8 @@ Le réglage **Wrap Format** de l'onglet **Overview** détermine la façon dont c
 
 XML est un bon choix par défaut pour la plupart des modèles. N'essaie **MARKDOWN** ou **NONE** que si un modèle semble mieux répondre sans balises.
 
+Pour envoyer un seul **Prompt Block** sans sa balise ni son titre, tout en gardant le reste du preset encapsulé, déplie-le dans l'onglet **Sections** et active l'interrupteur **Send without wrapper** (envoyer sans encapsulation). Le contenu du bloc part exactement tel qu'il est écrit. Si le bloc appartient à un groupe, la balise ou le titre du groupe peut quand même l'entourer ; retire-le du groupe si tu veux l'envoyer sans aucune encapsulation. Les marqueurs gardent toujours leur encapsulation, si bien que l'interrupteur n'apparaît que sur les sections de type **Prompt Block**. Il est aussi masqué quand le format d'encapsulation du preset est **NONE**, puisque rien n'est encapsulé dans ce cas.
+
 ## Attribuer un preset à un chat
 
 Un preset ne fait rien tant que tu ne l'as pas attribué à un chat. Il y a deux façons de procéder dans un chat **Roleplay**.
