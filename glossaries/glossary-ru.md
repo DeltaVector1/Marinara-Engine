@@ -663,3 +663,12 @@ matching the existing pack; do not introduce **лаунчер** as a synonym.
 - **Narration Passthrough** replaces the previous formatter label **LTX Director Video**. PocketTTS now defaults to the official server while retaining wrapper support.
 
 These are documented choices for this catchup, not independent native-reader review.
+
+## Character Voice tab and built-file guard (2026-10-03)
+
+Precedent from the #6999 / #7004 mirror (`characters/creating-and-editing-characters.md`, `media/tts-setup.md`, `home/professor-mari.md`):
+
+- An AU (alternate universe) copy of a card is an **AU-копия**, glossed once per file: "оригинал AU-копии (версии персонажа в альтернативной вселенной)" (`characters/creating-and-editing-characters.md:117`, `media/tts-setup.md:78`). It follows the hyphenated `HTML-` compound (`media/tts-setup.md:129`): `AU` stays Latin and only the Russian head declines.
+- Marinara's built app files, the `dist` folders, are **собранные файлы приложения Marinara Engine** (`home/professor-mari.md:51`), matching `сборка` for build and "собранная копия приложения" (`INSTALLATION.md:28`).
+- **Preview** on the Character Editor's Voice tab is glossed **(прослушать)** (`characters/creating-and-editing-characters.md:118`), the `ui/ru.json` wording for its key `settings.notifications.customSound.actions.preview`. Take only the wording: `ui/ru.json` uses `ё` and an em dash, which §4 still bans here (the §5 "never copy from `ru.json`" ruling applies to it as well).
+- Text to Speech in prose stays **синтез речи**. The Latin form appears only in bold labels: **Connections → Text to Speech** (подключения → синтез речи) and the **Text to Speech** card.

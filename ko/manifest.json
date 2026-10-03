@@ -1,6 +1,6 @@
 {
   "language": "ko",
-  "sourceCommit": "ed542bc5681d323282ab5b6c0400e412d180f31a",
+  "sourceCommit": "9c124806894cf1aa338bd9eb6145f8f114b68304",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -109,8 +109,8 @@
     },
     {
       "path": "characters/creating-and-editing-characters.md",
-      "sha256": "c395bab8ee1504b449273efd8ede3f02b732b76756d8206f7f0cb05372ba309f",
-      "bytes": 15474
+      "sha256": "1f4ae580e604efa6deff5c3ab6abbc8d1a24ee986dfc8e9562acf3f517d5e60b",
+      "bytes": 17124
     },
     {
       "path": "characters/galleries.md",
@@ -474,8 +474,8 @@
     },
     {
       "path": "home/professor-mari.md",
-      "sha256": "af8baf97a469f40a37db080cb9c4515c97877245d75562adea5ab11167841595",
-      "bytes": 24501
+      "sha256": "6d16bd8718c42aaa663cd20545f9cbf29682de15b6d79f337247b6be4fe5dc1a",
+      "bytes": 24561
     },
     {
       "path": "home/tutorial.md",
@@ -604,8 +604,8 @@
     },
     {
       "path": "media/tts-setup.md",
-      "sha256": "d2badfcbb9dfdae187da2bc4ab1f340fac645faee71fde24779a9f84218707c4",
-      "bytes": 18726
+      "sha256": "191085ed5cb5d106bf0c4aecaa43c1fbb6c9066237da4db5be984896e2bac782",
+      "bytes": 19032
     },
     {
       "path": "noodle/overview.md",

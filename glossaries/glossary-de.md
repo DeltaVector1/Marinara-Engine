@@ -585,3 +585,19 @@ independent native-reader panel review. Existing pack-wide rules still apply.
   code examples and link fragments exactly as in English.
 - The added historical API and combat handoff text describes its source's state
   and limitations; translating it does not claim a fresh implementation test.
+
+## Voice tab and per-character voices (2026-10-03)
+
+- *AU copy* is **AU-Kopie** (hyphenated loan compound, §6); *the original of an
+  AU copy* is **das Original einer AU-Kopie**. Keep it identical in
+  `characters/creating-and-editing-characters.md` and `media/tts-setup.md`.
+- The character editor's **Voice** tab gets its one-time gloss *(Stimme)* in the
+  lead sentence of `## Tab „Voice“`, not in the intro and tab-order lists, where
+  that file leaves every tab name unglossed. **Preview** keeps the pack's
+  existing *(Vorschau)* (`characters/colors-and-stats.md:13`).
+- New button glosses: **Use a voice per character** *(eigene Stimme pro
+  Charakter verwenden)*; **Open Text to Speech settings**
+  *(Text-to-Speech-Einstellungen öffnen)*.
+- Build output is **die gebauten App-Dateien** (cf. `INSTALLATION.md:28`
+  „fertig gebaute Version“); the folder is the inline-code compound
+  **`dist`-Ordner**, the same pattern as `` `.zip`-Archiv `` (`FAQ.md:144`).

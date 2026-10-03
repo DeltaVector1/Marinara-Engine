@@ -570,3 +570,17 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 | wound track | 부상 트랙 |
 
 Keep **Decision model**, **Jev**, backend names, and executable statement examples unchanged. Translate their surrounding explanations. Activation questions decide whether an agent runs; statements inside its prompt select the instructions for an agent that is already running. These are translation choices, not a new native-reader review.
+
+## Character Voice tab (2026-10-03)
+
+Glosses for the Character Editor's **Voice** tab (`characters/creating-and-editing-characters.md`, `media/tts-setup.md`). `ko.json` has no `editor.tabs.voice` or `ui.characters.voice.*` keys yet, so these follow its nearest shipped strings.
+
+| English | Translation |
+| --- | --- |
+| **Voice** (tab and field) | **Voice**(음성), as `ko.json` renders the TTS card's Voice label |
+| **Use a voice per character** | **Use a voice per character**(캐릭터별 음성 사용) |
+| **Open Text to Speech settings** | **Open Text to Speech settings**(TTS 설정 열기), on the `ko.json` "X 설정 열기" pattern |
+| **Connections → Text to Speech** | **Connections → Text to Speech**(연결 → TTS) |
+| the original of an AU copy | AU 사본의 원본 |
+
+`ko.json` now renders the Text to Speech card title as `TTS`, so new label glosses use (TTS), while prose keeps 음성 합성 for the concept (`Text to Speech(음성 합성)` on first prose mention). The older card gloss `**Text to Speech**(음성 합성)` at `media/tts-setup.md:7` predates that string. Align it in a consistency pass, not in a mirror commit. These are translation choices, not a new native-reader review.

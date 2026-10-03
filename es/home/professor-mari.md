@@ -12,8 +12,6 @@ Le hablas en lenguaje sencillo. Escribe un mensaje en el cuadro y pulsa Enter pa
 
 Enviarle tu primer mensaje desbloquea el logro **Hello World**.
 
-El **indicador de presencia de Professor Mari**, el chat normal con el personaje Professor Mari y el chat del espacio de trabajo de Inicio usan el mismo formato de traspaso.
-
 ## Qué puede hacer
 
 Professor Mari es más que un cuadro de preguntas. Puede explicarte la app, ayudarte a configurarla y crear cosas por ti cuando se lo pides.
@@ -50,6 +48,7 @@ Aquí está el límite de confianza en términos sencillos:
 - No puede escribir directamente en tu carpeta de datos guardados, donde viven tus personajes y chats. En su lugar usa el flujo de cambios revisables que se describe abajo.
 - Los comandos de shell sin procesar no tienen acceso a la red, no heredan los secretos del servidor y solo pueden escribir archivos ordinarios del área de trabajo y una carpeta temporal privada.
 - Puede seguir editando archivos de código normales directamente. Los cambios en manifiestos de dependencias, archivos de bloqueo, lanzadores, instaladores y flujos de CI se preparan y se te muestran antes de que Marinara los aplique.
+- Puede leer los archivos compilados de Marinara, las carpetas `dist` desde las que se ejecuta la app, pero no puede crearlos, editarlos, moverlos ni eliminarlos. En su lugar, ella cambia los archivos de código fuente.
 - Si un cambio de código necesita una biblioteca pública de npm, solicita un paquete específico como destino. Marinara resuelve `latest` a una versión exacta, muestra la integridad del registro en una tarjeta de revisión, y la instala solo después de que la apruebas. Los scripts de ciclo de vida de los paquetes permanecen desactivados.
 - Si Marinara no puede proporcionar su entorno aislado de shell de macOS o Linux, los comandos de shell sin procesar quedan desactivados. Ella todavía puede usar las herramientas estructuradas más seguras de archivos y de datos de la app.
 - Los comandos que ejecuta se detienen por sí solos tras un corto tiempo, así que un comando atascado no puede correr para siempre.

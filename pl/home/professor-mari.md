@@ -12,8 +12,6 @@ Rozmawiasz z nią zwykłym językiem. Wpisz wiadomość w polu, a potem naciśni
 
 Wysłanie pierwszej wiadomości odblokowuje osiągnięcie **Hello World**.
 
-**Wskaźnik obecności Professor Mari**, zwykły czat z postacią Professor Mari i czat obszaru roboczego na ekranie głównym korzystają z tego samego formatu przekazania.
-
 ## Co potrafi
 
 Professor Mari to coś więcej niż okienko na pytania. Wyjaśnia działanie aplikacji, pomaga w konfiguracji i tworzy różne rzeczy na życzenie.
@@ -50,6 +48,7 @@ Oto granica zaufania w prostych słowach:
 - Nie zapisuje niczego wprost w folderze z zapisanymi danymi, gdzie leżą postacie i czaty. Zamiast tego korzysta z opisanego niżej trybu zmian do zatwierdzenia.
 - Surowe polecenia powłoki nie mają dostępu do sieci, nie dziedziczą sekretów serwera i mogą zapisywać tylko zwykłe pliki przestrzeni roboczej oraz prywatny folder tymczasowy.
 - Zwykłe pliki źródłowe może edytować dalej bez ograniczeń. Zmiany w manifestach zależności, plikach blokad, programach uruchamiających, instalatorach i przepływach CI czekają w poczekalni i pokazują się do wglądu, zanim aplikacja Marinara Engine je zastosuje.
+- Może czytać zbudowane pliki aplikacji Marinara Engine, czyli foldery `dist`, z których działa program, ale nie może ich tworzyć, edytować, przenosić ani usuwać. Zamiast tego zmienia pliki źródłowe.
 - Jeśli zmiana w kodzie wymaga publicznej biblioteki npm, asystentka prosi o konkretny pakiet. Marinara Engine zamienia `latest` na dokładną wersję, pokazuje jej sumę kontrolną z rejestru na karcie do zatwierdzenia i instaluje ją dopiero po twojej zgodzie. Skrypty cyklu życia pakietu pozostają wyłączone.
 - Jeśli aplikacja Marinara Engine nie może uruchomić piaskownicy powłoki dla macOS albo Linux, surowe polecenia powłoki są wyłączone. Zostają bezpieczniejsze narzędzia do pracy z plikami i danymi aplikacji.
 - Uruchamiane polecenia same kończą się po krótkim czasie, więc zawieszone polecenie nie będzie działać w nieskończoność.

@@ -12,8 +12,6 @@ Tu lui parles en langage courant. Saisis un message dans le champ, puis appuie s
 
 Le tout premier message que tu lui envoies débloque le succès **Hello World**.
 
-L'**indicateur de présence de Professor Mari**, le chat de personnage normal avec Professor Mari et le chat de l'espace de travail de l'accueil utilisent le même format de transmission.
-
 ## Ce qu'elle sait faire
 
 Professor Mari est bien plus qu'une boîte à questions. Elle explique l'application, t'aide à la configurer et fabrique des choses pour toi quand tu le demandes.
@@ -50,6 +48,7 @@ Voici la limite de confiance, en clair :
 - Elle ne peut pas écrire directement dans ton dossier de données enregistrées, là où vivent tes personnages et tes chats. Elle passe par le circuit de modification révisable décrit plus bas.
 - Les commandes shell brutes n'ont aucun accès réseau, n'héritent pas des secrets du serveur et ne peuvent écrire que des fichiers ordinaires de l'espace de travail ainsi qu'un dossier temporaire privé.
 - Elle peut continuer à modifier directement les fichiers source normaux. Les modifications des manifestes de dépendances, des fichiers de verrouillage, des lanceurs, des installateurs et des workflows CI sont préparées et te sont présentées avant que Marinara ne les applique.
+- Elle peut lire les fichiers compilés de Marinara, c'est-à-dire les dossiers `dist` à partir desquels l'application s'exécute, mais ne peut ni créer, ni modifier, ni déplacer, ni supprimer ces fichiers. Elle modifie plutôt les fichiers source.
 - Si une modification de source nécessite une bibliothèque npm publique, elle demande un paquet précis. Marinara résout `latest` en une version exacte, affiche l'intégrité du registre dans un encart de révision, et n'installe qu'après ton approbation. Les scripts de cycle de vie des paquets restent désactivés.
 - Si Marinara ne peut pas fournir son bac à sable shell macOS ou Linux, les commandes shell brutes sont désactivées. Elle garde alors les outils structurés, plus sûrs, pour les fichiers et les données de l'application.
 - Les commandes qu'elle lance s'arrêtent d'elles-mêmes au bout d'un court délai : une commande bloquée ne peut pas tourner indéfiniment.

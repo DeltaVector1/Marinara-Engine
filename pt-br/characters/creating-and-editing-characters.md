@@ -1,6 +1,6 @@
 # Criando e editando personagens
 
-Neste guia você aprende a criar um personagem no Marinara Engine. Ele também mostra como usar o Character Editor (editor de personagens) para escrever, salvar e controlar as versões do card. O texto cobre as abas **Metadata**, **Card** e **Advanced**, os avatares e o histórico de versões salvas.
+Neste guia você aprende a criar um personagem no Marinara Engine. Ele também mostra como usar o Character Editor (editor de personagens) para escrever, salvar e controlar as versões do card. O texto cobre as abas **Metadata**, **Card**, **Voice** e **Advanced**, os avatares e o histórico de versões salvas.
 
 ## O que é um card de personagem
 
@@ -35,9 +35,9 @@ No canto superior direito ficam estes botões:
 
 Se você tentar sair com trabalho não salvo, aparece um aviso com o texto `You have unsaved changes. Close without saving?` Ele oferece as opções **Keep editing**, **Discard & close** e **Save & close**.
 
-O editor é dividido em abas. Em tela larga, as abas descem pelo lado esquerdo. Em tela estreita, elas viram uma faixa rolável no topo. As abas, na ordem, são **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Stats** e **Advanced**.
+O editor é dividido em abas. Em tela larga, as abas descem pelo lado esquerdo. Em tela estreita, elas viram uma faixa rolável no topo. As abas, na ordem, são **Metadata**, **Card**, **Convo**, **Lorebook**, **Sprites**, **Gallery**, **Colors**, **Voice**, **Stats** e **Advanced**.
 
-Este guia explica as abas **Metadata**, **Card** e **Advanced**, além dos avatares e do histórico de versões. As outras abas têm guias próprios:
+Este guia explica as abas **Metadata**, **Card**, **Voice** e **Advanced**, além dos avatares e do histórico de versões. As outras abas têm guias próprios:
 
 - **Convo**: [Perfis do Conversation Mode](../conversation/profiles.md).
 - **Lorebook**: [Vincular lorebooks a personagens e personas](../lorebooks/linking-to-characters.md).
@@ -51,7 +51,6 @@ A aba **Metadata** guarda os dados de identidade e organização. Eles ajudam a 
 
 - **Character ID**. Um valor somente leitura, exibido só depois que o card é salvo. Clique em **Copy** para copiá-lo.
 - **Name**. O nome exibido. Ele é usado como `{{char}}` nos prompts, isto é, no texto que Marinara envia para a IA.
-- **Phonetic name**. Uma grafia opcional, usada apenas para corrigir a pronúncia no text-to-speech (conversão de texto em voz). Deixe em branco para usar o nome normal.
 - **Creator**. Quem fez o card, para dar os créditos quando você compartilhar.
 - **Version**. Um número de versão definido por você, como `1.0`.
 - **Talkativeness**. Um controle deslizante de 0 a 100 por cento. Ele define com que frequência este personagem fala nos chats em grupo. O padrão é 50 por cento.
@@ -110,6 +109,16 @@ A opção de avatar por IA só aparece quando existe pelo menos uma conexão de 
 7. Quando gostar do resultado, clique em **Use Avatar**.
 
 O tamanho da imagem vem da configuração de tamanho **Portraits**, nas configurações de geração de imagens, cujo padrão é 1024 por 1024. Se a opção **Expose media prompts before sending** estiver ativada, uma etapa de revisão do prompt aparece antes de cada pedido.
+
+## A aba Voice
+
+A aba **Voice** define como o personagem soa quando o Text to Speech (conversão de texto em voz) lê as mensagens dele em voz alta.
+
+- **Voice**. A voz que o Text to Speech usa para este personagem. Cada mudança é salva na hora, sem precisar clicar em **Save**. É a mesma configuração da linha deste personagem em **Connections → Text to Speech** (Conexões → Text to Speech), então os dois lugares sempre ficam iguais. Deixe em branco para usar a voz padrão. Se um card com nome correspondente tiver uma voz, como o original de uma cópia AU, o campo vazio mostra o nome dessa voz, porque este card também a usa.
+- **Preview** (ouvir). Toca uma frase curta com essa voz. A frase diz o nome do personagem, ou o Phonetic name, quando houver um definido, para você ouvir como ele soa.
+- **Phonetic name**. Uma grafia opcional, usada apenas para corrigir a pronúncia no text-to-speech. Deixe em branco para usar o nome normal. Ao contrário da voz, ele faz parte do card, então clique em **Save** para mantê-lo.
+
+Se o Text to Speech estiver desligado, ou se todos os personagens compartilharem uma única voz, uma observação curta substitui o campo **Voice**. Com uma única voz compartilhada, a observação oferece o botão **Use a voice per character** (usar uma voz por personagem). O botão **Open Text to Speech settings** (abrir as configurações de Text to Speech) abre o painel Connections, onde o card **Text to Speech** reúne todas as configurações. Veja [Configuração de Text to Speech (TTS)](../media/tts-setup.md).
 
 ## A aba Advanced
 

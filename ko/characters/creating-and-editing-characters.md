@@ -1,6 +1,6 @@
 # 캐릭터 만들기와 편집
 
-이 가이드에서는 Marinara Engine에서 캐릭터를 만드는 방법을 설명합니다. Character Editor(캐릭터 편집기)로 카드를 작성하고 저장하고 버전을 관리하는 방법도 함께 다룹니다. **Metadata**(메타데이터), **Card**(카드), **Advanced**(고급) 탭과 아바타, 저장된 버전 히스토리가 대상입니다.
+이 가이드에서는 Marinara Engine에서 캐릭터를 만드는 방법을 설명합니다. Character Editor(캐릭터 편집기)로 카드를 작성하고 저장하고 버전을 관리하는 방법도 함께 다룹니다. **Metadata**(메타데이터), **Card**(카드), **Voice**(음성), **Advanced**(고급) 탭과 아바타, 저장된 버전 히스토리가 대상입니다.
 
 ## 캐릭터 카드란
 
@@ -35,9 +35,9 @@ Character Editor는 채팅 영역을 전체 화면 작업 공간으로 바꿉니
 
 저장하지 않은 작업이 있는 상태로 나가려고 하면 `You have unsaved changes. Close without saving?` 배너가 뜹니다. 여기서 **Keep editing**(계속 편집), **Discard & close**(취소 & 닫기), **Save & close**(저장 & 닫기)를 고를 수 있습니다.
 
-편집기는 탭으로 나뉩니다. 화면이 넓으면 탭이 왼쪽에 세로로 놓이고, 좁으면 위쪽에 가로로 스크롤되는 띠 형태가 됩니다. 탭은 순서대로 **Metadata**, **Card**, **Convo**(콘보), **Lorebook**(로어북), **Sprites**(스프라이트), **Gallery**(갤러리), **Colors**(색상), **Stats**(스탯), **Advanced**입니다.
+편집기는 탭으로 나뉩니다. 화면이 넓으면 탭이 왼쪽에 세로로 놓이고, 좁으면 위쪽에 가로로 스크롤되는 띠 형태가 됩니다. 탭은 순서대로 **Metadata**, **Card**, **Convo**(콘보), **Lorebook**(로어북), **Sprites**(스프라이트), **Gallery**(갤러리), **Colors**(색상), **Voice**, **Stats**(스탯), **Advanced**입니다.
 
-이 가이드에서는 **Metadata**, **Card**, **Advanced** 탭과 아바타, 버전 히스토리를 설명합니다. 나머지 탭은 각각 별도 가이드가 있습니다.
+이 가이드에서는 **Metadata**, **Card**, **Voice**, **Advanced** 탭과 아바타, 버전 히스토리를 설명합니다. 나머지 탭은 각각 별도 가이드가 있습니다.
 
 - **Convo**: [Conversation Mode 프로필(Display Name, About Me, Behavior)](../conversation/profiles.md).
 - **Lorebook**: [로어북을 캐릭터와 페르소나에 연결하기](../lorebooks/linking-to-characters.md).
@@ -51,7 +51,6 @@ Character Editor는 채팅 영역을 전체 화면 작업 공간으로 바꿉니
 
 - **Character ID**(캐릭터 ID). 읽기 전용 값이며 카드를 저장한 뒤에만 표시됩니다. **Copy**(복사)를 클릭하면 복사됩니다.
 - **Name**(이름). 화면에 표시되는 이름입니다. 프롬프트에서 `{{char}}`로 쓰입니다.
-- **Phonetic name**(발음 표기 이름). 음성 합성의 발음을 바로잡을 때만 쓰는 선택 항목입니다. 비워 두면 원래 이름을 그대로 씁니다.
 - **Creator**(제작자). 카드를 만든 사람입니다. 공유할 때 제작자를 밝히는 데 씁니다.
 - **Version**(버전). 직접 정하는 버전 번호입니다. 예를 들어 `1.0`처럼 씁니다.
 - **Talkativeness**(수다스러움). 0에서 100퍼센트까지의 슬라이더입니다. 그룹 채팅에서 이 캐릭터가 얼마나 자주 말할지 정합니다. 기본값은 50퍼센트입니다.
@@ -110,6 +109,16 @@ AI 아바타 기능은 이미지 생성 연결이 하나 이상 설정되어 있
 7. 마음에 드는 결과가 나오면 **Use Avatar**(아바타 사용)를 클릭하세요.
 
 그림 크기는 이미지 생성 설정의 **Portraits**(초상화) 이미지 크기 설정을 따르며, 기본값은 1024 x 1024입니다. **Expose media prompts before sending**(전송 전에 미디어 프롬프트 표시)을 켜 두었다면 요청을 보내기 전마다 프롬프트를 확인하는 단계가 나타납니다.
+
+## Voice 탭
+
+**Voice** 탭에서는 Text to Speech(음성 합성)가 이 캐릭터를 소리 내어 읽을 때 어떤 목소리로 들릴지 정합니다.
+
+- **Voice**. Text to Speech가 이 캐릭터에게 쓰는 목소리입니다. 바꾸면 **Save**를 누르지 않아도 바로 저장됩니다. **Connections → Text to Speech**(연결 → TTS)에 있는 이 캐릭터의 행과 같은 설정이므로 두 곳은 항상 일치합니다. 비워 두면 기본 목소리를 씁니다. AU 사본의 원본처럼 이름이 일치하는 카드에 목소리가 있으면 이 카드도 그 목소리를 쓰기 때문에, 빈 입력란에 그 목소리 이름이 표시됩니다.
+- **Preview**(미리 듣기). 그 목소리로 짧은 문장을 재생합니다. 문장에는 캐릭터 이름이 들어가고, Phonetic name을 설정했다면 그 이름이 대신 들어가므로 실제로 어떻게 들리는지 확인할 수 있습니다.
+- **Phonetic name**(발음 표기 이름). 음성 합성의 발음을 바로잡을 때만 쓰는 선택 항목입니다. 비워 두면 원래 이름을 그대로 씁니다. 목소리와 달리 이 항목은 카드의 일부이므로, 유지하려면 **Save**를 클릭하세요.
+
+Text to Speech가 꺼져 있거나 모든 캐릭터가 한 목소리를 함께 쓰고 있으면 **Voice** 입력란 대신 짧은 안내 문구가 표시됩니다. 한 목소리를 함께 쓰는 경우에는 안내 문구와 함께 **Use a voice per character**(캐릭터별 음성 사용) 버튼이 나타납니다. **Open Text to Speech settings**(TTS 설정 열기)를 누르면 Connections 패널이 열리며, 그곳의 **Text to Speech** 카드에 모든 설정이 모여 있습니다. [Text to Speech(TTS) 설정](../media/tts-setup.md)을 참고하세요.
 
 ## Advanced 탭
 

@@ -10,8 +10,6 @@ TTS 请求由应用自己的服务器转发。服务商的 API 密钥会加密�
 
 开启 TTS 并不会让应用自己开口。它只是让每条消息上的 **Speak**(朗读) 按钮和 **Auto-play** 选项显示出来。读什么、什么时候读，仍然由你决定。
 
-同一组播放设置还提供**Skip text inside HTML and custom tags**(跳过HTML及自定义标签内的文字)、**Skip fenced code blocks**(跳过围栏代码块)和**Skip text inside square brackets**(跳过方括号内的文字)。默认跳过代码块，另外两个过滤选项默认关闭。标签过滤会移除标签包围的文字，例如隐藏的`<simulation>...</simulation>`块，但会保留用于选择语音的说话人标签。这些过滤选项同时适用于手动播放和自动播放，包括Game旁白及Roleplay说话人提取。
-
 ## 第 1 步：开启 TTS 并选择 Source
 
 1. 打开 **Connections** 面板，展开 **Text to Speech** 卡片。
@@ -75,7 +73,9 @@ PocketTTS 并非 Marinara Engine 内置。单独安装[官方 PocketTTS 服务�
 4. 在左边的下拉菜单里选角色，在右边的下拉菜单里选声音。
 5. 每个需要单独配声的角色重复一次。
 
-Character Voices 区域里的 **Refresh** 按钮会重新加载同一份服务商声音库，不需要切回共用声音模式。前提是角色已经建好。一个角色都没有时，应用会提示先去 Characters 选项卡添加角色，再来分配声音。没有单独配声的角色会使用全局声音。参见[创建和编辑角色](../characters/creating-and-editing-characters.md)。
+也可以在 **Character Editor**(角色编辑器) 里，从角色的 **Voice** 选项卡选择它的声音。那里改的就是这同一行，所以两处显示的声音始终一致。
+
+Character Voices 区域里的 **Refresh** 按钮会重新加载同一份服务商声音库，不需要切回共用声音模式。前提是角色已经建好。一个角色都没有时，应用会提示先去 Characters 选项卡添加角色，再来分配声音。没有单独配声的角色会改用名字匹配的角色卡设置的声音，比如某个 AU 副本对应的原版卡。没有这样的声音时，就退回使用全局声音。参见[创建和编辑角色](../characters/creating-and-editing-characters.md)。
 
 ## Narrator Voice
 
@@ -126,6 +126,8 @@ Character Voices 区域里的 **Refresh** 按钮会重新加载同一份服务�
 
 自动朗读只在最新一条回复生成完毕的那一刻触发一次。重新打开聊天或者往回滚动时，不会重读旧消息。
 
+同一组播放设置还提供 **Skip text inside HTML and custom tags**(跳过 HTML 及自定义标签内的文字)、**Skip fenced code blocks**(跳过围栏代码块) 和 **Skip text inside square brackets**(跳过方括号内的文字)。默认跳过代码块，另外两个过滤选项默认关闭。标签过滤会移除标签包围的文字，例如隐藏的 `<simulation>...</simulation>` 块，但会保留用于选择声音的说话人标签。这些过滤选项同时适用于手动朗读和自动朗读，包括 Game 旁白及 Roleplay 说话人提取。
+
 ## 朗读单条消息
 
 TTS 开启之后，每条角色消息或旁白消息下方的工具栏里会出现 **Speak** 按钮（麦克风图标），点一下就朗读这一条。
@@ -154,7 +156,7 @@ TTS 开启之后，每条角色消息或旁白消息下方的工具栏里会出�
 
 ## Phonetic name(通话中的读音)
 
-如果某个角色或用户角色的名字写法容易被念错，可以填一个 **Phonetic name**(读音名)。在 **Character Editor** 里，这个输入框紧挨着角色的 **Name** 输入框；在 **Persona Editor** 里，它和其他基本信息输入框放在一起。填上名字应该念成什么样就行。
+如果某个角色或用户角色的名字写法容易被念错，可以填一个 **Phonetic name**(读音名)。在 **Character Editor** 里，这个输入框位于 **Voice** 选项卡上；在 **Persona Editor** 里，它和其他基本信息输入框放在一起。填上名字应该念成什么样就行。
 
 这个读音设置只在 Conversation 的语音和视频通话中生效。普通的逐条消息 **Speak** 按钮、聊天自动朗读和 Game Mode 旁白都不会读这个字段。
 

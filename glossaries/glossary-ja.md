@@ -471,3 +471,17 @@ independent native-reader panel review. Existing pack-wide rules still apply.
 | wound track | 負傷トラック |
 
 Keep **Decision model**, **Jev**, backend names, and executable statement examples unchanged. Translate their surrounding explanations. Activation questions decide whether an agent runs; statements inside its prompt select the instructions for an agent that is already running. These are translation choices, not a new native-reader review.
+
+## Character Voice tab (2026-10-03)
+
+Glosses for the Character Editor's **Voice** tab (`characters/creating-and-editing-characters.md`, `media/tts-setup.md`). `ja.json` ships only **Preview**(試聴) among these labels, so the rest follow the pack's TTS vocabulary: 声 for a voice, 音声合成 for the **Text to Speech** card.
+
+| English | Translation |
+| --- | --- |
+| **Voice** (the voice field) | **Voice**(声); the tab name stays unglossed like the other editor tabs |
+| **Use a voice per character** | **Use a voice per character**(キャラクターごとの声を使う) |
+| **Open Text to Speech settings** | **Open Text to Speech settings**(音声合成の設定を開く) |
+| **Connections → Text to Speech** | **Connections → Text to Speech**(接続 → 音声合成) |
+| the original of an AU copy | AU版のコピー元 |
+
+The moved **Phonetic name** bullet keeps its (読み仮名) gloss, while `media/tts-setup.md` glosses the same label (読み方). Align them in a consistency pass, not in a mirror commit. These are translation choices, not a new native-reader review.
