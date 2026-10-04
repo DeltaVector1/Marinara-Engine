@@ -7,8 +7,8 @@
     },
     {
       "path": "de.json",
-      "sha256": "382e2e39b1fd83a602d444890b81f95df6d454039223cc8fb1740c030fa7d553",
-      "bytes": 60634
+      "sha256": "a68aeac2617588d3836ed02787ef3ae4c533399fe8abc9e33eaf99dcf30fe372",
+      "bytes": 71986
     },
     {
       "path": "es.json",
@@ -37,8 +37,8 @@
     },
     {
       "path": "pl.json",
-      "sha256": "b9b1e97ee39d2cdbf391185a5311b821d2b7ef88abbf5ea160f392c36ff2f77e",
-      "bytes": 65013
+      "sha256": "f4b4749123fdafefc30cecd0e268a70a67f500a542c6e81f1f1543fb2d53d15e",
+      "bytes": 74710
     },
     {
       "path": "pt-BR.json",
@@ -47,8 +47,8 @@
     },
     {
       "path": "ru.json",
-      "sha256": "b6f3f307f8f971c63684ccc7b6ea923ba1c86170f9ae77becc4a630e997d5ea6",
-      "bytes": 30712
+      "sha256": "bf5df43bf41ba03dae27cd9daf6013be2c9bd40aa4a72497021e42ca9074fefa",
+      "bytes": 46034
     },
     {
       "path": "zh-Hans.json",
