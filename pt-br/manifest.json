@@ -1,6 +1,6 @@
 {
   "language": "pt-br",
-  "sourceCommit": "cd6f521c4634661050c2736aa9113da8880270c5",
+  "sourceCommit": "505f8986915b1ebc1c55ee07808cd3dd7f47c1ba",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -9,8 +9,8 @@
     },
     {
       "path": "FAQ.md",
-      "sha256": "b7437e054e03ea7f4c3c92aad88a5a7ce3061820b13c0768886c8b366b795ef8",
-      "bytes": 24700
+      "sha256": "dfad66be22f43634b5b0ecf1a5cfc9c13e08efb653f3d1fd9d83cc3673875f6f",
+      "bytes": 24785
     },
     {
       "path": "INSTALLATION.md",
