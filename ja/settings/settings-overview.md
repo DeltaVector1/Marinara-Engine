@@ -93,6 +93,7 @@
 **Input & Editing**セクションの項目は次のとおりです。
 
 - **Send on Enter**: Enterキーで送信するモードを選びます。
+- **Keep guidance after regenerating**: ガイド付きの再生成の後も、指示をメッセージ入力欄に残します。デフォルトでオンです。
 - **Speech-to-text microphone**: チャットの入力欄にマイクのボタンを表示します。
 - **Intuitive swipe navigation**: 矢印キーや画面のスワイプで、別案の返信を切り替えられるようにします。
 - **Reroll past the newest swipe**: いちばん新しいスワイプの先へ進んだときに、新しい返信を生成します。

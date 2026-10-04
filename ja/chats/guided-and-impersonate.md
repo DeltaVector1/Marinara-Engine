@@ -39,6 +39,8 @@
 
 設定がオンで入力欄に文章があるとき、**Regenerate**ボタンのツールチップは**Regenerate (guided)**に変わります。AIは入力した文章を指示として、返信の新しい版を作ります。
 
+再生成の後も指示はメッセージ入力欄に残るので、手直ししてもう一度再生成できます。指示を消したい場合は、**Settings** > **General** > **Input & Editing**で**Keep guidance after regenerating**をオフにしてください。
+
 ### Stored guidanceを読む
 
 指示付きで作られた返信については、その指示をMarinaraが保存するので、後から確認できます。メッセージには**Stored guidance**(保存された指示)の操作(巻物のアイコン)が表示されます。

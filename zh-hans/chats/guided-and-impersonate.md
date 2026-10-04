@@ -39,6 +39,8 @@
 
 设置开启、且输入框里有文字时，**Regenerate** 按钮的提示文字会变成 **Regenerate (guided)**。AI 会以输入的文字为方向，重做一版回复。
 
+重新生成之后，方向说明仍会留在消息输入框里，可以调整一下再重新生成一次；如果想让它自动清空，到 **Settings** > **General** > **Input & Editing** 里关闭 **Keep guidance after regenerating**(重新生成后保留引导)。
+
 ### 查看 Stored guidance
 
 一条回复如果带着方向说明生成，Marinara 会把这条说明保存下来供你日后查看。消息上会出现 **Stored guidance**(已保存的引导) 操作，图标是一卷卷轴。

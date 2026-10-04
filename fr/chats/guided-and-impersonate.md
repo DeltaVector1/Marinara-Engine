@@ -39,6 +39,8 @@ Autre option : guider une réponse au moment de la régénérer. Marinara repren
 
 Quand le réglage est actif et que le champ contient du texte, l'infobulle du bouton **Regenerate** devient **Regenerate (guided)**. L'IA produit une nouvelle version de la réponse en suivant le texte saisi.
 
+Ton indication reste ensuite dans le champ de message, ce qui te permet de l'ajuster et de régénérer à nouveau ; si tu préfères qu'elle soit effacée, désactive le réglage **Keep guidance after regenerating** (garder l'indication après la régénération) dans **Settings** > **General** > **Input & Editing**.
+
 ### Relire l'indication enregistrée
 
 Quand une réponse a été produite avec une indication, Marinara conserve cette indication pour que tu puisses la relire plus tard. Une action **Stored guidance** (indication enregistrée), avec une icône de parchemin, apparaît alors sur le message.

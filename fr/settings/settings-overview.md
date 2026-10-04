@@ -93,6 +93,7 @@ Pour en savoir plus, voir [Envoyer des messages et le streaming](../chats/sendin
 La section **Input & Editing** pilote :
 
 - **Send on Enter** (envoyer avec la touche Enter) : choisis les modes qui envoient le message quand tu appuies sur Enter.
+- **Keep guidance after regenerating** (garder la consigne après la régénération) : laisse ta consigne dans le champ de message après une régénération guidée. Activé par défaut.
 - **Speech-to-text microphone** (microphone de reconnaissance vocale) : affiche un bouton de microphone dans les champs de saisie du chat.
 - **Intuitive swipe navigation** (navigation intuitive entre les swipes) : utilise les touches fléchées ou le balayage tactile pour passer d'une réponse alternative à l'autre.
 - **Reroll past the newest swipe** (relancer au-delà du dernier swipe) : génère une nouvelle réponse quand tu dépasses le swipe le plus récent.

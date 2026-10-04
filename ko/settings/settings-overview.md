@@ -93,6 +93,7 @@
 **Input & Editing** 항목에서 설정하는 내용입니다.
 
 - **Send on Enter**(엔터 키로 전송): Enter를 눌렀을 때 메시지를 보낼 모드를 고릅니다.
+- **Keep guidance after regenerating**(재생성 후 지침 유지): 지침을 적용한 재생성 뒤에도 방향을 메시지 입력란에 남겨 둡니다. 기본값은 켜짐입니다.
 - **Speech-to-text microphone**(음성-텍스트 변환 마이크): 채팅 입력란에 마이크 버튼을 표시합니다.
 - **Intuitive swipe navigation**(직관적인 스와이프 탐색): 화살표 키나 터치 스와이프로 다른 응답 사이를 오갑니다.
 - **Reroll past the newest swipe**(최신 스와이프 이후 다시 생성): 가장 새로운 스와이프에서 한 번 더 스와이프하면 새 응답을 만듭니다.

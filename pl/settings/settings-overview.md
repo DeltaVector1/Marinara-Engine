@@ -93,6 +93,7 @@ Więcej przeczytasz w przewodniku [Wysyłanie wiadomości i streaming](../chats/
 Sekcja **Input & Editing** steruje tym:
 
 - **Send on Enter**: wybór trybów, w których Enter wysyła wiadomość.
+- **Keep guidance after regenerating**: pozostawienie wskazówki w polu wiadomości po sterowanym ponownym generowaniu. Domyślnie włączone.
 - **Speech-to-text microphone**: przycisk mikrofonu w polach wpisywania wiadomości.
 - **Intuitive swipe navigation**: przechodzenie między alternatywnymi odpowiedziami klawiszami strzałek albo gestem przesunięcia.
 - **Reroll past the newest swipe**: tworzenie nowej odpowiedzi po przejściu za najnowszy swipe.

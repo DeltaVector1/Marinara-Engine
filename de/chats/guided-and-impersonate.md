@@ -39,6 +39,8 @@ Eine Antwort lässt sich auch beim Neugenerieren lenken. Dabei dient der Text, d
 
 Ist die Einstellung aktiv und steht Text im Feld, ändert sich der Tooltip (der Kurzhinweis beim Draufzeigen) der Schaltfläche **Regenerate** zu **Regenerate (guided)**. Die KI erstellt dann eine neue Fassung der Antwort und nutzt deinen getippten Text als Vorgabe.
 
+Deine Vorgabe bleibt danach im Nachrichtenfeld stehen. So kannst du sie anpassen und noch einmal neu generieren. Soll das Feld stattdessen geleert werden, schalte unter **Settings** > **General** > **Input & Editing** die Einstellung **Keep guidance after regenerating** aus.
+
 ### Stored guidance nachlesen
 
 Entsteht eine Antwort mit einer Vorgabe, speichert Marinara diese Vorgabe zum späteren Nachlesen. An der Nachricht erscheint dann die Aktion **Stored guidance** (gespeicherte Vorgabe) – ein Schriftrollen-Symbol.
