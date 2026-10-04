@@ -39,6 +39,12 @@ export type SettingsSearchableControlMeta = {
   label: string;
   description: string;
   aliases: string[];
+  /**
+   * Looser synonyms a user might type instead of the label ("bigger text" for
+   * Chat Font Size). Scored below a label/alias match in the omnibar
+   * (`omnibar-search.ts`) so the setting's own name still wins cleanly.
+   */
+  keywords?: string[];
   kind: SettingsControlKind;
 };
 
@@ -53,6 +59,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Hide chat Help button",
     description: "Remove the Help button from Conversation, Roleplay, and Game chats.",
     aliases: ["help", "guide", "tutorial", "overlay", "question mark"],
+    keywords: ["remove help", "hide tutorial"],
     kind: "Toggle",
   },
   {
@@ -105,6 +112,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Confirm before deleting",
     description: "Ask before permanently deleting chats, characters, or other items.",
     aliases: ["delete", "confirmation", "safety"],
+    keywords: ["are you sure", "delete warning"],
     kind: "Toggle",
   },
   {
@@ -161,6 +169,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Notification position",
     description: "Choose where error messages and other notifications appear.",
     aliases: ["error", "toast", "top", "bottom", "position"],
+    keywords: ["toast position", "alert location"],
     kind: "Select",
   },
   {
@@ -169,6 +178,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Conversation mode notification sound",
     description: "Play a ping for Conversation replies.",
     aliases: ["sound", "ping", "convo"],
+    keywords: ["message sound", "chat ping"],
     kind: "Toggle",
   },
   {
@@ -201,6 +211,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Background replies browser notifications",
     description: "Show browser notifications for background Conversation replies.",
     aliases: ["browser", "notifications", "conversation"],
+    keywords: ["desktop notification", "push notification"],
     kind: "Toggle",
   },
   {
@@ -209,6 +220,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Background replies mobile notifications",
     description: "Show native Android notifications for background Conversation replies.",
     aliases: ["mobile", "android", "notifications", "conversation"],
+    keywords: ["push notification", "phone alert"],
     kind: "Toggle",
   },
   {
@@ -217,6 +229,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Enable streaming",
     description: "Show AI responses as they generate.",
     aliases: ["stream", "typewriter", "response"],
+    keywords: ["streaming", "typing effect"],
     kind: "Toggle",
   },
   {
@@ -225,6 +238,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Streaming speed",
     description: "Tune how fast streamed tokens appear.",
     aliases: ["speed", "typewriter", "tokens"],
+    keywords: ["typing speed", "typewriter speed"],
     kind: "Slider",
   },
   {
@@ -241,6 +255,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Messages per page",
     description: "Control how many messages load at once.",
     aliases: ["pagination", "load more", "history"],
+    keywords: ["context", "history length", "load history"],
     kind: "Input",
   },
   {
@@ -249,6 +264,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Send on Enter",
     description: "Choose where Enter sends your message instead of adding a new line.",
     aliases: ["enter to send", "enter key", "new line", "ctrl enter"],
+    keywords: ["shift enter sends", "enter sends message"],
     kind: "Button group",
   },
   {
@@ -257,6 +273,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Speech-to-text microphone",
     description: "Show a microphone button in chat inputs.",
     aliases: ["microphone", "dictation", "speech"],
+    keywords: ["voice typing", "talk to text"],
     kind: "Toggle",
   },
   {
@@ -265,6 +282,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Intuitive swipe navigation",
     description: "Use keyboard arrows or touch swipes to move between generations.",
     aliases: ["swipes", "arrows", "alternate generations"],
+    keywords: ["alt generations", "regenerate navigation"],
     kind: "Toggle",
   },
   {
@@ -337,6 +355,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Instantly reveal game text",
     description: "Skip the Game mode narration typewriter effect.",
     aliases: ["game", "typewriter", "instant"],
+    keywords: ["skip typewriter", "instant text"],
     kind: "Toggle",
   },
   {
@@ -353,6 +372,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Game narration speed",
     description: "Tune the Game mode narration typewriter speed.",
     aliases: ["game", "typewriter", "speed"],
+    keywords: ["narration speed", "text speed"],
     kind: "Slider",
   },
   {
@@ -389,6 +409,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
       "sprite",
       "animated expression",
     ],
+    keywords: ["review image prompt", "approve image"],
     kind: "Toggle",
   },
   {
@@ -445,6 +466,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Style Profiles",
     description: "Tune reusable image prompt style profiles.",
     aliases: ["image", "style", "danbooru", "anime", "realistic"],
+    keywords: ["art style", "image style"],
     kind: "Select",
   },
   {
@@ -469,6 +491,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Visual Style",
     description: "Switch between Marinara and SillyTavern visual themes.",
     aliases: ["theme", "style", "sillytavern", "marinara"],
+    keywords: ["skin", "look and feel"],
     kind: "Button group",
   },
   {
@@ -477,6 +500,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Color Scheme",
     description: "Switch between dark and light mode.",
     aliases: ["theme", "dark", "light", "mode"],
+    keywords: ["dark", "night", "light", "day"],
     kind: "Select",
   },
   {
@@ -494,6 +518,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Custom Mouse Pointer",
     description: "Use Marinara's accent-colored cursor.",
     aliases: ["cursor", "mouse", "pointer"],
+    keywords: ["custom pointer"],
     kind: "Toggle",
   },
   {
@@ -502,6 +527,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Background Color",
     description: "Set the main app shell background color.",
     aliases: ["background", "theme", "gradient"],
+    keywords: ["wallpaper", "app color"],
     kind: "Picker",
   },
   {
@@ -510,6 +536,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Accent Color",
     description: "Set the shared app accent color.",
     aliases: ["primary", "theme", "highlight"],
+    keywords: ["brand color", "ui color"],
     kind: "Picker",
   },
   {
@@ -518,6 +545,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Accent Pulse",
     description: "Animate the selected accent color.",
     aliases: ["accent", "animation", "motion"],
+    keywords: ["pulsing color", "breathing glow"],
     kind: "Toggle",
   },
   {
@@ -526,6 +554,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "RGB Mode",
     description: "Cycle the app accent through Marinara's rainbow palette.",
     aliases: ["rainbow", "accent", "color"],
+    keywords: ["rainbow mode", "color cycle"],
     kind: "Toggle",
   },
   {
@@ -534,6 +563,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Font",
     description: "Choose the font used across the app.",
     aliases: ["typography", "typeface"],
+    keywords: ["typeface", "font style"],
     kind: "Select",
   },
   {
@@ -542,6 +572,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Display Size",
     description: "Adjust the base font size across the app.",
     aliases: ["font size", "scale", "readability"],
+    keywords: ["zoom", "scale ui"],
     kind: "Select",
   },
   {
@@ -550,6 +581,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Chat Font Size",
     description: "Adjust the font size of chat messages.",
     aliases: ["text size", "message size", "readability"],
+    keywords: ["bigger text", "smaller text", "font size"],
     kind: "Slider",
   },
   {
@@ -558,6 +590,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Chat Text Color",
     description: "Control the main chat message text color.",
     aliases: ["font color", "message color"],
+    keywords: ["message text color"],
     kind: "Picker",
   },
   {
@@ -582,6 +615,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Text Outline / Stroke",
     description: "Tune chat text outline width and color.",
     aliases: ["stroke", "outline", "readability"],
+    keywords: ["text stroke", "text border"],
     kind: "Slider",
   },
   {
@@ -590,6 +624,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Chat Layout",
     description: "Switch Conversation messages between linear rows and bubbles.",
     aliases: ["conversation", "bubbles", "linear"],
+    keywords: ["chat bubbles", "message layout"],
     kind: "Button group",
   },
   {
@@ -632,6 +667,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Tracker Panel",
     description: "Show or hide the Roleplay HUD tracker panel.",
     aliases: ["tracker", "hud", "roleplay"],
+    keywords: ["hud", "stat panel"],
     kind: "Toggle",
   },
   {
@@ -744,6 +780,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Roleplay Messages Background Opacity",
     description: "Adjust roleplay bubble background opacity.",
     aliases: ["roleplay", "opacity", "messages"],
+    keywords: ["transparency", "message background"],
     kind: "Slider",
   },
   {
@@ -752,6 +789,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Reduced paint effects",
     description: "Flatten costly Roleplay transparency, shadows, and scene overlays.",
     aliases: ["roleplay", "performance", "firefox", "slow", "paint", "effects"],
+    keywords: ["performance mode", "low end gpu"],
     kind: "Toggle",
   },
   {
@@ -760,6 +798,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Show Thinking In Messages",
     description: "Show model reasoning above the response inside Roleplay message bubbles.",
     aliases: ["roleplay", "reasoning", "thinking", "thoughts", "messages"],
+    keywords: ["reasoning visible", "chain of thought"],
     kind: "Toggle",
   },
   {
@@ -848,6 +887,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Game text effects",
     description: "Animate dramatic words and explicit text-effect tags in Game mode.",
     aliases: ["game", "text", "animation", "effects", "accessibility", "motion"],
+    keywords: ["animated text", "dramatic text"],
     kind: "Toggle",
   },
   {
@@ -856,6 +896,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Dynamic weather effects",
     description: "Show animated weather particles from story context.",
     aliases: ["weather", "rain", "snow", "fog"],
+    keywords: ["rain effect", "snow effect", "weather animation"],
     kind: "Toggle",
   },
   {
@@ -864,6 +905,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Release Channel",
     description: "Choose which release channel update checks follow.",
     aliases: ["updates", "branch", "version"],
+    keywords: ["beta channel", "stable channel"],
     kind: "Select",
   },
   {
@@ -872,6 +914,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Restart Server",
     description: "Gracefully restart the Marinara server from this browser.",
     aliases: ["server", "restart", "maintenance", "remote"],
+    keywords: ["reboot server", "restart app"],
     kind: "Button group",
   },
   {
@@ -920,6 +963,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Show token usage on messages",
     description: "Display prompt and completion token counts.",
     aliases: ["tokens", "context", "cost"],
+    keywords: ["context length", "context size"],
     kind: "Toggle",
   },
   {
@@ -968,6 +1012,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Automatic backups",
     description: "Schedule full backups and choose how many automatic archives to retain.",
     aliases: ["backup", "daily", "weekly", "monthly", "scheduled"],
+    keywords: ["auto backup", "scheduled backup"],
     kind: "Toggle",
   },
   {
@@ -976,6 +1021,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Automatic backups kept",
     description: "Retain between 1 and 9999 automatic backup archives without affecting manual backups.",
     aliases: ["backup", "retention", "history", "rotate", "automatic"],
+    keywords: ["backup retention", "how many backups"],
     kind: "Input",
   },
   {
@@ -984,6 +1030,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Optimize avatar storage",
     description: "Find old avatar image files that are no longer referenced by Marinara data.",
     aliases: ["storage", "avatar", "cleanup", "orphan", "abandoned", "disk space"],
+    keywords: ["disk cleanup", "free space"],
     kind: "Button group",
   },
 ] as const;

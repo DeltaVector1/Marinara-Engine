@@ -329,7 +329,11 @@ listed twice.
 navigation: the 6 tabs, the 32 sections and every searchable control, with the
 labels, descriptions and aliases they are found by. It is plain data — no
 imports of stores, icons or components — so both the Settings panel and the
-omnibar can read it.
+omnibar can read it. About 40 of the most-used controls also carry an optional
+`keywords` array (O3, slice 49) — looser synonyms such as "bigger text" for
+Chat Font Size or "night" for Color Scheme — that the omnibar matches but
+scores below a label/alias hit (section 4). Every system command
+(`lib/command-center-system-commands.ts`) carries the same optional field.
 
 - `omnibar-settings.ts` **derives** its rows from it and states nothing of its
   own. It previously kept a parallel list of 25 controls; the two drifted until
@@ -353,6 +357,13 @@ Score is the source score plus a context bonus plus an intent bonus, then the
 shared command ranking (recency and pins) reorders it.
 
 - Text scoring prefers exact title, then prefix, then whole word, then substring.
+- **Keyword synonyms (O3, slice 49).** A settings control's or command's
+  `keywords` array is matched the same way, but any hit collapses to a fixed
+  `KEYWORD_MATCH_SCORE` of 100 (`omnibar-search.ts`) — below every label/alias
+  tier (substring starts at 100 + query length, so always just above a keyword
+  hit) but still counted a literal match, so `filterOmnibarFuzzyFallback` does
+  not discard it. A weak subsequence coincidence inside a keyword never
+  qualifies; only a substring tier or better does.
 - Context bonuses, highest first: the open resource (80, or "unsaved changes"
   when the editor is dirty), the current settings target (80), something used by
   the active chat (55), something related to a current error (50), available

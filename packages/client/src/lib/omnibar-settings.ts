@@ -12,6 +12,8 @@ export type OmnibarSettingsDestination = {
   title: string;
   description: string;
   aliases: readonly string[];
+  /** Looser synonyms, scored below the label/alias match (O3). Controls only. */
+  keywords?: readonly string[];
   tab: SettingsTabId;
   sectionLabel: string;
   controlId?: string;
@@ -81,6 +83,7 @@ function buildDestinations(): OmnibarSettingsDestination[] {
       description: control.description,
       // The control kind joins the aliases so "toggle" or "slider" finds them.
       aliases: [...control.aliases, section.label, control.kind],
+      keywords: control.keywords,
       tab: section.tab,
       sectionLabel: section.label,
       controlId: control.id,

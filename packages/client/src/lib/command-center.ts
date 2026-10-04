@@ -129,6 +129,8 @@ export interface CommandDefinition {
   kind: CommandKind;
   icon: CommandIcon;
   aliases?: readonly string[];
+  /** Looser synonyms (O3): matched, but scored below a label/alias match. */
+  keywords?: readonly string[];
   target?: ProfessorMariNavigationTarget;
   description?: string;
   availability?: {

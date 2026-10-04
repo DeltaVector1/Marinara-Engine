@@ -762,6 +762,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           kind: command.kind,
           icon: command.icon,
           aliases: command.aliases,
+          keywords: command.keywords,
           target: command.target,
           availability: command.availability,
         }),

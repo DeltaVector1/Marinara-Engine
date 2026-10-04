@@ -3066,4 +3066,87 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.deepEqual(topIds, ["character:juniper", "chat:9"], "most frecent id leads, scoped to the surface");
 }
 
+// O3: setting and command synonyms (slice 49) — a `keywords` array on
+// settings-registry controls and on command definitions lets a search by a
+// different word than the label still find the row, scored below a real
+// label/alias match (`KEYWORD_MATCH_SCORE` in omnibar-search.ts).
+{
+  const settingsControls: OmnibarResult[] = getOmnibarSettingsDestinations()
+    .filter((destination) => destination.controlId)
+    .map((destination) => ({
+      id: destination.id,
+      title: destination.title,
+      category: "settings" as const,
+      score: 165,
+      aliases: destination.aliases,
+      keywords: destination.keywords,
+    }));
+  const search = (query: string) =>
+    filterOmnibarFuzzyFallback(
+      searchOmnibar(query, {
+        commands: systemCommands,
+        chats: [],
+        resources: [],
+        connections: [],
+        controls: settingsControls,
+      }),
+    );
+
+  const phrasePairs: readonly [string, string][] = [
+    ["bigger text", "settings-control:chat-font-size"],
+    ["zoom", "settings-control:display-size"],
+    ["night", "settings-control:theme-mode"],
+    ["typing effect", "settings-control:enable-streaming"],
+    ["typewriter speed", "settings-control:streaming-speed"],
+    ["context length", "settings-control:show-token-usage"],
+    ["voice typing", "settings-control:speech-to-text"],
+    ["are you sure", "settings-control:confirm-before-delete"],
+    ["toast position", "settings-control:notification-position"],
+    ["rainbow mode", "settings-control:rgb-mode"],
+    ["skin", "settings-control:visual-theme"],
+    ["message layout", "settings-control:conversation-layout"],
+    ["disk cleanup", "settings-control:avatar-storage-optimization"],
+    ["chain of thought", "settings-control:show-roleplay-thinking-in-messages"],
+    ["reboot server", "settings-control:restart-server"],
+    ["beta channel", "settings-control:release-channel"],
+    ["make a character", "create-character"],
+    ["migrate from st", "import-sillytavern"],
+    ["browse agents", "agent-library"],
+    ["save backup", "backups"],
+  ];
+  assert.equal(phrasePairs.length, 20, "the plan requires 20 phrase -> result pairs");
+  for (const [phrase, expectedId] of phrasePairs) {
+    const top = search(phrase).find((result) => result.id !== "ask-professor-mari");
+    assert.equal(top?.id, expectedId, `"${phrase}" should surface ${expectedId} first, got ${top?.id}`);
+  }
+
+  // A keyword match must never outrank a label match for the same query: a
+  // setting whose real label ("Dark") collides with another setting's
+  // keyword list (theme-mode's "dark" keyword) must still win.
+  const collisionControls: OmnibarResult[] = [
+    {
+      id: "settings-control:theme-mode",
+      title: "Color Scheme",
+      category: "settings",
+      score: 165,
+      aliases: [],
+      keywords: ["dark", "night", "light", "day"],
+    },
+    { id: "settings-control:dark", title: "Dark", category: "settings", score: 165, aliases: [] },
+  ];
+  const [labelMatch, keywordMatch] = searchOmnibar("dark", {
+    commands: [],
+    chats: [],
+    resources: [],
+    connections: [],
+    controls: collisionControls,
+  });
+  assert.equal(labelMatch?.id, "settings-control:dark", "an exact label match outranks a keyword match");
+  assert.equal(keywordMatch?.id, "settings-control:theme-mode");
+  assert.ok(
+    (labelMatch?.score ?? 0) > (keywordMatch?.score ?? 0),
+    "the label match's score must exceed the keyword match's score",
+  );
+}
+
 console.info("Command Center regression checks passed.");

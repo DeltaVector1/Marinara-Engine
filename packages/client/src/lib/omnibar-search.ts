@@ -65,6 +65,8 @@ export type OmnibarResult = {
   score: number;
   action?: OmnibarAction;
   aliases?: readonly string[];
+  /** Looser synonyms (O3): matched, but scored below a label/alias match. */
+  keywords?: readonly string[];
   description?: string;
   preview?: () => CommandCenterPreviewData;
   metadata?: readonly CommandCenterResultMetadata[];
@@ -104,6 +106,7 @@ export type OmnibarSearchData = {
     target?: ProfessorMariNavigationTarget;
     action?: OmnibarAction;
     aliases?: readonly string[];
+    keywords?: readonly string[];
     kind?: CommandKind;
     icon?: CommandIcon;
     availability?: {
@@ -407,6 +410,22 @@ function scoreText(query: string, values: readonly string[]) {
   }, -1);
 }
 
+/**
+ * A keyword/synonym hit ("bigger text" for Chat Font Size, O3): fixed below
+ * every label/alias tier (the lowest of which, a substring match, starts at
+ * 100 + query.length, i.e. always > 100), but still counted literal so
+ * `filterOmnibarFuzzyFallback` does not discard it alongside real fuzzy noise.
+ */
+const KEYWORD_MATCH_SCORE = 100;
+
+function scoreKeywords(query: string, keywords: readonly string[] | undefined) {
+  if (!keywords?.length) return -1;
+  // Require at least a substring tier (scoreText's floor for a real match,
+  // see its 100+ bands) so a weak subsequence coincidence ("skin" inside
+  // "deSKtop notificatIoN") never promotes an unrelated setting.
+  return scoreText(query, keywords) >= 100 ? KEYWORD_MATCH_SCORE : -1;
+}
+
 function scoreContainedText(query: string, values: readonly string[]) {
   return values.reduce((best, value) => {
     const normalized = normalizeProfessorMariNavigationQuery(value);
@@ -484,6 +503,8 @@ export function searchOmnibar(query: string, data: OmnibarSearchData): OmnibarRe
     const score = Math.max(
       scoreText(searchQuery, [control.title, ...(control.aliases ?? [])]),
       scoreText(fullQuery, [control.title, ...(control.aliases ?? [])]),
+      scoreKeywords(searchQuery, control.keywords),
+      scoreKeywords(fullQuery, control.keywords),
     );
     if (score >= 0)
       results.push(finishResult({ ...control, score, matchKind: score < 100 ? "fuzzy" : "literal" }, intent, data));
@@ -492,6 +513,8 @@ export function searchOmnibar(query: string, data: OmnibarSearchData): OmnibarRe
     const score = Math.max(
       scoreText(searchQuery, [command.title, ...(command.aliases ?? [])]),
       scoreText(fullQuery, [command.title, ...(command.aliases ?? [])]),
+      scoreKeywords(searchQuery, command.keywords),
+      scoreKeywords(fullQuery, command.keywords),
     );
     const contextualRepair =
       intent?.kind === "repair" &&

@@ -365,6 +365,7 @@ export function buildOmnibarControlResults({
       // A named control outranks the section and tab rows that contain it.
       score: setting.controlId ? 165 : setting.sectionId ? 160 : 155,
       aliases: setting.aliases.map(localize),
+      keywords: setting.keywords?.map(localize),
       target: {
         kind: "settings" as const,
         tab: setting.tab,
