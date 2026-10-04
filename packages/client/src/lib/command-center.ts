@@ -62,6 +62,7 @@ export type CommandCenterResultGroupId =
   | "current-work"
   | "continue"
   | "pinned"
+  | "frecent"
   | "recent"
   | "quick-controls"
   | "create-navigation"
@@ -215,6 +216,8 @@ const COMMAND_CENTER_EMPTY_GROUP_ORDER = [
   "current-work",
   "continue",
   "pinned",
+  // O2: the surface's most frecent rows lead the fallback, above plain "last used anywhere" recents.
+  "frecent",
   "recent",
   "quick-controls",
   "create-navigation",
@@ -690,6 +693,7 @@ export function presentCommandCenterResults<T extends CommandCenterPresentableRe
       if (result.group === "current-work" || result.group === "context") addToGroup("current-work", result);
       else if (result.group === "continue") addToGroup("continue", result);
       else if (pinnedIds.has(result.id)) addToGroup("pinned", result);
+      else if (result.group === "frecent") addToGroup("frecent", result);
       else if (result.group === "recent" || recentIds.has(result.id)) addToGroup("recent", result);
       else if (result.control) addToGroup("quick-controls", result);
       else addToGroup("create-navigation", result);

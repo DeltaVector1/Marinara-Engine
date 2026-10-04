@@ -93,6 +93,13 @@ import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-
 import { useOmnibarAside } from "../../hooks/use-omnibar-aside";
 import { omnibarAsideHandoffAnswer } from "../../lib/omnibar-aside-text";
 import { expandChoiceRows, readChoiceOptionId } from "../../lib/omnibar-choice-rows";
+import {
+  clearOmnibarFrecencyHistory,
+  readOmnibarFrecencyEntries,
+  recordOmnibarFrecencyUse,
+  topFrecentResultIds,
+  type OmnibarFrecencyEntry,
+} from "../../lib/omnibar-frecency";
 import { useMariApprovals } from "../../hooks/use-mari-approvals";
 import { getCharacterDisplayIdentity } from "../../lib/character-display";
 import { completeInline } from "../../lib/inline-completion";
@@ -490,6 +497,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const [mariStatusSlot, setMariStatusSlot] = useState<HTMLSpanElement | null>(null);
   const mariReturnResultIdRef = useRef<string | null>(mariReturnResultId);
   const [ranking, setRanking] = useState<CommandRankingState>(() => readCommandRankingState());
+  // O2: local frecency, read once and kept in sync with every recorded use (see recordUse below).
+  const [frecencyEntries, setFrecencyEntries] = useState<readonly OmnibarFrecencyEntry[]>(() =>
+    readOmnibarFrecencyEntries(),
+  );
   const chats = useChats();
   const characters = useCharacters();
   const personas = usePersonas();
@@ -649,6 +660,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       "current-work": t("commandCenter.groups.currentWork", "Current work"),
       continue: t("commandCenter.groups.continue", "Continue"),
       pinned: t("commandCenter.groups.pinned", "Pinned"),
+      frecent: t("commandCenter.groups.frecent", "Frequently used here"),
       recent: t("commandCenter.groups.recent", "Recent"),
       "quick-controls": t("commandCenter.groups.quickControls", "Quick controls"),
       "create-navigation": t("commandCenter.groups.suggested", "Suggested"),
@@ -1161,6 +1173,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         directHitCount,
         docsResults: docs.results,
         faqItems: HOME_FAQ_ITEMS,
+        frecencyEntries,
         getFaqSearchText,
         localize,
         mariEnabled,
@@ -1175,6 +1188,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       deferredQuery,
       directHitCount,
       docs.results,
+      frecencyEntries,
       localize,
       mariEnabled,
       omnibarContext,
@@ -1530,6 +1544,27 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       })
       .slice(0, IDLE_RECENT_CHATS);
   }, [activeChatId, chats.data, searchableEntityResults]);
+  // O2: on an empty query, the top 3-5 rows this surface's user actually runs
+  // most, ahead of the plain "last used anywhere" recents group below.
+  const frecentIdleResults = useMemo<OmnibarResult[]>(() => {
+    if (deferredQuery.trim()) return [];
+    const ids = topFrecentResultIds(frecencyEntries, omnibarContext.surface);
+    if (!ids.length) return [];
+    const rowById = new Map(allLocalResults.map((row) => [row.id, row] as const));
+    return ids.flatMap((id) => {
+      // Already the thing you're on — showing "open it" again would be noise.
+      if (id === `chat:${activeChatId}` || id === omnibarContext.openResource?.resultId) return [];
+      const row = rowById.get(id);
+      return row ? [{ ...row, group: "frecent" as const }] : [];
+    });
+  }, [
+    activeChatId,
+    allLocalResults,
+    deferredQuery,
+    frecencyEntries,
+    omnibarContext.openResource,
+    omnibarContext.surface,
+  ]);
   const rawResults = useMemo(
     () =>
       // A scope with nothing typed after it ("char:") is a request to browse that
@@ -1558,6 +1593,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             ]
           : [
               ...contextResults.slice(0, CHAT_CONTEXT_MAX_RESULTS),
+              ...frecentIdleResults,
               ...recentChatResults,
               ...slashResults,
               ...approvalResults,
@@ -1570,6 +1606,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       addedResultIds,
       removedResultIds,
       contextResults,
+      frecentIdleResults,
       intentShortcuts,
       newChatCommands,
       recentChatResults,
@@ -1792,7 +1829,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // empty omnibar starts on the last other chat instead: Cmd+K, Enter switches back.
     const firstCurrentWorkId =
       leadingCurrentWorkId && activeChatId && leadingCurrentWorkId === `chat:${activeChatId}`
-        ? (presentation.groups.find((group) => group.id === "recent")?.results[0]?.id ?? leadingCurrentWorkId)
+        ? (presentation.groups.find((group) => group.id === "frecent" || group.id === "recent")?.results[0]?.id ??
+          leadingCurrentWorkId)
         : leadingCurrentWorkId;
     // A new query re-ranks everything, so the selection must follow the new top
     // row instead of sticking to whatever was highlighted before. Otherwise
@@ -1942,6 +1980,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     const next = recordCommandUse(ranking, id);
     setRanking(next);
     writeCommandRankingState(next);
+    // O2: a no-op for Mari's row, enforced inside recordOmnibarFrecencyUse.
+    setFrecencyEntries(recordOmnibarFrecencyUse(id, omnibarContext.surface));
   };
   const togglePinned = (id: string) => {
     const next = setCommandPinned(ranking, id, !ranking.pinnedIds.includes(id));
@@ -3350,7 +3390,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                       ? Compass
                       : group.id === "continue"
                         ? Sparkles
-                        : group.id === "recent"
+                        : group.id === "recent" || group.id === "frecent"
                           ? Clock3
                           : group.id === "quick-controls"
                             ? SlidersHorizontal
@@ -3527,6 +3567,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           <OmnibarSettingsSheet
             onClose={() => setSettingsOpen(false)}
             connections={languageConnections}
+            onClearSearchHistory={() => {
+              clearOmnibarFrecencyHistory();
+              setFrecencyEntries([]);
+            }}
             onSetUpLocalModel={
               import.meta.env.VITE_MARINARA_LITE === "true"
                 ? undefined

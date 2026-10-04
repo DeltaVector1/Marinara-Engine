@@ -310,6 +310,7 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Idle rows                                                                      | `buildOmnibarIdleResults`                                                                     | Unfinished setup first (capped at 2), then recents, then surface commands                                                                                                                                                                                                                                                        |
 | Intent shortcuts                                                               | `buildOmnibarIntentShortcuts`                                                                 | "new character Bob" / "create a lorebook called Silver Court" open the create window with the typed name (casing kept); "chat with Shrek" / "new chat Dottore" / "talk to Eliza" open the start-chat window for each character whose name the text starts (up to three). Current-work group; nothing is created from the omnibar |
 | New chat commands                                                             | `buildOmnibarNewChatCommands`                                                                 | "New conversation" / "New roleplay" / "New game" are doors into the same `useStartNewChatMode` flow as Home's Conversation/Roleplay/Game buttons. Returned only on a real match, never idle and never as noise beside an unrelated query: a deliberate phrase ("new chat", "new roleplay", "start game", …) scores like the other intent shortcuts; a bare word ("game", "rp", "roleplay", "conversation") scores low enough to stay behind an exact entity name with that word as its title |
+| Frecent results (idle)                                                        | `lib/omnibar-frecency.ts`, `frecentIdleResults` in `GlobalOmnibar.tsx`                        | O2: the 3-5 results the user actually ran most on this surface (chat, editor, Home — recency and frequency, half-life decay, `localStorage` only, capped at 300 uses), as rows in a "Frequently used here" group that leads an empty query, ahead of Recent. The same scores also give search-time ranking a small boost (capped well under any exact-name-match score) when there is a typed query. Never applied to "Ask Professor Mari". "Clear search history" in omnibar settings forgets it |
 | Recent chats (idle)                                                            | `recentChatResults` in `GlobalOmnibar.tsx`                                                    | The four most recently active chats other than the open one, as ordinary chat rows in the Recent group. When the first Current-work row is only the open chat, the empty omnibar starts on the first of these, so Cmd/Ctrl+K then Enter switches back                                                                            |
 | Verb, attach and detach suggestions                                            | `buildOmnibarVerbSuggestions`, `buildOmnibarAddSuggestions`, `buildOmnibarRemovalSuggestions` | Answer a half-typed sentence                                                                                                                                                                                                                                                                                                     |
 | Creation proposal                                                              | `lib/omnibar-creation-proposal.ts`                                                            | Nothing is created until accepted                                                                                                                                                                                                                                                                                                |
@@ -370,6 +371,13 @@ shared command ranking (recency and pins) reorders it.
   navigate, action or create intent).
 - That promotion is also the aside's trigger (section 12). It is read back from
   the ranked list, not recomputed, so the two can never disagree.
+- **Local frecency (O2, slice 48).** `lib/omnibar-frecency.ts` adds a small,
+  capped boost on top of the score above, from past selections on the same
+  surface (`frecencyBoost`, capped at `FRECENCY_BOOST_CAP = 15`, far below the
+  lowest exact-match tier of 300+, so it can only break a tie or lift a weak
+  fuzzy hit, never outrank a real name match). The cap and the exclusion of
+  "ask-professor-mari" are enforced inside the pure scoring functions
+  themselves, not only at the call site.
 
 ## 5. Actions
 
@@ -582,6 +590,13 @@ This is the part most likely to break silently. All of it must survive.
 - Both expansions — the focused row's preview and a choice row's options — are
   component state, not session state. Every open starts from a bare list.
 - Command ranking (recency and pins) is persisted separately.
+- Local frecency (O2) is a third, separate `localStorage` key
+  (`marinara:omnibar:frecency:v1`): one `{ resultId, surface, timestamp }`
+  tuple per selection, capped at 300, recorded by `recordUse` (the same
+  function every row-activation path already calls, so this reuses the
+  existing selection handler rather than adding a second one). Purely local —
+  no network call, no server persistence. "Clear search history" in omnibar
+  settings removes the key outright.
 - UI-store slots the omnibar reads: `activeEditorField`, `lastAppError`,
   `creationSession`, the open-detail ids per resource kind, the settings target.
   `activeEditorField` is set by the character editor (per tab) and the agent

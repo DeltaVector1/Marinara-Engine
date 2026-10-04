@@ -19,6 +19,7 @@ import {
 import type { AgentConfigRow } from "../hooks/use-agents";
 import type { HomeFaqItem } from "../components/chat/HomeFaq";
 import { CHOICE_SCORE_PENALTY, buildChoiceOptionResults, readChoiceOptionId } from "./omnibar-choice-rows";
+import { frecencyBoost, type OmnibarFrecencyEntry } from "./omnibar-frecency";
 import { readNamedRow } from "./omnibar-row-readers";
 import { parseChatMetadata } from "./chat-display";
 import { deriveActiveLorebookViews, getChatActiveLorebookIds, getChatExcludedLorebookIds } from "./chat-lorebooks";
@@ -182,10 +183,14 @@ export type OmnibarSearchResultsInput = {
   directHitCount?: number;
   docsResults: readonly DocsCommandSearchPassage[];
   faqItems: readonly HomeFaqItem[];
+  /** O2: local frecency entries for this surface's boost; omitted or empty means no boost applies. */
+  frecencyEntries?: readonly OmnibarFrecencyEntry[];
   /** Passed in so this module never pulls the FAQ component into its graph. */
   getFaqSearchText: (item: HomeFaqItem, localize: (englishText: string) => string) => string;
   localize: (englishText: string) => string;
   mariEnabled: boolean;
+  /** Clock for the frecency boost's recency decay; defaults to Date.now(). */
+  now?: number;
   omnibarContext: OmnibarContext;
   t: OmnibarTranslate;
 };
@@ -560,9 +565,11 @@ export function buildOmnibarSearchResults({
   directHitCount,
   docsResults,
   faqItems,
+  frecencyEntries = [],
   getFaqSearchText,
   localize,
   mariEnabled,
+  now = Date.now(),
   omnibarContext,
   t,
 }: OmnibarSearchResultsInput): OmnibarResult[] {
@@ -635,6 +642,13 @@ export function buildOmnibarSearchResults({
     .map((result) =>
       readChoiceOptionId(result.id) ? { ...result, score: result.score - CHOICE_SCORE_PENALTY } : result,
     )
+    // O2: a small, capped nudge from past uses on this surface. Never applied to
+    // Mari's row (frecencyBoost returns 0 for it) and never enough on its own to
+    // outrank an exact name match — see FRECENCY_BOOST_CAP.
+    .map((result) => {
+      const boost = frecencyBoost(frecencyEntries, result.id, omnibarContext.surface, now);
+      return boost > 0 ? { ...result, score: result.score + boost } : result;
+    })
     .sort((a, b) => b.score - a.score);
   const bestMatchScore = baseResults.reduce(
     (best, result) => (result.id === "ask-professor-mari" ? best : Math.max(best, result.score)),

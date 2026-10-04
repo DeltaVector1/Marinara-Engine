@@ -107,11 +107,14 @@ export function OmnibarSettingsButton({ open, onOpen }: { open: boolean; onOpen:
 export function OmnibarSettingsSheet({
   onClose,
   connections,
+  onClearSearchHistory,
   onSetUpLocalModel,
 }: {
   onClose: () => void;
   /** Language connections that can answer a quick question. */
   connections: readonly { id: string; name: string }[];
+  /** O2: forgets the local frecency history (which results you run most, per surface). */
+  onClearSearchHistory: () => void;
   /** Opens the local model setup. Absent where no local model can run. */
   onSetUpLocalModel?: () => void;
 }) {
@@ -282,6 +285,29 @@ export function OmnibarSettingsSheet({
               </button>
             ))}
           </span>
+        </div>
+
+        <div role="separator" />
+        <p className="omnibar-settings-menu__heading">{t("omnibar.settings.history.heading", "Search history")}</p>
+        <div className="omnibar-settings-menu__row">
+          <span className="min-w-0">
+            <span className="omnibar-settings-menu__label">
+              {t("omnibar.settings.history.clear.label", "Clear search history")}
+            </span>
+            <span className="omnibar-settings-menu__description">
+              {t(
+                "omnibar.settings.history.clear.description",
+                "Forgets which results you use most on each screen. Stored only on this device.",
+              )}
+            </span>
+          </span>
+          <button
+            type="button"
+            className="mari-chrome-control mari-chrome-control--compact"
+            onClick={onClearSearchHistory}
+          >
+            {t("omnibar.settings.history.clear.button", "Clear")}
+          </button>
         </div>
 
         <div role="separator" />

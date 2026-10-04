@@ -45,6 +45,15 @@ import {
   findMentionedResults,
   matchesAtWordStart,
 } from "../../packages/client/src/lib/omnibar-results.js";
+import {
+  FRECENCY_BOOST_CAP,
+  FRECENCY_EXCLUDED_RESULT_IDS,
+  frecencyBoost,
+  frecencyScore,
+  normalizeOmnibarFrecencyEntries,
+  topFrecentResultIds,
+  type OmnibarFrecencyEntry,
+} from "../../packages/client/src/lib/omnibar-frecency.js";
 import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "../../packages/client/src/lib/omnibar-settings-toggle-bindings.js";
 import {
   SETTINGS_SEARCHABLE_CONTROLS,
@@ -2978,6 +2987,83 @@ assert.ok(!("mariDetailId" in mariSession));
     surface: "editor",
     openResource: { kind: "agent", id: "illustrator", resultId: "agent:illustrator" },
   });
+}
+
+// O2: local frecency ranking (slice 48) — recency decay, the entry cap, and
+// the hard guarantee that the boost can never outrank an exact name match or
+// touch Mari's row.
+{
+  const now = Date.parse("2026-10-04T12:00:00Z");
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const entry = (resultId: string, surface: OmnibarFrecencyEntry["surface"], ageMs: number): OmnibarFrecencyEntry => ({
+    resultId,
+    surface,
+    timestamp: now - ageMs,
+  });
+
+  // Recency decay: a week-old single use scores about half of a fresh one
+  // (the half-life), and a month-old use is nearly worthless.
+  const fresh = frecencyScore([entry("chat:1", "chat", 0)], "chat:1", "chat", now);
+  const oneWeekOld = frecencyScore([entry("chat:1", "chat", 7 * DAY_MS)], "chat:1", "chat", now);
+  const oneMonthOld = frecencyScore([entry("chat:1", "chat", 30 * DAY_MS)], "chat:1", "chat", now);
+  assert.ok(Math.abs(oneWeekOld - fresh / 2) < 0.01, `a week-old use should score ~half of fresh, got ${oneWeekOld}`);
+  assert.ok(oneMonthOld < fresh * 0.1, `a month-old use should have decayed to almost nothing, got ${oneMonthOld}`);
+  assert.ok(fresh > oneWeekOld && oneWeekOld > oneMonthOld, "score must strictly decrease with age");
+
+  // Frequency and recency both matter: three recent uses outscore one, and a
+  // different surface or a different result never contributes.
+  const threeRecent = frecencyScore(
+    [entry("chat:1", "chat", 0), entry("chat:1", "chat", DAY_MS), entry("chat:1", "chat", 2 * DAY_MS)],
+    "chat:1",
+    "chat",
+    now,
+  );
+  assert.ok(threeRecent > fresh, "repeated recent use should score higher than a single use");
+  assert.equal(frecencyScore([entry("chat:1", "editor", 0)], "chat:1", "chat", now), 0, "a different surface must not contribute");
+  assert.equal(frecencyScore([entry("chat:2", "chat", 0)], "chat:1", "chat", now), 0, "a different result must not contribute");
+
+  // The 300-entry cap evicts the oldest first, keeping the newest MAX intact.
+  const overflow: OmnibarFrecencyEntry[] = [];
+  for (let i = 0; i < 310; i++) overflow.push(entry(`chat:${i}`, "chat", (310 - i) * 60_000));
+  const capped = normalizeOmnibarFrecencyEntries(overflow);
+  assert.equal(capped.length, 300, "the entry list must be capped at 300");
+  assert.ok(!capped.some((e) => e.resultId === "chat:0"), "the oldest entry must be evicted first");
+  assert.ok(capped.some((e) => e.resultId === "chat:309"), "the newest entries must survive the cap");
+
+  // The boost is capped well under the lowest exact-name-match score tier
+  // (scoreText in omnibar-search.ts starts exact matches at 300+), so it can
+  // only break a tie or lift a weak fuzzy hit — never outrank a real match.
+  const manyRecentUses = Array.from({ length: 20 }, (_, i) => entry("weak-match", "chat", i * 60_000));
+  const maxBoost = frecencyBoost(manyRecentUses, "weak-match", "chat", now);
+  assert.equal(maxBoost, FRECENCY_BOOST_CAP, "repeated recent use should saturate at the boost cap");
+  const EXACT_MATCH_SCORE = 300 + "vesper".length;
+  const WEAK_MATCH_SCORE = 110;
+  assert.ok(
+    WEAK_MATCH_SCORE + maxBoost < EXACT_MATCH_SCORE,
+    "even the maximum frecency boost must never lift a weak match above an exact match",
+  );
+
+  // Mari's row is a fixed rule, not a ranking outcome: never scored, never
+  // boosted, never surfaced as a top-frecent id, even if it somehow appears
+  // in the stored entries (e.g. data written by an older build).
+  assert.ok(FRECENCY_EXCLUDED_RESULT_IDS.has("ask-professor-mari"));
+  const withMariEntries = [...manyRecentUses, entry("ask-professor-mari", "chat", 0)];
+  assert.equal(frecencyScore(withMariEntries, "ask-professor-mari", "chat", now), 0);
+  assert.equal(frecencyBoost(withMariEntries, "ask-professor-mari", "chat", now), 0);
+  assert.ok(!topFrecentResultIds(withMariEntries, "chat", now).includes("ask-professor-mari"));
+  assert.ok(
+    normalizeOmnibarFrecencyEntries(withMariEntries).every((e) => e.resultId !== "ask-professor-mari"),
+    "an excluded id must not survive normalization even if present in raw storage",
+  );
+
+  // The empty-state deck: most frecent first, scoped to the right surface.
+  const topIds = topFrecentResultIds(
+    [...Array.from({ length: 3 }, (_, i) => entry("character:juniper", "chat", i * DAY_MS)), entry("chat:9", "chat", 0)],
+    "chat",
+    now,
+    5,
+  );
+  assert.deepEqual(topIds, ["character:juniper", "chat:9"], "most frecent id leads, scoped to the surface");
 }
 
 console.info("Command Center regression checks passed.");
