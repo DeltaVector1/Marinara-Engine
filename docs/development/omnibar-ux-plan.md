@@ -85,7 +85,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 46  | Review of slices 42-45 (N5)                                     | reviewer         | Done                 | 7502e5429 |
 | 47  | Value table: 15 tasks, steps with and without the omnibar (O1)  | reviewer         | Done                 | 67a570772 |
 | 48  | It learns your habits: local frecency ranking (O2)              | worker           | Done                 | d052c1420 |
-| 49  | It understands your words: setting and command synonyms (O3)    | worker           | Pending              |           |
+| 49  | It understands your words: setting and command synonyms (O3)    | worker           | Done                 | 90d7d88f9 |
 | 50  | Fix or remove what the value table shows is not faster (O4)     | worker           | Pending              |           |
 | 51  | Review of 47-50 and a short fresh-eyes pass (O5)                | reviewer         | Pending              |           |
 
