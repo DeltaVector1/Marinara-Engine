@@ -215,7 +215,8 @@ Os resumos do chat precisam de uma conexão de texto funcionando para serem escr
 O **Card Browser** (navegador de cards) permite pesquisar em sites públicos de personagens e importar personagens. Abra-o pelo ícone **Card Browser** na barra superior e clique em **Download Cards**.
 
 - Se a busca no JannyAI ou a página de um personagem falhar com um bloqueio da Cloudflare, Marinara mostra uma mensagem pedindo que você visite o site do JannyAI uma vez no mesmo navegador, para resolver o desafio, e depois tente de novo.
-- Se o login no CharacterTavern ou no Pygmalion parar de funcionar depois que você reinicia o servidor, isso é esperado. Esses logins ficam apenas na memória do servidor e somem no reinício. Abra a janela de login e cole o cookie ou o token de novo.
+- Se o login no Pygmalion parar de funcionar depois que você reinicia o servidor, isso é esperado. Esse login fica apenas na memória do servidor e some no reinício. Abra a janela de login e cole o token de novo.
+- Se o CharacterTavern mostrar um aviso no lugar dos resultados de busca, isso é esperado. O site reformulado não oferece mais a conexão que Marinara usava. Em vez disso, baixe o card em character-tavern.com e importe o arquivo.
 
 ## Problemas na geração de mídia
 

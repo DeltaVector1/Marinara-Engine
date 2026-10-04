@@ -1,6 +1,6 @@
 {
   "language": "pt-br",
-  "sourceCommit": "d1339485460a6ce82a4248b8459c45b67af910db",
+  "sourceCommit": "51b598bb19f221d5fbcec2ec340c7975a940d9e6",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -24,8 +24,8 @@
     },
     {
       "path": "TROUBLESHOOTING.md",
-      "sha256": "26e525eaf6c01b9a69c53e69d3c82182e25ead61e61f3d6debae981862f7620f",
-      "bytes": 50050
+      "sha256": "52ec5ad572dc2ab49aebaf1087d20d1aa11a9017aa2e60a64c4609245fdcea61",
+      "bytes": 50244
     },
     {
       "path": "UPGRADING.md",
@@ -94,8 +94,8 @@
     },
     {
       "path": "characters/bot-browser.md",
-      "sha256": "e95400985847a22685fd190f97e8748dbf97a96f45bdfe57111026fd40b0b264",
-      "bytes": 15364
+      "sha256": "2526f92a204dbb817d0d82185342d7f9358fbdbe573c1756cb6cca5d658c6bd2",
+      "bytes": 15707
     },
     {
       "path": "characters/choosing-your-persona.md",
@@ -319,8 +319,8 @@
     },
     {
       "path": "development/frontend.md",
-      "sha256": "f109d40b95fc653a2791942c621b875a57fb95124e1717a098b4716c333843c2",
-      "bytes": 50293
+      "sha256": "7676808ba75cd336d5cc67398c7edadfafc27b9e65ff3177472a49aef3ecbe8a",
+      "bytes": 50220
     },
     {
       "path": "development/game-combat-ai-design.md",

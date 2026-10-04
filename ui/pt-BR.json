@@ -158,6 +158,10 @@
   "settings.notifications.customSound.toasts.tooLarge": "O som de notificação deve ter no máximo 10 MB.",
   "settings.notifications.customSound.toasts.uploaded": "Som de notificação personalizado salvo.",
   "settings.notifications.customSound.toasts.uploadFailed": "Não foi possível salvar o som de notificação personalizado.",
+  "ui.botBrowser.providerUnavailable.badge": "Indisponível",
+  "ui.botBrowser.providerUnavailable.chartavern": "O CharacterTavern reformulou o site e não oferece mais a conexão que o Marinara usava para buscar e baixar cards. A navegação pode voltar se o CharacterTavern oferecer acesso à API. Até lá, você pode baixar cards em character-tavern.com e importar o arquivo.",
+  "ui.botBrowser.providerUnavailable.openSite": "Abrir {{value1}}",
+  "ui.botBrowser.providerUnavailable.title": "Não é possível explorar {{value1}} aqui por enquanto",
   "ui.chat.chatinput.itLooksLikeYouHavenTConnectedAnyModel": "Parece que você ainda não conectou nenhum modelo. Abra Chat Settings para fazer isso primeiro.",
   "ui.chat.slash.usage.illustrate": "/illustrate [range=N|range=N-M (opcional)] [prompt (opcional)]",
   "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "Adiciona um atalho Traduzir ao lado de Enviar. Em Conversation, Traduzir rascunho está sempre disponível na aba Ferramentas do menu de carinha do campo de mensagem, inclusive no celular."
