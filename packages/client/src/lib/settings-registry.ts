@@ -255,7 +255,11 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Messages per page",
     description: "Control how many messages load at once.",
     aliases: ["pagination", "load more", "history"],
-    keywords: ["context", "history length", "load history"],
+    // F6 (O5): "context"/"history length" sent a user trying to raise the model's
+    // context size here instead - there is no context-SIZE control in this
+    // registry (that lives in connection/preset parameters), so those two keywords
+    // only misdirected the search.
+    keywords: ["load history"],
     kind: "Input",
   },
   {
@@ -963,7 +967,9 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     label: "Show token usage on messages",
     description: "Display prompt and completion token counts.",
     aliases: ["tokens", "context", "cost"],
-    keywords: ["context length", "context size"],
+    // F6 (O5): "context length"/"context size" sent a user trying to raise the
+    // model's context window here instead and Enter silently flipped this
+    // toggle - removed; there is no context-size control in this registry.
     kind: "Toggle",
   },
   {

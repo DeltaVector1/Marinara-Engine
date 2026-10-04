@@ -19,6 +19,14 @@ export interface CommandCenterSegmentedChoiceProps<T extends string> {
   disabled?: boolean;
   loading?: boolean;
   className?: string;
+  /**
+   * F5 (O5): the option the omnibar's own ArrowDown/ArrowUp has keyboard-highlighted
+   * but not yet committed (Enter still has to run). Without this, a keyboard pick
+   * had no visible row and no visible segment - the picker looked untouched. Distinct
+   * from `selected` (the already-applied value), so a pick-in-progress still reads
+   * differently from the current one.
+   */
+  pendingValue?: T;
 }
 
 export function CommandCenterSegmentedChoice<T extends string>({
@@ -30,6 +38,7 @@ export function CommandCenterSegmentedChoice<T extends string>({
   disabled = false,
   loading = false,
   className,
+  pendingValue,
 }: CommandCenterSegmentedChoiceProps<T>) {
   const labelId = useId();
   const unavailable = disabled || loading;
@@ -77,6 +86,7 @@ export function CommandCenterSegmentedChoice<T extends string>({
       </span>
       {options.map((option, index) => {
         const selected = option.value === value;
+        const pending = !selected && option.value === pendingValue;
         const OptionIcon = option.icon;
 
         return (
@@ -97,6 +107,7 @@ export function CommandCenterSegmentedChoice<T extends string>({
               selected
                 ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
                 : "text-[var(--muted-foreground)] hover:bg-[color-mix(in_srgb,var(--foreground)_8%,transparent)] hover:text-[var(--foreground)]",
+              pending && "ring-2 ring-[var(--ring)] text-[var(--foreground)]",
             )}
           >
             {loading && selected ? (

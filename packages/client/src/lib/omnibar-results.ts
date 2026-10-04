@@ -631,7 +631,11 @@ export function buildOmnibarSearchResults({
   const controlChoices = trimmedQuery
     ? [...controls, ...chatControls].flatMap((control) => buildChoiceOptionResults(control))
     : [];
-  const baseResults = searchOmnibar(query, {
+  // F8 (O5): Mari's promotion and "unambiguous direct hit" must never turn on a
+  // frecency boost - "never moves Mari's row" means never decides it either.
+  // bestMatchScore/directResult/clearDirect are computed from the pre-boost
+  // scores below; the boost is applied only afterwards, to final ordering.
+  const preBoostResults = searchOmnibar(query, {
     ...data,
     controls: [...controls, ...chatControls, ...controlChoices],
     context: omnibarContext,
@@ -643,19 +647,22 @@ export function buildOmnibarSearchResults({
     .map((result) =>
       readChoiceOptionId(result.id) ? { ...result, score: result.score - CHOICE_SCORE_PENALTY } : result,
     )
-    // O2: a small, capped nudge from past uses on this surface. Never applied to
-    // Mari's row (frecencyBoost returns 0 for it) and never enough on its own to
-    // outrank an exact name match — see FRECENCY_BOOST_CAP.
+    .sort((a, b) => b.score - a.score);
+  const bestMatchScore = preBoostResults.reduce(
+    (best, result) => (result.id === "ask-professor-mari" ? best : Math.max(best, result.score)),
+    -1,
+  );
+  const directResult = getUnambiguousOmnibarResult(preBoostResults);
+  // O2: a small, capped nudge from past uses on this surface, applied only to
+  // the final display order. Never applied to Mari's row (frecencyBoost returns
+  // 0 for it) and never enough on its own to outrank an exact name match — see
+  // FRECENCY_BOOST_CAP.
+  const baseResults = preBoostResults
     .map((result) => {
       const boost = frecencyBoost(frecencyEntries, result.id, omnibarContext.surface, now);
       return boost > 0 ? { ...result, score: result.score + boost } : result;
     })
     .sort((a, b) => b.score - a.score);
-  const bestMatchScore = baseResults.reduce(
-    (best, result) => (result.id === "ask-professor-mari" ? best : Math.max(best, result.score)),
-    -1,
-  );
-  const directResult = getUnambiguousOmnibarResult(baseResults);
   const directIntent = intent?.kind === "navigate" || intent?.kind === "action" || intent?.kind === "create";
   const directSetup =
     intent?.kind === "repair" &&

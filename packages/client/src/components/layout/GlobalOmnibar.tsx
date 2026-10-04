@@ -254,6 +254,23 @@ const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
 /** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
 /** Chats the empty omnibar offers to switch back to. */
 const IDLE_RECENT_CHATS = 4;
+// F3 (O5): the idle frecent group only offers rows that *navigate* somewhere
+// (open a chat/entity, or run a navigation command) - never a row that writes
+// on Enter, like a settings toggle or a lorebook attach. An empty Ctrl+K must
+// never let a reflexive Enter silently flip something just because it was used
+// recently; "controls"/"chatControls" rows (settings toggles) all set `control`.
+const NAVIGATION_OMNIBAR_ACTION_KINDS = new Set<OmnibarAction["kind"]>([
+  "open-mari-chat",
+  "goto-message",
+  "open-docs",
+  "open-faq",
+  "open-global-search",
+  "open-lorebook-entry",
+  "start-character-chat",
+  "start-chat",
+]);
+const isNavigationOmnibarResult = (result: Pick<OmnibarResult, "control" | "action">) =>
+  !result.control && (!result.action || NAVIGATION_OMNIBAR_ACTION_KINDS.has(result.action.kind));
 /**
  * K5's last flip, kept past the dialog's unmount so Mari's arrival in Settings can offer the same Undo
  * as the toast. ponytail: one slot, cleared by either Undo; a flip made in the Settings panel itself
@@ -1596,7 +1613,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       // Already the thing you're on — showing "open it" again would be noise.
       if (id === `chat:${activeChatId}` || id === omnibarContext.openResource?.resultId) return [];
       const row = rowById.get(id);
-      return row ? [{ ...row, group: "frecent" as const }] : [];
+      return row && isNavigationOmnibarResult(row) ? [{ ...row, group: "frecent" as const }] : [];
     });
   }, [
     activeChatId,
@@ -1826,6 +1843,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const resultIdsKey = results.map((result) => result.id).join("\u0000");
   const reconciledResultIdsKeyRef = useRef<string | null>(null);
   const reconciledQueryRef = useRef(deferredQuery);
+  // F1 (O5): true while the selection is still wherever the effect put it, not
+  // somewhere the user picked. Late message/entry/docs hits land after their own
+  // debounce and can change which row is first; the selection should keep
+  // following that row only while it's still auto-selected. Reset on every
+  // query change, cleared the moment the user moves the selection themselves.
+  const autoSelectionRef = useRef(true);
   const activeIndex = results.findIndex((result) => result.id === activeResultId);
   const activeResult = activeIndex >= 0 ? results[activeIndex] : undefined;
   const sourceQueries: Array<{ isLoading: boolean; isError: boolean }> = [
@@ -1868,10 +1891,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         : undefined;
     // When that row is only the chat already open, Enter on it does nothing, so the
     // empty omnibar starts on the last other chat instead: Cmd+K, Enter switches back.
+    // F3: stays on "recent" only - "frecent" can hold a settings toggle or other
+    // write, and an idle Ctrl+K/Enter must never apply one just because it's used often.
     const firstCurrentWorkId =
       leadingCurrentWorkId && activeChatId && leadingCurrentWorkId === `chat:${activeChatId}`
-        ? (presentation.groups.find((group) => group.id === "frecent" || group.id === "recent")?.results[0]?.id ??
-          leadingCurrentWorkId)
+        ? (presentation.groups.find((group) => group.id === "recent")?.results[0]?.id ?? leadingCurrentWorkId)
         : leadingCurrentWorkId;
     // A new query re-ranks everything, so the selection must follow the new top
     // row instead of sticking to whatever was highlighted before. Otherwise
@@ -1879,13 +1903,20 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // keystrokes and Enter opens her editor instead of detaching her.
     const queryChanged = reconciledQueryRef.current !== deferredQuery;
     reconciledQueryRef.current = deferredQuery;
+    if (queryChanged) autoSelectionRef.current = true;
+    // F1: late-arriving message/entry/docs hits reorder the list after their own
+    // debounce, demoting the promoted "Ask Mari" row below the real hit. If the
+    // user has not moved the selection since this query started, the selection
+    // must follow that new top row too, not just on the keystroke that changed
+    // the query - otherwise Enter still lands on the no-longer-first Mari row.
+    const topCandidateId = firstCurrentWorkId ?? results[0]?.id ?? null;
     const next = reconcileActiveResultId(
       queryChanged
         ? null
         : // Also while nothing is selected yet: the effect can run again before the
           // first pass's selection lands, and would fall back to the first row.
-          (resultOrderChanged || !activeResultId) && firstCurrentWorkId
-          ? firstCurrentWorkId
+          (resultOrderChanged || !activeResultId) && autoSelectionRef.current && topCandidateId
+          ? topCandidateId
           : activeResultId,
       results.map((result) => result.id),
     );
@@ -2349,6 +2380,35 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     setActiveResultId(result.id);
     setExpandedPreviewId(result.id);
   };
+  // F5 (O5): the Fix row's connection choice has the control id
+  // `connection:<id>` (that connection's own editor row, repurposed by
+  // `contextResults` while a retry is offered), so it cannot join the static
+  // CHAT_SCOPED_CHOICE_CONTROL_IDS set - it needs the same close+toast
+  // treatment, derived from the same `lastAppError.retry` the row came from.
+  const fixRowChoiceParentId =
+    lastAppError?.retry?.kind === "open-connection" ? `connection:${lastAppError.retry.id}` : null;
+  const isChatScopedChoiceControlId = (id: string) =>
+    CHAT_SCOPED_CHOICE_CONTROL_IDS.has(id) || id === fixRowChoiceParentId;
+  // F5 (O5): the inline segmented control on the row itself (the pill buttons a
+  // mouse/touch user picks directly, with no expand step) called only
+  // `control.onChange` - never the close+toast+recordUse below, so a direct
+  // pick left search open with the next Enter pointed at an unrelated chat.
+  // Shared with `chooseChoiceOption` below so a keyboard pick (via the
+  // expanded option rows) gets the exact same treatment.
+  const runScopedChoiceChange = (result: RankedOmnibarResult, value: string | boolean) => {
+    if (!result.control) return;
+    result.control.onChange(value);
+    if (!isChatScopedChoiceControlId(result.id)) return;
+    const optionLabel = result.control.options?.find((option) => option.value === value)?.label ?? String(value);
+    toast.success(
+      t("commandCenter.actions.chatControlChosen", "{{label}}: {{value}}", {
+        label: result.description ?? result.command.title,
+        value: optionLabel,
+      }),
+    );
+    recordUse(result.id);
+    onClose();
+  };
   const chooseChoiceOption = (result: RankedOmnibarResult) => {
     if (!result.chooseValue) return false;
     result.chooseValue();
@@ -2356,7 +2416,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // does not jump; a row found by typing has no parent on screen.
     const parentId = readChoiceOptionId(result.id)?.parentId;
     setExpandedChoiceId(null);
-    if (parentId && CHAT_SCOPED_CHOICE_CONTROL_IDS.has(parentId)) {
+    if (parentId && isChatScopedChoiceControlId(parentId)) {
       toast.success(
         t("commandCenter.actions.chatControlChosen", "{{label}}: {{value}}", {
           label: result.description ?? result.command.title,
@@ -2376,7 +2436,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const flipToggleControl = (result: RankedOmnibarResult, nextValue: boolean) => {
     const control = result.control;
     if (!control || control.type !== "toggle") return;
-    if (!result.id.startsWith("settings-control:")) {
+    // F10 (O5): a lorebook row's own Enabled switch is now the only door to its
+    // app-wide toggle (see `isLorebookEnableToggleRow` above) - a stray tap there
+    // needs the same Undo as a settings toggle, not a silent flip.
+    if (!result.id.startsWith("settings-control:") && result.category !== "lorebook") {
       control.onChange(nextValue);
       return;
     }
@@ -2421,6 +2484,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       showResultDetail(result);
       return;
     }
+    autoSelectionRef.current = false;
     setActiveResultId(result.id);
     if (result.control?.type === "toggle" && !isLorebookEnableToggleRow(result))
       flipToggleControl(result, result.control.value !== true);
@@ -2436,6 +2500,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     const previous = pointerRef.current;
     pointerRef.current = { x: event.clientX, y: event.clientY };
     if (previous && previous.x === event.clientX && previous.y === event.clientY) return;
+    autoSelectionRef.current = false;
     setActiveResultId(result.id);
     // The preview renders for whatever is highlighted, and hover moves the
     // highlight. Without this the box under the expanded row would show the
@@ -2456,6 +2521,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   };
   const moveSelection = (index: number) => {
     const next = results[index];
+    autoSelectionRef.current = false;
     setActiveResultId(next?.id ?? null);
     if (expandedPreviewId) setExpandedPreviewId(next && isRichResult(next) ? next.id : null);
   };
@@ -3548,8 +3614,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                                 <CommandCenterSegmentedChoice
                                   label={result.control.label}
                                   value={String(result.control.value)}
+                                  // F5: ArrowDown/ArrowUp moves `activeResultId` onto an expanded
+                                  // option row below this one (ids encode the parent + value); show
+                                  // that pick on the inline segments too, since the expanded rows
+                                  // themselves render nowhere a keyboard user can see them.
+                                  pendingValue={
+                                    activeResultId && readChoiceOptionId(activeResultId)?.parentId === result.id
+                                      ? readChoiceOptionId(activeResultId)?.value
+                                      : undefined
+                                  }
                                   options={(result.control.options ?? []).map((option) => ({ ...option }))}
-                                  onValueChange={(value) => result.control?.onChange(value)}
+                                  onValueChange={(value) => runScopedChoiceChange(result, value)}
                                   variant="compact"
                                 />
                               ) : result.category === "preset" && result.control?.type === "toggle" ? (
@@ -3655,6 +3730,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             onClearSearchHistory={() => {
               clearOmnibarFrecencyHistory();
               setFrecencyEntries([]);
+              // F7 (O5): the older ranking store (recency/frequency boost + the
+              // "Recent" group) is separate from the frecency store above - both
+              // record the same uses, so "forgets it all" must clear both. Pins
+              // are a deliberate curation the user kept, not usage history.
+              const clearedRanking = { ...ranking, recent: [] };
+              setRanking(clearedRanking);
+              writeCommandRankingState(clearedRanking);
             }}
             onSetUpLocalModel={
               import.meta.env.VITE_MARINARA_LITE === "true"

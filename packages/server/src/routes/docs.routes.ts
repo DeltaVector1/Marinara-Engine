@@ -274,6 +274,17 @@ async function extractTitle(filePath: string, fallback: string): Promise<string>
   }
 }
 
+// docs/development is developer reference, not a user doc dump: only the
+// curated top-level files in DOC_ORDER.development are user-facing. Everything
+// else there (internal plans, value tables, mockup notes, and anything nested
+// a level deeper) must never show up as a "user doc", in the viewer, in
+// search, or in `/api/docs/language`'s counts (O4/F11: this is how
+// docs/development/omnibar-*.md working files would otherwise leak in).
+function isExcludedDevelopmentDoc(relativeDir: string, fileName: string): boolean {
+  const isDevelopmentDoc = relativeDir === "development" || relativeDir.startsWith("development/");
+  return isDevelopmentDoc && !(relativeDir === "development" && DOC_ORDER.development?.includes(fileName));
+}
+
 async function collectDocs(dir: string, relativeDir: string): Promise<DocSummary[]> {
   const docs: DocSummary[] = [];
   const entries = await readdir(dir, { withFileTypes: true });
@@ -286,14 +297,7 @@ async function collectDocs(dir: string, relativeDir: string): Promise<DocSummary
       continue;
     }
     if (!entry.isFile() || !entry.name.toLowerCase().endsWith(".md")) continue;
-    // docs/development is developer reference, not a user doc dump: only the
-    // curated top-level files in DOC_ORDER.development are user-facing.
-    // Everything else there (internal plans, value tables, mockup notes, and
-    // anything nested a level deeper) must never show up as a "user doc" in
-    // the viewer or in search (O4: this is how docs/development/omnibar-*.md
-    // working files would otherwise leak in).
-    const isDevelopmentDoc = relativeDir === "development" || relativeDir.startsWith("development/");
-    if (isDevelopmentDoc && !(relativeDir === "development" && DOC_ORDER.development?.includes(entry.name))) continue;
+    if (isExcludedDevelopmentDoc(relativeDir, entry.name)) continue;
     const relativePath = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
     const filePath = join(dir, entry.name);
     try {
@@ -471,6 +475,7 @@ async function collectDocPaths(dir: string, relativeDir: string): Promise<string
       const childRelative = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
       paths.push(...(await collectDocPaths(join(dir, entry.name), childRelative)));
     } else if (entry.isFile() && entry.name.toLowerCase().endsWith(".md")) {
+      if (isExcludedDevelopmentDoc(relativeDir, entry.name)) continue;
       paths.push(relativeDir ? `${relativeDir}/${entry.name}` : entry.name);
     }
   }
@@ -582,7 +587,14 @@ export async function docsRoutes(app: FastifyInstance) {
 
     try {
       const language = await resolveRequestLanguage(lang, storage);
-      const needle = query.toLowerCase();
+      // F4 (O5): a question-phrased search ("how do lorebooks work?") arrives
+      // here as its content words ("lorebooks work") — the whole phrase almost
+      // never occurs verbatim in prose. Each word must occur somewhere in the
+      // doc (AND across words); a single-word query behaves exactly as before.
+      const needles = query
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((word) => word.length > 0);
       const results: DocSearchResult[] = [];
 
       for (const doc of await collectLocalizedDocs(language)) {
@@ -594,21 +606,25 @@ export async function docsRoutes(app: FastifyInstance) {
         } catch {
           continue;
         }
+        const lowerContent = content.toLowerCase();
+        if (!needles.every((needle) => lowerContent.includes(needle))) continue;
+
         const snippets: DocSearchSnippet[] = [];
         let matches = 0;
 
         content.split(/\r?\n/).forEach((line, index) => {
-          const matchIndex = line.toLowerCase().indexOf(needle);
-          if (matchIndex === -1) return;
+          const lowerLine = line.toLowerCase();
+          const hitNeedle = needles.find((needle) => lowerLine.includes(needle));
+          if (!hitNeedle) return;
           matches++;
           if (snippets.length < MAX_SNIPPETS_PER_DOC) {
-            snippets.push({ line: index + 1, text: toSnippet(line, matchIndex) });
+            snippets.push({ line: index + 1, text: toSnippet(line, lowerLine.indexOf(hitNeedle)) });
           }
         });
 
         // Count a title hit only when no content line matched (the H1 the title
         // came from is already counted by the line scan).
-        if (matches === 0 && doc.title.toLowerCase().includes(needle)) matches = 1;
+        if (matches === 0 && needles.some((needle) => doc.title.toLowerCase().includes(needle))) matches = 1;
 
         if (matches > 0) results.push({ ...doc, matches, snippets });
       }

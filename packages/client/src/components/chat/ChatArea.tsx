@@ -3091,13 +3091,15 @@ const LocalChatArea = memo(function LocalChatArea() {
       // The target message is in the loaded page, but the transcript only
       // mounts a render window of it; the surface's own effect still needs a
       // commit to widen that window to include the target — especially right
-      // after switching chats, where the first frame still shows the old
-      // chat's DOM. Giving up after a single frame landed on the newest
-      // message instead of the hit (O4 item 2), so retry across a few frames
-      // before giving up.
+      // after switching chats, where the node can take longer than a handful
+      // of frames to mount (measured ~860ms on a busy tab). A fixed 20-frame
+      // budget (~330ms) gave up before that and landed on the newest message
+      // instead of the hit (O5 F2) even though it looked right in a quieter
+      // test run; retry on a wall-clock budget instead; this feeds both this
+      // door and the Search All Chats modal, which share `gotoRequest`.
       let cancelled = false;
-      let attempts = 0;
       let rafId = 0;
+      const deadline = Date.now() + 3000;
       const tryScroll = () => {
         if (cancelled) return;
         const el = document.querySelector(`[data-message-id="${CSS.escape(targetId)}"]`);
@@ -3108,8 +3110,7 @@ const LocalChatArea = memo(function LocalChatArea() {
           useChatStore.getState().clearGotoRequest();
           return;
         }
-        attempts += 1;
-        if (attempts >= 20) {
+        if (Date.now() >= deadline) {
           useChatStore.getState().clearGotoRequest();
           return;
         }

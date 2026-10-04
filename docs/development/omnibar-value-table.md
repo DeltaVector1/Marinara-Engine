@@ -19,6 +19,17 @@ icon) — they remove the bugs and extra steps the notes below describe, so the 
 affected rows is now the pre-fix description of a fixed bug, not the current behavior. See `CHANGELOG.md`
 and `docs/development/omnibar-feature-inventory.md` for what slice 50 actually shipped.
 
+**Correction after slice 51's review (2026-10-04):** live re-testing found that slice 50's goto-message fix
+(item 2a) and Ask-Mari-promotion fix (item 2b) did not hold on the running app — the cross-chat jump still
+landed on the newest message (both the omnibar and Search All Chats), and Enter still asked Mari even once a
+real hit outranked her (the selection did not follow the reorder). The task 9 fresh-install docs-rows fix also
+did not hold: a question-phrased query still returned no docs rows. Slice 51 fixed all three (plus a new
+slice-48 hazard where an empty Ctrl+K could preselect and silently flip a frecently-used setting), the
+Fix row's connection choice leaving the omnibar open, two misleading settings-search keywords, "Clear search
+history" missing half the usage store, the frecency boost being able to decide Mari's promotion, and the
+phone persona switcher's "Ungrouped" folder. See `CHANGELOG.md` and
+`docs/development/omnibar-feature-inventory.md` for what slice 51 actually shipped.
+
 ## How it was measured
 
 - **Build.** `feat/omnibar-professor-mari` at `04ce44f41`, run with

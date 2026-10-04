@@ -3101,7 +3101,7 @@ assert.ok(!("mariDetailId" in mariSession));
     ["night", "settings-control:theme-mode"],
     ["typing effect", "settings-control:enable-streaming"],
     ["typewriter speed", "settings-control:streaming-speed"],
-    ["context length", "settings-control:show-token-usage"],
+    ["load history", "settings-control:messages-per-page"],
     ["voice typing", "settings-control:speech-to-text"],
     ["are you sure", "settings-control:confirm-before-delete"],
     ["toast position", "settings-control:notification-position"],
@@ -3121,6 +3121,27 @@ assert.ok(!("mariDetailId" in mariSession));
   for (const [phrase, expectedId] of phrasePairs) {
     const top = search(phrase).find((result) => result.id !== "ask-professor-mari");
     assert.equal(top?.id, expectedId, `"${phrase}" should surface ${expectedId} first, got ${top?.id}`);
+  }
+
+  // F6 (O5): there is no context-SIZE control in the registry, so "context
+  // length"/"context size" must not resolve to "Show token usage on messages"
+  // (a toggle, flipped silently on Enter) nor "context"/"history length" to
+  // "Messages per page" (which only pages the transcript).
+  for (const phrase of ["context length", "context size"]) {
+    const top = search(phrase).find((result) => result.id !== "ask-professor-mari");
+    assert.notEqual(
+      top?.id,
+      "settings-control:show-token-usage",
+      `"${phrase}" must not surface the token-usage toggle`,
+    );
+  }
+  {
+    const top = search("history length").find((result) => result.id !== "ask-professor-mari");
+    assert.notEqual(
+      top?.id,
+      "settings-control:messages-per-page",
+      `"history length" must not surface Messages per page as the top hit`,
+    );
   }
 
   // A keyword match must never outrank a label match for the same query: a
