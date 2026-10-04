@@ -215,7 +215,8 @@ Podsumowania czatu wymagają działającego połączenia tekstowego.
 **Card Browser** służy do przeszukiwania publicznych serwisów z postaciami i importowania postaci. Otwórz go ikoną **Card Browser** na górnym pasku, a potem kliknij przycisk **Download Cards**.
 
 - Jeśli wyszukiwanie w serwisie JannyAI albo strona postaci kończy się blokadą Cloudflare, Marinara pokazuje komunikat. Prosi o jednorazowe odwiedzenie strony JannyAI w tej samej przeglądarce, żeby przejść weryfikację, a potem o ponowną próbę.
-- Jeśli logowanie do serwisu CharacterTavern lub Pygmalion przestaje działać po restarcie serwera, tak ma być. Te dane logowania żyją wyłącznie w pamięci serwera i znikają przy restarcie. Otwórz okno logowania i wklej cookie albo token jeszcze raz.
+- Jeśli logowanie do serwisu Pygmalion przestaje działać po restarcie serwera, tak ma być. Te dane logowania żyją wyłącznie w pamięci serwera i znikają przy restarcie. Otwórz okno logowania i wklej token jeszcze raz.
+- Jeśli źródło CharacterTavern zamiast wyników wyszukiwania pokazuje komunikat, tak ma być. Przebudowana strona tego serwisu nie udostępnia już połączenia, z którego korzystała aplikacja Marinara. Zamiast tego pobierz kartę ze strony character-tavern.com i zaimportuj plik.
 
 ## Problemy z generowaniem multimediów
 

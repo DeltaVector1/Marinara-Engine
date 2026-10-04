@@ -215,7 +215,8 @@ Chat-Zusammenfassungen brauchen eine funktionierende Textverbindung, die sie sch
 Mit dem **Card Browser** durchsuchst du öffentliche Charakterseiten und importierst Charaktere. Öffne ihn über das **Card Browser**-Symbol in der oberen Leiste und klick dann auf **Download Cards**.
 
 - Scheitert die Suche auf JannyAI oder eine Charakterseite an einer Cloudflare-Sperre, zeigt Marinara einen Hinweis. Er bittet dich, die JannyAI-Seite einmal im selben Browser zu besuchen, um die Prüfung zu bestehen, und es dann erneut zu versuchen.
-- Wenn dein Login bei CharacterTavern oder Pygmalion nach einem Serverneustart nicht mehr funktioniert, ist das normal. Diese Logins liegen nur im Arbeitsspeicher des Servers und verfallen beim Neustart. Öffne das Login-Fenster und füg Cookie oder Token erneut ein.
+- Wenn dein Login bei Pygmalion nach einem Serverneustart nicht mehr funktioniert, ist das normal. Dieser Login liegt nur im Arbeitsspeicher des Servers und verfällt beim Neustart. Öffne das Login-Fenster und füg dein Token erneut ein.
+- Wenn CharacterTavern statt Suchergebnissen einen Hinweis anzeigt, ist das ebenfalls normal. Seit dem Umbau der Website gibt es den Zugang, den Marinara genutzt hat, nicht mehr. Lade die Karte stattdessen von character-tavern.com herunter und importiere die Datei.
 
 ## Probleme bei der Medien-Generierung
 

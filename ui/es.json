@@ -169,6 +169,10 @@
   "settings.notifications.customSound.toasts.tooLarge": "El sonido de notificación debe ocupar 10 MB o menos.",
   "settings.notifications.customSound.toasts.uploaded": "Se guardó el sonido de notificación personalizado.",
   "settings.notifications.customSound.toasts.uploadFailed": "No se pudo guardar el sonido de notificación personalizado.",
+  "ui.botBrowser.providerUnavailable.badge": "No disponible",
+  "ui.botBrowser.providerUnavailable.chartavern": "CharacterTavern rehízo su sitio web y ya no ofrece la conexión que Marinara usaba para buscar y descargar tarjetas. Es posible que la exploración vuelva si CharacterTavern ofrece acceso a su API. Hasta entonces, puedes descargar tarjetas desde character-tavern.com e importar el archivo.",
+  "ui.botBrowser.providerUnavailable.openSite": "Abrir {{value1}}",
+  "ui.botBrowser.providerUnavailable.title": "Por ahora, {{value1}} no se puede explorar aquí",
   "ui.chat.slash.usage.illustrate": "/illustrate [range=N|range=N-M (opcional)] [prompt (opcional)]",
   "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "Añade un acceso de traducción junto a Enviar. En Conversation, Traducir borrador siempre está disponible en la pestaña Herramientas del menú de la cara sonriente del cuadro de mensaje, también en móvil."
 }

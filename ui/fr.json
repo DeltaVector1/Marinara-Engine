@@ -169,6 +169,10 @@
   "settings.notifications.customSound.toasts.tooLarge": "Le son de notification ne doit pas dépasser 10 Mo.",
   "settings.notifications.customSound.toasts.uploaded": "Son de notification personnalisé enregistré.",
   "settings.notifications.customSound.toasts.uploadFailed": "Impossible d’enregistrer le son de notification personnalisé.",
+  "ui.botBrowser.providerUnavailable.badge": "Indisponible",
+  "ui.botBrowser.providerUnavailable.chartavern": "CharacterTavern a refait son site web et ne propose plus la connexion que Marinara utilisait pour rechercher et télécharger des fiches. La navigation pourra revenir si CharacterTavern propose un accès API. En attendant, vous pouvez télécharger des fiches sur character-tavern.com et importer le fichier.",
+  "ui.botBrowser.providerUnavailable.openSite": "Ouvrir {{value1}}",
+  "ui.botBrowser.providerUnavailable.title": "Impossible de parcourir {{value1}} ici pour le moment",
   "ui.chat.slash.usage.illustrate": "/illustrate [range=N|range=N-M (facultatif)] [prompt (facultatif)]",
   "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "Ajoute un raccourci Traduire à côté d'Envoyer. Dans Conversation, Traduire le brouillon est toujours disponible dans l'onglet Outils du menu souriant du champ de message, y compris sur mobile."
 }
