@@ -817,19 +817,21 @@ const LocalChatArea = memo(function LocalChatArea() {
   const { generate, retryAgents } = useGenerate();
   // N1: a failed reply leaves a quiet "Failed · Retry" line under the user message that
   // triggered it — conversation/roleplay only, derived from K1's lastAppError (no new storage).
-  // Dismissed on edit (see handleEdit/handleRoleplayEdit below); naturally clears on delete
-  // since the message drops out of `messages`, and on the next successful reply since
-  // lastAppError itself clears or moves on to a different action.
+  // Dismissed on edit (see handleEdit/handleRoleplayEdit below) and on delete
+  // (see handleDeleteConfirm below); also clears on the next successful reply
+  // since lastAppError itself clears or moves on to a different action, and
+  // hides while a reply to a newer message is still streaming.
   const [dismissedFailedReplyId, setDismissedFailedReplyId] = useState<string | null>(null);
   useEffect(() => {
     setDismissedFailedReplyId(null);
   }, [lastAppError]);
   const failedReplyMessageId = useMemo(() => {
+    if (isStreaming) return null;
     if (lastAppError?.action !== "Generate reply" || lastAppError.chatId !== activeChatId) return null;
     const last = messages?.[messages.length - 1];
     if (!last || last.role !== "user" || last.id === dismissedFailedReplyId) return null;
     return last.id;
-  }, [lastAppError, activeChatId, messages, dismissedFailedReplyId]);
+  }, [isStreaming, lastAppError, activeChatId, messages, dismissedFailedReplyId]);
   const handleRetryFailedReply = useCallback(() => {
     if (!activeChatId || isStreaming) return;
     void generate({ chatId: activeChatId, connectionId: null });
@@ -1956,9 +1958,10 @@ const LocalChatArea = memo(function LocalChatArea() {
   const handleDeleteConfirm = useCallback(() => {
     if (deleteDialogMessageId) {
       deleteMessage.mutate(deleteDialogMessageId);
+      if (deleteDialogMessageId === failedReplyMessageId) setDismissedFailedReplyId(deleteDialogMessageId);
     }
     setDeleteDialogMessageId(null);
-  }, [deleteDialogMessageId, deleteMessage]);
+  }, [deleteDialogMessageId, deleteMessage, failedReplyMessageId]);
 
   const handleDeleteSwipe = useCallback(() => {
     const messageId = deleteDialogMessageId;

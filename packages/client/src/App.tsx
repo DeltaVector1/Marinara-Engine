@@ -1137,15 +1137,25 @@ export function App() {
           position={
             omnibarOpen
               ? isMobileShell
-                ? "bottom-center"
+                ? "top-center"
                 : "bottom-right"
               : notificationPosition === "bottom"
                 ? "bottom-center"
                 : "top-center"
           }
-          swipeDirections={["left", "right", omnibarOpen || notificationPosition === "bottom" ? "bottom" : "top"]}
+          swipeDirections={[
+            "left",
+            "right",
+            omnibarOpen ? (isMobileShell ? "top" : "bottom") : notificationPosition === "bottom" ? "bottom" : "top",
+          ]}
           offset="4rem"
-          mobileOffset={{ top: "calc(env(safe-area-inset-top) + 3.5rem)", bottom: "1rem" }}
+          mobileOffset={{
+            // On the mobile omnibar the toast sits under the omnibar's own header
+            // (search field + status row) instead of the app's top bar, so it
+            // needs more clearance than the app-shell top offset below.
+            top: omnibarOpen ? "calc(env(safe-area-inset-top) + 5rem)" : "calc(env(safe-area-inset-top) + 3.5rem)",
+            bottom: "1rem",
+          }}
           theme={theme}
           closeButton
           duration={TOAST_DURATION_MS}

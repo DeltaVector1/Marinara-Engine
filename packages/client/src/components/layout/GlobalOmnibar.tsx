@@ -2589,17 +2589,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     message: string,
     focusResult: OmnibarAskFocus,
     asideAnswer?: { query: string; answer: string; tier: "local" | "remote" },
+    options: { fix?: boolean } = {},
   ) => {
-    // The "fix this" row built from lastAppError is the only row that opens through
-    // the chat-error door (R22: unasked Mari calls carry no user content either way).
-    // L2: the row can point at a connection or, for a failed agent run, the agent.
-    // N6: callers pass it only as a deliberate pick; a fallback focus never is the Fix row.
-    const source =
-      fixRowId && focusResult?.id === fixRowId
-        ? ("chat-error" as const)
-        : gameSetupStep
-          ? ("game-setup" as const)
-          : undefined;
+    // The "fix this" door only opens on a deliberate pick of the Fix row (⌘↵/Enter on it, or the
+    // arrival Fix card) — never implicitly, because a built-in agent's editor row and Fix row share
+    // an id, so "focus id equals Fix row id" can also be true for a plain fallback focus (A5/N6).
+    const fix = Boolean(options.fix);
+    const source = fix ? ("chat-error" as const) : gameSetupStep ? ("game-setup" as const) : undefined;
     return buildProfessorMariCommandCenterContext(message, focusResult, [], focusResult?.id, {
       activeChat: activeChat ? { id: activeChat.id, label: activeChat.name, mode: activeChat.mode } : undefined,
       settingsLocation:
@@ -2610,10 +2606,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       fieldId: gameSetupStep ? undefined : activeEditorField?.id,
       // Only the deliberate "fix this" handoff actually needs lastAppError's text; every other
       // Mari call (R22) must not carry it along just because an unrelated error happens to be live.
-      error:
-        source === "chat-error" && lastAppError
-          ? { message: lastAppError.message, code: lastAppError.code }
-          : undefined,
+      error: fix && lastAppError ? { message: lastAppError.message, code: lastAppError.code } : undefined,
       source,
       asideAnswer,
     });
@@ -2634,15 +2627,18 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // "Current chat" resource.
     const draft = options.arrival ? "" : parseOmnibarScope(query.trim()).query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
+    // A deliberate pick of the Fix row — not the fallback landing on the same id — is what opens
+    // the chat-error door (A5/N6): `selectedResult` is only set on an actual pick.
+    const fix = Boolean(selectedResult && fixRowId && selectedResult.id === fixRowId);
     const focusResult =
-      selectedResult ?? mariFallbackFocus(contextResults, fixRowId, options.arrival ? `chat:${activeChat?.id}` : null);
+      selectedResult ?? mariFallbackFocus(contextResults, options.arrival ? `chat:${activeChat?.id}` : null);
     rememberMariReturn(focusResult);
     // The focused-field row is about the open editor, so Mari gets that resource beside the field.
     const askFocus =
       focusResult?.id === "suggestion:edit-focused-field"
         ? (contextResults.find((row) => row.id === omnibarContext.openResource?.resultId) ?? focusResult)
         : focusResult;
-    enterMariPane(buildAskContext(draft, askFocus), options.submitDraft);
+    enterMariPane(buildAskContext(draft, askFocus, undefined, { fix }), options.submitDraft);
     if (options.reviewPending) setMariPendingReviewRequest((current) => current + 1);
     if (options.arrival) setMariArrivalAppendRequest((current) => current + 1);
   };
@@ -2663,10 +2659,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (!asideLive) return;
     const draft = question ?? asideState.query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
-    const focusResult = mariFallbackFocus(contextResults, fixRowId);
+    const focusResult = mariFallbackFocus(contextResults);
     rememberMariReturn(focusResult);
     enterMariPane(
       buildAskContext(draft, focusResult, {
+        // The aside escalation is never the deliberate Fix-row pick, so `fix` stays unset below.
         // Match the server's zod limits so an over-length aside can't 400 the whole send.
         query: asideState.query.slice(0, 500),
         answer: omnibarAsideHandoffAnswer(asideState.answer, asideState.followUp).slice(0, 4_000),
@@ -3299,7 +3296,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               arrivalAppendRequest={mariArrivalAppendRequest}
               onArrivalAction={runArrivalAction}
               // N6: what an arrival Fix card sends with: the same handoff as a deliberate pick of the Fix row.
-              arrivalFixContext={buildAskContext("", contextResults.find((row) => row.id === fixRowId) ?? null)}
+              arrivalFixContext={buildAskContext(
+                "",
+                contextResults.find((row) => row.id === fixRowId) ?? null,
+                undefined,
+                { fix: true },
+              )}
             />
           </Suspense>
         ) : null}

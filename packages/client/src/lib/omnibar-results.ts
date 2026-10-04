@@ -925,14 +925,18 @@ export function buildOmnibarIntentShortcuts({
  * Omnibar doors into the exact same new-chat flow Home's Conversation/
  * Roleplay/Game buttons use (N2): `action.kind: "start-chat"` is handled by
  * the same `useStartNewChatMode` mutation those buttons call, so nothing new
- * runs behind the row. Scored like the other intent shortcuts (600) on an
- * exact alias hit, so "new chat" outranks unrelated `create-*` commands;
- * otherwise kept at a system-command baseline (160) so the rows stay findable
- * idle and by partial typing.
+ * runs behind the row. Only returned when the query actually matches: a
+ * deliberate phrase ("new chat", "start roleplay", …) scores like the other
+ * intent shortcuts (600) so it outranks unrelated `create-*` commands; a bare
+ * word ("game", "rp", …) scores low (280) so it never outranks an exact
+ * entity name. No row is returned for a query that matches nothing — these
+ * rows never show on an empty query (the caller only builds them when the
+ * query is non-empty) and must not show on every non-empty query either.
  */
 const NEW_CHAT_COMMANDS: readonly {
   mode: ChatMode;
-  aliases: readonly string[];
+  phraseAliases: readonly string[];
+  bareAliases: readonly string[];
   titleKey: string;
   titleFallback: string;
   descriptionKey: string;
@@ -941,7 +945,8 @@ const NEW_CHAT_COMMANDS: readonly {
 }[] = [
   {
     mode: "conversation",
-    aliases: ["new chat", "new conversation", "start conversation", "conversation"],
+    phraseAliases: ["new chat", "new conversation", "start conversation"],
+    bareAliases: ["conversation"],
     titleKey: "commandCenter.newChat.conversation",
     titleFallback: "New conversation",
     descriptionKey: "commandCenter.newChat.conversationDescription",
@@ -950,7 +955,8 @@ const NEW_CHAT_COMMANDS: readonly {
   },
   {
     mode: "roleplay",
-    aliases: ["new rp", "rp", "new roleplay", "start roleplay", "roleplay"],
+    phraseAliases: ["new rp", "new roleplay", "start roleplay"],
+    bareAliases: ["rp", "roleplay"],
     titleKey: "commandCenter.newChat.roleplay",
     titleFallback: "New roleplay",
     descriptionKey: "commandCenter.newChat.roleplayDescription",
@@ -959,7 +965,8 @@ const NEW_CHAT_COMMANDS: readonly {
   },
   {
     mode: "game",
-    aliases: ["new game", "game", "start game"],
+    phraseAliases: ["new game", "start game"],
+    bareAliases: ["game"],
     titleKey: "commandCenter.newChat.game",
     titleFallback: "New game",
     descriptionKey: "commandCenter.newChat.gameDescription",
@@ -970,27 +977,42 @@ const NEW_CHAT_COMMANDS: readonly {
 
 export function buildOmnibarNewChatCommands({ query, t }: { query: string; t: OmnibarTranslate }): OmnibarResult[] {
   const normalizedQuery = normalizeTextForMatch(query.trim());
-  return NEW_CHAT_COMMANDS.map(
-    ({ mode, aliases, titleKey, titleFallback, descriptionKey, descriptionFallback, icon }) => {
-      const normalizedAliases = aliases.map((alias) => normalizeTextForMatch(alias));
-      const exactMatch = normalizedQuery.length > 0 && normalizedAliases.includes(normalizedQuery);
-      const partialMatch =
-        !exactMatch &&
-        normalizedQuery.length >= 2 &&
-        normalizedAliases.some((alias) => alias.includes(normalizedQuery) || normalizedQuery.includes(alias));
-      return {
-        id: `create-${mode === "conversation" ? "conversation" : mode}`,
-        action: { kind: "start-chat" as const, mode },
-        title: t(titleKey, titleFallback),
-        description: t(descriptionKey, descriptionFallback),
-        category: "chat" as const,
-        aliases,
-        score: exactMatch ? 600 : partialMatch ? 250 : 160,
-        kind: "action" as const,
-        icon,
-      };
-    },
-  );
+  if (!normalizedQuery) return [];
+  const results: OmnibarResult[] = [];
+  for (const {
+    mode,
+    phraseAliases,
+    bareAliases,
+    titleKey,
+    titleFallback,
+    descriptionKey,
+    descriptionFallback,
+    icon,
+  } of NEW_CHAT_COMMANDS) {
+    const normalizedPhraseAliases = phraseAliases.map((alias) => normalizeTextForMatch(alias));
+    const normalizedBareAliases = bareAliases.map((alias) => normalizeTextForMatch(alias));
+    const exactPhraseMatch = normalizedPhraseAliases.includes(normalizedQuery);
+    const exactBareMatch = !exactPhraseMatch && normalizedBareAliases.includes(normalizedQuery);
+    const partialMatch =
+      !exactPhraseMatch &&
+      !exactBareMatch &&
+      normalizedQuery.length >= 2 &&
+      [...normalizedPhraseAliases, ...normalizedBareAliases].some((alias) => alias.startsWith(normalizedQuery));
+    const score = exactPhraseMatch ? 600 : exactBareMatch ? 280 : partialMatch ? 250 : 0;
+    if (score <= 0) continue;
+    results.push({
+      id: `create-${mode === "conversation" ? "conversation" : mode}`,
+      action: { kind: "start-chat" as const, mode },
+      title: t(titleKey, titleFallback),
+      description: t(descriptionKey, descriptionFallback),
+      category: "chat" as const,
+      aliases: [...phraseAliases, ...bareAliases],
+      score,
+      kind: "action" as const,
+      icon,
+    });
+  }
+  return results;
 }
 
 export function buildOmnibarSlashResults({

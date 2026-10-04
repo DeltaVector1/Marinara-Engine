@@ -495,15 +495,13 @@ const unrelatedCreateCommands = searchOmnibar("new chat", {
 const newChatRows = buildOmnibarNewChatCommands({ query: "new chat", t: stubT });
 assert.deepEqual(
   newChatRows.map((row) => row.id),
-  ["create-conversation", "create-roleplay", "create-game"],
+  ["create-conversation"],
+  "a phrase match returns only the matching row (A1/A4), not the other two modes",
 );
 const conversationRow = newChatRows.find((row) => row.id === "create-conversation")!;
 assert.equal(conversationRow.title, "New conversation");
 assert.equal(conversationRow.action?.kind, "start-chat");
 assert.deepEqual(conversationRow.action, { kind: "start-chat", mode: "conversation" });
-// "New conversation" ranks first among the three, and above any create-*
-// unrelated command (character/persona/lorebook/preset/connection/agent).
-assert.ok(newChatRows.every((row) => (row.id === "create-conversation" ? true : row.score < conversationRow.score)));
 assert.ok(unrelatedCreateCommands.every((command) => command.score < conversationRow.score));
 
 const newRpRow = buildOmnibarNewChatCommands({ query: "new rp", t: stubT }).find(
@@ -512,17 +510,65 @@ const newRpRow = buildOmnibarNewChatCommands({ query: "new rp", t: stubT }).find
 const newRoleplayRow = buildOmnibarNewChatCommands({ query: "new roleplay", t: stubT }).find(
   (row) => row.id === "create-roleplay",
 )!;
-const roleplayBaseline = buildOmnibarNewChatCommands({ query: "", t: stubT }).find(
+const bareRoleplayRow = buildOmnibarNewChatCommands({ query: "roleplay", t: stubT }).find(
   (row) => row.id === "create-roleplay",
 )!;
-assert.ok(newRpRow.score > roleplayBaseline.score);
-assert.ok(newRoleplayRow.score > roleplayBaseline.score);
+assert.ok(newRpRow.score > bareRoleplayRow.score, "a deliberate phrase outranks the bare word (A4)");
+assert.ok(newRoleplayRow.score > bareRoleplayRow.score);
+assert.ok(bareRoleplayRow.score <= 290, "a bare-word exact match never outranks an exact entity name (A4)");
 
 const newGameRow = buildOmnibarNewChatCommands({ query: "new game", t: stubT }).find(
   (row) => row.id === "create-game",
 )!;
-const gameBaseline = buildOmnibarNewChatCommands({ query: "", t: stubT }).find((row) => row.id === "create-game")!;
-assert.ok(newGameRow.score > gameBaseline.score);
+const bareGameRow = buildOmnibarNewChatCommands({ query: "game", t: stubT }).find((row) => row.id === "create-game")!;
+assert.ok(newGameRow.score > bareGameRow.score);
+assert.ok(bareGameRow.score <= 290);
+
+// A1 (high): these rows must never show for every query — only on a real match — or they drown
+// out the typo-fallback for every search (filterOmnibarFuzzyFallback treats any score>=100,
+// matchKind-less row as a literal hit and drops every fuzzy row behind it).
+assert.deepEqual(buildOmnibarNewChatCommands({ query: "zzzz", t: stubT }), [], "no rows on a query that matches nothing");
+const lunaFuzzySearch = searchOmnibar("lna", {
+  commands: [],
+  chats: [],
+  resources: [{ id: "luna", kind: "character", name: "Luna" }],
+  connections: [],
+});
+const lunaFuzzyResult = lunaFuzzySearch.find((result) => result.id === "character:luna")!;
+assert.equal(lunaFuzzyResult?.matchKind, "fuzzy", "sanity: the typo still resolves to a fuzzy character match");
+assert.ok(
+  filterOmnibarFuzzyFallback([...buildOmnibarNewChatCommands({ query: "lna", t: stubT }), lunaFuzzyResult]).some(
+    (result) => result.id === "character:luna",
+  ),
+  "the new-chat rows no longer suppress a typo's fuzzy fallback (A1)",
+);
+
+// A4 (medium): a substring/bare-word alias must never outrank a real entity with that name —
+// "harp" must not fuzzy-match "rp" as a substring, and "game" must not beat a character named "Game".
+const harperResults = filterOmnibarFuzzyFallback([
+  ...buildOmnibarNewChatCommands({ query: "harp", t: stubT }),
+  ...searchOmnibar("harp", {
+    commands: [],
+    chats: [],
+    resources: [{ id: "harper", kind: "character", name: "Harper" }],
+    connections: [],
+  }),
+]).sort((a, b) => b.score - a.score);
+assert.equal(harperResults[0]?.id, "character:harper", "\"harp\" ranks the character Harper above New roleplay (A4)");
+const gameCharacterResults = filterOmnibarFuzzyFallback([
+  ...buildOmnibarNewChatCommands({ query: "game", t: stubT }),
+  ...searchOmnibar("game", {
+    commands: [],
+    chats: [],
+    resources: [{ id: "game-char", kind: "character", name: "Game" }],
+    connections: [],
+  }),
+]).sort((a, b) => b.score - a.score);
+assert.equal(
+  gameCharacterResults[0]?.id,
+  "character:game-char",
+  "\"game\" ranks a character literally named \"Game\" above New game (A4)",
+);
 
 const naturalRequestResults = searchOmnibar("make Luna warmer", {
   commands: [],
@@ -2585,9 +2631,12 @@ assert.ok(!("mariDetailId" in mariSession));
   const empty = buildMariArrival(chatContext, chatData({ messageCount: 0, lastReply: null, lorebooks: [] }))!;
   assert.ok(empty.cards.length >= 2 && empty.cards.length <= 4, "an empty chat still gets 2-4 cards");
 
-  // N6 (R22): the arrival may say a reply failed, but the error text reaches Mari only through a
-  // deliberate Fix pick. The omnibar hands her `mariFallbackFocus` when nothing was picked, and
-  // attaches the error only when the focus is the Fix row (GlobalOmnibar `buildAskContext`).
+  // N6/A5 (R22): the arrival may say a reply failed, but the error text reaches Mari only through
+  // a deliberate Fix pick (an explicit `fix` flag at the GlobalOmnibar `buildAskContext` call site)
+  // — never merely because the fallback focus happens to land on the same id as the Fix row. A
+  // built-in agent's editor row and Fix row share an id ("agent:<type>"), so the old implicit
+  // "focus id equals Fix row id" signal dropped the agent resource from every non-Fix arrival too
+  // (A5); the fallback must keep the row as the resource while still not attaching the error.
   const liveError = {
     message: "SECRET-ERROR 401 invalid key",
     retry: { kind: "open-connection" as const, id: "conn-1" },
@@ -2600,33 +2649,52 @@ assert.ok(!("mariDetailId" in mariSession));
     { id: "connection:conn-1", title: "Fix: Generate reply failed", category: "connection" as const },
     { id: "chat:chat-1", title: "Neon Harbor", category: "chat" as const },
   ];
-  const askPayload = (message: string, focus: (typeof arrivalRows)[number] | null) =>
+  const askPayload = (message: string, focus: (typeof arrivalRows)[number] | null, fix: boolean) =>
     buildProfessorMariCommandCenterContext(message, focus, [], focus?.id, {
       activeChat: { id: "chat-1", label: "Neon Harbor", mode: "roleplay" },
-      error: focus?.id === fixRowId ? { message: liveError.message } : undefined,
-      source: focus?.id === fixRowId ? "chat-error" : undefined,
+      error: fix ? { message: liveError.message } : undefined,
+      source: fix ? "chat-error" : undefined,
     });
-  const arrivalFocus = mariFallbackFocus(arrivalRows, fixRowId, "chat:chat-1");
-  assert.equal(arrivalFocus, null, "an arrival with a live error never falls back to the Fix row");
+  const arrivalFocus = mariFallbackFocus(arrivalRows, "chat:chat-1");
   assert.equal(
-    mariFallbackFocus(arrivalRows, fixRowId),
-    null,
-    "nor does any other unpicked door (Ask Mari row, aside)",
+    arrivalFocus?.id,
+    "connection:conn-1",
+    "an arrival fallback keeps the Fix row's resource even though picking it was never deliberate",
   );
   assert.equal(
-    mariFallbackFocus(arrivalRows.slice(1), fixRowId)?.id,
+    mariFallbackFocus(arrivalRows)?.id,
+    "connection:conn-1",
+    "nor does any other unpicked door (Ask Mari row, aside) drop the resource",
+  );
+  assert.equal(
+    mariFallbackFocus(arrivalRows.slice(1))?.id,
     "chat:chat-1",
     "without a Fix row the first row stays",
   );
-  const typedAfterArrival = askPayload("how do I add a lorebook?", arrivalFocus);
+  const typedAfterArrival = askPayload("how do I add a lorebook?", arrivalFocus, false);
   assert.ok(
     !JSON.stringify(typedAfterArrival).includes("SECRET-ERROR"),
-    "an unrelated typed question carries no error text",
+    "an unrelated typed question carries no error text even though it keeps the Fix row as its resource",
   );
   assert.equal(typedAfterArrival.source, "command-center");
-  const pickedFix = askPayload("", arrivalRows[0]!);
+  assert.equal(typedAfterArrival.resource?.id, "conn-1", "the resource still reaches Mari");
+  const pickedFix = askPayload("", arrivalRows[0]!, true);
   assert.equal(pickedFix.source, "chat-error", "a deliberate Fix pick opens through the chat-error door");
   assert.equal(pickedFix.error?.message, liveError.message, "and only then carries the error text");
+
+  // A5: the exact built-in-agent scenario — the editor row and the Fix row share one id.
+  const agentArrivalRows = [{ id: "agent:illustrator", title: "Illustrator", category: "agent" as const }];
+  const agentFallbackFocus = mariFallbackFocus(agentArrivalRows);
+  assert.equal(agentFallbackFocus?.id, "agent:illustrator", "the agent resource survives a shared-id fallback");
+  const agentArrivalPayload = buildProfessorMariCommandCenterContext(
+    "What do its settings do?",
+    agentFallbackFocus,
+    [],
+    agentFallbackFocus?.id,
+  );
+  assert.equal(agentArrivalPayload.resource?.kind, "agent", "resource is the agent");
+  assert.equal(agentArrivalPayload.error, undefined, "no error field");
+  assert.notEqual(agentArrivalPayload.source, "chat-error", "source is not chat-error without a deliberate fix pick");
   assert.equal(
     failed.cards.find((card) => card.id === "arrival:fix-reply")?.fix,
     true,

@@ -26,16 +26,18 @@ export function mariFixRowId(
 }
 
 /**
- * N6 (R22): the row Mari is handed when nothing was picked. Never the Fix row, whose error text goes
- * to her only on a deliberate pick; on an arrival, never the open chat either (it is its own facet).
+ * N6 (R22): the row Mari is handed when nothing was picked. It may be the same row the Fix door
+ * points at (a built-in agent's editor row shares its id with its Fix row) — that's fine, the row
+ * still carries the right resource; only a deliberate pick of the Fix row attaches the error text
+ * (see `buildAskContext`'s explicit `fix` flag at the call site). On an arrival, never the open
+ * chat either (it is its own facet).
  */
 export function mariFallbackFocus<Row extends { id: string }>(
   rows: readonly Row[],
-  fixRowId: string | null,
   arrivalChatRowId?: string | null,
 ): Row | null {
   const first = rows[0] ?? null;
-  return first && (first.id === fixRowId || first.id === arrivalChatRowId) ? null : first;
+  return first && first.id === arrivalChatRowId ? null : first;
 }
 
 /**

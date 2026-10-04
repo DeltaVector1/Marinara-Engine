@@ -1824,6 +1824,7 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 }
 
 .mari-send-failed__text {
+  position: relative;
   display: -webkit-box;
   min-width: 0;
   overflow: hidden;
@@ -1832,11 +1833,23 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   -webkit-line-clamp: 2;
 }
 
+@media (pointer: coarse) {
+  .mari-send-failed__text::after {
+    position: absolute;
+    inset: -0.45rem -0.125rem;
+    content: "";
+  }
+}
+
 .mari-send-failed .mari-link {
   flex: none;
   color: var(--foreground);
   text-decoration: underline 1px var(--mari-hairline);
   text-underline-offset: 3px;
+}
+
+[data-chat-mode] .mari-send-failed .mari-link {
+  color: var(--marinara-chat-chrome-text);
 }
 
 @media (width < 40rem) {

@@ -6559,7 +6559,7 @@
   "ui.chat.marisuggestionchips.acceptAuthorization": "Accept",
   "ui.chat.marisuggestionchips.actsNow": "Opens now",
   "ui.chat.marisuggestionchips.asksMari": "Asks Mari",
-  "ui.chat.marisuggestionchips.asksMariHint": "Asks Mari now. Shift-click or long-press to edit first.",
+  "ui.chat.marisuggestionchips.asksMariHint": "Asks Mari now. Shift-click, Shift+Enter or long-press to edit first.",
   "ui.chat.marisuggestionchips.nextSteps": "Next steps",
   "ui.chat.marisuggestionchips.suggestedReplies": "Suggested replies",
   "ui.chat.memoryrecallmemoriesmodal.chooseAMemoryRecallExportFile": "Choose a Memory Recall export file.",

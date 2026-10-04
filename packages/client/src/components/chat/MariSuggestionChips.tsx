@@ -358,6 +358,7 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
             }}
             disabled={disabled}
             title={chip.action ? kindLabel : localizeUi("ui.chat.marisuggestionchips.asksMariHint")}
+            aria-describedby={chip.action ? undefined : `${chip.id}-hint`}
           >
             <span className="mari-next-card__icon" aria-hidden="true">
               <Icon size="0.875rem" />
@@ -372,6 +373,11 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
               )}
               <span className="mari-next-card__kind-text">{kindLabel}</span>
             </span>
+            {chip.action ? null : (
+              <span id={`${chip.id}-hint`} className="sr-only">
+                {localizeUi("ui.chat.marisuggestionchips.asksMariHint")}
+              </span>
+            )}
           </button>
         );
       })}
