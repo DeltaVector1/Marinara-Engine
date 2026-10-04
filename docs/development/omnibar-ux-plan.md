@@ -83,11 +83,16 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 45  | Mari cards send at once; arrival errors stay strict (N4, N6)    | designer         | Done                 | f94dc3773 |
 | 45b | Mari looks down on the pull (N7)                                | designer         | Done                 | 9b4b1b4fe |
 | 46  | Review of slices 42-45 (N5)                                     | reviewer         | Done                 | 7502e5429 |
+| 47  | Value table: 15 tasks, steps with and without the omnibar (O1)  | reviewer         | Pending              |           |
+| 48  | It learns your habits: local frecency ranking (O2)              | worker           | Pending              |           |
+| 49  | It understands your words: setting and command synonyms (O3)    | worker           | Pending              |           |
+| 50  | Fix or remove what the value table shows is not faster (O4)     | worker           | Pending              |           |
+| 51  | Review of 47-50 and a short fresh-eyes pass (O5)                | reviewer         | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Slices 30-41 (section M) are Done. Remaining order: 42-46 (section N). Stop after 46.
+slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Slices 30-41 (section M) are Done. Slices 42-46 (section N) are Done. Remaining order: 47-51 (section O). Stop after 51.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
@@ -1012,3 +1017,32 @@ rule apply. Find the real code paths first; reuse what exists.
 - N5 Review of 42-45 (reviewer read-only findings, then a worker fixes the confirmed ones). Plan-mode reviewer
   children end on ExitPlanMode: the orchestrator must check `list_pending_permissions` and answer it.
 - Item 6 (D1 with a real model) is the maintainer's own manual test after the next deploy; nothing to build.
+
+### O. Round 6: make the added value measurable and larger (slices 47-51) — maintainer decision 2026-10-04
+
+Question from the maintainer: what is the omnibar's real added value compared with having no omnibar? Answer: it
+is worth it only where it is faster or easier than the normal app. This round measures that and grows the parts a
+normal menu cannot do. North star applies. Nothing leaves the device (no telemetry).
+
+- O1 Value table (slice 47, reviewer on the real app, no code). Pick 15 common tasks across the jobs in the
+  strategy report (reopen last chat, find a message in another chat, change model in this chat, attach a
+  lorebook, flip a deep setting, find a lorebook entry, start a new roleplay, fix a failed reply, ask how X works,
+  open a character, change persona, peek prompt, search docs, switch theme, open an agent's settings). For each,
+  count steps (clicks/keys/scrolls) and note "must know where it lives" WITHOUT the omnibar and WITH it, at 1440
+  and 390, on a seeded instance. Write `docs/development/omnibar-value-table.md` (task, steps without, steps with,
+  winner, note, screenshots in .tmp/omnibar-ux/round6/slice-47/). List every task where the omnibar is not
+  clearly faster (≥2 steps fewer or no "know where" needed) as an O4 item with a concrete fix or a removal.
+- O2 Local frecency (slice 48). Count which omnibar results the user runs (result id + surface + timestamp) in
+  localStorage, capped (e.g. 300 entries, decay by age). Blend a frecency boost into ranking (never above an exact
+  name match; never moves Mari's row). Empty-state on a surface: the top 3-5 rows are the user's most frecent
+  actions on that surface (chat, editor, Home), then recents. A "Clear search history" control in the omnibar
+  settings. Proof: regression asserts on the score function (recency decay, cap, exact-match wins), e2e that a
+  used row rises.
+- O3 Synonyms (slice 49). Add a small `keywords` array to settings-registry controls and to command definitions
+  (plain data), e.g. "bigger text / font size / zoom", "dark / night", "streaming / typing effect", "nsfw /
+  content filter", "tokens / context length". Search matches keywords with a lower weight than the label. Cover
+  the 40 most-used settings and all commands. Proof: regression asserts for 20 phrase → result pairs.
+- O4 Fix or remove (slice 50): the O1 items. Removal beats a new feature. Update the inventory and CHANGELOG.
+- O5 Review (slice 51): reviewer read-only findings + a 5-task fresh-eyes check on the value table's weakest
+  tasks, then a worker fixes the confirmed ones. Plan-mode children end on ExitPlanMode: answer it via
+  list_pending_permissions.
