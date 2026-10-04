@@ -30,7 +30,7 @@ import {
   resolveSelfCardAssets,
   type ChatGalleryIndex,
 } from "../../lib/card-asset-links";
-import { useChatGalleryFilenameIndex } from "../../hooks/use-characters";
+import { useCharacterSummaries, useChatGalleryFilenameIndex } from "../../hooks/use-characters";
 import { useReducedAmbientEffects } from "../../hooks/use-reduced-ambient-effects";
 import { PendingTypingDots } from "./PendingTypingDots";
 import { ChatImagePreview } from "./ChatImagePreview";
@@ -96,7 +96,11 @@ import { api } from "../../lib/api-client";
 import { applyTextareaQuoteFormat } from "../../lib/textarea-quotes";
 import { ttsService } from "../../lib/tts-service";
 import { useTTSConfig } from "../../hooks/use-tts";
-import { buildTTSVoiceRequests, normalizeTTSCharacterName, withTTSVoiceRequestCacheKeys } from "../../lib/tts-dialogue";
+import {
+  buildTTSVoiceRequests,
+  findTTSCharacterIdBySpeakerName,
+  withTTSVoiceRequestCacheKeys,
+} from "../../lib/tts-dialogue";
 import { DIALOGUE_QUOTE_PATTERN_SOURCE, HTML_SAFE_DIALOGUE_QUOTE_PATTERN_SOURCE } from "../../lib/dialogue-quotes";
 import { resolveMessageRewriteVersions } from "../../lib/message-rewrite-versions";
 import { convertChatHtmlNewlines } from "../../lib/chat-html-newlines";
@@ -887,6 +891,29 @@ const EditTextarea = memo(function EditTextarea({
     }
   }, [autoResize]);
 
+  // An iPhone keyboard shrinks the transcript but not 60dvh. Keep the editor
+  // and its Save row within the part between the top controls and the
+  // composer, so scrolling inside it can always bring its last line into view.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const transcript = el?.closest<HTMLElement>("[data-chat-scroll]");
+    if (!el || !transcript) return;
+    const fit = () => {
+      const style = getComputedStyle(transcript);
+      const covered =
+        (Number.parseFloat(style.scrollPaddingTop) || 0) +
+        (Number.parseFloat(style.getPropertyValue("--mari-roleplay-content-padding-bottom")) || 0) +
+        (el.nextElementSibling?.getBoundingClientRect().height ?? 0);
+      el.style.setProperty("--mari-message-editor-fit-height", `${Math.max(96, transcript.clientHeight - covered)}px`);
+    };
+    fit();
+    // ponytail: re-measures only when the transcript resizes, so a composer that
+    // grows mid-edit keeps the older limit until then. Observe the composer too if that matters.
+    const observer = new ResizeObserver(fit);
+    observer.observe(transcript);
+    return () => observer.disconnect();
+  }, []);
+
   const handleSave = useCallback(() => {
     if (ref.current) void onSave(formatTextQuotes(ref.current.value, quoteFormat));
   }, [onSave, quoteFormat]);
@@ -910,7 +937,7 @@ const EditTextarea = memo(function EditTextarea({
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSave();
           if (e.key === "Escape") onCancel();
         }}
-        className="relative z-0 w-full resize-none overflow-y-auto overscroll-contain rounded-lg bg-black/30 px-3 py-2 text-white outline-none ring-1 ring-white/20 focus:ring-blue-400/50 max-md:max-h-[min(60dvh,32rem)]"
+        className="relative z-0 w-full resize-none overflow-y-auto overscroll-contain rounded-lg bg-black/30 px-3 py-2 text-white outline-none ring-1 ring-white/20 focus:ring-blue-400/50 max-md:max-h-[min(60dvh,32rem,var(--mari-message-editor-fit-height,100dvh))]"
         style={{ fontSize, lineHeight: 1.5 }}
       />
       <div className="pointer-events-auto relative z-30 flex items-center justify-end gap-1.5">
@@ -2061,15 +2088,9 @@ export const ChatMessage = memo(function ChatMessage({
       : message.characterId
         ? characterMap?.get(message.characterId)?.name
         : undefined;
+  // Same lookup as autoplay in ChatArea, so replaying a message uses the voice it autoplayed with.
   const resolveTTSCharacterId = useCallback(
-    (speaker?: string | null) => {
-      const normalizedSpeaker = normalizeTTSCharacterName(speaker);
-      if (!normalizedSpeaker || !characterMap) return null;
-      for (const [characterId, character] of characterMap) {
-        if (normalizeTTSCharacterName(character.name) === normalizedSpeaker) return characterId;
-      }
-      return null;
-    },
+    (speaker?: string | null) => (characterMap ? findTTSCharacterIdBySpeakerName(speaker, characterMap) : null),
     [characterMap],
   );
   const ttsVoiceRequests = useMemo(() => {
@@ -2481,8 +2502,11 @@ export const ChatMessage = memo(function ChatMessage({
         if (editor) {
           editor.scrollTop = 0;
           // The action row can be far below a long message's first line.
-          // Align only the transcript, never scroll the mobile app shell.
-          el.scrollTop += editor.getBoundingClientRect().top - el.getBoundingClientRect().top - 8;
+          // Align only the transcript, never scroll the mobile app shell, and
+          // start below the floating top controls (its scroll padding) so the
+          // first line is not under them.
+          const topInset = Number.parseFloat(getComputedStyle(el).scrollPaddingTop) || 8;
+          el.scrollTop += editor.getBoundingClientRect().top - el.getBoundingClientRect().top - topInset;
         }
       }
       scrollRestoreRef.current = null;
@@ -2796,9 +2820,21 @@ export const ChatMessage = memo(function ChatMessage({
   }, [personaInfo?.dialogueColor, personaInfo?.name, scopedCharacterMap]);
 
   // Merged group chat: cycling avatars + cycling name color
+  // References affect only this reply's avatars, never the group roster or speakers.
+  const referencedAvatarIds = useMemo(() => {
+    if (!isRoleplay || !isMergedGroup || !Array.isArray(extra.referencedCharacterIds)) return [];
+    return Array.from(
+      new Set<string>(
+        (extra.referencedCharacterIds as unknown[]).filter(
+          (id): id is string => typeof id === "string" && /^[A-Za-z0-9_-]{21}$/.test(id),
+        ),
+      ),
+    ).filter((id) => !chatCharacterIds?.includes(id));
+  }, [isRoleplay, isMergedGroup, extra.referencedCharacterIds, chatCharacterIds]);
+  const { data: referencedAvatarCharacters } = useCharacterSummaries(referencedAvatarIds);
   const mergedCharacterIds = useMemo(
-    () => mergedGroupCharacterIds ?? chatCharacterIds ?? [],
-    [chatCharacterIds, mergedGroupCharacterIds],
+    () => [...(mergedGroupCharacterIds ?? chatCharacterIds ?? []), ...referencedAvatarIds],
+    [chatCharacterIds, mergedGroupCharacterIds, referencedAvatarIds],
   );
   const mergedCycleKey = JSON.stringify(mergedCharacterIds);
   const reduceAmbientEffects = useReducedAmbientEffects();
@@ -2816,13 +2852,16 @@ export const ChatMessage = memo(function ChatMessage({
     return mergedCharacterIds
       .map((id, index) => {
         const info = characterMap.get(id);
+        // Query placeholder data may belong to the previous swipe; only the
+        // current mergedCharacterIds may contribute an avatar.
+        const reference = referencedAvatarCharacters?.find((character) => character.id === id);
         const expressionUrl = expressionAvatarResolver?.(message, id) ?? null;
-        const url = expressionUrl ?? info?.avatarUrl;
+        const url = expressionUrl ?? info?.avatarUrl ?? reference?.avatarUrl;
         if (!url) return null;
         return {
           id,
           url,
-          crop: expressionUrl ? null : info?.avatarCrop,
+          crop: expressionUrl ? null : (info?.avatarCrop ?? normalizeAvatarCrop(reference?.avatarCrop)),
           nameColor: info?.nameColor || fallbackPalette[index % fallbackPalette.length]!,
         };
       })
@@ -2832,7 +2871,7 @@ export const ChatMessage = memo(function ChatMessage({
       crop?: AvatarCrop | null;
       nameColor: string;
     }[];
-  }, [isMergedGroup, characterMap, mergedCharacterIds, expressionAvatarResolver, message]);
+  }, [isMergedGroup, characterMap, mergedCharacterIds, expressionAvatarResolver, message, referencedAvatarCharacters]);
   const mergedNameColors = useMemo(() => mergedAvatars.map((avatar) => avatar.nameColor), [mergedAvatars]);
   // Cycle index for merged group avatars/names — driven by a ref + 2s setInterval to avoid re-renders
   const cycleIndexRef = useRef(0);

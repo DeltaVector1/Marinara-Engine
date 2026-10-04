@@ -563,11 +563,11 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
 
   return (
     <>
-      {/* iOS safe area spacer — pushes TopBar below status bar and fills that gap with topbar bg */}
+      {/* iOS safe area spacer — pushes TopBar below status bar on the opaque page backing; part of the pull area. */}
       <div
         {...pull.handlers}
         className={cn(
-          "flex-shrink-0 md:hidden h-[env(safe-area-inset-top)] bg-[var(--marinara-topbar-surface)] backdrop-blur-sm",
+          "flex-shrink-0 md:hidden h-[env(safe-area-inset-top)] bg-[var(--marinara-page-backing,var(--background))]",
           mobileTopbarNavigation && "touch-none",
         )}
       />

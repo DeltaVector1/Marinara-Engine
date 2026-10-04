@@ -810,6 +810,7 @@ export function AgentEditor() {
   const [localSourceLorebookIds, setLocalSourceLorebookIds] = useState<string[]>([]);
   const [localUseChatActiveLorebooks, setLocalUseChatActiveLorebooks] = useState(false);
   const [localTriggerLorebooksForAgentCalls, setLocalTriggerLorebooksForAgentCalls] = useState(false);
+  const [localBatchWithOtherAgents, setLocalBatchWithOtherAgents] = useState(true);
   const [localSourceFileIds, setLocalSourceFileIds] = useState<string[]>([]);
   const [localAutoGenerateAvatars, setLocalAutoGenerateAvatars] = useState(false);
   const [localUseAvatarReferences, setLocalUseAvatarReferences] = useState(false);
@@ -968,6 +969,7 @@ export function AgentEditor() {
         (settings.useChatActiveLorebooks as boolean | undefined) ?? defaultSettings.useChatActiveLorebooks === true,
       );
       setLocalTriggerLorebooksForAgentCalls(settings.triggerLorebooksForAgentCalls === true);
+      setLocalBatchWithOtherAgents(settings.batchWithOtherAgents !== false);
       setLocalSourceFileIds(normalizeStringArray(settings.sourceFileIds));
       setLocalAutoGenerateAvatars(settings.autoGenerateAvatars === true);
       setLocalUseAvatarReferences(
@@ -1044,6 +1046,7 @@ export function AgentEditor() {
       setLocalSourceLorebookIds([]);
       setLocalUseChatActiveLorebooks(defaultSettings.useChatActiveLorebooks === true);
       setLocalTriggerLorebooksForAgentCalls(false);
+      setLocalBatchWithOtherAgents(defaultSettings.batchWithOtherAgents !== false);
       setLocalSourceFileIds([]);
       setLocalAutoGenerateAvatars(false);
       setLocalUseAvatarReferences(defaultSettings.useAvatarReferences === true);
@@ -1111,6 +1114,7 @@ export function AgentEditor() {
       setLocalSourceLorebookIds([]);
       setLocalUseChatActiveLorebooks(false);
       setLocalTriggerLorebooksForAgentCalls(false);
+      setLocalBatchWithOtherAgents(true);
       setLocalSourceFileIds([]);
       setLocalAutoGenerateAvatars(false);
       setLocalUseAvatarReferences(false);
@@ -1200,6 +1204,22 @@ export function AgentEditor() {
   const isContinuityAgent = agentDetailId === "continuity" || dbConfig?.type === "continuity";
   // Immersive HTML agent — shares the rewrite reveal timing control.
   const isHtmlAgent = agentDetailId === "html" || dbConfig?.type === "html";
+  // The fixed rules of the server's shouldRunAgentIndividually: these agents never share a request.
+  // Built-in rewrite agents still join the combined editor request, so their switch always works.
+  const alwaysRunsAlone =
+    musicDjYoutubeMode ||
+    musicDjCustomMode ||
+    isIllustratorAgent ||
+    isLorebookKeeperAgent ||
+    agentDetailId === "beholder" ||
+    dbConfig?.type === "beholder" ||
+    (localContextSources.previousOutput && !isProseGuardianAgent && !isContinuityAgent && !isHtmlAgent) ||
+    ((isCustomAgent || isNewCustomAgent) &&
+      (localResultType === "text_rewrite" ||
+        localOutputOptions.jsonContextOutput ||
+        localTriggerLorebooksForAgentCalls ||
+        localCustomCapabilities.trigger_image_generation === true ||
+        localCustomCapabilities.access_vectors === true));
 
   // Detect when both knowledge agents are configured. Actual activation is
   // chat-scoped, but saving both with overlapping sources can still bloat the
@@ -1447,6 +1467,7 @@ export function AgentEditor() {
         ...(isEditingCustomAgent ? { customCapabilities } : {}),
         ...(isEditingCustomAgent ? { homeWidgets: localHomeWidgets } : {}),
         contextSources: localContextSources,
+        batchWithOtherAgents: localBatchWithOtherAgents,
         ...(isEditingCustomAgent ? { resultType: localResultType } : {}),
         ...(isEditingCustomAgent ? localOutputOptions : {}),
         ...(isEditingCustomAgent ? { triggerLorebooksForAgentCalls: localTriggerLorebooksForAgentCalls } : {}),
@@ -1609,6 +1630,7 @@ export function AgentEditor() {
     localSpotifyClientId,
     localUseChatActiveLorebooks,
     localTriggerLorebooksForAgentCalls,
+    localBatchWithOtherAgents,
     localSourceLorebookIds,
     localSourceFileIds,
     localAutoGenerateAvatars,
@@ -1693,6 +1715,7 @@ export function AgentEditor() {
       ...(isEditingCustomAgent ? { customCapabilities } : {}),
       ...(isEditingCustomAgent ? { homeWidgets: localHomeWidgets } : {}),
       contextSources: localContextSources,
+      batchWithOtherAgents: localBatchWithOtherAgents,
       ...(isEditingCustomAgent ? { resultType: localResultType } : {}),
       ...(isEditingCustomAgent ? localOutputOptions : {}),
       ...(isEditingCustomAgent ? { triggerLorebooksForAgentCalls: localTriggerLorebooksForAgentCalls } : {}),
@@ -2666,6 +2689,21 @@ export function AgentEditor() {
                 ? localizeUi("ui.agents.agenteditor.usesTheBuiltInLocalModelFromTheConnections")
                 : localizeUi("ui.agents.agenteditor.whenEmptyUsesTheAgentDefaultConnectionIfOne")}
             </p>
+            {/* ponytail: alwaysRunsAlone copies the server's fixed rules and misses agents that run alone only
+                because of the chat's tools or music source. Upgrade: move the rules into shared for both sides. */}
+            <EditorSwitchRow
+              className="mt-3"
+              label={localizeUi("agents.batching.label")}
+              description={
+                alwaysRunsAlone ? localizeUi("agents.batching.alwaysAlone") : localizeUi("agents.batching.description")
+              }
+              checked={localBatchWithOtherAgents && !alwaysRunsAlone}
+              disabled={alwaysRunsAlone}
+              onChange={(checked) => {
+                setLocalBatchWithOtherAgents(checked);
+                markDirty();
+              }}
+            />
           </FieldGroup>
 
           {/* ── Image Generation Connection ── */}

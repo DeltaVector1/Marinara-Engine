@@ -29,6 +29,11 @@ export type ChatMode = "conversation" | "roleplay" | "game";
 /** How a multi-character (group) chat is handled. */
 export type GroupChatMode = "merged" | "individual";
 
+/** The one reading of a stored group mode: anything but "individual" is the default Merged mode. */
+export function normalizeGroupChatMode(value: unknown): GroupChatMode {
+  return value === "individual" ? "individual" : "merged";
+}
+
 /** How individual-mode group chats decide response order. */
 export type GroupResponseOrder = "sequential" | "smart" | "manual";
 
@@ -910,6 +915,8 @@ export interface MessageExtra {
   mariDeferredMutations?: boolean | null;
   /** Per-swipe sprite expressions from the Expression Engine agent */
   spriteExpressions?: Record<string, string> | null;
+  /** Presentation-only ID-macro card references for merged Roleplay narrator avatars; never chat members. */
+  referencedCharacterIds?: string[];
   /** All sprite owners in the completed expression result, including the persona. Empty means none. */
   expressionSpriteIds?: string[];
   /** Per-swipe CYOA choices from the CYOA Choices agent */

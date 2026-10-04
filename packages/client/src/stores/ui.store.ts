@@ -2560,7 +2560,7 @@ export const useUIStore = create<UIState>()(
             connectionDetailId: null,
             agentDetailId: null,
             toolDetailId: null,
-            ...(window.innerWidth < 768 && { rightPanelOpen: false }),
+            ...(isMobileShellViewport() && { rightPanelOpen: false }),
           }),
         closeBotBrowser: () => set({ botBrowserOpen: false }),
         openGameAssetsBrowser: () =>
@@ -2580,7 +2580,7 @@ export const useUIStore = create<UIState>()(
             connectionDetailId: null,
             agentDetailId: null,
             toolDetailId: null,
-            ...(window.innerWidth < 768 && { rightPanelOpen: false }),
+            ...(isMobileShellViewport() && { rightPanelOpen: false }),
           }),
         closeGameAssetsBrowser: () => set({ gameAssetsBrowserOpen: false }),
         openNoodle: () =>
@@ -2601,7 +2601,7 @@ export const useUIStore = create<UIState>()(
             agentDetailId: null,
             toolDetailId: null,
             editorDirty: false,
-            ...(window.innerWidth < 768 && { rightPanelOpen: false }),
+            ...(isMobileShellViewport() && { rightPanelOpen: false }),
           }),
         closeNoodle: () => set({ noodleOpen: false }),
         setNoodleSelectedPersonaId: (id) => set({ noodleSelectedPersonaId: id }),
@@ -2649,7 +2649,7 @@ export const useUIStore = create<UIState>()(
         requestChatModeShortcut: (mode) =>
           set((state) => ({
             sidebarOpen: true,
-            rightPanelOpen: window.innerWidth < 768 ? false : state.rightPanelOpen,
+            rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
