@@ -81,7 +81,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 43  | Omnibar commands to start a new chat of each mode (N2)          | worker           | Done                 | ac50dc7cd |
 | 44  | Toasts move to the bottom while the omnibar is open (N3)        | worker           | Done                 | bf13aa38e |
 | 45  | Mari cards send at once; arrival errors stay strict (N4, N6)    | designer         | Done                 | f94dc3773 |
-| 45b | Mari looks down on the pull (N7)                                | designer         | Pending              |           |
+| 45b | Mari looks down on the pull (N7)                                | designer         | Done                 | 9b4b1b4fe |
 | 46  | Review of slices 42-45 (N5)                                     | reviewer         | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
