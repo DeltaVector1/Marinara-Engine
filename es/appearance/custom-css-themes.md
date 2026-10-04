@@ -127,7 +127,7 @@ Las clases, los atributos de datos y las variables siguientes permiten dar estil
 | Barra de título | `.mari-window__header` |
 | Título y su icono | `.mari-window__title-row` |
 | Título | `.mari-window__title` |
-| Botones de la barra de título (Reset View, estrella de diseño favorito, Tracker Panel, minimizar, fijar, bloquear, cerrar, Put back) | `.mari-window__controls` (cada botón es `.mari-window__control`) |
+| Botones de la barra de título (Reset View, estrella de diseño favorito, Tracker Panel, fijar, bloquear, cerrar, Put back) | `.mari-window__controls` (cada botón es `.mari-window__control`) |
 | Contenido de la ventana | `.mari-window__body` |
 | Bordes y esquinas para redimensionar | `.mari-window__resize-handle` |
 | Marca de esquina visible al tener el puntero o el foco en una ventana | `.mari-window__resize-grip` |
@@ -148,7 +148,7 @@ Las clases, los atributos de datos y las variables siguientes permiten dar estil
 - `data-drawer` identifica una sección, por ejemplo `chat-name`. Algunos nombres empiezan con el modo del chat, como `roleplay-agents` o `conversation-agents`. Los trackers usan `tracker-world`, `tracker-persona`, `tracker-characters`, `tracker-quests`, `tracker-inventory`, `tracker-custom` y `agent-activity`.
 - `data-presentation` es `"window"` en una ventana de computadora o `"sheet"` en un panel de teléfono.
 - `data-pinned` y `data-locked` valen `"true"` mientras la ventana está fijada o bloqueada.
-- `data-window-control` identifica cada botón de la barra de título: `"minimize"`, `"pin"`, `"lock"`, `"close"` o `"put-back"`. Un botón de fijar o bloquear pulsado también tiene `aria-pressed="true"`.
+- `data-window-control` identifica cada botón de la barra de título: `"pin"`, `"lock"`, `"close"` o `"put-back"`. Un botón de fijar o bloquear pulsado también tiene `aria-pressed="true"`.
 - `data-chat-settings-control` identifica los botones adicionales de la barra de título de Chat Settings: `"reset-view"`, `"favorite-layout"` y `"tracker-panel"`. La estrella favorita tiene `aria-pressed="true"` y un icono relleno cuando el diseño actual coincide con el favorito guardado.
 - `data-edge` vale `"n"`, `"s"`, `"e"`, `"w"`, `"ne"`, `"nw"`, `"se"` o `"sw"` en cada tirador de redimensionado.
 - El botón de una sección abierta dentro de `.mari-drawer__header` tiene `aria-expanded="true"`.

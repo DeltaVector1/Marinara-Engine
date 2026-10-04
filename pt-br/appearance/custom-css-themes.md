@@ -127,7 +127,7 @@ As classes, os atributos de dados e as variáveis abaixo permitem estilizar essa
 | Barra de título | `.mari-window__header` |
 | Título e seu ícone | `.mari-window__title-row` |
 | Título | `.mari-window__title` |
-| Botões da barra de título (Reset View, estrela de layout favorito, Tracker Panel, minimizar, fixar, travar, fechar, Put back) | `.mari-window__controls` (cada botão é `.mari-window__control`) |
+| Botões da barra de título (Reset View, estrela de layout favorito, Tracker Panel, fixar, travar, fechar, Put back) | `.mari-window__controls` (cada botão é `.mari-window__control`) |
 | Conteúdo da janela | `.mari-window__body` |
 | Bordas e cantos de redimensionamento | `.mari-window__resize-handle` |
 | Marca no canto exibida quando o ponteiro ou o foco está na janela | `.mari-window__resize-grip` |
@@ -148,7 +148,7 @@ As classes, os atributos de dados e as variáveis abaixo permitem estilizar essa
 - `data-drawer` identifica uma gaveta, por exemplo `chat-name`. Alguns nomes começam com o modo do chat, como `roleplay-agents` ou `conversation-agents`. Os trackers usam `tracker-world`, `tracker-persona`, `tracker-characters`, `tracker-quests`, `tracker-inventory`, `tracker-custom` e `agent-activity`.
 - `data-presentation` vale `"window"` em uma janela de computador ou `"sheet"` em um painel de celular.
 - `data-pinned` e `data-locked` valem `"true"` enquanto a janela está fixada ou travada.
-- `data-window-control` identifica cada botão da barra de título: `"minimize"`, `"pin"`, `"lock"`, `"close"` ou `"put-back"`. Um botão de fixar ou travar ativado também tem `aria-pressed="true"`.
+- `data-window-control` identifica cada botão da barra de título: `"pin"`, `"lock"`, `"close"` ou `"put-back"`. Um botão de fixar ou travar ativado também tem `aria-pressed="true"`.
 - `data-chat-settings-control` identifica os botões extras da barra de título de Chat Settings: `"reset-view"`, `"favorite-layout"` e `"tracker-panel"`. A estrela favorita tem `aria-pressed="true"` e um ícone preenchido quando o layout atual corresponde ao favorito salvo.
 - `data-edge` vale `"n"`, `"s"`, `"e"`, `"w"`, `"ne"`, `"nw"`, `"se"` ou `"sw"` em cada alça de redimensionamento.
 - O botão de uma gaveta aberta dentro de `.mari-drawer__header` tem `aria-expanded="true"`.

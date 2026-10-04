@@ -59,7 +59,7 @@ Cuando Tracker Panel no se muestra, los trackers de computadora usan la [ventana
 
 Para tener una sección a mano, pulsa **Pop out** (el cuadro con una flecha junto a su **?**). La sección obtiene su propia ventana y desaparece de Chat Settings hasta que la devuelvas.
 
-En una computadora, también puedes arrastrar el título de la sección fuera de Chat Settings. La nueva ventana empieza fijada y permanece abierta mientras usas el chat. Puedes moverla, cambiar su tamaño o bloquearla igual que Chat Settings.
+En una computadora, también puedes arrastrar el título de la sección fuera de Chat Settings. La nueva ventana empieza sin fijar, así que se reduce a su botón al hacer clic fuera. Fíjala si quieres que permanezca abierta mientras usas el chat. Puedes moverla, cambiar su tamaño o bloquearla igual que Chat Settings.
 
 - **Close** (**X**) reduce la sección a un botón pequeño con su icono. Arrastra el botón donde quieras y púlsalo para reabrir la ventana donde la dejaste.
 - **Put back in Chat Settings** (la flecha curva junto a **X**) devuelve la sección a Chat Settings. También puedes arrastrar su ventana sobre Chat Settings.
@@ -75,7 +75,7 @@ Los trackers pueden salir de la ventana Trackers del mismo modo. Su botón de re
 
 Algunas herramientas abren sus propias ventanas pequeñas: **Game controls**, **Session**, **Volume** y **Game Assets** de un juego; **Connected chat**; y los controles añadidos por paquetes instalados.
 
-Estos botones empiezan cerca de la esquina superior derecha del chat. Haz clic o toca uno para abrir su ventana. Cerrar o minimizar la ventana devuelve el botón. En un teléfono, la ventana se abre como un panel de ancho completo.
+Estos botones empiezan cerca de la esquina superior derecha del chat. Haz clic o toca uno para abrir su ventana. Cerrar la ventana devuelve el botón. En un teléfono, la ventana se abre como un panel de ancho completo.
 
 Para guardar una de estas herramientas dentro de Chat Settings, abre su ventana y elige **Put back in Chat Settings**. Se convierte en una sección desplegable. Usa su botón para sacarla y volver a darle una ventana propia, o arrastra su título fuera en una computadora. **Reset View** devuelve estas herramientas a sus botones iniciales.
 

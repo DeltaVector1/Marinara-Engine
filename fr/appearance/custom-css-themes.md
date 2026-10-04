@@ -127,7 +127,7 @@ Les classes, attributs de données et variables ci-dessous permettent d'habiller
 | Barre de titre | `.mari-window__header` |
 | Titre et son icône | `.mari-window__title-row` |
 | Titre | `.mari-window__title` |
-| Boutons de la barre de titre (Reset View, étoile de disposition favorite, Tracker Panel, réduire, épingler, verrouiller, fermer, Put back) | `.mari-window__controls` (chaque bouton est `.mari-window__control`) |
+| Boutons de la barre de titre (Reset View, étoile de disposition favorite, Tracker Panel, épingler, verrouiller, fermer, Put back) | `.mari-window__controls` (chaque bouton est `.mari-window__control`) |
 | Contenu de la fenêtre | `.mari-window__body` |
 | Bords et coins de redimensionnement | `.mari-window__resize-handle` |
 | Repère de coin visible quand le pointeur ou le focus est dans une fenêtre | `.mari-window__resize-grip` |
@@ -148,7 +148,7 @@ Les classes, attributs de données et variables ci-dessous permettent d'habiller
 - `data-drawer` identifie un tiroir, par exemple `chat-name`. Certains noms commencent par le mode du chat, comme `roleplay-agents` ou `conversation-agents`. Les trackers utilisent `tracker-world`, `tracker-persona`, `tracker-characters`, `tracker-quests`, `tracker-inventory`, `tracker-custom` et `agent-activity`.
 - `data-presentation` vaut `"window"` sur une fenêtre d'ordinateur ou `"sheet"` sur un panneau de téléphone.
 - `data-pinned` et `data-locked` valent `"true"` quand la fenêtre est épinglée ou verrouillée.
-- `data-window-control` identifie chaque bouton de la barre de titre : `"minimize"`, `"pin"`, `"lock"`, `"close"` ou `"put-back"`. Un bouton d'épinglage ou de verrouillage actif possède aussi `aria-pressed="true"`.
+- `data-window-control` identifie chaque bouton de la barre de titre : `"pin"`, `"lock"`, `"close"` ou `"put-back"`. Un bouton d'épinglage ou de verrouillage actif possède aussi `aria-pressed="true"`.
 - `data-chat-settings-control` identifie les boutons supplémentaires de la barre de titre de Chat Settings : `"reset-view"`, `"favorite-layout"` et `"tracker-panel"`. L'étoile favorite possède `aria-pressed="true"` et une icône remplie quand la disposition actuelle correspond à la favorite enregistrée.
 - `data-edge` vaut `"n"`, `"s"`, `"e"`, `"w"`, `"ne"`, `"nw"`, `"se"` ou `"sw"` sur chaque poignée de redimensionnement.
 - Le bouton d'un tiroir ouvert dans `.mari-drawer__header` possède `aria-expanded="true"`.

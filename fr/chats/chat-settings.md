@@ -59,7 +59,7 @@ Quand Tracker Panel est masqué, les trackers sur ordinateur utilisent la [fenê
 
 Pour garder une section à portée de main, clique sur **Pop out** (le carré avec une flèche près de son **?**). La section obtient sa propre fenêtre et disparaît de Chat Settings jusqu'à ce que tu l'y remettes.
 
-Sur ordinateur, tu peux aussi faire glisser le titre d'une section hors de Chat Settings. La nouvelle fenêtre est épinglée dès le départ et reste ouverte pendant que tu utilises le chat. Déplace-la, redimensionne-la ou verrouille-la comme Chat Settings.
+Sur ordinateur, tu peux aussi faire glisser le titre d'une section hors de Chat Settings. La nouvelle fenêtre n'est pas épinglée au départ : un clic ailleurs la réduit à son bouton. Épingle-la si tu veux la garder ouverte pendant que tu utilises le chat. Déplace-la, redimensionne-la ou verrouille-la comme Chat Settings.
 
 - **Close** (**X**) réduit la section à un petit bouton portant son icône. Déplace ce bouton où tu veux, puis clique dessus pour rouvrir la fenêtre là où tu l'as laissée.
 - **Put back in Chat Settings** (la flèche courbe près de **X**) remet la section dans Chat Settings. Tu peux aussi faire glisser sa fenêtre sur Chat Settings.
@@ -75,7 +75,7 @@ Les trackers peuvent sortir de la fenêtre Trackers de la même façon. Leur bou
 
 Certains outils ouvrent leur propre petite fenêtre : **Game controls**, **Session**, **Volume** et **Game Assets** d'un jeu ; **Connected chat** ; et les contrôles ajoutés par les paquets installés.
 
-Ces boutons commencent près du coin supérieur droit du chat. Clique ou appuie sur l'un d'eux pour ouvrir sa fenêtre. Fermer ou réduire la fenêtre ramène le bouton. Sur téléphone, la fenêtre s'ouvre comme un panneau sur toute la largeur.
+Ces boutons commencent près du coin supérieur droit du chat. Clique ou appuie sur l'un d'eux pour ouvrir sa fenêtre. Fermer la fenêtre ramène le bouton. Sur téléphone, la fenêtre s'ouvre comme un panneau sur toute la largeur.
 
 Pour garder un de ces outils dans Chat Settings, ouvre sa fenêtre et choisis **Put back in Chat Settings**. Il devient une section repliable. Utilise son bouton de détachement pour lui redonner sa propre fenêtre, ou fais glisser son titre vers l'extérieur sur ordinateur. **Reset View** ramène ces outils à leurs boutons de départ.
 

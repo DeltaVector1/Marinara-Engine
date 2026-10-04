@@ -48,7 +48,7 @@ Tu peux déplacer la fenêtre par sa barre de titre, la redimensionner par ses b
 
 - **Pin** la garde ouverte au clic extérieur. Elle commence épinglée.
 - **Lock** empêche de la déplacer ou redimensionner et immobilise son bouton. Celui-ci ouvre toujours la fenêtre, où tu peux la déverrouiller.
-- **Minimize** ou **Close** la réduit au bouton déplaçable **Trackers**. Clique dessus pour la rouvrir là où tu l'as laissée.
+- **Close** la réduit au bouton déplaçable **Trackers**. Clique dessus pour la rouvrir là où tu l'as laissée.
 
 Pour utiliser Tracker Panel, clique sur le dé dans la barre de titre de Chat Settings. Quand le panneau est masqué, les trackers restent accessibles par leur fenêtre ou bouton. **Reset View** dans Chat Settings efface la disposition enregistrée et choisit la fenêtre ou le bouton de départ selon la place disponible.
 
@@ -56,7 +56,7 @@ Pendant le travail des agents, un petit point apparaît près du titre de la fen
 
 Chaque tracker a sa section repliable, appelée tiroir. Clique sur son en-tête pour le réduire à l'aperçu du petit widget, puis à nouveau pour voir le tracker complet. Marinara mémorise les tiroirs repliés.
 
-Un tracker peut aussi avoir sa propre fenêtre : clique sur le bouton de détachement près de sa flèche, ou fais glisser son titre hors de Trackers. La nouvelle fenêtre commence épinglée et reste ouverte quand tu réduis Trackers. Son **X** la réduit à un bouton portant l'icône du tracker, qui la rouvre là où tu l'as laissée. Clique sur **Put back in Trackers** (la flèche courbe à gauche de **X**) ou fais-la glisser sur Trackers pour la ranger. Chaque chat mémorise les trackers détachés et leurs positions.
+Un tracker peut aussi avoir sa propre fenêtre : clique sur le bouton de détachement près de sa flèche, ou fais glisser son titre hors de Trackers. La nouvelle fenêtre n'est pas épinglée au départ. Épingle-la pour la garder ouverte quand tu cliques ailleurs ou fermes Trackers. Son **X** la réduit à un bouton portant l'icône du tracker, qui la rouvre là où tu l'as laissée. Clique sur **Put back in Trackers** (la flèche courbe à gauche de **X**) ou fais-la glisser sur Trackers pour la ranger. Chaque chat mémorise les trackers détachés et leurs positions.
 
 En bas, **Agent activity** montre ce que les agents ont fait. Tu peux y relancer les trackers, réessayer les agents en échec, arrêter ceux qui tournent et utiliser **Clear Trackers**. Tracker Panel possède la même section en bas.
 

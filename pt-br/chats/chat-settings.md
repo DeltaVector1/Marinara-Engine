@@ -59,7 +59,7 @@ Quando Tracker Panel não está visível, os trackers do computador usam a [jane
 
 Para manter uma seção à mão, clique em **Pop out** (o quadrado com uma seta ao lado do **?**). A seção ganha uma janela própria e sai de Chat Settings até você devolvê-la.
 
-No computador, você também pode arrastar o título da seção para fora de Chat Settings. A nova janela começa fixada e fica aberta enquanto você usa o chat. Mova, redimensione ou trave como faria com Chat Settings.
+No computador, você também pode arrastar o título da seção para fora de Chat Settings. A nova janela começa sem fixação, então clicar fora a reduz ao botão. Fixe a janela se quiser mantê-la aberta enquanto usa o chat. Mova, redimensione ou trave como faria com Chat Settings.
 
 - **Close** (**X**) reduz a seção a um pequeno botão com seu ícone. Arraste o botão para onde quiser e clique nele para reabrir a janela onde você a deixou.
 - **Put back in Chat Settings** (a seta curva ao lado do **X**) devolve a seção a Chat Settings. Você também pode arrastar a janela dela sobre Chat Settings.
@@ -75,7 +75,7 @@ Os trackers podem sair da janela Trackers da mesma maneira. O botão de retorno 
 
 Algumas ferramentas abrem pequenas janelas próprias: **Game controls**, **Session**, **Volume** e **Game Assets** de um jogo; **Connected chat**; e os controles adicionados por pacotes instalados.
 
-Esses botões começam perto do canto superior direito do chat. Clique ou toque em um para abrir a janela. Fechar ou minimizar a janela traz o botão de volta. No celular, a janela abre como um painel de largura total.
+Esses botões começam perto do canto superior direito do chat. Clique ou toque em um para abrir a janela. Fechar a janela traz o botão de volta. No celular, a janela abre como um painel de largura total.
 
 Para guardar uma dessas ferramentas dentro de Chat Settings, abra a janela e escolha **Put back in Chat Settings**. Ela vira uma seção expansível. Use o botão para destacar a seção e abrir uma janela própria novamente, ou arraste o título para fora no computador. **Reset View** devolve essas ferramentas aos botões iniciais.
 

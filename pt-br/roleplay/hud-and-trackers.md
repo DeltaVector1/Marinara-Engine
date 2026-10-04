@@ -48,7 +48,7 @@ Você pode mover a janela pela barra de título, redimensionar pelas bordas e us
 
 - **Pin** a mantém aberta ao clicar fora. Ela começa fixada.
 - **Lock** impede mover ou redimensionar e trava a posição do botão. O botão continua abrindo a janela, onde você pode destravá-la.
-- **Minimize** ou **Close** a reduz ao botão móvel **Trackers**. Clique nele para reabrir onde você a deixou.
+- **Close** a reduz ao botão móvel **Trackers**. Clique nele para reabrir onde você a deixou.
 
 Para usar Tracker Panel, clique no dado da barra de título de Chat Settings. Quando o painel está oculto, os trackers continuam acessíveis pela janela ou pelo botão. **Reset View** em Chat Settings limpa a disposição salva e escolhe a janela ou o botão inicial conforme o espaço disponível.
 
@@ -56,7 +56,7 @@ Enquanto os agentes trabalham, um pontinho aparece ao lado do título da janela 
 
 Cada tracker tem uma seção recolhível, chamada gaveta. Clique no cabeçalho para recolher até a prévia do widget pequeno e clique novamente para ver o tracker completo. Marinara lembra quais gavetas você recolheu.
 
-Um tracker também pode ter uma janela própria: clique no botão para destacar ao lado da seta ou arraste o título para fora de Trackers. A nova janela começa fixada e fica aberta quando você minimiza Trackers. O **X** a reduz a um botão com o ícone do tracker, que reabre a janela onde você a deixou. Clique em **Put back in Trackers** (a seta curva à esquerda do **X**) ou arraste de volta sobre Trackers para guardar. Cada chat lembra quais trackers estão fora e onde.
+Um tracker também pode ter uma janela própria: clique no botão para destacar ao lado da seta ou arraste o título para fora de Trackers. A nova janela começa sem fixação. Fixe a janela para mantê-la aberta quando clicar fora ou fechar Trackers. O **X** a reduz a um botão com o ícone do tracker, que reabre a janela onde você a deixou. Clique em **Put back in Trackers** (a seta curva à esquerda do **X**) ou arraste de volta sobre Trackers para guardar. Cada chat lembra quais trackers estão fora e onde.
 
 No fim, **Agent activity** mostra o que os agentes fizeram. Por ali você pode executar trackers novamente, tentar de novo os agentes que falharam, parar os que estão rodando e usar **Clear Trackers**. Tracker Panel tem a mesma seção no fim.
 

@@ -48,7 +48,7 @@ Puedes moverla por la barra de título, cambiar su tamaño desde los bordes y us
 
 - **Pin** la mantiene abierta al hacer clic fuera. Empieza fijada.
 - **Lock** impide moverla o redimensionarla y fija su botón. El botón sigue abriendo la ventana, donde puedes desbloquearla.
-- **Minimize** o **Close** la reduce al botón móvil **Trackers**. Púlsalo para reabrirla donde la dejaste.
+- **Close** la reduce al botón móvil **Trackers**. Púlsalo para reabrirla donde la dejaste.
 
 Para usar Tracker Panel, pulsa el dado de la barra de título de Chat Settings. Cuando el panel no se muestra, los trackers siguen disponibles en su ventana o botón. **Reset View** en Chat Settings borra la disposición guardada y elige la ventana o el botón inicial según el espacio disponible.
 
@@ -56,7 +56,7 @@ Mientras los agentes trabajan, aparece un punto pequeño junto al título de la 
 
 Cada tracker tiene una sección plegable, llamada drawer. Haz clic en su encabezado para contraerla a la vista previa del widget pequeño, y otra vez para ver el tracker completo. Marinara recuerda qué secciones contrajiste.
 
-Un tracker también puede tener su propia ventana: pulsa el botón para sacarlo junto a la flecha o arrastra su título fuera de Trackers. La ventana nueva empieza fijada y permanece abierta al minimizar Trackers. Su **X** la reduce a un botón con el icono del tracker, que la reabre donde la dejaste. Pulsa **Put back in Trackers** (la flecha curva a la izquierda de **X**) o arrástrala sobre Trackers para devolverla. Cada chat recuerda qué trackers están fuera y dónde.
+Un tracker también puede tener su propia ventana: pulsa el botón para sacarlo junto a la flecha o arrastra su título fuera de Trackers. La ventana nueva empieza sin fijar. Fíjala para que permanezca abierta al hacer clic fuera o cerrar Trackers. Su **X** la reduce a un botón con el icono del tracker, que la reabre donde la dejaste. Pulsa **Put back in Trackers** (la flecha curva a la izquierda de **X**) o arrástrala sobre Trackers para devolverla. Cada chat recuerda qué trackers están fuera y dónde.
 
 Al final, **Agent activity** muestra qué hicieron los agentes. Desde ahí puedes volver a ejecutar trackers, reintentar agentes fallidos, detener agentes en ejecución y usar **Clear Trackers**. Tracker Panel tiene la misma sección al final.
 
