@@ -111,33 +111,6 @@ Certains effets visuels ont leur propre variable. Un thème peut par exemple dem
 
 Par sécurité, Marinara nettoie le CSS des thèmes personnalisés avant de l'appliquer. Les styles qui chargent un fichier depuis un autre site web ne fonctionnent pas. Pour utiliser une image ou une police dans un thème, intègre-la sous forme d'URI `data:` au lieu d'un lien web. Une URI `data:` contient directement le contenu du fichier à l'intérieur du CSS.
 
-## Limites de taille et de nom
-
-Un nom de thème peut atteindre 200 caractères. Le CSS peut peser jusqu'à 256 Kio, mesurés en octets UTF-8 et non en caractères. Au-delà, le thème est refusé à l'enregistrement comme à l'import.
-
-## Admin Access pour les installations distantes
-
-Créer, modifier, importer, activer et supprimer un thème sont des actions protégées. Cela ne concerne que l'ouverture de Marinara à travers un réseau.
-
-Si tu ouvres Marinara sur l'ordinateur qui fait tourner le serveur, via le loopback (aussi appelé localhost), ces actions fonctionnent directement. Si tu ouvres Marinara depuis un autre appareil, un téléphone ou un ordinateur de ton réseau par exemple, le serveur réclame d'abord un secret d'administration.
-
-Pour gérer les thèmes à travers un réseau :
-
-1. Sur le serveur, définis `ADMIN_SECRET` dans le fichier `.env`.
-2. Dans l'application, ouvre **Settings -> Advanced -> Admin Access** (accès administrateur) et saisis la même valeur.
-
-Sans cela, toute modification de thème à travers un réseau échoue. Pour la configuration complète, consulte la [Référence de configuration du serveur](../CONFIGURATION.md) et le [guide d'accès à distance](../REMOTE_ACCESS.md).
-
-## Comment les thèmes et le CSS de fiche se combinent
-
-Marinara propose deux façons d'ajouter du CSS personnalisé. Ce sont deux fonctionnalités distinctes, et elles peuvent être actives en même temps.
-
-Un thème personnalisé repeint toute l'application. Il a le droit de redéfinir les variables fondamentales de Marinara, d'employer `!important` et d'employer `position: fixed`. C'est tout l'intérêt d'un thème.
-
-Le CSS de fiche, c'est autre chose. Le créateur d'un personnage ou d'un persona peut intégrer du CSS dans une fiche, et tu l'actives chat par chat. Ce CSS-là est nettoyé plus sévèrement : il ne peut pas redéfinir les variables fondamentales de l'application, `!important` est retiré, et `position: fixed` devient `position: absolute`. Il met en forme les messages du chat, pas l'application entière. Consulte le [Guide du CSS de fiche](card-css-theming.md).
-
-Si l'application a une drôle d'allure, pense à vérifier à la fois le thème actif et le CSS de fiche. L'un comme l'autre peut être en cause.
-
 ## Habiller les fenêtres et tiroirs du chat
 
 Sur ordinateur, **Chat Settings** s'ouvre dans une fenêtre déplaçable. Ses sections repliables sont appelées **drawers** (tiroirs). Un tiroir peut se détacher dans sa propre fenêtre, puis se réduire à un petit bouton déplaçable, appelé **bubble** (bulle).
@@ -232,6 +205,32 @@ Définis une variable dans `:root` pour changer toutes les fenêtres, ou sur un 
 }
 ```
 
+## Limites de taille et de nom
+
+Un nom de thème peut atteindre 200 caractères. Le CSS peut peser jusqu'à 256 Kio, mesurés en octets UTF-8 et non en caractères. Au-delà, le thème est refusé à l'enregistrement comme à l'import.
+
+## Admin Access pour les installations distantes
+
+Créer, modifier, importer, activer et supprimer un thème sont des actions protégées. Cela ne concerne que l'ouverture de Marinara à travers un réseau.
+
+Si tu ouvres Marinara sur l'ordinateur qui fait tourner le serveur, via le loopback (aussi appelé localhost), ces actions fonctionnent directement. Si tu ouvres Marinara depuis un autre appareil, un téléphone ou un ordinateur de ton réseau par exemple, le serveur réclame d'abord un secret d'administration.
+
+Pour gérer les thèmes à travers un réseau :
+
+1. Sur le serveur, définis `ADMIN_SECRET` dans le fichier `.env`.
+2. Dans l'application, ouvre **Settings -> Advanced -> Admin Access** (accès administrateur) et saisis la même valeur.
+
+Sans cela, toute modification de thème à travers un réseau échoue. Pour la configuration complète, consulte la [Référence de configuration du serveur](../CONFIGURATION.md) et le [guide d'accès à distance](../REMOTE_ACCESS.md).
+
+## Comment les thèmes et le CSS de fiche se combinent
+
+Marinara propose deux façons d'ajouter du CSS personnalisé. Ce sont deux fonctionnalités distinctes, et elles peuvent être actives en même temps.
+
+Un thème personnalisé repeint toute l'application. Il a le droit de redéfinir les variables fondamentales de Marinara, d'employer `!important` et d'employer `position: fixed`. C'est tout l'intérêt d'un thème.
+
+Le CSS de fiche, c'est autre chose. Le créateur d'un personnage ou d'un persona peut intégrer du CSS dans une fiche, et tu l'actives chat par chat. Ce CSS-là est nettoyé plus sévèrement : il ne peut pas redéfinir les variables fondamentales de l'application, `!important` est retiré, et `position: fixed` devient `position: absolute`. Il met en forme les messages du chat, pas l'application entière. Consulte le [Guide du CSS de fiche](card-css-theming.md).
+
+Si l'application a une drôle d'allure, pense à vérifier à la fois le thème actif et le CSS de fiche. L'un comme l'autre peut être en cause.
 
 ## Guides associés
 

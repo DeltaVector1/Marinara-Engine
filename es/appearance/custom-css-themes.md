@@ -111,33 +111,6 @@ Algunos efectos visuales tienen sus propias variables. Por ejemplo, un tema pued
 
 El CSS de un tema personalizado se limpia antes de ejecutarse, por seguridad. Los estilos que cargan un archivo desde otro sitio web no funcionan. Para usar una imagen o una fuente dentro de un tema, incrústala como una URI `data:` en lugar de un enlace web. Una URI `data:` contiene el contenido del archivo directamente dentro del CSS.
 
-## Límites de tamaño y nombre
-
-El nombre de un tema puede tener hasta 200 caracteres. El contenido de CSS puede tener hasta 256 KiB, medido en bytes UTF-8 en lugar de caracteres. Un tema más grande que eso se rechaza cuando lo guardas o lo importas.
-
-## Acceso de administrador para instalaciones remotas
-
-Crear, editar, importar, activar y eliminar un tema son acciones protegidas. Esto importa solo cuando abres Marinara a través de una red.
-
-Si abres Marinara en la misma computadora que ejecuta el servidor, usando loopback (también llamado localhost), estas acciones simplemente funcionan. Si abres Marinara desde otro dispositivo, como un teléfono o una computadora de tu red, el servidor necesita primero un secreto de administrador.
-
-Para gestionar temas a través de una red:
-
-1. En el servidor, define `ADMIN_SECRET` en el archivo `.env`.
-2. En la app, abre **Settings -> Advanced -> Admin Access** e ingresa el mismo valor.
-
-Sin esto, los cambios de tema a través de una red fallan. Para la configuración completa, consulta la [Server Configuration Reference](../CONFIGURATION.md) y la [guía de Remote Access](../REMOTE_ACCESS.md).
-
-## Cómo funcionan juntos los temas y Card CSS
-
-Marinara tiene dos formas de agregar CSS personalizado. Son funciones separadas y ambas pueden estar activas a la vez.
-
-Un tema personalizado vuelve a pintar toda la app. Tiene permiso para sobrescribir las variables base de Marinara, usar `!important` y usar `position: fixed`. Ese es el propósito de un tema.
-
-Card CSS es diferente. Quien crea un personaje o una persona puede incrustar CSS en una tarjeta, y tú lo activas por chat. Card CSS se limpia de forma más estricta. No puede sobrescribir las variables base de la app, se elimina `!important` y `position: fixed` se convierte en `position: absolute`. Da estilo a los mensajes del chat, no a toda la app. Consulta la [Card CSS Theming Guide](card-css-theming.md).
-
-Si la app se ve mal, vale la pena revisar tanto un tema activo como Card CSS. Cualquiera de los dos podría ser la causa.
-
 ## Dar estilo a ventanas y secciones del chat
 
 En una computadora, **Chat Settings** se abre como ventana móvil. Sus secciones plegables se llaman **drawers**. Una sección puede salir a su propia ventana y luego minimizarse a un botón pequeño que puedes mover, llamado **bubble**.
@@ -232,6 +205,32 @@ Define una variable en `:root` para cambiar todas las ventanas, o en un selector
 }
 ```
 
+## Límites de tamaño y nombre
+
+El nombre de un tema puede tener hasta 200 caracteres. El contenido de CSS puede tener hasta 256 KiB, medido en bytes UTF-8 en lugar de caracteres. Un tema más grande que eso se rechaza cuando lo guardas o lo importas.
+
+## Acceso de administrador para instalaciones remotas
+
+Crear, editar, importar, activar y eliminar un tema son acciones protegidas. Esto importa solo cuando abres Marinara a través de una red.
+
+Si abres Marinara en la misma computadora que ejecuta el servidor, usando loopback (también llamado localhost), estas acciones simplemente funcionan. Si abres Marinara desde otro dispositivo, como un teléfono o una computadora de tu red, el servidor necesita primero un secreto de administrador.
+
+Para gestionar temas a través de una red:
+
+1. En el servidor, define `ADMIN_SECRET` en el archivo `.env`.
+2. En la app, abre **Settings -> Advanced -> Admin Access** e ingresa el mismo valor.
+
+Sin esto, los cambios de tema a través de una red fallan. Para la configuración completa, consulta la [Server Configuration Reference](../CONFIGURATION.md) y la [guía de Remote Access](../REMOTE_ACCESS.md).
+
+## Cómo funcionan juntos los temas y Card CSS
+
+Marinara tiene dos formas de agregar CSS personalizado. Son funciones separadas y ambas pueden estar activas a la vez.
+
+Un tema personalizado vuelve a pintar toda la app. Tiene permiso para sobrescribir las variables base de Marinara, usar `!important` y usar `position: fixed`. Ese es el propósito de un tema.
+
+Card CSS es diferente. Quien crea un personaje o una persona puede incrustar CSS en una tarjeta, y tú lo activas por chat. Card CSS se limpia de forma más estricta. No puede sobrescribir las variables base de la app, se elimina `!important` y `position: fixed` se convierte en `position: absolute`. Da estilo a los mensajes del chat, no a toda la app. Consulta la [Card CSS Theming Guide](card-css-theming.md).
+
+Si la app se ve mal, vale la pena revisar tanto un tema activo como Card CSS. Cualquiera de los dos podría ser la causa.
 
 ## Guías relacionadas
 
