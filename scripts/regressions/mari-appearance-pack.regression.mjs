@@ -73,6 +73,10 @@ for (const appearance of MARI_APPEARANCE_PACKS) {
   for (const url of Object.values(appearance.portraits)) {
     assert.ok(readFileSync(publicFile(url)).length);
   }
+  // 45b: six 96 px pull heads at native size; the circle crops them in CSS.
+  const heads = await sharp(publicFile(appearance.portraits.pullHeads).pathname).metadata();
+  assert.deepEqual([heads.format, heads.width, heads.height, heads.hasAlpha], ["webp", 576, 96, true]);
+  assert.ok(mariAssetUrls(appearance, 2).includes(appearance.portraits.pullHeads), "the pull heads are prefetched");
   for (const state of MARI_STORY_STATES) {
     const chosen = selectMariWorkAnimation({
       activity: "error image write",

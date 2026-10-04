@@ -133,6 +133,7 @@ import { createSystemCommandDefinitions } from "../../lib/command-center-system-
 import { getCommandIcon } from "../../lib/command-icons";
 import {
   createOmnibarContext,
+  resolveOmnibarScreen,
   filterOmnibarFuzzyFallback,
   getOmnibarActiveChatContextResultIds,
   isDirectActiveChatAction,
@@ -966,16 +967,20 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           : null,
       ),
     ];
-    const openResource = (
-      [
-        ["character", openCharacterId],
-        ["persona", openPersonaId],
-        ["lorebook", openLorebookId],
-        ["preset", openPresetId],
-        ["connection", openConnectionId],
-        ["agent", openAgentId],
-      ] as const
-    ).find(([, id]) => id);
+    const { surface, openResource } = resolveOmnibarScreen({
+      characterDetailId: openCharacterId,
+      personaDetailId: openPersonaId,
+      lorebookDetailId: openLorebookId,
+      presetDetailId: openPresetId,
+      connectionDetailId: openConnectionId,
+      agentDetailId: openAgentId,
+      settingsPanelVisible,
+      gameAssetsBrowserOpen,
+      botBrowserOpen,
+      characterLibraryOpen,
+      agentCatalogOpen,
+      activeChatId,
+    });
     const settingsResultId = settingsPanelVisible
       ? settingsTargetControlId
         ? `settings-control:${settingsTargetControlId}`
@@ -1007,17 +1012,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     const failedSources = [chats, characters, personas, lorebooks, presets, connections, agents, docs].some(
       (source) => source.isError,
     );
-    const surface = openResource
-      ? "editor"
-      : settingsPanelVisible
-        ? "settings"
-        : gameAssetsBrowserOpen
-          ? "game"
-          : botBrowserOpen || characterLibraryOpen || agentCatalogOpen
-            ? "library"
-            : activeChatId
-              ? "chat"
-              : "home";
     return createOmnibarContext({
       surface,
       surfaceResultIds,
@@ -1025,10 +1019,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         activeChat && activeChat.id === activeChatId
           ? { id: activeChat.id, mode: activeChat.mode, resultIds: activeChatResultIds }
           : undefined,
-      openResource:
-        openResource && openResource[1]
-          ? { kind: openResource[0], id: openResource[1], resultId: `${openResource[0]}:${openResource[1]}` }
-          : undefined,
+      openResource,
       settingsTarget: settingsResultId
         ? { tab: settingsTab, controlId: settingsTargetControlId ?? undefined, resultId: settingsResultId }
         : undefined,

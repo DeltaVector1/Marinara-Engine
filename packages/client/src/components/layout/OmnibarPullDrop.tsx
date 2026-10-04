@@ -1,10 +1,11 @@
-import { useId } from "react";
+import { useEffect, useId, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
+import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { PULL_ICON_SIZE, type PullDropVisuals } from "../../hooks/use-pull-to-open-omnibar";
 import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
-
+import type { OmnibarTranslate } from "../../lib/omnibar-entity-rows";
 /**
  * The pull-to-open sheet, its circle and small bar. Decorative only: the gesture
  * lives on the top bar and the opened dialog takes focus. The hook paints every
@@ -12,15 +13,35 @@ import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
  */
 export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const appearance = useMariAppearancePack();
   const id = useId();
-  const { els, target, armed } = visuals;
-  if (!visuals.shown) return null;
+  const { els, target, armed, shown } = visuals;
+  // Once per pull: the screen does not change under a finger that is pulling. The label is needed only once
+  // the pull is armed, well after the small module has loaded.
+  const [about, setAbout] = useState<string | null>(null);
+  useEffect(() => {
+    if (!shown) return setAbout(null);
+    let live = true;
+    void import("../../lib/mari-pull-about").then(({ readMariPullAbout }) => {
+      if (live) setAbout(readMariPullAbout(queryClient, t as OmnibarTranslate));
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown]);
+  if (!shown) return null;
+  const releaseToAskMari = about
+    ? t("omnibar.pull.releaseAbout", "Release · {{about}}", { about })
+    : t("omnibar.pull.releaseToAskMari", "Release to ask Mari");
   const label =
     target === "mari"
       ? armed
-        ? t("omnibar.pull.releaseToAskMari", "Release to ask Mari")
-        : t("omnibar.pull.askMari", "Ask Mari")
+        ? releaseToAskMari
+        : about
+          ? t("omnibar.pull.askMariAbout", "Ask Mari · {{about}}", { about })
+          : t("omnibar.pull.askMari", "Ask Mari")
       : armed
         ? t("omnibar.pull.releaseToSearch", "Release to search")
         : t("omnibar.pull.search", "Search");
@@ -43,11 +64,16 @@ export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
 
   const tagLabel = (side: "search" | "mari") =>
     side === "mari"
-      ? [t("omnibar.pull.askMari", "Ask Mari"), t("omnibar.pull.releaseToAskMari", "Release to ask Mari")]
+      ? [t("omnibar.pull.askMari", "Ask Mari"), releaseToAskMari]
       : [t("omnibar.pull.search", "Search"), t("omnibar.pull.releaseToSearch", "Release to search")];
 
   return createPortal(
-    <div aria-hidden="true" className="mari-pull-overlay" data-armed={armed ? "true" : "false"}>
+    <div
+      aria-hidden="true"
+      className="mari-pull-overlay"
+      data-armed={armed ? "true" : "false"}
+      data-context={about ? "true" : "false"}
+    >
       <div ref={(el) => void (els.shadow = el)} className="mari-pull-shadow" />
       <div ref={(el) => void (els.glass = el)} className="mari-pull-glass" />
       <svg ref={(el) => void (els.rim = el)} className="mari-pull-rim">
@@ -92,7 +118,13 @@ export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
         <Search size={PULL_ICON_SIZE} strokeWidth={2.2} />
       </div>
       <div ref={(el) => void (els.portrait = el)} className="mari-pull-lay mari-pull-portrait">
-        <img src={appearance.portraits.idle} alt="" draggable={false} />
+        {/* 45b: she looks down at the screen while pulled; armed, she peers (or lights up when there is context). */}
+        <span
+          ref={(el) => void (els.head = el)}
+          className="mari-pull-head"
+          data-gaze="neutral"
+          style={{ "--mari-pull-heads": `url("${appearance.portraits.pullHeads}")` } as CSSProperties}
+        />
       </div>
       {/* M17: on landing her head grows into her sprite where she is in the pane (sized and moved by the hook). */}
       <div ref={(el) => void (els.morph = el)} className="mari-pull-lay mari-pull-morph">

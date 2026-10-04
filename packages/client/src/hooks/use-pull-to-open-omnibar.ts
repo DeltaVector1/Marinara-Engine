@@ -7,8 +7,10 @@ import {
   PULL_SIDE_FROM,
   PULL_TAG_GAP,
   createPullRecognizer,
+  holdPullGaze,
   pullCirclePath,
   pullCircleTarget,
+  pullGazeFrame,
   pullMorphFrame,
   pullOnScreenX,
   pullOpenThreshold,
@@ -17,6 +19,7 @@ import {
   pullSheetPath,
   pullTarget,
   setPullHandoff,
+  type PullGazeFrame,
   type PullRecognizer,
   type PullTarget,
 } from "../lib/pull-to-open";
@@ -136,6 +139,8 @@ export interface PullDropElements {
   shadow?: HTMLDivElement | null;
   icon?: HTMLDivElement | null;
   portrait?: HTMLDivElement | null;
+  /** 45b: her head in the circle; the hook writes `data-gaze`, the CSS picks the sheet frame. */
+  head?: HTMLSpanElement | null;
   tag?: HTMLDivElement | null;
   tagSearch?: HTMLSpanElement | null;
   tagMari?: HTMLSpanElement | null;
@@ -222,6 +227,10 @@ export function usePullToOpenOmnibar({
     /** M17: the circle turning into this sprite; `from` is the circle's head when it started. */
     morph: null as null | { target: HTMLElement; rect: DOMRect; from: { x: number; y: number; r: number } },
     gesture: 0,
+    /** 45b: the finger's x, the gaze shown and since when; frozen under Reduce ambient effects. */
+    fingerX: 0,
+    gaze: null as null | { frame: PullGazeFrame; since: number },
+    gazeFrozen: false,
   }).current;
   const swallowClickRef = useRef(false);
 
@@ -338,6 +347,11 @@ export function usePullToOpenOmnibar({
       portrait.style.opacity = g.morph ? "0" : String(px(show * clamp01(t * 1.6 - 0.6) * 100) / 100);
       portrait.style.filter = blur;
       portrait.style.transform = `translate3d(${px(cx)}px, ${px(y)}px, 0) translate(-50%, -50%) scale(${px((Math.max(0, 2 * radius - 8) / 72) * 1000) / 1000})`;
+    }
+    // 45b: she looks down at the screen's middle, where the chat or the editor is, from where she is pulled.
+    if (els.head && g.mode === "pull" && !g.gazeFrozen) {
+      g.gaze = holdPullGaze(g.gaze, pullGazeFrame(g.fingerX, g.width), performance.now());
+      if (els.head.dataset.gaze !== g.gaze.frame) els.head.dataset.gaze = g.gaze.frame;
     }
     // The small bar under the circle, above the finger; only its words change with the side.
     if (tag) {
@@ -577,6 +591,9 @@ export function usePullToOpenOmnibar({
       g.side = null;
       g.landing = null;
       g.morph = null;
+      g.gaze = null;
+      g.fingerX = x;
+      g.gazeFrozen = useUIStore.getState().reduceAmbientEffects;
       g.mariEnabled = useUIStore.getState().commandCenterMariEnabled;
       if (reduceMotion) {
         setLabelOnly(true);
@@ -658,6 +675,7 @@ export function usePullToOpenOmnibar({
       const dy = Math.max(0, recognizer.distance);
       const pull = dy / g.threshold;
       const x = clamp(event.clientX, 0, g.width);
+      g.fingerX = x;
 
       // The finger steers; the side is chosen once the pull is under way.
       if (pull >= PULL_SIDE_FROM || step === "armed") {

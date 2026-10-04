@@ -106,6 +106,31 @@ export function isMariReplyFailure(
   return lastAppError?.action === "Generate reply" && lastAppError.chatId === arrivalChatId;
 }
 
+/**
+ * 45b: what she looks down at during the pull, taken from her arrival on this screen, so the pull and
+ * the pane agree on what there is to talk about. A name or a fixed phrase only (R22). Null: nothing to
+ * comment on (Home, or a screen without an arrival); the pull keeps its plain label.
+ */
+export function mariPullAbout(
+  context: OmnibarContext,
+  arrival: MariArrival | null,
+  t: OmnibarTranslate,
+): string | null {
+  if (!arrival?.strong) return null;
+  const fix = arrival.cards.some((card) => card.fix || card.id === "arrival:fix-reply");
+  if (context.surface === "chat") {
+    if (fix) return t("omnibar.pull.about.fixReply", "fix that reply");
+    const character = arrival.refs.find((ref) => ref.kind === "character")?.name;
+    return character ? t("omnibar.pull.about.chat", "{{name}}'s chat", { name: character }) : arrival.strong;
+  }
+  if (context.openResource?.kind === "agent") {
+    return fix
+      ? t("omnibar.pull.about.fixRun", "fix that run")
+      : t("omnibar.pull.about.agent", "{{name}} settings", { name: arrival.strong });
+  }
+  return arrival.strong;
+}
+
 const MAX_CARDS = 4;
 const mari = (id: string, label: string, prompt: string, detail?: string, icon?: string): MariArrivalCard => ({
   id: `arrival:${id}`,

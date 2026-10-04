@@ -43,6 +43,8 @@ export interface MariAppearancePack {
     map: string;
     shrug: string;
     drag: string;
+    /** 45b: six 96 px heads for the pull circle: neutral, down, down-left, down-right, peering, delighted. */
+    pullHeads: string;
   };
   stories: Record<MariStoryState, MariWorkAnimation>;
   /** Every pack ships all nine; the Record type makes a missing pose a compile error, not a broken image. */
@@ -81,6 +83,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
       map: sprite("basic/portrait-map.webp"),
       shrug: sprite("basic/portrait-shrug.webp"),
       drag: sprite("basic/portrait-drag.webp"),
+      pullHeads: sprite("basic/pull-heads.webp"),
     },
     stories: packStories("basic"),
     poses: packPoses("basic"),
@@ -97,6 +100,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
       map: sprite("dottore/portrait-map.webp"),
       shrug: sprite("dottore/portrait-shrug.webp"),
       drag: sprite("dottore/idle.webp"),
+      pullHeads: sprite("dottore/pull-heads.webp"),
     },
     stories: packStories("dottore"),
     poses: packPoses("dottore"),
@@ -113,6 +117,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
       map: sprite("golden/portrait-map.webp"),
       shrug: sprite("golden/portrait-shrug.webp"),
       drag: sprite("golden/idle.webp"),
+      pullHeads: sprite("golden/pull-heads.webp"),
     },
     stories: packStories("golden"),
     poses: packPoses("golden"),
@@ -129,6 +134,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
       map: sprite("safari/portrait-map.webp"),
       shrug: sprite("safari/portrait-shrug.webp"),
       drag: sprite("safari/idle.webp"),
+      pullHeads: sprite("safari/pull-heads.webp"),
     },
     stories: packStories("safari"),
     poses: packPoses("safari"),
@@ -148,7 +154,7 @@ export const MARI_ASSET_TIER: {
   stories: Record<MariStoryState, 1 | 2 | 3>;
   poses: Record<MariPose, 1 | 2 | 3>;
 } = {
-  portraits: { idle: 2, blink: 2, shrug: 2, arrival: 3, map: 3, drag: 3 },
+  portraits: { idle: 2, blink: 2, shrug: 2, pullHeads: 2, arrival: 3, map: 3, drag: 3 },
   stories: { ...(Object.fromEntries(MARI_STORY_STATES.map((id) => [id, 3])) as Record<MariStoryState, 3>), idle: 2 },
   poses: {
     profile: 1,

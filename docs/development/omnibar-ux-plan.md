@@ -81,6 +81,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 43  | Omnibar commands to start a new chat of each mode (N2)          | worker           | Done                 | ac50dc7cd |
 | 44  | Toasts move to the bottom while the omnibar is open (N3)        | worker           | Done                 | bf13aa38e |
 | 45  | Mari cards send at once; arrival errors stay strict (N4, N6)    | designer         | Done                 | f94dc3773 |
+| 45b | Mari looks down on the pull (N7)                                | designer         | Pending              |           |
 | 46  | Review of slices 42-45 (N5)                                     | reviewer         | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
@@ -996,6 +997,18 @@ rule apply. Find the real code paths first; reuse what exists.
   deliberate "Fix" card/row. Check the slice 39/40 arrival and the N4 change: an arrival "Fix the last reply"
   card that now sends at once must send only after that deliberate pick, and its prompt may carry the error text
   only then. Regression assert on the arrival prompt payloads.
+- N7 (new maintainer request 2026-10-03/04) Mari looks down on the pull: "The drop prototype had Professor
+  Mari looking down on the pull at the active chat and things on screen. That was immersive." Reference: the
+  armed face swap in `.tmp/omnibar-ux/drop/index.html` (`.face`, `[data-armed] .face`). Root cause: slice 15
+  shows one fixed portrait in the circle. Work: a per-pack `pull-heads.webp` (six 96 px frames: neutral, down,
+  down-left, down-right, peering, delighted; lossless, tier 2, versioned like 38c) in the circle, round-cropped
+  in CSS. While pulled she looks at the screen's middle (pure `pullGazeFrame` in `lib/pull-to-open.ts`, 3
+  buckets; `holdPullGaze` keeps a frame at least 150 ms). Armed: peering, or delighted when there is context.
+  Context and the armed label ("Release · Zylo's chat", "fix that reply", "Illustrator settings") come from
+  the slice 39 arrival (`buildMariArrival` + new `mariPullAbout`, one shared `resolveOmnibarScreen`), names
+  only (R22). Reduce ambient effects freezes the gaze, the label stays live. Pull-time only; the M17 morph is
+  unchanged. Proof: regression asserts; frame sequences on mobile-chromium and mobile-webkit, dark+light, over
+  a chat, an editor and Home in `.tmp/omnibar-ux/round4/slice-45b/`.
 - N5 Review of 42-45 (reviewer read-only findings, then a worker fixes the confirmed ones). Plan-mode reviewer
   children end on ExitPlanMode: the orchestrator must check `list_pending_permissions` and answer it.
 - Item 6 (D1 with a real model) is the maintainer's own manual test after the next deploy; nothing to build.

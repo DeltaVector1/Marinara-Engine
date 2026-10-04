@@ -159,6 +159,36 @@ export function pullOnScreenX(x: number, half: number, width: number) {
   return clamp(x, min, Math.max(min, width - min));
 }
 
+// ── Gaze (45b) ─────────────────────────────────────────────────────────────
+
+/** The frames of a pack's `pull-heads` sheet, left to right, 96 px each. */
+export const PULL_GAZE_FRAMES = ["neutral", "down", "down-left", "down-right", "peering", "delighted"] as const;
+export type PullGazeFrame = (typeof PULL_GAZE_FRAMES)[number];
+/** A new gaze holds at least this long, so a jittery finger on a bucket edge cannot flicker it. */
+export const PULL_GAZE_HOLD_MS = 150;
+
+/**
+ * Where Mari looks while she is pulled down: at the screen's middle, where the
+ * chat or the open editor is. Near the middle third she looks straight down; out
+ * to one side she looks back across the screen (down-left from the right side).
+ */
+export function pullGazeFrame(fingerX: number, screenWidth: number): "down" | "down-left" | "down-right" {
+  const offset = fingerX - screenWidth / 2;
+  if (Math.abs(offset) <= screenWidth / 6) return "down";
+  return offset > 0 ? "down-left" : "down-right";
+}
+
+/** The shown frame after a move at `now`: a change waits until the current frame has held its minimum. */
+export function holdPullGaze(
+  shown: { frame: PullGazeFrame; since: number } | null,
+  next: PullGazeFrame,
+  now: number,
+): { frame: PullGazeFrame; since: number } {
+  if (!shown) return { frame: next, since: now };
+  if (next === shown.frame || now - shown.since < PULL_GAZE_HOLD_MS) return shown;
+  return { frame: next, since: now };
+}
+
 export interface PullSheet {
   cx: number;
   cy: number;

@@ -173,6 +173,48 @@ function boundedIds(values: readonly string[] | undefined): string[] {
   );
 }
 
+/** What the screen shows: the first open editor and the surface. One copy for the omnibar and the pull (45b). */
+export function resolveOmnibarScreen(ui: {
+  characterDetailId: string | null;
+  personaDetailId: string | null;
+  lorebookDetailId: string | null;
+  presetDetailId: string | null;
+  connectionDetailId: string | null;
+  agentDetailId: string | null;
+  settingsPanelVisible: boolean;
+  gameAssetsBrowserOpen: boolean;
+  botBrowserOpen: boolean;
+  characterLibraryOpen: boolean;
+  agentCatalogOpen: boolean;
+  activeChatId: string | null;
+}): { surface: OmnibarSurface; openResource?: NonNullable<OmnibarContext["openResource"]> } {
+  const open = (
+    [
+      ["character", ui.characterDetailId],
+      ["persona", ui.personaDetailId],
+      ["lorebook", ui.lorebookDetailId],
+      ["preset", ui.presetDetailId],
+      ["connection", ui.connectionDetailId],
+      ["agent", ui.agentDetailId],
+    ] as const
+  ).find(([, id]) => id);
+  const surface: OmnibarSurface = open
+    ? "editor"
+    : ui.settingsPanelVisible
+      ? "settings"
+      : ui.gameAssetsBrowserOpen
+        ? "game"
+        : ui.botBrowserOpen || ui.characterLibraryOpen || ui.agentCatalogOpen
+          ? "library"
+          : ui.activeChatId
+            ? "chat"
+            : "home";
+  return {
+    surface,
+    openResource: open?.[1] ? { kind: open[0], id: open[1], resultId: `${open[0]}:${open[1]}` } : undefined,
+  };
+}
+
 export function createOmnibarContext(input: Partial<OmnibarContext> & Pick<OmnibarContext, "surface">): OmnibarContext {
   const openResource = input.openResource;
   const settingsTarget = input.settingsTarget;

@@ -495,6 +495,20 @@ This is the part most likely to break silently. All of it must survive.
   runs off the side instead of narrowing, the circle follows the finger to the
   edge while staying whole on screen, and releasing near a side pops the
   dialog open from the circle's position instead of from half off-screen.
+- **Mari looks down on the pull** (slice 45b, N7): on the Mari side the circle
+  shows a head from the selected pack's `pull-heads.webp` (six 96 px frames,
+  prefetched with the tier-2 portraits). While pulled she looks at the
+  screen's middle, where the chat or editor is: straight down within the
+  middle third, back across the screen from a side (`pullGazeFrame`); a new
+  gaze holds at least 150 ms (`holdPullGaze`). Armed, she peers over her
+  glasses, or lights up when there is something to talk about. That is decided
+  once per pull from the same screen detection (`resolveOmnibarScreen`) and
+  arrival builder as the Mari pane, fed names from the query cache only:
+  `mariPullAbout` turns the arrival into "Zylo's chat", "fix that reply",
+  "Illustrator settings" or the open editor's name, and the armed label reads
+  "Release · <that>" (R22: names and fixed phrases, never content; Home keeps
+  "Release to ask Mari"). With Reduce ambient effects her gaze does not follow
+  the finger; under reduced motion the label chip reads "Ask Mari · <that>".
 - **Tiered appearance loading** (slice 38c): only the selected appearance
   pack's sprites are fetched; the omnibar's own Mari portrait loads once the
   app goes idle so ⌘K, ⌘J and the pull show her at once, other poses (tour,

@@ -23,6 +23,7 @@ import {
 } from "../../packages/client/src/lib/keyboard-shortcuts.js";
 import {
   createOmnibarContext,
+  resolveOmnibarScreen,
   filterOmnibarFuzzyFallback,
   getOmnibarActiveChatContextResultIds,
   getUnambiguousOmnibarResult,
@@ -100,7 +101,11 @@ import {
 } from "../../packages/client/src/lib/mari-referenced-resources.js";
 import {
   createPullRecognizer,
+  holdPullGaze,
+  PULL_GAZE_FRAMES,
+  PULL_GAZE_HOLD_MS,
   pullCircleTarget,
+  pullGazeFrame,
   pullMorphFrame,
   pullOnScreenX,
   pullOpenThreshold,
@@ -117,6 +122,7 @@ import {
   mariCardIntent,
   mariFallbackFocus,
   mariFixRowId,
+  mariPullAbout,
   type MariArrivalData,
 } from "../../packages/client/src/lib/mari-arrival.js";
 import {
@@ -2790,6 +2796,120 @@ assert.ok(!("mariDetailId" in mariSession));
     Math.min(start.scale, 1) < mid.scale && mid.scale < Math.max(start.scale, 1),
     "the size animates between the two",
   );
+}
+
+// 45b: Mari looks down at the screen's middle while pulled; a new gaze holds 150 ms, so jitter cannot flicker it.
+{
+  assert.deepEqual(
+    [...PULL_GAZE_FRAMES],
+    ["neutral", "down", "down-left", "down-right", "peering", "delighted"],
+    "the sheet's frame order",
+  );
+  assert.equal(pullGazeFrame(195, 390), "down", "at the middle she looks straight down");
+  assert.equal(pullGazeFrame(255, 390), "down", "within the middle third, still straight down");
+  assert.equal(pullGazeFrame(300, 390), "down-left", "pulled from the right, she looks back left at the screen");
+  assert.equal(pullGazeFrame(390, 390), "down-left");
+  assert.equal(pullGazeFrame(60, 390), "down-right", "pulled from the left, she looks right");
+  assert.equal(pullGazeFrame(0, 390), "down-right");
+  assert.equal(pullGazeFrame(1000, 1440), "down-left", "the buckets scale with the screen");
+  assert.equal(pullGazeFrame(720, 1440), "down");
+  let gaze = holdPullGaze(null, "down", 1000);
+  assert.deepEqual(gaze, { frame: "down", since: 1000 }, "the first frame shows at once");
+  gaze = holdPullGaze(gaze, "down-left", 1000 + PULL_GAZE_HOLD_MS - 1);
+  assert.equal(gaze.frame, "down", "a change inside the hold waits");
+  gaze = holdPullGaze(gaze, "down-left", 1000 + PULL_GAZE_HOLD_MS);
+  assert.deepEqual(gaze, { frame: "down-left", since: 1000 + PULL_GAZE_HOLD_MS }, "after the hold it changes");
+  const held = holdPullGaze(gaze, "down-left", 5000);
+  assert.equal(held, gaze, "the same frame keeps its start time");
+  // A finger jittering across a bucket edge every 16 ms changes the frame at most once per hold.
+  let shown: ReturnType<typeof holdPullGaze> | null = null;
+  let changes = 0;
+  for (let time = 0; time < 1500; time += 16) {
+    const next = holdPullGaze(shown, pullGazeFrame(time % 32 ? 259 : 262, 390), time);
+    if (shown && next.frame !== shown.frame) changes += 1;
+    shown = next;
+  }
+  assert.ok(changes <= 1500 / PULL_GAZE_HOLD_MS, `jitter changed the gaze ${changes} times`);
+}
+
+// 45b: the armed pull's label names what she will look at, from the same arrival as the Mari pane:
+// a name or a fixed phrase, never content (R22).
+{
+  const t: MariArrivalData["t"] = (_key, fallback, options) =>
+    fallback.replace(/\{\{(\w+)\}\}/g, (_, name: string) => String(options?.[name] ?? ""));
+  const now = Date.parse("2026-10-04T12:00:00Z");
+  const SECRET = "SECRET-MESSAGE-TEXT";
+  const chatContext = createOmnibarContext({ surface: "chat", activeChat: { id: "chat-1", resultIds: [] } });
+  const chat = (extra: Partial<MariArrivalData> = {}, lastReply: unknown = null): MariArrivalData => ({
+    t,
+    now,
+    chat: {
+      name: "Neon Harbor",
+      characters: [{ id: "c1", name: "Zylo" }],
+      lorebooks: [],
+      lastReply: lastReply as never,
+    },
+    ...extra,
+  });
+  const about = (context: typeof chatContext, data: MariArrivalData) =>
+    mariPullAbout(context, buildMariArrival(context, data), t);
+  assert.equal(about(chatContext, chat()), "Zylo's chat", "a chat: whose chat it is");
+  assert.equal(about(chatContext, chat({ replyFailed: true })), "fix that reply", "a failed reply: fix it");
+  assert.equal(
+    about(chatContext, chat({}, { createdAt: "2026-10-04T11:59:00Z", finishReason: "length", content: SECRET })),
+    "fix that reply",
+    "a cut-off reply: fix it",
+  );
+  assert.equal(
+    about(chatContext, { t, now, chat: { name: "Neon Harbor", characters: [], lorebooks: [] } }),
+    "Neon Harbor",
+    "a chat without a known character: its name",
+  );
+  const agentContext = createOmnibarContext({
+    surface: "editor",
+    openResource: { kind: "agent", id: "illustrator", resultId: "agent:illustrator" },
+  });
+  const agent = { type: "illustrator", name: "Illustrator", enabled: true, promptLength: 0, settingsCount: 0 };
+  assert.equal(about(agentContext, { t, now, agent }), "Illustrator settings", "an agent: its settings");
+  assert.equal(
+    about(agentContext, { t, now, agent: { ...agent, lastError: `${SECRET}: no connection` } }),
+    "fix that run",
+    "a failed agent run: fix it, and never the error text",
+  );
+  const characterContext = createOmnibarContext({
+    surface: "editor",
+    openResource: { kind: "character", id: "c1", resultId: "character:c1" },
+  });
+  assert.equal(about(characterContext, { t, now, editor: { name: "Zylo", field: "Description" } }), "Zylo");
+  assert.equal(about(createOmnibarContext({ surface: "home" }), { t, now }), null, "Home: nothing to comment on");
+  assert.equal(about(characterContext, { t, now }), null, "an editor whose name is not cached: the plain label");
+  for (const label of [
+    about(chatContext, chat({}, { createdAt: "2026-10-04T11:59:00Z", content: SECRET })),
+    about(agentContext, { t, now, agent: { ...agent, lastError: SECRET } }),
+  ]) {
+    assert.ok(label && !label.includes(SECRET), "the label never carries message or error text");
+  }
+  // The pull and the omnibar detect the screen with one function.
+  const ids = {
+    characterDetailId: null,
+    personaDetailId: null,
+    lorebookDetailId: null,
+    presetDetailId: null,
+    connectionDetailId: null,
+    agentDetailId: null,
+    settingsPanelVisible: false,
+    gameAssetsBrowserOpen: false,
+    botBrowserOpen: false,
+    characterLibraryOpen: false,
+    agentCatalogOpen: false,
+    activeChatId: null,
+  };
+  assert.deepEqual(resolveOmnibarScreen(ids), { surface: "home", openResource: undefined });
+  assert.equal(resolveOmnibarScreen({ ...ids, activeChatId: "chat-1" }).surface, "chat");
+  assert.deepEqual(resolveOmnibarScreen({ ...ids, activeChatId: "chat-1", agentDetailId: "illustrator" }), {
+    surface: "editor",
+    openResource: { kind: "agent", id: "illustrator", resultId: "agent:illustrator" },
+  });
 }
 
 console.info("Command Center regression checks passed.");
