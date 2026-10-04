@@ -1315,7 +1315,7 @@ export function buildOmnibarContextResults({
       push(chatTool("search", t("commandCenter.chatTools.search", "Search this chat"), "command"));
     }
     push(chatTool("lorebook", t("commandCenter.chatTools.lorebook", "Active lorebook entries"), "lorebook"));
-    push(chatTool("peek-prompt", t("commandCenter.chatTools.peekPrompt", "Peek prompt"), "command"));
+    push(chatTool("peek-prompt", t("commandCenter.chatTools.peekPrompt", "Preview next prompt"), "command"));
     if (activeChat.mode === "roleplay") {
       push(chatTool("summary", t("commandCenter.chatTools.summary", "Summary"), "chats"));
     }

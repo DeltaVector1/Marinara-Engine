@@ -633,6 +633,20 @@ export function getUnambiguousOmnibarResult(results: readonly OmnibarResult[]): 
   return direct[1]?.score === first.score ? null : first;
 }
 
+/**
+ * Chats and messages are navigation rows: a first tap should open them, not
+ * expand a preview the user did not ask for (F4, slice 41). Characters and
+ * agents are the same kind of navigation row, just reached via a `resource`
+ * target instead of `chat` (O4 item 7).
+ */
+export function resultOpensDirectlyOnTap(result: Pick<OmnibarResult, "target" | "action" | "category">): boolean {
+  return (
+    result.target?.kind === "chat" ||
+    result.action?.kind === "goto-message" ||
+    (result.target?.kind === "resource" && (result.category === "character" || result.category === "agent"))
+  );
+}
+
 export function isDirectActiveChatAction(
   query: string,
   result: Pick<OmnibarResult, "id" | "category">,

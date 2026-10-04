@@ -4,6 +4,7 @@ export const CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT = "marinara:chat-lorebook-
 export const CHAT_SEARCH_OPEN_REQUEST_EVENT = "marinara:chat-search-open-request";
 export const CHAT_PEEK_PROMPT_REQUEST_EVENT = "marinara:chat-peek-prompt-request";
 export const CHAT_REGENERATE_REQUEST_EVENT = "marinara:chat-regenerate-request";
+export const CHAT_RETRY_WITH_CONNECTION_REQUEST_EVENT = "marinara:chat-retry-with-connection-request";
 
 export function announceChatFloatingUiDismiss() {
   if (typeof window === "undefined") return;
@@ -33,6 +34,12 @@ export function requestChatPeekPrompt(chatId: string) {
 export function requestChatRegenerate(chatId: string) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(CHAT_REGENERATE_REQUEST_EVENT, { detail: { chatId } }));
+}
+
+/** Retries the chat's last failed reply with a specific connection, one-off (O4 item 3). */
+export function requestChatRetryWithConnection(chatId: string, connectionId: string) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(CHAT_RETRY_WITH_CONNECTION_REQUEST_EVENT, { detail: { chatId, connectionId } }));
 }
 
 export function blurActiveChatFloatingUiControl() {

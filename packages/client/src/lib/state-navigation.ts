@@ -35,8 +35,12 @@ export function executeStateNavigation(
     ui.closeRightPanel();
   } else if (target.kind === "chat") {
     // On the phone shell the sidebar is a full-screen sheet, so opening it here
-    // would cover the chat we just navigated to (F3, slice 41).
-    if (!isMobileShellViewport()) ui.setSidebarOpen(true);
+    // would cover the chat we just navigated to (F3, slice 41); closing it when
+    // it was already open before this navigation covers the same case for a
+    // sheet the user had open beforehand, not just one this action would have
+    // opened (O4 item 6).
+    if (isMobileShellViewport()) ui.setSidebarOpen(false);
+    else ui.setSidebarOpen(true);
     ui.closeRightPanel();
     useChatStore.getState().setActiveChatId(target.chatId);
   } else if (target.kind === "panel") {

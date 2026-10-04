@@ -298,15 +298,15 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Quick controls                                                                 | `buildOmnibarControlResults`                                                                  | Theme and presence as choices; 9 hand-built toggles plus 46 settings-registry toggles bound via `lib/omnibar-settings-toggle-bindings.ts` (client-store booleans only — server-backed, permission-gated and non-boolean toggles stay deep-link-only)                                                                            |
 | Active-chat controls                                                           | `buildOmnibarChatControlResults`                                                              | Model, preset, persona (choices, capped at 6 plus the current value) and an agents toggle. These edit the chat in place — nothing navigates away                                                                                                                                                                                 |
 | FAQ                                                                            | `buildOmnibarSearchResults`                                                                   | Ids are `faq:<id>`; opens the FAQ viewer modal                                                                                                                                                                                                                                                                                   |
-| Documentation                                                                  | `useDocsCommandSearchProvider`                                                                | Passage search; opens the docs viewer at the match                                                                                                                                                                                                                                                                               |
+| Documentation                                                                  | `useDocsCommandSearchProvider`                                                                | Passage search; opens the docs viewer at the match. A natural-language question searches on its real content words (`extractDocsSearchQuery`, `lib/docs-command-search.ts`), stripping question words and punctuation, since full-text search rarely matches a literal question verbatim — a fresh install with no model otherwise got no docs rows and no answer at all for a question-phrased query (O4 task 9, slice 50). `docs/development` is excluded from both this search and the docs viewer's index except the small curated set in `DOC_ORDER.development` (`packages/server/src/routes/docs.routes.ts`'s `collectDocs`), so internal working files (plans, value tables, mockup notes) never show up as "user docs" (O4, slice 50) |
 | Messages in the open chat                                                      | `buildOmnibarMessageResults`                                                                  | Client-side over the shared transcript cache; 3-character minimum, 6 results                                                                                                                                                                                                                                                     |
 | Messages in every other chat                                                   | `buildOmnibarGlobalMessageResults`                                                            | The shared global chat search; see section 6                                                                                                                                                                                                                                                                                     |
 | Lorebook entries (name, keys, content)                                         | `buildOmnibarLorebookEntryResults`                                                            | Server-backed (`GET /api/lorebooks/search/entries?q=&limit=`), same typing pause and 3-character minimum as message search, with no scope or `lore:`. Choosing one opens the lorebook on Entries with that entry expanded and scrolled to. `⌘↵` on the row (or typing "why didn't X fire") hands Mari the entry's id plus the active chat; she calls the read-only `lorebook.testScan` action (wraps the same scanner the "Test" tool and real generations use) and answers with the exact gate reason and the setting to change, never the scanned chat text |
 | Professor Mari's own conversations                                             | `buildOmnibarMariChatResults`                                                                 | They sit behind an internal marker and are absent from the chat list                                                                                                                                                                                                                                                             |
 | Slash commands                                                                 | `buildOmnibarSlashResults`                                                                    | Chat surface only. Choosing one types it into the chat input rather than running it, so arguments stay visible                                                                                                                                                                                                                   |
-| Context rows                                                                   | `buildOmnibarContextResults`                                                                  | "What am I on?": the open editor, the current chat and everything attached to it, the last error, an unfinished creation session. A failed reply's "Fix: Generate reply failed" row and a failed agent run's "Fix: Run <agent name> failed" row (keyed on `agent:<type>`, Enter opens the agent editor) are the only rows that hand Mari the error through the `chat-error` source door (`GlobalOmnibar.tsx`'s `buildAskContext`), and only when picked deliberately (⌘↵ on the row, or the arrival's Fix card) — an explicit `fix` flag on `buildAskContext`, never an implicit "focus id equals Fix row id" check, because a built-in agent's editor row shares its id with its Fix row. A door that picks nothing (the arrival, the "Ask Mari" row, the aside's ⌘↵) falls back through `mariFallbackFocus` (N6/A5), which keeps that row as the resource focus — so the agent/connection still reaches Mari — without ever attaching the error text; every other unasked Mari call carries no user content |
+| Context rows                                                                   | `buildOmnibarContextResults`                                                                  | "What am I on?": the open editor, the current chat and everything attached to it, the last error, an unfinished creation session. A failed reply's "Fix: Generate reply failed" row now carries a `choice` control listing the chat's other language-generation connections (`languageConnections`, excluding the broken one): Enter expands it, picking one retries the failed message with it at once through a `marinara:chat-retry-with-connection-request` event (`handleRetryWithConnection` in `ChatArea.tsx`), without changing the chat's own connection (O4 item 3, slice 50) — Ctrl+K → Enter → pick is 3 steps. A failed agent run's "Fix: Run <agent name> failed" row (keyed on `agent:<type>`) is unchanged: Enter opens the agent editor. These are the only rows that hand Mari the error through the `chat-error` source door (`GlobalOmnibar.tsx`'s `buildAskContext`), and only when picked deliberately (⌘↵ on the row, or the arrival's Fix card) — an explicit `fix` flag on `buildAskContext`, never an implicit "focus id equals Fix row id" check, because a built-in agent's editor row shares its id with its Fix row. A door that picks nothing (the arrival, the "Ask Mari" row, the aside's ⌘↵) falls back through `mariFallbackFocus` (N6/A5), which keeps that row as the resource focus — so the agent/connection still reaches Mari — without ever attaching the error text; every other unasked Mari call carries no user content |
 | Failed reply retry line (chat surface)                                        | `ChatArea.tsx`'s `failedReplyMessageId`                                                       | A failed generation leaves a quiet "Failed · Retry" line under the user message that triggered it (conversation/roleplay only), derived from the same `lastAppError` the K1 Fix row reads. Hidden while a reply to a newer message in the same chat is still streaming, so a fresh send never shows a stale failed line; dismissed on editing or deleting that exact message |
-| Chat tool rows (chat surface)                                                  | `buildOmnibarContextResults`                                                                  | Search this chat, Active lorebook entries, Peek prompt, Summary (roleplay only) and Regenerate reply. Each dispatches a `chat-floating-ui-events.ts` request the chat's own toolbar/composer already listens for, so the row opens or runs the existing UI — nothing new behind it. Continue is already reachable via the idle `/continue` slash row, so it gets no new row. Game mode gets only Active lorebook entries and Peek prompt: it has its own turn-retry reset (`GameSurface`'s `handleRetryTurn`) instead of plain Regenerate, and no listener for Search this chat |
+| Chat tool rows (chat surface)                                                  | `buildOmnibarContextResults`                                                                  | Search this chat, Active lorebook entries, "Preview next prompt" (labelled "Peek prompt" before slice 50 — renamed since it opens a *live preview* of the next prompt, not the exact saved/sent one, which can use the hidden `{{prompt}}` macro), Summary (roleplay only) and Regenerate reply. Each dispatches a `chat-floating-ui-events.ts` request the chat's own toolbar/composer already listens for, so the row opens or runs the existing UI — nothing new behind it. Continue is already reachable via the idle `/continue` slash row, so it gets no new row. Game mode gets only Active lorebook entries and Preview next prompt: it has its own turn-retry reset (`GameSurface`'s `handleRetryTurn`) instead of plain Regenerate, and no listener for Search this chat |
 | Idle rows                                                                      | `buildOmnibarIdleResults`                                                                     | Unfinished setup first (capped at 2), then recents, then surface commands                                                                                                                                                                                                                                                        |
 | Intent shortcuts                                                               | `buildOmnibarIntentShortcuts`                                                                 | "new character Bob" / "create a lorebook called Silver Court" open the create window with the typed name (casing kept); "chat with Shrek" / "new chat Dottore" / "talk to Eliza" open the start-chat window for each character whose name the text starts (up to three). Current-work group; nothing is created from the omnibar |
 | New chat commands                                                             | `buildOmnibarNewChatCommands`                                                                 | "New conversation" / "New roleplay" / "New game" are doors into the same `useStartNewChatMode` flow as Home's Conversation/Roleplay/Game buttons. Returned only on a real match, never idle and never as noise beside an unrelated query: a deliberate phrase ("new chat", "new roleplay", "start game", …) scores like the other intent shortcuts; a bare word ("game", "rp", "roleplay", "conversation") scores low enough to stay behind an exact entity name with that word as its title |
@@ -402,9 +402,21 @@ without one fall through to the generic open path.
   path. It exists so a choice option works wherever it was found.
 - Direct active-chat actions: "add Eliza" with a chat open attaches instead of
   opening, but only when the result is unambiguous.
+- A lorebook row's own Enter/tap attaches it to the open chat when it is not
+  already active there (the same unambiguous rule as "add Eliza", but needing
+  no verb) instead of flipping its global Enabled switch — that switch used to
+  be the default action and, found by plain name, silently disabled the
+  lorebook app-wide with no visible Undo (O4 item 1, slice 50). Already
+  attached, or no chat open: Enter/tap opens the editor. The switch rendered
+  beside the row is the only door left to the global toggle.
 - Attaching a character or lorebook keeps the omnibar open, with the Undo
   toast, so the next one can be added. Other kinds close it: they can ask to
   replace the current persona, preset or connection, or open agent setup.
+- Choosing an option of a chat-scoped choice control (`control:chat-connection`,
+  `control:chat-preset`, `control:chat-persona` — the "Model/Preset/Persona for
+  this chat" rows) closes the omnibar and shows a confirmation toast, the same
+  as any other completed action; other choice controls (e.g. a setting like
+  theme) keep expanding in place (slice 50).
 - Attach and detach reuse the drag-and-drop payload and its block rules, so the
   omnibar can never make an assignment a drop would refuse.
 - Every navigation passes the dirty-editor confirmation.
@@ -419,17 +431,23 @@ without one fall through to the generic open path.
 - Preview actions never repeat what Enter does on the row: no Edit character,
   Resume chat, Open documentation, Open or Set default preset, and no Add, Remove
   or Start chip when the row's Enter already adds, removes or starts. What stays:
-  start chat, add to or remove from this chat, edit lorebook (Enter flips its
-  toggle), Ask Mari, and continue with Mari — the last only for chats,
+  start chat, add to or remove from this chat, Edit lorebook (now always opens
+  the editor, since Enter on the row itself attaches or is a no-op, not an edit
+  — slice 50), Ask Mari, and continue with Mari — the last only for chats,
   characters, personas, lorebooks and presets, the things she can change.
 - On a touch screen the first tap on a rich row expands it and a tap on the
   expanded row runs Enter; the expanded row shows its Enter hint at every width.
-  A chat row or a message row (`goto-message`) is the exception: the first tap
-  opens it directly, since a navigation row is what a phone user expects a tap
-  to do (F4, slice 41). Opening a chat on the phone shell no longer opens the
-  Chats sidebar sheet over it afterward (`executeStateNavigation`,
-  `lib/state-navigation.ts`); the sheet only opens for a target that actually
-  is the chat list (F3, slice 41).
+  A chat row, a message row (`goto-message`), or a character/agent row is the
+  exception: the first tap opens it directly (`resultOpensDirectlyOnTap`,
+  `lib/omnibar-search.ts`), since a navigation row is what a phone user expects
+  a tap to do (F4, slice 41; extended to characters and agents in O4 item 7,
+  slice 50). Opening a chat on the phone shell no longer opens the Chats
+  sidebar sheet over it afterward, and closes it if it was already open before
+  the navigation (`executeStateNavigation`, `lib/state-navigation.ts`, F3 slice
+  41 / O4 item 6 slice 50); the sheet only opens for a target that actually is
+  the chat list. Starting a new chat (from the omnibar or the sidebar "+") also
+  closes an already-open Chats sheet on the phone shell before the setup wizard
+  opens (`hooks/use-start-new-chat-mode.ts`, O4 item 5, slice 50).
 
 ## 6. Cross-chat message search
 
@@ -446,9 +464,19 @@ The omnibar reuses the app's global chat search; it has no search of its own.
 - The client only calls it at 3 characters or more, with no scope or with `msg:`,
   and shows the first few hits from other chats as rows.
 - Choosing a hit in another chat opens that chat and then jumps: the goto request
-  is keyed by chat id and survives the switch.
+  is keyed by chat id and survives the switch. The jump retries across a few
+  animation frames instead of giving up after one (`ChatArea.tsx`'s goto
+  effect) — the transcript's own render window needs a commit to widen around
+  the target after a chat switch, and giving up too early was landing the
+  scroll on the newest message instead of the real hit (O4 item 2a, slice 50).
+  Both this path and the Search All Chats modal (`GlobalSearchModal.tsx`) share
+  the fix, since both scroll through the same `gotoRequest` consumer.
 - The full list, with filters, is the **Search all chats** command, which opens
   the modal. **Activity overview** is a command too.
+- "Ask Mari" is never promoted above a direct hit from messages, lorebook
+  entries or docs (`directHitCount` in `GlobalOmnibar.tsx`, F1 slice 41,
+  extended to count docs hits too in O4 item 2b, slice 50) — Enter jumps to
+  the hit instead of asking Mari.
 
 ## 7. Keyboard and pointer
 

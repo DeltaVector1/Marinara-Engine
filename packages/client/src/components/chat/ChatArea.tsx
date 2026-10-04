@@ -118,6 +118,7 @@ import {
   CHAT_FLOATING_UI_DISMISS_EVENT,
   CHAT_PEEK_PROMPT_REQUEST_EVENT,
   CHAT_REGENERATE_REQUEST_EVENT,
+  CHAT_RETRY_WITH_CONNECTION_REQUEST_EVENT,
 } from "../../lib/chat-floating-ui-events";
 import {
   CHAT_TOOLBAR_ACTION_EVENT,
@@ -837,6 +838,16 @@ const LocalChatArea = memo(function LocalChatArea() {
     if (!activeChatId || isStreaming) return;
     void generate({ chatId: activeChatId, connectionId: null });
   }, [activeChatId, isStreaming, generate]);
+  // The omnibar's Fix row lists the chat's other connections; picking one
+  // retries with it just for this message, without changing the chat's own
+  // connection (O4 item 3).
+  const handleRetryWithConnection = useCallback(
+    (connectionId: string) => {
+      if (!activeChatId || isStreaming) return;
+      void generate({ chatId: activeChatId, connectionId });
+    },
+    [activeChatId, isStreaming, generate],
+  );
   const generateGallerySelfie = useGenerateGallerySelfie(activeChatId ?? "");
   const { mutateAsync: setActiveSwipe } = useSetActiveSwipe(activeChatId);
   const setActiveChatId = useChatStore((s) => s.setActiveChatId);
@@ -2416,13 +2427,21 @@ const LocalChatArea = memo(function LocalChatArea() {
       if (!latestAssistantMessageForSwipes) return;
       void handleRegenerate(latestAssistantMessageForSwipes.id, { skipTouchConfirm: true });
     };
+    const handleRetryWithConnectionRequest = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as { chatId?: unknown; connectionId?: unknown } | null;
+      if (detail?.chatId !== activeChatId || typeof detail.connectionId !== "string") return;
+      handleRetryWithConnection(detail.connectionId);
+    };
     window.addEventListener(CHAT_PEEK_PROMPT_REQUEST_EVENT, handlePeekPromptRequest);
     window.addEventListener(CHAT_REGENERATE_REQUEST_EVENT, handleRegenerateRequest);
+    window.addEventListener(CHAT_RETRY_WITH_CONNECTION_REQUEST_EVENT, handleRetryWithConnectionRequest);
     return () => {
       window.removeEventListener(CHAT_PEEK_PROMPT_REQUEST_EVENT, handlePeekPromptRequest);
       window.removeEventListener(CHAT_REGENERATE_REQUEST_EVENT, handleRegenerateRequest);
+      window.removeEventListener(CHAT_RETRY_WITH_CONNECTION_REQUEST_EVENT, handleRetryWithConnectionRequest);
     };
-  }, [activeChatId, handlePeekPrompt, handleRegenerate, latestAssistantMessageForSwipes]);
+  }, [activeChatId, handlePeekPrompt, handleRegenerate, latestAssistantMessageForSwipes, handleRetryWithConnection]);
 
   const latestMessageForEdit = useMemo(() => {
     if (!messages) return null;
@@ -3069,17 +3088,38 @@ const LocalChatArea = memo(function LocalChatArea() {
         useChatStore.getState().clearGotoRequest();
         return;
       }
-      // Wait one frame so newly-loaded messages are painted before scrolling.
-      const raf = requestAnimationFrame(() => {
+      // The target message is in the loaded page, but the transcript only
+      // mounts a render window of it; the surface's own effect still needs a
+      // commit to widen that window to include the target — especially right
+      // after switching chats, where the first frame still shows the old
+      // chat's DOM. Giving up after a single frame landed on the newest
+      // message instead of the hit (O4 item 2), so retry across a few frames
+      // before giving up.
+      let cancelled = false;
+      let attempts = 0;
+      let rafId = 0;
+      const tryScroll = () => {
+        if (cancelled) return;
         const el = document.querySelector(`[data-message-id="${CSS.escape(targetId)}"]`);
         if (el instanceof HTMLElement) {
           openedAtBottomChatIdRef.current = activeChatId;
           el.scrollIntoView({ behavior: "smooth", block: "center" });
           userScrolledAwayRef.current = true; // suppress auto-scroll-to-bottom hijacking the jump
+          useChatStore.getState().clearGotoRequest();
+          return;
         }
-        useChatStore.getState().clearGotoRequest();
-      });
-      return () => cancelAnimationFrame(raf);
+        attempts += 1;
+        if (attempts >= 20) {
+          useChatStore.getState().clearGotoRequest();
+          return;
+        }
+        rafId = requestAnimationFrame(tryScroll);
+      };
+      rafId = requestAnimationFrame(tryScroll);
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(rafId);
+      };
     }
 
     // Target is older than the loaded window — fetch the next (older) page.

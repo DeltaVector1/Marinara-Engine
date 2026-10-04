@@ -29,9 +29,12 @@ import {
   getUnambiguousOmnibarResult,
   isDirectActiveChatAction,
   parseOmnibarIntent,
+  resultOpensDirectlyOnTap,
   searchOmnibar,
   type OmnibarResult,
 } from "../../packages/client/src/lib/omnibar-search.js";
+import { resolveChatResourceDropAction } from "../../packages/client/src/lib/chat-resource-drop-capabilities.js";
+import { extractDocsSearchQuery } from "../../packages/client/src/lib/docs-command-search.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
@@ -3146,6 +3149,97 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.ok(
     (labelMatch?.score ?? 0) > (keywordMatch?.score ?? 0),
     "the label match's score must exceed the keyword match's score",
+  );
+}
+
+// O4 item 1: a lorebook row's plain-name Enter/tap must attach it to the open
+// chat when it is not already active there, and must never be the thing that
+// flips the global Enabled switch — that used to silently disable the
+// lorebook app-wide with no visible Undo. `attachLorebookIfNotActive` in
+// GlobalOmnibar.tsx decides this with `resolveChatResourceDropAction`, so
+// pinning that decision here is what actually proves the fix, since the rest
+// of the dispatch lives in a component.
+{
+  const chatBase = {
+    id: "chat-1",
+    characterIds: [] as string[],
+    mode: "roleplay" as const,
+    personaId: null,
+    promptPresetId: null,
+    connectionId: null,
+  };
+  const notAttached = resolveChatResourceDropAction(
+    { version: 1, kind: "lorebook", ids: ["lorebook-a"], label: "Monastery codex" },
+    { ...chatBase, metadata: { activeLorebookIds: [] } },
+  );
+  assert.equal(notAttached?.type, "add-lorebooks", "a lorebook not yet active on the chat resolves to an attach");
+
+  const alreadyAttached = resolveChatResourceDropAction(
+    { version: 1, kind: "lorebook", ids: ["lorebook-a"], label: "Monastery codex" },
+    { ...chatBase, metadata: { activeLorebookIds: ["lorebook-a"] } },
+  );
+  assert.equal(
+    alreadyAttached?.type,
+    "blocked",
+    "a lorebook already active on the chat must never resolve to another attach (that gap used to fall through to the global toggle)",
+  );
+  assert.equal((alreadyAttached as { reason?: string })?.reason, "already-active");
+}
+
+// O4 item 7: character and agent rows open on the first tap on a touch
+// pointer, the same as chat and message rows already do (F4, slice 41) —
+// extending `resultOpensDirectlyOnTap` instead of leaving the two-tap
+// expand-then-open behaviour that cost a step in tasks 10 and 15.
+{
+  assert.equal(
+    resultOpensDirectlyOnTap({
+      target: { kind: "resource", resource: "character", id: "eliza" },
+      category: "character",
+    }),
+    true,
+    "a character row opens directly on tap",
+  );
+  assert.equal(
+    resultOpensDirectlyOnTap({
+      target: { kind: "resource", resource: "agent", id: "scene-critic" },
+      category: "agent",
+    }),
+    true,
+    "an agent row opens directly on tap",
+  );
+  assert.equal(
+    resultOpensDirectlyOnTap({
+      target: { kind: "resource", resource: "lorebook", id: "monastery" },
+      category: "lorebook",
+    }),
+    false,
+    "a lorebook row still expands first — it was not part of this fix",
+  );
+  assert.equal(
+    resultOpensDirectlyOnTap({ target: { kind: "chat", chatId: "chat-1" }, category: "chat" }),
+    true,
+    "chat rows keep opening directly on tap (F4)",
+  );
+}
+
+// O4 task 9: a natural-language question searches docs on its real content
+// words, not the literal phrase, so a fresh install with no model still gets
+// a deterministic docs answer instead of nothing.
+{
+  assert.equal(
+    extractDocsSearchQuery("how do lorebooks work?"),
+    "lorebooks work",
+    "question words and punctuation strip out, leaving the content words",
+  );
+  assert.equal(
+    extractDocsSearchQuery("openrouter"),
+    "openrouter",
+    "a query with no stopwords passes through unchanged",
+  );
+  assert.equal(
+    extractDocsSearchQuery("how do"),
+    "how do",
+    "stripping everything falls back to the original query instead of searching on nothing",
   );
 }
 

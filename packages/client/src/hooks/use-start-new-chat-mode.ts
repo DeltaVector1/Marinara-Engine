@@ -3,7 +3,7 @@ import { useApplyChatPreset, useChatPresets } from "./use-chat-presets";
 import { useCreateChat } from "./use-chats";
 import { useConnections } from "./use-connections";
 import { useChatStore } from "../stores/chat.store";
-import { useUIStore } from "../stores/ui.store";
+import { isMobileShellViewport, useUIStore } from "../stores/ui.store";
 import { CHAT_MODE_OPTIONS, type ChatLaunchMode } from "../components/chat/ChatModeSelectorModal";
 
 /**
@@ -43,7 +43,11 @@ export function useStartNewChatMode() {
       connectionId: starred?.settings.connectionId ?? undefined,
       promptPresetId: starred?.settings.promptPresetId ?? undefined,
     });
-    useUIStore.getState().setSidebarOpen(true);
+    // On the phone shell the sidebar is the full-screen Chats sheet, so
+    // opening it here would cover the wizard about to open (O4 item 5); on
+    // desktop it stays open the way starting a chat from the sidebar "+"
+    // already left it.
+    useUIStore.getState().setSidebarOpen(!isMobileShellViewport());
     store.setActiveChatId(chat.id);
     store.setShouldOpenSettings(true);
     store.setShouldOpenWizard(true);

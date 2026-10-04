@@ -111,7 +111,17 @@ export function CommandCenterResultRow({
             </span>
           ) : null}
         </span>
-        <span className="flex min-w-0 max-w-36 items-center justify-end gap-2 truncate text-xs text-[var(--muted-foreground)] sm:max-w-48">
+        {/* Hidden on mobile when a control (e.g. the lorebook Enabled switch)
+            also claims row width: a few chopped characters from the left
+            edge of a right-aligned, overflow-hidden line read as broken, and
+            the title fitting is what matters there. It comes back once
+            there's room (O4 item 1). */}
+        <span
+          className={cn(
+            "min-w-0 items-center justify-end gap-2 truncate text-xs text-[var(--muted-foreground)] sm:flex sm:max-w-48",
+            control ? "hidden" : "flex max-w-36",
+          )}
+        >
           {tertiaryMetadata}
           {currentChoice ? <span className="truncate font-medium">{currentChoice}</span> : null}
           {!control && setupStatus ? (

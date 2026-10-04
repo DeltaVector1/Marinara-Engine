@@ -4,6 +4,21 @@ Question from the maintainer (2026-10-04): what does the omnibar add compared wi
 worth it only where it is faster or easier than the normal app. This file measures that on the running app.
 It feeds slice 50 (O4, fix or remove). No application code was changed for it.
 
+**Status after slice 50 (2026-10-04):** the table and step counts below are the historical pre-fix
+measurement and are kept as-is rather than re-measured in place — re-walking all 15 tasks live needs the
+same reviewer-on-the-real-app pass slice 47 used, which belongs to slice 51's fresh-eyes check, not a
+code-only slice. What changed in slice 50: item 1 (harmful lorebook-disable bug), the goto-message bug in
+item 2(a), the Ask-Mari-promotion bug in item 2(b) and the "wins that still have defects" entries for tasks
+6/13, item 3 (Fix row retry choice), item 4 (omnibar closes after a chat-scoped choice; persona switcher's
+"Ungrouped" folder removed), item 5 (new-chat wizard closes the phone Chats sheet), item 6 (reopening a chat
+closes a pre-existing phone Chats sheet), item 7 (character/agent rows open on the first tap), item 8
+(renamed "Peek prompt" to "Preview next prompt"), and the task 9 fresh-install docs-rows fix and the
+`docs/development` index-exclusion fix. None of these fixes change a task's **step count** (the plan said not
+to invest further once a gap was closed, e.g. item 1 is still 3 steps, not fewer than the Lorebooks-panel
+icon) — they remove the bugs and extra steps the notes below describe, so the **Note** column for the
+affected rows is now the pre-fix description of a fixed bug, not the current behavior. See `CHANGELOG.md`
+and `docs/development/omnibar-feature-inventory.md` for what slice 50 actually shipped.
+
 ## How it was measured
 
 - **Build.** `feat/omnibar-professor-mari` at `04ce44f41`, run with

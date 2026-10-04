@@ -286,6 +286,14 @@ async function collectDocs(dir: string, relativeDir: string): Promise<DocSummary
       continue;
     }
     if (!entry.isFile() || !entry.name.toLowerCase().endsWith(".md")) continue;
+    // docs/development is developer reference, not a user doc dump: only the
+    // curated top-level files in DOC_ORDER.development are user-facing.
+    // Everything else there (internal plans, value tables, mockup notes, and
+    // anything nested a level deeper) must never show up as a "user doc" in
+    // the viewer or in search (O4: this is how docs/development/omnibar-*.md
+    // working files would otherwise leak in).
+    const isDevelopmentDoc = relativeDir === "development" || relativeDir.startsWith("development/");
+    if (isDevelopmentDoc && !(relativeDir === "development" && DOC_ORDER.development?.includes(entry.name))) continue;
     const relativePath = relativeDir ? `${relativeDir}/${entry.name}` : entry.name;
     const filePath = join(dir, entry.name);
     try {

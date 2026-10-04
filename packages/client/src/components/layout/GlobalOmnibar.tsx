@@ -61,6 +61,7 @@ import {
   requestChatLorebookEntriesOpen,
   requestChatPeekPrompt,
   requestChatRegenerate,
+  requestChatRetryWithConnection,
   requestChatSearchOpen,
   requestChatSummaryOpen,
 } from "../../lib/chat-floating-ui-events";
@@ -144,6 +145,7 @@ import {
   filterOmnibarFuzzyFallback,
   getOmnibarActiveChatContextResultIds,
   isDirectActiveChatAction,
+  resultOpensDirectlyOnTap,
   parseOmnibarIntent,
   type OmnibarAction,
   type OmnibarCategory,
@@ -273,6 +275,16 @@ const CHAT_RESOURCE_KIND: Partial<Record<OmnibarCategory, ChatResourceDragKind>>
   connection: "connection",
   agent: "agent",
 };
+/**
+ * Choosing one of these picks it for the active chat and is a complete
+ * action, not a step in browsing, so it closes the omnibar like any other row
+ * (O4 item 4) instead of leaving the user to press Esc.
+ */
+const CHAT_SCOPED_CHOICE_CONTROL_IDS = new Set([
+  "control:chat-connection",
+  "control:chat-preset",
+  "control:chat-persona",
+]);
 
 // Leading resource-kind words to strip from a "create <kind> <name>" query so the
 // create modal opens with just the typed name pre-filled.
@@ -1161,8 +1173,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     [globalMessageQuery, lorebookEntrySearch.data, lorebookNameById, messageSearchQuery, t],
   );
   // F1: an exact message/entry hit should win over the Mari fallback promotion
-  // even when nothing else scored well (slice 41).
-  const directHitCount = messageResults.length + globalMessageResults.length + lorebookEntryResults.length;
+  // even when nothing else scored well (slice 41). Docs hits are the same
+  // kind of late-arriving direct answer (search results that land after their
+  // own debounce), so they count too — "Ask Mari" must not outrank a direct
+  // hit from any of these late sources (O4 item 2b / tasks 6 and 13).
+  const directHitCount =
+    messageResults.length + globalMessageResults.length + lorebookEntryResults.length + docs.results.length;
   const searchResults = useMemo<OmnibarResult[]>(
     () =>
       buildOmnibarSearchResults({
@@ -1227,43 +1243,19 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   );
   // Context-aware results: read the app's current location (active chat, open
   // editor) and surface direct jumps to whatever is on screen and under it.
-  const contextResults = useMemo<OmnibarResult[]>(
-    () =>
-      buildOmnibarContextResults({
-        activeChat,
-        activeChatId,
-        activeEditorField,
-        agents: agents.data,
-        allLocalResults,
-        characterNameById,
-        connectionById,
-        lastAppError,
-        lorebooks: lorebooks.data,
-        mariEnabled,
-        omnibarSuggestionsEnabled,
-        openAgentId,
-        openCharacterId,
-        openConnectionId,
-        openLorebookId,
-        openPersonaId,
-        openPresetId,
-        personaById,
-        personas: personas.data,
-        presets: presets.data,
-        surface: omnibarContext.surface,
-        t,
-      }),
-    [
+  const contextResults = useMemo<OmnibarResult[]>(() => {
+    const built = buildOmnibarContextResults({
       activeChat,
       activeChatId,
       activeEditorField,
+      agents: agents.data,
       allLocalResults,
-      agents.data,
       characterNameById,
       connectionById,
       lastAppError,
-      lorebooks.data,
+      lorebooks: lorebooks.data,
       mariEnabled,
+      omnibarSuggestionsEnabled,
       openAgentId,
       openCharacterId,
       openConnectionId,
@@ -1271,13 +1263,61 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       openPersonaId,
       openPresetId,
       personaById,
-      personas.data,
-      presets.data,
-      omnibarSuggestionsEnabled,
-      omnibarContext.surface,
+      personas: personas.data,
+      presets: presets.data,
+      surface: omnibarContext.surface,
       t,
-    ],
-  );
+    });
+    // The Fix row for a failed reply only opened the broken connection's
+    // editor; picking one of the chat's other connections here now retries
+    // the failed message with it at once (O4 item 3).
+    const retry = lastAppError?.retry;
+    if (!activeChatId || retry?.kind !== "open-connection") return built;
+    const fixRowId = `connection:${retry.id}`;
+    const otherConnections = languageConnections.filter((connection) => connection.id !== retry.id);
+    if (otherConnections.length === 0) return built;
+    return built.map((result) =>
+      result.id === fixRowId
+        ? {
+            ...result,
+            control: {
+              type: "choice" as const,
+              label: t("commandCenter.actions.retryWithConnection", "Retry with"),
+              value: "",
+              options: otherConnections.map((connection) => ({ value: connection.id, label: connection.name })),
+              onChange: (value: string | boolean) => {
+                const connectionId = String(value);
+                if (connectionId) requestChatRetryWithConnection(activeChatId, connectionId);
+              },
+            },
+          }
+        : result,
+    );
+  }, [
+    activeChat,
+    activeChatId,
+    activeEditorField,
+    allLocalResults,
+    agents.data,
+    characterNameById,
+    connectionById,
+    languageConnections,
+    lastAppError,
+    lorebooks.data,
+    mariEnabled,
+    openAgentId,
+    openCharacterId,
+    openConnectionId,
+    openLorebookId,
+    openPersonaId,
+    openPresetId,
+    personaById,
+    personas.data,
+    presets.data,
+    omnibarSuggestionsEnabled,
+    omnibarContext.surface,
+    t,
+  ]);
   // M9: what Mari says when she opens on this screen. Built here, where the omnibar context already is,
   // so every door (⌘J, the pull, Home, ⌘K) shows the same thing. Names, counts and times only (R22).
   const queryClient = useQueryClient();
@@ -2104,6 +2144,21 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (kind !== "character" && kind !== "lorebook") onClose();
     return true;
   };
+  /**
+   * Attaches a lorebook to the open chat unless it is already active there, in
+   * which case there is nothing to attach (O4 item 1).
+   */
+  const attachLorebookIfNotActive = (result: OmnibarResult): boolean => {
+    if (!activeChat) return false;
+    const id = getOmnibarResourceId(result);
+    if (!id) return false;
+    const payload: ChatResourceDragPayload = { version: 1, kind: "lorebook", ids: [id], label: result.title };
+    if (resolveChatResourceDropAction(payload, activeChat)?.type === "blocked") return false;
+    return attachToChat("lorebook", id, result.title, result.id);
+  };
+  /** A lorebook row's own "Enabled" toggle, as opposed to the explicit "Add X to chat" suggestion row. */
+  const isLorebookEnableToggleRow = (result: Pick<OmnibarResult, "category" | "control" | "action">) =>
+    result.category === "lorebook" && result.control?.type === "toggle" && !result.action;
   const runDirectChatAction = (result: OmnibarResult) => {
     if (!activeChat || !isDirectActiveChatAction(query, result, searchResults)) return false;
     const kind = CHAT_RESOURCE_KIND[result.category];
@@ -2228,11 +2283,24 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }
   };
   const choose = (result: OmnibarResult) => {
-    if (result.control) return;
     if (result.action) {
       runResultAction(result, result.action);
       return;
     }
+    if (isLorebookEnableToggleRow(result)) {
+      // Enter/tap attaches it to the open chat when it is not already active
+      // there, the same unambiguous rule "add <character>" uses, instead of
+      // flipping the global Enabled switch — the default action used to
+      // silently disable it app-wide with no visible Undo (O4 item 1). The
+      // switch rendered beside the row is the only door left to that toggle.
+      if (attachLorebookIfNotActive(result)) return;
+      if (result.target && navigate(result.target)) {
+        recordUse(result.id);
+        onClose();
+      }
+      return;
+    }
+    if (result.control) return;
     if (runDirectChatAction(result)) return;
     if (runSystemAction(result)) {
       recordUse(result.id);
@@ -2288,6 +2356,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // does not jump; a row found by typing has no parent on screen.
     const parentId = readChoiceOptionId(result.id)?.parentId;
     setExpandedChoiceId(null);
+    if (parentId && CHAT_SCOPED_CHOICE_CONTROL_IDS.has(parentId)) {
+      toast.success(
+        t("commandCenter.actions.chatControlChosen", "{{label}}: {{value}}", {
+          label: result.description ?? result.command.title,
+          value: result.title,
+        }),
+      );
+      recordUse(result.id);
+      onClose();
+      return true;
+    }
     if (parentId && presentation.results.some((row) => row.id === parentId)) setActiveResultId(parentId);
     return true;
   };
@@ -2332,12 +2411,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (chooseChoiceOption(result)) return;
     // A first tap opens the preview; a tap on the open row runs Enter, which the
     // preview no longer repeats as a chip.
-    // Chats and messages are navigation rows: a first tap should open them, not
-    // expand a preview the user did not ask for (F4, slice 41).
-    const opensDirectlyOnTap = result.target?.kind === "chat" || result.action?.kind === "goto-message";
     if (
       !result.control &&
-      !opensDirectlyOnTap &&
+      !resultOpensDirectlyOnTap(result) &&
       expandedPreviewId !== result.id &&
       isRichResult(result) &&
       window.matchMedia("(pointer: coarse)").matches
@@ -2346,7 +2422,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       return;
     }
     setActiveResultId(result.id);
-    if (result.control?.type === "toggle") flipToggleControl(result, result.control.value !== true);
+    if (result.control?.type === "toggle" && !isLorebookEnableToggleRow(result))
+      flipToggleControl(result, result.control.value !== true);
     else if (result.control?.type === "choice")
       setExpandedChoiceId((current) => (current === result.id ? null : result.id));
     else choose(result);
@@ -2464,7 +2541,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     } else if (pane === "results" && event.key === "Enter" && activeResult) {
       event.preventDefault();
       if (chooseChoiceOption(activeResult)) return;
-      if (activeResult.control?.type === "toggle") flipToggleControl(activeResult, activeResult.control.value !== true);
+      if (activeResult.control?.type === "toggle" && !isLorebookEnableToggleRow(activeResult))
+        flipToggleControl(activeResult, activeResult.control.value !== true);
       else if (activeResult.control?.type === "choice")
         setExpandedChoiceId((current) => (current === activeResult.id ? null : activeResult.id));
       else if (mariEnabled && activeResult.id === "ask-professor-mari") {
@@ -2934,11 +3012,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         }
         if (previewResult.category === "lorebook") {
           const inActiveChat = Boolean(activeChat && attachedResultIds.has(previewResult.id));
-          // Enter flips the enabled toggle here, so editing stays an action.
+          // Enter on the row itself attaches (or is a no-op) rather than
+          // editing (O4 item 1), so editing always stays a dedicated action here.
           const editAction = {
             label: t("commandCenter.actions.editLorebook", "Edit lorebook"),
             icon: Edit3,
-            onSelect: () => choose(previewResult),
+            onSelect: () => {
+              if (previewResult.target && navigate(previewResult.target)) {
+                recordUse(previewResult.id);
+                onClose();
+              }
+            },
           };
           const askMariAction = mariEnabled
             ? {

@@ -41,6 +41,96 @@ export function searchDocsCommandTitles(query: string, index: DocsIndex | undefi
     }));
 }
 
+/** Question words and grammatical filler, stripped so a natural-language
+ * question searches docs on its real content words. */
+const DOCS_QUESTION_STOPWORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "is",
+  "are",
+  "am",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "do",
+  "does",
+  "did",
+  "can",
+  "could",
+  "should",
+  "would",
+  "will",
+  "shall",
+  "may",
+  "might",
+  "how",
+  "what",
+  "where",
+  "which",
+  "when",
+  "who",
+  "whom",
+  "whose",
+  "why",
+  "to",
+  "for",
+  "of",
+  "in",
+  "on",
+  "at",
+  "by",
+  "with",
+  "about",
+  "into",
+  "from",
+  "up",
+  "down",
+  "and",
+  "or",
+  "but",
+  "if",
+  "as",
+  "so",
+  "than",
+  "that",
+  "this",
+  "these",
+  "those",
+  "i",
+  "you",
+  "we",
+  "they",
+  "he",
+  "she",
+  "it",
+  "my",
+  "your",
+  "our",
+  "their",
+  "me",
+  "us",
+]);
+
+/**
+ * Strips question words and grammatical filler so a natural-language question
+ * ("how do lorebooks work?") searches docs on its real content words
+ * ("lorebooks work") instead of the literal phrase, which full-text search
+ * rarely matches verbatim — a fresh install with no model otherwise gets no
+ * docs rows at all for a question (O4 task 9). Falls back to the original
+ * query when stripping would leave nothing to search.
+ */
+export function extractDocsSearchQuery(query: string): string {
+  const words = query
+    .toLocaleLowerCase()
+    .replace(/[?!.,;:]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 0 && !DOCS_QUESTION_STOPWORDS.has(word));
+  return words.length > 0 ? words.join(" ") : query.trim();
+}
+
 export function toDocsCommandPassages(search: DocsSearchResponse | undefined): DocsCommandSearchPassage[] {
   // One row per doc — the best snippet — not one per matching line. A single doc
   // with many hits used to explode into dozens of identical-titled rows.
