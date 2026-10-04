@@ -83,7 +83,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 45  | Mari cards send at once; arrival errors stay strict (N4, N6)    | designer         | Done                 | f94dc3773 |
 | 45b | Mari looks down on the pull (N7)                                | designer         | Done                 | 9b4b1b4fe |
 | 46  | Review of slices 42-45 (N5)                                     | reviewer         | Done                 | 7502e5429 |
-| 47  | Value table: 15 tasks, steps with and without the omnibar (O1)  | reviewer         | Pending              |           |
+| 47  | Value table: 15 tasks, steps with and without the omnibar (O1)  | reviewer         | Done                 |           |
 | 48  | It learns your habits: local frecency ranking (O2)              | worker           | Pending              |           |
 | 49  | It understands your words: setting and command synonyms (O3)    | worker           | Pending              |           |
 | 50  | Fix or remove what the value table shows is not faster (O4)     | worker           | Pending              |           |
