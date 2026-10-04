@@ -93,6 +93,7 @@ Mehr dazu in [Nachrichten senden und streamen](../chats/sending-and-streaming.md
 Der Abschnitt **Input & Editing** steuert:
 
 - **Send on Enter**: in welchen Modi Enter die Nachricht abschickt.
+- **Keep guidance after regenerating**: deine Vorgabe nach einem geführten Neugenerieren im Nachrichtenfeld stehen lassen. Standardmäßig an.
 - **Speech-to-text microphone**: eine Mikrofon-Schaltfläche in den Chat-Eingaben anzeigen.
 - **Intuitive swipe navigation**: mit Pfeiltasten oder Wischgesten zwischen alternativen Antworten wechseln.
 - **Reroll past the newest swipe**: eine neue Antwort erzeugen, wenn du über den neuesten Swipe hinauswischst.

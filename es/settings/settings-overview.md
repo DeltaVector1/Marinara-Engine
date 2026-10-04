@@ -93,6 +93,7 @@ Lee más en [Enviar y transmitir mensajes](../chats/sending-and-streaming.md).
 La sección **Input & Editing** controla:
 
 - **Send on Enter**: elige qué modos envían cuando pulsas Enter.
+- **Keep guidance after regenerating**: deja tu dirección en el cuadro de mensaje después de una regeneración guiada. Activado de forma predeterminada.
 - **Speech-to-text microphone**: muestra un botón de micrófono en las entradas del chat.
 - **Intuitive swipe navigation**: usa las teclas de flecha o swipes táctiles para moverte entre respuestas alternativas.
 - **Reroll past the newest swipe**: crea una respuesta nueva cuando haces swipe más allá de la más reciente.

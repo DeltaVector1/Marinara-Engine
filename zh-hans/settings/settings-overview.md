@@ -93,6 +93,7 @@
 **Input & Editing** 部分包含：
 
 - **Send on Enter**(按 Enter 发送)：选择哪些模式下按 Enter 直接发送。
+- **Keep guidance after regenerating**(重新生成后保留引导)：引导式重新生成之后，把方向说明留在消息输入框里。默认开启。
 - **Speech-to-text microphone**(语音识别麦克风)：在聊天输入框里显示麦克风按钮。
 - **Intuitive swipe navigation**(直觉式备选回复导航)：用方向键或触屏滑动在备选回复之间切换。
 - **Reroll past the newest swipe**(滑过最新备选回复时重新生成)：滑过最新的一条备选回复时，生成一条新回复。

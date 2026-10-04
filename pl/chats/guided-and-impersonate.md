@@ -39,6 +39,8 @@ Odpowiedzią można też pokierować w trakcie ponownego generowania. Marinara w
 
 Kiedy ustawienie jest włączone, a w polu jest tekst, podpowiedź przycisku **Regenerate** zmienia się na **Regenerate (guided)**. AI tworzy nową wersję odpowiedzi, traktując wpisany tekst jako wskazówkę.
 
+Wskazówka zostaje potem w polu wiadomości, więc możesz ją poprawić i ponownie wygenerować odpowiedź. Żeby zamiast tego znikała z pola, wyłącz **Keep guidance after regenerating** w **Settings** > **General** > **Input & Editing**.
+
 ### Odczytywanie zapisanych wskazówek w oknie Stored guidance
 
 Kiedy odpowiedź powstała ze wskazówką, Marinara zapisuje tę wskazówkę do późniejszego wglądu. Przy wiadomości pojawia się akcja **Stored guidance** (zapisana wskazówka) z ikoną zwoju.

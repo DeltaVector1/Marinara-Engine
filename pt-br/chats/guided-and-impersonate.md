@@ -39,6 +39,8 @@ A resposta também pode ser guiada na hora de regenerar. Nesse caso, Marinara ap
 
 Com a configuração ativada e algum texto na caixa, a dica do botão **Regenerate** passa a mostrar **Regenerate (guided)**. A IA cria uma nova versão da resposta usando o texto digitado como rumo.
 
+Depois da regeneração, o rumo continua na caixa de mensagem, então você pode ajustá-lo e regenerar de novo. Se preferir que a caixa fique limpa, desative a opção **Keep guidance after regenerating** em **Settings** > **General** > **Input & Editing**.
+
 ### Consultar a orientação salva
 
 Quando uma resposta nasce de um rumo, Marinara salva esse rumo para você consultar depois. Uma ação **Stored guidance** (orientação salva), com ícone de pergaminho, aparece na mensagem.

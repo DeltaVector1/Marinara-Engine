@@ -39,6 +39,8 @@ También puedes guiar una respuesta mientras la regeneras. Esto reutiliza cualqu
 
 Cuando el ajuste está activado y tienes texto en el cuadro, el botón **Regenerate** cambia su tooltip (texto de ayuda) a **Regenerate (guided)**. La IA crea una nueva versión de la respuesta usando el texto que escribiste como dirección.
 
+Después, tu dirección se queda en el cuadro de mensaje, así que puedes ajustarla y volver a regenerar; si prefieres que se borre, desactiva **Keep guidance after regenerating** (Mantener la dirección después de regenerar) en **Settings** > **General** > **Input & Editing**.
+
 ### Leer la Stored guidance
 
 Cuando una respuesta se creó con una dirección, Marinara guarda esa dirección para que puedas verla después. Una acción **Stored guidance** (dirección guardada, un icono de pergamino) aparece en el mensaje.
