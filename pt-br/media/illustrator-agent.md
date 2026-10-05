@@ -65,6 +65,8 @@ Dois botões liga/desliga no card do Illustrator ajudam os personagens a ficarem
 
 **Attach Card Appearance** acrescenta ao prompt de imagem o texto de aparência salvo de cada personagem visível. O texto de ajuda diz: "Append matched character appearance lines to image prompts, using only visible/generated names." Ative quando quiser que a imagem corresponda à descrição escrita do personagem.
 
+Com **Attach Card Appearance** ativado, um card ou uma persona que também tenha **Image Appearance Override** (aparência alternativa para imagens) ativado e com texto envia esse texto no lugar de **Appearance**. Use quando **Appearance** tiver sido escrito para o narrador, mas não funcionar bem para um modelo de imagem: mantenha a descrição completa em **Appearance** e escreva uma versão mais curta, em forma de tags, no segundo campo. Se a opção estiver desativada ou o campo vazio, os prompts de imagem continuam usando **Appearance**. O narrador sempre recebe o texto completo de **Appearance** nos dois casos. O botão fica abaixo de **Appearance** nos editores de personagens e personas.
+
 **Send Avatar References** envia ao provedor de imagens os avatares de personagens e personas, ou os sprites deles (o sprite é a imagem do personagem no palco), como imagens de referência. O texto de ajuda diz: "Send matching character and persona avatars or sprites as reference images when the provider supports them." Isso ajuda o modelo de imagem a copiar um rosto ou uma roupa. Nem todo provedor aceita imagens de referência, então o resultado depende do provedor escolhido.
 
 ## Vários personagens na NovelAI

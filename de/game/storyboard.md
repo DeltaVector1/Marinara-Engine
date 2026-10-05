@@ -45,7 +45,7 @@ Taucht Storyboard in den Chat Settings nicht auf, prüf zwei Dinge: Ist das Pake
 | **Clip seconds** | 5, Bereich 1 bis 15 | Legt die gewünschte Länge jedes Clips fest |
 | **Viewer display** | Floating viewer | Standard für den Viewer im Game Mode; im Roleplay erscheinen Storyboards immer direkt im Chat |
 | **Default Roleplay episode interval** | 1, Bereich 1 bis 100 | Legt fest, wie viel neuer Roleplay-Stoff sich zwischen zwei automatischen Episoden ansammelt |
-| **Attach Card Appearance** | On | Ergänzt die Bild-Prompts um das Aussehen der erkannten Charaktere |
+| **Attach Card Appearance** | On | Ergänzt die Bild-Prompts um das Aussehen der erkannten Charaktere; Karten und Personas mit aktiviertem **Image Appearance Override** (eigene Aussehensbeschreibung für Bilder) und ausgefülltem Feld liefern diesen Text statt ihres Felds **Appearance** |
 | **Send Avatar References** | On | Schickt die Avatare der erkannten Charaktere und Personas mit, sofern der Bild-Anbieter Referenzen unterstützt |
 | **Use the final image template** | On | Formatiert ein geplantes Bild, bevor es an den Bild-Anbieter geht |
 | **Use NovelAI character prompts** | On | Nutzt die native Charakter-Prompt-Funktion offizieller NovelAI-V4/V4.5-Verbindungen |

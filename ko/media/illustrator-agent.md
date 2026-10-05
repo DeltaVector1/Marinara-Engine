@@ -65,6 +65,8 @@ Illustrator 카드의 토글 두 개는 캐릭터 외형을 일관되게 유지�
 
 **Attach Card Appearance**(카드 외형 첨부)는 장면에 등장하는 캐릭터마다 저장된 외형 설명을 이미지 프롬프트에 덧붙입니다. 도움말 문구는 다음과 같습니다: "Append matched character appearance lines to image prompts, using only visible/generated names." 캐릭터 설정 그대로 그림이 나오길 원할 때 켜세요.
 
+**Attach Card Appearance**가 켜져 있을 때 카드나 페르소나에서 **Image Appearance Override**(이미지용 외형 지정)도 켜고 내용을 입력했다면, **Appearance** 대신 그 글을 보냅니다. **Appearance**가 이야기용으로 쓰여 있어 이미지 모델이 이해하기 어려울 때 사용하세요. 자세한 설명은 **Appearance**에 남겨 두고, 이미지용 입력란에는 짧은 태그 형태로 작성하면 됩니다. 이 옵션을 끄거나 입력란을 비워 두면 이미지 프롬프트는 계속 **Appearance**를 사용합니다. 어느 쪽이든 이야기를 서술하는 모델에는 **Appearance**의 전체 내용이 전달됩니다. 이 옵션은 캐릭터와 페르소나 편집기의 **Appearance** 아래에 있습니다.
+
 **Send Avatar References**(아바타 참조 전송)는 캐릭터와 페르소나의 아바타 또는 스프라이트를 참조 이미지로 이미지 제공자에 보냅니다. 도움말 문구는 다음과 같습니다: "Send matching character and persona avatars or sprites as reference images when the provider supports them." 이미지 모델이 얼굴이나 복장을 따라 그리는 데 도움이 됩니다. 참조 이미지를 받지 않는 제공자도 있어서 효과는 고른 제공자에 따라 달라집니다.
 
 ## NovelAI의 여러 캐릭터 장면

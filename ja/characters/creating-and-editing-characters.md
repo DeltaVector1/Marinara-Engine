@@ -67,6 +67,7 @@ Character Editorは、チャット領域を全画面の作業スペースに置�
 - **Personality**(性格)。気質、話し方の癖、行動のパターンを短くまとめます。
 - **Backstory**(来歴)。生い立ちや出自、重要な人間関係です。
 - **Appearance**(外見)。容姿、服装、見た目の細部です。Marinaraはこの文章をAIアバターのプロンプトのもとにも使います。
+- **Image Appearance Override**(画像用の外見指定)。**Appearance**の下にあるスイッチで、デフォルトはオフです。オンにすると、画像プロンプト向けの外見の説明を入力する欄が現れます。オンの状態で内容を入力すると、画像プロンプトには**Appearance**の代わりにこの文章が使われ、AIアバターのプロンプトのもとにもなります。物語を書くモデルには、常に**Appearance**の全文が送られます。オフのままにするか、欄を空にしておくと、通常どおり**Appearance**が使われます。
 - **Scenario**(シナリオ)。このキャラクターと新しくチャットを始めるときの、デフォルトの状況設定です。
 
 **Dialogue & Greetings**(会話と挨拶メッセージ)セクションでは、チャットの始まり方とキャラクターの語り口を決めます。
@@ -103,7 +104,7 @@ AIアバターの項目は、画像生成用の接続を1つ以上設定して�
 1. アバターのタイルにマウスを重ね、小さな**Generate avatar**(アバターの生成)の杖ボタンをクリックします。
 2. **Generate Character Avatar**ウィンドウが開きます。
 3. **Image Generation Connection**(画像生成の接続)を選びます。
-4. **Avatar Prompt**(アバターのプロンプト)を確認し、必要なら書き換えます。ここにはAppearanceの文章があらかじめ入ります。Appearanceが空のときはDescription、それも空ならPersonalityが使われます。
+4. **Avatar Prompt**(アバターのプロンプト)を確認し、必要なら書き換えます。**Image Appearance Override**がオンで、欄に内容が入力されている場合は、その文章があらかじめ入ります。それ以外の場合は**Appearance**が使われ、空のときは**Description**、それも空なら**Personality**が使われます。
 5. カードにすでにアバターがある場合は、**Use current avatar as a reference**にチェックを入れられます。
 6. **Generate**をクリックします。やり直すときは**Regenerate**をクリックします。
 7. 気に入った結果が出たら、**Use Avatar**をクリックします。

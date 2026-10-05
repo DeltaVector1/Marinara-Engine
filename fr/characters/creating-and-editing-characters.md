@@ -67,6 +67,7 @@ L'onglet **Card** est l'espace de rédaction principal. Il contient les champs q
 - **Personality**. Un court résumé du tempérament, des habitudes de langage et des comportements types.
 - **Backstory**. Le passé, les origines et les relations importantes.
 - **Appearance**. La description physique, les vêtements et les détails visuels. Marinara se sert aussi de ce texte pour préremplir un prompt d'avatar IA.
+- **Image Appearance Override** (apparence propre aux images). Un interrupteur facultatif sous **Appearance**, désactivé par défaut. Active-le pour afficher un second champ où tu peux décrire le personnage avec un texte adapté à la génération d'images. S'il est activé et que le champ contient du texte, les prompts d'image utilisent ce texte à la place d'**Appearance** ; il sert aussi à préremplir le prompt d'avatar IA. Le narrateur reçoit toujours le texte complet d'**Appearance**. Si l'interrupteur est désactivé ou le champ vide, **Appearance** reste utilisé comme avant.
 - **Scenario**. Le cadre par défaut des nouveaux chats avec ce personnage.
 
 La section **Dialogue & Greetings** définit l'ouverture du chat et le ton du personnage :
@@ -103,7 +104,7 @@ L'option d'avatar IA n'apparaît que si au moins une connexion de génération d
 1. Survole la vignette de l'avatar et clique sur le petit bouton baguette **Generate avatar**.
 2. La fenêtre **Generate Character Avatar** s'ouvre.
 3. Choisis une **Image Generation Connection**.
-4. Relis ou modifie l'**Avatar Prompt**. Il est prérempli à partir du texte Appearance. Si Appearance est vide, Marinara utilise Description, puis Personality.
+4. Relis ou modifie l'**Avatar Prompt**. Il est prérempli avec le texte d'**Image Appearance Override** si l'option est activée et que son champ contient du texte. Sinon, Marinara utilise **Appearance** ; si ce champ est vide, il utilise **Description**, puis **Personality**.
 5. Si la fiche a déjà un avatar, tu peux cocher **Use current avatar as a reference**.
 6. Clique sur **Generate**. Pour un nouvel essai, clique sur **Regenerate**.
 7. Quand le résultat te convient, clique sur **Use Avatar**.

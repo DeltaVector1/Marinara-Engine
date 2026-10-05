@@ -55,6 +55,8 @@ Pour en savoir plus sur les styles, consulte [Profils de style d'image](../media
 
 **Attach Card Appearance** (joindre l'apparence de la fiche) est un interrupteur désactivé par défaut. Quand il est actif, Marinara ajoute le texte d'apparence de la fiche de personnage à la description du selfie. Le modèle dispose ainsi de plus de détails sur le physique du personnage.
 
+Si la fiche ou le persona a aussi **Image Appearance Override** (apparence propre aux images) activé et que son champ contient du texte, Marinara envoie ce texte à la place d'**Appearance**. Active cette option sous **Appearance** dans l'éditeur de personnage ou de persona lorsque la description complète est écrite pour le narrateur plutôt que pour un modèle d'images. Le narrateur continue de recevoir la description complète. Si tu désactives l'option ou laisses le champ vide, les images utilisent de nouveau **Appearance**.
+
 ### Resolution
 
 Le réglage **Resolution** (résolution) définit la taille de l'image du selfie. Les boutons **Resolution** n'apparaissent qu'après avoir choisi une **Selfie Connection**. Choisis l'un des boutons rapides. La valeur par défaut est **896x1152**, un format portrait allongé qui convient à la plupart des selfies.

@@ -82,6 +82,7 @@ La pestaña **Card** (Tarjeta) es donde escribes los campos centrales de la pers
 - **Personality** (Personalidad): tu temperamento, comportamiento, hábitos de habla y patrones emocionales.
 - **Backstory** (Trasfondo): tu historia, origen, relaciones y eventos formativos.
 - **Appearance** (Apariencia): descripción física, ropa y detalles visuales que el modelo debe recordar.
+- **Image Appearance Override** (Apariencia alternativa para imágenes): un interruptor opcional debajo de **Appearance**, desactivado de forma predeterminada. Actívalo para mostrar un segundo cuadro donde puedas escribir una descripción de tu persona pensada para generar imágenes. Si está activado y el cuadro contiene texto, los prompts de imagen usan ese texto en lugar de **Appearance**. Si está desactivado o el cuadro está vacío, siguen usando **Appearance**. El narrador siempre recibe el texto completo de **Appearance**.
 - **Scenario** (Escenario): tu situación o contexto predeterminado para los roleplays. Úsalo para establecer dónde empieza tu persona.
 
 Estos cuadros de texto admiten macros. Los caracteres de comilla que escribes se formatean automáticamente para coincidir con el estilo de comillas de tu app.

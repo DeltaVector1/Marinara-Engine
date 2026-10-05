@@ -55,6 +55,8 @@ Mehr zu Stilen erfährst du unter [Style Profiles für Bilder](../media/style-pr
 
 **Attach Card Appearance** (Aussehen der Karte anhängen) ist ein Schalter und standardmäßig aus. Ist er an, ergänzt Marinara die Selfie-Beschreibung um den Aussehens-Text der Charakterkarte. Das Modell weiß dann genauer, wie der Charakter aussieht.
 
+Ist auf der Charakterkarte oder bei der Persona auch **Image Appearance Override** (eigene Aussehensbeschreibung für Bilder) eingeschaltet und das zugehörige Feld ausgefüllt, sendet Marinara diesen Text statt **Appearance**. Du findest den Schalter unter **Appearance** im Charakter- oder Persona-Editor. Nutze ihn, wenn die ausführliche Beschreibung für den Erzähler gedacht ist und sich für ein Bildmodell weniger eignet.
+
 ### Resolution
 
 **Resolution** (Auflösung) legt die Größe des Selfie-Bildes fest. Die Schaltflächen unter **Resolution** erscheinen erst, wenn du eine **Selfie Connection** ausgewählt hast. Wähle eine der Schnellauswahl-Schaltflächen. Standard ist **896x1152**, ein hohes Hochformat, das zu den meisten Selfies passt.

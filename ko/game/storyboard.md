@@ -45,7 +45,7 @@
 | **Clip seconds**(클립 길이, 초 단위) | 5(1에서 15까지) | 클립 하나에 요청할 길이를 정합니다 |
 | **Viewer display**(뷰어 표시) | Floating viewer | Game Mode 뷰어의 기본값을 정합니다. Roleplay는 스토리보드를 항상 인라인으로 표시합니다 |
 | **Default Roleplay episode interval**(기본 롤플레이 에피소드 간격) | 1(1에서 100까지) | 자동 에피소드 사이에 새 Roleplay 내용이 얼마나 쌓이게 할지 정합니다 |
-| **Attach Card Appearance**(카드 외형 첨부) | On | 이미지 프롬프트에 해당 캐릭터의 외형 설명을 더합니다 |
+| **Attach Card Appearance**(카드 외형 첨부) | On | 이미지 프롬프트에 해당 캐릭터의 외형 설명을 더합니다. 카드나 페르소나에서 **Image Appearance Override**(이미지용 외형 지정)를 켜고 내용을 입력했다면 **Appearance** 대신 그 글을 사용합니다 |
 | **Send Avatar References**(아바타 참조 전송) | On | 이미지 제공자가 참조 이미지를 지원하면 해당 캐릭터와 페르소나의 아바타를 보냅니다 |
 | **Use the final image template**(최종 이미지 템플릿 사용) | On | 계획한 프레임을 이미지 제공자에게 보내기 전에 형식에 맞게 다듬습니다 |
 | **Use NovelAI character prompts**(NovelAI 캐릭터 프롬프트 사용) | On | 지원되는 공식 NovelAI V4/V4.5 연결에서 캐릭터별 자체 프롬프트 방식을 씁니다 |

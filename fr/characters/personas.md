@@ -82,6 +82,7 @@ L'onglet **Card** (fiche) accueille les champs principaux du persona. Chaque cha
 - **Personality** (personnalité) : ton tempérament, ton comportement, tes façons de parler et tes réactions émotionnelles.
 - **Backstory** (passé) : ton histoire, tes origines, tes relations et les événements qui t'ont façonné.
 - **Appearance** (apparence) : description physique, vêtements et détails visuels que le modèle doit retenir.
+- **Image Appearance Override** (apparence propre aux images) : un interrupteur facultatif sous **Appearance**, désactivé par défaut. Active-le pour afficher un second champ où tu peux décrire ton persona avec un texte adapté à la génération d'images. S'il est activé et que le champ contient du texte, les prompts d'image utilisent ce texte à la place d'**Appearance**. Si l'interrupteur est désactivé ou le champ vide, ils continuent d'utiliser **Appearance**. Le narrateur reçoit toujours le texte complet d'**Appearance**.
 - **Scenario** (scénario) : ta situation ou ton contexte par défaut pour les roleplays. Sers-t'en pour poser le point de départ du persona.
 
 Ces zones de texte acceptent les macros. Les guillemets que tu saisis sont reformatés automatiquement selon le style de guillemets réglé dans l'application.

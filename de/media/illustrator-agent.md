@@ -65,6 +65,8 @@ Zwei Schalter auf der Illustrator-Karte sorgen dafür, dass Charaktere durchgän
 
 **Attach Card Appearance** (Aussehen der Karte anhängen) hängt den gespeicherten Aussehen-Text jedes sichtbaren Charakters an den Prompt für das Bild an. Der Hilfetext lautet: „Append matched character appearance lines to image prompts, using only visible/generated names.“ Aktiviere den Schalter, wenn das Bild dazu passen soll, wie ein Charakter beschrieben ist.
 
+Wenn **Attach Card Appearance** eingeschaltet ist, liefern Karten und Personas mit aktiviertem **Image Appearance Override** (eigene Aussehensbeschreibung für Bilder) diesen Text statt **Appearance**. Das hilft, wenn **Appearance** für den Erzähler geschrieben ist, das Bildmodell den Text aber schlecht umsetzt: Lass die ausführliche Beschreibung in **Appearance** und schreibe eine kürzere Fassung mit Tags in das zusätzliche Feld. Ist der Schalter aus oder das Feld leer, verwenden Bild-Prompts weiterhin **Appearance**. Der Erzähler bekommt in beiden Fällen den vollständigen Text aus **Appearance**. Der Schalter steht unter **Appearance** im Charakter- und Persona-Editor.
+
 **Send Avatar References** (Avatar-Referenzen senden) schickt die Avatare von Charakteren und Personas – oder deren Sprites – als Referenzbilder an den Bild-Anbieter. Der Hilfetext lautet: „Send matching character and persona avatars or sprites as reference images when the provider supports them.“ So kann das Bildmodell ein Gesicht oder ein Outfit übernehmen. Nicht jeder Anbieter akzeptiert Referenzbilder; die Wirkung hängt also vom gewählten Anbieter ab.
 
 ## Mehrere Figuren mit NovelAI

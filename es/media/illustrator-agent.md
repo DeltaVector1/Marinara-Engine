@@ -65,6 +65,8 @@ Dos interruptores en la tarjeta del Illustrator ayudan a que los personajes se v
 
 **Attach Card Appearance** agrega el texto de apariencia guardado de cada personaje visible al prompt de imagen. Su texto de ayuda dice: "Append matched character appearance lines to image prompts, using only visible/generated names." Actívalo cuando quieras que la imagen coincida con cómo está escrito un personaje.
 
+Con **Attach Card Appearance** activado, una tarjeta o persona que también tenga **Image Appearance Override** (Apariencia alternativa para imágenes) activado y con texto envía ese texto en lugar de **Appearance**. Úsalo cuando **Appearance** esté escrito para el narrador, pero no funcione bien para un modelo de imágenes: conserva la descripción completa en **Appearance** y escribe una versión más corta, en forma de etiquetas, en el segundo cuadro. Si la opción está desactivada o el cuadro está vacío, los prompts de imagen siguen usando **Appearance**. El narrador siempre recibe el texto completo de **Appearance** en ambos casos. El interruptor está debajo de **Appearance** en los editores de personajes y personas.
+
 **Send Avatar References** envía los avatares de personajes y personas, o sus sprites (imágenes del personaje), al proveedor de imágenes como imágenes de referencia. Su texto de ayuda dice: "Send matching character and persona avatars or sprites as reference images when the provider supports them." Esto ayuda al modelo de imágenes a copiar una cara o un atuendo. No todos los proveedores aceptan imágenes de referencia, así que el efecto depende del proveedor que elegiste.
 
 ## Varios personajes en NovelAI

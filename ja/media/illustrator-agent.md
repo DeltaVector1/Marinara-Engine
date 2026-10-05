@@ -65,6 +65,8 @@ Illustratorのカードにある2つのトグルは、キャラクターの見�
 
 **Attach Card Appearance**(カードの外見情報を添付)は、その場に登場しているキャラクターごとに、保存された外見の記述を画像プロンプトへ追加します。ヘルプの文言は「Append matched character appearance lines to image prompts, using only visible/generated names.」です。キャラクターの設定どおりの姿で描いてほしいときにオンにします。
 
+**Attach Card Appearance**がオンのとき、カードやペルソナの**Image Appearance Override**(画像用の外見指定)もオンで、その欄に内容が入力されていれば、**Appearance**の代わりにそちらの文章を送ります。物語を書くモデル向けの**Appearance**が画像モデルには伝わりにくいときに便利です。詳しい説明は**Appearance**に残し、画像用の欄には短いタグ形式の説明を入力してください。スイッチがオフの場合や欄が空の場合は、画像プロンプトにも引き続き**Appearance**を使います。どちらの場合も、物語を書くモデルには**Appearance**の全文が送られます。このスイッチは、キャラクターとペルソナのエディターの**Appearance**の下にあります。
+
 **Send Avatar References**(アバターを参照画像として送信)は、キャラクターとペルソナのアバター、またはそのスプライトを、参照画像として画像プロバイダーに送ります。ヘルプの文言は「Send matching character and persona avatars or sprites as reference images when the provider supports them.」です。顔立ちや衣装を画像モデルに真似させたいときに役立ちます。参照画像に対応していないプロバイダーもあるため、効果は選んだプロバイダーによって変わります。
 
 ## NovelAIで複数のキャラクターを描く

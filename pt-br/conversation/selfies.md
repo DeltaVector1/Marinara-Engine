@@ -55,6 +55,8 @@ O botão liga/desliga **Send Avatar References** (enviar referências de avatar)
 
 O botão liga/desliga **Attach Card Appearance** (anexar a aparência do card) vem desativado por padrão. Quando ele está ativo, Marinara acrescenta o texto de aparência do card de personagem à descrição da selfie. Com isso, o modelo recebe mais detalhes sobre o visual do personagem.
 
+Se o card ou a persona também tiver **Image Appearance Override** (aparência alternativa para imagens) ativado e o campo contiver texto, Marinara envia esse texto no lugar de **Appearance**. Ative a opção abaixo de **Appearance** no editor de personagens ou de personas quando a descrição completa tiver sido escrita para o narrador, e não para um modelo de imagem. O narrador continua recebendo a descrição completa. Se você desativar a opção ou deixar o campo vazio, as imagens voltam a usar **Appearance**.
+
 ### Resolution
 
 O campo **Resolution** define o tamanho da imagem da selfie. Os botões de **Resolution** só aparecem depois que você escolhe uma **Selfie Connection**. Escolha um dos botões rápidos. O padrão é **896x1152**, um formato retrato alto que combina com a maioria das selfies.

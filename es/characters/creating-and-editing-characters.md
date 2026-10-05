@@ -67,6 +67,7 @@ La pestaña **Card** es el espacio de escritura principal. Contiene los campos q
 - **Personality**. Un breve resumen del temperamento, los hábitos de habla y los patrones de comportamiento.
 - **Backstory**. Historia, origen y relaciones importantes.
 - **Appearance**. Descripción física, ropa y detalles visuales. Marinara también usa este texto para generar un prompt de avatar de IA.
+- **Image Appearance Override** (Apariencia alternativa para imágenes). Un interruptor opcional debajo de **Appearance**, desactivado de forma predeterminada. Actívalo para mostrar un segundo cuadro donde puedas escribir una descripción del personaje pensada para generar imágenes. Si está activado y el cuadro contiene texto, los prompts de imagen usan ese texto en lugar de **Appearance**; también sirve de base para el prompt de avatar de IA. El narrador siempre recibe el texto completo de **Appearance**. Si lo dejas desactivado o el cuadro está vacío, se sigue usando **Appearance** como antes.
 - **Scenario**. El entorno predeterminado para los nuevos chats con este personaje.
 
 La sección **Dialogue & Greetings** (Diálogo y saludos iniciales) define cómo se abre un chat y cómo suena el personaje:
@@ -103,7 +104,7 @@ La opción de avatar con IA aparece solo cuando tienes al menos una conexión de
 1. Pasa el cursor sobre la casilla del avatar y haz clic en el pequeño botón de varita **Generate avatar** (Generar avatar).
 2. Se abre la ventana **Generate Character Avatar** (Generar avatar de personaje).
 3. Elige una **Image Generation Connection** (Conexión de generación de imágenes).
-4. Revisa o edita el **Avatar Prompt** (Prompt del avatar). Viene rellenado a partir de tu texto de Appearance. Si Appearance está vacío, usa Description, y luego Personality.
+4. Revisa o edita el **Avatar Prompt** (Prompt del avatar). Se rellena con el texto de **Image Appearance Override** si la opción está activada y su cuadro contiene texto. En caso contrario, usa **Appearance**; si está vacío, usa **Description** y después **Personality**.
 5. Si la tarjeta ya tiene un avatar, puedes marcar **Use current avatar as a reference** (Usar el avatar actual como referencia).
 6. Haz clic en **Generate** (Generar). Para volver a intentarlo, haz clic en **Regenerate** (Regenerar).
 7. Cuando te guste el resultado, haz clic en **Use Avatar** (Usar avatar).

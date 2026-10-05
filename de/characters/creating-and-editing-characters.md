@@ -67,6 +67,7 @@ Der Tab **Card** ist der eigentliche Schreibarbeitsbereich. Hier stehen die Feld
 - **Personality**. Eine kurze Zusammenfassung von Temperament, Sprechgewohnheiten und Verhaltensmustern.
 - **Backstory**. Vorgeschichte, Herkunft und wichtige Beziehungen.
 - **Appearance**. Körperliche Beschreibung, Kleidung und optische Details. Marinara nutzt diesen Text außerdem als Grundlage für einen KI-Avatar-Prompt.
+- **Image Appearance Override** (eigene Aussehensbeschreibung für Bilder). Ein optionaler Schalter unter **Appearance**, standardmäßig aus. Schalte ihn ein, um ein zweites Feld für eine Beschreibung zu öffnen, die für das Bildmodell gedacht ist. Ist der Schalter an und das Feld ausgefüllt, verwenden Bild-Prompts diesen Text statt **Appearance**. Er wird auch als Vorschlag für den KI-Avatar-Prompt übernommen. Der Erzähler bekommt immer den vollständigen Text aus **Appearance**. Lass den Schalter aus, wenn du das bisherige Verhalten beibehalten möchtest.
 - **Scenario**. Der Standardrahmen für neue Chats mit diesem Charakter.
 
 Der Abschnitt **Dialogue & Greetings** legt fest, wie ein Chat beginnt und wie der Charakter klingt:
@@ -103,7 +104,7 @@ Die KI-Avatar-Option erscheint nur, wenn mindestens eine Verbindung zur Bildgene
 1. Zeig mit der Maus auf die Avatar-Kachel und klick auf die kleine Zauberstab-Schaltfläche **Generate avatar** (Avatar generieren).
 2. Das Fenster **Generate Character Avatar** öffnet sich.
 3. Wähl eine **Image Generation Connection** (Verbindung zur Bildgenerierung).
-4. Prüf den **Avatar Prompt** und passe ihn bei Bedarf an. Er ist mit dem Text aus Appearance vorbelegt. Ist Appearance leer, greift Marinara auf Description und danach auf Personality zurück.
+4. Prüf den **Avatar Prompt** und passe ihn bei Bedarf an. Ist **Image Appearance Override** eingeschaltet und ausgefüllt, wird dieser Text als Ausgangspunkt verwendet. Andernfalls nimmt Marinara den Text aus **Appearance**, danach aus **Description** und zuletzt aus **Personality** – jeweils aus dem ersten Feld, das Text enthält.
 5. Hat die Karte bereits einen Avatar, kannst du **Use current avatar as a reference** ankreuzen.
 6. Klick auf **Generate**. Für einen weiteren Versuch klick auf **Regenerate**.
 7. Gefällt dir das Ergebnis, klick auf **Use Avatar**.

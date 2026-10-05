@@ -67,6 +67,7 @@ Character Editor는 채팅 영역을 전체 화면 작업 공간으로 바꿉니
 - **Personality**(성격). 성격, 말버릇, 행동 양식을 짧게 정리합니다.
 - **Backstory**(배경 이야기). 지나온 이력, 출신, 중요한 인간관계입니다.
 - **Appearance**(모양). 외모, 옷차림, 시각적 특징입니다. Marinara는 이 글을 AI 아바타 프롬프트의 바탕으로도 씁니다.
+- **Image Appearance Override**(이미지용 외형 지정). **Appearance** 아래에 있는 토글이며, 기본값은 꺼짐입니다. 켜면 이미지 프롬프트에 맞는 캐릭터 외형 설명을 입력할 상자가 나타납니다. 켜 둔 상태에서 내용을 입력하면 이미지 프롬프트에는 **Appearance** 대신 이 글을 사용하며, AI 아바타 프롬프트의 바탕으로도 씁니다. 이야기를 서술하는 모델에는 항상 **Appearance**의 전체 내용이 전달됩니다. 꺼 두거나 입력란을 비워 두면 기존처럼 **Appearance**를 사용합니다.
 - **Scenario**(시나리오). 이 캐릭터로 새 채팅을 시작할 때 쓰는 기본 상황입니다.
 
 **Dialogue & Greetings**(대화 & 그리팅) 구역에서는 채팅이 어떻게 시작되고 캐릭터가 어떤 말투를 쓰는지 정합니다.
@@ -103,7 +104,7 @@ AI 아바타 기능은 이미지 생성 연결이 하나 이상 설정되어 있
 1. 아바타 타일 위에 마우스를 올리고 작은 지팡이 모양의 **Generate avatar**(아바타 생성) 버튼을 클릭하세요.
 2. **Generate Character Avatar**(캐릭터 아바타 생성) 창이 열립니다.
 3. **Image Generation Connection**(이미지 생성 연결)을 고르세요.
-4. **Avatar Prompt**(아바타 프롬프트)를 확인하고 필요하면 고치세요. Appearance에 쓴 내용이 미리 채워집니다. Appearance가 비어 있으면 Description을, 그것도 비어 있으면 Personality를 씁니다.
+4. **Avatar Prompt**(아바타 프롬프트)를 확인하고 필요하면 고치세요. **Image Appearance Override**가 켜져 있고 내용이 입력되어 있으면 그 글이 미리 채워집니다. 그렇지 않으면 **Appearance**를 사용하며, 비어 있으면 **Description**을, 그것도 비어 있으면 **Personality**를 씁니다.
 5. 카드에 이미 아바타가 있으면 **Use current avatar as a reference**(현재 아바타를 참조로 사용)를 체크할 수 있습니다.
 6. **Generate**(생성)를 클릭하세요. 다시 만들려면 **Regenerate**(재생성)를 클릭하세요.
 7. 마음에 드는 결과가 나오면 **Use Avatar**(아바타 사용)를 클릭하세요.
