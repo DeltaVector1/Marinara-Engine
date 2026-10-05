@@ -1,6 +1,6 @@
 {
   "language": "zh-hans",
-  "sourceCommit": "c52904c25571e4f3aaadc2e0880c3f477b8ed226",
+  "sourceCommit": "c7742851f390c412d1d35d5994506c7df1eceaca",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -229,13 +229,13 @@
     },
     {
       "path": "connections/providers-reference.md",
-      "sha256": "a0f9413fa9208cd8563a40ee561b5402d2f1019467edd9e279433aa92a5dfdb9",
-      "bytes": 12338
+      "sha256": "a09230d3342c7d1826ce256d1d0015bbd4e3cde6bfce630145e31f1d81505b62",
+      "bytes": 12495
     },
     {
       "path": "connections/subscription-clis.md",
-      "sha256": "171638b171407eb8c3ce9ebc5249aadd3dc8fa5cd1a3042a4bd6975f08547556",
-      "bytes": 8059
+      "sha256": "6f9a85a754cdc5f63f40cf523d2a43018cec88d5893659ce80c4f4c5b6e396b4",
+      "bytes": 8827
     },
     {
       "path": "contrib/engine-foundations-overview.md",
