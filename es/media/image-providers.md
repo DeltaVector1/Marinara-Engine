@@ -33,6 +33,7 @@ La tabla de abajo muestra cada servicio de un vistazo. Los detalles y peculiarid
 | ChatGPT (Codex login) | No, usa tu `codex login` | Nube |
 | Stability AI | Sí | Nube |
 | Together AI | Sí | Nube |
+| Arli AI | Sí | Nube |
 | NovelAI | Sí | Nube |
 | OpenRouter Images | Sí | Nube |
 | xAI / Grok Imagine | Sí | Nube |
@@ -47,6 +48,7 @@ La tabla de abajo muestra cada servicio de un vistazo. Los detalles y peculiarid
 | Stable Horde | Opcional | Nube gratuita |
 | SD Web UI (AUTOMATIC1111 / Forge) | No | Local |
 | ComfyUI | No | Local |
+| SwarmUI | Opcional | Local |
 | Draw Things | No | Local |
 
 ## OpenAI (DALL-E)
@@ -68,6 +70,12 @@ Servicio en la nube con la Base URL predeterminada `https://api.stability.ai/v2b
 ## Together AI
 
 Servicio en la nube con la Base URL predeterminada `https://api.together.xyz/v1`. Necesita una API key de Together AI. Ofrece FLUX y otros modelos de imagen abiertos.
+
+## Arli AI
+
+Servicio en la nube con la Base URL predeterminada `https://api.arliai.com/v1`. Necesita una API key de Arli AI. Ejecuta modelos de Stable Diffusion alojados. Un **Model** es obligatorio, así que escribe el nombre del modelo de imagen de Arli AI que quieras. Usa los mismos campos de **Local Image Defaults** que **SD Web UI (AUTOMATIC1111 / Forge)**, descritos más abajo. Cuando envías una imagen de referencia, Marinara usa la primera como imagen de partida (imagen a imagen).
+
+El servicio **Arli AI** de aquí es solo para imágenes. Para los modelos de chat de Arli AI, usa en su lugar el proveedor de chat **Arli AI**; consulta [Proveedores de IA compatibles](../connections/providers-reference.md#arli-ai).
 
 ## NovelAI
 
@@ -127,6 +135,12 @@ Servicio local con la Base URL predeterminada `http://localhost:7860`. Se comuni
 
 Servicio local con la Base URL predeterminada `http://127.0.0.1:8188`. Se comunica con un servidor de ComfyUI que se ejecuta en tu propia computadora. Admite un flujo de trabajo personalizado, descrito más abajo. No se necesita API key.
 
+## SwarmUI
+
+Servicio local con la Base URL predeterminada `http://127.0.0.1:7801`. Se comunica con un servidor de SwarmUI, que puede repartir el trabajo de ComfyUI en su propia cola. No se necesita API key para un servidor local sin cuentas. Si tu servidor de SwarmUI requiere una cuenta, pega un Swarm Auth Token en **API Key**. **Fetch Models from API** enumera los modelos de tu servidor de SwarmUI.
+
+El campo **ComfyUI Workflow** es opcional para SwarmUI. Déjalo vacío para usar los ajustes de imagen propios de SwarmUI, o pega un flujo de trabajo, como se describe más abajo. Activa **Save images in SwarmUI** (Guardar imágenes en SwarmUI) en **Local Image Defaults** para guardar también cada imagen en la carpeta de salida de SwarmUI. Marinara conserva su propia copia en cualquier caso.
+
 ## Draw Things
 
 Servicio local con la Base URL predeterminada `http://localhost:7860`. Se comunica con la app Draw Things en macOS o iOS. Marinara lo trata como un servidor AUTOMATIC1111. No se necesita API key.
@@ -141,7 +155,7 @@ Cuando un proveedor devuelve una URL en lugar de los bytes de la imagen, Marinar
 
 ## JSON del flujo de trabajo de ComfyUI y RunPod
 
-Para **ComfyUI** y **RunPod Serverless (ComfyUI)**, aparece un campo **ComfyUI Workflow**. Pega un JSON de flujo de trabajo que hayas exportado desde ComfyUI con **Save (API Format)**, **Export (API)** o **Export to API**, según la versión del frontend. El campo está marcado como Optional (Opcional) para **ComfyUI** y Required (Obligatorio) para **RunPod Serverless (ComfyUI)**.
+Para **ComfyUI**, **SwarmUI** y **RunPod Serverless (ComfyUI)**, aparece un campo **ComfyUI Workflow**. Pega un JSON de flujo de trabajo que hayas exportado desde ComfyUI con **Save (API Format)**, **Export (API)** o **Export to API**, según la versión del frontend. El campo está marcado como Optional (Opcional) para **ComfyUI** y **SwarmUI**, y Required (Obligatorio) para **RunPod Serverless (ComfyUI)**.
 
 Marinara rellena tu flujo de trabajo usando marcadores de posición. Pon estos marcadores de texto en tu flujo de trabajo donde deba ir el valor.
 
@@ -151,15 +165,15 @@ Marinara rellena tu flujo de trabajo usando marcadores de posición. Pon estos m
 - `%reference_image%` y de `%reference_image_01%` a `%reference_image_04%` para inyectar datos de imagen de referencia.
 - `%reference_image_name%` y de `%reference_image_name_01%` a `%reference_image_name_04%` para subir imágenes de referencia e inyectar sus nombres de archivo para un nodo LoadImage de ComfyUI local.
 
-El marcador de posición `%prompt%` es el importante. El editor te avisa si falta. Para **ComfyUI**, dejar el campo vacío usa un flujo de trabajo predeterminado incorporado. Para **RunPod Serverless (ComfyUI)**, el flujo de trabajo es obligatorio porque el endpoint no tiene predeterminado. Ambos aceptan hasta 4 imágenes de referencia en base64 sin procesar; los marcadores de posición de subida por nombre de archivo solo están disponibles para ComfyUI local.
+El marcador de posición `%prompt%` es el importante. El editor te avisa si falta. Para **ComfyUI**, dejar el campo vacío usa un flujo de trabajo predeterminado incorporado. Para **SwarmUI**, dejarlo vacío usa los ajustes de imagen propios de SwarmUI. Para **RunPod Serverless (ComfyUI)**, el flujo de trabajo es obligatorio porque el endpoint no tiene predeterminado. Los tres aceptan hasta 4 imágenes de referencia en base64 sin procesar; los marcadores de posición de subida por nombre de archivo solo están disponibles para ComfyUI local.
 
 Consulta [Configuración del flujo de trabajo de ComfyUI](comfyui.md) para el proceso de exportación completo, ejemplos de JSON, reglas de comillas para marcadores de posición, configuración de imágenes de referencia, flujos de trabajo específicos por personaje, acceso por LAN y solución de problemas.
 
 ## Valores predeterminados de imagen local por conexión
 
-Cuando tu servicio es **SD Web UI (AUTOMATIC1111 / Forge)**, **ComfyUI**, **NovelAI** o **Draw Things**, aparece un panel **Local Image Defaults** (Valores predeterminados de imagen local) en la conexión. Para **Draw Things**, el panel muestra los mismos campos y valores predeterminados que **SD Web UI (AUTOMATIC1111 / Forge)**. Estos ajustes solo se aplican cuando esta conexión genera una imagen. Un botón **Reset** (Restablecer) restaura los valores incorporados.
+Cuando tu servicio es **SD Web UI (AUTOMATIC1111 / Forge)**, **ComfyUI**, **NovelAI**, **Draw Things**, **Arli AI**, **SwarmUI** o **RunPod Serverless (ComfyUI)**, aparece un panel **Local Image Defaults** (Valores predeterminados de imagen local) en la conexión. Para **Draw Things** y **Arli AI**, el panel muestra los mismos campos y valores predeterminados que **SD Web UI (AUTOMATIC1111 / Forge)**. Para **SwarmUI** y **RunPod Serverless (ComfyUI)**, muestra los mismos campos y valores predeterminados que **ComfyUI**. Estos ajustes solo se aplican cuando esta conexión genera una imagen. Un botón **Reset** (Restablecer) restaura los valores incorporados.
 
-Cada uno de estos cuatro servicios muestra un campo **Seed** (Semilla). Un valor de -1 mantiene cada imagen aleatoria. Cualquier otro número reutiliza exactamente la misma semilla cada vez.
+Cada uno de estos servicios muestra un campo **Seed** (Semilla). Un valor de -1 mantiene cada imagen aleatoria. Cualquier otro número reutiliza exactamente la misma semilla cada vez.
 
 Los demás campos dependen del servicio.
 
@@ -196,8 +210,10 @@ Una **imagen de referencia** es una imagen existente que envías junto con tu pr
 | Atlas Cloud | Primera imagen para ID de modelo compatibles de imagen a imagen, edición o Kontext |
 | NanoGPT | Hasta 3 |
 | Stability AI | Solo la primera imagen, usada como imagen a imagen |
+| Arli AI | Solo la primera imagen, usada como imagen a imagen |
 | OpenRouter Images | Compatible, sin límite fijo |
 | ComfyUI y RunPod Serverless (ComfyUI) | Hasta 4, mediante marcadores de posición del flujo de trabajo |
+| SwarmUI | Hasta 4 |
 | Together AI, Pollinations, Stable Horde | No compatible |
 
 Las imágenes de referencia precisas de NovelAI solo funcionan en un modelo V4.5, como `nai-diffusion-4-5-full`. NovelAI todavía no ha publicado Precise Reference para V5. Si solicitas referencias en otro modelo, Marinara genera la imagen sin ellas y registra una advertencia en el log del servidor.

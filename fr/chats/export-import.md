@@ -1,15 +1,19 @@
 # Exporter et importer des chats
 
-Ce guide explique comment enregistrer un chat (une conversation enregistrée) dans un fichier, puis le recharger dans Marinara Engine. Tu peux exporter un seul chat ou plusieurs d'un coup. Autre possibilité : importer un fichier de chat venant de Marinara ou de SillyTavern (une autre application de chat pour le roleplay).
+Ce guide explique comment enregistrer un chat (une conversation enregistrée) dans un fichier, puis le recharger dans Marinara Engine. Tu peux exporter un seul chat ou plusieurs d'un coup, et enregistrer un chat sous forme d'histoire lisible à partager. Autre possibilité : importer un fichier de chat venant de Marinara ou de SillyTavern (une autre application de chat pour le roleplay).
 
 ## Les formats de fichier que tu vas croiser
 
-Marinara utilise deux formats de fichier pour les chats.
+Marinara peut enregistrer un chat dans quatre formats.
 
 - **JSONL** : JSONL veut dire JSON Lines. C'est un fichier texte brut qui enregistre un message par ligne. C'est le format d'export par défaut. Un fichier JSONL se réimporte ensuite dans Marinara sans problème.
 - **Text** : une transcription `.txt` lisible telle quelle. Facile à lire et à partager, mais Marinara ne sait pas la réimporter. Réserve le format **Text** aux chats destinés à être lus par un humain.
+- **Markdown** : un fichier `.md` lisible. Il commence par le nom du chat et les dates qu'il couvre, puis présente chaque message sous le nom de son auteur.
+- **Story** : une page web `.html` mise en forme. Elle affiche chaque message avec le nom et l'avatar de son auteur. Ouvre-la dans n'importe quel navigateur web pour la lire, la partager ou l'imprimer.
 
-L'import de chat accepte uniquement un fichier `.jsonl`. Si tu comptes réimporter un chat plus tard, exporte-le en **JSONL**, pas en **Text**.
+Les fichiers **Markdown** et **Story** laissent de côté les messages système et les messages qui te sont masqués.
+
+L'import de chat accepte uniquement un fichier `.jsonl`. Si tu comptes réimporter un chat plus tard, exporte-le en **JSONL**, pas en **Text**, **Markdown** ou **Story**.
 
 ## Exporter un seul chat
 
@@ -17,7 +21,7 @@ Pour exporter un chat dans un fichier, passe par la section **Chat Branches** de
 
 1. Ouvre le chat à exporter.
 2. Ouvre **Chat Settings** et déplie **Chat Branches**, sous **Chat Name**.
-3. Clique sur **JSONL** pour enregistrer le chat en fichier JSONL, ou sur **Text** pour l'enregistrer en fichier texte lisible.
+3. Clique sur **JSONL** pour enregistrer le chat en fichier JSONL, sur **Text** pour un fichier texte lisible, sur **Markdown** pour un fichier Markdown ou sur **Story** pour une page web mise en forme.
 4. Le navigateur télécharge le fichier.
 
 Le téléchargement porte sur le chat actuellement ouvert, messages compris.
@@ -66,8 +70,8 @@ Certains modèles enregistrent, avec la réponse, un texte de réflexion ou de r
 
 Ce réglage s'appelle **Include reasoning in exports** (inclure le raisonnement dans les exports). Tu le trouves dans **Settings** (Paramètres), onglet **Advanced**, section **Message Tools**. C'est un interrupteur, réglé sur **off** par défaut.
 
-- Quand il est sur **off**, Marinara laisse de côté le texte de réflexion et de raisonnement enregistré, aussi bien dans les exports **JSONL** que **Text**.
-- Quand il est sur **on**, Marinara ajoute ce texte de réflexion et de raisonnement masqué aux deux formats.
+- Quand il est sur **off**, Marinara laisse de côté le texte de réflexion et de raisonnement enregistré dans tous les exports de chat.
+- Quand il est sur **on**, Marinara ajoute ce texte de réflexion et de raisonnement masqué à tous les formats. Dans les fichiers **Markdown** et **Story**, il se trouve dans une section repliable **Thinking** (réflexion), sous le message.
 
 Ce réglage vaut pour les exports d'un seul chat comme pour les exports groupés en `.zip`.
 

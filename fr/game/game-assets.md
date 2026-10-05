@@ -1,6 +1,6 @@
 # Ressources de jeu : musique, sons, sprites et arrière-plans
 
-Ce guide explique la bibliothèque de ressources de jeu dans laquelle Game Mode puise sa musique, ses sons, ses illustrations de personnages et ses arrière-plans de scène. Au programme : le lot de départ fourni avec Marinara, le gestionnaire de fichiers **Asset Browser** (explorateur de ressources), l'envoi de tes propres fichiers et le choix des ressources autorisées pour chaque partie.
+Ce guide explique la bibliothèque de ressources de jeu dans laquelle Game Mode puise sa musique, ses sons, ses illustrations de personnages et ses arrière-plans de scène. Au programme : le lot de départ fourni avec Marinara, le gestionnaire de fichiers **Asset Browser** (explorateur de ressources), l'envoi de tes propres fichiers, le choix des ressources autorisées pour chaque partie, et les effets sonores et la musique que Game Mode peut générer pour toi.
 
 ## À quoi servent les ressources de jeu
 
@@ -148,6 +148,34 @@ Ensuite :
 
 Une barre indique "All folders included" ou le nombre de dossiers exclus, avec un bouton **Reset to all** pour tout réinclure. Ce choix n'est enregistré que pour ce chat précis. Il modifie les dossiers dans lesquels Game Mode peut puiser, mais ne supprime ni ne masque aucun fichier. Il reste sans effet en dehors de ce chat en Game Mode.
 
+<a id="generated-sound-effects-and-music"></a>
+
+## Effets sonores et musique générés
+
+Game Mode peut aussi créer de nouveaux effets sonores et de la musique pour tes scènes avec ElevenLabs, un service audio d'IA. Il te faut une clé API ElevenLabs. Chaque nouveau son ou nouvelle piste correspond à une requête envoyée à ElevenLabs sur ton compte.
+
+Commence par configurer une connexion audio :
+
+1. Ouvre le panneau **Connections** (Connexions) et crée une connexion avec le fournisseur **Audio**.
+2. Sous **Audio Source** (source audio), choisis **ElevenLabs**, puis colle ta clé API ElevenLabs.
+3. Active **Game sound effects** (effets sonores du jeu), **Game music** (musique du jeu) ou les deux. Ces interrupteurs n'apparaissent que pour la source **ElevenLabs**.
+4. Enregistre la connexion.
+
+Active-la ensuite quand tu crées une partie :
+
+1. À l'étape **Features** de l'assistant de configuration, repère la carte **Game Audio** (audio du jeu).
+2. Sous **Audio Connection** (connexion audio), choisis ta connexion ElevenLabs, ou garde **Use the default audio connection** (utiliser la connexion audio par défaut).
+3. Laisse **Sound effects** (effets sonores) et **Music** (musique) activés, ou désactive celui dont tu ne veux pas.
+
+Tu ne peux pas activer **Sound effects** ou **Music** tant que la connexion choisie n'est pas une connexion ElevenLabs dont l'interrupteur correspondant est activé. La carte te le signale le cas échéant.
+
+Pendant la partie :
+
+- **Sound effects** : après les tours du GM (le maître du jeu), Marinara demande à ElevenLabs de courts effets sonores adaptés à la scène.
+- **Music** : Marinara compose une piste instrumentale d'environ deux minutes pour chaque lieu que visite l'équipe et pour chaque type de combat, comme un combat de boss. Chaque piste n'est créée qu'une fois, puis réutilisée. La piste d'un nouveau lieu démarre à un changement de scène ultérieur, pour que la musique ne coupe pas en pleine scène. La piste d'un combat arrive en fondu dès qu'elle est prête.
+
+Les sons et pistes générés sont enregistrés avec tes ressources de jeu, si bien que le même son n'est jamais créé deux fois. Si **Music DJ** joue de la musique pour la partie, Game Mode ne génère pas de musique.
+
 ## Dossier de musique personnalisé pour Music DJ
 
 **Music DJ** est un agent capable de jouer de la musique pendant une partie. Dans son mode Custom, il puise les pistes dans un dossier de ton choix. Ce dossier se règle à deux endroits.
@@ -168,5 +196,6 @@ Le bouton **Open in system folder** ouvre le dossier de ressources sélectionné
 ## Guides associés
 
 - [Music DJ : Spotify, YouTube et musique locale](../media/music.md)
+- [Fournisseurs d'IA pris en charge](../connections/providers-reference.md)
 - [Game Mode : premiers pas](getting-started.md)
 - [Accès distant : authentification de base et liste d'autorisation d'IP](../REMOTE_ACCESS.md)

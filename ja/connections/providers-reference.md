@@ -109,6 +109,13 @@ NanoGPTが現在報告できない割り当ては、未使用ではなく**不�
 
 **xAI / Grok**はGrokのモデルを提供しています。**Create Connection**ウィンドウでこのプロバイダーを選ぶと、モデルにはGrok 4.5があらかじめ入ります。あとから変更できます。Grok 4.6と4.7は500,000トークンのコンテキストウィンドウと、**Maximum** (`xhigh`)までの推論に対応しています。**Web Search**(ウェブ検索)を含む既存のチャットツールを使用でき、検索結果を最終的な返信に反映できます。
 
+## Arli AI
+
+- キーの入手先: `https://www.arliai.com/account`
+- デフォルトのBase URL: `https://api.arliai.com/v1`
+
+**Arli AI**はホスト型のチャットサービスです。組み込みのモデル一覧がないため、**Model**ドロップダウンは最初は空です。キーを貼り付けたら、**Fetch Models from API**をクリックして現在のモデルを読み込んでください。Arli AIで画像を生成する場合は、代わりに**Image Generation**プロバイダーとその**Arli AI**サービスを使います。
+
 ## Z.AI
 
 - キーの入手先: `https://z.ai/manage-apikey/apikey-list`
@@ -156,9 +163,30 @@ Ollama、LM Studio、KoboldCppのように、ローカルまたは自前で立�
 
 ## Video Generation
 
-**Video Generation**(動画生成)も特別なプロバイダーで、専用の**Video Service**(動画サービス)の選択肢があります。Game Modeでは、これを使って短いMP4のシーン動画を作ります。サービスは**Google AI Studio**、**xAI Imagine**、**OpenRouter Video**、**Seedance 2.0**です。どのサービスにもAPIキーが必要です。
+**Video Generation**(動画生成)も特別なプロバイダーで、専用の**Video Service**(動画サービス)の選択肢があります。Marinaraは、これを使って短いMP4のシーン動画を作ります。サービスは**Google AI Studio**、**xAI Imagine**、**OpenRouter Video**、**NanoGPT**、**Atlas Cloud**、**Seedance 2.0**、**ComfyUI**、**SwarmUI**です。クラウドサービスにはAPIキーが必要です。**ComfyUI**と**SwarmUI**は自分のコンピューターで動くため、通常はキーが要りません。
 
 各動画サービスの詳しい設定と制限は[シーン動画の生成](../media/scene-video.md)にまとめています。
+
+## Decision
+
+- デフォルトのBase URL: **TypeSafe**ソースでは`https://api.typesafe.ai`
+
+**Decision**は、チャットに関する問いに、はい、またはいいえで答えるモデルのための、任意の特別なプロバイダーです。たとえば、カスタムエージェントを動かすかどうかを判定できます。回答はMarinaraの動作を制御するもので、チャットには投稿されません。選んだあと、ソースを**TypeSafe**、**OpenRouter**、**Custom System One endpoint**(カスタムSystem Oneエンドポイント)、**OpenAI-compatible chat model**から選びます。ホスト型のソースにはAPIキーが必要です。
+
+Decisionモデルの役割、選び方、詳しい設定は[Decisionモデル](decision-models.md)にまとめています。
+
+## Audio
+
+**Audio**(音声)は、声と生成される音のための特別なプロバイダーです。選んだあと、**Audio Source**(音声の提供元)を選びます。
+
+- **ElevenLabs**: 読み上げ、効果音、音楽。
+- **OpenAI-compatible**: OpenAI、またはOpenAIの音声形式に合わせたサーバー。
+- **PocketTTS**: 自分のコンピューターで動かせる無料の音声サーバー。
+- **xAI Voice**: xAIの音声サービス。
+
+ソースごとに、デフォルトのBase URLとモデルが入ります。**Default Voice**(デフォルトの声)は、キャラクターごとの声など、より細かい指定がないときに使われる声です。Marinaraがデフォルトで使う音声の接続を選ぶには、**Connections**パネルを開き、**Defaults**(デフォルト)を展開して、**Audio**の下で選びます。
+
+**ElevenLabs**ソースでは、**Game sound effects**(ゲームの効果音)と**Game music**(ゲームの音楽)の2つのスイッチが追加で表示されます。これをオンにすると、Game Modeがこの接続で効果音と音楽を作れるようになります。[生成される効果音と音楽](../game/game-assets.md#generated-sound-effects-and-music)を参照してください。声やメッセージの読み上げについては、[Text to Speech (TTS)の設定](../media/tts-setup.md)を参照してください。
 
 ## 埋め込み
 
@@ -173,3 +201,5 @@ Ollama、LM Studio、KoboldCppのように、ローカルまたは自前で立�
 - [ローカルモデルやセルフホストモデルへの接続](local-self-hosted.md)
 - [画像生成プロバイダーと設定](../media/image-providers.md)
 - [シーン動画の生成](../media/scene-video.md)
+- [Decisionモデル](decision-models.md)
+- [Text to Speech (TTS)の設定](../media/tts-setup.md)

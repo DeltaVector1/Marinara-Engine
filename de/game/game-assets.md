@@ -1,6 +1,6 @@
 # Game-Assets: Musik, Sound, Sprites und Hintergründe
 
-In dieser Anleitung erfährst du, wie die Game-Asset-Bibliothek funktioniert, aus der sich der Game Mode für Musik, Sound, Charakterbilder und Szenen-Hintergründe bedient. Es geht um das mitgelieferte Starter-Set, den Dateimanager **Asset Browser**, das Hochladen eigener Dateien und die Auswahl, welche Assets ein Spiel nutzen darf.
+In dieser Anleitung erfährst du, wie die Game-Asset-Bibliothek funktioniert, aus der sich der Game Mode für Musik, Sound, Charakterbilder und Szenen-Hintergründe bedient. Es geht um das mitgelieferte Starter-Set, den Dateimanager **Asset Browser**, das Hochladen eigener Dateien, die Auswahl, welche Assets ein Spiel nutzen darf, sowie Soundeffekte und Musik, die der Game Mode für dich generieren kann.
 
 ## Was Game-Assets sind
 
@@ -148,6 +148,34 @@ Dann:
 
 Eine Leiste meldet „All folders included“ oder die Zahl der ausgeschlossenen Ordner, dazu holt die Schaltfläche **Reset to all** (Alle wieder aufnehmen) sämtliche Ordner zurück. Die Auswahl gilt nur für diesen einen Chat. Sie steuert, aus welchen Ordnern der Game Mode wählen darf, löscht oder versteckt aber keine Dateien. Außerhalb dieses Game-Mode-Chats hat sie keine Wirkung.
 
+<a id="generated-sound-effects-and-music"></a>
+
+## Generierte Soundeffekte und Musik
+
+Der Game Mode kann mit ElevenLabs, einem KI-Audiodienst, auch neue Soundeffekte und Musik für deine Szenen erzeugen. Dafür brauchst du einen API-Key von ElevenLabs. Jeder neue Sound und jeder neue Titel ist eine Anfrage an ElevenLabs über dein Konto.
+
+Richte zuerst eine Audioverbindung ein:
+
+1. Öffne das Panel **Connections** (Verbindungen) und lege eine Verbindung mit dem Anbieter **Audio** an.
+2. Wähle unter **Audio Source** (Audioquelle) **ElevenLabs** aus und füge dann deinen API-Key von ElevenLabs ein.
+3. Aktiviere **Game sound effects** (Soundeffekte im Spiel), **Game music** (Musik im Spiel) oder beide. Diese Schalter erscheinen nur bei der Quelle **ElevenLabs**.
+4. Speichere die Verbindung.
+
+Schalte die Funktion dann beim Anlegen eines Spiels ein:
+
+1. Such im Schritt **Features** des Einrichtungsassistenten die Karte **Game Audio**.
+2. Wähle unter **Audio Connection** (Audioverbindung) deine ElevenLabs-Verbindung aus, oder behalte **Use the default audio connection** (Standard-Audioverbindung verwenden).
+3. Lass **Sound effects** (Soundeffekte) und **Music** (Musik) eingeschaltet, oder schalte aus, was du nicht möchtest.
+
+**Sound effects** oder **Music** lassen sich erst einschalten, wenn die gewählte Verbindung eine ElevenLabs-Verbindung ist, bei der der jeweilige Schalter aktiv ist. Die Karte zeigt dir an, wenn das noch nicht der Fall ist.
+
+Während des Spiels:
+
+- **Sound effects**: Nach GM-Zügen fordert Marinara bei ElevenLabs kurze Soundeffekte an, die zur Szene passen.
+- **Music**: Marinara komponiert einen rund zweiminütigen Instrumentaltitel für jeden Ort, den die Party besucht, und für jede Art von Kampf, etwa einen Bosskampf. Jeder Titel wird nur einmal erzeugt und danach wiederverwendet. Der Titel eines neuen Ortes beginnt erst bei einem späteren Szenenwechsel, damit die Musik nicht mitten in eine Szene hineinplatzt. Der Titel eines Kampfes wird eingeblendet, sobald er fertig ist.
+
+Generierte Sounds und Titel werden bei deinen Game-Assets gespeichert, damit derselbe Sound nicht zweimal erzeugt wird. Spielt **Music DJ** die Musik für das Spiel, generiert der Game Mode keine Musik.
+
 ## Eigener Musikordner für den Music DJ
 
 **Music DJ** ist ein Hilfs-Agent, der während eines Spiels Musik abspielen kann. Im Modus Custom spielt er Titel aus einem Ordner deiner Wahl. Diesen Ordner legst du an zwei Stellen fest.
@@ -168,5 +196,6 @@ Die Schaltfläche **Open in system folder** öffnet den ausgewählten Asset-Ordn
 ## Verwandte Anleitungen
 
 - [Music DJ: Spotify, YouTube und lokale Musik](../media/music.md)
+- [Unterstützte KI-Anbieter](../connections/providers-reference.md)
 - [Game Mode: Erste Schritte](getting-started.md)
 - [Fernzugriff: Basic Auth und IP-Allowlist](../REMOTE_ACCESS.md)

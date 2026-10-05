@@ -33,6 +33,7 @@
 | ChatGPT (Codex login) | 不需要，改用 `codex login` 登录 | 云端 |
 | Stability AI | 需要 | 云端 |
 | Together AI | 需要 | 云端 |
+| Arli AI | 需要 | 云端 |
 | NovelAI | 需要 | 云端 |
 | OpenRouter Images | 需要 | 云端 |
 | xAI / Grok Imagine | 需要 | 云端 |
@@ -47,6 +48,7 @@
 | Stable Horde | 可选 | 免费云端 |
 | SD Web UI (AUTOMATIC1111 / Forge) | 不需要 | 本地 |
 | ComfyUI | 不需要 | 本地 |
+| SwarmUI | 可选 | 本地 |
 | Draw Things | 不需要 | 本地 |
 
 ## OpenAI (DALL-E)
@@ -68,6 +70,12 @@
 ## Together AI
 
 云端服务，默认 Base URL 是 `https://api.together.xyz/v1`。需要 Together AI 的 API 密钥。提供 FLUX 以及其他开源图像模型。
+
+## Arli AI
+
+云端服务，默认 Base URL 是 `https://api.arliai.com/v1`。需要 Arli AI 的 API 密钥。它运行托管的 Stable Diffusion 模型。**Model** 是必填项，请输入你想用的 Arli AI 图像模型名称。它使用与 **SD Web UI (AUTOMATIC1111 / Forge)** 相同的 **Local Image Defaults**(本地图像默认值) 字段，具体见下文。发送参考图时，Marinara 会把第一张作为起始图片（图生图）。
+
+这里的 **Arli AI** 服务只用于图像。要使用 Arli AI 的聊天模型，请改用 **Arli AI** 聊天服务商，见[支持的 AI 服务商](../connections/providers-reference.md#arli-ai)。
 
 ## NovelAI
 
@@ -127,6 +135,12 @@ Marinara 发送提示词和所需尺寸，再将返回的第一张图像下载�
 
 本地服务，默认 Base URL 是 `http://127.0.0.1:8188`。它连接自己电脑上运行的 ComfyUI 服务器。支持自定义工作流，具体见下文。不需要 API 密钥。
 
+## SwarmUI
+
+本地服务，默认 Base URL 是 `http://127.0.0.1:7801`。它连接 SwarmUI 服务器，SwarmUI 可以把 ComfyUI 任务分配到自己的队列中处理。没有账号体系的本地服务器不需要 API 密钥。如果你的 SwarmUI 服务器要求账号，就把 Swarm Auth Token 粘贴到 **API Key**。**Fetch Models from API** 会列出 SwarmUI 服务器上的模型。
+
+对 SwarmUI 来说，**ComfyUI Workflow** 输入框是可选的。留空就使用 SwarmUI 自己的图像设置，也可以粘贴一份工作流，具体见下文。在 **Local Image Defaults** 里开启 **Save images in SwarmUI**(在 SwarmUI 中保存图像)，每张图像还会另外保存在 SwarmUI 的输出文件夹里。无论哪种方式，Marinara 都会保留自己的一份副本。
+
 ## Draw Things
 
 本地服务，默认 Base URL 是 `http://localhost:7860`。它连接 macOS 或 iOS 上的 Draw Things 应用。Marinara 把它当作 AUTOMATIC1111 服务器来对待。不需要 API 密钥。
@@ -141,7 +155,7 @@ Marinara 发送提示词和所需尺寸，再将返回的第一张图像下载�
 
 ## ComfyUI 工作流 JSON 与 RunPod
 
-选择 **ComfyUI** 或 **RunPod Serverless (ComfyUI)** 时，会出现一个 **ComfyUI Workflow** 输入框。把从 ComfyUI 导出的工作流 JSON 粘贴进去，导出用的菜单项因前端版本而异，可能叫 **Save (API Format)**、**Export (API)** 或 **Export to API**。这个输入框对 **ComfyUI** 标注为 Optional，对 **RunPod Serverless (ComfyUI)** 标注为 Required。
+选择 **ComfyUI**、**SwarmUI** 或 **RunPod Serverless (ComfyUI)** 时，会出现一个 **ComfyUI Workflow** 输入框。把从 ComfyUI 导出的工作流 JSON 粘贴进去，导出用的菜单项因前端版本而异，可能叫 **Save (API Format)**、**Export (API)** 或 **Export to API**。这个输入框对 **ComfyUI** 和 **SwarmUI** 标注为 Optional，对 **RunPod Serverless (ComfyUI)** 标注为 Required。
 
 Marinara 通过占位符往工作流里填内容。把下面这些文本标记放在工作流中该填值的位置。
 
@@ -151,15 +165,15 @@ Marinara 通过占位符往工作流里填内容。把下面这些文本标记�
 - `%reference_image%` 以及 `%reference_image_01%` 到 `%reference_image_04%` 用于注入参考图数据。
 - `%reference_image_name%` 以及 `%reference_image_name_01%` 到 `%reference_image_name_04%` 用于上传参考图，并把文件名注入本地 ComfyUI 的 LoadImage 节点。
 
-最关键的是 `%prompt%` 占位符。缺了它，编辑器会给出警告。对 **ComfyUI** 来说，这个输入框留空就会使用内置的默认工作流。对 **RunPod Serverless (ComfyUI)** 来说，工作流是必填的，因为端点那边没有默认值。两者都最多接受 4 张原始 base64 参考图；文件名上传类的占位符只有本地 ComfyUI 能用。
+最关键的是 `%prompt%` 占位符。缺了它，编辑器会给出警告。对 **ComfyUI** 来说，这个输入框留空就会使用内置的默认工作流。对 **SwarmUI** 来说，留空则使用 SwarmUI 自己的图像设置。对 **RunPod Serverless (ComfyUI)** 来说，工作流是必填的，因为端点那边没有默认值。三者都最多接受 4 张原始 base64 参考图；文件名上传类的占位符只有本地 ComfyUI 能用。
 
 完整的导出流程、JSON 示例、占位符的引号规则、参考图设置、为特定角色准备的工作流、局域网访问以及故障排查，见 [ComfyUI 工作流设置](comfyui.md)。
 
 ## 每个连接的 Local Image Defaults
 
-当服务选的是 **SD Web UI (AUTOMATIC1111 / Forge)**、**ComfyUI**、**NovelAI** 或 **Draw Things** 时，连接上会出现一个 **Local Image Defaults**(本地图像默认值) 面板。对 **Draw Things**，这个面板显示的字段和默认值与 **SD Web UI (AUTOMATIC1111 / Forge)** 完全相同。这些设置只在当前这个连接生成图像时生效。**Reset**(重置) 按钮可以恢复内置值。
+当服务选的是 **SD Web UI (AUTOMATIC1111 / Forge)**、**ComfyUI**、**NovelAI**、**Draw Things**、**Arli AI**、**SwarmUI** 或 **RunPod Serverless (ComfyUI)** 时，连接上会出现一个 **Local Image Defaults**(本地图像默认值) 面板。对 **Draw Things** 和 **Arli AI**，这个面板显示的字段和默认值与 **SD Web UI (AUTOMATIC1111 / Forge)** 完全相同。对 **SwarmUI** 和 **RunPod Serverless (ComfyUI)**，显示的字段和默认值与 **ComfyUI** 相同。这些设置只在当前这个连接生成图像时生效。**Reset**(重置) 按钮可以恢复内置值。
 
-这四个服务都有 **Seed**(种子) 输入框。填 -1 表示每张图都随机。填其他数字则每次都复用同一个种子。
+这些服务都有 **Seed**(种子) 输入框。填 -1 表示每张图都随机。填其他数字则每次都复用同一个种子。
 
 其余字段因服务而异。
 
@@ -196,8 +210,10 @@ Marinara 通过占位符往工作流里填内容。把下面这些文本标记�
 | Atlas Cloud | 支持图生图、编辑或 Kontext 的模型 ID 只取第一张 |
 | NanoGPT | 最多 3 张 |
 | Stability AI | 只取第一张，按图生图使用 |
+| Arli AI | 只取第一张，按图生图使用 |
 | OpenRouter Images | 支持，无固定上限 |
 | ComfyUI 和 RunPod Serverless (ComfyUI) | 最多 4 张，通过工作流占位符传入 |
+| SwarmUI | 最多 4 张 |
 | Together AI、Pollinations、Stable Horde | 不支持 |
 
 NovelAI 的精确参考图只能在 V4.5 模型上使用，比如 `nai-diffusion-4-5-full`。NovelAI 尚未为 V5 发布 Precise Reference。在其他模型上请求参考图时，Marinara 会在不使用参考图的情况下生成图像，并在服务器日志中记录警告。

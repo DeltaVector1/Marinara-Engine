@@ -33,6 +33,7 @@ Tabela poniżej pokazuje wszystkie usługi w skrócie. Szczegóły i haczyki opi
 | ChatGPT (Codex login) | Nie, korzysta z twojego logowania przez `codex login` | Chmura |
 | Stability AI | Tak | Chmura |
 | Together AI | Tak | Chmura |
+| Arli AI | Tak | Chmura |
 | NovelAI | Tak | Chmura |
 | OpenRouter Images | Tak | Chmura |
 | xAI / Grok Imagine | Tak | Chmura |
@@ -47,6 +48,7 @@ Tabela poniżej pokazuje wszystkie usługi w skrócie. Szczegóły i haczyki opi
 | Stable Horde | Opcjonalnie | Darmowa chmura |
 | SD Web UI (AUTOMATIC1111 / Forge) | Nie | Lokalnie |
 | ComfyUI | Nie | Lokalnie |
+| SwarmUI | Opcjonalnie | Lokalnie |
 | Draw Things | Nie | Lokalnie |
 
 ## OpenAI (DALL-E)
@@ -68,6 +70,12 @@ Usługa w chmurze z domyślnym adresem `https://api.stability.ai/v2beta` w polu 
 ## Together AI
 
 Usługa w chmurze z domyślnym adresem `https://api.together.xyz/v1` w polu **Base URL**. Wymaga klucza API do usługi Together AI. Udostępnia modele FLUX i inne otwarte modele graficzne.
+
+## Arli AI
+
+Usługa w chmurze z domyślnym adresem `https://api.arliai.com/v1` w polu **Base URL**. Wymaga klucza API do usługi Arli AI. Udostępnia hostowane modele Stable Diffusion. Pole **Model** jest wymagane, więc wpisz nazwę wybranego modelu graficznego Arli AI. Korzysta z tych samych pól **Local Image Defaults** (domyślne ustawienia obrazów lokalnych) co **SD Web UI (AUTOMATIC1111 / Forge)**, opisanych niżej. Gdy wysyłasz obrazy referencyjne, Marinara używa pierwszego z nich jako obrazu początkowego (zamiana obrazu na obraz).
+
+Usługa **Arli AI** służy tu wyłącznie do obrazów. Do modeli czatu Arli AI użyj zamiast tego dostawcy czatu **Arli AI**; zobacz [Obsługiwani dostawcy AI](../connections/providers-reference.md#arli-ai).
 
 ## NovelAI
 
@@ -127,6 +135,12 @@ Usługa lokalna z domyślnym adresem `http://localhost:7860` w polu **Base URL**
 
 Usługa lokalna z domyślnym adresem `http://127.0.0.1:8188` w polu **Base URL**. Rozmawia z serwerem ComfyUI działającym na twoim własnym komputerze. Obsługuje własny workflow, opisany niżej. Klucz API nie jest potrzebny.
 
+## SwarmUI
+
+Usługa lokalna z domyślnym adresem `http://127.0.0.1:7801` w polu **Base URL**. Rozmawia z serwerem SwarmUI, który potrafi rozdzielać pracę ComfyUI w ramach własnej kolejki. Przy lokalnym serwerze bez kont klucz API nie jest potrzebny. Jeśli twój serwer SwarmUI wymaga konta, wklej Swarm Auth Token (token uwierzytelniający SwarmUI) do pola **API Key**. Przycisk **Fetch Models from API** wyświetla listę modeli z twojego serwera SwarmUI.
+
+Przy SwarmUI pole **ComfyUI Workflow** jest opcjonalne. Zostaw je puste, żeby korzystać z ustawień obrazów samego SwarmUI, albo wklej workflow, opisany niżej. Włącz **Save images in SwarmUI** (zapisywanie obrazów w SwarmUI) w panelu **Local Image Defaults**, żeby dodatkowo zachowywać każdy obraz w folderze wyjściowym SwarmUI. Marinara i tak trzyma własną kopię.
+
 ## Draw Things
 
 Usługa lokalna z domyślnym adresem `http://localhost:7860` w polu **Base URL**. Rozmawia z aplikacją Draw Things na systemie macOS lub iOS. Marinara traktuje ją jak serwer AUTOMATIC1111. Klucz API nie jest potrzebny.
@@ -141,7 +155,7 @@ Bywa, że dostawca zwraca adres URL zamiast samych danych obrazu. Publiczne adre
 
 ## Plik JSON z workflow ComfyUI a RunPod
 
-Przy usługach **ComfyUI** oraz **RunPod Serverless (ComfyUI)** pojawia się pole **ComfyUI Workflow**. Wklej do niego plik JSON z workflow wyeksportowany z programu ComfyUI opcją **Save (API Format)**, **Export (API)** albo **Export to API**, zależnie od wersji interfejsu. Dla usługi **ComfyUI** pole jest oznaczone jako Optional, a dla **RunPod Serverless (ComfyUI)** jako Required.
+Przy usługach **ComfyUI**, **SwarmUI** oraz **RunPod Serverless (ComfyUI)** pojawia się pole **ComfyUI Workflow**. Wklej do niego plik JSON z workflow wyeksportowany z programu ComfyUI opcją **Save (API Format)**, **Export (API)** albo **Export to API**, zależnie od wersji interfejsu. Dla usług **ComfyUI** i **SwarmUI** pole jest oznaczone jako Optional, a dla **RunPod Serverless (ComfyUI)** jako Required.
 
 Marinara uzupełnia workflow za pomocą znaczników zastępczych. Wstaw te znaczniki tekstowe w tych miejscach workflow, w których ma trafić wartość.
 
@@ -151,15 +165,15 @@ Marinara uzupełnia workflow za pomocą znaczników zastępczych. Wstaw te znacz
 - `%reference_image%` oraz `%reference_image_01%` do `%reference_image_04%` do wstawiania danych obrazów referencyjnych.
 - `%reference_image_name%` oraz `%reference_image_name_01%` do `%reference_image_name_04%` do wgrania obrazów referencyjnych i wstawienia ich nazw plików dla lokalnego węzła LoadImage w programie ComfyUI.
 
-Najważniejszy jest znacznik `%prompt%`. Edytor ostrzega, kiedy go brakuje. Przy usłudze **ComfyUI** puste pole oznacza użycie wbudowanego workflow domyślnego. Przy **RunPod Serverless (ComfyUI)** workflow jest wymagany, bo punkt końcowy nie ma żadnego domyślnego. Obie usługi przyjmują do 4 surowych obrazów referencyjnych w formacie base64, a znaczniki z nazwami wgranych plików działają wyłącznie przy lokalnym ComfyUI.
+Najważniejszy jest znacznik `%prompt%`. Edytor ostrzega, kiedy go brakuje. Przy usłudze **ComfyUI** puste pole oznacza użycie wbudowanego workflow domyślnego. Przy **SwarmUI** puste pole oznacza użycie ustawień obrazów samego SwarmUI. Przy **RunPod Serverless (ComfyUI)** workflow jest wymagany, bo punkt końcowy nie ma żadnego domyślnego. Wszystkie trzy usługi przyjmują do 4 surowych obrazów referencyjnych w formacie base64, a znaczniki z nazwami wgranych plików działają wyłącznie przy lokalnym ComfyUI.
 
 Pełny proces eksportu, przykłady plików JSON, zasady cudzysłowów wokół znaczników, przygotowanie obrazów referencyjnych, workflow dla konkretnych postaci, dostęp przez sieć LAN i rozwiązywanie problemów opisuje przewodnik [Konfiguracja workflow w ComfyUI](comfyui.md).
 
 ## Panel Local Image Defaults w połączeniu
 
-Kiedy wybraną usługą jest **SD Web UI (AUTOMATIC1111 / Forge)**, **ComfyUI**, **NovelAI** albo **Draw Things**, w połączeniu pojawia się panel **Local Image Defaults** (domyślne ustawienia obrazów lokalnych). Przy usłudze **Draw Things** panel pokazuje te same pola i wartości domyślne co przy **SD Web UI (AUTOMATIC1111 / Forge)**. Te ustawienia działają tylko wtedy, gdy obraz generuje to konkretne połączenie. Przycisk **Reset** przywraca wartości wbudowane.
+Kiedy wybraną usługą jest **SD Web UI (AUTOMATIC1111 / Forge)**, **ComfyUI**, **NovelAI**, **Draw Things**, **Arli AI**, **SwarmUI** albo **RunPod Serverless (ComfyUI)**, w połączeniu pojawia się panel **Local Image Defaults**. Przy usługach **Draw Things** i **Arli AI** panel pokazuje te same pola i wartości domyślne co przy **SD Web UI (AUTOMATIC1111 / Forge)**. Przy usługach **SwarmUI** i **RunPod Serverless (ComfyUI)** pokazuje te same pola i wartości domyślne co przy **ComfyUI**. Te ustawienia działają tylko wtedy, gdy obraz generuje to konkretne połączenie. Przycisk **Reset** przywraca wartości wbudowane.
 
-Każda z tych czterech usług pokazuje pole **Seed**. Wartość -1 sprawia, że każdy obraz jest losowy. Dowolna inna liczba oznacza użycie za każdym razem dokładnie tego samego ziarna losowości.
+Każda z tych usług pokazuje pole **Seed**. Wartość -1 sprawia, że każdy obraz jest losowy. Dowolna inna liczba oznacza użycie za każdym razem dokładnie tego samego ziarna losowości.
 
 Pozostałe pola zależą od usługi.
 
@@ -196,8 +210,10 @@ Każda usługa ma też pola tekstowe **Prompt Prefix** oraz **Negative Prefix**.
 | Atlas Cloud | Pierwszy obraz, przy zgodnych identyfikatorach modeli do zamiany obrazu na obraz, edycji lub trybu Kontext |
 | NanoGPT | Do 3 |
 | Stability AI | Tylko pierwszy obraz, użyty do zamiany obrazu na obraz |
+| Arli AI | Tylko pierwszy obraz, użyty do zamiany obrazu na obraz |
 | OpenRouter Images | Obsługiwane, bez stałego limitu |
 | ComfyUI i RunPod Serverless (ComfyUI) | Do 4, przez znaczniki w workflow |
+| SwarmUI | Do 4 |
 | Together AI, Pollinations, Stable Horde | Nieobsługiwane |
 
 Precyzyjne obrazy referencyjne w usłudze NovelAI działają wyłącznie na modelu V4.5, na przykład `nai-diffusion-4-5-full`. Usługa NovelAI nie udostępniła jeszcze funkcji Precise Reference dla V5. Przy żądaniu obrazów referencyjnych na innym modelu Marinara Engine generuje obraz bez nich i zapisuje ostrzeżenie w logu serwera.

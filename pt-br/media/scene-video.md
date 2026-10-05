@@ -17,25 +17,29 @@ Para criar vídeos de cena, primeiro adicione uma conexão capaz de gerar vídeo
 1. Abra o painel **Settings** (Configurações) e depois a seção **Connections**.
 2. Clique em **Add Connection**.
 3. Defina o tipo de provedor como **Video Generation**.
-4. Em **Video Service**, escolha um dos seis serviços abaixo.
-5. Digite a chave de API do serviço em nuvem. Um código secreto, parecido com uma senha. O ComfyUI local não precisa de chave.
-6. Nos serviços em nuvem, escolha um modelo ou mantenha o padrão do provedor. No ComfyUI, deixe o modelo em branco, a menos que o fluxo de trabalho use `%model%`.
+4. Em **Video Service**, escolha um dos oito serviços abaixo.
+5. Digite a chave de API do serviço em nuvem. Um código secreto, parecido com uma senha. O ComfyUI local não precisa de chave. O SwarmUI só precisa de um Swarm Auth Token se o seu servidor SwarmUI exigir uma conta.
+6. Nos serviços em nuvem, escolha um modelo ou mantenha o padrão do provedor. O NanoGPT não tem padrão, então clique em **Fetch Models from API** (buscar modelos na API) e escolha um. No ComfyUI, deixe o modelo em branco, a menos que o fluxo de trabalho use `%model%`. No SwarmUI, o modelo é opcional.
 7. Salve a conexão.
 
-O seletor **Video Service** oferece seis opções. Cada uma preenche um endereço web padrão e, quando faz sentido, um modelo padrão:
+O seletor **Video Service** oferece oito opções. Cada uma preenche um endereço web padrão e, quando faz sentido, um modelo padrão:
 
 | Video Service        | Modelo padrão                     | Observações                                                                        |
 | -------------------- | --------------------------------- | ---------------------------------------------------------------------------------- |
 | **Google AI Studio** | `gemini-omni-flash-preview`       | Roda os modelos de vídeo Gemini Omni e Veo pela API do Gemini.                |
 | **xAI Imagine**      | `grok-imagine-video-1.5`          | Vídeo do Grok Imagine pela API de vídeos da xAI.                               |
 | **OpenRouter Video** | `google/veo-3.1`                  | Modelos de vídeo pelo OpenRouter. Você pode digitar o ID de qualquer modelo de vídeo do OpenRouter. |
+| **NanoGPT**          | Nenhum, escolha um                | Modelos de vídeo pelo NanoGPT. **Fetch Models from API** carrega a lista.          |
 | **Atlas Cloud**      | `google/veo3.1/text-to-video`     | Modelos hospedados de texto para vídeo e de imagem para vídeo pelo Atlas Cloud.          |
 | **Seedance 2.0**     | `seedance-2-0`                    | Modos de vídeo por texto, por primeiro quadro e por primeiro e último quadro.                     |
 | **ComfyUI**          | Definido pelo fluxo de trabalho                  | Fluxos de trabalho de vídeo locais do WAN e outros, exportados em formato de API.                  |
+| **SwarmUI**          | Definido pelo fluxo de trabalho   | Fluxos de trabalho de vídeo do ComfyUI executados pelo seu servidor SwarmUI.       |
 
 A opção **Google AI Studio** abrange duas famílias de modelos. **Gemini Omni** usa `gemini-omni-flash-preview`. **Google Veo** usa `veo-3.1-generate-preview`. Qual deles roda depende do modelo escolhido na conexão.
 
 No caso do **ComfyUI**, use o endereço local de sempre, `http://127.0.0.1:8188`, e cole um fluxo de trabalho de vídeo em formato de API no campo **ComfyUI Workflow**. O fluxo de trabalho é obrigatório. Veja [Configuração de workflows do ComfyUI](comfyui.md#comfyui-video-workflows) para conhecer os marcadores e o que os nós de saída exigem.
+
+No caso do **SwarmUI**, Marinara preenche o endereço local `http://127.0.0.1:7801`. Cole um fluxo de trabalho de vídeo em formato de API no campo **ComfyUI Workflow**. O fluxo de trabalho é obrigatório. O SwarmUI não consegue usar os marcadores `%reference_image_name%`, então use `%reference_image%` para a imagem de referência. Se o seu servidor SwarmUI exigir uma conta, cole um Swarm Auth Token em **API Key** (chave de API). **Fetch Models from API** lista os modelos do seu servidor SwarmUI.
 
 ### Definir como conexão de vídeo padrão
 
@@ -51,9 +55,11 @@ Cada conexão de Video Generation tem o próprio painel **Video Generation Defau
 | Google Veo       | 8s             | 4, 6 ou 8s  | 16:9         | 720p             |
 | xAI Imagine      | 10s            | 1 a 15s     | 16:9         | 720p             |
 | OpenRouter Video | 10s            | 1 a 60s     | 16:9         | 720p             |
+| NanoGPT          | 10s            | 1 a 60s     | 16:9         | 720p             |
 | Atlas Cloud      | 8s             | 1 a 60s     | 16:9         | 720p             |
 | Seedance 2.0     | 5s             | 4 a 15s     | 16:9         | 720p             |
 | ComfyUI          | 5s             | 1 a 60s     | 16:9         | 720p             |
+| SwarmUI          | 5s             | 1 a 60s     | 16:9         | 720p             |
 
 O Gemini Omni não tem campo de resolução, e a duração dele vai escrita no texto do prompt, não em uma configuração separada. O prompt é o texto que Marinara envia para a IA. O Google Veo força 8 segundos sempre que anima uma imagem de referência, porque precisa desse tempo para misturar o primeiro e o último quadro.
 
@@ -67,15 +73,17 @@ Se o servidor Marinara já tiver um endereço web público, defina uma variável
 
 ## Como escolher um provedor
 
-Os seis serviços criam clipes curtos a partir da imagem. A diferença está na velocidade, na duração do clipe e na forma como cada um lida com imagens de referência.
+Os oito serviços criam clipes curtos a partir da imagem. A diferença está na velocidade, na duração do clipe e na forma como cada um lida com imagens de referência.
 
 - **Google AI Studio (Gemini Omni)**: duração flexível, de até 60 segundos. A duração vai embutida no prompt, e não em um controle separado.
 - **Google AI Studio (Veo)**: qualidade alta, mas fixa em 4, 6 ou 8 segundos. Usa 8 segundos quando anima uma imagem.
 - **xAI Imagine**: clipes de 1 a 15 segundos. O limite de tamanho do prompt é menor que o dos outros serviços.
 - **OpenRouter Video**: de 1 a 60 segundos, e aceita qualquer modelo de vídeo que a conta do OpenRouter tenha.
+- **NanoGPT**: de 1 a 60 segundos. Não tem modelo padrão, então carregue os modelos de vídeo do NanoGPT com **Fetch Models from API** e escolha um.
 - **Atlas Cloud**: **Fetch Models** (Buscar modelos) carrega o catálogo atual de vídeo do Atlas Cloud, com os modelos de imagem para vídeo primeiro e o preço inicial por segundo de vídeo de cada um. Se o catálogo estiver indisponível, o Marinara mostra os modelos iniciais Veo 3.1 e Seedance 2.0. Você também pode digitar o identificador exato de um modelo de vídeo do Atlas Cloud; os limites de duração, resolução e imagens de referência de cada modelo continuam valendo.
 - **Seedance 2.0**: clipes de 4 a 15 segundos, com os modos de primeiro quadro e de primeiro e último quadro. Precisa de um link público para a imagem de referência.
 - **ComfyUI**: geração local pelo fluxo de trabalho em formato de API que você mesmo criou. Marinara envia a imagem de referência direto para o ComfyUI quando o fluxo de trabalho usa `%reference_image_name%`.
+- **SwarmUI**: geração local pelo fluxo de trabalho em formato de API que você mesmo criou, enviado pelo seu servidor SwarmUI. A imagem de referência entra no fluxo de trabalho por meio de `%reference_image%`.
 
 Os trabalhos de vídeo demoram. O provedor inicia o trabalho, e Marinara aguarda e verifica até o clipe ficar pronto. Isso leva alguns minutos por clipe, bem mais que uma imagem estática. Modelos WAN locais grandes talvez precisem de mais que os 30 minutos padrão; nesse caso, aumente `VIDEO_GEN_TIMEOUT_MS` e reinicie Marinara.
 
@@ -197,7 +205,7 @@ O vídeo de cena sempre anima uma imagem que já existe. Use o botão **Illustra
 
 ### O vídeo demora muito
 
-Isso é normal. O provedor inicia o trabalho, e Marinara aguarda e verifica até o clipe ficar pronto. Veo, xAI, OpenRouter, Atlas Cloud e Seedance funcionam assim, e um clipe leva alguns minutos.
+Isso é normal. O provedor inicia o trabalho, e Marinara aguarda e verifica até o clipe ficar pronto. Veo, xAI, OpenRouter, NanoGPT, Atlas Cloud e Seedance funcionam assim, e um clipe leva alguns minutos.
 
 ### O Seedance não consegue ler a imagem de referência
 

@@ -1,6 +1,6 @@
 # 游戏素材：音乐、音效、立绘和背景
 
-本指南介绍 Game Mode(游戏模式) 使用的游戏素材库，包括音乐、音效、角色美术和场景背景。内容涵盖自带的入门素材、**Asset Browser**(素材浏览器) 文件管理器、如何上传自己的文件，以及如何为每个游戏挑选可用素材。
+本指南介绍 Game Mode(游戏模式) 使用的游戏素材库，包括音乐、音效、角色美术和场景背景。内容涵盖自带的入门素材、**Asset Browser**(素材浏览器) 文件管理器、如何上传自己的文件、如何为每个游戏挑选可用素材，以及 Game Mode 可以为你生成的音效和音乐。
 
 ## 什么是游戏素材
 
@@ -148,6 +148,34 @@ Marinara 内部维护着一份素材清单，好让 Game Mode 快速找到文件
 
 会有一条状态栏显示“All folders included”或者排除了多少文件夹，并提供 **Reset to all** 按钮重新纳入全部。这项选择只对那一个聊天生效。它改变的是 Game Mode 可以从哪些文件夹里挑素材，不会删除或隐藏任何文件，在那个 Game Mode 聊天之外也没有任何影响。
 
+<a id="generated-sound-effects-and-music"></a>
+
+## 生成音效与音乐
+
+Game Mode 还可以借助 AI 音频服务 ElevenLabs，为你的场景生成新的音效和音乐。你需要一个 ElevenLabs API 密钥。每生成一段新音效或一首新曲目，都会用你的账号向 ElevenLabs 发出一次请求。
+
+先设置一个音频连接：
+
+1. 打开 **Connections**(连接) 面板，用 **Audio**(音频) 服务商新建一个连接。
+2. 在 **Audio Source**(音频来源) 下选择 **ElevenLabs**，然后粘贴你的 ElevenLabs API 密钥。
+3. 打开 **Game sound effects**(游戏音效) 或 **Game music**(游戏音乐)，也可以两个都打开。这两个开关只在 **ElevenLabs** 来源下出现。
+4. 保存连接。
+
+然后在创建游戏时开启它：
+
+1. 在设置向导的 **Features** 这一步，找到 **Game Audio**(游戏音频) 卡片。
+2. 在 **Audio Connection**(音频连接) 下选择你的 ElevenLabs 连接，或者保留 **Use the default audio connection**(使用默认音频连接)。
+3. 让 **Sound effects**(音效) 和 **Music**(音乐) 保持开启，或者关掉不想要的那一项。
+
+只有所选连接是开启了对应开关的 ElevenLabs 连接，才能打开 **Sound effects** 或 **Music**。条件不满足时，卡片上会给出提示。
+
+游戏过程中：
+
+- **Sound effects**：GM 回合结束后，Marinara 会向 ElevenLabs 请求贴合场景的简短音效。
+- **Music**：队伍每到一个地方、每遇到一种战斗（比如首领战），Marinara 都会创作一首约两分钟长的纯器乐曲目。每首曲目只生成一次，之后重复使用。新地点的曲目要等到之后的场景切换时才开始播放，所以音乐不会在场景中途突然切入。战斗曲目一准备好就会淡入。
+
+生成的音效和曲目会和你的游戏素材保存在一起，所以同一段音效不会生成两次。如果 **Music DJ** 正在为这个游戏播放音乐，Game Mode 就不会生成音乐。
+
 ## Music DJ 的自定义音乐文件夹
 
 **Music DJ** 是一个辅助智能体，可以在游戏过程中播放音乐。它运行在 Custom 模式时，会播放指定文件夹里的曲目。这个文件夹有两处可以设置。
@@ -168,5 +196,6 @@ Marinara 内部维护着一份素材清单，好让 Game Mode 快速找到文件
 ## 相关指南
 
 - [Music DJ：Spotify、YouTube 与本地音乐](../media/music.md)
+- [支持的 AI 服务商](../connections/providers-reference.md)
 - [Game Mode：入门](getting-started.md)
 - [远程访问：Basic Auth 与 IP 允许列表](../REMOTE_ACCESS.md)

@@ -8,7 +8,7 @@ Agenten sind kleine KI-Helfer, die rund um die Hauptantwort im Chat automatisch 
 
 Agenten werden pro Chat aktiviert, nicht pro Charakter. Auf einer Charakterkarte gibt es keinen Schalter für Agenten. Zwei Chats mit demselben Charakter können völlig unterschiedliche Agenten nutzen. Welche Agenten laufen, legst du in den Einstellungen des jeweiligen Chats fest.
 
-Frisch installierte Marinara-Engine-Versionen bringen keine optionalen Agenten mit. Das hält die Basis-App und die Termux-Installation klein. Der offizielle Katalog ab v2.3.0 enthält 36 Pakete zum Installieren per Klick: 6 Writer Agents, 11 Tracker Agents und 19 Misc Agents, darunter Long-Term Memory, Maps, Calls, Inventory Tracker und alle sechs Conversation-Spiele. Quellcode, Manifeste, herunterladbare Artefakte und der Katalog auf Repository-Ebene sind öffentlich einsehbar unter [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Die vollständige Beschreibung jedes einzelnen Agenten steht in der [Referenz der herunterladbaren Agenten](built-in-agents.md). Wie du eigene baust, zeigt [Eigene Agenten erstellen](custom-agents.md).
+Frisch installierte Marinara-Engine-Versionen bringen keine optionalen Agenten mit. Das hält die Basis-App und die Termux-Installation klein. **Download Agents** (Agenten herunterladen) sortiert die offiziellen Pakete zum Installieren per Klick in **Apps**, **Writer Agents**, **Tracker Agents** und **Misc Agents**. Der Katalog enthält Long-Term Memory, World Maps, Calls, Inventory Tracker und alle sechs Conversation-Spiele. Quellcode, Manifeste, herunterladbare Artefakte und der Katalog auf Repository-Ebene sind öffentlich einsehbar unter [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Die vollständige Beschreibung jedes einzelnen Agenten steht in der [Referenz der herunterladbaren Agenten](built-in-agents.md). Wie du eigene baust, zeigt [Eigene Agenten erstellen](custom-agents.md).
 
 ## Die drei Phasen
 
@@ -22,17 +22,28 @@ Jeder Agent läuft an einem von drei Punkten rund um die Antwort. Dieser Punkt h
 
 Öffne das **Agents**-Panel über die Tabs des rechten Panels (Symbol mit den Funkeln). Hier durchsuchst, erstellst und sortierst du Agenten. Das ist deine Bibliothek – und nicht der Schalter, mit dem du einen Agenten für einen einzelnen Chat ein- oder ausschaltest.
 
-Ein Klick auf **Download Agents** (Agenten herunterladen) oben öffnet den offiziellen Katalog im Vollbild. Das funktioniert am Rechner wie am Handy. Wähle einen Eintrag aus, und du siehst Beschreibung, unterstützten Funktionstyp, Download-Größe, Berechtigungen, Versionskompatibilität und Dokumentation. Über **Install** (Installieren) fügst du ihn hinzu; derselbe Bildschirm bietet sofortige manuelle Updates sowie **Uninstall** (Deinstallieren) für bereits vorhandene Pakete. Zusätzlich prüft Marinara beim Serverstart jedes installierte offizielle Paket und hebt es auf die neueste kompatible Katalogversion an, bevor dessen Laufzeit startet. Ist der Host-Server offline oder lässt sich ein Update nicht verifizieren, laufen die Pakete einfach in ihrer aktuellen Version weiter.
+Ein Klick auf **Download Agents** oben öffnet den offiziellen Katalog im Vollbild. Das funktioniert am Rechner wie am Handy. Wähle einen Eintrag aus, und du siehst Beschreibung, unterstützten Funktionstyp, Download-Größe, Berechtigungen, Versionskompatibilität und Dokumentation. Über **Install** (Installieren) fügst du ihn hinzu; derselbe Bildschirm bietet sofortige manuelle Updates sowie **Uninstall** (Deinstallieren) für bereits vorhandene Pakete.
 
 Hinter dem Katalog in der App steht das öffentliche [Repository Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Dort lässt sich jedes Paket und jedes Artefakt einsehen. Für den Normalfall gilt trotzdem: über **Download Agents** installieren, damit Marinara Kompatibilität, Berechtigungen, Hashes, Archivinhalte und nötige Neustarts prüfen kann.
 
 Der Katalog umfasst Chat-Agenten aus erster Hand, World Maps, Audio- und Videoanrufe für Conversation sowie sämtliche optionalen Conversation-Spiele. Installierte Agenten sind in **Apps**, **Writer Agents**, **Tracker Agents** und **Misc Agents** gruppiert, dazu kommt ein Bereich **Custom Agents** für selbst gebaute. **Apps** sind Pakete mit einem eigenen Home-Tab, etwa Noodle und Slurp, die du eigenständig nutzt, statt sie einem Chat hinzuzufügen. Deinstallierst du ein Katalogpaket, verschwinden Code und Einstellungen aus der Engine – Nachrichten und Chatverlauf bleiben erhalten. Löschst du einen eigenen Agenten, ist er endgültig weg.
 
-Ein mit **Rules** gekennzeichnetes Paket liefert einen Game Mode-Regelsatz wie 5e (SRD 5.1), keinen Agenten. Es zählt nicht zu den Agentenzahlen oben. Du wählst es beim Anlegen eines Spiels unter **Rules**; siehe [Regeln auswählen](../game/getting-started.md#choosing-rules). Im Chat gibt es dafür keinen Aktivierungsschalter. Das 5e-Paket ist eine Vorschau und erscheint derzeit nur im Katalog einer Engine aus dem Branch `staging`.
+Ein mit **Rules** gekennzeichnetes Paket liefert einen Game Mode-Regelsatz wie 5e (SRD 5.1), keinen Agenten. Du wählst es beim Anlegen eines Spiels unter **Rules**; siehe [Regeln auswählen](../game/getting-started.md#choosing-rules). Im Chat gibt es dafür keinen Aktivierungsschalter. Das 5e-Paket ist eine Vorschau und erscheint derzeit nur im Katalog einer Engine aus dem Branch `staging`.
 
 Kommst du von einer Engine-Version, die diese Funktionen noch fest mitbrachte, lädt Marinara die passenden Pakete einmalig herunter. Chat-Auswahl, Agent-Einstellungen, gespeicherte Laufzeitdaten und Verlauf bleiben dabei bestehen. Erreicht diese Migration den Katalog nicht, versucht sie es beim nächsten Start erneut, statt irgendetwas zu verwerfen.
 
-Automatische Updates beim Start installieren nie ein Paket, das du nicht ausgewählt hast. Installationen auf dem Rechner, unter Docker und unter Android/Termux aktualisieren die Pakete ihres lokalen Servers. iOS, iPadOS und andere Browser-Clients nutzen die Pakete des Marinara-Servers, mit dem sie verbunden sind.
+<a id="updating-packages"></a>
+
+### Pakete aktualisieren
+
+Marinara aktualisiert ein Paket nur nach Rückfrage. Gibt es für ein installiertes Paket eine neuere kompatible Version, erscheint das Fenster **Agent updates available**. Es listet jedes Update mit seiner neuen Version auf und zeigt, ob ein Neustart nötig ist. Veröffentlicht das Paket Release Notes, zeigt **What changed** (Was sich geändert hat) sie an. Ein Punkt markiert eine Änderung, die dir auffallen wird; Updates ohne Punkt sind routinemäßige Fehlerbehebungen.
+
+- Klick auf **Update all** (Alle aktualisieren), um alle aufgeführten Updates zu installieren. Starte Marinara Engine neu, wenn du dazu aufgefordert wirst.
+- Klick auf **Not now** (Jetzt nicht), um deine aktuellen Versionen zu behalten. Zu einer übersprungenen Version fragt Marinara nicht noch einmal nach.
+
+Aktualisieren kannst du jedes Paket auch später noch über **Download Agents**. Installierte Pakete laufen in ihrer aktuellen Version weiter, bis du sie aktualisierst – auch wenn der Katalog nicht erreichbar ist.
+
+Updates betreffen nur Pakete, die du bereits installiert hast. Installationen auf dem Rechner, unter Docker und unter Android/Termux halten ihre Pakete auf ihrem lokalen Server. iOS, iPadOS und andere Browser-Clients nutzen die Pakete, die auf ihrem verbundenen Marinara-Server installiert sind.
 
 ## Agenten für einen Chat aktivieren
 

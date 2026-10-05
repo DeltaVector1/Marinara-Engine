@@ -1,15 +1,19 @@
 # Exportar e importar chats
 
-Neste guia você aprende a salvar um chat em um arquivo e a carregar um chat de volta no Marinara Engine. A exportação funciona com um chat só ou com vários de uma vez. Também é possível importar um arquivo de chat vindo do Marinara ou do SillyTavern (outro aplicativo de chat para roleplay).
+Neste guia você aprende a salvar um chat em um arquivo e a carregar um chat de volta no Marinara Engine. A exportação funciona com um chat só ou com vários de uma vez, e você pode salvar um único chat como uma história legível para compartilhar. Também é possível importar um arquivo de chat vindo do Marinara ou do SillyTavern (outro aplicativo de chat para roleplay).
 
 ## Formatos de arquivo que você vai encontrar
 
-Marinara usa dois formatos de arquivo de chat.
+Marinara pode salvar um chat em quatro formatos.
 
 - **JSONL**: JSONL quer dizer JSON Lines. É um arquivo de texto simples que salva uma mensagem por linha. Esse é o formato de exportação padrão. Um arquivo JSONL pode ser importado de volta no Marinara depois.
 - **Text**: uma transcrição em `.txt`, simples e fácil de ler. Serve bem para leitura e compartilhamento, mas Marinara não consegue importar esse formato de volta. Use **Text** só quando a ideia for uma pessoa ler o chat.
+- **Markdown**: um arquivo `.md` legível. Ele começa com o nome do chat e as datas que ele abrange, e depois traz cada mensagem abaixo do nome de quem a enviou.
+- **Story**: uma página web `.html` estilizada. Ela mostra cada mensagem com o nome e o avatar de quem a enviou. Abra o arquivo em qualquer navegador para ler, compartilhar ou imprimir.
 
-A importação de chat aceita apenas arquivos `.jsonl`. Se você pretende importar o chat de novo mais tarde, exporte em **JSONL**, não em **Text**.
+Os arquivos **Markdown** e **Story** deixam de fora as mensagens de sistema e as mensagens ocultas para você.
+
+A importação de chat aceita apenas arquivos `.jsonl`. Se você pretende importar o chat de novo mais tarde, exporte em **JSONL**, não em **Text**, **Markdown** ou **Story**.
 
 ## Exportar um único chat
 
@@ -17,7 +21,7 @@ Para exportar um chat para um arquivo, use a seção **Chat Branches** de **Chat
 
 1. Abra o chat que você quer exportar.
 2. Abra **Chat Settings** e expanda **Chat Branches**, abaixo de **Chat Name**.
-3. Clique em **JSONL** para salvar o chat como arquivo JSONL, ou clique em **Text** para salvar como arquivo de texto legível.
+3. Clique em **JSONL** para salvar o chat como arquivo JSONL, em **Text** para um arquivo de texto legível, em **Markdown** para um arquivo Markdown ou em **Story** para uma página web estilizada.
 4. O navegador baixa o arquivo.
 
 O download salva o chat que está aberto no momento, com as mensagens dele.
@@ -66,8 +70,8 @@ Alguns modelos salvam junto da resposta um texto oculto de pensamento ou racioc�
 
 A configuração é **Include reasoning in exports** (incluir o raciocínio nas exportações). Ela fica em **Settings** (Configurações), na aba **Advanced**, na seção **Message Tools**. É um botão liga/desliga, desativado por padrão.
 
-- Com a opção **off**, Marinara deixa o pensamento e o raciocínio salvos de fora tanto das exportações em **JSONL** quanto das em **Text**.
-- Com a opção **on**, Marinara acrescenta esse texto oculto de pensamento e raciocínio aos dois formatos.
+- Com a opção **off**, Marinara deixa o pensamento e o raciocínio salvos de fora de todas as exportações de chat.
+- Com a opção **on**, Marinara acrescenta esse texto oculto de pensamento e raciocínio a todos os formatos. Nos arquivos **Markdown** e **Story**, ele fica em uma seção recolhível **Thinking** (pensamento), abaixo da mensagem.
 
 Essa configuração vale tanto para a exportação de um único chat quanto para a exportação em massa em `.zip`.
 

@@ -17,25 +17,29 @@
 1. 打开 **Settings**(设置)，再打开 **Connections**(连接)。
 2. 点击 **Add Connection**(添加连接)。
 3. 把服务商类型设为 **Video Generation**。
-4. 在 **Video Service**(视频服务) 里选择下面六种服务之一。
-5. 云端服务需要填入 API 密钥。本地 ComfyUI 不需要。
-6. 云端服务可以选一个模型，也可以保留服务商默认值。ComfyUI 则不要填模型，除非工作流里用到了 `%model%`。
+4. 在 **Video Service**(视频服务) 里选择下面八种服务之一。
+5. 云端服务需要填入 API 密钥。本地 ComfyUI 不需要。SwarmUI 只有在你的 SwarmUI 服务器要求账号时才需要 Swarm Auth Token。
+6. 云端服务可以选一个模型，也可以保留服务商默认值。NanoGPT 没有默认值，所以要点击 **Fetch Models from API**(从 API 获取模型) 再选一个。ComfyUI 则不要填模型，除非工作流里用到了 `%model%`。SwarmUI 的模型可填可不填。
 7. 保存连接。
 
-**Video Service** 下拉菜单提供六个选项。每一项都会自动填好默认的网址，需要的话还会填好默认模型：
+**Video Service** 下拉菜单提供八个选项。每一项都会自动填好默认的网址，需要的话还会填好默认模型：
 
 | 视频服务             | 默认模型                          | 说明                                                                         |
 | -------------------- | --------------------------------- | ---------------------------------------------------------------------------- |
 | **Google AI Studio** | `gemini-omni-flash-preview`       | 通过 Gemini API 调用 Gemini Omni 和 Veo 视频模型。                           |
 | **xAI Imagine**      | `grok-imagine-video-1.5`          | 通过 xAI Videos API 调用 Grok Imagine 视频。                                 |
 | **OpenRouter Video** | `google/veo-3.1`                  | 通过 OpenRouter 调用视频模型。可以手动填写任意 OpenRouter 视频模型 ID。      |
+| **NanoGPT**          | 无，需自行选择                    | 通过 NanoGPT 调用视频模型。**Fetch Models from API** 会加载列表。            |
 | **Atlas Cloud**      | `google/veo3.1/text-to-video`     | 通过 Atlas Cloud 调用托管的文生视频和图生视频模型。                          |
 | **Seedance 2.0**     | `seedance-2-0`                    | 支持纯文本、首帧、首尾帧三种视频模式。                                       |
 | **ComfyUI**          | 由工作流决定                      | 本地 WAN 及其他以 API 格式导出的视频工作流。                                 |
+| **SwarmUI**          | 由工作流决定                      | 通过你的 SwarmUI 服务器运行的 ComfyUI 视频工作流。                           |
 
 **Google AI Studio** 覆盖两个模型系列。**Gemini Omni** 用 `gemini-omni-flash-preview`，**Google Veo** 用 `veo-3.1-generate-preview`。实际跑哪一个，取决于连接里选的模型。
 
 用 **ComfyUI** 时，填本地常用地址 `http://127.0.0.1:8188`，并把 API 格式的视频工作流粘贴到 **ComfyUI Workflow**(ComfyUI 工作流) 里。工作流是必填的。占位符和输出节点的要求见 [ComfyUI 工作流设置](comfyui.md#comfyui-video-workflows)。
+
+用 **SwarmUI** 时，Marinara 会填入本地地址 `http://127.0.0.1:7801`。把 API 格式的视频工作流粘贴到 **ComfyUI Workflow** 里。工作流是必填的。SwarmUI 用不了 `%reference_image_name%` 占位符，所以参考图要改用 `%reference_image%`。如果你的 SwarmUI 服务器要求账号，就把 Swarm Auth Token 粘贴到 **API Key**(API 密钥)。**Fetch Models from API** 会列出 SwarmUI 服务器上的模型。
 
 ### 设为默认视频连接
 
@@ -51,9 +55,11 @@ Video Generation 连接在编辑界面里有专属的 **Video Generation Default
 | Google Veo       | 8s             | 4、6 或 8s   | 16:9         | 720p             |
 | xAI Imagine      | 10s            | 1 到 15s     | 16:9         | 720p             |
 | OpenRouter Video | 10s            | 1 到 60s     | 16:9         | 720p             |
+| NanoGPT          | 10s            | 1 到 60s     | 16:9         | 720p             |
 | Atlas Cloud      | 8s             | 1 到 60s     | 16:9         | 720p             |
 | Seedance 2.0     | 5s             | 4 到 15s     | 16:9         | 720p             |
 | ComfyUI          | 5s             | 1 到 60s     | 16:9         | 720p             |
+| SwarmUI          | 5s             | 1 到 60s     | 16:9         | 720p             |
 
 Gemini Omni 没有分辨率字段，时长也不是单独的设置项，而是写进提示词文本里的。Google Veo 只要是给参考图做动画，就一律锁定 8 秒，因为它需要 8 秒来衔接首帧和尾帧。
 
@@ -67,15 +73,17 @@ Seedance 必须通过一个公网链接取到参考图，才能给它做动画�
 
 ## 选择服务商
 
-六种服务都能把图片变成短片，区别在速度、片长，以及处理参考图的方式。
+八种服务都能把图片变成短片，区别在速度、片长，以及处理参考图的方式。
 
 - **Google AI Studio (Gemini Omni)**：时长灵活，最长 60 秒。时长写在提示词里，没有单独的控件。
 - **Google AI Studio (Veo)**：画质出色，但时长固定为 4、6 或 8 秒。给图片做动画时用 8 秒。
 - **xAI Imagine**：1 到 15 秒。提示词长度上限比其他服务更短。
 - **OpenRouter Video**：1 到 60 秒，还可以手动填写 OpenRouter 账号支持的任意视频模型。
+- **NanoGPT**：1 到 60 秒。它没有默认模型，所以要用 **Fetch Models from API** 加载 NanoGPT 的视频模型，再选一个。
 - **Atlas Cloud**：**Fetch Models**（获取模型）会加载 Atlas Cloud 当前的视频模型目录，优先显示图生视频模型，并列出每个模型按输出视频每秒计算的起始价格。如果无法访问目录，Marinara 会改为显示 Veo 3.1 和 Seedance 2.0 的初始模型。你也可以输入准确的 Atlas Cloud 视频模型 ID；各模型的时长、分辨率和参考图像限制仍然适用。
 - **Seedance 2.0**：4 到 15 秒，支持首帧和首尾帧两种模式。需要参考图的公网链接。
 - **ComfyUI**：用自己的 API 格式工作流在本地生成。工作流里用到 `%reference_image_name%` 时，Marinara 会把参考图直接上传给 ComfyUI。
+- **SwarmUI**：用自己的 API 格式工作流在本地生成，经由你的 SwarmUI 服务器发送。参考图通过 `%reference_image%` 进入工作流。
 
 视频任务比较慢，要有心理准备。服务商启动任务后，Marinara 会一直等待并轮询，直到短片生成完毕。一段短片往往要几分钟，比出一张静图久得多。本地的大体积 WAN 模型可能超过默认的 30 分钟上限，必要时调高 `VIDEO_GEN_TIMEOUT_MS` 并重启 Marinara。
 
@@ -197,7 +205,7 @@ Game Mode 还有另一个生成场景视频的入口：**Game Assets**。点击�
 
 ### 视频生成很慢
 
-这是正常现象。服务商启动任务后，Marinara 会一直等待并轮询，直到短片生成完毕。Veo、xAI、OpenRouter、Atlas Cloud 和 Seedance 都是这个流程，一段短片要几分钟很常见。
+这是正常现象。服务商启动任务后，Marinara 会一直等待并轮询，直到短片生成完毕。Veo、xAI、OpenRouter、NanoGPT、Atlas Cloud 和 Seedance 都是这个流程，一段短片要几分钟很常见。
 
 ### Seedance 读不到参考图
 
