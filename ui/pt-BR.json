@@ -101,6 +101,7 @@
   "chat.help.targets.widgets.title": "Widgets do jogo",
   "chat.input.tools": "Ferramentas",
   "chat.slash.illustrate.rangeUsage": "Use /illustrate range=N ou range=N-M, seguido de um prompt opcional. Use números de mensagem em ordem crescente, com no máximo 200 mensagens.",
+  "connections.decision.errors.needs_https": "Sua chave da TypeSafe é enviada para este endereço, então ele precisa começar com https://, a menos que seja um endereço local, como localhost ou 192.168.x.x.",
   "connections.decision.typesafeAddressHelp": "Para usar outro servidor que execute a API da TypeSafe, substitua a Base URL abaixo pelo endereço desse servidor, sem /v1/systemone.",
   "connections.mediaSources.atlas.apiKeyLink": "Obtenha sua chave de API do Atlas Cloud",
   "connections.mediaSources.atlas.imageDescription": "Gere imagens com os modelos hospedados no Atlas Cloud.",
