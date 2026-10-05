@@ -1,6 +1,6 @@
 {
   "language": "ru",
-  "sourceCommit": "2d62ae4d27e684b2aef5d5026a797e0371486937",
+  "sourceCommit": "c52904c25571e4f3aaadc2e0880c3f477b8ed226",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -209,8 +209,8 @@
     },
     {
       "path": "connections/decision-models.md",
-      "sha256": "18b9a3730f99f1a083c3d949ad7cec3de264d9c0115f90e270df4f688b9f6d94",
-      "bytes": 45250
+      "sha256": "fce02f35559388747b1473a55010e9622b6298e317a4eed0b1cd07b3a612c3c6",
+      "bytes": 46054
     },
     {
       "path": "connections/local-model.md",
