@@ -84,6 +84,7 @@ Accent Colorの見え方を変えるトグルが2つあります。
 
 **Roleplay Messages**セクションでは、Roleplayチャットのメッセージの見た目を設定します。
 
+- **Chat position**は、画面が広い場合にメッセージと入力欄をどこに置くかを選びます。選択肢は**Left**、**Center**(デフォルト)、**Right**の3つです。メッセージと入力欄は一緒に動き、同じ側でサイドバーやTracker Panelが開いているときは、チャットがその下に隠れないように位置がずれます。スマートフォンや幅の狭いウィンドウではチャットは画面幅いっぱいのままで、Game Modeのセリフ欄は中央に表示されたままです。
 - **Roleplay Messages Background Opacity**は0%から100%までのスライダーです。デフォルトは90%です。値を下げると、メッセージの吹き出しから背景が透けて見えます。
 - **Roleplay Avatars**は、各メッセージの横に表示するアバターのスタイルを選びます。選択肢は**None**、**Small Circles**(デフォルト)、**Small Rectangles**、**Glued Side Panel**の4つです。
 - **Scrollable Avatars**(デフォルトはオフ)は、長いメッセージをスクロールしている間もアバターを表示し続けます。

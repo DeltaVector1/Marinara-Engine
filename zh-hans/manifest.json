@@ -1,6 +1,6 @@
 {
   "language": "zh-hans",
-  "sourceCommit": "7e556947b4f3275e888752897af967dfb5d588d7",
+  "sourceCommit": "62accbcbe15549d82b9506b8e0debabd78d44366",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -69,8 +69,8 @@
     },
     {
       "path": "appearance/appearance-settings.md",
-      "sha256": "3f96ad1e90ac470b2cd5559387c0f0b53d36f942bacda1fe9ce4492df7823ba0",
-      "bytes": 9071
+      "sha256": "3132b932c4c443eb0133e324344d16fe43f9e4c956349f2da2fcfb75e26ea3d2",
+      "bytes": 9442
     },
     {
       "path": "appearance/card-css-theming.md",

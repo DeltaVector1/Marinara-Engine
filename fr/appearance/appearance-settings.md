@@ -84,6 +84,7 @@ La section **Tracker Panel** habille le panneau latéral des trackers (agents de
 
 La section **Roleplay Messages** habille les messages dans les chats en mode Roleplay.
 
+- **Chat position** choisit où se placent les messages et la zone de saisie sur un écran large : **Left**, **Center** (valeur par défaut) ou **Right**. Ils se déplacent ensemble, et une barre latérale ouverte ou le Tracker Panel du même côté les décale pour que le chat ne se retrouve jamais dessous. Sur un téléphone ou dans une fenêtre étroite, le chat garde toute la largeur, et en Game Mode la boîte de dialogue reste centrée.
 - **Roleplay Messages Background Opacity** est un curseur de 0 % à 100 %. Par défaut : 90 %. Baisse-le pour laisser l'arrière-plan transparaître à travers les bulles de message.
 - **Roleplay Avatars** choisit le style d'avatar affiché à côté de chaque message. Les quatre options sont **None**, **Small Circles** (valeur par défaut), **Small Rectangles** et **Glued Side Panel**.
 - **Scrollable Avatars** (désactivé par défaut) garde les avatars visibles pendant que tu fais défiler un long message.

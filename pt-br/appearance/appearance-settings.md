@@ -84,6 +84,7 @@ A seção **Tracker Panel** define o estilo do painel lateral de trackers do Rol
 
 A seção **Roleplay Messages** define o estilo das mensagens nos chats de Roleplay.
 
+- **Chat position** escolhe onde as mensagens e a caixa de entrada ficam em telas largas: **Left**, **Center** (o padrão) ou **Right**. As duas se movem juntas, e uma barra lateral aberta ou o Tracker Panel do mesmo lado as empurra para o lado, para que o chat nunca fique por baixo. No celular e em janelas estreitas o chat continua ocupando a largura toda, e o Game Mode mantém a caixa de diálogo centralizada.
 - **Roleplay Messages Background Opacity** é um controle deslizante de 0% a 100%. O padrão é 90%. Diminua para deixar o plano de fundo aparecer através dos balões de mensagem.
 - **Roleplay Avatars** escolhe o estilo do avatar ao lado de cada mensagem. As quatro opções são **None**, **Small Circles** (o padrão), **Small Rectangles** e **Glued Side Panel**.
 - **Scrollable Avatars** (desativado por padrão) mantém os avatares à vista enquanto você rola uma mensagem longa.

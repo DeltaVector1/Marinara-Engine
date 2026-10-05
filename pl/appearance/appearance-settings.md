@@ -84,6 +84,7 @@ Sekcja **Tracker Panel** odpowiada za styl bocznego panelu trackerów w trybie R
 
 Sekcja **Roleplay Messages** odpowiada za styl wiadomości w czatach w trybie Roleplay.
 
+- **Chat position** określa, gdzie na szerokim ekranie znajdują się wiadomości i pole, w którym je wpisujesz: **Left**, **Center** (domyślnie) lub **Right**. Przesuwają się razem, a otwarty pasek boczny lub Tracker Panel po tej samej stronie odsuwa je na bok, żeby czat nigdy nie znalazł się pod spodem. Na telefonie i w wąskim oknie czat zajmuje całą szerokość, a w trybie Game Mode okno dialogowe zostaje na środku.
 - **Roleplay Messages Background Opacity** to suwak od 0% do 100%. Domyślnie jest to 90%. Zmniejsz wartość, żeby tło prześwitywało przez dymki wiadomości.
 - **Roleplay Avatars** wybiera styl awatara przy każdej wiadomości. Cztery opcje to **None**, **Small Circles** (domyślnie), **Small Rectangles** oraz **Glued Side Panel**.
 - **Scrollable Avatars** (domyślnie wyłączone) utrzymuje awatary na widoku podczas przewijania długiej wiadomości.

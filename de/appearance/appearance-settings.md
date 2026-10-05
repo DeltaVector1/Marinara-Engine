@@ -84,6 +84,7 @@ Der Abschnitt **Tracker Panel** gestaltet das seitliche Tracker-Panel im Rolepla
 
 Der Abschnitt **Roleplay Messages** gestaltet die Nachrichten in Roleplay-Chats.
 
+- **Chat position** legt fest, wo die Nachrichten und das Eingabefeld auf breiten Bildschirmen sitzen: **Left**, **Center** (der Standard) oder **Right**. Beide bewegen sich gemeinsam, und eine geöffnete Seitenleiste oder ein Tracker Panel auf derselben Seite schiebt sie mit, damit der Chat nie darunter liegt. Auf dem Handy und in schmalen Fenstern behält der Chat die volle Breite, und im Game Mode bleibt die Dialogbox mittig.
 - **Roleplay Messages Background Opacity** ist ein Schieberegler von 0% bis 100%, standardmäßig 90%. Senke den Wert, damit der Hintergrund durch die Sprechblasen scheint.
 - **Roleplay Avatars** bestimmt den Avatar-Stil neben jeder Nachricht. Es gibt vier Optionen: **None**, **Small Circles** (der Standard), **Small Rectangles** und **Glued Side Panel**.
 - **Scrollable Avatars** (standardmäßig aus) hält die Avatare sichtbar, während du durch eine lange Nachricht scrollst.

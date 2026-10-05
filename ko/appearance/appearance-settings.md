@@ -84,6 +84,7 @@
 
 **Roleplay Messages** 섹션은 Roleplay 채팅의 메시지 모양을 정합니다.
 
+- **Chat position**(채팅 위치)은 넓은 화면에서 메시지와 입력 상자가 놓일 위치를 정합니다. 선택지는 **Left**, **Center**(기본값), **Right** 세 가지입니다. 메시지와 입력 상자는 함께 움직이며, 같은 쪽에 사이드바나 Tracker Panel이 열려 있으면 채팅이 그 아래에 가려지지 않도록 옆으로 비켜납니다. 휴대폰이나 폭이 좁은 창에서는 채팅이 화면 너비를 그대로 쓰고, Game Mode는 대화 상자를 계속 가운데에 둡니다.
 - **Roleplay Messages Background Opacity**(롤플레이 메시지 배경 불투명도)는 0%에서 100%까지의 슬라이더입니다. 기본값은 90%입니다. 값을 낮추면 말풍선 너머로 배경이 비쳐 보입니다.
 - **Roleplay Avatars**(롤플레이 아바타)는 메시지 옆에 붙는 아바타 스타일을 정합니다. 선택지는 **None**, **Small Circles**(기본값), **Small Rectangles**, **Glued Side Panel** 네 가지입니다.
 - **Scrollable Avatars**(스크롤 가능한 아바타, 기본값 꺼짐)를 켜면 긴 메시지를 스크롤하는 동안에도 아바타가 계속 보입니다.

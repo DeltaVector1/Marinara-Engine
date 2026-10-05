@@ -84,6 +84,7 @@
 
 **Roleplay Messages** 板块负责 Roleplay 聊天中消息的样式。
 
+- **Chat position**(聊天位置) 决定宽屏时消息和输入框的位置，可选 **Left**、**Center**(默认) 或 **Right**。两者会一起移动；同一侧打开了侧边栏或 Tracker Panel 时，它们会随之让开，聊天就不会被压在下面。在手机上或窗口较窄时，聊天始终占满整个宽度，Game Mode 的对白框也保持居中。
 - **Roleplay Messages Background Opacity**(Roleplay 消息背景不透明度) 是一个滑块，范围 0% 到 100%，默认 90%。调低它，背景就会透过消息气泡显出来。
 - **Roleplay Avatars**(Roleplay 头像) 决定每条消息旁边的头像样式，四个选项是 **None**、**Small Circles**(默认)、**Small Rectangles** 和 **Glued Side Panel**。
 - **Scrollable Avatars**(可滚动头像，默认关闭) 会在滚动阅读长消息时让头像一直留在视野内。
