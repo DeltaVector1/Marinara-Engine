@@ -104,7 +104,7 @@ Character Editor 会把聊天区域换成一整页的工作区，顶部横贯的
 1. 把鼠标移到头像方块上，点击那个小小的 **Generate avatar**(生成头像) 魔杖按钮。
 2. **Generate Character Avatar** 窗口打开。
 3. 选择一个 **Image Generation Connection**(图像生成连接)。
-4. 检查或修改 **Avatar Prompt**(头像提示词)。它会用 Appearance 里的文字预先填好。Appearance 为空时改用 Description，再空则用 Personality。
+4. 检查或修改 **Avatar Prompt**(头像提示词)。如果 **Image Appearance Override** 已打开且填有内容，就会用这段文字预先填好。否则使用 **Appearance**；**Appearance** 为空时改用 **Description**，再空则用 **Personality**。
 5. 如果角色卡已经有头像，可以勾选 **Use current avatar as a reference**。
 6. 点击 **Generate**。想再试一次就点 **Regenerate**(重新生成)。
 7. 对结果满意后，点击 **Use Avatar**。

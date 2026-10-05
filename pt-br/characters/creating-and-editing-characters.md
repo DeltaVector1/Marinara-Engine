@@ -104,7 +104,7 @@ A opção de avatar por IA só aparece quando existe pelo menos uma conexão de 
 1. Passe o mouse sobre o quadro do avatar e clique no pequeno botão de varinha **Generate avatar**.
 2. A janela **Generate Character Avatar** abre.
 3. Escolha uma conexão em **Image Generation Connection**.
-4. Revise ou edite o campo **Avatar Prompt**. Ele vem preenchido a partir do texto de Appearance. Se Appearance estiver vazio, Marinara usa Description e depois Personality.
+4. Revise ou edite o campo **Avatar Prompt**. Ele vem preenchido com o texto de **Image Appearance Override** quando a opção está ativada e o campo contém texto. Caso contrário, usa **Appearance**; se estiver vazio, usa **Description** e depois **Personality**.
 5. Se o card já tiver um avatar, marque a caixa de seleção **Use current avatar as a reference**.
 6. Clique em **Generate**. Para tentar de novo, clique em **Regenerate**.
 7. Quando gostar do resultado, clique em **Use Avatar**.

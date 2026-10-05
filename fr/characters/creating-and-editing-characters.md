@@ -104,7 +104,7 @@ L'option d'avatar IA n'apparaît que si au moins une connexion de génération d
 1. Survole la vignette de l'avatar et clique sur le petit bouton baguette **Generate avatar**.
 2. La fenêtre **Generate Character Avatar** s'ouvre.
 3. Choisis une **Image Generation Connection**.
-4. Relis ou modifie l'**Avatar Prompt**. Il est prérempli à partir du texte Appearance. Si Appearance est vide, Marinara utilise Description, puis Personality.
+4. Relis ou modifie l'**Avatar Prompt**. Il est prérempli avec le texte d'**Image Appearance Override** si l'option est activée et que son champ contient du texte. Sinon, Marinara utilise **Appearance** ; si ce champ est vide, il utilise **Description**, puis **Personality**.
 5. Si la fiche a déjà un avatar, tu peux cocher **Use current avatar as a reference**.
 6. Clique sur **Generate**. Pour un nouvel essai, clique sur **Regenerate**.
 7. Quand le résultat te convient, clique sur **Use Avatar**.

@@ -104,7 +104,7 @@ La opción de avatar con IA aparece solo cuando tienes al menos una conexión de
 1. Pasa el cursor sobre la casilla del avatar y haz clic en el pequeño botón de varita **Generate avatar** (Generar avatar).
 2. Se abre la ventana **Generate Character Avatar** (Generar avatar de personaje).
 3. Elige una **Image Generation Connection** (Conexión de generación de imágenes).
-4. Revisa o edita el **Avatar Prompt** (Prompt del avatar). Viene rellenado a partir de tu texto de Appearance. Si Appearance está vacío, usa Description, y luego Personality.
+4. Revisa o edita el **Avatar Prompt** (Prompt del avatar). Se rellena con el texto de **Image Appearance Override** si la opción está activada y su cuadro contiene texto. En caso contrario, usa **Appearance**; si está vacío, usa **Description** y después **Personality**.
 5. Si la tarjeta ya tiene un avatar, puedes marcar **Use current avatar as a reference** (Usar el avatar actual como referencia).
 6. Haz clic en **Generate** (Generar). Para volver a intentarlo, haz clic en **Regenerate** (Regenerar).
 7. Cuando te guste el resultado, haz clic en **Use Avatar** (Usar avatar).

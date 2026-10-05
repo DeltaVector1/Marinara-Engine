@@ -104,7 +104,7 @@ Die KI-Avatar-Option erscheint nur, wenn mindestens eine Verbindung zur Bildgene
 1. Zeig mit der Maus auf die Avatar-Kachel und klick auf die kleine Zauberstab-Schaltfläche **Generate avatar** (Avatar generieren).
 2. Das Fenster **Generate Character Avatar** öffnet sich.
 3. Wähl eine **Image Generation Connection** (Verbindung zur Bildgenerierung).
-4. Prüf den **Avatar Prompt** und passe ihn bei Bedarf an. Er ist mit dem Text aus Appearance vorbelegt. Ist Appearance leer, greift Marinara auf Description und danach auf Personality zurück.
+4. Prüf den **Avatar Prompt** und passe ihn bei Bedarf an. Ist **Image Appearance Override** eingeschaltet und ausgefüllt, wird dieser Text als Ausgangspunkt verwendet. Andernfalls nimmt Marinara den Text aus **Appearance**, danach aus **Description** und zuletzt aus **Personality** – jeweils aus dem ersten Feld, das Text enthält.
 5. Hat die Karte bereits einen Avatar, kannst du **Use current avatar as a reference** ankreuzen.
 6. Klick auf **Generate**. Für einen weiteren Versuch klick auf **Regenerate**.
 7. Gefällt dir das Ergebnis, klick auf **Use Avatar**.

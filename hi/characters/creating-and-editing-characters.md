@@ -104,7 +104,7 @@ AI अवतार का विकल्प तभी दिखता है �
 1. अवतार टाइल पर माउस ले जाएँ और छोटे **Generate avatar** जादू-छड़ी बटन पर क्लिक करें।
 2. **Generate Character Avatar** विंडो खुलती है।
 3. कोई **Image Generation Connection** चुनें।
-4. **Avatar Prompt** देखें या बदलें। यह आपके Appearance टेक्स्ट से पहले ही भर दिया जाता है। Appearance खाली हो तो Description से, और उसके बाद Personality से।
+4. **Avatar Prompt** देखें या बदलें। **Image Appearance Override** चालू हो और उसका बॉक्स भरा हो, तो यह उसी टेक्स्ट से पहले ही भर दिया जाता है। वरना **Appearance** का टेक्स्ट लिया जाता है। वह खाली हो तो **Description**, और उसके भी खाली होने पर **Personality** इस्तेमाल होता है।
 5. अगर कार्ड पर पहले से अवतार है, तो **Use current avatar as a reference** पर टिक लगा सकते हैं।
 6. **Generate** पर क्लिक करें। दोबारा कोशिश करने के लिए **Regenerate** पर क्लिक करें।
 7. नतीजा पसंद आने पर **Use Avatar** पर क्लिक करें।

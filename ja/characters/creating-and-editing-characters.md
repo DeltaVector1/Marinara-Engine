@@ -104,7 +104,7 @@ AIアバターの項目は、画像生成用の接続を1つ以上設定して�
 1. アバターのタイルにマウスを重ね、小さな**Generate avatar**(アバターの生成)の杖ボタンをクリックします。
 2. **Generate Character Avatar**ウィンドウが開きます。
 3. **Image Generation Connection**(画像生成の接続)を選びます。
-4. **Avatar Prompt**(アバターのプロンプト)を確認し、必要なら書き換えます。ここにはAppearanceの文章があらかじめ入ります。Appearanceが空のときはDescription、それも空ならPersonalityが使われます。
+4. **Avatar Prompt**(アバターのプロンプト)を確認し、必要なら書き換えます。**Image Appearance Override**がオンで、欄に内容が入力されている場合は、その文章があらかじめ入ります。それ以外の場合は**Appearance**が使われ、空のときは**Description**、それも空なら**Personality**が使われます。
 5. カードにすでにアバターがある場合は、**Use current avatar as a reference**にチェックを入れられます。
 6. **Generate**をクリックします。やり直すときは**Regenerate**をクリックします。
 7. 気に入った結果が出たら、**Use Avatar**をクリックします。
