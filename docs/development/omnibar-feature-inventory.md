@@ -88,7 +88,8 @@ Rules that must survive:
   Surfaces: a chat ("You're in <chat> with <character>." · mode · messages ·
   last reply; Fix the last reply when it was cut at the token cap or failed,
   Why didn't an entry fire with an active lorebook, Summarize since the last
-  summary, Peek at the prompt); the agent editor ("This is <agent>, one of your
+  summary, Peek at the prompt — its fact line is "What <character> gets next
+  turn", not a second "Opens now"); the agent editor ("This is <agent>, one of your
   agents." · on for <chat> · last run failed; Pick a connection when the error
   names one, Why did the last run fail, Tighten its prompt, What do its
   settings do); a character, persona, lorebook, preset or connection editor
@@ -139,6 +140,9 @@ Rules that must survive:
     by type; their live Enabled / Disabled state, or "Last run failed" from
     `agent.runs`), chats, lorebook entries (with their lorebook's name) and
     settings she names in bold by their exact label (`findMariSettingReferences`).
+    A portrait or a name's own-colour monogram on the left; an agent, setting,
+    chat or entry shows its kind icon on the same quiet tile as a next-step card
+    (Q5, slice 57b), so a row of cards carries one accent, not four.
     A list result shows only when her answer names it. A card opens a sheet with
     the description and Open (`mariReferenceTarget` → `executeStateNavigation`;
     an entry opens its lorebook at that entry).
@@ -223,10 +227,12 @@ Rules that must survive:
     "Working on it..." with a soft shimmer while she works, "Needs your
     answer" while a review waits), settings and Close; the chat portals the
     status text into the row (`omnibarStatusSlot`). Row 2
-    (`.mari-omnibar-header-row`): Chats with New chat (+) right after it as
-    one group behind a hairline, then Skills, Memories and What Mari sees
-    with its count. Every tab fits the bar at every width, so there is no ⋮
-    menu that would only repeat them (Q1, slice 56). No mode
+    (`.mari-omnibar-header-row`): Skills, Memories and What Mari sees with its
+    count, then Chats with New chat (+) right after it as one group behind a
+    hairline that closes the row, at the right under settings and Close (Q5,
+    slice 57b; above 30rem the other three stay centred). Every tab fits the
+    bar at every width, so there is no ⋮ menu that would only repeat them (Q1,
+    slice 56). No mode
     control. Below 30rem the tabs show icon + count plus a short visible label
     under the icon (`context`'s short label reuses the "Mari sees" composer
     chip copy), not only screen-reader text, so the icons are identifiable
@@ -247,11 +253,13 @@ Rules that must survive:
   - Side panels (M6): Chats, Skills, Memories and What Mari sees share one
     surface: the canvas colour, one hairline on the left beside the stream, a
     full opaque sheet on a phone. They share `MariSidePanelHeader` (title, a
-    one-line hint, Close; on a phone Back instead; a sub-view such as an
+    hint of up to two lines, Close; on a phone Back instead; a sub-view such as an
     attached history keeps its own Back), the `.mari-side-search` field and
     `.mari-edit` group rows. Opening a panel focuses its first visible control;
     closing it returns focus to the tab that opened it, so Escape still steps
-    back one level at a time (open row, then panel, then Mari). A Chats row's
+    back one level at a time (open row, then panel, then Mari). A Chats row is
+    its name and one fact line, "Active · 4 messages" or "8m ago · 2 messages"
+    (Q5, slice 57b, like the mari-v4 panel). Its
     Rename and Delete sit in its ⋮ menu (popover, Escape closes
     only the menu); Select keeps multi-select with Delete selected.
   - The composer puts the textarea on its own row and a toolbar under it:

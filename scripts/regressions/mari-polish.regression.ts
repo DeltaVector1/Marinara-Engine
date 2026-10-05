@@ -117,6 +117,12 @@ assert.ok(
 // only repeat them, and New chat sits right after Chats as one group.
 assert.doesNotMatch(mariChat, /mari-omnibar-header-menu__destinations|moreMariActions/u);
 assert.ok(mariChatFlat.includes('{id === "chats" ? ( <button type="button" onClick={() => void runRestart()}'));
+// Q5 (slice 57b): the "Chats · +" group closes the row, at the right under settings and Close, so Chats is
+// the last destination (DOM order is the tab order).
+const headerDestinationIds = [
+  ...(mariChat.match(/const headerDestinations = \[[\s\S]*?\] as const/u)?.[0] ?? "").matchAll(/id: "(\w+)"/gu),
+].map((match) => match[1]);
+assert.deepEqual(headerDestinationIds, ["skills", "memories", "context", "chats"]);
 
 // ── #5742: the chip row is reachable by mouse and shows its overflow ────────
 const chipsComponent = readSource("packages/client/src/components/chat/MariSuggestionChips.tsx");

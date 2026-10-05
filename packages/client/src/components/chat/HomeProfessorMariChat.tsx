@@ -212,6 +212,7 @@ import {
   selectMariReplyReferences,
   type MariReferencedResource,
 } from "../../lib/mari-referenced-resources";
+import { formatRelativeContact } from "../../lib/relative-time";
 import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
 import { useAgentConfigs } from "../../hooks/use-agents";
 import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
@@ -2362,6 +2363,7 @@ function MariReferencedResources({
                 // No portrait yet: a monogram (or what kind of thing it is) on a color of its own, stable for the name.
                 <span
                   className="mari-ref-card__monogram"
+                  data-icon={KindIcon ? "true" : undefined}
                   style={{ "--mari-ref-hue": stableHash(card.name) % 360 } as CSSProperties}
                   aria-hidden="true"
                 >
@@ -5607,14 +5609,8 @@ export function HomeProfessorMariChat({
       needsOk: entries.filter((entry) => !changed(entry)).map(renderTurnPrompt),
     };
   };
+  // Q5: "Chats · +" is last, so the group sits at the right of the row, under settings and Close.
   const headerDestinations = [
-    {
-      id: "chats",
-      Icon: MessageCircle,
-      label: localizeUi("navigation.common.chats"),
-      shortLabel: undefined,
-      count: 0,
-    },
     {
       id: "skills",
       Icon: Brain,
@@ -5635,6 +5631,13 @@ export function HomeProfessorMariChat({
       label: localizeUi("ui.chat.homeprofessormarichat.whatMariSees"),
       shortLabel: localizeUi("ui.chat.homeprofessormarichat.whatMariSeesChipsLabel"),
       count: persistentContextCount + oneShotContextFacets.length,
+    },
+    {
+      id: "chats",
+      Icon: MessageCircle,
+      label: localizeUi("navigation.common.chats"),
+      shortLabel: undefined,
+      count: 0,
     },
   ] as const satisfies ReadonlyArray<{
     id: Exclude<ProfessorMariWorkspaceDestination, "chat">;
@@ -5747,7 +5750,7 @@ export function HomeProfessorMariChat({
                     {count > 0 ? <b>{count}</b> : null}
                   </button>
                   {/* Q1: New chat sits right after Chats, one "Chats · +" group; every destination fits the
-                      bar at every width, so the header has no ⋮ menu. */}
+                      bar at every width, so the header has no ⋮ menu. Q5: the group closes the row. */}
                   {id === "chats" ? (
                     <button
                       type="button"
@@ -7028,13 +7031,16 @@ export function HomeProfessorMariChat({
                                             className="mari-edit__text min-h-10 text-left disabled:cursor-not-allowed disabled:opacity-60"
                                           >
                                             <span className="mari-edit__title">{name}</span>
+                                            {/* Q5: one fact line, like the mari-v4 Chats panel: when, then how long. */}
                                             <span className="mari-edit__meta">
-                                              {item.messageCount ?? 0} {localizeUi("ui.agents.agenteditor.messages")}
-                                              {active ? (
-                                                <span className="ml-2">
-                                                  {localizeUi("ui.characters.lorebooktab.active")}
-                                                </span>
-                                              ) : null}
+                                              {[
+                                                active
+                                                  ? localizeUi("ui.characters.lorebooktab.active")
+                                                  : formatRelativeContact(item.lastMessageAt ?? item.updatedAt),
+                                                `${item.messageCount ?? 0} ${localizeUi("ui.agents.agenteditor.messages")}`,
+                                              ]
+                                                .filter(Boolean)
+                                                .join(" · ")}
                                             </span>
                                           </button>
                                           {!chatHistorySelectionMode && (

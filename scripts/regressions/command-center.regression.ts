@@ -2635,6 +2635,8 @@ assert.ok(!("mariDetailId" in mariSession));
     "chat: fix (cut off), why an entry, summarize since, peek",
   );
   assert.deepEqual(chat.cards.at(-1)?.action, { kind: "peek-prompt", chatId: "chat-1" }, "peek acts at once");
+  // Q5: its fact line says what it shows, not "Opens now" again (the card's corner says that).
+  assert.equal(chat.cards.at(-1)?.detail, "What Zylo gets next turn");
   assert.ok(
     chat.cards.slice(0, 3).every((card) => !card.action),
     "the others ask Mari",
