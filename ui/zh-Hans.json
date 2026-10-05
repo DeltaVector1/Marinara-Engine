@@ -346,6 +346,8 @@
   "chat.toolbar.settings": "聊天设置",
   "chat.toolbar.switchTo": "切换到 {{name}}",
   "chat.toolbar.switchToConnected": "切换到关联聊天",
+  "connections.decision.errors.needs_https": "你的 TypeSafe 密钥会发送到这个地址，所以除非它是 localhost 或 192.168.x.x 这样的本地地址，否则必须以 https:// 开头。",
+  "connections.decision.typesafeAddressHelp": "要使用其他运行 TypeSafe API 的服务器，请将下方的基础 URL 替换为该服务器的地址，不要包含 /v1/systemone。",
   "connections.mediaSources.arli.apiKeyLink": "打开 Arli AI 账户页面",
   "connections.mediaSources.arli.imageDescription": "通过 Arli AI 原生 API，使用其托管的 Stable Diffusion 模型生成图像。",
   "connections.mediaSources.arli.name": "Arli AI",

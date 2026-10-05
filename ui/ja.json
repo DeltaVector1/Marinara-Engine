@@ -101,6 +101,8 @@
   "chat.help.targets.widgets.title": "ゲームウィジェット",
   "chat.input.tools": "ツール",
   "chat.slash.illustrate.rangeUsage": "/illustrate range=Nまたはrange=N-Mの後に、任意のプロンプトを指定してください。メッセージ番号は昇順で、最大200件まで指定できます。",
+  "connections.decision.errors.needs_https": "TypeSafeのキーはこのアドレスに送信されるため、localhostや192.168.x.xなどのローカルアドレスでない限り、https://で始まる必要があります。",
+  "connections.decision.typesafeAddressHelp": "TypeSafeのAPIを提供する別のサーバーを使うには、下のBase URLを、/v1/systemoneを含まないそのサーバーのアドレスに置き換えてください。",
   "connections.mediaSources.atlas.apiKeyLink": "Atlas Cloud の API キーを取得",
   "connections.mediaSources.atlas.imageDescription": "Atlas Cloud でホストされているモデルを使って画像を生成します。",
   "connections.mediaSources.atlas.name": "Atlas Cloud",
