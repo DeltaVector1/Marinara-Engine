@@ -747,9 +747,11 @@ Do not "fix" these; each was a decision.
   the proposal lands in the pending-change dock like every other change she
   makes. It remains one model call; applying or rejecting the proposal does not
   invoke the model again.
-- **There is no floating Mari window.** What is left of it is a presence
-  indicator that shows state and opens her. She cannot sit beside an open
-  editor; she is a place you go.
+- **There is no floating Mari window, and no floating presence indicator
+  either** (slice 53): the bottom-right corner button that used to show her
+  state and open her is gone. The top-bar edge glow (slice 52, below) already
+  carries that signal from anywhere in the app, which made the corner button
+  redundant. She cannot sit beside an open editor; she is a place you go.
 - **Her state on the app's top bar** (slice 52): while she works, or has a
   result you have not seen yet, the bottom edge of the main top bar carries a
   thin line (about 1.5px core, short soft fade, fading out at both ends) in her

@@ -89,7 +89,7 @@ export function GlobalOmnibar() {
   // This host is mounted for the whole session while the dialog below it is
   // not, so the heartbeat lives here. Without it Professor Mari's state dies
   // with the dialog and a task that finishes after a close is never noticed.
-  // The presence indicator reads the same query.
+  // The top-bar edge glow (useMariEdgeGlow) reads the same query.
   useMariPresence();
 
   // Fetch the dialog's code once the app is idle, so the first ⌘K opens without

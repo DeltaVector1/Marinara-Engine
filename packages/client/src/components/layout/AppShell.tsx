@@ -8,7 +8,6 @@ import { GlobalOmnibar } from "./GlobalOmnibarHost";
 import { SpotifyMobileWidget } from "../spotify/SpotifyMiniPlayer";
 import { YouTubeMobileWidget } from "../chat/YouTubePlayer";
 import { LocalMusicMobileWidget } from "../chat/LocalMusicPlayer";
-import { MariPresenceIndicator } from "../chat/MariPresenceIndicator";
 import { ChatResourceMobileDropDock } from "../chat/ChatResourceMobileDropDock";
 import {
   getTrackerPanelWidthForProfile,
@@ -1625,7 +1624,6 @@ export function AppShell({
           <OnboardingTutorial />
         </Suspense>
       )}
-      <MariPresenceIndicator />
       <GlobalOmnibar />
       <div data-component="MobileMusicWidgetLayer" className="contents">
         {isMobile && musicDjInstalled ? (

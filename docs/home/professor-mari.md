@@ -22,7 +22,7 @@ You can open Mari from the place where you need help. These entry points create 
 - **FAQ** answers: use **Ask Professor Mari** to include the matched question and its written answer as the starting point.
 - **Command Center**: search with `Cmd/Ctrl+K`, select a result, then use **Ask Professor Mari** to include the selected result in the draft. Search does not send a model request by itself.
 - **Recent Chats** and other error states: use **Ask Professor Mari** beside **Retry** to send the error description and the requested repair action.
-- The **Professor Mari presence indicator**, normal Professor Mari character chat, and Home workspace chat use the same handoff format.
+- Normal Professor Mari character chat and Home workspace chat use the same handoff format.
 
 Remove a context item when it is not relevant. Mari resolves larger resource content on the server under the context budget after you send the message. She does not receive a full resource just because you opened an editor.
 

@@ -1318,61 +1318,6 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
   transform: rotate(-2deg);
 }
 
-/* Professor Mari's presence indicator: all that remains of the floating
-   assistant. One instance, corner-pinned inside the safe area, and absent
-   entirely when she has nothing to report. The pose comes from the shared
-   portrait above, so state styling stays in one place. */
-.mari-presence-indicator {
-  position: fixed;
-  right: max(0.75rem, env(safe-area-inset-right));
-  bottom: max(0.75rem, env(safe-area-inset-bottom));
-  z-index: 45;
-}
-
-.mari-presence-indicator button {
-  position: relative;
-  display: block;
-  cursor: pointer;
-  border-radius: 0.85rem;
-  animation: mari-presence-enter 220ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.mari-presence-indicator button:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-
-.mari-presence-indicator [data-part="count"] {
-  position: absolute;
-  top: -0.35rem;
-  right: -0.35rem;
-  min-width: 1.1rem;
-  border-radius: 999px;
-  background: var(--primary);
-  color: var(--primary-foreground);
-  font-size: 0.625rem;
-  font-weight: 700;
-  line-height: 1.1rem;
-  text-align: center;
-}
-
-@keyframes mari-presence-enter {
-  from {
-    opacity: 0;
-    transform: translateY(0.4rem) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mari-presence-indicator button {
-    animation: none;
-  }
-}
-
 /* R43: the Note. One muted line, no box, no icon of its own. */
 .mari-note {
   font-size: 0.6875rem;
