@@ -88,11 +88,15 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 49  | It understands your words: setting and command synonyms (O3)    | worker           | Done                 | 90d7d88f9 |
 | 50  | Fix or remove what the value table shows is not faster (O4)     | worker           | Done                 | b06687ab6 |
 | 51  | Review of 47-50 and a short fresh-eyes pass (O5)                | reviewer         | Done                 | 66551c093 |
+| 52  | Mari's working glow is not boxed in; top-bar edge glow (P1-P3)  | designer         | Pending              |           |
+| 53  | No small Mari in the bottom-right corner at rest (P4)           | worker           | Pending              |           |
+| 54  | Redesign the Mari on the Home page widget (P5)                  | designer         | Pending              |           |
+| 55  | Review of 52-54 (P6)                                            | reviewer         | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
-slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Slices 30-41 (section M) are Done. Slices 42-46 (section N) are Done. Remaining order: 47-51 (section O). Stop after 51.
+slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Slices 30-41 (section M) are Done. Slices 42-46 (section N) are Done. Slices 47-51 (section O) are Done. Remaining order: 52-55 (section P). Stop after 55.
 
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
@@ -1046,3 +1050,32 @@ normal menu cannot do. North star applies. Nothing leaves the device (no telemet
 - O5 Review (slice 51): reviewer read-only findings + a 5-task fresh-eyes check on the value table's weakest
   tasks, then a worker fixes the confirmed ones. Plan-mode children end on ExitPlanMode: answer it via
   list_pending_permissions.
+
+### P. Round 7: Mari presence polish (slices 52-55) — maintainer feedback 2026-10-05
+
+Follow `mari-ui-subtle-effects`: glows are low, faint and soft; nothing loud. Screenshot the current state first.
+
+- P1 (slice 52) Glow trapped in a box: in the omnibar, the place in the top row where Mari is shown while she works
+  (her portrait/button with the turning glow behind it) clips the glow to a rectangle. Find the clipping ancestor
+  (overflow hidden, contain, a mask or a stacking context) and let the glow fade out softly with no visible box
+  edge, at 390 and 1440, dark and light.
+- P2 (slice 52) Top-bar edge glow: while Mari works, and after she finishes, the BOTTOM EDGE of the app top bar
+  glows: a soft, thin line (about 1-2 px core with a short soft fade, never a thick band), in her state colour
+  (working = her working colour, wavering slowly; finished = green, steady and faint; needs approval = gold; error
+  = red). It is visible from anywhere in the app, so the user knows Mari is busy or done without the floating
+  button. Reduced motion / reduce ambient effects: static, no wavering.
+- P3 (slice 52) Seen clears it: the "finished" (and the error/approval) edge glow goes away as soon as the user
+  opens Mari's window (the omnibar Mari pane or her workspace) and sees the result. A new run starts the working
+  glow again. Pure state (unseen result → glow) with a regression assert.
+- P4 (slice 53) No small Mari bottom right in normal use: the floating Mari button/presence in the bottom-right
+  corner (MariPresenceIndicator or the floating button in AppShell) does not show at rest. Decide by the North star
+  whether it shows at all while she works; the P2 edge glow now carries "she is busy/done", so default: remove it in
+  normal operation entirely, and keep only what a feature needs (e.g. Mini Mari surprise visits if that setting is
+  on). Check every caller; update the inventory and settings text.
+- P5 (slice 54) Home page Mari widget looks bad: the Home Mari widget (slice 38c made it show the pack chibi) must
+  look good. Screenshot it at 390/768/1440 dark and light in all four packs, find what is wrong (size, scaling,
+  crop, alignment, blurry or non-integer pixel scaling, background, spacing), and redesign it in the Home module
+  style (see `mockups-match-real-app`). Use a better pose from the pack (wave, greet, explaining, or a portrait) if
+  the chibi is the wrong asset, at an integer pixel scale. If new art is truly needed, write the exact request into
+  the plan for the Image Creator instead of inventing art.
+- P6 (slice 55) Review of 52-54, then a worker fixes the confirmed findings.
