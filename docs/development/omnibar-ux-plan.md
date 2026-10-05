@@ -98,6 +98,13 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Done                 | cc3081b93 |
 | 58b | Type icons everywhere, context for recent chats (Q6)            | designer         | Done                 | 9c7701cd6 |
 | 59  | Review of 56-58, 57b, 58b (Q4)                                  | reviewer, worker | Done                 | 40314d650 |
+| 60  | Record what was cut, server-side (R1)                           | worker           | Pending              |           |
+| 61  | Reply checkup, no model (R2)                                    | designer         | Pending              |           |
+| 62  | Mari reads the checkup: chat.diagnose (R3)                      | designer         | Pending              |           |
+| 62b | One Mari thread per context (R7)                                | designer         | Pending              |           |
+| 63  | Connection doctor (R4)                                          | worker           | Pending              |           |
+| 64  | "Connect a model" card + local probe (R5)                       | designer         | Pending              |           |
+| 65  | Cut and re-measure, review (R6)                                 | reviewer, worker | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
@@ -1248,3 +1255,54 @@ Key · old → new. `homeprofessormarichat.whatMariSees*` keys became `awareOf*`
 - `…marichat.whatMariSeesSandboxOff → awareOfSandboxOff`: (text kept)
 - `…marichat.whatMariSeesSandboxOn → awareOfSandboxOn`: (text kept)
 - Code-only labels (`settings-registry.ts`): "Ask Mari from search" → "Ask Mari from Search", "Professor Mari Permissions Mode" → "Professor Mari permissions mode", "Proactive suggestions" → "Context suggestions" (one name for the `omnibarSuggestionsEnabled` toggle).
+
+### R. Round 9: from door to diagnosis (slices 60-65) — maintainer decision 2026-10-05
+
+Source: `.tmp/omnibar-ux/strategy-report-2.md` (read it; re-check every "S:" line, they drift). Thesis accepted:
+the omnibar is the index for buried things and the inbox for "something broke"; it stops competing with visible
+one-click buttons. Mari is the diagnostician and setup engineer: she reads the user's own facts, names one cause
+with a number, and proposes one reviewed fix. Deterministic first, no model and no cost for checks; Mari only
+after Enter/⌘↵ (R22); her reads return numbers and names, never chat text. A slice is worth it only if a new
+value-table task (T16-T20 in the strategy report §7) moves. Decisions: the maintainer declined the
+`api_connections` raw-db guard for now (do not build it); "Connect a model" card WITH the local-server probe;
+a cut-off/trimmed reply DOES get a quiet line in the chat. Lorebook batch review stays undecided (out of scope).
+
+- R1 (slice 60) Record what was cut (server). `fitMessagesForModelAccess` returns its fit result; the generate
+  route saves `generationInfo.contextFit = { trimmed, droppedHistory, tokensBefore, tokensAfter, inputBudget,
+  replyBudgetFrom, replyBudgetTo }` (history drops only); same for the dry run. Proof: regression asserts.
+- R2 (slice 61) Reply checkup, no model. Pure `diagnoseReply` in `shared/src/utils/` with codes
+  `history_trimmed`, `reply_budget_cut`, `cut_off`, `empty_reply`, `lore_budget_skipped`, `card_large`, each with
+  a link to the exact setting. Doors: (1) a quiet line under the affected reply, like "Failed · Retry", e.g. "Cut
+  off · Check" / "42 older messages not sent · Check" (maintainer approved); (2) the omnibar "Fix" row on a chat;
+  (3) the Peek modal header. Delete the separate "Preview next prompt" row; the checkup links to Peek. Proof: one
+  regression fixture per code; e2e 390/1440 with a seeded trimmed and a cut-off reply.
+- R3 (slice 62) Mari reads the checkup: read `chat.diagnose { chatId, messageId? }` → findings, generationInfo
+  numbers, attached lorebook names/budgets, preset name and sampler keys, card token share (character token
+  estimator). No message text. Prompt block: on "worse / forgets / cut off / empty / does not act like the card",
+  call it first, name one cause with the number, offer one reviewed fix she already has (preset maxTokens,
+  character.update, lorebook.updateEntry) or a deep link to the Chat Settings section. Proof: regression that the
+  payload has no message content; e2e with a mocked answer.
+- R4 (slice 63) Connection doctor: test failures return `{ code, advice, detail }` for 401/403, 404, HTML body
+  (missing /v1), ECONNREFUSED/timeout, no model; TestResultCard shows the advice + one docs link, raw detail
+  behind "Details"; the no-connection send error gets an "Open Connections" action. Proof: regression table
+  status/body → code.
+- R5 (slice 64) "Connect a model" card on Home when no language connection exists: "I have an API key"
+  (chat providers only, OpenRouter first), "I run a local server" (server probes localhost 11434/1234/5001
+  `/v1/models`, short timeout, localhost only; in Docker say so and ask for a URL), "Sign in with a subscription"
+  (LOCAL_AUTH_PROVIDERS). Reuses the editor fields and the test routes; failures use the R4 doctor. On success:
+  "Start a roleplay" and "Ask Mari to make a character". The tour's Connections step points at the card. Proof: T16
+  on a fresh DATA_DIR with a mock local server, 390/1440.
+- R6 (slice 65) Cut and re-measure (reviewer, then worker). Remove the model/preset/persona duplicates from the
+  EMPTY omnibar list (keep them reachable by typing); never promote Ask Mari above docs rows when no model is
+  set; re-run the 15 old tasks and T16-T20; update the value table, inventory and CHANGELOG; fix confirmed review
+  findings.
+- R7 (slice 62b, designer, after 62) One Mari thread per context (maintainer decision 2026-10-05, option C).
+  Each Mari conversation carries a context key (chat id, agent type, editor resource, or "general" for Home and
+  no context). Opening Mari through an arrival door (⌘J, pull, drag, Home "Ask", the Fix/Check rows) continues the
+  newest thread with the same context key, or creates one; the arrival block (slice 39/40) shows in it. If the
+  user was in a DIFFERENT Mari thread within the last ~30 minutes, the arrival block offers two buttons:
+  "Continue there" and "New about <context>". "+" still starts a fresh thread. The Chats panel lists threads with
+  their context label and time ("Zylo's chat · 2 days ago"), grouped or filterable by context. Existing threads
+  without a key count as "general". Reuse `ensureProfessorMariChat` and the existing chat metadata; no new storage
+  format if a metadata field suffices. Proof: regression on the thread-choice function (same key, different key,
+  recent other thread, no key); e2e ⌘J from two chats lands in two threads, and back in the first one; 390/1440.
