@@ -128,7 +128,7 @@ NanoGPT가 현재 보고할 수 없는 할당량은 미사용이 아닌 **알 �
 
 - API 키: 없음. 키 대신 로컬 도구에 로그인합니다.
 
-**OpenAI (ChatGPT)**는 Codex 도구를 통해 ChatGPT 계정을 사용합니다. 이 도구는 Marinara 서버를 실행하는 컴퓨터에서 돌아가며, 로그인은 한 번만 하면 됩니다. 이 제공자에서는 **API Key**와 **Base URL** 입력란이 표시되지 않습니다. 임베딩은 제공하지 않습니다(아래 임베딩 섹션 참고).
+**OpenAI (ChatGPT)**는 Codex 도구를 통해 ChatGPT 계정을 사용합니다. 이 도구는 Marinara 서버를 실행하는 컴퓨터에서 돌아가며, 로그인은 한 번만 하면 됩니다. 이 제공자에서는 **API Key**와 **Base URL** 입력란이 표시되지 않습니다. 임베딩은 제공하지 않습니다(아래 임베딩 섹션 참고). Codex가 생각하는 수준은 연결 또는 채팅 파라미터의 **Reasoning Effort**로 정합니다. 단계를 고르기 전까지 Codex는 모델별 자체 기본값을 사용합니다.
 
 설치와 로그인 절차는 [Claude, ChatGPT, Grok 구독 연결](subscription-clis.md)에서 설명합니다.
 

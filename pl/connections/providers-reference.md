@@ -128,7 +128,7 @@ Instalację i logowanie opisuje przewodnik [Połączenia abonamentowe z Claude, 
 
 - Klucz API: brak. Zamiast tego logujesz się w lokalnym narzędziu.
 
-**OpenAI (ChatGPT)** korzysta z twojego konta ChatGPT przez narzędzie Codex. Narzędzie działa na komputerze, na którym stoi serwer Marinara, i logujesz się w nim raz. Pola **API Key** oraz **Base URL** są przy tym dostawcy ukryte. Embeddingów nie oferuje (patrz sekcja o embeddingach niżej).
+**OpenAI (ChatGPT)** korzysta z twojego konta ChatGPT przez narzędzie Codex. Narzędzie działa na komputerze, na którym stoi serwer Marinara, i logujesz się w nim raz. Pola **API Key** oraz **Base URL** są przy tym dostawcy ukryte. Embeddingów nie oferuje (patrz sekcja o embeddingach niżej). Poziom myślenia tego dostawcy to ustawienie **Reasoning Effort** w parametrach połączenia albo czatu; dopóki nie wybierzesz konkretnego poziomu, Codex korzysta z własnego ustawienia domyślnego dla danego modelu.
 
 Instalację i logowanie opisuje przewodnik [Połączenia abonamentowe z Claude, ChatGPT i Grok](subscription-clis.md).
 

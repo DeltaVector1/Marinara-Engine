@@ -256,6 +256,7 @@
   "game.toolbar.retry": "Ponów…",
   "game.toolbar.session": "Sesja",
   "game.toolbar.volume": "Głośność",
+  "generationParameters.reasoningEffort.codexHelp": "Jak długo Codex myśli przed odpowiedzią; opcja Default zachowuje poziom, którego Codex sam używa dla tego modelu.",
   "home.achievements.category.collection": "Kolekcja",
   "home.achievements.category.community": "Społeczność",
   "home.achievements.category.creation": "Tworzenie",

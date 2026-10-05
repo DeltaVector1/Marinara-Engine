@@ -73,6 +73,8 @@ codex login
 
 Marinara liest die lokale Codex-Anmeldedatei und frischt die Sitzung auf, sobald das möglich ist.
 
+Wie lange Codex vor der Antwort nachdenkt, stellst du so ein: Öffne die Verbindung, schalte unter **Default Chat Parameters** (Standard-Chat-Parameter) **Use custom defaults for this connection** (eigene Standardwerte für diese Verbindung verwenden) ein und wähle bei **Reasoning Effort** (Denkaufwand) eine Stufe; anfangs steht dort **Default** (Standard). Für einen einzelnen Chat wählst du unter **Advanced Parameters** (Erweiterte Parameter) eine eigene Stufe. **Default** behält die Stufe bei, die Codex für das Modell nutzt. Diesen Standard verwendet Codex, bis die Verbindung oder der Chat eine Stufe festlegt; die Stufe aus deinem Preset ändert daran nichts, und eine als Fallback genutzte Codex-Verbindung richtet sich nur nach ihrer eigenen Stufe. Die Stufen entsprechen denen, die Codex für das jeweilige Modell anbietet: GPT-5.5 reicht bis **xhigh**, die Modelle GPT-5.6 und GPT-6 reichen bis **max**.
+
 ## Grok CLI (Subscription)
 
 Dafür brauchst du ein Konto bei SuperGrok oder X Premium+.

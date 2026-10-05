@@ -204,6 +204,7 @@
   "game.input.sayToGm": "Sag zum GM…",
   "game.input.sayToParty": "Sag zur Gruppe…",
   "game.input.sendTurn": "Spielzug senden",
+  "generationParameters.reasoningEffort.codexHelp": "Legt fest, wie lange Codex vor der Antwort nachdenkt. Standard behält die Stufe bei, die Codex selbst für das Modell nutzt.",
   "home.achievements.category.collection": "Sammlung",
   "home.achievements.category.community": "Gemeinschaft",
   "home.achievements.category.creation": "Kreation",

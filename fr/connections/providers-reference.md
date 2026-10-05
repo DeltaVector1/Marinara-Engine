@@ -128,7 +128,7 @@ Les étapes d'installation et d'identification figurent dans [Connexions par abo
 
 - Clé API : aucune. Tu t'identifies dans un outil local à la place.
 
-**OpenAI (ChatGPT)** exploite ton compte ChatGPT via l'outil Codex. L'outil tourne sur l'ordinateur qui héberge le serveur Marinara, et tu t'y identifies une seule fois. Les champs **API Key** et **Base URL** sont masqués pour ce fournisseur. Il ne propose pas d'embeddings (voir la section Embeddings plus bas).
+**OpenAI (ChatGPT)** exploite ton compte ChatGPT via l'outil Codex. L'outil tourne sur l'ordinateur qui héberge le serveur Marinara, et tu t'y identifies une seule fois. Les champs **API Key** et **Base URL** sont masqués pour ce fournisseur. Il ne propose pas d'embeddings (voir la section Embeddings plus bas). Son niveau de réflexion correspond au réglage **Reasoning Effort** des paramètres de la connexion ou du chat ; tant que tu n'en choisis aucun, Codex utilise sa propre valeur par défaut pour le modèle.
 
 Les étapes d'installation et d'identification figurent dans [Connexions par abonnement Claude, ChatGPT et Grok](subscription-clis.md).
 

@@ -128,7 +128,7 @@ Installation und Anmeldung beschreibt [Abo-Verbindungen für Claude, ChatGPT und
 
 - API-Key: keiner. Stattdessen meldest du dich in einem lokalen Werkzeug an.
 
-**OpenAI (ChatGPT)** nutzt dein ChatGPT-Konto über das Werkzeug Codex. Das Werkzeug läuft auf dem Rechner mit dem Marinara-Server, und du meldest dich einmalig an. Die Felder **API Key** und **Base URL** sind bei diesem Anbieter ausgeblendet. Embeddings bietet er nicht (siehe Abschnitt „Embeddings“ weiter unten).
+**OpenAI (ChatGPT)** nutzt dein ChatGPT-Konto über das Werkzeug Codex. Das Werkzeug läuft auf dem Rechner mit dem Marinara-Server, und du meldest dich einmalig an. Die Felder **API Key** und **Base URL** sind bei diesem Anbieter ausgeblendet. Embeddings bietet er nicht (siehe Abschnitt „Embeddings“ weiter unten). Wie gründlich Codex nachdenkt, legst du über **Reasoning Effort** in den Parametern der Verbindung oder des Chats fest; solange du dort keine Stufe wählst, nutzt Codex seinen eigenen Standard für das Modell.
 
 Installation und Anmeldung beschreibt [Abo-Verbindungen für Claude, ChatGPT und Grok](subscription-clis.md).
 
