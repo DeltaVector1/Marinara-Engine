@@ -96,7 +96,8 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 57  | Omnibar settings redesign, Mari settings move here, packs grid (Q2) | designer      | Done                 | 05b88f313 |
 | 57b | Chats · + to the right of the header; chat-card visual audit (Q5) | designer       | Done                 | 652f57fd8 |
 | 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Pending              |           |
-| 59  | Review of 56-58 (Q4)                                            | reviewer         | Pending              |           |
+| 58b | Type icons everywhere, context for recent chats (Q6)            | designer         | Pending              |           |
+| 59  | Review of 56-58, 57b, 58b (Q4)                                  | reviewer         | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
@@ -1126,4 +1127,18 @@ Follow `mari-ui-subtle-effects`: glows are low, faint and soft; nothing loud. Sc
   screen-reader text, the omnibar settings, docs and the inventory; semantic en.json keys, remove the old ones.
   This slice also owns the naming conflict slice 57 flagged ("omnibar" vs "search" in new UI copy) — pick one
   name and apply it consistently in anything this slice touches.
-- Q4 (slice 59) Review of 56-58 and 57b, then a worker fixes the confirmed findings.
+- Q6 (slice 58b) Maintainer feedback, 2026-10-05: "Type icons everywhere, and context for recent chats." In the
+  omnibar result rows, the expanded rows, Mari's reference and next-step cards, the arrival cards, the "Aware of"
+  chips and Mari's Chats panel, every item must show WHAT it is at a glance. (1) Each kind gets one consistent
+  type icon (reuse the existing lucide icons the app already uses for each kind in its panels): chat (with mode:
+  conversation / roleplay / game), character, persona, lorebook, lorebook entry, preset, agent, setting, command,
+  doc, message, connection. (2) Items with an avatar or portrait (characters, chats, personas, agents) keep the
+  avatar and get a small type badge in a corner (e.g. a chat bubble on a chat's avatar, a book on a lorebook
+  cover). Items without an avatar show the type icon in the same slot, so the layout stays aligned. (3) Recent
+  chats need context: participant avatars (stacked, at most 3), the chat mode, the last speaker plus a short
+  snippet of the last message (1 line), the relative time, and the attached-lorebook count if there is one. All
+  on two lines at most, no heavier than today on the phone. Keep it calm (`mari-ui-subtle-effects`): small
+  badges, muted colours, no new chrome. One shared `ResultTypeIcon`/badge component, not a copy per surface.
+  Proof: screenshots of the empty omnibar (Recent), a mixed search ("ne": chats, characters, lorebooks, entries,
+  settings, docs), Mari cards and the Chats panel, at 390/1440, dark and light.
+- Q4 (slice 59) Review of 56-58, 57b and 58b, then a worker fixes the confirmed findings.
