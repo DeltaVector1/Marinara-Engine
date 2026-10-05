@@ -1,3 +1,13 @@
+import { useEffect, useState } from "react";
+import {
+  nextMariEdgeSeen,
+  readMariSeenHistoryId,
+  rememberMariSeenHistoryId,
+  resolveMariEdgeGlow,
+  type MariEdgeGlow,
+  type MariEdgeInput,
+} from "../lib/mari-presence-seen";
+import { useUIStore } from "../stores/ui.store";
 import { useProfessorMariWorkspaceStatus } from "./use-professor-mari-workspace-status";
 
 /**
@@ -18,6 +28,8 @@ export interface MariPresence {
   pendingCount: number;
   /** Newest workspace-history entry id, or null when she has no history. */
   latestHistoryId: string | null;
+  /** The newest history entry failed. */
+  latestHistoryFailed: boolean;
 }
 
 export function useMariPresence(): MariPresence {
@@ -29,5 +41,28 @@ export function useMariPresence(): MariPresence {
     pendingCount,
     // getHistory() reverses after slicing, so the newest entry is first.
     latestHistoryId: status.data?.history[0]?.id ?? null,
+    latestHistoryFailed: status.data?.history[0]?.status === "failed",
   };
+}
+
+/** Her state for the top-bar edge line (P2), until the user has seen it in her pane (P3). */
+export function useMariEdgeGlow(): MariEdgeGlow {
+  const presence = useMariPresence();
+  const viewing = useUIStore((state) => state.mariPaneVisible);
+  const mariEnabled = useUIStore((state) => state.commandCenterMariEnabled);
+  const input: MariEdgeInput = { ...presence, viewing };
+  const [seen, setSeen] = useState(() => ({
+    wasWorking: false,
+    unseenRun: false,
+    approvalSeen: false,
+    seenHistoryId: readMariSeenHistoryId(),
+  }));
+
+  useEffect(() => {
+    setSeen((prev) => nextMariEdgeSeen(prev, input));
+    if (viewing && presence.latestHistoryId) rememberMariSeenHistoryId(presence.latestHistoryId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- steps once per change of the inputs below
+  }, [presence.working, presence.needsAttention, presence.latestHistoryId, presence.latestHistoryFailed, viewing]);
+
+  return mariEnabled ? resolveMariEdgeGlow(seen, input) : null;
 }

@@ -1045,6 +1045,8 @@ interface UIState {
   /** Transient request for the chat sidebar to focus a fixed mode shortcut. */
   chatModeShortcutRequest: { mode: ChatModeShortcut; token: number } | null;
   omnibarOpen: boolean;
+  /** Transient: Mari's pane in the omnibar is open and showing her, so her result counts as seen (P3). */
+  mariPaneVisible: boolean;
 
   // Actions
   setShowHomeBrowserAddressBar: (visible: boolean) => void;
@@ -1272,6 +1274,7 @@ interface UIState {
   setCenterCompact: (v: boolean) => void;
   requestChatModeShortcut: (mode: ChatModeShortcut) => void;
   setOmnibarOpen: (open: boolean) => void;
+  setMariPaneVisible: (visible: boolean) => void;
   setVisualTheme: (v: VisualTheme) => void;
   setConvoGradientField: (scheme: "dark" | "light", field: "from" | "to", value: string) => void;
   resetAppearanceSettings: () => void;
@@ -2030,6 +2033,7 @@ export const useUIStore = create<UIState>()(
         centerCompact: false,
         chatModeShortcutRequest: null,
         omnibarOpen: false,
+        mariPaneVisible: false,
 
         // Impersonate settings defaults
         impersonatePromptTemplate: "",
@@ -2677,6 +2681,7 @@ export const useUIStore = create<UIState>()(
           if (open && !get().omnibarOpen && get().debugMode) markOmnibarOpenStart();
           set({ omnibarOpen: open });
         },
+        setMariPaneVisible: (visible) => set({ mariPaneVisible: visible }),
 
         // Settings actions
         setFontSize: (size) => set({ fontSize: size }),

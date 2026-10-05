@@ -750,6 +750,18 @@ Do not "fix" these; each was a decision.
 - **There is no floating Mari window.** What is left of it is a presence
   indicator that shows state and opens her. She cannot sit beside an open
   editor; she is a place you go.
+- **Her state on the app's top bar** (slice 52): while she works, or has a
+  result you have not seen yet, the bottom edge of the main top bar carries a
+  thin line (about 1.5px core, short soft fade, fading out at both ends) in her
+  state colour — her logo colours wavering slowly while she works, faint green
+  when finished, gold when an approval waits, red when the newest change failed.
+  It shows with the omnibar closed, from any screen. Opening her pane counts as
+  seeing it and clears it; a new run brings the working line back
+  (`nextMariEdgeSeen`/`resolveMariEdgeGlow` in `lib/mari-presence-seen.ts`,
+  `useMariEdgeGlow`; the pane sets the transient `mariPaneVisible`). Reduced
+  motion and Reduce ambient effects keep it as a static line. Her working glow
+  behind the omnibar's Mari button fades out inside its own circle, so no
+  ancestor crops it into a box.
 - **Escape does not walk a pane stack.** There is one level to step back from.
 - **Her sprite does not appear in the header or on older messages.** She has
   exactly one sprite in the transcript: the arrival (or welcome) sprite when it is empty,

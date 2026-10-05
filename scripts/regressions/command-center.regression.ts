@@ -35,6 +35,12 @@ import {
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { resolveChatResourceDropAction } from "../../packages/client/src/lib/chat-resource-drop-capabilities.js";
 import { extractDocsSearchQuery } from "../../packages/client/src/lib/docs-command-search.js";
+import {
+  nextMariEdgeSeen,
+  resolveMariEdgeGlow,
+  type MariEdgeInput,
+  type MariEdgeSeenState,
+} from "../../packages/client/src/lib/mari-presence-seen.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
@@ -3262,6 +3268,63 @@ assert.ok(!("mariDetailId" in mariSession));
     "how do",
     "stripping everything falls back to the original query instead of searching on nothing",
   );
+}
+
+
+// P2/P3 (slice 52): the top-bar edge line shows her state until her pane shows the result.
+{
+  let seen: MariEdgeSeenState = { wasWorking: false, unseenRun: false, approvalSeen: false, seenHistoryId: "h-0" };
+  const idle: MariEdgeInput = {
+    working: false,
+    needsAttention: false,
+    latestHistoryId: "h-0",
+    latestHistoryFailed: false,
+    viewing: false,
+  };
+  const step = (input: MariEdgeInput) => {
+    seen = nextMariEdgeSeen(seen, input);
+    return resolveMariEdgeGlow(seen, input);
+  };
+  assert.equal(step(idle), null, "idle with everything seen: no line");
+  assert.equal(step({ ...idle, working: true }), "working", "a run in progress shows the working line");
+  assert.equal(step({ ...idle, working: true, viewing: true }), "working", "seeing her does not hide a live run");
+  assert.equal(step({ ...idle, working: true }), "working", "closing the pane mid-run keeps the working line");
+  assert.equal(step(idle), "finished", "a run that ends while her pane is closed leaves an unseen result");
+  assert.equal(seen.unseenRun, true, "unseen is tracked as state");
+  assert.equal(step(idle), "finished", "the result stays unseen until the user looks");
+  assert.equal(step({ ...idle, viewing: true }), null, "opening her pane on the result clears it");
+  assert.equal(seen.unseenRun, false, "seen resets the flag");
+  assert.equal(step(idle), null, "closing the pane again keeps it cleared");
+  assert.equal(step({ ...idle, working: true }), "working", "a new run brings back the working line");
+  assert.equal(step(idle), "finished", "and its end is unseen again");
+  assert.equal(step({ ...idle, viewing: true }), null);
+
+  // A run that starts and ends between two slow polls still leaves a new history entry.
+  assert.equal(step({ ...idle, latestHistoryId: "h-1" }), "finished", "a new history entry is an unseen result");
+  assert.equal(step({ ...idle, latestHistoryId: "h-1", viewing: true }), null);
+  assert.equal(seen.seenHistoryId, "h-1", "seeing records the newest history entry");
+  assert.equal(
+    step({ ...idle, latestHistoryId: "h-2", latestHistoryFailed: true }),
+    "error",
+    "an unseen failed entry is the red line",
+  );
+  assert.equal(step({ ...idle, latestHistoryId: "h-2", latestHistoryFailed: true, viewing: true }), null);
+  assert.equal(
+    step({ ...idle, latestHistoryId: "h-2", latestHistoryFailed: true }),
+    null,
+    "a seen failure stays cleared",
+  );
+
+  const base = { ...idle, latestHistoryId: "h-2" };
+  assert.equal(
+    step({ ...base, needsAttention: true, working: true }),
+    "approval",
+    "a pending approval wins over working",
+  );
+  assert.equal(step({ ...base, needsAttention: true, viewing: true }), null, "seeing the approval clears it");
+  assert.equal(step({ ...base, needsAttention: true }), null, "the same approval stays seen");
+  assert.equal(step(base), null);
+  assert.equal(step({ ...base, needsAttention: true }), "approval", "a new approval needs a new look");
 }
 
 console.info("Command Center regression checks passed.");

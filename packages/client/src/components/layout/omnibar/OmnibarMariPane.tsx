@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -6,6 +6,7 @@ import type { ProfessorMariAskContext } from "@marinara-engine/shared";
 
 import type { MariArrival, MariArrivalAction } from "../../../lib/mari-arrival";
 import type { OmnibarCompletionAction } from "../../../lib/omnibar-completion-actions";
+import { useUIStore } from "../../../stores/ui.store";
 
 const OmnibarProfessorMariChat = lazy(() =>
   import("../../chat/HomeProfessorMariChat").then((module) => ({ default: module.HomeProfessorMariChat })),
@@ -52,6 +53,12 @@ export function OmnibarMariPane({
   arrivalFixContext,
 }: OmnibarMariPaneProps) {
   const { t } = useTranslation();
+  const setMariPaneVisible = useUIStore((state) => state.setMariPaneVisible);
+  // Her pane on screen is the user seeing her result; it clears the top-bar edge line (P3).
+  useEffect(() => {
+    setMariPaneVisible(active);
+    return () => setMariPaneVisible(false);
+  }, [active, setMariPaneVisible]);
   return (
     <motion.div
       key="omnibar-mari-pane"

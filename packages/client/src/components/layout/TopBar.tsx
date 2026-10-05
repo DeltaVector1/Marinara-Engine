@@ -37,6 +37,7 @@ import { YouTubePlayer } from "../chat/YouTubePlayer";
 import { LocalMusicPlayer } from "../chat/LocalMusicPlayer";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { usePullToOpenOmnibar } from "../../hooks/use-pull-to-open-omnibar";
+import { useMariEdgeGlow } from "../../hooks/use-mari-presence";
 import type { PullTarget } from "../../lib/pull-to-open";
 import { requestProfessorMariOpen } from "../../lib/professor-mari-open";
 import { OmnibarPullDrop } from "./OmnibarPullDrop";
@@ -111,6 +112,7 @@ const HOME_LONG_PRESS_MS = 550;
 
 export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boolean }) {
   const localize = useLocalizedUiText();
+  const mariEdgeGlow = useMariEdgeGlow();
   const { contributions } = usePersonalExtensionContributions();
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
@@ -445,6 +447,15 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     >
       {/* Subtle bottom border only */}
       <div className="absolute inset-x-0 bottom-0 h-px bg-[var(--marinara-topbar-border)]" />
+      {/* Mari is busy or has a result you have not seen: a thin line in her state colour (P2). */}
+      {mariEdgeGlow ? (
+        <span
+          aria-hidden="true"
+          data-component="TopBar.MariEdgeGlow"
+          data-state={mariEdgeGlow}
+          className="mari-topbar-edge-glow"
+        />
+      ) : null}
 
       {/* Left section: window controls + chat info */}
       <div className="mari-topbar-left flex min-w-0 flex-1 items-center gap-2">

@@ -3377,15 +3377,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 title={t("commandCenter.openWork", "Ask Professor Mari")}
                 data-component="GlobalOmnibar.ProfessorMariButton"
                 data-mari-glow={mariWorkingInBackground ? "true" : "false"}
-                className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end overflow-hidden pb-2 pl-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] max-[30rem]:w-11 max-[30rem]:pl-0"
+                className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end pb-2 pl-8 [--mari-glow-size:3.4rem] [--mari-glow-top:0.05rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] max-[30rem]:w-11 max-[30rem]:pl-0"
               >
-                <img
-                  src={appearance.portraits.idle}
-                  alt=""
-                  aria-hidden="true"
-                  draggable={false}
-                  className="absolute left-1/2 top-0 h-[6.5rem] w-auto max-w-none -translate-x-1/2 object-contain object-top transition-transform duration-200 ease-out group-hover:-translate-y-1 group-focus-visible:-translate-y-1 motion-reduce:transition-none max-[30rem]:h-20"
-                />
+                {/* P1: only the tall portrait is cropped, so her working glow on the button fades out freely. */}
+                <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
+                  <img
+                    src={appearance.portraits.idle}
+                    alt=""
+                    draggable={false}
+                    className="absolute left-1/2 top-0 h-[6.5rem] w-auto max-w-none -translate-x-1/2 object-contain object-top transition-transform duration-200 ease-out group-hover:-translate-y-1 group-focus-visible:-translate-y-1 motion-reduce:transition-none max-[30rem]:h-20"
+                  />
+                </span>
               </button>
             ) : null}
             {mariSurface ? <OmnibarSettingsButton open={settingsOpen} onOpen={() => setSettingsOpen(true)} /> : null}
