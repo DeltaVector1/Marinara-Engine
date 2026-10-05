@@ -2,9 +2,11 @@
 
 本指南介绍如何用自定义 CSS 主题彻底改变 Marinara Engine 的外观，包括主题的创建、导入、导出和启用，还会说明哪些 CSS 变量可以改，以及主题和 Card CSS 之间是什么关系。
 
+<a id="ready-made-chat-window-styles"></a>
+
 ## 现成的聊天窗口样式
 
-不想写 CSS，打开 **Settings > Appearance > App**，在 **App Style** 底部找到 **Chat widget style**，就能快速换样式。**Dottore** 使用青色仪器边框和切角。**Mari** 使用玫瑰色与金色边框，窗口标题带原石装饰，按钮与窗口使用相同背景。每个预设都有自己的字体，适应浅色和深色模式，并同时改变按钮、窗口和可展开区域。
+不想写 CSS，打开 **Settings > Appearance > App**(设置 → 外观 → 应用)，在 **App Style**(应用样式) 底部找到 **Chat widget style**(聊天组件样式)，就能快速换样式。**Dottore** 使用冰蓝色的仪器边框、浅金属色边缘和切角。**Mari** 使用镶金边的故事书式边框与宝石蓝，窗口标题带原石装饰。按钮与窗口使用相同背景。每个预设都有自己的字体，适应浅色和深色模式，并同时改变按钮、窗口和可展开区域。
 
 **Font** 和 **Shape** 可以分别更改字体与形状。**Preset font** 和 **Preset shape** 跟随所选样式。
 
@@ -17,6 +19,14 @@
 这些颜色控件不会改变顶部装饰的原有颜色。
 
 点击控件旁的 **Reset color**，就能重新跟随预设的浅色或深色配色。选择预设会重置 **Font**、**Shape** 和三个颜色。**Default** 恢复原本外观，窗口仍停在之前排列的位置。
+
+想把这套外观用到聊天的其他区域，可以使用颜色选择器下方的三个开关：
+
+- **Apply preset font**(应用预设字体) 将所选组件字体用于消息、输入框和聊天控件，包括 Game Mode 的 HUD 组件、地图面板、补充发言和角色表。
+- **Apply preset shape**(应用预设形状) 将所选边框形状用于经典布局和视觉小说布局中的 Roleplay 消息、Game 对话框、补充发言、HUD 组件、地图面板、角色表、输入框和控件。Conversation 消息保留自己的形状。
+- **Apply preset colors**(应用预设颜色) 将组件的边框、背景和文字颜色用于这些区域，也包括 Conversation 消息。自定义颜色和渐变同样适用。
+
+每个开关初始都是关闭的，且独立生效。例如，可以使用 Mari 的字体，同时保留聊天原本的颜色。关闭某个开关，就会恢复聊天对应部分原本的样式。选择其他预设不会改变开关状态。也可以让 Professor Mari 为这些区域创建自定义主题。
 
 自定义 CSS 主题仍可覆盖这些预设。下面的窗口和抽屉公共变量优先于预设颜色。用 `--mari-window-font-family` 设置窗口字体，`--mari-drawer-radius` 设置区域圆角，`--mari-window-ornament: none` 隐藏标题装饰。想去掉所有预设装饰，先选择 **Default**。
 
@@ -115,7 +125,7 @@
 
 电脑上的 **Chat Settings** 是可移动窗口，其中的可折叠区域叫 **drawers**(抽屉)。抽屉可以弹出为独立窗口，再最小化为可移动的小按钮，叫作 **bubble**(气泡)。
 
-其他聊天工具也使用这些窗口和按钮，包括 Game controls、Session、Volume、Game Assets、所连聊天和资源包控件。手机上，窗口显示为全宽面板，Tracker Panel 有自己的可移动按钮。
+其他聊天工具也使用这些窗口和按钮，包括 Game controls、Session、Volume、Game Assets、连接的聊天和资源包控件。手机上，大多数窗口会显示为全宽面板；Echo Chamber 保持为可以移动和调整大小的小窗口。从 Chat Settings 移出的工具会汇总到可移动的三点 **Chat tools**(聊天工具) 菜单中，追踪器按钮仍单独显示。
 
 下面的类名、数据属性和变量可以统一设置这些部分的外观。主题规则无需 `!important` 就能覆盖默认样式。
 
@@ -204,6 +214,46 @@
   --mari-drawer-border: transparent;
 }
 ```
+
+<a id="styling-messages-input-boxes-and-chat-controls"></a>
+
+## 为消息、输入框和聊天控件设置样式
+
+三个 **Apply preset** 开关也能让自定义主题把组件设计应用到聊天的其他区域。主题可以用以下变量覆盖各部分的样式。如果不想自己写 CSS，可以让 Professor Mari 创建一套风格一致的聊天主题。
+
+| 部分 | 类名 |
+| --- | --- |
+| Roleplay 和 Game 的消息框、Game 补充发言、HUD 组件、地图面板、角色表以及聊天输入框 | `.mari-chat-style-surface` |
+| Conversation 消息（仅字体和颜色） | `.mari-chat-style-conversation` |
+| 无边框的 Conversation 消息文字 | `.mari-chat-style-text` |
+| 聊天控件，包括 Calls 和 Conversation 群聊控件 | `.mari-chat-style-control` |
+
+| 变量 | 控制内容 |
+| --- | --- |
+| `--mari-chat-font-family` | 对应聊天区域的字体 |
+| `--mari-chat-bg` | 框体背景，可使用纯色或渐变 |
+| `--mari-chat-text` | 清晰易读的纯色文字颜色 |
+| `--mari-chat-border` | 框体轮廓，可使用纯色或渐变 |
+| `--mari-chat-border-color` | 纯色边框的备用值 |
+| `--mari-chat-radius` | 框体圆角，不包括 Conversation 消息 |
+| `--mari-chat-control-bg`, `--mari-chat-control-bg-hover` | 聊天按钮背景 |
+| `--mari-chat-control-color`, `--mari-chat-control-radius` | 聊天按钮图标颜色与圆角 |
+| `--mari-chat-input-bg` | 可编辑字段内部的背景 |
+
+例如，开启 **Apply preset font** 和 **Apply preset colors** 后：
+
+```css
+:root {
+  --mari-chat-font-family: Georgia, serif;
+  --mari-chat-bg: #251e29;
+  --mari-chat-text: #f4e8dc;
+  --mari-chat-border: linear-gradient(100deg, #d6aa66, #dda0b2);
+}
+```
+
+未设置的变量沿用组件设置和预设。要让这些变量通过内置样式生效，必须开启对应的开关。即使开启 **Apply preset shape**，Conversation 消息仍保留自己的形状。自定义主题也能直接选取这些类；做装饰性裁剪时，不要裁掉焦点轮廓、菜单或消息内容。
+
+手机上，三点菜单会展开成圆形按钮。开关按钮为 `[data-chat-tools-menu-button]`，展开的按钮列为 `[data-chat-tools-menu]`，每个列表项的 `data-chat-tools-menu-item` 都设为对应窗口的 ID。工具按钮使用 `.mari-window-bubble.mari-chat-tools-button`，`data-chat-tools-menu-tool` 也设为同一个 ID。按钮列没有窗口边框；按钮保持圆形，并沿用组件颜色和按钮大小，不受聊天其他区域的三个开关影响。
 
 ## 大小和名称限制
 

@@ -73,7 +73,7 @@ codex login
 
 Marinara는 로컬에 저장된 Codex 로그인 파일을 읽고, 가능한 경우 세션을 자동으로 갱신합니다.
 
-Codex가 답하기 전에 생각하는 시간을 정하려면 연결을 열고 **Default Chat Parameters**(기본 채팅 파라미터) 아래의 **Use custom defaults for this connection**(이 연결에 사용자 지정 기본값 사용)을 켠 다음 **Reasoning Effort**(추론 강도)를 고르세요. 처음 값은 **Default**(기본값)입니다. 채팅에서는 **Advanced Parameters**(고급 매개변수)에서 따로 단계를 고를 수 있습니다. **Default**는 Codex가 그 모델에 쓰는 단계를 그대로 유지합니다. 연결이나 채팅에서 단계를 고르기 전까지 Codex는 이 기본값을 사용합니다. 프리셋에 지정한 단계는 이 값을 바꾸지 않으며, 폴백으로 쓰이는 Codex 연결은 자신의 단계만 따릅니다. 단계는 Codex가 모델별로 제공하는 단계와 같습니다. GPT-5.5는 **xhigh**까지, GPT-5.6과 GPT-6 모델은 **max**까지 올라갑니다.
+Codex가 답하기 전에 생각하는 시간을 정하려면 연결을 열고 **Default Chat Parameters**(기본 채팅 파라미터) 아래의 **Use custom defaults for this connection**(이 연결에 사용자 지정 기본값 사용)을 켠 다음 **Reasoning Effort**(추론 강도)를 고르세요. 처음 값은 **Default**(기본값)입니다. 채팅에서는 **Advanced Parameters**(고급 매개변수)에서 따로 단계를 고를 수 있습니다. **Default**는 Codex가 그 모델에 쓰는 단계를 그대로 유지합니다. 연결이나 채팅에서 단계를 고르기 전까지 Codex는 이 기본값을 사용합니다. 프리셋에 지정한 단계는 이 값을 바꾸지 않으며, 폴백으로 쓰이는 Codex 연결은 자신의 단계만 따릅니다. 그 연결의 에이전트는 연결에 설정한 단계를 사용합니다. 단계는 Codex가 모델별로 제공하는 단계와 같습니다. GPT-5.5는 **xhigh**까지, GPT-5.6과 GPT-6 모델은 **max**까지 올라갑니다.
 
 ## Grok CLI (Subscription)
 

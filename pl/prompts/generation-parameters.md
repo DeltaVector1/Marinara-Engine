@@ -97,7 +97,7 @@ Wpisuj jedno opakowanie w każdej linii, z miejscem na ukryty tekst pośrodku. P
 
 Pole **Custom Parameters** pozwala dodać surowe ustawienia, dla których Marinara nie ma osobnego pola. Wpisujesz obiekt w formacie JSON, a Marinara dołącza go do żądania wysyłanego do dostawcy.
 
-Wartości **Custom Parameters** zapisane jako domyślne dla połączenia trafiają do każdego generowania tekstu przez API, które korzysta z tego połączenia – w tym do trybów Conversation, Roleplay i Game, do zakładki Noodle, do podsumowań i do agentów. Dotyczy to również własnych endpointów działających na twoim komputerze. Wartości **Custom Parameters** ustawione dla pojedynczego czatu dochodzą tylko w tym czacie i mają pierwszeństwo przed pasującymi kluczami z poziomu połączenia.
+Wartości **Custom Parameters** zapisane jako domyślne dla połączenia trafiają do każdego generowania tekstu przez API, które korzysta z tego połączenia – w tym do trybów Conversation, Roleplay i Game, do zakładki Noodle, do podsumowań, agentów i zainstalowanych pakietów agentów. Dotyczy to również własnych endpointów działających na twoim komputerze. Wartości **Custom Parameters** ustawione dla pojedynczego czatu dochodzą tylko w tym czacie i mają pierwszeństwo przed pasującymi kluczami z poziomu połączenia.
 
 To pole dla zaawansowanych. Zły klucz może sprawić, że dostawca odrzuci żądanie. W obiekcie trzeba pisać `true`, `false` i `null` małymi literami. Zostaw to pole puste, chyba że przewodnik dostawcy każe dodać konkretny klucz.
 
@@ -150,6 +150,20 @@ Parametry są ustalane osobno dla każdego pola, w tej kolejności:
 Wiersz **Effective** (obowiązująca wartość) obok parametru pokazuje zapisaną wartość i warstwę, która ma pierwszeństwo, z uwzględnieniem reguł trybu oraz limitów odpowiedzi. W edytorze połączenia korzysta z aktualnie otwartego czatu używającego tego połączenia albo z wartości bazowych trybu Roleplay, gdy żaden czat nie jest otwarty. Zapisz zmiany, żeby odświeżyć wskazanie. Wyłączony przełącznik Send jest pokazany jako **not sent**; dostawcy nadal mogą wymuszać wymagane parametry lub dostosowywać nieobsługiwane wartości. Custom Parameters i dopasowanie do kontekstu mogą dodatkowo zmienić ostateczne żądanie.
 
 Na przykład preset z wartością `8192` i ten czat z wartością `16384` dają **Effective: 16384 · this chat**. Limit odpowiedzi połączenia wynoszący `4096` zmienia wskazanie na **Effective: 4096 · output token cap**. Zresetowanie parametrów czatu odsłania następną obowiązującą warstwę; nie usuwa reguł presetu ani trybu.
+
+<a id="parameters-for-agents"></a>
+
+## Parametry agentów
+
+Wywołania agentów korzystają z **Default Parameters** zapisanych w połączeniu, którego używają: własnym połączeniu agenta albo połączeniu czatu, jeśli agent nie ma własnego. Marinara stosuje te same reguły co przy odpowiedzi na czacie, w tym przełączniki Send i opisane niżej limity modeli. Presety i **Advanced Parameters** czatu nie zmieniają wywołań agentów, z wyjątkiem opisanej niżej reguły temperatury.
+
+- **Wysyłane do agentów**: Temperature, Top P, Top K, Frequency, Presence, Reasoning Effort, Verbosity, OpenRouter Service Tier, Custom Parameters, własne nagłówki oraz dodatkowe parametry dodane w **Settings** (ustawienia), potem **Advanced** (zaawansowane), a następnie **Parameters** (parametry), takie jak Top A lub ziarno losowości. Parametr z wyłączonym przełącznikiem Send nie jest wysyłany.
+- **Niewysyłane do agentów**: Max Output Tokens, sekwencje zatrzymania, prefiksy odpowiedzi i rozumowania, Thinking Tags oraz inne ustawienia formatu promptu. Każdy agent zachowuje własne **Max Output Tokens**.
+- **Temperature**: agent korzysta z temperatury połączenia albo z `0.7`, jeśli nie ma zapisanej wartości. Beholder zawsze używa `0`, a moduł piszący prompty dla agenta Illustrator ma własną wartość. Podczas generowania odpowiedzi na czacie agenci na połączeniu czatu korzystają z ustalonych przez czat temperatury i przełączników Send, tak jak wcześniej, ale parametr wyłączony w połączeniu nadal nie jest wysyłany. Ponowienia korzystają z zapisanych wartości i przełączników Send połączenia, a nie czatu.
+- **Reasoning Effort**: wybrany poziom lub **Off** (wyłączone) dotyczy każdego agenta na tym połączeniu, którego model obsługuje Reasoning Effort. Włączenie **Use custom defaults for this connection** (własne wartości domyślne dla tego połączenia) ustawia początkowo Reasoning Effort na **Maximum** (maksymalny) w większości połączeń (**Default** w Codex), więc ich agenci rozumują na najwyższym poziomie modelu, co trwa dłużej i kosztuje więcej. Wybierz niższy poziom lub wyłącz przełącznik Send, jeśli agenci mają myśleć mniej. Bez zapisanego poziomu (własne wartości domyślne wyłączone albo **Default** w połączeniu Codex) agenci odpowiadający w JSON proszą o wyłączenie myślenia, a pozostali zostawiają domyślne ustawienie modelu.
+- **Miejsce na myślenie**: gdy połączenie ma zapisany poziom Reasoning Effort dla modelu, Marinara dodaje miejsce na myślenie ponad **Max Output Tokens** agenta, aby odpowiedź się nie urwała. To dodatkowe miejsce mieści się w limicie odpowiedzi połączenia, limicie modelu i kontekście pozostawionym przez prompt. Własny endpoint dostaje je nawet wtedy, gdy nie wysyła poziomu, ponieważ lokalny model może myśleć samodzielnie.
+
+Zainstalowane pakiety agentów korzystają z tych samych wartości połączenia. Wartość zapisana i wysyłana przez połączenie zastępuje tę, o którą prosi pakiet, a parametr bez ustawionej wartości w połączeniu zachowuje ustawienie pakietu. Parametry **Reasoning Effort** lub **Max Output Tokens** z wyłączonym przełącznikiem Send w połączeniu nie są wysyłane nawet wtedy, gdy pakiet o nie prosi. Przełączniki Temperature i Verbosity są początkowo wyłączone, więc te parametry zachowują własne wartości pakietu. Pakiety zachowują własny budżet odpowiedzi, powiększony o miejsce na myślenie, gdy ma zastosowanie Reasoning Effort połączenia.
 
 ## Część modeli ignoruje część parametrów
 

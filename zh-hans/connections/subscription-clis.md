@@ -73,7 +73,7 @@ codex login
 
 Marinara 会读取本机的 Codex 登录文件，并在条件允许时刷新会话。
 
-要设置 Codex 回答前思考多久，打开该连接，在 **Default Chat Parameters**(默认聊天参数) 下开启 **Use custom defaults for this connection**(为此连接使用自定义默认值)，然后在 **Reasoning Effort**(推理强度) 里选一个级别；初始值是 **Default**(默认)。单个聊天可以在 **Advanced Parameters**(高级参数) 里选自己的级别。**Default** 沿用 Codex 对该模型使用的级别。在连接或聊天选定级别之前，Codex 一直使用这个默认级别；预设里的级别不会改变它，作为备用连接使用的 Codex 连接也只遵循它自己的级别。可选级别与 Codex 为各个模型提供的一致：GPT-5.5 最高到 **xhigh**，GPT-5.6 和 GPT-6 系列模型最高到 **max**。
+要设置 Codex 回答前思考多久，打开该连接，在 **Default Chat Parameters**(默认聊天参数) 下开启 **Use custom defaults for this connection**(为此连接使用自定义默认值)，然后在 **Reasoning Effort**(推理强度) 里选一个级别；初始值是 **Default**(默认)。单个聊天可以在 **Advanced Parameters**(高级参数) 里选自己的级别。**Default** 沿用 Codex 对该模型使用的级别。在连接或聊天选定级别之前，Codex 一直使用这个默认级别；预设里的级别不会改变它，作为备用连接使用的 Codex 连接也只遵循它自己的级别。该连接上的智能体使用连接自身的级别。可选级别与 Codex 为各个模型提供的一致：GPT-5.5 最高到 **xhigh**，GPT-5.6 和 GPT-6 系列模型最高到 **max**。
 
 ## Grok CLI (Subscription)
 

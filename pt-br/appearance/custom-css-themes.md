@@ -2,9 +2,11 @@
 
 Este guia explica como mudar toda a aparência do Marinara Engine com um tema de CSS personalizado. Aqui você vê como criar, importar, exportar e ativar temas. Também vê quais variáveis de CSS pode alterar e como os temas convivem com o Card CSS.
 
+<a id="ready-made-chat-window-styles"></a>
+
 ## Estilos prontos para janelas de chat
 
-Para mudar o visual sem escrever CSS, abra **Settings > Appearance > App** e encontre **Chat widget style** no fim de **App Style**. **Dottore** dá aos controles molduras de instrumentos cianas e cantos recortados. **Mari** acrescenta molduras rosas e douradas com Gemas Essenciais nos títulos das janelas. Os botões usam o mesmo fundo das janelas. Cada preset tem sua própria fonte, funciona nos modos claro e escuro e muda juntos os botões, as janelas e as seções expansíveis.
+Para mudar o visual sem escrever CSS, abra **Settings > Appearance > App** (Configurações > Aparência > Aplicativo) e encontre **Chat widget style** (estilo dos widgets do chat) no fim de **App Style**. **Dottore** dá aos controles molduras de instrumentos em azul-gelo, bordas de metal claro e cantos recortados. **Mari** acrescenta molduras de conto de fadas com detalhes dourados, azuis de pedras preciosas e Gemas Essenciais nos títulos das janelas. Os botões usam o mesmo fundo das janelas. Cada preset tem sua própria fonte, funciona nos modos claro e escuro e muda juntos os botões, as janelas e as seções expansíveis.
 
 Os controles **Font** e **Shape** permitem mudar esses detalhes separadamente. **Preset font** e **Preset shape** seguem o estilo escolhido.
 
@@ -17,6 +19,14 @@ Abaixo ficam três controles de cor. Cada um tem um seletor de cor sólida e uma
 Os controles de cor mantêm as cores originais dos ornamentos.
 
 Use **Reset color** ao lado de um controle para voltar às cores claras ou escuras do preset. Escolher um preset redefine **Font**, **Shape** e as três cores. **Default** restaura o visual original. As janelas ficam onde você as colocou.
+
+Para levar esse visual ao restante do chat, use os três botões liga/desliga abaixo dos seletores de cor:
+
+- **Apply preset font** (aplicar fonte do preset) usa a fonte escolhida para os widgets nas mensagens, nos campos de entrada e nos controles do chat, incluindo os widgets do HUD, o painel do mapa, os comentários laterais e as fichas de personagem do Game Mode.
+- **Apply preset shape** (aplicar forma do preset) usa a forma de moldura escolhida nas mensagens de Roleplay com layout clássico ou de visual novel, na caixa de diálogo de Game, nos comentários laterais, nos widgets do HUD, no painel do mapa, nas fichas de personagem, nos campos de entrada e nos controles. As mensagens de Conversation mantêm sua própria forma.
+- **Apply preset colors** (aplicar cores do preset) usa as cores de borda, fundo e texto do widget nessas áreas, incluindo as mensagens de Conversation. Suas cores e gradientes personalizados também se aplicam.
+
+Cada botão começa desativado e funciona de forma independente. Por exemplo, você pode usar as letras de Mari e manter as cores habituais do chat. Desativar um botão restaura essa parte do estilo habitual do chat. Escolher outro preset mantém as opções desses botões. Professor Mari também pode criar temas personalizados para essas áreas.
 
 Os temas CSS personalizados ainda podem substituir esses presets. As variáveis públicas de janelas e gavetas abaixo têm prioridade sobre as cores do preset. Use `--mari-window-font-family` para as letras das janelas, `--mari-drawer-radius` para os cantos das seções e `--mari-window-ornament: none` para ocultar o ornamento do título. Para remover toda a decoração do preset, escolha **Default** primeiro.
 
@@ -115,7 +125,7 @@ Por segurança, Marinara limpa o CSS do tema personalizado antes de executá-lo.
 
 No computador, **Chat Settings** abre como uma janela móvel. Suas seções recolhíveis são chamadas de **drawers** (gavetas). Uma gaveta pode sair para uma janela própria e depois se minimizar em um pequeno botão móvel, chamado **bubble** (bolha).
 
-Outras ferramentas também usam essas janelas e botões, incluindo Game controls, Session, Volume, Game Assets, chats conectados e controles de pacotes. No celular, as janelas são painéis de largura total e Tracker Panel tem seu próprio botão móvel.
+Outras ferramentas também usam essas janelas e botões, incluindo Game controls, Session, Volume, Game Assets, chats conectados e controles de pacotes. No celular, a maioria das janelas abre como painéis de largura total; Echo Chamber continua sendo uma janela compacta que você pode mover e redimensionar. As ferramentas retiradas de Chat Settings ficam no menu móvel de três pontos **Chat tools** (ferramentas do chat); os botões dos trackers continuam separados.
 
 As classes, os atributos de dados e as variáveis abaixo permitem estilizar essas partes juntas. As regras do tema substituem os padrões sem `!important`.
 
@@ -204,6 +214,44 @@ Defina uma variável em `:root` para mudar todas as janelas, ou em um seletor pa
   --mari-drawer-border: transparent;
 }
 ```
+
+## Estilizar mensagens, campos de entrada e controles do chat
+
+Os três botões **Apply preset** também permitem que um tema personalizado use o design dos widgets no restante do chat. Um tema pode substituir cada parte com as variáveis abaixo. Peça ao Professor Mari um tema de chat que combine se preferir não escrever o CSS por conta própria.
+
+| Parte | Classe |
+| --- | --- |
+| Caixas de mensagem de Roleplay e Game, comentários laterais de Game, widgets do HUD, painel do mapa e fichas de personagem, e campos de entrada do chat | `.mari-chat-style-surface` |
+| Mensagens de Conversation (somente fonte e cores) | `.mari-chat-style-conversation` |
+| Texto de mensagens de Conversation sem caixa | `.mari-chat-style-text` |
+| Controles do chat, incluindo Calls e controles de grupo de Conversation | `.mari-chat-style-control` |
+
+| Variável | O que controla |
+| --- | --- |
+| `--mari-chat-font-family` | Fonte das áreas correspondentes do chat |
+| `--mari-chat-bg` | Fundo da caixa; aceita uma cor ou um gradiente |
+| `--mari-chat-text` | Cor sólida e legível do texto |
+| `--mari-chat-border` | Contorno da caixa; aceita uma cor ou um gradiente |
+| `--mari-chat-border-color` | Cor sólida de reserva para a borda |
+| `--mari-chat-radius` | Arredondamento da caixa, exceto nas mensagens de Conversation |
+| `--mari-chat-control-bg`, `--mari-chat-control-bg-hover` | Fundos dos botões do chat |
+| `--mari-chat-control-color`, `--mari-chat-control-radius` | Cor dos ícones e arredondamento dos botões do chat |
+| `--mari-chat-input-bg` | Fundo dentro dos campos editáveis |
+
+Por exemplo, com **Apply preset font** e **Apply preset colors** ativados:
+
+```css
+:root {
+  --mari-chat-font-family: Georgia, serif;
+  --mari-chat-bg: #251e29;
+  --mari-chat-text: #f4e8dc;
+  --mari-chat-border: linear-gradient(100deg, #d6aa66, #dda0b2);
+}
+```
+
+As variáveis não definidas seguem as configurações e o preset dos widgets. O botão correspondente precisa estar ativado para essas variáveis se aplicarem pelo estilo integrado. As mensagens de Conversation mantêm sua própria forma mesmo com **Apply preset shape** ativado. Os temas personalizados também podem usar as classes diretamente; mantenha os contornos de foco, os menus e o conteúdo das mensagens fora de qualquer recorte decorativo.
+
+No celular, o menu de três pontos se expande em botões redondos. Seu acionador é `[data-chat-tools-menu-button]`, a pilha aberta é `[data-chat-tools-menu]` e cada item da lista tem `data-chat-tools-menu-item` definido com o ID de sua janela. Os botões de ferramentas usam `.mari-window-bubble.mari-chat-tools-button` e `data-chat-tools-menu-tool` com esse mesmo ID. A pilha não tem moldura de janela; seus botões seguem as cores dos widgets e o tamanho dos botões, independentemente dos três botões liga/desliga para o restante do chat, mantendo sua forma redonda.
 
 ## Limites de tamanho e de nome
 

@@ -131,7 +131,7 @@ Abre la información de comandos de la respuesta y elige **Restore original mess
 
 ## Echo Chamber
 
-**Echo Chamber** es un agente opcional que añade un público en vivo que reacciona a tu escena. Funciona como un chat de streaming que publica una nueva reacción según un temporizador. Actívalo en **Chat Settings**, en **Agents**, en la tarjeta **Echo Chamber**. En una computadora, arrastra la barra de título para mover la ventana, un borde para cambiar su tamaño o fíjala para mantenerla abierta. **X** la reduce a un botón que puedes mover. En un teléfono, Echo mantiene una vista compacta sobre los mensajes; **X** también la reduce a un botón móvil. Echo usa tu **Chat widget style** de **Settings → Appearance → App**, y cada chat recuerda su distribución.
+**Echo Chamber** es un agente opcional que añade un público en vivo que reacciona a tu escena. Funciona como un chat de streaming que publica una nueva reacción según un temporizador. Actívalo en **Chat Settings**, en **Agents**, en la tarjeta **Echo Chamber**. En una computadora, arrastra la barra de título para mover la ventana, un borde para cambiar su tamaño o fíjala para mantenerla abierta. **X** la reduce a un botón que puedes mover. En un teléfono, Echo empieza como una ventana compacta sobre los mensajes. Arrastra la barra de título para moverla o un borde o una esquina para cambiar su tamaño. Fíjala para mantenerla abierta cuando tocas otro lugar o bloquéala para evitar movimientos accidentales. **X** también la reduce a un botón móvil. Echo usa tu **Chat widget style** de **Settings → Appearance → App**, y cada chat recuerda su distribución.
 
 ## Opciones CYOA
 

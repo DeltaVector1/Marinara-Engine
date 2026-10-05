@@ -213,7 +213,7 @@ Cuando alguien añade tu agente a un chat, ve un menú desplegable **Prompt Mode
 
 Los agentes personalizados comparten algunos ajustes con los agentes integrados:
 
-- **Connection Override**: elige una conexión de IA distinta para este agente. Por ejemplo, usa un modelo más barato para el trabajo en segundo plano. Déjalo vacío para usar la conexión del chat.
+- **Connection Override**: elige una conexión de IA distinta para este agente. Por ejemplo, usa un modelo más barato para el trabajo en segundo plano. Déjalo vacío para usar la conexión del chat. El agente envía los parámetros de generación guardados en esa conexión; consulta [Parámetros para agentes](../prompts/generation-parameters.md#parameters-for-agents).
 - **Agent Budget**: configura **Context Size** (cuántos mensajes recientes lee el agente, predeterminado 5). Configura también **Max Output Tokens** (el espacio de salida reservado, predeterminado 4096, de 128 a 32768).
 - **Add as Prompt Section**: activa esto para exponer la salida más reciente del agente como una sección que puedes inyectar en un preset de prompt.
 

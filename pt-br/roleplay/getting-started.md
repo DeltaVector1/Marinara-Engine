@@ -131,7 +131,7 @@ Abra as informações de comandos da resposta e escolha **Restore original messa
 
 ## Echo Chamber
 
-**Echo Chamber** é um agente opcional que acrescenta uma plateia ao vivo reagindo à cena. Funciona como um chat de transmissão que publica uma reação nova de tempos em tempos. Ative na seção **Chat Settings**, em **Agents**, no card **Echo Chamber**. No computador, arraste a barra de título para mover a janela, arraste uma borda para mudar o tamanho ou fixe a janela para mantê-la aberta. O **X** a recolhe até virar um botão que você pode mover. No celular, Echo mantém uma visualização compacta sobre as mensagens; o **X** também a recolhe em um botão móvel. Echo usa o **Chat widget style** escolhido em **Settings → Appearance → App**, e cada chat lembra sua disposição.
+**Echo Chamber** é um agente opcional que acrescenta uma plateia ao vivo reagindo à cena. Funciona como um chat de transmissão que publica uma reação nova de tempos em tempos. Ative na seção **Chat Settings**, em **Agents**, no card **Echo Chamber**. No computador, arraste a barra de título para mover a janela, arraste uma borda para mudar o tamanho ou fixe a janela para mantê-la aberta. O **X** a recolhe até virar um botão que você pode mover. No celular, Echo começa como uma janela compacta sobre as mensagens. Arraste a barra de título para movê-la ou uma borda ou um canto para redimensioná-la. Fixe a janela para mantê-la aberta quando tocar em outro lugar ou trave-a para evitar movimentos acidentais. O **X** também a recolhe em um botão móvel. Echo usa o **Chat widget style** escolhido em **Settings → Appearance → App**, e cada chat lembra sua disposição.
 
 ## Escolhas CYOA
 

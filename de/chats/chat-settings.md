@@ -14,7 +14,7 @@ Beim ersten Öffnen eines Chats nach diesem Update erklärt ein kurzes Video, wi
 
 Bei einem neuen Chat öffnet sich **Chat Settings** von selbst. Mit **X** oder einem weiteren Klick auf die Schieberegler-Schaltfläche schließt du es.
 
-Chats aus älteren Versionen behalten ihre vertrauten Tool-Symbole als verschiebbare Schaltflächen. Beim Update einer bestehenden Installation wird diese Anordnung auch zum Favoriten für neue Chats in jedem Modus, sofern du nicht bereits einen anderen Favoriten gewählt hast. Öffne ein Tool über seine Schaltfläche und wähle **Put back in Chat Settings** (zurück in die Chat-Einstellungen), wenn du es lieber dort haben möchtest. Am Computer werden Roleplay-Tracker im Fenster **Trackers** zusammengefasst. Bereits gespeicherte Anordnungen bleiben erhalten.
+Chats aus älteren Versionen behalten ihre vertrauten Tools außerhalb von Chat Settings: am Computer als verschiebbare Schaltflächen, am Telefon im Drei-Punkte-Menü **Chat tools** (Chat-Tools). Beim Update einer bestehenden Installation wird diese Anordnung auch zum Favoriten für neue Chats in jedem Modus, sofern du nicht bereits einen anderen Favoriten gewählt hast. Öffne ein Tool und wähle **Put back in Chat Settings** (zurück in die Chat-Einstellungen), wenn du es lieber dort haben möchtest. Am Computer werden Roleplay-Tracker im Fenster **Trackers** zusammengefasst. Bereits gespeicherte Fenster- und Schaltflächenpositionen bleiben erhalten.
 
 Zieh die Schieberegler-Schaltfläche an eine passende Stelle. Beim Ziehen richtet sie sich an benachbarten Chat-Schaltflächen aus. Am Computer hältst du Alt gedrückt, um sie frei zu platzieren. Jeder Chat merkt sich die Position. Ein kleiner Punkt zeigt an, dass Agenten arbeiten.
 
@@ -24,9 +24,13 @@ Am Computer kannst du die ausführlichen Hinweise zur Anordnung über ihr **X** 
 
 ## Das Aussehen der Chat-Fenster ändern
 
-Öffne **Settings > Appearance > App** (Einstellungen, Darstellung, App) und such **Chat widget style** (Chat-Widget-Stil) unten in **App Style**. **Default** (Standard) behält das gewohnte Aussehen von Marinara bei. **Dottore** ergänzt cyanfarbene Details, technische Schrift und abgeschrägte Ecken; **Mari** nutzt Rosa und Gold, eine Buchschrift und bogenförmige Rahmen. Beide passen sich dem hellen und dunklen Modus an und gestalten verschiebbare Schaltflächen, Fenster und aufklappbare Abschnitte in allen drei Chat-Modi.
+Öffne **Settings > Appearance > App** (Einstellungen, Darstellung, App) und scrolle zu **Chat widget style** (Chat-Widget-Stil) unten in **App Style** (App-Stil). **Default** (Standard) behält das gewohnte Aussehen von Marinara bei. **Dottore** verbindet Eisblau und helles Metall mit technischer Schrift und abgeschrägten Ecken; **Mari** kombiniert Edelsteinblau und warmes Gold mit Märchenbuchschrift und bogenförmigen Rahmen. Beide passen sich dem hellen und dunklen Modus an und gestalten verschiebbare Schaltflächen, Fenster und aufklappbare Abschnitte in allen drei Chat-Modi.
 
-Mit **Font** (Schrift) und **Shape** (Form) unter den Presets änderst du diese Details einzeln. Die Schriftliste enthält auch die in Marinara Engine installierten Schriften. Wählst du ein Preset erneut, setzt es Schrift und Form zurück; **Default** stellt das gewohnte Aussehen wieder her. Fensterpositionen und gespeicherte Chat-Anordnungen bleiben erhalten. Diese Auswahl wird in deinen App-Einstellungen gespeichert und mit Browsern am selben Server synchronisiert.
+Mit **Font** (Schrift), **Shape** (Form) und den drei Farbwählern unter den Presets kombinierst du diese Details nach Wunsch. Die Schriftliste enthält auch die in Marinara installierten Schriften. Wählst du ein Preset erneut, setzt es Schrift, Form und eigene Farben zurück. Fensterpositionen und gespeicherte Chat-Anordnungen bleiben erhalten. Diese Auswahl wird in deinen App-Einstellungen gespeichert und mit Browsern am selben Server synchronisiert.
+
+**Button size (px)** (Schaltflächengröße in Pixeln) ändert verschiebbare Chat-Schaltflächen und ihre Symbole, ohne Display Size zu ändern. Gib eine Größe von 32 bis 96 Pixeln ein. Lass das Feld leer oder nutze seine Schaltfläche zum Zurücksetzen, um den aktuellen Standard beizubehalten. Die Größe wird mit deinen Darstellungseinstellungen gespeichert und bleibt beim Wechsel des Presets gleich.
+
+Damit auch der restliche Chat dazu passt, schalte **Apply preset font** (Preset-Schrift anwenden), **Apply preset shape** (Preset-Form anwenden) oder **Apply preset colors** (Preset-Farben anwenden) ein. Jeder Schalter funktioniert für sich und berücksichtigt deine eigenen Einstellungen darüber. Sie gelten für Nachrichten, Eingabefelder und Chat-Bedienelemente; Conversation-Nachrichten übernehmen auf Wunsch Schrift und Farben, behalten aber ihre eigene Form. Alle drei Schalter sind anfangs aus. Schaltest du einen aus, kehrt dieser Teil des Chats zur üblichen Gestaltung zurück. Mehr dazu unter [Eigene CSS-Themes](../appearance/custom-css-themes.md#ready-made-chat-window-styles).
 
 ## Das Fenster verschieben, anheften und sperren
 
@@ -65,9 +69,19 @@ Am Computer kannst du auch die Überschrift eines Abschnitts aus **Chat Settings
 - **Put back in Chat Settings** (der gebogene Pfeil neben **X**) legt den Abschnitt zurück in **Chat Settings**. Du kannst sein Fenster auch auf **Chat Settings** ziehen.
 - Ein nicht angehefteter Abschnitt verkleinert sich bei einem Klick außerhalb oder mit Escape zur Schaltfläche, außer du schreibst in einem Textfeld oder nutzt ein geöffnetes Menü.
 
-Am Telefon schließt das Herauslösen **Chat Settings** und fügt eine verschiebbare Schaltfläche zum Chat hinzu. Tippe darauf, um den Abschnitt als Panel zu öffnen. Schließe das Panel, um zur Schaltfläche zurückzukehren, oder tippe auf **Put back in Chat Settings**, um den Abschnitt zurückzulegen.
+Am Telefon schließt das Herauslösen Chat Settings und fügt den Abschnitt zum Drei-Punkte-Menü **Chat tools** hinzu. Tippe auf die Punkte und dann auf die runde Symbolschaltfläche des Abschnitts, um sein Panel zu öffnen. Schließe das Panel, um das Menü wieder zu nutzen, oder tippe auf **Put back in Chat Settings**, um den Abschnitt zurückzulegen.
 
 Tracker lassen sich ebenso aus dem Fenster **Trackers** herauslösen. Ihre Rückkehr-Schaltfläche heißt **Put back in Trackers** (zurück zu Trackers).
+
+<a id="the-phones-chat-tools-menu"></a>
+
+## Das Chat tools-Menü am Telefon
+
+Die verschiebbare Drei-Punkte-Schaltfläche sammelt Tools, die du aus Chat Settings herausgelöst hast, an einem Ort. Tippe darauf, um eine Spalte runder Symbolschaltflächen auszuklappen, und dann auf ein Tool, um es zu öffnen. Tippe erneut auf die Punkte, um die Schaltflächen einzuklappen. Tracker-Schaltflächen, die Game-Kartenschaltfläche und Character Profiles bleiben separat, damit du sie direkt erreichen kannst.
+
+Zieh die Drei-Punkte-Schaltfläche, um das gesamte Menü zu verschieben. Öffne das Menü und nutze das Schloss oben, um es an seinem Platz zu halten. Solange es entsperrt ist, kannst du eine Tool-Schaltfläche nach oben oder unten ziehen, um ihre Reihenfolge in der Spalte zu ändern. Mit der Tastatur fokussierst du die Schaltfläche und nutzt die Aufwärts- oder Abwärtspfeiltaste. Die Sperre verhindert sowohl Verschieben als auch Umordnen; die Tools lassen sich weiterhin öffnen.
+
+Jeder Chat speichert Position, Sperre und Reihenfolge des Menüs. Lieblingsanordnungen und Einstellungsprofile enthalten diese ebenfalls. Wie seine Fenster folgt das Menü deinem Chat-Widget-Stil.
 
 <a id="control-windows-and-their-buttons"></a>
 
@@ -75,15 +89,15 @@ Tracker lassen sich ebenso aus dem Fenster **Trackers** herauslösen. Ihre Rück
 
 Einige Tools öffnen eigene kleine Fenster: **Game controls** (Spielsteuerung), **Session** (Sitzung), **Volume** (Lautstärke) und **Game Assets** (Spielressourcen) im Game Mode sowie **Connected chat** (verknüpfter Chat) und Bedienelemente installierter Pakete.
 
-Ihre Schaltflächen liegen anfangs nahe der oberen rechten Ecke des Chats. Klick oder tippe darauf, um das Fenster zu öffnen. Schließen bringt die Schaltfläche zurück. Am Telefon öffnet sich ein Panel über die ganze Breite.
+Am Computer starten diese Schaltflächen oben rechts im Chat. Klick auf eine, um ihr Fenster zu öffnen; beim Schließen kehrt die Schaltfläche zurück. Am Telefon findest du diese Tools im Drei-Punkte-Menü **Chat tools**. Sie öffnen sich als Panels über die ganze Breite.
 
-Um ein solches Tool in **Chat Settings** unterzubringen, öffne sein Fenster und wähle **Put back in Chat Settings**. Dort erscheint es als aufklappbarer Abschnitt. Über die Schaltfläche zum Herauslösen öffnest du es wieder separat; am Computer kannst du auch seine Überschrift aus den Einstellungen herausziehen. **Reset View** stellt die ursprünglichen Schaltflächen dieser Tools wieder her.
+Wenn du eines dieser Tools in Chat Settings behalten möchtest, öffne sein Fenster und wähle **Put back in Chat Settings**. Dort wird es zu einem aufklappbaren Abschnitt. Mit dessen Pop-out-Schaltfläche gibst du ihm wieder ein eigenes Fenster; am Computer kannst du auch seinen Titel herausziehen. **Reset View** stellt die Ausgangsanordnung wieder her: separate Schaltflächen am Computer oder Einträge in Chat tools am Telefon.
 
-Zieh eine Schaltfläche, um sie zu bewegen. Dabei richtet sie sich an benachbarten Schaltflächen aus. Halte am Computer Alt gedrückt, um sie frei zu platzieren, oder fokussiere sie mit der Tastatur und nutze die Pfeiltasten. **Calls** (Anrufe) bleibt in Conversation eine gewöhnliche Schaltfläche.
+Am Computer ziehst du eine Schaltfläche, um sie zu bewegen. Dabei richtet sie sich an benachbarten Schaltflächen aus. Halte Alt gedrückt, um sie frei zu platzieren, oder fokussiere sie mit der Tastatur und nutze die Pfeiltasten. **Calls** (Anrufe) bleibt in Conversation eine gewöhnliche Schaltfläche. In Game hat **Character Profiles** (Charakterprofile) am Computer wie am Telefon eine eigene verschiebbare Schaltfläche. Die Schaltfläche **Map** (Karte) am Telefon ist ebenfalls separat und verschiebbar. Öffne das jeweilige Bedienelement und nutze sein Schloss, um Fenster und Schaltfläche gegen Verschieben zu sperren; jedes Spiel merkt sich ihre Positionen.
 
 ## Jeder Chat merkt sich seine Fensteranordnung
 
-Jeder Chat speichert Fenstergrößen und -positionen, Anheftungen, Sperren, herausgelöste Abschnitte und Schaltflächenpositionen. Die Positionen der Schaltflächen am Telefon werden getrennt von denen am Computer gespeichert. Beim Chatwechsel kommt die jeweilige Anordnung zurück.
+Jeder Chat speichert Fenstergrößen und -positionen, Anheftungen, Sperren, herausgelöste Abschnitte und Schaltflächenpositionen. Die Positionen am Telefon sowie Reihenfolge und Sperre des Chat tools-Menüs werden getrennt von den Positionen am Computer gespeichert. Beim Chatwechsel kommt die jeweilige Anordnung zurück.
 
 Ein [Einstellungsprofil](#settings-profiles) kann diese Anordnung für andere Chats speichern. **Reset View** stellt die Ausgangsanordnung des aktuellen Chats wieder her.
 

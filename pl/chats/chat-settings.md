@@ -14,7 +14,7 @@ Przy pierwszym wejściu do czatu po tej aktualizacji krótki film pokazuje, jak 
 
 Przy tworzeniu nowego czatu **Chat Settings** otwiera się automatycznie. Aby je zamknąć, kliknij **X** lub ponownie naciśnij przycisk z suwakami.
 
-Czaty utworzone przed aktualizacją zachowują znane ikony narzędzi jako przesuwane przyciski. Przy aktualizacji istniejącej instalacji taki układ staje się też ulubionym dla nowych czatów w każdym trybie, chyba że masz już wybrany inny ulubiony układ. Otwórz narzędzie jego przyciskiem i wybierz **Put back in Chat Settings** (przeniesienie do Chat Settings), jeśli chcesz mieć je wewnątrz ustawień. Na komputerze trackery Roleplay są zebrane w oknie **Trackers**. Zapisane wcześniej układy pozostają bez zmian.
+Czaty utworzone przed aktualizacją zachowują znane narzędzia poza Chat Settings: jako przesuwane przyciski na komputerze albo w menu **Chat tools** (narzędzia czatu) z trzema kropkami na telefonie. Przy aktualizacji istniejącej instalacji taki układ staje się też ulubionym dla nowych czatów w każdym trybie, chyba że masz już wybrany inny ulubiony układ. Otwórz narzędzie i wybierz **Put back in Chat Settings** (przeniesienie do Chat Settings), jeśli chcesz mieć je wewnątrz ustawień. Na komputerze trackery Roleplay są zebrane w oknie **Trackers**. Zapisane wcześniej układy pozostają bez zmian.
 
 Przeciągnij przycisk z suwakami w wygodne miejsce. Podczas przeciągania wyrównuje się z pobliskimi przyciskami czatu. Na komputerze przytrzymaj Alt, aby ustawić go swobodnie. Każdy czat zapamiętuje jego położenie. Mała kropka na przycisku oznacza, że agenci pracują.
 
@@ -24,9 +24,13 @@ Na komputerze kliknij **X** obok wskazówek dotyczących układu, z podpowiedzi�
 
 ## Zmiana wyglądu okien czatu
 
-Otwórz **Settings > Appearance > App** (ustawienia, wygląd, aplikacja) i przewiń do **Chat widget style** (styl widgetów czatu) na dole sekcji **App Style** (styl aplikacji). **Default** (domyślny) zachowuje znajomy wygląd aplikacji Marinara Engine. **Dottore** dodaje turkusowe detale, techniczną czcionkę i przycięte narożniki; **Mari** korzysta z różu i złota, baśniowej czcionki i łukowatych ramek. Oba style dostosowują się do jasnego i ciemnego trybu oraz obejmują przesuwane przyciski, okna i rozwijane sekcje we wszystkich trzech trybach czatu.
+Otwórz **Settings > Appearance > App** (ustawienia, wygląd, aplikacja) i przewiń do **Chat widget style** (styl widgetów czatu) na dole sekcji **App Style** (styl aplikacji). **Default** (domyślny) zachowuje znajomy wygląd aplikacji Marinara Engine. **Dottore** łączy lodowe błękity i jasny metal z techniczną czcionką i przyciętymi narożnikami; **Mari** zestawia błękity kamieni szlachetnych i ciepłe złoto z baśniową czcionką i łukowatymi ramkami. Oba style dostosowują się do jasnego i ciemnego trybu oraz obejmują przesuwane przyciski, okna i rozwijane sekcje we wszystkich trzech trybach czatu.
 
-Użyj opcji **Font** (czcionka) lub **Shape** (kształt) pod presetami, aby zmienić te elementy osobno. Lista czcionek zawiera też te zainstalowane w aplikacji Marinara Engine. Ponowne wybranie presetu przywraca jego czcionkę i kształt, a **Default** przywraca zwykły wygląd. Nie zmienia to położenia okien ani zapisanych układów czatów. Te wybory zapisują się w preferencjach aplikacji i synchronizują z przeglądarkami połączonymi z tym samym serwerem.
+Użyj opcji **Font** (czcionka), **Shape** (kształt) i trzech narzędzi wyboru kolorów pod presetami, aby dopasować wygląd. Lista czcionek zawiera też te zainstalowane w aplikacji Marinara Engine. Ponowne wybranie presetu przywraca jego czcionkę, kształt i kolory. Nie zmienia to położenia okien ani zapisanych układów czatów. Te wybory zapisują się w preferencjach aplikacji i synchronizują z przeglądarkami połączonymi z tym samym serwerem.
+
+**Button size (px)** (rozmiar przycisków w pikselach) zmienia rozmiar przesuwanych przycisków czatu i ich ikon bez zmiany ustawienia Display Size. Wpisz rozmiar od 32 do 96 pikseli. Zostaw pole puste lub użyj jego przycisku resetowania, aby zachować bieżący rozmiar domyślny. Rozmiar zapisuje się w preferencjach wyglądu i nie zmienia się po wybraniu innego presetu.
+
+Aby dopasować resztę czatu, włącz **Apply preset font** (zastosowanie czcionki presetu), **Apply preset shape** (zastosowanie kształtu presetu) lub **Apply preset colors** (zastosowanie kolorów presetu). Każdy przełącznik działa osobno i uwzględnia własne ustawienia wybrane powyżej. Obejmują wiadomości, pola wpisywania i kontrolki czatu; wiadomości Conversation mogą korzystać z wybranej czcionki i kolorów, ale zachowują swój kształt. Wszystkie trzy są początkowo wyłączone. Wyłączenie przełącznika przywraca zwykły wygląd odpowiedniej części czatu. Więcej informacji znajdziesz w przewodniku [Własne motywy CSS](../appearance/custom-css-themes.md#ready-made-chat-window-styles).
 
 ## Przesuwanie, przypinanie i blokowanie okna
 
@@ -65,9 +69,19 @@ Na komputerze możesz też przeciągnąć tytuł sekcji poza **Chat Settings**. 
 - **Put back in Chat Settings** (zakrzywiona strzałka obok **X**) wkłada sekcję z powrotem do **Chat Settings**. Możesz też przeciągnąć jej okno na **Chat Settings**.
 - Nieprzypięta sekcja zmniejsza się do przycisku po kliknięciu poza nią lub naciśnięciu Escape, chyba że piszesz w polu tekstowym albo korzystasz z otwartego menu.
 
-Na telefonie wydzielenie sekcji zamyka **Chat Settings** i dodaje do czatu przesuwany przycisk. Dotknij go, aby otworzyć sekcję jako panel. Zamknij panel, aby wrócić do przycisku, lub dotknij **Put back in Chat Settings**, aby włożyć sekcję z powrotem.
+Na telefonie wydzielenie sekcji zamyka **Chat Settings** i dodaje ją do przesuwanego menu **Chat tools** z trzema kropkami. Dotknij kropek, a potem okrągłego przycisku z ikoną sekcji, aby otworzyć jej panel. Zamknij panel, aby znów użyć menu, lub dotknij **Put back in Chat Settings**, aby włożyć sekcję z powrotem.
 
 Trackery można tak samo wydzielać z okna **Trackers**. Ich przycisk powrotu nazywa się **Put back in Trackers** (przeniesienie do Trackers).
+
+<a id="the-phones-chat-tools-menu"></a>
+
+## Menu Chat tools na telefonie
+
+Przesuwany przycisk z trzema kropkami zbiera w jednym miejscu narzędzia wydzielone z **Chat Settings**. Dotknij go, aby rozwinąć kolumnę okrągłych przycisków z ikonami, a potem dotknij narzędzia, aby je otworzyć. Ponownie dotknij kropek, aby zwinąć przyciski. Przyciski trackerów, mapy Game i Character Profiles pozostają osobno, więc masz do nich bezpośredni dostęp.
+
+Przeciągnij przycisk z trzema kropkami, aby przesunąć całe menu. Otwórz menu i użyj blokady u góry, aby je unieruchomić. Gdy jest odblokowane, przeciągnij przycisk narzędzia w górę lub w dół, aby zmienić jego miejsce w kolumnie. Korzystając z klawiatury, zaznacz przycisk i użyj strzałki w górę lub w dół. Blokada uniemożliwia przesuwanie menu i zmianę kolejności; nadal możesz otwierać narzędzia.
+
+Każdy czat zapisuje położenie menu, jego blokadę i kolejność. Ulubione układy i profile ustawień także je uwzględniają. Menu korzysta ze stylu widgetów czatu, tak jak otwierane przez nie okna.
 
 <a id="control-windows-and-their-buttons"></a>
 
@@ -75,15 +89,15 @@ Trackery można tak samo wydzielać z okna **Trackers**. Ich przycisk powrotu na
 
 Niektóre narzędzia otwierają własne małe okna: **Game controls** (sterowanie grą), **Session** (sesja), **Volume** (głośność) i **Game Assets** (zasoby gry) w trybie Game Mode, a także **Connected chat** (powiązany czat) i kontrolki zainstalowanych pakietów.
 
-Ich przyciski zaczynają w pobliżu prawego górnego rogu czatu. Kliknij lub dotknij przycisku, aby otworzyć okno. Zamknięcie okna przywraca przycisk. Na telefonie okno otwiera się jako panel na całą szerokość.
+Na komputerze ich przyciski zaczynają w pobliżu prawego górnego rogu czatu. Kliknij przycisk, aby otworzyć okno; zamknięcie okna przywraca przycisk. Na telefonie znajdziesz te narzędzia w menu **Chat tools** z trzema kropkami. Otwierają się jako panele na całą szerokość.
 
-Aby umieścić takie narzędzie wewnątrz **Chat Settings**, otwórz jego okno i wybierz **Put back in Chat Settings**. Pojawi się tam jako rozwijana sekcja. Użyj jej przycisku wydzielenia, aby znów otworzyć ją w osobnym oknie, albo na komputerze przeciągnij tytuł poza ustawienia. **Reset View** przywraca początkowe przyciski tych narzędzi.
+Aby umieścić takie narzędzie wewnątrz **Chat Settings**, otwórz jego okno i wybierz **Put back in Chat Settings**. Pojawi się tam jako rozwijana sekcja. Użyj jej przycisku wydzielenia, aby znów otworzyć ją w osobnym oknie, albo na komputerze przeciągnij tytuł poza ustawienia. **Reset View** przywraca początkowy układ: osobne przyciski na komputerze lub pozycje w menu Chat tools na telefonie.
 
-Przeciągnij przycisk, aby go przesunąć. Pobliskie przyciski wyrównują się podczas przeciągania. Na komputerze przytrzymaj Alt, aby ustawić położenie swobodnie, albo zaznacz przycisk klawiaturą i użyj strzałek. **Calls** (rozmowy głosowe) w trybie Conversation pozostaje zwykłym przyciskiem.
+Na komputerze przeciągnij przycisk, aby go przesunąć. Pobliskie przyciski wyrównują się podczas przeciągania; przytrzymaj Alt, aby ustawić położenie swobodnie, albo zaznacz przycisk klawiaturą i użyj strzałek. **Calls** (rozmowy głosowe) w trybie Conversation pozostaje zwykłym przyciskiem. W trybie Game **Character Profiles** (profile postaci) ma własny przesuwany przycisk na komputerze i telefonie. Przycisk **Map** (mapa) na telefonie też jest osobny i można go przesuwać. Otwórz jedną z tych kontrolek i użyj blokady, aby unieruchomić jej okno i przycisk; każda gra zapamiętuje ich położenie.
 
 ## Każdy czat zapamiętuje własny układ okien
 
-Każdy czat zapamiętuje rozmiary i położenia okien, przypięcia i blokady, wydzielone sekcje oraz położenia przycisków. Położenia przycisków na telefonie zapisują się oddzielnie od tych na komputerze. Przełączenie czatu przywraca jego układ.
+Każdy czat zapamiętuje rozmiary i położenia okien, przypięcia i blokady, wydzielone sekcje oraz położenia przycisków. Położenia na telefonie oraz kolejność i blokada menu Chat tools zapisują się oddzielnie od położeń na komputerze. Przełączenie czatu przywraca jego układ.
 
 [Profil ustawień](#settings-profiles) może zapisać układ do użycia w innych czatach. **Reset View** przywraca początkowy układ bieżącego czatu.
 

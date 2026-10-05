@@ -2,9 +2,11 @@
 
 Ce guide explique comment changer toute l'allure de Marinara Engine avec un thème CSS personnalisé. Au programme : créer, importer, exporter et activer un thème. Tu découvres aussi quelles variables CSS se modifient, et comment les thèmes cohabitent avec le CSS de fiche.
 
+<a id="ready-made-chat-window-styles"></a>
+
 ## Styles de fenêtres de chat prêts à utiliser
 
-Pour changer rapidement de style sans écrire de CSS, ouvre **Settings > Appearance > App** et trouve **Chat widget style** en bas de **App Style**. **Dottore** donne aux contrôles des cadres d'instruments cyan et des coins coupés. **Mari** ajoute des cadres roses et dorés avec des Primo-gemmes sur les titres des fenêtres. Ses boutons ont le même fond que ses fenêtres. Chaque preset a sa propre police, fonctionne en mode clair et sombre, et habille ensemble boutons, fenêtres et sections repliables.
+Pour changer rapidement de style sans écrire de CSS, ouvre **Settings > Appearance > App** (Paramètres > Apparence > Application) et trouve **Chat widget style** (style des widgets du chat) en bas de **App Style**. **Dottore** donne aux contrôles des cadres d'instruments bleu glacé, des bordures en métal clair et des coins coupés. **Mari** ajoute des cadres de conte bordés d'or, des bleus de pierres précieuses et des Primo-gemmes sur les titres des fenêtres. Ses boutons ont le même fond que ses fenêtres. Chaque preset a sa propre police, fonctionne en mode clair et sombre, et habille ensemble boutons, fenêtres et sections repliables.
 
 Les contrôles **Font** et **Shape** permettent de changer ces détails séparément. **Preset font** et **Preset shape** suivent le style sélectionné.
 
@@ -17,6 +19,14 @@ En dessous se trouvent trois contrôles de couleur. Chacun propose une couleur u
 Les contrôles de couleur conservent les couleurs originales des ornements.
 
 Utilise **Reset color** près d'un contrôle pour retrouver les couleurs claires ou sombres du preset. Choisir un preset réinitialise **Font**, **Shape** et les trois couleurs. **Default** rétablit l'apparence originale. Les fenêtres restent là où tu les as placées.
+
+Pour étendre ce style au reste du chat, utilise les trois interrupteurs sous les sélecteurs de couleur :
+
+- **Apply preset font** (appliquer la police du preset) utilise la police choisie pour les widgets dans les messages, les champs de saisie et les contrôles du chat, y compris les widgets du HUD, le panneau de carte, les apartés et les fiches de personnage de Game Mode.
+- **Apply preset shape** (appliquer la forme du preset) utilise la forme de cadre choisie pour les messages Roleplay dans les dispositions classique et visual novel, la boîte de dialogue Game, les apartés, les widgets du HUD, le panneau de carte, les fiches de personnage, les champs de saisie et les contrôles. Les messages Conversation gardent leur propre forme.
+- **Apply preset colors** (appliquer les couleurs du preset) utilise les couleurs de bordure, de fond et de texte du widget dans ces zones, y compris les messages Conversation. Tes couleurs et dégradés personnalisés s'appliquent aussi.
+
+Chaque interrupteur est désactivé au départ et fonctionne indépendamment. Tu peux par exemple utiliser la police de Mari tout en gardant les couleurs habituelles du chat. Désactiver un interrupteur rétablit cette partie du style habituel. Choisir un autre preset conserve tes choix d'interrupteurs. Professor Mari peut aussi créer des thèmes personnalisés pour ces zones.
 
 Les thèmes CSS personnalisés peuvent toujours remplacer ces presets. Les variables publiques de fenêtres et de tiroirs ci-dessous ont la priorité sur les couleurs du preset. Utilise `--mari-window-font-family` pour la police des fenêtres, `--mari-drawer-radius` pour les coins des sections et `--mari-window-ornament: none` pour masquer l'ornement du titre. Pour retirer toute la décoration du preset, choisis d'abord **Default**.
 
@@ -115,7 +125,7 @@ Par sécurité, Marinara nettoie le CSS des thèmes personnalisés avant de l'ap
 
 Sur ordinateur, **Chat Settings** s'ouvre dans une fenêtre déplaçable. Ses sections repliables sont appelées **drawers** (tiroirs). Un tiroir peut se détacher dans sa propre fenêtre, puis se réduire à un petit bouton déplaçable, appelé **bubble** (bulle).
 
-D'autres outils utilisent aussi ces fenêtres et boutons : Game controls, Session, Volume, Game Assets, les chats connectés et les contrôles de paquets. Sur téléphone, les fenêtres sont des panneaux sur toute la largeur, et Tracker Panel a son propre bouton déplaçable.
+D'autres outils utilisent aussi ces fenêtres et boutons : Game controls, Session, Volume, Game Assets, les chats connectés et les contrôles de packages. Sur téléphone, la plupart des fenêtres s'ouvrent en panneaux sur toute la largeur ; Echo Chamber reste une fenêtre compacte que tu peux déplacer et redimensionner. Les outils sortis de Chat Settings figurent dans le menu déplaçable à trois points **Chat tools** (outils du chat) ; les boutons des trackers restent séparés.
 
 Les classes, attributs de données et variables ci-dessous permettent d'habiller ces éléments ensemble. Les règles de ton thème remplacent les valeurs par défaut sans `!important`.
 
@@ -204,6 +214,44 @@ Définis une variable dans `:root` pour changer toutes les fenêtres, ou sur un 
   --mari-drawer-border: transparent;
 }
 ```
+
+## Habiller les messages, les champs de saisie et les contrôles du chat
+
+Les trois interrupteurs **Apply preset** permettent aussi à un thème personnalisé d'utiliser le design des widgets dans le reste du chat. Un thème peut remplacer chaque partie avec les variables ci-dessous. Demande à Professor Mari un thème de chat assorti si tu préfères ne pas écrire le CSS toi-même.
+
+| Élément | Classe |
+| --- | --- |
+| Cadres des messages Roleplay et Game, apartés de Game, widgets du HUD, panneau de carte et fiches de personnage, et champs de saisie du chat | `.mari-chat-style-surface` |
+| Messages Conversation (police et couleurs uniquement) | `.mari-chat-style-conversation` |
+| Texte des messages Conversation sans cadre | `.mari-chat-style-text` |
+| Contrôles du chat, y compris Calls et les contrôles de groupe de Conversation | `.mari-chat-style-control` |
+
+| Variable | Ce qu'elle contrôle |
+| --- | --- |
+| `--mari-chat-font-family` | Police des zones de chat correspondantes |
+| `--mari-chat-bg` | Fond du cadre ; accepte une couleur ou un dégradé |
+| `--mari-chat-text` | Couleur unie et lisible du texte |
+| `--mari-chat-border` | Contour du cadre ; accepte une couleur ou un dégradé |
+| `--mari-chat-border-color` | Couleur unie de repli pour la bordure |
+| `--mari-chat-radius` | Arrondi du cadre, sauf pour les messages Conversation |
+| `--mari-chat-control-bg`, `--mari-chat-control-bg-hover` | Fonds des boutons du chat |
+| `--mari-chat-control-color`, `--mari-chat-control-radius` | Couleur des icônes et arrondi des boutons du chat |
+| `--mari-chat-input-bg` | Fond des champs modifiables |
+
+Par exemple, avec **Apply preset font** et **Apply preset colors** activés :
+
+```css
+:root {
+  --mari-chat-font-family: Georgia, serif;
+  --mari-chat-bg: #251e29;
+  --mari-chat-text: #f4e8dc;
+  --mari-chat-border: linear-gradient(100deg, #d6aa66, #dda0b2);
+}
+```
+
+Les variables non définies suivent les réglages et le preset des widgets. L'interrupteur correspondant doit être activé pour que ces variables s'appliquent via le style intégré. Les messages Conversation gardent leur propre forme même quand **Apply preset shape** est activé. Les thèmes personnalisés peuvent aussi cibler directement les classes ; garde les contours de focus, les menus et le contenu des messages hors de tout découpage décoratif.
+
+Sur téléphone, le menu à trois points se déploie en boutons ronds. Son déclencheur est `[data-chat-tools-menu-button]`, la pile ouverte est `[data-chat-tools-menu]`, et chaque élément de liste porte `data-chat-tools-menu-item` avec l'ID de sa fenêtre. Les boutons d'outils utilisent `.mari-window-bubble.mari-chat-tools-button` et `data-chat-tools-menu-tool` avec ce même ID. La pile n'a pas de cadre de fenêtre ; ses boutons suivent les couleurs des widgets et la taille des boutons, indépendamment des trois interrupteurs pour le reste du chat, tout en gardant leur forme ronde.
 
 ## Limites de taille et de nom
 

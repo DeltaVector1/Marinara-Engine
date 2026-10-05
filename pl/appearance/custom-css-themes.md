@@ -2,9 +2,11 @@
 
 Z tego przewodnika dowiesz się, jak zmienić cały wygląd aplikacji Marinara Engine za pomocą własnego motywu CSS. Zobaczysz, jak tworzyć, importować, eksportować i włączać motywy. Poznasz też zmienne CSS, które da się nadpisać, oraz to, jak motywy współpracują z Card CSS.
 
+<a id="ready-made-chat-window-styles"></a>
+
 ## Gotowe style okien czatu
 
-Aby zmienić wygląd bez pisania CSS, otwórz **Settings > Appearance > App** (ustawienia, wygląd, aplikacja) i znajdź **Chat widget style** (styl widgetów czatu) na dole sekcji **App Style** (styl aplikacji). **Dottore** nadaje przyciskom i oknom turkusowe obramowania z przyciętymi narożnikami. **Mari** dodaje różowo-złote ramki z Primogemami przy tytułach okien. Przyciski tego presetu mają takie samo tło jak okna. Każdy preset ma własną czcionkę, działa w jasnym i ciemnym trybie i obejmuje przyciski, okna oraz rozwijane sekcje.
+Aby zmienić wygląd bez pisania CSS, otwórz **Settings > Appearance > App** (ustawienia, wygląd, aplikacja) i znajdź **Chat widget style** (styl widgetów czatu) na dole sekcji **App Style** (styl aplikacji). **Dottore** nadaje kontrolkom czatu lodowoniebieskie ramki przywodzące na myśl aparaturę, jasne metalowe krawędzie i przycięte narożniki. **Mari** dodaje baśniowe ramki ze złotym wykończeniem, błękity kamieni szlachetnych i Primogemy przy tytułach okien. Przyciski tego presetu mają takie samo tło jak okna. Każdy preset ma własną czcionkę, działa w jasnym i ciemnym trybie i obejmuje przyciski, okna oraz rozwijane sekcje.
 
 Opcje **Font** (czcionka) i **Shape** (kształt) pozwalają zmieniać te elementy osobno. **Preset font** (czcionka presetu) i **Preset shape** (kształt presetu) korzystają z wybranego stylu.
 
@@ -17,6 +19,14 @@ Niżej są trzy ustawienia kolorów. Każde ma narzędzie wyboru jednolitego kol
 Ozdobne emblematy zachowują swoje oryginalne kolory.
 
 Użyj **Reset color** (przywrócenie koloru) przy wybranej opcji, aby znów korzystać z jasnych lub ciemnych kolorów presetu. Wybranie presetu przywraca jego ustawienia **Font**, **Shape** i wszystkich trzech kolorów. **Default** (domyślny) przywraca pierwotny wygląd. Położenie okien pozostaje bez zmian.
+
+Aby przenieść ten wygląd na resztę czatu, użyj trzech przełączników pod narzędziami wyboru kolorów:
+
+- **Apply preset font** (zastosowanie czcionki presetu) stosuje wybraną czcionkę widgetów w wiadomościach, polach wpisywania i kontrolkach czatu, w tym widgetach paska HUD, panelu mapy, uwagach pobocznych i kartach postaci w trybie Game Mode.
+- **Apply preset shape** (zastosowanie kształtu presetu) stosuje wybrany kształt ramki w wiadomościach Roleplay w układzie klasycznym i visual novel, polu dialogowym Game, uwagach pobocznych, widgetach paska HUD, panelu mapy i kartach postaci, polach wpisywania oraz kontrolkach. Wiadomości Conversation zachowują swój kształt.
+- **Apply preset colors** (zastosowanie kolorów presetu) stosuje kolory obramowań, tła i tekstu widgetów w tych obszarach, także w wiadomościach Conversation. Uwzględnia też własne kolory i gradienty.
+
+Każdy przełącznik jest początkowo wyłączony i działa niezależnie. Możesz na przykład użyć czcionki Mari, zachowując zwykłe kolory czatu. Wyłączenie przełącznika przywraca zwykły wygląd odpowiedniej części czatu. Wybranie innego presetu zachowuje ustawienia przełączników. Asystentka Professor Mari może też tworzyć własne motywy dla tych obszarów.
 
 Własne motywy CSS nadal mogą nadpisywać te presety. Opisane niżej publiczne zmienne okien i sekcji mają pierwszeństwo przed kolorami presetu. Zmienna `--mari-window-font-family` ustawia czcionkę okien, `--mari-drawer-radius` zmienia narożniki sekcji, a `--mari-window-ornament: none` ukrywa ozdobę przy tytule. Aby usunąć wszystkie ozdoby presetu, najpierw wybierz **Default**.
 
@@ -114,7 +124,7 @@ Kod CSS własnego motywu przechodzi przez czyszczenie, zanim zacznie działać �
 
 Na komputerze **Chat Settings** (ustawienia czatu) otwiera się jako przesuwane okno. Jego rozwijane sekcje nazywają się po angielsku **drawers**. Sekcję można wydzielić do osobnego okna, a potem zminimalizować do małego, przesuwanego przycisku, nazywanego **bubble**.
 
-Takie okna i przyciski służą też innym narzędziom czatu, w tym **Game controls** (sterowanie grą), **Session** (sesja), **Volume** (głośność), **Game Assets** (zasoby gry), powiązanym czatom i kontrolkom pakietów. Na telefonie okna otwierają się jako panele na całą szerokość, a **Tracker Panel** (panel trackerów) ma własny przesuwany przycisk.
+Takie okna i przyciski służą też innym narzędziom czatu, w tym **Game controls** (sterowanie grą), **Session** (sesja), **Volume** (głośność), **Game Assets** (zasoby gry), powiązanym czatom i kontrolkom pakietów. Na telefonie większość okien otwiera się jako panele na całą szerokość; Echo Chamber pozostaje niewielkim oknem, które można przesuwać i którego rozmiar można zmieniać. Narzędzia wydzielone z Chat Settings znajdziesz w przesuwanym menu **Chat tools** (narzędzia czatu) z trzema kropkami; przyciski trackerów pozostają osobno.
 
 Poniższe klasy, atrybuty i zmienne pozwalają nadać tym elementom wspólny styl. Reguły własnego motywu nadpisują ustawienia domyślne bez `!important`.
 
@@ -203,6 +213,44 @@ Ustaw zmienną w `:root`, aby zmienić wszystkie okna, albo na wybranym selektor
   --mari-drawer-border: transparent;
 }
 ```
+
+## Stylowanie wiadomości, pól wpisywania i kontrolek czatu
+
+Trzy przełączniki **Apply preset** pozwalają też własnemu motywowi stosować wygląd widgetów w pozostałej części czatu. Motyw może nadpisywać poszczególne elementy za pomocą poniższych zmiennych. Jeśli nie chcesz pisać CSS, poproś asystentkę Professor Mari o pasujący motyw czatu.
+
+| Element | Klasa |
+| --- | --- |
+| Pola wiadomości Roleplay i Game, uwagi poboczne Game, widgety paska HUD, panel mapy i karty postaci oraz pola wpisywania wiadomości | `.mari-chat-style-surface` |
+| Wiadomości Conversation (tylko czcionka i kolory) | `.mari-chat-style-conversation` |
+| Tekst wiadomości Conversation bez obramowania | `.mari-chat-style-text` |
+| Kontrolki czatu, w tym Calls i kontrolki grup Conversation | `.mari-chat-style-control` |
+
+| Zmienna | Co zmienia |
+| --- | --- |
+| `--mari-chat-font-family` | Czcionkę odpowiednich obszarów czatu |
+| `--mari-chat-bg` | Tło pola; przyjmuje kolor lub gradient |
+| `--mari-chat-text` | Czytelny, jednolity kolor tekstu |
+| `--mari-chat-border` | Obramowanie pola; przyjmuje kolor lub gradient |
+| `--mari-chat-border-color` | Jednolity kolor obramowania używany jako wartość zapasowa |
+| `--mari-chat-radius` | Zaokrąglenie pól z wyjątkiem wiadomości Conversation |
+| `--mari-chat-control-bg`, `--mari-chat-control-bg-hover` | Tła przycisków czatu |
+| `--mari-chat-control-color`, `--mari-chat-control-radius` | Kolor ikon i zaokrąglenie przycisków czatu |
+| `--mari-chat-input-bg` | Tło wewnątrz pól edycji |
+
+Na przykład przy włączonych **Apply preset font** i **Apply preset colors**:
+
+```css
+:root {
+  --mari-chat-font-family: Georgia, serif;
+  --mari-chat-bg: #251e29;
+  --mari-chat-text: #f4e8dc;
+  --mari-chat-border: linear-gradient(100deg, #d6aa66, #dda0b2);
+}
+```
+
+Nieustawione zmienne korzystają z ustawień widgetów i presetu. Aby te zmienne działały przez wbudowane style, odpowiedni przełącznik musi być włączony. Wiadomości Conversation zachowują swój kształt nawet przy włączonym **Apply preset shape**. Własne motywy mogą też bezpośrednio odwoływać się do klas; ozdobne przycinanie nie powinno obejmować obrysów fokusu, menu ani treści wiadomości.
+
+Na telefonach menu z trzema kropkami rozwija się w okrągłe przyciski. Jego przycisk otwierający to `[data-chat-tools-menu-button]`, rozwinięta kolumna to `[data-chat-tools-menu]`, a każda pozycja listy ma `data-chat-tools-menu-item` ustawione na identyfikator swojego okna. Przyciski narzędzi używają `.mari-window-bubble.mari-chat-tools-button` i `data-chat-tools-menu-tool` z tym samym identyfikatorem. Kolumna nie ma ramki okna; jej przyciski korzystają z kolorów widgetów i ustawionego rozmiaru przycisków, niezależnie od trzech przełączników dla reszty czatu, a przy tym zachowują okrągły kształt.
 
 ## Limity rozmiaru i nazwy
 

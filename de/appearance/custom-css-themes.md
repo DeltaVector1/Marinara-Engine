@@ -2,9 +2,11 @@
 
 In dieser Anleitung erfährst du, wie du das gesamte Erscheinungsbild von Marinara Engine mit einem eigenen CSS-Theme umgestaltest. Du lernst, Themes anzulegen, zu importieren, zu exportieren und zu aktivieren. Außerdem siehst du, welche CSS-Variablen sich ändern lassen und wie Themes mit Card CSS zusammenspielen.
 
+<a id="ready-made-chat-window-styles"></a>
+
 ## Fertige Stile für Chat-Fenster
 
-Für eine schnelle Änderung ohne eigenen CSS-Code öffne **Settings > Appearance > App** (Einstellungen, Darstellung, App) und such **Chat widget style** unten in **App Style**. **Dottore** gibt den Bedienelementen cyanfarbene Instrumentenrahmen und abgeschrägte Ecken. **Mari** ergänzt Rahmen in Rosa und Gold mit Primogems an den Fenstertiteln. Seine Schaltflächen nutzen denselben Hintergrund wie die Fenster. Jedes Preset hat eine eigene Schrift, passt zum hellen und dunklen Modus und gestaltet Schaltflächen, Fenster und aufklappbare Abschnitte gemeinsam.
+Für eine schnelle Änderung ohne eigenen CSS-Code öffne **Settings > Appearance > App** (Einstellungen, Darstellung, App) und such **Chat widget style** (Chat-Widget-Stil) unten in **App Style** (App-Stil). **Dottore** gibt den Bedienelementen eisblaue Instrumentenrahmen, helle Metallkanten und abgeschrägte Ecken. **Mari** ergänzt goldgesäumte Märchenbuchrahmen, Edelsteinblau und Primogems an den Fenstertiteln. Seine Schaltflächen nutzen denselben Hintergrund wie die Fenster. Jedes Preset hat eine eigene Schrift, passt zum hellen und dunklen Modus und gestaltet Schaltflächen, Fenster und aufklappbare Abschnitte gemeinsam.
 
 Mit **Font** (Schrift) und **Shape** (Form) änderst du diese Details einzeln. **Preset font** (Preset-Schrift) und **Preset shape** (Preset-Form) folgen dem ausgewählten Stil.
 
@@ -17,6 +19,14 @@ Darunter stehen drei Farbeinstellungen. Jede bietet einen Farbwähler für eine 
 Die dekorativen Embleme behalten ihre ursprünglichen Farben.
 
 Mit **Reset color** (Farbe zurücksetzen) neben einer Einstellung folgst du wieder den hellen oder dunklen Farben des Presets. Die Auswahl eines Presets setzt **Font**, **Shape** und alle drei Farben zurück. **Default** (Standard) stellt das ursprüngliche Aussehen wieder her. Deine Fensterpositionen bleiben erhalten.
+
+Mit den drei Schaltern unter den Farbwählern überträgst du den Stil auf den restlichen Chat:
+
+- **Apply preset font** (Preset-Schrift anwenden) nutzt die gewählte Widget-Schrift für Nachrichten, Eingabefelder und Chat-Bedienelemente, einschließlich HUD-Widgets, Kartenpanel, Randbemerkungen und Charakterbögen in Game Mode.
+- **Apply preset shape** (Preset-Form anwenden) nutzt die gewählte Rahmenform für Roleplay-Nachrichten im klassischen und im Visual-Novel-Layout, das Game-Dialogfeld, Randbemerkungen, HUD-Widgets, Kartenpanel und Charakterbögen sowie Eingabefelder und Bedienelemente. Conversation-Nachrichten behalten ihre eigene Form.
+- **Apply preset colors** (Preset-Farben anwenden) nutzt die Rahmen-, Hintergrund- und Textfarben des Widgets für diese Bereiche, einschließlich Conversation-Nachrichten. Auch deine eigenen Farben und Farbverläufe gelten dort.
+
+Jeder Schalter ist anfangs aus und funktioniert unabhängig von den anderen. So kannst du etwa die Mari-Schrift mit den gewohnten Chatfarben kombinieren. Schaltest du eine Option aus, kehrt dieser Teil zur üblichen Chatgestaltung zurück. Die Auswahl eines anderen Presets behält deine Schalterstellungen bei. Professor Mari kann auch eigene Themes für diese Bereiche erstellen.
 
 Eigene CSS-Themes können diese Presets weiterhin überschreiben. Die öffentlichen Variablen für Fenster und Abschnitte weiter unten haben Vorrang vor den Preset-Farben. Nutze `--mari-window-font-family` für die Fensterschrift, `--mari-drawer-radius` für die Ecken der Abschnitte und `--mari-window-ornament: none`, um die Verzierung am Titel auszublenden. Um alle Preset-Verzierungen zu entfernen, wähle zuerst **Default**.
 
@@ -115,7 +125,7 @@ Aus Sicherheitsgründen bereinigt Marinara das CSS eigener Themes, bevor es wirk
 
 Am Computer öffnet sich **Chat Settings** als verschiebbares Fenster. Seine aufklappbaren Abschnitte heißen **drawers**. Ein Abschnitt lässt sich in ein eigenes Fenster herauslösen und anschließend zu einer kleinen verschiebbaren Schaltfläche minimieren, einer **bubble**.
 
-Auch andere Chat-Tools nutzen diese Fenster und Schaltflächen: Game controls, Session, Volume, Game Assets, verknüpfte Chats und Paket-Bedienelemente. Am Telefon öffnen sich Fenster als Panels über die ganze Breite; das Tracker Panel hat eine eigene verschiebbare Schaltfläche.
+Auch andere Chat-Tools nutzen diese Fenster und Schaltflächen: Game controls, Session, Volume, Game Assets, verknüpfte Chats und Paket-Bedienelemente. Am Telefon öffnen sich die meisten Fenster als Panels über die ganze Breite; Echo Chamber bleibt ein kompaktes Fenster, das du verschieben und dessen Größe du ändern kannst. Aus Chat Settings herausgelöste Tools erscheinen im verschiebbaren Drei-Punkte-Menü **Chat tools** (Chat-Tools); Tracker-Schaltflächen bleiben separat.
 
 Mit den folgenden Klassen, Datenattributen und Variablen gestaltet ein Theme diese Teile gemeinsam. Deine Theme-Regeln überschreiben die Standardwerte ohne `!important`.
 
@@ -204,6 +214,46 @@ Setze eine Variable in `:root`, um alle Fenster zu ändern, oder an einem Selekt
   --mari-drawer-border: transparent;
 }
 ```
+
+<a id="styling-messages-input-boxes-and-chat-controls"></a>
+
+## Nachrichten, Eingabefelder und Chat-Bedienelemente gestalten
+
+Mit den drei **Apply preset**-Schaltern kann auch ein eigenes Theme das Widget-Design im restlichen Chat nutzen. Ein Theme kann jeden Teil mit den folgenden Variablen überschreiben. Bitte Professor Mari um ein passendes Chat-Theme, wenn du das CSS nicht selbst schreiben möchtest.
+
+| Teil | Klasse |
+| --- | --- |
+| Nachrichtenfelder in Roleplay und Game, Randbemerkungen, HUD-Widgets, Kartenpanel und Charakterbögen in Game sowie Chat-Eingabefelder | `.mari-chat-style-surface` |
+| Conversation-Nachrichten (nur Schrift und Farben) | `.mari-chat-style-conversation` |
+| Conversation-Nachrichtentext ohne Rahmen | `.mari-chat-style-text` |
+| Chat-Bedienelemente, einschließlich Calls und Conversation-Gruppensteuerung | `.mari-chat-style-control` |
+
+| Variable | Wirkung |
+| --- | --- |
+| `--mari-chat-font-family` | Schrift für die zugehörigen Chatbereiche |
+| `--mari-chat-bg` | Hintergrund der Felder; nimmt eine Farbe oder einen Farbverlauf an |
+| `--mari-chat-text` | Lesbare einheitliche Textfarbe |
+| `--mari-chat-border` | Umriss der Felder; nimmt eine Farbe oder einen Farbverlauf an |
+| `--mari-chat-border-color` | Einheitliche Ersatzfarbe für den Rahmen |
+| `--mari-chat-radius` | Eckenrundung, außer bei Conversation-Nachrichten |
+| `--mari-chat-control-bg`, `--mari-chat-control-bg-hover` | Hintergründe der Chat-Schaltflächen |
+| `--mari-chat-control-color`, `--mari-chat-control-radius` | Symbolfarbe und Rundung der Chat-Schaltflächen |
+| `--mari-chat-input-bg` | Hintergrund in Eingabefeldern |
+
+Ein Beispiel mit eingeschaltetem **Apply preset font** und **Apply preset colors**:
+
+```css
+:root {
+  --mari-chat-font-family: Georgia, serif;
+  --mari-chat-bg: #251e29;
+  --mari-chat-text: #f4e8dc;
+  --mari-chat-border: linear-gradient(100deg, #d6aa66, #dda0b2);
+}
+```
+
+Nicht gesetzte Variablen folgen den Widget-Einstellungen und dem Preset. Damit diese Variablen über die eingebaute Gestaltung wirken, muss der zugehörige Schalter an sein. Conversation-Nachrichten behalten ihre eigene Form, auch wenn **Apply preset shape** an ist. Eigene Themes können die Klassen auch direkt ansprechen; Fokusumrisse, Menüs und Nachrichteninhalte dürfen dabei nicht von dekorativen Formen abgeschnitten werden.
+
+Am Telefon klappt das Drei-Punkte-Menü zu runden Schaltflächen auf. Sein Auslöser ist `[data-chat-tools-menu-button]`, die geöffnete Spalte ist `[data-chat-tools-menu]`, und bei jedem Listeneintrag enthält `data-chat-tools-menu-item` die Fenster-ID. Tool-Schaltflächen nutzen `.mari-window-bubble.mari-chat-tools-button` und `data-chat-tools-menu-tool` mit derselben ID. Die Spalte hat keinen Fensterrahmen. Ihre Schaltflächen folgen den Widget-Farben und der Schaltflächengröße unabhängig von den drei Schaltern für den restlichen Chat und behalten dabei ihre runde Form.
 
 ## Grenzen für Größe und Name
 

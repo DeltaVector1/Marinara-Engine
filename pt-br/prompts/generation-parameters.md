@@ -97,7 +97,7 @@ Escreva um invólucro por linha, com um espaço no meio para o texto oculto. Inv
 
 O campo **Custom Parameters** permite acrescentar configurações brutas que Marinara não mostra como campo próprio. Você digita um objeto JSON e Marinara mescla esse objeto na requisição enviada ao provedor.
 
-Os valores de Custom Parameters salvos como padrão da conexão são enviados em toda geração de texto via API que usa aquela conexão, incluindo Conversation, Roleplay, Game, Noodle, resumos e agentes. Isso vale também para endpoints personalizados rodando na sua própria máquina. Os valores de Custom Parameters definidos por chat são acrescentados àquele chat e substituem as chaves iguais definidas na conexão.
+Os valores de Custom Parameters salvos como padrão da conexão são enviados em toda geração de texto via API que usa aquela conexão, incluindo Conversation, Roleplay, Game, Noodle, resumos, agentes e pacotes de agentes instalados. Isso vale também para endpoints personalizados rodando na sua própria máquina. Os valores de Custom Parameters definidos por chat são acrescentados àquele chat e substituem as chaves iguais definidas na conexão.
 
 Este é um campo avançado. Uma chave errada pode fazer o provedor rejeitar a requisição. O objeto precisa usar `true`, `false` e `null` em minúsculas. Deixe vazio, a não ser que o guia de um provedor peça uma chave específica.
 
@@ -150,6 +150,20 @@ Os parâmetros são resolvidos campo a campo, nesta ordem:
 A linha **Effective** (valor efetivo) ao lado de um parâmetro mostra o valor salvo e a camada que prevalece, incluindo regras do modo e limites de saída. No editor de conexões, ela usa o chat aberto com essa conexão ou uma base de Roleplay quando não há chat aberto. Salve as alterações para atualizar a indicação. Um botão Send desativado aparece como **not sent**; os provedores ainda podem impor parâmetros obrigatórios ou ajustar valores não aceitos. Custom Parameters e o ajuste ao contexto podem alterar ainda mais a requisição final.
 
 Por exemplo, um preset em `8192` e esse chat em `16384` mostram **Effective: 16384 · this chat**. Um limite de saída de `4096` na conexão muda isso para **Effective: 4096 · output token cap**. Redefinir os parâmetros do chat revela a próxima camada aplicável; não remove as regras do preset nem do modo.
+
+<a id="parameters-for-agents"></a>
+
+## Parâmetros para agentes
+
+As chamadas dos agentes usam os **Default Parameters** salvos na conexão em que são executadas: a conexão do próprio agente ou a do chat quando o agente não tem uma. Marinara aplica esses parâmetros com as mesmas regras de uma resposta do chat, incluindo os botões de envio e os limites dos modelos abaixo. Os presets e os **Advanced Parameters** de um chat não alteram as chamadas dos agentes, exceto pela regra de temperatura abaixo.
+
+- **Enviados aos agentes**: Temperature, Top P, Top K, Frequency, Presence, Reasoning Effort, Verbosity, OpenRouter Service Tier, Custom Parameters, cabeçalhos personalizados e os parâmetros extras que você adiciona em **Settings** (Configurações), depois **Advanced** (avançado) e depois **Parameters**, como Top A ou uma seed. Um parâmetro com o botão de envio desativado não é enviado.
+- **Não enviados aos agentes**: Max Output Tokens, sequências de parada, prefills, Thinking Tags e outras configurações de formato do prompt. Cada agente mantém seu próprio **Max Output Tokens**.
+- **Temperature**: um agente usa a temperatura da conexão, ou `0.7` quando nenhuma está salva. Beholder sempre usa `0`, e o escritor de prompts do Illustrator usa seu próprio valor. Durante uma resposta do chat, os agentes que usam a conexão do chat recebem a temperatura e os botões de envio resolvidos pelo chat, como antes, mas um parâmetro desativado na conexão continua sem ser enviado. As novas tentativas usam os valores salvos e os botões de envio da conexão, não os do chat.
+- **Reasoning Effort**: o nível que você escolhe, ou **Off** (desativado), se aplica a todos os agentes dessa conexão cujo modelo aceita Reasoning Effort. Ativar **Use custom defaults for this connection** (usar padrões personalizados para esta conexão) inicia Reasoning Effort em **Maximum** na maioria das conexões (**Default** no Codex), então os agentes que a usam pensam no nível mais alto do modelo, o que é mais lento e custa mais. Escolha um nível menor ou desative o botão de envio se os agentes devem pensar menos. Sem um nível salvo (padrões personalizados desativados ou **Default** em uma conexão Codex), os agentes que respondem em JSON pedem que o raciocínio seja desativado, e os outros mantêm o padrão do modelo.
+- **Espaço para pensar**: quando a conexão salva um Reasoning Effort para o modelo, Marinara acrescenta espaço para raciocínio além do **Max Output Tokens** do agente, para que a resposta não seja cortada antes da hora. Esse espaço respeita o limite de saída da conexão, o limite do modelo e o contexto que o prompt deixa livre. Um endpoint personalizado recebe esse espaço mesmo quando não envia o nível, porque um modelo local pode pensar por conta própria.
+
+Os pacotes de agentes instalados seguem os mesmos valores da conexão. Um valor que a conexão salva e envia substitui o que o pacote pede, e qualquer configuração que a conexão deixa sem definir mantém o valor do próprio pacote. Se o botão de envio de **Reasoning Effort** ou **Max Output Tokens** estiver desativado na conexão, esse parâmetro não é enviado, mesmo quando o pacote o solicita. Temperature e Verbosity começam desativados, então nesses casos o valor do próprio pacote é mantido. Os pacotes mantêm seu próprio orçamento de saída, mais espaço para raciocínio quando o Reasoning Effort da conexão se aplica.
 
 ## Alguns modelos ignoram alguns parâmetros
 

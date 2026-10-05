@@ -133,7 +133,7 @@ Otwórz informacje o poleceniach użytych w odpowiedzi i wybierz **Restore origi
 
 ## Echo Chamber
 
-**Echo Chamber** to opcjonalny agent, który dodaje do sceny reagującą na żywo publiczność. Działa jak czat na streamingu, w którym co jakiś czas pojawia się nowa reakcja. Włącz go w panelu **Chat Settings**, w sekcji **Agents**, na karcie **Echo Chamber**. Na komputerze przeciągnij pasek tytułu, żeby przesunąć okno, przeciągnij krawędź, żeby zmienić jego rozmiar, albo przypnij je, żeby pozostało otwarte. **X** zwija je do przycisku, który możesz przesuwać. Na telefonie Echo pozostaje niewielkim panelem nad wiadomościami; **X** również zwija go do ruchomego przycisku. Wygląd Echo zależy od ustawienia **Chat widget style** w **Settings → Appearance → App**, a każdy czat zapamiętuje jego układ.
+**Echo Chamber** to opcjonalny agent, który dodaje do sceny reagującą na żywo publiczność. Działa jak czat na streamingu, w którym co jakiś czas pojawia się nowa reakcja. Włącz go w panelu **Chat Settings**, w sekcji **Agents**, na karcie **Echo Chamber**. Na komputerze przeciągnij pasek tytułu, żeby przesunąć okno, przeciągnij krawędź, żeby zmienić jego rozmiar, albo przypnij je, żeby pozostało otwarte. **X** zwija je do przycisku, który możesz przesuwać. Na telefonie Echo zaczyna jako niewielkie okno nad wiadomościami. Przeciągnij pasek tytułu, aby je przesunąć, albo krawędź lub narożnik, aby zmienić rozmiar. Przypnij je, aby pozostało otwarte po dotknięciu innego miejsca, lub zablokuj, aby zapobiec przypadkowemu przesuwaniu. **X** również zwija je do ruchomego przycisku. Wygląd Echo zależy od ustawienia **Chat widget style** w **Settings → Appearance → App**, a każdy czat zapamiętuje jego układ.
 
 ## Wybory CYOA
 

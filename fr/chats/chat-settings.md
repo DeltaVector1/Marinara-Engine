@@ -14,7 +14,7 @@ La première fois que tu entres dans un chat après cette mise à jour, une cour
 
 Chat Settings s'ouvre automatiquement à la création d'un chat. Pour le fermer, clique sur son **X** ou à nouveau sur le bouton de curseurs.
 
-Les chats créés avant cette mise à jour conservent leurs icônes d'outils sous forme de boutons déplaçables. Quand tu mets à jour une installation existante, cette disposition familière devient aussi la disposition favorite des nouveaux chats de chaque mode, sauf si tu en as déjà choisi une. Ouvre un outil avec son bouton, puis choisis **Put back in Chat Settings** si tu préfères le garder dans Chat Settings. Sur ordinateur, les trackers de Roleplay sont regroupés dans la fenêtre **Trackers**. Les dispositions déjà enregistrées restent telles que tu les as laissées.
+Les chats créés avant cette mise à jour gardent leurs outils habituels hors de Chat Settings : sous forme de boutons déplaçables sur ordinateur, ou dans le menu à trois points **Chat tools** (outils du chat) sur téléphone. Quand tu mets à jour une installation existante, cette disposition familière devient aussi la disposition favorite des nouveaux chats de chaque mode, sauf si tu en as déjà choisi une. Ouvre un outil, puis choisis **Put back in Chat Settings** si tu préfères le garder dans Chat Settings. Sur ordinateur, les trackers de Roleplay sont regroupés dans la fenêtre **Trackers**. Les positions des fenêtres et des boutons déjà enregistrées sont conservées.
 
 Tu peux déplacer le bouton de curseurs à un endroit pratique. Il s'aligne sur les boutons voisins pendant le déplacement ; sur ordinateur, maintiens Alt pour le placer librement. Chaque chat mémorise sa position. Un petit point sur le bouton indique que les agents travaillent.
 
@@ -24,9 +24,13 @@ Sur ordinateur, clique sur le **X** à côté des conseils de disposition (**Hid
 
 ## Changer l'apparence des fenêtres de chat
 
-Ouvre **Settings > Appearance > App** et descends jusqu'à **Chat widget style**, en bas de **App Style**. **Default** garde l'apparence habituelle de Marinara. **Dottore** ajoute des détails cyan, une écriture technique et des coins coupés ; **Mari** utilise le rose et l'or, une écriture de conte et des cadres cintrés. Les deux s'adaptent aux modes clair et sombre et habillent les boutons déplaçables, les fenêtres et les sections repliables des trois modes de chat.
+Ouvre **Settings > Appearance > App** (Paramètres > Apparence > Application) et descends jusqu'à **Chat widget style** (style des widgets du chat), en bas de **App Style**. **Default** garde l'apparence habituelle de Marinara. **Dottore** associe des bleus glacés et du métal clair à une écriture technique et des coins coupés ; **Mari** marie des bleus de pierres précieuses et de l'or chaud à une écriture de conte et des cadres cintrés. Les deux s'adaptent aux modes clair et sombre et habillent les boutons déplaçables, les fenêtres et les sections repliables des trois modes de chat.
 
-Utilise **Font** ou **Shape**, sous les presets, pour combiner d'autres options. Les polices installées dans Marinara apparaissent aussi dans la liste. Choisir à nouveau un preset réinitialise ces deux choix ; **Default** rétablit l'apparence habituelle. Ces choix ne déplacent pas les fenêtres et ne modifient pas les dispositions enregistrées. Ils sont enregistrés avec tes préférences et synchronisés avec les navigateurs connectés au même serveur.
+Utilise **Font** (police), **Shape** (forme) et les trois sélecteurs de couleur sous les presets pour varier le style. Les polices que tu as installées dans Marinara apparaissent aussi dans la liste. Choisir à nouveau un preset réinitialise la police, la forme et les couleurs personnalisées. Ces choix ne déplacent pas tes fenêtres et ne changent pas les dispositions de chat enregistrées. Ils sont enregistrés avec les préférences de l'application et se synchronisent avec les navigateurs connectés au même serveur.
+
+**Button size (px)** (taille du bouton en pixels) change la taille des boutons déplaçables du chat et de leurs icônes sans modifier Display Size. Saisis une taille de 32 à 96 pixels. Laisse le champ vide, ou utilise son bouton de réinitialisation, pour garder la valeur par défaut actuelle. La taille est enregistrée avec tes préférences d'apparence et reste identique quand tu choisis un autre preset.
+
+Pour assortir le reste du chat, active **Apply preset font** (appliquer la police du preset), **Apply preset shape** (appliquer la forme du preset) ou **Apply preset colors** (appliquer les couleurs du preset). Chaque interrupteur fonctionne indépendamment et inclut tes choix personnalisés au-dessus. Ils s'appliquent aux messages, aux champs de saisie et aux contrôles du chat ; les messages Conversation utilisent la police et les couleurs facultatives, mais gardent leur propre forme. Les trois sont désactivés au départ. Désactive l'un d'eux pour rendre à cette partie du chat son style habituel. Voir [Thèmes CSS personnalisés](../appearance/custom-css-themes.md#ready-made-chat-window-styles) pour plus de détails.
 
 ## Déplacer, épingler et verrouiller la fenêtre
 
@@ -65,9 +69,19 @@ Sur ordinateur, tu peux aussi faire glisser le titre d'une section hors de Chat 
 - **Put back in Chat Settings** (la flèche courbe près de **X**) remet la section dans Chat Settings. Tu peux aussi faire glisser sa fenêtre sur Chat Settings.
 - Une section non épinglée se réduit à son bouton au clic extérieur ou avec Escape, sauf si tu écris dans un champ de texte ou utilises un menu ouvert.
 
-Sur téléphone, détacher une section ferme Chat Settings et ajoute un bouton déplaçable au chat. Appuie dessus pour ouvrir la section dans un panneau. Ferme le panneau pour revenir au bouton, ou appuie sur **Put back in Chat Settings** pour remettre la section à sa place.
+Sur téléphone, détacher une section ferme Chat Settings et l'ajoute au menu à trois points **Chat tools**. Appuie sur les points, puis sur le bouton rond portant l'icône de la section pour ouvrir son panneau. Ferme le panneau pour utiliser à nouveau le menu, ou appuie sur **Put back in Chat Settings** pour remettre la section à sa place.
 
 Les trackers peuvent sortir de la fenêtre Trackers de la même façon. Leur bouton de retour s'appelle **Put back in Trackers**.
+
+<a id="the-phones-chat-tools-menu"></a>
+
+## Le menu Chat tools du téléphone
+
+Le bouton déplaçable à trois points regroupe les outils que tu as sortis de Chat Settings. Appuie dessus pour déployer une colonne de boutons ronds à icône, puis sur un outil pour l'ouvrir. Appuie à nouveau sur les points pour replier les boutons. Les boutons des trackers, le bouton de carte de Game et Character Profiles restent séparés pour que tu puisses y accéder directement.
+
+Fais glisser le bouton à trois points pour déplacer tout le menu. Ouvre le menu et utilise le cadenas en haut pour le maintenir en place. Tant qu'il est déverrouillé, fais glisser un bouton d'outil vers le haut ou le bas pour changer sa place dans la colonne. Au clavier, donne le focus au bouton et utilise la flèche du haut ou du bas. Verrouiller le menu empêche de le déplacer et de changer l'ordre ; tu peux toujours ouvrir ses outils.
+
+Chaque chat enregistre la position, le verrouillage et l'ordre du menu. Les dispositions favorites et les profils de réglages les incluent aussi. Le menu suit le style des widgets de ton chat, comme les fenêtres qu'il ouvre.
 
 <a id="control-windows-and-their-buttons"></a>
 
@@ -75,15 +89,15 @@ Les trackers peuvent sortir de la fenêtre Trackers de la même façon. Leur bou
 
 Certains outils ouvrent leur propre petite fenêtre : **Game controls**, **Session**, **Volume** et **Game Assets** d'un jeu ; **Connected chat** ; et les contrôles ajoutés par les paquets installés.
 
-Ces boutons commencent près du coin supérieur droit du chat. Clique ou appuie sur l'un d'eux pour ouvrir sa fenêtre. Fermer la fenêtre ramène le bouton. Sur téléphone, la fenêtre s'ouvre comme un panneau sur toute la largeur.
+Sur ordinateur, ces boutons commencent près du coin supérieur droit du chat. Clique sur l'un d'eux pour ouvrir sa fenêtre ; fermer la fenêtre ramène le bouton. Sur téléphone, retrouve ces outils dans le menu à trois points **Chat tools**. Ils s'ouvrent en panneaux sur toute la largeur.
 
-Pour garder un de ces outils dans Chat Settings, ouvre sa fenêtre et choisis **Put back in Chat Settings**. Il devient une section repliable. Utilise son bouton de détachement pour lui redonner sa propre fenêtre, ou fais glisser son titre vers l'extérieur sur ordinateur. **Reset View** ramène ces outils à leurs boutons de départ.
+Pour garder un de ces outils dans Chat Settings, ouvre sa fenêtre et choisis **Put back in Chat Settings**. Il devient une section repliable. Utilise son bouton de détachement pour lui redonner sa propre fenêtre, ou fais glisser son titre vers l'extérieur sur ordinateur. **Reset View** rétablit leur disposition de départ : des boutons séparés sur ordinateur, ou des entrées dans Chat tools sur téléphone.
 
-Fais glisser un bouton pour le déplacer. Les boutons voisins s'alignent pendant le déplacement ; sur ordinateur, maintiens Alt pour le placer librement, ou utilise les flèches quand le bouton a le focus. **Calls** de Conversation reste un bouton ordinaire.
+Sur ordinateur, fais glisser un bouton pour le déplacer. Les boutons voisins s'alignent pendant le déplacement ; maintiens Alt pour le placer librement, ou utilise les flèches quand le bouton a le focus. **Calls** de Conversation reste un bouton ordinaire. Dans Game, **Character Profiles** (profils des personnages) a son propre bouton déplaçable sur ordinateur comme sur téléphone. Le bouton **Map** (carte) du téléphone est lui aussi séparé et déplaçable. Ouvre l'un ou l'autre de ces contrôles et utilise son cadenas pour empêcher le déplacement de sa fenêtre et de son bouton ; chaque partie mémorise leur position.
 
 ## Chaque chat garde sa disposition de fenêtres
 
-Chaque chat mémorise les tailles et positions des fenêtres, les épinglages et verrouillages, les sections détachées et les positions des boutons. Les positions des boutons du téléphone sont enregistrées séparément de celles de l'ordinateur. Changer de chat restaure sa disposition.
+Chaque chat mémorise les tailles et positions des fenêtres, les épinglages et verrouillages, les sections détachées et les positions des boutons. Les positions du téléphone ainsi que l'ordre et le verrouillage du menu Chat tools sont enregistrés séparément des positions de l'ordinateur. Changer de chat restaure sa disposition.
 
 Un [profil de réglages](#settings-profiles) peut enregistrer la disposition pour d'autres chats. **Reset View** rétablit la disposition de départ du chat actuel.
 

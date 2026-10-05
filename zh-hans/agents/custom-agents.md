@@ -213,7 +213,7 @@ Leave the location as it is.
 
 自定义智能体和内置智能体共用一部分设置：
 
-- **Connection Override**(连接覆盖)：给这个智能体单独指定一个 AI 连接，比如后台工作用更便宜的模型。留空就沿用聊天本身的连接。
+- **Connection Override**(连接覆盖)：给这个智能体单独指定一个 AI 连接，比如后台工作用更便宜的模型。留空就沿用聊天本身的连接。智能体会发送该连接上保存的生成参数；见[智能体参数](../prompts/generation-parameters.md#parameters-for-agents)。
 - **Agent Budget**(智能体预算)：设置 **Context Size**(智能体读取的最近消息条数，默认 5)，以及 **Max Output Tokens**(预留的输出空间，默认 4096，取值范围 128 到 32768)。
 - **Add as Prompt Section**(作为提示词段落加入)：开启后，智能体的最新输出会作为一个段落暴露出来，可以在提示词预设里注入。
 

@@ -213,7 +213,7 @@ Kiedy ktoś doda twojego agenta do czatu, zobaczy listę rozwijaną **Prompt Mod
 
 Własni agenci mają część ustawień wspólnych z agentami wbudowanymi:
 
-- **Connection Override**: wybierz dla tego agenta inne połączenie z AI. Na przykład tańszy model do pracy w tle. Zostaw pole puste, żeby korzystał z połączenia czatu.
+- **Connection Override**: wybierz dla tego agenta inne połączenie z AI. Na przykład tańszy model do pracy w tle. Zostaw pole puste, żeby korzystał z połączenia czatu. Agent wysyła parametry generowania zapisane w tym połączeniu; zobacz [Parametry agentów](../prompts/generation-parameters.md#parameters-for-agents).
 - **Agent Budget**: ustaw **Context Size** (ile ostatnich wiadomości agent czyta, domyślnie 5). Ustaw też **Max Output Tokens** (miejsce zarezerwowane na wynik, domyślnie 4096, w zakresie od 128 do 32768).
 - **Add as Prompt Section**: włącz to ustawienie, żeby najnowszy wynik agenta stał się sekcją, którą da się wstawić w presecie promptu.
 

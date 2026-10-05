@@ -213,7 +213,7 @@ Wer deinen Agenten zu einem Chat hinzufügt, sieht ein Dropdown-Menü **Prompt M
 
 Eigene Agenten teilen sich einige Einstellungen mit den mitgelieferten Agenten:
 
-- **Connection Override** (Verbindung überschreiben): Wähle für diesen Agenten eine andere KI-Verbindung, etwa ein günstigeres Modell für Hintergrundarbeit. Bleibt das Feld leer, nutzt der Agent die Verbindung des Chats.
+- **Connection Override** (Verbindung überschreiben): Wähle für diesen Agenten eine andere KI-Verbindung, etwa ein günstigeres Modell für Hintergrundarbeit. Bleibt das Feld leer, nutzt der Agent die Verbindung des Chats. Der Agent sendet die auf dieser Verbindung gespeicherten Generierungsparameter; siehe [Parameter für Agenten](../prompts/generation-parameters.md#parameters-for-agents).
 - **Agent Budget** (Agent-Budget): Stell **Context Size** ein, also wie viele der letzten Nachrichten der Agent liest (Standard 5). Dazu **Max Output Tokens**, den reservierten Platz für die Ausgabe (Standard 4096, möglich sind 128 bis 32768).
 - **Add as Prompt Section** (Als Prompt-Abschnitt hinzufügen): Schalte das ein, um die jüngste Ausgabe des Agenten als Abschnitt bereitzustellen, den du in ein Prompt-Preset einfügen kannst.
 
