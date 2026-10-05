@@ -1,6 +1,6 @@
 {
   "language": "hi",
-  "sourceCommit": "62accbcbe15549d82b9506b8e0debabd78d44366",
+  "sourceCommit": "0e3c2b42aaba4f3b90167428b2eb420a5ed995c7",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -34,8 +34,8 @@
     },
     {
       "path": "agents/agents-overview.md",
-      "sha256": "0dd973d6be01180837a2e0d8532e16df8042feddc358044006ab1aead9dcb30d",
-      "bytes": 23345
+      "sha256": "685957e44017166e8219520eb5ff108d52842377c21cda0ab62510742a393ede",
+      "bytes": 25210
     },
     {
       "path": "agents/approvals-and-agent-suite.md",
@@ -44,8 +44,8 @@
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "733db7df5b4ab338e2c7b9834b593acbbb24d3489622ed6c0d9bed355219cfcc",
-      "bytes": 63525
+      "sha256": "857ca6e7eda886823827464b8b5439991310d00cf3be56e40937b859b0595c32",
+      "bytes": 71394
     },
     {
       "path": "agents/custom-agents.md",
@@ -154,8 +154,8 @@
     },
     {
       "path": "chats/export-import.md",
-      "sha256": "1cd63dd677742b73e04f7c45bc521d51adb5f4875601fc7c472e2f1d0ff1f638",
-      "bytes": 10483
+      "sha256": "af1ea63b58a660105dde37d0d401c252d13c7e684a41a804ffa8d6c7af4515c8",
+      "bytes": 12033
     },
     {
       "path": "chats/group-chats.md",
@@ -229,8 +229,8 @@
     },
     {
       "path": "connections/providers-reference.md",
-      "sha256": "9782b5e23427f1fcf9cf8126fc88449391c66b028dd4853198391b51752c9800",
-      "bytes": 27155
+      "sha256": "7cbd023562c3a91a5069499bbcc4654b222ffaa9cd7f213e664ab832720e37b1",
+      "bytes": 32202
     },
     {
       "path": "connections/subscription-clis.md",
@@ -429,8 +429,8 @@
     },
     {
       "path": "game/game-assets.md",
-      "sha256": "c7c113661bde9baceb9e947806ff882b9ae824c857e203572f5f754c56893007",
-      "bytes": 23329
+      "sha256": "64b7ddd1eb24a7073dbcfd16547045d2386a155fd08f09f2d40f020286809bb7",
+      "bytes": 27568
     },
     {
       "path": "game/getting-started.md",
@@ -579,8 +579,8 @@
     },
     {
       "path": "media/image-providers.md",
-      "sha256": "0607ebc44dabd2b4529c6c05d418cac7b44ae9bf49d3720db710308290bdc3eb",
-      "bytes": 34176
+      "sha256": "a9b6597059428e7fea1d03c42d9a4fcbe526d1ecd78ebd5fff049d2be83a2f46",
+      "bytes": 37780
     },
     {
       "path": "media/music.md",
@@ -594,8 +594,8 @@
     },
     {
       "path": "media/scene-video.md",
-      "sha256": "d9c06c05d6312b390bed38bb35196b93bf638c0311e1eedd04caf99b6692680b",
-      "bytes": 37974
+      "sha256": "e99c7336cc97fb5a4b2bba6fc35a29d18321b3be9097605bb6cab979e10e55d4",
+      "bytes": 40546
     },
     {
       "path": "media/style-profiles.md",

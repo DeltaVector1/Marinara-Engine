@@ -1,6 +1,6 @@
 {
   "language": "ko",
-  "sourceCommit": "62accbcbe15549d82b9506b8e0debabd78d44366",
+  "sourceCommit": "0e3c2b42aaba4f3b90167428b2eb420a5ed995c7",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -34,8 +34,8 @@
     },
     {
       "path": "agents/agents-overview.md",
-      "sha256": "39196c39967a25119a6d3cdb42bf2e6af65bd5e769a58596211c1abc75172e68",
-      "bytes": 12855
+      "sha256": "c5e708ba1f4e6ccb425f138e161eb74113e3dddd7e36df19c9656cfd88bb1d15",
+      "bytes": 13722
     },
     {
       "path": "agents/approvals-and-agent-suite.md",
@@ -44,8 +44,8 @@
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "3438a733a06e3cfe8f84272ab723d10eeebf20728cdc9c0a0532e5df2dd97d29",
-      "bytes": 34695
+      "sha256": "e186f7cd090848ced9e28e6bf6494b0bdf7d7aa8217eefc5766d6c8f48cc516f",
+      "bytes": 38967
     },
     {
       "path": "agents/custom-agents.md",
@@ -154,8 +154,8 @@
     },
     {
       "path": "chats/export-import.md",
-      "sha256": "d5169e18b34aef4506f6b19b552a7b9ee0c26db253b35120176bda697b8fe751",
-      "bytes": 5952
+      "sha256": "9305584324393a8e9298a5c90d605df33b3486cf8b5f1c5bef0058ab5b0fa462",
+      "bytes": 6816
     },
     {
       "path": "chats/group-chats.md",
@@ -229,8 +229,8 @@
     },
     {
       "path": "connections/providers-reference.md",
-      "sha256": "1d09837630734eb4558f05a1ef87f18551b46dc31479808a83d3e28ec4ece0cb",
-      "bytes": 15436
+      "sha256": "abf0016bb596f0ea79adc255f710928c99e0941b99d184b6855f9595ece01ebb",
+      "bytes": 18309
     },
     {
       "path": "connections/subscription-clis.md",
@@ -429,8 +429,8 @@
     },
     {
       "path": "game/game-assets.md",
-      "sha256": "89153db1aa91860e4c24dff45af00dcd8c825300516a12f97914a409f24849b7",
-      "bytes": 13346
+      "sha256": "097ee54ffdb538a1eac3ecdaecc17205d7e4e4642abf5356dc3a6ce76be36285",
+      "bytes": 15769
     },
     {
       "path": "game/getting-started.md",
@@ -579,8 +579,8 @@
     },
     {
       "path": "media/image-providers.md",
-      "sha256": "89eceeed8ecbc2a55bac5a3757cab00f53aa9238a0ae9c44704c197de54f32cb",
-      "bytes": 20577
+      "sha256": "008daa105795fd8bd2413af6fd6806404194f480d94e1e6b009a5e6d5c709bf0",
+      "bytes": 22768
     },
     {
       "path": "media/music.md",
@@ -594,8 +594,8 @@
     },
     {
       "path": "media/scene-video.md",
-      "sha256": "a7025ce80ace25aff0c330dcd26073227f5e0927bd629d959ac017fd107c54ee",
-      "bytes": 22745
+      "sha256": "00c287d88aa685a768e87d20832f0e657933f1032f85872015b9ce0da7c0c5f5",
+      "bytes": 24322
     },
     {
       "path": "media/style-profiles.md",
