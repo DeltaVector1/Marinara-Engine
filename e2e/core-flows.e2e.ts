@@ -20238,20 +20238,22 @@ test("home browser hub scales cleanly and opens FAQ as a bookmark window", async
   }
 
   if (!mobile) {
-    const professorWidget = page.locator(".mari-home-widget--professor");
-    const professorDesk = page.locator('.mari-home-widget--professor [data-part="desk"]');
-    const professorLaptop = page.locator('.mari-home-widget--professor [data-part="laptop"]');
-    const professorSceneFit = await Promise.all([
-      professorWidget.boundingBox(),
-      professorDesk.boundingBox(),
-      professorLaptop.boundingBox(),
-    ]);
-    expect(professorSceneFit[0]).not.toBeNull();
-    expect(professorSceneFit[1]).not.toBeNull();
-    expect(professorSceneFit[2]).not.toBeNull();
-    const widgetBottom = professorSceneFit[0]!.y + professorSceneFit[0]!.height;
-    expect(professorSceneFit[1]!.y + professorSceneFit[1]!.height).toBeLessThanOrEqual(widgetBottom);
-    expect(professorSceneFit[2]!.y + professorSceneFit[2]!.height).toBeLessThanOrEqual(widgetBottom);
+    // P5: her pixel-art pose stands inside the card at exactly 1x, unrotated, so no pixel is resampled.
+    const professorSprite = page.locator('.mari-home-widget--professor [data-part="sprite"]');
+    const professorSpriteFit = () =>
+      professorSprite.evaluate((sprite: HTMLImageElement) => {
+        const box = sprite.getBoundingClientRect();
+        const card = sprite.closest(".mari-home-widget--professor")!.getBoundingClientRect();
+        return {
+          scale: [box.width / sprite.naturalWidth, box.height / sprite.naturalHeight],
+          transform: getComputedStyle(sprite).transform,
+          rendering: getComputedStyle(sprite).imageRendering,
+          inside: box.top >= card.top && box.bottom <= card.bottom && box.right <= card.right,
+        };
+      });
+    await expect
+      .poll(professorSpriteFit)
+      .toEqual({ scale: [1, 1], transform: "none", rendering: "pixelated", inside: true });
 
     await page.setViewportSize({ width: 2560, height: 1440 });
     await page.evaluate(async () => {

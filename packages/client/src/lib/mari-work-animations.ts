@@ -143,11 +143,12 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
 
 /**
  * Loading tier per asset, for the selected pack only (M16). 1: on screen at first paint (the Home
- * profile tab and the Home Mari widget): started from `main.tsx` with the page at high priority, then
- * `fetchpriority="high"` on the `<img>`. 2: likely next (omnibar, Mari pane, top-bar presence, the Home
- * Mari header): prefetched once the app has loaded and is idle. The portraits stay tier 2 because some
- * packs' portraits weigh ~330 KB. 3: behind another step (onboarding, FAQ, the other stories, the pack
- * chooser): lazy, only when that surface renders. The memory wheel is CSS-only and loads with its surface.
+ * profile tab and the Home Mari widget's greet pose): started from `main.tsx` with the page at high
+ * priority, then `fetchpriority="high"` on the `<img>`. 2: likely next (omnibar, Mari pane, top-bar
+ * presence, the Home Mari header): prefetched once the app has loaded and is idle. The portraits stay
+ * tier 2 because some packs' portraits weigh ~330 KB. 3: behind another step (onboarding, FAQ, the
+ * chibi toast, the other stories, the pack chooser): lazy, only when that surface renders. The memory
+ * wheel is CSS-only and loads with its surface.
  */
 export const MARI_ASSET_TIER: {
   portraits: Record<keyof MariAppearancePack["portraits"], 1 | 2 | 3>;
@@ -158,9 +159,9 @@ export const MARI_ASSET_TIER: {
   stories: { ...(Object.fromEntries(MARI_STORY_STATES.map((id) => [id, 3])) as Record<MariStoryState, 3>), idle: 2 },
   poses: {
     profile: 1,
-    chibi: 1,
+    chibi: 3,
     wave: 3,
-    greet: 3,
+    greet: 1,
     "point-up": 3,
     "point-middle": 3,
     "point-down": 3,

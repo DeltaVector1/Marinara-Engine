@@ -566,8 +566,11 @@ This is the part most likely to break silently. All of it must survive.
   "Release to ask Mari"). With Reduce ambient effects her gaze does not follow
   the finger; under reduced motion the label chip reads "Ask Mari · <that>".
 - **Tiered appearance loading** (slice 38c): only the selected appearance
-  pack's sprites are fetched; the omnibar's own Mari portrait loads once the
-  app goes idle so ⌘K, ⌘J and the pull show her at once, other poses (tour,
+  pack's sprites are fetched; the Home "Your guide" card's greet pose (slice
+  54: drawn at exactly 1x, 106x192, standing on the card's bottom border, no
+  scale, rotation or animation) and the Home profile pose start with the page;
+  the omnibar's own Mari portrait loads once the app goes idle so ⌘K, ⌘J and
+  the pull show her at once, other poses (tour,
   FAQ, chibi) load lazily on first appearance, and switching packs in settings
   swaps the live images with no reload — no other pack's assets download.
 - `↑`/`↓` move the selection; `Home`/`End` jump to the ends. No exceptions:

@@ -6787,34 +6787,13 @@ body {
   background: var(--card);
 }
 
-.mari-home-professor-widget .mari-professor-pixel-scene [data-part="sprite"] {
-  width: 68%;
-}
-
-/* Mari stands about 1.04 scene-widths tall. Rather than crop her head, she may rise past the
-   card's top border (#7032): the height cap lets her pass the art column's top by at most
-   1.125rem, so she clears the card's padding by under 0.5rem and stays inside the 0.65rem
-   minimum grid gap instead of covering a neighbour. */
-.mari-home-professor-widget [data-home-professor-art] {
-  container-type: size;
-}
-
-.mari-home-professor-widget [data-home-professor-scene] {
-  width: min(100%, 11rem, calc((100cqh + 1.125rem) / 1.04));
-}
-
 .mari-home-widget--achievements header > div > p:last-child {
   font-size: 0.6875rem;
   line-height: 1.375;
 }
 
-.mari-home-professor-widget .mari-professor-pixel-scene [data-part="laptop"] {
-  width: 76%;
-}
-
 @container (max-width: 19rem) {
   .mari-home-professor-widget {
-    grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 34%);
     /* The card's padding; its text column reaches into it by the same amount. */
     --mari-home-professor-pad: 0.65rem;
   }

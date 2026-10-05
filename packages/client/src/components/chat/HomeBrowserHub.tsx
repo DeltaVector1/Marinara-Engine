@@ -88,7 +88,6 @@ import { ChatModeIcon } from "./ChatModeIcon";
 import { HomeClockCalendar } from "./HomeClockCalendar";
 import { HomeFaq } from "./HomeFaq";
 import { HomeNewChatLauncher } from "./HomeNewChatLauncher";
-import { ProfessorMariPixelScene } from "./HomeProfessorMariChat";
 import { ProfessorMariNavigator } from "./ProfessorMariNavigator";
 import { RecentChats } from "./RecentChats";
 import { HomeCharacterLibrary } from "./HomeCharacterLibrary";
@@ -2182,10 +2181,10 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                   >
                     <HomeWidgetFrame {...widgetFrameProps("professor")}>
                       <section
-                        className="mari-chrome-accent-frame mari-chrome-accent-panel mari-accent-animated mari-home-professor-widget relative grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_minmax(5.5rem,40%)] rounded-2xl border p-(--mari-home-professor-pad) [--mari-home-professor-pad:0.75rem] sm:[--mari-home-professor-pad:clamp(0.85rem,1vw,1.2rem)]"
+                        className="mari-chrome-accent-frame mari-chrome-accent-panel mari-accent-animated mari-home-professor-widget relative grid h-full min-h-0 min-w-0 grid-cols-[minmax(0,1fr)_auto] grid-rows-[minmax(0,1fr)] gap-x-3 rounded-2xl border p-(--mari-home-professor-pad) [--mari-home-professor-pad:0.75rem] sm:[--mari-home-professor-pad:clamp(0.85rem,1vw,1.2rem)]"
                         data-component="HomeBrowserHub.ProfessorWidget"
                       >
-                        {/* The card no longer clips, so Mari can rise past its top border (#7032). The text column
+                        {/* The card does not clip, so Mari can stand in its bottom padding (#7032). The text column
                             clips instead, reaching into the card's vertical padding so a large UI font is cut at
                             the card's padding edge, as before, rather than further in. */}
                         <div
@@ -2214,14 +2213,24 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                             {t("home.professorMari.ask")}
                           </button>
                         </div>
+                        {/* The greet pose at exactly 1x (every pack's is 106x192 pixel art, and the card is at
+                            least 208px tall), standing on the card's bottom border: no scale, rotation or
+                            animation, so no pixel is ever resampled (P5). */}
                         <div
-                          className="pointer-events-none relative z-[1] h-full min-h-0 w-full self-end"
+                          className="pointer-events-none relative z-[1] -mb-(--mari-home-professor-pad) self-end"
                           data-home-professor-art
                           aria-hidden="true"
                         >
-                          <div className="absolute bottom-0 right-0" data-home-professor-scene>
-                            <ProfessorMariPixelScene active={false} />
-                          </div>
+                          <img
+                            src={mariPoses.greet}
+                            {...mariImgLoading(MARI_ASSET_TIER.poses.greet)}
+                            width={106}
+                            height={192}
+                            alt=""
+                            data-part="sprite"
+                            draggable={false}
+                            className="block h-[192px] w-[106px] max-w-none select-none [image-rendering:pixelated]"
+                          />
                         </div>
                       </section>
                     </HomeWidgetFrame>

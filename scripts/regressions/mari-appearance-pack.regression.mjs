@@ -50,7 +50,7 @@ for (const appearance of MARI_APPEARANCE_PACKS) {
   const preload = mariAssetUrls(appearance, 1);
   assert.deepEqual(
     preload.sort(),
-    [appearance.poses.profile, appearance.poses.chibi].sort(),
+    [appearance.poses.profile, appearance.poses.greet].sort(),
     "tier 1 is first paint only",
   );
   assert.ok(prefetch.length > 0 && prefetch.every((url) => urls.includes(url)), "prefetch only the selected pack");
@@ -73,6 +73,9 @@ for (const appearance of MARI_APPEARANCE_PACKS) {
   for (const url of Object.values(appearance.portraits)) {
     assert.ok(readFileSync(publicFile(url)).length);
   }
+  // P5: the Home Mari widget draws the greet pose at exactly 1x with fixed 106x192 width/height.
+  const greet = await sharp(publicFile(appearance.poses.greet).pathname).metadata();
+  assert.deepEqual([greet.width, greet.height], [106, 192], `${appearance.id} greet pose must stay 106x192`);
   // 45b: six 96 px pull heads at native size; the circle crops them in CSS.
   const heads = await sharp(publicFile(appearance.portraits.pullHeads).pathname).metadata();
   assert.deepEqual([heads.format, heads.width, heads.height, heads.hasAlpha], ["webp", 576, 96, true]);
