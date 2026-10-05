@@ -200,7 +200,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     id: "ask-mari",
     sectionId: "omnibar",
     label: "Ask Mari from Search",
-    description: "Ask Mari from the Search field, the pull-down and Ctrl/Command+J.",
+    description: "Use the Search field, the pull-down or Ctrl/Command+J.",
     aliases: ["professor mari", "mari assistance", "assistant", "ctrl j"],
     kind: "Toggle",
   },

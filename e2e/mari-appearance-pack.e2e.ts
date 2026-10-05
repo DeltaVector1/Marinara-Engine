@@ -36,11 +36,11 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
   await expect(packs.getByRole("radio")).toHaveCount(4);
   const golden = packs.getByRole("radio", { name: /^Golden Mari/ });
   await expect(golden).toBeEnabled();
-  await golden.check();
+  await packs.locator('label[data-pack="golden"]').click();
   await expect(golden).toBeChecked();
   const safari = packs.getByRole("radio", { name: /^Safari Mari/ });
   await expect(safari).toBeEnabled();
-  await safari.check();
+  await packs.locator('label[data-pack="safari"]').click();
   await expect(safari).toBeChecked();
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -61,7 +61,7 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
   );
   await omnibar.getByRole("button", { name: "Search and Professor Mari settings", exact: true }).click();
   await expect(safari).toBeChecked();
-  await golden.check();
+  await packs.locator('label[data-pack="golden"]').click();
   await page.reload();
   await page
     .locator("main")
@@ -75,7 +75,7 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
   );
   await omnibar.getByRole("button", { name: "Search and Professor Mari settings", exact: true }).click();
   await expect(golden).toBeChecked();
-  await packs.getByRole("radio", { name: /^Basic/ }).check();
+  await packs.locator('label[data-pack="basic"]').click();
   await expect(packs.getByRole("radio", { name: /^Basic/ })).toBeChecked();
   expect(errors).toEqual([]);
 });

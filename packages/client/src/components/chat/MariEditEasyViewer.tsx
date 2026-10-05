@@ -6,11 +6,12 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { BookOpen, Bot, ChevronRight, Eye, FileText, Undo2, UserRound } from "lucide-react";
+import { ChevronRight, Eye, Undo2 } from "lucide-react";
 import type { MariDbPendingApproval, MariDbRowChange } from "@marinara-engine/shared";
 
 import { cn } from "../../lib/utils";
 import { buildCharacterPreviewModel } from "../../lib/character-preview";
+import { recordFaceResultType } from "../../lib/command-icons";
 import {
   changeRecordName,
   computeFieldChanges,
@@ -23,7 +24,7 @@ import {
   type FieldChange,
 } from "../../lib/mari-edit-diff";
 import { UnifiedLineDiff } from "./MariUnifiedDiff";
-import { MariRecordAvatar } from "./mari-primitives";
+import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
@@ -158,25 +159,17 @@ function LorebookStatus({ change }: { change: MariDbRowChange }) {
   );
 }
 
-function RecordFace({ change, name }: { change: MariDbRowChange; name: string }) {
+function RecordFace({ change }: { change: MariDbRowChange }) {
   const character = change.table === "characters" ? buildCharacterPreviewModel(change.after ?? change.before) : null;
   // An agent shows its own artwork, as its omnibar row does.
   const agentImage =
     change.table === "agent_configs" ? stringField(asRecord(change.after) ?? asRecord(change.before), "imagePath") : "";
   return (
-    <MariRecordAvatar
-      name={character?.name ?? name}
+    <ResultTypeIcon
+      type={recordFaceResultType(change.table)}
       src={character?.avatarSrc ?? (agentImage || undefined)}
+      kind="avatar"
       avatarCropStyle={character?.avatarCropStyle}
-      icon={
-        character
-          ? UserRound
-          : change.table === "lorebook_entries"
-            ? BookOpen
-            : change.table === "agent_configs"
-              ? Bot
-              : FileText
-      }
     />
   );
 }
@@ -256,7 +249,7 @@ export function MariEditEasyViewer({
               aria-expanded={open}
               onClick={() => setOpenIndex(open ? null : index)}
             >
-              <RecordFace change={change} name={name} />
+              <RecordFace change={change} />
               <span className="mari-edit__text">
                 <span className="mari-edit__title">{name}</span>
                 <span className="mari-edit__meta">

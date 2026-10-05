@@ -899,10 +899,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () =>
       buildOmnibarControlResults({
         localize,
-        mariEnabled,
         musicPlayerEnabled,
         notificationSoundsOnlyWhenUnfocused,
-        omnibarSuggestionsEnabled,
         reduceAmbientEffects,
         settingsToggleValues,
         setters: useUIStore.getState(),
@@ -916,8 +914,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       }),
     [
       localize,
-      mariEnabled,
-      omnibarSuggestionsEnabled,
       musicPlayerEnabled,
       notificationSoundsOnlyWhenUnfocused,
       reduceAmbientEffects,
@@ -1953,6 +1949,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     restoreRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     requestAnimationFrame(() => {
+      // The settings sheet owns focus when it opens the omnibar directly
+      // (Settings > Open, a Settings-search jump); focusing the hidden
+      // search input underneath it would steal focus from the sheet.
+      if (useUIStore.getState().omnibarSettings) return;
       inputRef.current?.focus();
       if (initialQueryRef.current) inputRef.current?.select();
     });
@@ -3551,7 +3551,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             <p className="mt-1 max-w-[32rem] text-xs leading-relaxed text-[var(--muted-foreground)]">
               {t(
                 "commandCenter.empty.description",
-                "Type a chat, character, setting or message. Pick a category above to browse.",
+                "Type the name of a chat, character, setting or message. Pick a category above to browse.",
               )}
             </p>
           </div>

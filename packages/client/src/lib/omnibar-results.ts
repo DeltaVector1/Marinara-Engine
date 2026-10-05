@@ -122,8 +122,6 @@ export type OmnibarUserStatus = "active" | "idle" | "dnd" | "invisible";
 export type OmnibarControlSetters = {
   setTheme: (value: "dark" | "light") => void;
   setUserStatusManual: (value: OmnibarUserStatus) => void;
-  setCommandCenterMariEnabled: (value: boolean) => void;
-  setOmnibarSuggestionsEnabled: (value: boolean) => void;
   setReduceAmbientEffects: (value: boolean) => void;
   setMusicPlayerEnabled: (value: boolean) => void;
   setSpeechToTextEnabled: (value: boolean) => void;
@@ -136,7 +134,6 @@ export type OmnibarControlSetters = {
 export type OmnibarControlResultsInput = {
   /** Localizes the settings registry's English copy, as the Settings panel search does. */
   localize: (englishText: string) => string;
-  mariEnabled: boolean;
   /**
    * Current value of every `OMNIBAR_SETTINGS_TOGGLE_BINDINGS` id, read via a
    * reactive store subscription by the caller so a flip re-renders the row.
@@ -146,7 +143,6 @@ export type OmnibarControlResultsInput = {
   settingsToggleValues: Readonly<Record<string, boolean>>;
   musicPlayerEnabled: boolean;
   notificationSoundsOnlyWhenUnfocused: boolean;
-  omnibarSuggestionsEnabled: boolean;
   reduceAmbientEffects: boolean;
   setters: OmnibarControlSetters;
   showModelName: boolean;
@@ -293,10 +289,8 @@ export type OmnibarContinueResultInput = {
 
 export function buildOmnibarControlResults({
   localize,
-  mariEnabled,
   musicPlayerEnabled,
   notificationSoundsOnlyWhenUnfocused,
-  omnibarSuggestionsEnabled,
   reduceAmbientEffects,
   settingsToggleValues,
   setters,
@@ -309,20 +303,6 @@ export function buildOmnibarControlResults({
   userStatus,
 }: OmnibarControlResultsInput): OmnibarResult[] {
   const toggleRows = [
-    [
-      "commandCenterMariEnabled",
-      "commandCenter.controls.mariAssist",
-      "Ask Mari from Search",
-      mariEnabled,
-      setters.setCommandCenterMariEnabled,
-    ],
-    [
-      "omnibarSuggestionsEnabled",
-      "commandCenter.controls.omnibarSuggestions",
-      "Context suggestions",
-      omnibarSuggestionsEnabled,
-      setters.setOmnibarSuggestionsEnabled,
-    ],
     [
       "reduceAmbientEffects",
       "commandCenter.controls.reducedEffects",
@@ -972,7 +952,7 @@ const NEW_CHAT_COMMANDS: readonly {
     titleKey: "commandCenter.newChat.conversation",
     titleFallback: "New conversation",
     descriptionKey: "commandCenter.newChat.conversationDescription",
-    descriptionFallback: "Same as Conversation on Home.",
+    descriptionFallback: "Starts a conversation, like Home's Conversation button.",
     icon: "chats",
   },
   {
@@ -982,7 +962,7 @@ const NEW_CHAT_COMMANDS: readonly {
     titleKey: "commandCenter.newChat.roleplay",
     titleFallback: "New roleplay",
     descriptionKey: "commandCenter.newChat.roleplayDescription",
-    descriptionFallback: "Same as Roleplay on Home.",
+    descriptionFallback: "Starts a roleplay, like Home's Roleplay button.",
     icon: "chats",
   },
   {
@@ -992,7 +972,7 @@ const NEW_CHAT_COMMANDS: readonly {
     titleKey: "commandCenter.newChat.game",
     titleFallback: "New game",
     descriptionKey: "commandCenter.newChat.gameDescription",
-    descriptionFallback: "Same as Game on Home.",
+    descriptionFallback: "Starts a game, like Home's Game button.",
     icon: "game-assets",
   },
 ];

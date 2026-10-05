@@ -462,7 +462,7 @@ export function OmnibarSettingsSheet({
             label={t("omnibar.settings.mari.label", "Ask Mari from Search")}
             description={t(
               "omnibar.settings.mari.description",
-              "Ask Mari from the Search field, the pull-down and Ctrl/Command+J.",
+              "Use the Search field, the pull-down or Ctrl/Command+J.",
             )}
             checked={mariEnabled}
             onChange={setMariEnabled}

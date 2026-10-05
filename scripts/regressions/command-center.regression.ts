@@ -139,6 +139,7 @@ import { buildOmnibarChatRows, chatRowContextLine } from "../../packages/client/
 import {
   chatResultType,
   COMMAND_ICONS,
+  recordFaceResultType,
   RESULT_TYPE_ICONS,
   resourceResultType,
 } from "../../packages/client/src/lib/command-icons.js";
@@ -913,6 +914,12 @@ assert.equal(resourceResultType("lorebookEntry"), "lorebook-entry");
 assert.equal(resourceResultType("setting"), "setting");
 assert.equal(resourceResultType("mystery"), "command");
 assert.equal(RESULT_TYPE_ICONS.persona, COMMAND_ICONS.persona);
+// Q6: Mari's edit-review faces share the same type map, so an edited lorebook entry or agent gets
+// its own type icon instead of a letter monogram.
+assert.equal(recordFaceResultType("characters"), "character");
+assert.equal(recordFaceResultType("lorebook_entries"), "lorebook-entry");
+assert.equal(recordFaceResultType("agent_configs"), "agent");
+assert.equal(recordFaceResultType("mystery_table"), "command");
 // Q6: a chat row says where it left off (speaker + one line), else names its cast.
 assert.equal(
   chatRowContextLine({
@@ -2171,17 +2178,13 @@ assert.ok(!("mariDetailId" in mariSession));
   for (const id of Object.keys(OMNIBAR_SETTINGS_TOGGLE_BINDINGS)) settingsToggleValues[id] = id === boundId;
   const controlResults = buildOmnibarControlResults({
     localize: (text) => text,
-    mariEnabled: false,
     musicPlayerEnabled: false,
     notificationSoundsOnlyWhenUnfocused: false,
-    omnibarSuggestionsEnabled: false,
     reduceAmbientEffects: false,
     settingsToggleValues,
     setters: {
       setTheme: () => {},
       setUserStatusManual: () => {},
-      setCommandCenterMariEnabled: () => {},
-      setOmnibarSuggestionsEnabled: () => {},
       setReduceAmbientEffects: () => {},
       setMusicPlayerEnabled: () => {},
       setSpeechToTextEnabled: () => {},
@@ -2230,6 +2233,22 @@ assert.ok(!("mariDetailId" in mariSession));
   for (const id of deniedIds) {
     assert.ok(!(id in OMNIBAR_SETTINGS_TOGGLE_BINDINGS), `"${id}" must not be bound (risky per K5)`);
   }
+
+  // F6: "Ask Mari from Search" and "Context suggestions" must show up as exactly one row (the
+  // registry row, flipped in place), not also as the old hand-built duplicate.
+  assert.ok("ask-mari" in OMNIBAR_SETTINGS_TOGGLE_BINDINGS, "ask-mari should be bound so its row flips in place");
+  assert.ok(
+    "omnibar-suggestions" in OMNIBAR_SETTINGS_TOGGLE_BINDINGS,
+    "omnibar-suggestions should be bound so its row flips in place",
+  );
+  assert.ok(
+    !controlResults.some((row) => row.id === "control:commandCenterMariEnabled"),
+    "the hand-built Ask Mari row must be gone now that the registry row is bound",
+  );
+  assert.ok(
+    !controlResults.some((row) => row.id === "control:omnibarSuggestionsEnabled"),
+    "the hand-built Context suggestions row must be gone now that the registry row is bound",
+  );
 }
 
 // L1: `agent.runs` must be classified read-only so it never arms the mutation gate.

@@ -15,7 +15,8 @@
  * `show-message-timestamps`, `show-model-name` and `show-token-usage` are
  * also skipped here: they already flip via the hand-built rows in
  * `omnibar-results.ts` (`toggleRows`), and binding them again would show the
- * same setting as two rows.
+ * same setting as two rows. `omnibar-suggestions` and `ask-mari` are bound
+ * here instead, and `toggleRows` must not hand-build rows for them.
  *
  * Also excluded on purpose, per the K5 rule against anything that deletes,
  * spends money, or changes security: `confirm-before-delete`, `debug-mode`,
@@ -38,6 +39,14 @@ export type OmnibarSettingsToggleBinding = {
 };
 
 export const OMNIBAR_SETTINGS_TOGGLE_BINDINGS: Readonly<Record<string, OmnibarSettingsToggleBinding>> = {
+  "omnibar-suggestions": {
+    get: (state) => state.omnibarSuggestionsEnabled,
+    set: (value) => useUIStore.getState().setOmnibarSuggestionsEnabled(value),
+  },
+  "ask-mari": {
+    get: (state) => state.commandCenterMariEnabled,
+    set: (value) => useUIStore.getState().setCommandCenterMariEnabled(value),
+  },
   "hide-chat-help-button": {
     get: (state) => state.chatHelpButtonHidden,
     set: (value) => useUIStore.getState().setChatHelpButtonHidden(value),

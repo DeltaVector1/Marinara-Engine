@@ -12955,7 +12955,7 @@ test("Professor Mari visibly arrives on Home and navigates without AI", async ({
   await expect(assistant.getByText("Couldn't find it, sorry!", { exact: true })).toBeVisible();
   await expect(assistant.locator(".mari-home-professor-popup__state-image--shrug")).toBeVisible();
   await expect(assistant.locator(".mari-home-professor-popup__idle-stage")).toHaveCSS("opacity", "0");
-  await assistant.getByRole("button", { name: "Back to search", exact: true }).click();
+  await assistant.getByRole("button", { name: "Back to Search", exact: true }).click();
   await expect(navigationInput).toBeFocused();
   await navigationInput.fill("Could I talk to Professor Mari?");
   await navigationInput.press("Enter");
@@ -20280,21 +20280,32 @@ test("home browser hub scales cleanly and opens FAQ as a bookmark window", async
       module.useUIStore.getState().setReduceAmbientEffects(false);
     });
     await clickTopbarPanel(page, "settings");
-    const suggestionsToggle = page.getByRole("checkbox", { name: "Professor Mari suggestions" });
-    const navigationToggle = page.getByRole("checkbox", { name: "Professor Mari navigation" });
+    // Slice 57 moved these two toggles into the omnibar's own settings page; they are
+    // `role="switch"` there, reached via the main panel's "Open" row.
+    await page.getByRole("button", { name: "Open Search and Professor Mari settings", exact: true }).click();
+    const omnibarSettingsDialog = page.locator('[data-component="GlobalOmnibar"]');
+    const suggestionsToggle = omnibarSettingsDialog.getByRole("switch", { name: "Professor Mari suggestions" });
+    const navigationToggle = omnibarSettingsDialog.getByRole("switch", { name: "Professor Mari navigation" });
     await expect(suggestionsToggle).toBeVisible();
     await expect(navigationToggle).toBeChecked();
-    const [suggestionsBounds, navigationBounds, settingsSearchBounds, addressRowBounds] = await Promise.all([
+    const [suggestionsBounds, navigationBounds] = await Promise.all([
       suggestionsToggle.boundingBox(),
       navigationToggle.boundingBox(),
-      page.locator(".mari-settings-search-header").boundingBox(),
-      page.locator('[data-component="HomeBrowserHub.AddressRow"]').boundingBox(),
     ]);
     expect(suggestionsBounds).not.toBeNull();
     expect(navigationBounds).not.toBeNull();
+    expect(navigationBounds!.y).toBeGreaterThan(suggestionsBounds!.y);
+    await page.evaluate(async () => {
+      const module = (await import("/src/stores/ui.store.ts" as string)) as PageUiStoreModule;
+      module.useUIStore.getState().setOmnibarOpen(false);
+    });
+    await expect(omnibarSettingsDialog).toBeHidden();
+    const [settingsSearchBounds, addressRowBounds] = await Promise.all([
+      page.locator(".mari-settings-search-header").boundingBox(),
+      page.locator('[data-component="HomeBrowserHub.AddressRow"]').boundingBox(),
+    ]);
     expect(settingsSearchBounds).not.toBeNull();
     expect(addressRowBounds).not.toBeNull();
-    expect(navigationBounds!.y).toBeGreaterThan(suggestionsBounds!.y);
     expect(
       Math.abs(
         settingsSearchBounds!.y + settingsSearchBounds!.height - (addressRowBounds!.y + addressRowBounds!.height / 2),

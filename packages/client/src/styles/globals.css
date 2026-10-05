@@ -1574,27 +1574,6 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
   overflow-wrap: anywhere;
 }
 
-/* A record's face: a portrait, or a quiet duotone tile with its initial. */
-.mari-avatar {
-  display: grid;
-  width: 2.25rem !important;
-  height: 2.25rem !important;
-  flex: none;
-  place-items: center;
-  border: 0 !important;
-  border-radius: 0.625rem !important;
-  background: oklch(0.34 0.045 calc(var(--mari-avatar-hue, 0) * 1deg));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 7%, transparent);
-  color: oklch(0.87 0.07 calc(var(--mari-avatar-hue, 0) * 1deg));
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-[data-theme="light"] .mari-avatar {
-  background: oklch(0.94 0.03 calc(var(--mari-avatar-hue, 0) * 1deg));
-  color: oklch(0.44 0.09 calc(var(--mari-avatar-hue, 0) * 1deg));
-}
-
 /* An applied edit: one summary line per record ("Zylo Vantrell · 3 changes") that opens to tracked
    changes (chips for lists, switches and one-word values), with Undo and Keep as small buttons. */
 .mari-edit {
@@ -2186,6 +2165,12 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   flex: 0 0 2.25rem;
   justify-content: center;
   padding-inline: 0;
+}
+
+@media (pointer: coarse) {
+  .mari-omnibar-header-slot .mari-omnibar-header-destinations button.mari-omnibar-header-new-chat {
+    flex: 0 0 2.75rem;
+  }
 }
 
 .mari-omnibar-header-slot .mari-omnibar-header-destinations button[data-destination="chats"] {

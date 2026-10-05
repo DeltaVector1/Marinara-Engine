@@ -65,6 +65,25 @@ export function resourceResultType(kind: string): ResultType {
   return Object.hasOwn(RESULT_TYPE_ICONS, kind) ? (kind as ResultType) : "command";
 }
 
+const RECORD_FACE_TYPE_BY_TABLE = {
+  characters: "character",
+  lorebooks: "lorebook",
+  lorebook_entries: "lorebook-entry",
+  agent_configs: "agent",
+  personas: "persona",
+  presets: "preset",
+  chats: "chat",
+  messages: "message",
+  connections: "connection",
+} satisfies Record<string, ResultType>;
+
+/** A Mari edit-review record's own table (`characters`, `lorebook_entries`, ...) as its type. */
+export function recordFaceResultType(table: string): ResultType {
+  return Object.hasOwn(RECORD_FACE_TYPE_BY_TABLE, table)
+    ? RECORD_FACE_TYPE_BY_TABLE[table as keyof typeof RECORD_FACE_TYPE_BY_TABLE]
+    : "command";
+}
+
 export const COMMAND_ICONS = {
   command: RESULT_TYPE_ICONS.command,
   home: Home,

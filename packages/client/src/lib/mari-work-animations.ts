@@ -106,7 +106,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "golden",
     label: "Golden Mari",
-    description: "Gold colours and a Chad expression.",
+    description: "Gold colors and a Chad expression.",
     portraits: {
       idle: sprite("golden/portrait-idle.webp"),
       blink: sprite("golden/portrait-blink.webp"),

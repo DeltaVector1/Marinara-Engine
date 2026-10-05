@@ -117,8 +117,8 @@ export const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     // that opens it, and every jump to this section or its controls opens the omnibar instead.
     id: "omnibar",
     tab: "general",
-    label: "Omnibar & Professor Mari",
-    description: "Search, quick answers, Professor Mari and her appearance. Opens in the omnibar.",
+    label: "Search and Professor Mari",
+    description: "Search, quick answers, Professor Mari and her appearance. Opens in Search.",
     aliases: ["omnibar", "search", "command palette", "ctrl k", "quick answers", "professor mari", "mari", "mini mari"],
   },
   {

@@ -182,7 +182,7 @@ assert.ok(
 assert.ok("ui.chat.homeprofessormarichat.awaitingApprovalHint" in enJson);
 assert.match(
   String(enJson["ui.chat.homeprofessormarichat.awaitingApprovalHint"]),
-  /nothing has been changed yet/iu,
+  /nothing has changed yet/iu,
   "the caption states plainly that nothing is applied yet",
 );
 // Declining is a click, not a composed sentence (the reporter asked for

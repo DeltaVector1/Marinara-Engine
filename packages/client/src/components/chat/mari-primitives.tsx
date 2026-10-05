@@ -1,9 +1,6 @@
-import type { CSSProperties, ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
-import { stableHash } from "../../lib/mari-work-animations";
 import { cn } from "../../lib/utils";
-import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
 
 /**
  * Small layout primitives shared by Professor Mari's workspace. Turns use
@@ -29,47 +26,6 @@ export function MariNote({
     <p className={cn("mari-note", className)} data-tone={tone} {...rest}>
       {children}
     </p>
-  );
-}
-
-/**
- * A record's face: its portrait, or a quiet duotone tile with its initial in one stable hue per
- * name (the same fallback everywhere Mari names a record).
- */
-export function MariRecordAvatar({
-  name,
-  src,
-  icon,
-  kind = "avatar",
-  avatarCropStyle,
-}: {
-  name: string;
-  src?: string | null;
-  icon: LucideIcon;
-  kind?: "avatar" | "image";
-  avatarCropStyle?: CSSProperties;
-}) {
-  if (src) {
-    return (
-      <CommandCenterMedia
-        size="row"
-        role="row"
-        icon={icon}
-        src={src}
-        kind={kind}
-        avatarCropStyle={avatarCropStyle}
-        className="mari-avatar"
-      />
-    );
-  }
-  return (
-    <span
-      className="mari-avatar"
-      style={{ "--mari-avatar-hue": stableHash(name) % 360 } as CSSProperties}
-      aria-hidden="true"
-    >
-      {[...name.trim()][0]?.toLocaleUpperCase()}
-    </span>
   );
 }
 
