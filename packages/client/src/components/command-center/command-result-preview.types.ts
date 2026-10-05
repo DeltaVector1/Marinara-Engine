@@ -35,6 +35,11 @@ export interface CommandCenterPreviewData {
   facts?: readonly CommandCenterPreviewFact[];
   /** Short how-to steps (FAQ bullets), shown as a list rather than as facts. */
   steps?: readonly string[];
+  /** A chat's characters (Q6): the first three, for the stacked faces, and how many there are. */
+  participants?: readonly { src?: string | null; avatarCropStyle?: CSSProperties }[];
+  participantCount?: number;
+  /** Lorebooks attached to a chat. */
+  lorebookCount?: number;
 }
 
 export interface RichCommandResult extends CommandResult {

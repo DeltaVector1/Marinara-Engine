@@ -29,7 +29,6 @@ import {
   Clock3,
   Compass,
   Edit3,
-  Gamepad2,
   LayoutGrid,
   Loader2,
   MessageCircle,
@@ -37,7 +36,6 @@ import {
   Search,
   SlidersHorizontal,
   Sparkles,
-  Theater,
   UserMinus,
   X,
 } from "lucide-react";
@@ -139,7 +137,7 @@ import {
   type CommandRankingState,
 } from "../../lib/command-center";
 import { createSystemCommandDefinitions } from "../../lib/command-center-system-commands";
-import { getCommandIcon } from "../../lib/command-icons";
+import { chatResultType, getCommandIcon, RESULT_TYPE_ICONS, type ResultType } from "../../lib/command-icons";
 import {
   createOmnibarContext,
   resolveOmnibarScreen,
@@ -213,6 +211,8 @@ import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "../../lib/omnibar-settings-tog
 import { CommandCenterActionValue } from "../command-center/CommandCenterActionValue";
 import { InlineGhostText } from "../ui/InlineGhostText";
 import { CommandCenterResultRow } from "../command-center/CommandCenterResultRow";
+import { useHomeFeed } from "../../hooks/use-home-feed";
+import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
 import { CommandCenterSegmentedChoice } from "../command-center/CommandCenterSegmentedChoice";
 import { CommandCenterToggle } from "../command-center/CommandCenterToggle";
 import {
@@ -255,6 +255,16 @@ const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
 /** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
 /** Chats the empty omnibar offers to switch back to. */
 const IDLE_RECENT_CHATS = 4;
+const OMNIBAR_CATEGORY_RESULT_TYPE: Partial<Record<OmnibarCategory, ResultType>> = {
+  character: "character",
+  persona: "persona",
+  lorebook: "lorebook",
+  preset: "preset",
+  connection: "connection",
+  agent: "agent",
+  settings: "setting",
+  docs: "doc",
+};
 // F3 (O5): the idle frecent group only offers rows that *navigate* somewhere
 // (open a chat/entity, or run a navigation command) - never a row that writes
 // on Enter, like a settings toggle or a lorebook attach. An empty Ctrl+K must
@@ -535,6 +545,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     readOmnibarFrecencyEntries(),
   );
   const chats = useChats();
+  // Q6: the Home feed's last message per recent chat (bounded, cached), for the chat rows' second line.
+  const homeFeed = useHomeFeed();
+  const latestMessageByChatId = useMemo(
+    () =>
+      new Map(
+        (homeFeed.data?.recentChats ?? []).flatMap(({ chat, latestMessage }) =>
+          latestMessage ? [[chat.id, latestMessage] as const] : [],
+        ),
+      ),
+    [homeFeed.data?.recentChats],
+  );
   const characters = useCharacters();
   const personas = usePersonas();
   const lorebooks = useLorebooks(undefined, { includeHidden: true });
@@ -812,6 +833,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       connectionById,
       personaById,
       chatModeLabels,
+      latestMessageByChatId,
       t,
     });
     const resources = [
@@ -862,6 +884,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     connections.data,
     connectionById,
     extensionCommands,
+    latestMessageByChatId,
     lorebooks.data,
     lorebookLinks,
     personaById,
@@ -2910,14 +2933,25 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () => new Map(data.chats.map((chat) => [`chat:${chat.id}` as string, chat.mode] as const)),
     [data.chats],
   );
-  const resultIcon = (result: RankedOmnibarResult) => {
+  // Q6: what each row is. Entity rows take their kind's icon (and a badge on a portrait); a chat
+  // takes its mode. Commands and settings keep the icon they name (Home, Backups, Spotify).
+  const resultType = (result: RankedOmnibarResult): ResultType | undefined => {
+    const prefix = result.id.split(":")[0];
+    if (prefix === "message") return "message";
+    if (prefix === "mari-chat") return "mari-chat";
+    if (prefix === "lorebook-entry") return "lorebook-entry";
+    if (result.action?.kind === "start-chat") return chatResultType(result.action.mode);
     if (result.category === "chat") {
       const mode = chatModeByResultId.get(result.id);
-      if (mode === "roleplay") return Theater;
-      if (mode === "game") return Gamepad2;
-      return MessageCircle;
+      return mode ? chatResultType(mode) : undefined;
     }
-    return getCommandIcon(result.command.icon, result.command.kind);
+    return OMNIBAR_CATEGORY_RESULT_TYPE[result.category];
+  };
+  const resultIcon = (result: RankedOmnibarResult) => {
+    const type = resultType(result);
+    return type && type !== "setting" && type !== "doc"
+      ? RESULT_TYPE_ICONS[type]
+      : getCommandIcon(result.command.icon, result.command.kind);
   };
   const resultVisual = (result: RankedOmnibarResult) => {
     if (result.category === "chat") {
@@ -3590,14 +3624,33 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                             title={result.title}
                             metadata={resultMetadata(result, preview)}
                             tertiaryMetadata={
-                              // A toggle/action control already shows the on/active state, so
-                              // the status label ("Enabled"/"Active") next to it is redundant —
-                              // keep only the informative metadata line in that case.
-                              result.control?.type === "toggle"
-                                ? preview?.metadataLine
-                                : (preview?.status?.label ?? preview?.badges?.[0] ?? preview?.metadataLine)
+                              <>
+                                {preview?.lorebookCount ? (
+                                  // Q6: a chat's attached lorebooks, as the lorebook icon and a count.
+                                  <span
+                                    className="inline-flex shrink-0 items-center gap-0.5"
+                                    title={t("commandCenter.chat.lorebookCount", {
+                                      count: preview.lorebookCount,
+                                    })}
+                                  >
+                                    <ResultTypeIcon type="lorebook" glyph className="size-3" />
+                                    {preview.lorebookCount}
+                                  </span>
+                                ) : null}
+                                {
+                                  // A toggle/action control already shows the on/active state, so
+                                  // the status label ("Enabled"/"Active") next to it is redundant —
+                                  // keep only the informative metadata line in that case.
+                                  result.control?.type === "toggle"
+                                    ? preview?.metadataLine
+                                    : (preview?.status?.label ?? preview?.badges?.[0] ?? preview?.metadataLine)
+                                }
+                              </>
                             }
                             icon={resultIcon(result)}
+                            type={resultType(result)}
+                            faces={preview?.participants}
+                            faceCount={preview?.participantCount}
                             selected={selected}
                             onSelect={() => selectResult(result)}
                             onMouseMove={(event) => handleResultMouseMove(result, event)}

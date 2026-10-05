@@ -971,6 +971,47 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
   margin-top: 0.75rem;
 }
 
+/* Q6: the type badge on a portrait and a chat's stacked faces. Small and muted on purpose; the
+   picture stays the main thing. The 1.5px ring in the surface colour separates overlaps. */
+.result-type-icon__face {
+  box-shadow: 0 0 0 1.5px var(--card);
+}
+
+.result-type-icon__face svg {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+.result-type-icon__more {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 10%, var(--card));
+  color: var(--muted-foreground);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.result-type-icon__badge {
+  position: absolute;
+  right: -0.1875rem;
+  bottom: -0.1875rem;
+  display: grid;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--foreground) 12%, transparent);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted-foreground);
+}
+
+.result-type-icon__badge svg {
+  width: 0.5625rem;
+  height: 0.5625rem;
+}
+
 .mari-ref-cards__row {
   display: flex;
   flex-wrap: wrap;
@@ -1011,32 +1052,10 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
   outline-offset: 2px;
 }
 
-.mari-ref-card__art,
-.mari-ref-card__monogram {
+.mari-ref-card__art {
   width: 2rem !important;
   height: 2rem !important;
   flex: none;
-  border-radius: 999px !important;
-}
-
-.mari-ref-card__monogram {
-  display: grid;
-  place-items: center;
-  background: linear-gradient(
-    150deg,
-    oklch(0.6 0.13 calc(var(--mari-ref-hue) * 1deg)),
-    oklch(0.36 0.09 calc(var(--mari-ref-hue) * 1deg + 40deg))
-  );
-  color: oklch(0.97 0.02 calc(var(--mari-ref-hue) * 1deg));
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-/* Q5: an agent, setting, chat or entry shows what it is on the same quiet tile as a next-step card; the
-   colour of its own is for a name's monogram only, so a row of cards has one accent, not four. */
-.mari-ref-card__monogram[data-icon="true"] {
-  background: color-mix(in srgb, var(--foreground) 8%, var(--background));
-  color: var(--muted-foreground);
 }
 
 .mari-ref-card__caption {

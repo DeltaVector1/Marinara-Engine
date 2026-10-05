@@ -6,7 +6,7 @@
  * `preview` stays a thunk: preview data is only built for the focused row, so
  * building it here for every entity would undo that.
  */
-import type { Chat, Lorebook, Persona, PromptPreset } from "@marinara-engine/shared";
+import type { Chat, HomeRecentMessagePreview, Lorebook, Persona, PromptPreset } from "@marinara-engine/shared";
 import type { AgentConfigRow } from "../hooks/use-agents";
 import type {
   CommandCenterCategoryLabels,
@@ -17,6 +17,7 @@ import { buildCharacterPreviewModel } from "./character-preview";
 import { parseCharacterDisplayData } from "./character-display";
 import { buildLorebookPreviewModel } from "./lorebook-preview";
 import { resolvePresetArtwork } from "./preset-artwork";
+import { getChatActiveLorebookIds } from "./chat-lorebooks";
 import { formatRelativeContact } from "./relative-time";
 import { getAvatarCropStyle } from "./utils";
 
@@ -40,10 +41,33 @@ export type OmnibarChatRowsInput = {
   connectionById: ReadonlyMap<string, OmnibarNamedRow>;
   personaById: ReadonlyMap<string, Persona>;
   chatModeLabels: CommandCenterChatModeLabels;
+  /** Last messages the Home feed already holds (its six latest chats); other chats show their cast. */
+  latestMessageByChatId?: ReadonlyMap<string, HomeRecentMessagePreview>;
   t: OmnibarTranslate;
   /** Fixed "now" for deterministic relative-time rendering in tests; defaults to `Date.now()`. */
   now?: number;
 };
+
+/**
+ * Q6: a chat row's second line. The last speaker and one line of what they said when the Home
+ * feed has it, so a recent chat says where it left off; otherwise its cast.
+ */
+export function chatRowContextLine({
+  message,
+  speakerName,
+  youLabel,
+  castNames,
+}: {
+  message: Pick<HomeRecentMessagePreview, "role" | "content"> | null | undefined;
+  speakerName: string | null | undefined;
+  youLabel: string;
+  castNames: readonly string[];
+}): string | undefined {
+  const text = message?.content.replace(/\s+/g, " ").trim();
+  if (!text) return castNames.join(", ") || undefined;
+  const speaker = message!.role === "user" ? youLabel : message!.role === "assistant" ? speakerName : null;
+  return speaker ? `${speaker}: ${text}` : text;
+}
 
 export function buildOmnibarChatRows({
   chats,
@@ -51,11 +75,14 @@ export function buildOmnibarChatRows({
   connectionById,
   personaById,
   chatModeLabels,
+  latestMessageByChatId,
   t,
   now,
 }: OmnibarChatRowsInput) {
   return chats.map((chat) => {
-    const linkedCharacters = (chat.characterIds ?? []).slice(0, 2).flatMap((id) => {
+    // Only characters that still exist: a deleted one would leave an empty face and a wrong count.
+    const cast = (chat.characterIds ?? []).filter((id) => characterById.has(id));
+    const linkedCharacters = cast.slice(0, 3).flatMap((id) => {
       const linked = characterById.get(id) as Record<string, unknown> | undefined;
       if (!linked) return [];
       const display = parseCharacterDisplayData({
@@ -68,6 +95,19 @@ export function buildOmnibarChatRows({
     const connection = chat.connectionId ? connectionById.get(chat.connectionId) : undefined;
     const persona = chat.personaId ? personaById.get(chat.personaId) : undefined;
     const updated = formatRelativeContact(chat.lastMessageAt ?? chat.updatedAt, now) ?? undefined;
+    const latest = latestMessageByChatId?.get(chat.id);
+    const speaker = latest?.characterId
+      ? (characterById.get(latest.characterId) as Record<string, unknown> | undefined)
+      : undefined;
+    const contextLine = chatRowContextLine({
+      message: latest,
+      speakerName: speaker
+        ? parseCharacterDisplayData({ data: speaker.data, comment: speaker.comment as string | null | undefined }).name
+        : null,
+      youLabel: t("home.recentChats.you", "You"),
+      castNames: linkedCharacters.slice(0, 2).map((item) => item.display.name),
+    });
+    const lorebookCount = getChatActiveLorebookIds(chat).length;
     return {
       id: chat.id,
       name: chat.name,
@@ -76,8 +116,17 @@ export function buildOmnibarChatRows({
         kind: "chat" as const,
         title: chat.name,
         categoryLabel: chatModeLabels[chat.mode],
-        subtitle: linkedCharacters.map((item) => item.display.name).join(", ") || undefined,
+        subtitle: contextLine,
         metadataLine: updated,
+        participants:
+          cast.length > 1
+            ? linkedCharacters.map((item) => ({
+                src: item.avatarPath,
+                avatarCropStyle: getAvatarCropStyle(item.display.avatarCrop),
+              }))
+            : undefined,
+        participantCount: cast.length,
+        lorebookCount: lorebookCount || undefined,
         media: linkedCharacters[0]?.avatarPath
           ? {
               src: linkedCharacters[0].avatarPath,

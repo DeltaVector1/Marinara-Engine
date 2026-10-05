@@ -53,8 +53,6 @@ import {
   Hand,
   RotateCcw,
   ShieldOff,
-  Bot,
-  Settings2,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -85,7 +83,7 @@ import {
 } from "@marinara-engine/shared";
 import { useConnections } from "../../hooks/use-connections";
 import { useTrackAchievement } from "../../hooks/use-achievements";
-import { chatKeys } from "../../hooks/use-chats";
+import { chatKeys, useChats } from "../../hooks/use-chats";
 import { characterKeys, useCharacters, usePersonas } from "../../hooks/use-characters";
 import { getCharacterDisplayIdentity } from "../../lib/character-display";
 import { buildCharacterPreviewModel, type CharacterPreviewModel } from "../../lib/character-preview";
@@ -121,7 +119,7 @@ import { useInDialogFocusScope } from "../../hooks/use-in-dialog-focus-scope";
 import { MariAttachButton } from "./MariAttachButton";
 import { MariChatHistoryPicker } from "./MariChatHistoryPicker";
 import { MariContextViewer } from "./MariContextViewer";
-import { FACET_ICON, MariContextFacetChips } from "./MariContextFacetChips";
+import { facetIcon, MariContextFacetChips } from "./MariContextFacetChips";
 import { ProfessorMariContextControl } from "./ProfessorMariContextControl";
 import { CharacterSubject } from "../characters/CharacterSubject";
 import { LorebookSubject } from "../lorebooks/LorebookSubject";
@@ -215,11 +213,12 @@ import {
 import { formatRelativeContact } from "../../lib/relative-time";
 import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
 import { useAgentConfigs } from "../../hooks/use-agents";
-import { CommandCenterMedia } from "../command-center/CommandCenterMedia";
+import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
+import { chatResultType, resourceResultType, type ResultType } from "../../lib/command-icons";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { MariNextStepCards, MariSuggestionChips } from "./MariSuggestionChips";
 import { requestChatPeekPrompt } from "../../lib/chat-floating-ui-events";
-import { MariRecordAvatar, MariNote } from "./mari-primitives";
+import { MariNote } from "./mari-primitives";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 import {
   consumeProfessorMariOpenRequest,
@@ -2201,12 +2200,11 @@ function MariWorkspaceActionResultRow({
       : (description?.split("\n").find((line) => line.trim()) ?? result.summary);
   return (
     <div className="mari-tile">
-      <MariRecordAvatar
-        name={name}
+      <ResultTypeIcon
+        type={resourceResultType(result.resource.kind)}
         src={characterPreview?.avatarSrc ?? lorebookPreview?.imageSrc}
         kind={characterPreview ? "avatar" : "image"}
         avatarCropStyle={characterPreview?.avatarCropStyle}
-        icon={result.resource.kind === "lorebook" ? BookOpen : MessageCircle}
       />
       <span className="mari-tile__text">
         <span className="mari-tile__name">
@@ -2230,14 +2228,6 @@ function MariWorkspaceActionResultRow({
   );
 }
 
-/** Kinds without a portrait show what they are: an agent, a setting, a chat, a lorebook entry. */
-const REFERENCE_ICONS: Partial<Record<MariReferencedResource["kind"], LucideIcon>> = {
-  agent: Bot,
-  setting: Settings2,
-  chat: MessageCircle,
-  lorebookEntry: BookOpen,
-};
-
 /**
  * What her answer is about, as a row of small cards right under her words: a face or icon on the left,
  * the name and one fact (an agent's state, a setting's section, an entry's lorebook) on the right.
@@ -2259,6 +2249,11 @@ function MariReferencedResources({
   const hasAgents = resources.some((resource) => resource.kind === "agent");
   // The live config says whether an agent is on now; what she read may be older.
   const { data: agentConfigs } = useAgentConfigs(hasAgents);
+  // A chat card shows its mode (Q6); the list is usually cached already, so no refetch on mount.
+  const { data: chatList } = useChats({
+    enabled: resources.some((resource) => resource.kind === "chat"),
+    refetchOnMount: false,
+  });
   const settings = getOmnibarSettingsDestinations();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const cards = resources.flatMap((resource) => {
@@ -2336,7 +2331,10 @@ function MariReferencedResources({
     <div className="mari-ref-cards">
       <div className="mari-ref-cards__row" role="list">
         {uniqueCards.map((card, index) => {
-          const KindIcon = REFERENCE_ICONS[card.resource.kind];
+          const type =
+            card.resource.kind === "chat"
+              ? chatResultType(chatList?.find((chat) => chat.id === card.resource.id)?.mode)
+              : resourceResultType(card.resource.kind);
           return (
             <button
               key={card.key}
@@ -2349,27 +2347,7 @@ function MariReferencedResources({
               aria-expanded={selectedKey === card.key}
               onClick={() => setSelectedKey((current) => (current === card.key ? null : card.key))}
             >
-              {card.src ? (
-                <CommandCenterMedia
-                  size="row"
-                  role="row"
-                  icon={KindIcon ?? (card.resource.kind === "lorebook" ? BookOpen : MessageCircle)}
-                  src={card.src}
-                  alt=""
-                  kind={card.resource.kind === "character" || card.resource.kind === "persona" ? "avatar" : "image"}
-                  className="mari-ref-card__art"
-                />
-              ) : (
-                // No portrait yet: a monogram (or what kind of thing it is) on a color of its own, stable for the name.
-                <span
-                  className="mari-ref-card__monogram"
-                  data-icon={KindIcon ? "true" : undefined}
-                  style={{ "--mari-ref-hue": stableHash(card.name) % 360 } as CSSProperties}
-                  aria-hidden="true"
-                >
-                  {KindIcon ? <KindIcon size="0.95rem" /> : [...card.name.trim()][0]?.toLocaleUpperCase()}
-                </span>
-              )}
+              <ResultTypeIcon type={type} src={card.src} kind="avatar" className="mari-ref-card__art" />
               <span className="mari-ref-card__caption">
                 <span className="mari-ref-card__name">{card.name}</span>
                 {card.fact ? <span className="mari-ref-card__tag">{card.fact}</span> : null}
@@ -5796,20 +5774,23 @@ export function HomeProfessorMariChat({
   const renderSeesRow = ({
     key,
     Icon,
+    type,
     title,
     meta,
     onRemove,
     action,
   }: {
     key: string;
-    Icon: LucideIcon;
+    Icon?: LucideIcon;
+    /** Q6: a row that names a thing shows that kind's icon. */
+    type?: ResultType;
     title: string;
     meta?: string;
     onRemove?: () => void;
     action?: ReactNode;
   }) => (
     <div key={key} className={MARI_SIDE_ROW_CLASS}>
-      <Icon size="0.85rem" className="shrink-0 text-[var(--muted-foreground)]" aria-hidden="true" />
+      <ResultTypeIcon type={type} icon={Icon} glyph className="size-[0.85rem] text-[var(--muted-foreground)]" />
       <span className="mari-edit__text">
         <span className="mari-edit__title">{title}</span>
         {meta ? <span className="text-xs text-[var(--muted-foreground)]">{meta}</span> : null}
@@ -7019,6 +7000,12 @@ export function HomeProfessorMariChat({
                                               {selected ? <Check size="0.875rem" /> : <Square size="0.875rem" />}
                                             </span>
                                           )}
+                                          {/* Q6: what the row is, as in the omnibar's Chats group and the Aware of rows. */}
+                                          <ResultTypeIcon
+                                            type="mari-chat"
+                                            glyph
+                                            className="size-[0.85rem] text-[var(--muted-foreground)]"
+                                          />
                                           <button
                                             type="button"
                                             onClick={() =>
@@ -7239,7 +7226,7 @@ export function HomeProfessorMariChat({
                                     oneShotContextFacets.map((facet) =>
                                       renderSeesRow({
                                         key: facet.kind,
-                                        Icon: FACET_ICON[facet.kind],
+                                        Icon: facetIcon(facet),
                                         title: facet.text,
                                         meta: localizeUi(
                                           professorMariFacetSendsContentLater(facet.kind)
@@ -7274,7 +7261,9 @@ export function HomeProfessorMariChat({
                                   {handoffContext && !oneShotContext
                                     ? renderSeesRow({
                                         key: "focus",
-                                        Icon: Sparkles,
+                                        ...(handoffContext.resource
+                                          ? { type: resourceResultType(handoffContext.resource.kind) }
+                                          : { Icon: Sparkles }),
                                         title:
                                           handoffContext.resource?.label ??
                                           handoffContext.resource?.kind ??

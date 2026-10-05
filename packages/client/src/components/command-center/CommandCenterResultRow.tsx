@@ -1,9 +1,11 @@
 import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
 import { CornerDownLeft, Settings2, type LucideIcon } from "lucide-react";
 
+import type { ResultType } from "@/lib/command-icons";
 import { cn } from "@/lib/utils";
 
-import { CommandCenterMedia, type CommandCenterMediaKind } from "./CommandCenterMedia";
+import type { CommandCenterMediaKind } from "./CommandCenterMedia";
+import { ResultTypeIcon, type ResultTypeFace } from "./ResultTypeIcon";
 
 export interface CommandCenterResultRowProps {
   id?: string;
@@ -12,6 +14,11 @@ export interface CommandCenterResultRowProps {
   metadata: string | null;
   tertiaryMetadata?: ReactNode;
   icon: LucideIcon;
+  /** What the row is (Q6): badges a portrait, and names the row's kind for anything without one. */
+  type?: ResultType;
+  /** A chat's participants, stacked in the media slot. */
+  faces?: readonly ResultTypeFace[];
+  faceCount?: number;
   selected: boolean;
   onSelect: () => void;
   mediaSrc?: string | null;
@@ -43,6 +50,9 @@ export function CommandCenterResultRow({
   metadata,
   tertiaryMetadata,
   icon,
+  type,
+  faces,
+  faceCount,
   selected,
   onSelect,
   mediaSrc,
@@ -87,13 +97,15 @@ export function CommandCenterResultRow({
         aria-describedby={metadata && id ? `${id}-metadata` : undefined}
         className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl px-2.5 text-left text-[var(--foreground)] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--ring)]"
       >
-        <CommandCenterMedia
-          size="row"
+        <ResultTypeIcon
+          type={type}
           icon={icon}
           src={mediaSrc}
           kind={mediaKind}
           avatarCropStyle={avatarCropStyle}
           accent={accent}
+          faces={faces}
+          faceCount={faceCount}
         />
         <span className="min-w-0 leading-tight">
           <span className="block truncate text-sm font-semibold">{title}</span>

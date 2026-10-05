@@ -1,16 +1,12 @@
 import {
   ArrowRight,
   BookOpen,
-  Bot,
   Dices,
   Eye,
   FileText,
   Link2,
-  MessageCircle,
   Pencil,
   Search,
-  Settings,
-  SlidersHorizontal,
   Sparkles,
   Undo2,
   UserPlus,
@@ -29,7 +25,10 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import type { MariChipEntity, MariSuggestionAction, MariSuggestionChip } from "@marinara-engine/shared";
+import { useChats } from "../../hooks/use-chats";
+import { chatResultType, type ResultType } from "../../lib/command-icons";
 import { mariCardIntent } from "../../lib/mari-arrival";
+import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
 import { cn } from "../../lib/utils";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
@@ -74,15 +73,16 @@ const CHIP_ICONS: Record<string, LucideIcon> = {
   Undo2,
 };
 
-const ENTITY_DEFAULT_ICON: Partial<Record<MariChipEntity, LucideIcon>> = {
-  characters: UserPlus,
-  lorebooks: BookOpen,
-  personas: UserRound,
-  presets: SlidersHorizontal,
-  connections: Link2,
-  agents: Bot,
-  settings: Settings,
-  chat: MessageCircle,
+// Q6: an entity card shows its kind's icon, the same one the omnibar and the panels use.
+const ENTITY_RESULT_TYPE: Record<MariChipEntity, ResultType> = {
+  characters: "character",
+  lorebooks: "lorebook",
+  personas: "persona",
+  presets: "preset",
+  connections: "connection",
+  agents: "agent",
+  settings: "setting",
+  chat: "chat",
 };
 
 const ENTITY_LABEL_MATCHERS: Array<[MariChipEntity, RegExp]> = [
@@ -251,7 +251,7 @@ export function MariSuggestionChips({ chips, onSelect, disabled = false, compact
         >
           {chips.map((chip) => {
             const entity = inferChipEntity(chip);
-            const Icon = (chip.icon && CHIP_ICONS[chip.icon]) || (entity && ENTITY_DEFAULT_ICON[entity]) || undefined;
+            const Icon = chip.icon ? CHIP_ICONS[chip.icon] : undefined;
             const label =
               chip.id === "authorization-accept"
                 ? localizeUi("ui.chat.marisuggestionchips.acceptAuthorization")
@@ -273,7 +273,15 @@ export function MariSuggestionChips({ chips, onSelect, disabled = false, compact
                 aria-label={label}
                 title={label}
               >
-                {Icon ? <Icon size={compact ? "0.6875rem" : "0.8125rem"} className="shrink-0" /> : null}
+                {entity ? (
+                  <ResultTypeIcon
+                    type={ENTITY_RESULT_TYPE[entity]}
+                    glyph
+                    className={compact ? "size-[0.6875rem]" : "size-[0.8125rem]"}
+                  />
+                ) : Icon ? (
+                  <Icon size={compact ? "0.6875rem" : "0.8125rem"} className="shrink-0" />
+                ) : null}
                 <span className="min-w-0 truncate">{label}</span>
               </button>
             );
@@ -299,6 +307,11 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
   disabled?: boolean;
 }) {
   const { t: localizeUi } = useUiTranslation();
+  // An "Open <chat>" card shows the chat's mode; the list is usually cached, so no refetch on mount.
+  const { data: chatList } = useChats({
+    enabled: chips.some((chip) => chip.action?.kind === "chat"),
+    refetchOnMount: false,
+  });
   const longPressRef = useRef<{ timer: ReturnType<typeof setTimeout> | null; fired: boolean }>({
     timer: null,
     fired: false,
@@ -314,10 +327,14 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
       {chips.map((chip, index) => {
         // M9's omnibar-only actions name no entity, so the shared inference reads them as none.
         const entity = inferChipEntity(chip as MariSuggestionChip);
-        const Icon =
-          chip.action?.kind === "peek-prompt"
-            ? Eye
-            : (chip.icon && CHIP_ICONS[chip.icon]) || (entity && ENTITY_DEFAULT_ICON[entity]) || Wand2;
+        const chatId = chip.action?.kind === "chat" ? (chip.action as { chatId?: string }).chatId : undefined;
+        const type =
+          chip.action?.kind === "peek-prompt" || !entity
+            ? undefined
+            : entity === "chat"
+              ? chatResultType(chatList?.find((chat) => chat.id === chatId)?.mode)
+              : ENTITY_RESULT_TYPE[entity];
+        const Icon = chip.action?.kind === "peek-prompt" ? Eye : (chip.icon && CHIP_ICONS[chip.icon]) || Wand2;
         const kindLabel = localizeUi(
           chip.action ? "ui.chat.marisuggestionchips.actsNow" : "ui.chat.marisuggestionchips.asksMari",
         );
@@ -361,7 +378,7 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
             aria-describedby={chip.action ? undefined : `${chip.id}-hint`}
           >
             <span className="mari-next-card__icon" aria-hidden="true">
-              <Icon size="0.875rem" />
+              {type ? <ResultTypeIcon type={type} glyph className="size-3.5" /> : <Icon size="0.875rem" />}
             </span>
             <span className="mari-next-card__label">{chip.label}</span>
             {chip.detail ? <span className="mari-next-card__detail">{chip.detail}</span> : null}

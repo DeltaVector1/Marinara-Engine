@@ -135,7 +135,13 @@ import {
 } from "../../packages/client/src/lib/pull-to-open.js";
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 import { formatCapabilityAgentGroundingLines } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
-import { buildOmnibarChatRows } from "../../packages/client/src/lib/omnibar-entity-rows.js";
+import { buildOmnibarChatRows, chatRowContextLine } from "../../packages/client/src/lib/omnibar-entity-rows.js";
+import {
+  chatResultType,
+  COMMAND_ICONS,
+  RESULT_TYPE_ICONS,
+  resourceResultType,
+} from "../../packages/client/src/lib/command-icons.js";
 import {
   buildMariArrival,
   isMariReplyFailure,
@@ -547,7 +553,11 @@ assert.ok(bareGameRow.score <= 290);
 // A1 (high): these rows must never show for every query — only on a real match — or they drown
 // out the typo-fallback for every search (filterOmnibarFuzzyFallback treats any score>=100,
 // matchKind-less row as a literal hit and drops every fuzzy row behind it).
-assert.deepEqual(buildOmnibarNewChatCommands({ query: "zzzz", t: stubT }), [], "no rows on a query that matches nothing");
+assert.deepEqual(
+  buildOmnibarNewChatCommands({ query: "zzzz", t: stubT }),
+  [],
+  "no rows on a query that matches nothing",
+);
 const lunaFuzzySearch = searchOmnibar("lna", {
   commands: [],
   chats: [],
@@ -574,7 +584,7 @@ const harperResults = filterOmnibarFuzzyFallback([
     connections: [],
   }),
 ]).sort((a, b) => b.score - a.score);
-assert.equal(harperResults[0]?.id, "character:harper", "\"harp\" ranks the character Harper above New roleplay (A4)");
+assert.equal(harperResults[0]?.id, "character:harper", '"harp" ranks the character Harper above New roleplay (A4)');
 const gameCharacterResults = filterOmnibarFuzzyFallback([
   ...buildOmnibarNewChatCommands({ query: "game", t: stubT }),
   ...searchOmnibar("game", {
@@ -587,7 +597,7 @@ const gameCharacterResults = filterOmnibarFuzzyFallback([
 assert.equal(
   gameCharacterResults[0]?.id,
   "character:game-char",
-  "\"game\" ranks a character literally named \"Game\" above New game (A4)",
+  '"game" ranks a character literally named "Game" above New game (A4)',
 );
 
 const naturalRequestResults = searchOmnibar("make Luna warmer", {
@@ -878,22 +888,62 @@ assert.deepEqual(
     source: "command-center",
     capability: "explain",
     resource: { kind: "character", id: "luna-id", label: "Luna" },
-    activeChat: { id: "chat-one", label: "Moonlit room" },
+    activeChat: { id: "chat-one", label: "Moonlit room", mode: "roleplay" },
     field: "Greeting",
     settingsLocation: { tab: "appearance" },
     error: { message: "Generation failed" },
     asideAnswer: { query: "q", answer: "Answer text", tier: "remote" },
   }),
   [
-    { kind: "resource", text: "Luna" },
-    { kind: "chat", text: "Moonlit room" },
+    // Q6: each item facet names its kind, so its chip shows that kind's icon (a chat its mode).
+    { kind: "resource", text: "Luna", type: "character" },
+    { kind: "chat", text: "Moonlit room", type: "roleplay" },
     { kind: "field", text: "Greeting" },
-    { kind: "settings", text: "Appearance" },
+    { kind: "settings", text: "Appearance", type: "setting" },
     { kind: "error", text: "Generation failed" },
     { kind: "asideAnswer", text: "Answer text" },
   ],
 );
 assert.deepEqual(professorMariContextFacets(null), []);
+// Q6: one type per kind; an unknown chat mode falls back to the plain chat, entries map to their own type.
+assert.equal(chatResultType("game"), "game");
+assert.equal(chatResultType(undefined), "chat");
+assert.equal(chatResultType("toString"), "chat");
+assert.equal(resourceResultType("lorebookEntry"), "lorebook-entry");
+assert.equal(resourceResultType("setting"), "setting");
+assert.equal(resourceResultType("mystery"), "command");
+assert.equal(RESULT_TYPE_ICONS.persona, COMMAND_ICONS.persona);
+// Q6: a chat row says where it left off (speaker + one line), else names its cast.
+assert.equal(
+  chatRowContextLine({
+    message: { role: "assistant", content: "Through the\n  nebula gate." },
+    speakerName: "Nerissa",
+    youLabel: "You",
+    castNames: ["Elara"],
+  }),
+  "Nerissa: Through the nebula gate.",
+);
+assert.equal(
+  chatRowContextLine({ message: { role: "user", content: "Hi" }, speakerName: null, youLabel: "You", castNames: [] }),
+  "You: Hi",
+);
+assert.equal(
+  chatRowContextLine({
+    message: { role: "narrator", content: "Rain." },
+    speakerName: "X",
+    youLabel: "You",
+    castNames: [],
+  }),
+  "Rain.",
+);
+assert.equal(
+  chatRowContextLine({ message: null, speakerName: null, youLabel: "You", castNames: ["Elara", "Nerissa"] }),
+  "Elara, Nerissa",
+);
+assert.equal(
+  chatRowContextLine({ message: { role: "user", content: "  " }, speakerName: null, youLabel: "You", castNames: [] }),
+  undefined,
+);
 // M7: the composer's X on one facet keeps the others; removing the last one clears the context.
 {
   const handoff = {
@@ -2725,11 +2775,7 @@ assert.ok(!("mariDetailId" in mariSession));
     "connection:conn-1",
     "nor does any other unpicked door (Ask Mari row, aside) drop the resource",
   );
-  assert.equal(
-    mariFallbackFocus(arrivalRows.slice(1))?.id,
-    "chat:chat-1",
-    "without a Fix row the first row stays",
-  );
+  assert.equal(mariFallbackFocus(arrivalRows.slice(1))?.id, "chat:chat-1", "without a Fix row the first row stays");
   const typedAfterArrival = askPayload("how do I add a lorebook?", arrivalFocus, false);
   assert.ok(
     !JSON.stringify(typedAfterArrival).includes("SECRET-ERROR"),
@@ -3069,8 +3115,16 @@ assert.ok(!("mariDetailId" in mariSession));
     now,
   );
   assert.ok(threeRecent > fresh, "repeated recent use should score higher than a single use");
-  assert.equal(frecencyScore([entry("chat:1", "editor", 0)], "chat:1", "chat", now), 0, "a different surface must not contribute");
-  assert.equal(frecencyScore([entry("chat:2", "chat", 0)], "chat:1", "chat", now), 0, "a different result must not contribute");
+  assert.equal(
+    frecencyScore([entry("chat:1", "editor", 0)], "chat:1", "chat", now),
+    0,
+    "a different surface must not contribute",
+  );
+  assert.equal(
+    frecencyScore([entry("chat:2", "chat", 0)], "chat:1", "chat", now),
+    0,
+    "a different result must not contribute",
+  );
 
   // The 300-entry cap evicts the oldest first, keeping the newest MAX intact.
   const overflow: OmnibarFrecencyEntry[] = [];
@@ -3078,7 +3132,10 @@ assert.ok(!("mariDetailId" in mariSession));
   const capped = normalizeOmnibarFrecencyEntries(overflow);
   assert.equal(capped.length, 300, "the entry list must be capped at 300");
   assert.ok(!capped.some((e) => e.resultId === "chat:0"), "the oldest entry must be evicted first");
-  assert.ok(capped.some((e) => e.resultId === "chat:309"), "the newest entries must survive the cap");
+  assert.ok(
+    capped.some((e) => e.resultId === "chat:309"),
+    "the newest entries must survive the cap",
+  );
 
   // The boost is capped well under the lowest exact-name-match score tier
   // (scoreText in omnibar-search.ts starts exact matches at 300+), so it can
@@ -3108,7 +3165,10 @@ assert.ok(!("mariDetailId" in mariSession));
 
   // The empty-state deck: most frecent first, scoped to the right surface.
   const topIds = topFrecentResultIds(
-    [...Array.from({ length: 3 }, (_, i) => entry("character:juniper", "chat", i * DAY_MS)), entry("chat:9", "chat", 0)],
+    [
+      ...Array.from({ length: 3 }, (_, i) => entry("character:juniper", "chat", i * DAY_MS)),
+      entry("chat:9", "chat", 0),
+    ],
     "chat",
     now,
     5,
@@ -3311,7 +3371,6 @@ assert.ok(!("mariDetailId" in mariSession));
   );
 }
 
-
 // P2/P3 (slice 52): the top-bar edge line shows her state until her pane shows the result.
 {
   let seen: MariEdgeSeenState = { wasWorking: false, unseenRun: false, seenApprovalIds: [], seenHistoryId: "h-0" };
@@ -3382,16 +3441,8 @@ assert.ok(!("mariDetailId" in mariSession));
 
   // F5: a second approval arriving while the first is still pending and already seen
   // must still re-glow the line - a single seen boolean could not tell a1 and a2 apart.
-  assert.equal(
-    step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"] }),
-    "approval",
-    "a3 pending",
-  );
-  assert.equal(
-    step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"], viewing: true }),
-    null,
-    "a3 seen",
-  );
+  assert.equal(step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"] }), "approval", "a3 pending");
+  assert.equal(step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"], viewing: true }), null, "a3 seen");
   assert.equal(
     step({ ...base, needsAttention: true, pendingApprovalIds: ["a3", "a4"] }),
     "approval",

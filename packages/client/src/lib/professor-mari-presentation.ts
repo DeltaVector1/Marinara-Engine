@@ -1,4 +1,5 @@
 import { SETTINGS_TABS, type ProfessorMariAskContext } from "@marinara-engine/shared";
+import { chatResultType, resourceResultType, type ResultType } from "./command-icons";
 
 export type ProfessorMariPresentationState =
   "empty" | "working" | "composing" | "history" | "completed" | "waiting-approval" | "broken";
@@ -51,6 +52,8 @@ export type ProfessorMariContextFacetKind = "resource" | "chat" | "field" | "set
 export interface ProfessorMariContextFacet {
   kind: ProfessorMariContextFacetKind;
   text: string;
+  /** Q6: what the resource, chat or settings page is, so its chip shows that kind's icon. */
+  type?: ResultType;
 }
 
 /**
@@ -63,13 +66,15 @@ export function professorMariContextFacets(
 ): ProfessorMariContextFacet[] {
   if (!context) return [];
   const facets: ProfessorMariContextFacet[] = [];
-  if (context.resource?.label) facets.push({ kind: "resource", text: context.resource.label });
-  if (context.activeChat?.label) facets.push({ kind: "chat", text: context.activeChat.label });
+  if (context.resource?.label)
+    facets.push({ kind: "resource", text: context.resource.label, type: resourceResultType(context.resource.kind) });
+  if (context.activeChat?.label)
+    facets.push({ kind: "chat", text: context.activeChat.label, type: chatResultType(context.activeChat.mode) });
   if (context.field) facets.push({ kind: "field", text: context.field });
   if (context.settingsLocation?.tab) {
     const tabLabel =
       SETTINGS_TABS.find((tab) => tab.id === context.settingsLocation!.tab)?.label ?? context.settingsLocation.tab;
-    facets.push({ kind: "settings", text: tabLabel });
+    facets.push({ kind: "settings", text: tabLabel, type: "setting" });
   }
   if (context.error?.message) facets.push({ kind: "error", text: context.error.message });
   if (context.asideAnswer?.answer) facets.push({ kind: "asideAnswer", text: context.asideAnswer.answer });

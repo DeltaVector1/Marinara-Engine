@@ -887,6 +887,8 @@
   "commandCenter.backToFind": "Back to search",
   "commandCenter.backToResults": "Back to results",
   "commandCenter.capability": "capability",
+  "commandCenter.chat.lorebookCount_one": "{{count}} lorebook attached",
+  "commandCenter.chat.lorebookCount_other": "{{count}} lorebooks attached",
   "commandCenter.chatTools.lorebook": "Active lorebook entries",
   "commandCenter.chatTools.peekPrompt": "Preview next prompt",
   "commandCenter.chatTools.regenerate": "Regenerate reply",

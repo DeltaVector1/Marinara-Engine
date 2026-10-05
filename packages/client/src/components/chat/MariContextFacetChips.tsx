@@ -1,5 +1,7 @@
 import { AlertTriangle, MessageSquare, Pencil, Settings2, Sparkles, Wand2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { RESULT_TYPE_ICONS } from "../../lib/command-icons";
+import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
 import {
   professorMariFacetSendsContentLater,
   type ProfessorMariContextFacet,
@@ -7,7 +9,7 @@ import {
 } from "../../lib/professor-mari-presentation";
 import { cn } from "../../lib/utils";
 
-export const FACET_ICON: Record<ProfessorMariContextFacetKind, typeof Sparkles> = {
+const FACET_ICON: Record<ProfessorMariContextFacetKind, typeof Sparkles> = {
   resource: Sparkles,
   chat: MessageSquare,
   field: Pencil,
@@ -15,6 +17,11 @@ export const FACET_ICON: Record<ProfessorMariContextFacetKind, typeof Sparkles> 
   error: AlertTriangle,
   asideAnswer: Wand2,
 };
+
+/** Q6: a facet that names a thing shows that kind's icon (the omnibar's); the rest keep their own. */
+export function facetIcon(facet: ProfessorMariContextFacet) {
+  return facet.type ? RESULT_TYPE_ICONS[facet.type] : FACET_ICON[facet.kind];
+}
 
 /**
  * The facets a handoff context carries (resource, chat, field, settings
@@ -51,7 +58,6 @@ export function MariContextFacetChips({
         </span>
       ) : null}
       {facets.map((facet) => {
-        const Icon = FACET_ICON[facet.kind];
         const later = Boolean(onRemove) && professorMariFacetSendsContentLater(facet.kind);
         const values = { label: facetLabel[facet.kind], text: facet.text };
         return (
@@ -73,10 +79,11 @@ export function MariContextFacetChips({
               onRemove && "pr-0.5",
             )}
           >
-            <Icon
-              size="0.625rem"
-              className={cn("shrink-0", later ? "text-[var(--muted-foreground)]" : "text-[var(--primary)]")}
-              aria-hidden="true"
+            <ResultTypeIcon
+              type={facet.type}
+              icon={facetIcon(facet)}
+              glyph
+              className={cn("size-2.5", later ? "text-[var(--muted-foreground)]" : "text-[var(--primary)]")}
             />
             <span className="min-w-0 truncate">{facet.text}</span>
             {onRemove ? (
