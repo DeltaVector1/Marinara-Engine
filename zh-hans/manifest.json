@@ -1,6 +1,6 @@
 {
   "language": "zh-hans",
-  "sourceCommit": "e15a537ef68fb06b32b77f8f40368ac58c0a64bf",
+  "sourceCommit": "2d62ae4d27e684b2aef5d5026a797e0371486937",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -209,8 +209,8 @@
     },
     {
       "path": "connections/decision-models.md",
-      "sha256": "45e79ad4c826511b3d027f95e277b80c9f76d4bfc8a4f1e9fddcfa55e4f58282",
-      "bytes": 25282
+      "sha256": "a4047ee93e0d030ab70ac97960576ce6846f403322f06d5650ad3a6067de1208",
+      "bytes": 24799
     },
     {
       "path": "connections/local-model.md",
@@ -659,13 +659,13 @@
     },
     {
       "path": "roleplay/getting-started.md",
-      "sha256": "60f1217ffec479c7a5ab16a205c35cdfd8ed66d97a213ce41b5982bcbdeadf25",
-      "bytes": 16032
+      "sha256": "a56aaf5ab327707b8c77326ae01b7dca84fc131828a4cc328f16b08fe2550675",
+      "bytes": 16437
     },
     {
       "path": "roleplay/hud-and-trackers.md",
-      "sha256": "19a66a5f01030a15d94a3596bdb7bfce0f8cc43ffe26e1acf82c8805f623ab02",
-      "bytes": 13300
+      "sha256": "00d882bc30f58c7d51712decc1ad641a65772cc5bf35c713990ccca09a94322c",
+      "bytes": 13603
     },
     {
       "path": "roleplay/narrative-director.md",
