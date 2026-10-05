@@ -3273,10 +3273,11 @@ assert.ok(!("mariDetailId" in mariSession));
 
 // P2/P3 (slice 52): the top-bar edge line shows her state until her pane shows the result.
 {
-  let seen: MariEdgeSeenState = { wasWorking: false, unseenRun: false, approvalSeen: false, seenHistoryId: "h-0" };
+  let seen: MariEdgeSeenState = { wasWorking: false, unseenRun: false, seenApprovalIds: [], seenHistoryId: "h-0" };
   const idle: MariEdgeInput = {
     working: false,
     needsAttention: false,
+    pendingApprovalIds: [],
     latestHistoryId: "h-0",
     latestHistoryFailed: false,
     viewing: false,
@@ -3317,14 +3318,44 @@ assert.ok(!("mariDetailId" in mariSession));
 
   const base = { ...idle, latestHistoryId: "h-2" };
   assert.equal(
-    step({ ...base, needsAttention: true, working: true }),
+    step({ ...base, needsAttention: true, pendingApprovalIds: ["a1"], working: true }),
     "approval",
     "a pending approval wins over working",
   );
-  assert.equal(step({ ...base, needsAttention: true, viewing: true }), null, "seeing the approval clears it");
-  assert.equal(step({ ...base, needsAttention: true }), null, "the same approval stays seen");
+  assert.equal(
+    step({ ...base, needsAttention: true, pendingApprovalIds: ["a1"], viewing: true }),
+    null,
+    "seeing the approval clears it",
+  );
+  assert.equal(
+    step({ ...base, needsAttention: true, pendingApprovalIds: ["a1"] }),
+    null,
+    "the same approval stays seen",
+  );
   assert.equal(step(base), null);
-  assert.equal(step({ ...base, needsAttention: true }), "approval", "a new approval needs a new look");
+  assert.equal(
+    step({ ...base, needsAttention: true, pendingApprovalIds: ["a2"] }),
+    "approval",
+    "a new approval needs a new look",
+  );
+
+  // F5: a second approval arriving while the first is still pending and already seen
+  // must still re-glow the line - a single seen boolean could not tell a1 and a2 apart.
+  assert.equal(
+    step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"] }),
+    "approval",
+    "a3 pending",
+  );
+  assert.equal(
+    step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"], viewing: true }),
+    null,
+    "a3 seen",
+  );
+  assert.equal(
+    step({ ...base, needsAttention: true, pendingApprovalIds: ["a3", "a4"] }),
+    "approval",
+    "a4 arrives while a3 is still pending and already seen - must re-glow",
+  );
 }
 
 console.info("Command Center regression checks passed.");

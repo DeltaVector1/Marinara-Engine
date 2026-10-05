@@ -144,9 +144,10 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
 /**
  * Loading tier per asset, for the selected pack only (M16). 1: on screen at first paint (the Home
  * profile tab and the Home Mari widget's greet pose): started from `main.tsx` with the page at high
- * priority, then `fetchpriority="high"` on the `<img>`. 2: likely next (omnibar, Mari pane, top-bar
- * presence, the Home Mari header): prefetched once the app has loaded and is idle. The portraits stay
- * tier 2 because some packs' portraits weigh ~330 KB. 3: behind another step (onboarding, FAQ, the
+ * priority, then `fetchpriority="high"` on the `<img>`. 2: likely next (omnibar, Mari pane, the Home
+ * Mari header): prefetched once the app has loaded and is idle. (The top-bar presence line is CSS
+ * only, no image.) The portraits stay tier 2 because some packs' portraits weigh ~330 KB. 3: behind
+ * another step (onboarding, FAQ, the
  * chibi toast, the other stories, the pack chooser): lazy, only when that surface renders. The memory
  * wheel is CSS-only and loads with its surface.
  */

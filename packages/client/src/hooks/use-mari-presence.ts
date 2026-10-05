@@ -26,6 +26,8 @@ export interface MariPresence {
   /** She is blocked on the user: an approval is waiting. */
   needsAttention: boolean;
   pendingCount: number;
+  /** Ids of approvals waiting right now, so a newly arrived one can be told apart from one already seen. */
+  pendingApprovalIds: readonly string[];
   /** Newest workspace-history entry id, or null when she has no history. */
   latestHistoryId: string | null;
   /** The newest history entry failed. */
@@ -39,6 +41,7 @@ export function useMariPresence(): MariPresence {
     working: status.data?.active === true,
     needsAttention: pendingCount > 0,
     pendingCount,
+    pendingApprovalIds: status.data?.pendingApprovals.map((approval) => approval.id) ?? [],
     // getHistory() reverses after slicing, so the newest entry is first.
     latestHistoryId: status.data?.history[0]?.id ?? null,
     latestHistoryFailed: status.data?.history[0]?.status === "failed",
@@ -54,15 +57,23 @@ export function useMariEdgeGlow(): MariEdgeGlow {
   const [seen, setSeen] = useState(() => ({
     wasWorking: false,
     unseenRun: false,
-    approvalSeen: false,
+    seenApprovalIds: [] as readonly string[],
     seenHistoryId: readMariSeenHistoryId(),
   }));
+  const pendingApprovalIdsKey = presence.pendingApprovalIds.join(",");
 
   useEffect(() => {
     setSeen((prev) => nextMariEdgeSeen(prev, input));
     if (viewing && presence.latestHistoryId) rememberMariSeenHistoryId(presence.latestHistoryId);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- steps once per change of the inputs below
-  }, [presence.working, presence.needsAttention, presence.latestHistoryId, presence.latestHistoryFailed, viewing]);
+  }, [
+    presence.working,
+    presence.needsAttention,
+    pendingApprovalIdsKey,
+    presence.latestHistoryId,
+    presence.latestHistoryFailed,
+    viewing,
+  ]);
 
   return mariEnabled ? resolveMariEdgeGlow(seen, input) : null;
 }

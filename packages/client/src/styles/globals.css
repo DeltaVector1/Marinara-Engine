@@ -902,10 +902,12 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
    her state colour: a ~1.5px core with a short soft fade, fading out at both ends. Working wavers slowly; the
    other states hold still. Opening her pane clears it (P3). */
 .mari-topbar-edge-glow {
-  --mari-edge: oklch(0.78 0.08 158);
+  --mari-edge: oklch(0.72 0.14 155);
   position: absolute;
   inset-inline: 0;
-  bottom: -1px;
+  /* Inside the bar's own paint area (over its 1px border), not below it - a line
+     drawn below the bar is covered by whatever docks under it at narrow widths. */
+  bottom: 0;
   height: 1.5px;
   pointer-events: none;
   background: var(--mari-edge);
@@ -933,7 +935,9 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 }
 
 .mari-topbar-edge-glow[data-state="error"] {
-  --mari-edge: var(--destructive);
+  /* An explicit red, not --destructive - that token is pink in dark mode, too close
+     to the working state's pink/orange gradient to read as a distinct failure. */
+  --mari-edge: oklch(0.58 0.2 25);
   opacity: 0.55;
 }
 
@@ -1221,8 +1225,8 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
 }
 
 /* While she works, one soft glow in her logo colours turns behind her head, the same everywhere she
-   appears: the omnibar header, the Mari button in the omnibar's search bar, and her floating button. It sits
-   on the element around her portrait, because the portrait crops its tall sprite and would cut it into a box. */
+   appears: the omnibar header and the Mari button in the omnibar's search bar. It sits on the element
+   around her portrait, because the portrait crops its tall sprite and would cut it into a box. */
 [data-mari-glow] {
   position: relative;
   isolation: isolate;

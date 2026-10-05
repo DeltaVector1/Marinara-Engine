@@ -38,6 +38,7 @@ import { LocalMusicPlayer } from "../chat/LocalMusicPlayer";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { usePullToOpenOmnibar } from "../../hooks/use-pull-to-open-omnibar";
 import { useMariEdgeGlow } from "../../hooks/use-mari-presence";
+import type { MariEdgeGlow } from "../../lib/mari-presence-seen";
 import type { PullTarget } from "../../lib/pull-to-open";
 import { requestProfessorMariOpen } from "../../lib/professor-mari-open";
 import { OmnibarPullDrop } from "./OmnibarPullDrop";
@@ -51,6 +52,14 @@ import {
   PersonalExtensionContributionsMenu,
   PersonalExtensionTopbarButtons,
 } from "./PersonalExtensionContributionsMenu";
+
+// English source text for `localize()` - the lookup matches on the literal string, not the key.
+const MARI_EDGE_GLOW_LABEL: Record<Exclude<MariEdgeGlow, null>, string> = {
+  working: "Professor Mari is working",
+  finished: "Professor Mari finished",
+  approval: "Professor Mari needs your answer",
+  error: "Professor Mari's last run failed",
+};
 
 type RightPanelButtonPanel = "lorebooks" | "presets" | "connections" | "agents" | "personas";
 
@@ -456,6 +465,10 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
           className="mari-topbar-edge-glow"
         />
       ) : null}
+      {/* The line above is decorative - this is the only signal screen readers get for her state. */}
+      <span aria-live="polite" className="sr-only">
+        {mariEdgeGlow ? localize(MARI_EDGE_GLOW_LABEL[mariEdgeGlow]) : ""}
+      </span>
 
       {/* Left section: window controls + chat info */}
       <div className="mari-topbar-left flex min-w-0 flex-1 items-center gap-2">

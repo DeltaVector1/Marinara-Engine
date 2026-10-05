@@ -3707,8 +3707,10 @@ export class ProfessorMariWorkspaceService {
         throw err;
       }
     } finally {
-      if (this.abortController === controller) this.abortController = null;
-      if (this.abortController === controller) this.active = false;
+      if (this.abortController === controller) {
+        this.abortController = null;
+        this.active = false;
+      }
     }
   }
 

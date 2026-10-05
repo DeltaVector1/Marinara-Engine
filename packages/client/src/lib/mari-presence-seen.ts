@@ -33,14 +33,18 @@ export interface MariEdgeSeenState {
   wasWorking: boolean;
   /** A run ended while her window was not showing it. */
   unseenRun: boolean;
-  /** The pending approval was already shown in her window. */
-  approvalSeen: boolean;
+  /** Ids of pending approvals already shown in her window. Tracked per id (not a single
+   * boolean) so a second approval that arrives while an earlier one is still pending and
+   * already seen still re-glows the line. */
+  seenApprovalIds: readonly string[];
   seenHistoryId: string | null;
 }
 
 export interface MariEdgeInput {
   working: boolean;
   needsAttention: boolean;
+  /** Ids of approvals waiting right now. */
+  pendingApprovalIds: readonly string[];
   latestHistoryId: string | null;
   latestHistoryFailed: boolean;
   /** Her window (the omnibar Mari pane) is open and showing the result. */
@@ -50,29 +54,31 @@ export interface MariEdgeInput {
 /**
  * One step of the "has the user seen her result" state (P3). Viewing her window
  * clears everything; a run that ends while it is not shown becomes unseen; a new
- * approval needs a new look. The history-id marker also catches runs that start
- * and finish between two slow polls.
+ * approval needs a new look even if an earlier one is already seen. The history-id
+ * marker also catches runs that start and finish between two slow polls.
  */
 export function nextMariEdgeSeen(prev: MariEdgeSeenState, input: MariEdgeInput): MariEdgeSeenState {
   if (input.viewing) {
     return {
       wasWorking: input.working,
       unseenRun: false,
-      approvalSeen: input.needsAttention,
+      seenApprovalIds: input.pendingApprovalIds,
       seenHistoryId: input.latestHistoryId ?? prev.seenHistoryId,
     };
   }
   return {
     wasWorking: input.working,
     unseenRun: input.working ? false : prev.unseenRun || prev.wasWorking,
-    approvalSeen: input.needsAttention && prev.approvalSeen,
+    // Keep only ids still pending - a resolved approval leaves no trace to confuse a later one.
+    seenApprovalIds: prev.seenApprovalIds.filter((id) => input.pendingApprovalIds.includes(id)),
     seenHistoryId: prev.seenHistoryId,
   };
 }
 
 /** Resolve against the state AFTER `nextMariEdgeSeen` for the same input. */
 export function resolveMariEdgeGlow(seen: MariEdgeSeenState, input: MariEdgeInput): MariEdgeGlow {
-  if (input.needsAttention && !seen.approvalSeen) return "approval";
+  const hasUnseenApproval = input.pendingApprovalIds.some((id) => !seen.seenApprovalIds.includes(id));
+  if (input.needsAttention && hasUnseenApproval) return "approval";
   if (input.working) return "working";
   const historyUnseen = input.latestHistoryId !== null && input.latestHistoryId !== seen.seenHistoryId;
   if (historyUnseen && input.latestHistoryFailed) return "error";

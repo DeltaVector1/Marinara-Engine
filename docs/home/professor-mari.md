@@ -12,6 +12,8 @@ You talk to her in plain language. Type a message in the box, then press Enter t
 
 Sending your very first message to her unlocks the **Hello World** achievement.
 
+A thin line along the bottom of the app's top bar also shows her state from any screen: it wavers while she works, turns green when she finishes, gold while an approval waits, or red if the last run failed. It clears once you open her chat. (It is off while Mari is turned off in search settings.)
+
 ## Ask Mari from your current work
 
 Professor Mari is more than a question box. She can explain the app, help you get set up, and make things for you when you ask.

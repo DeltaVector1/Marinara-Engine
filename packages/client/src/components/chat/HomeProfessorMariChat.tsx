@@ -4961,6 +4961,12 @@ export function HomeProfessorMariChat({
       workspaceTextThrottle.cancel();
       pendingWorkspaceTextRef.current = "";
       setWorkspaceActive(true);
+      // The shared status query only refreshes on its own poll or on the
+      // end-of-run invalidation below - closing the omnibar within that
+      // window left the top-bar line with no "active" signal to start from.
+      qc.setQueryData(professorMariWorkspaceStatusKeys.all, (data: MariWorkspaceStatus | undefined) =>
+        data ? { ...data, active: true } : data,
+      );
       setWorkspaceTimeline([]);
       setMariChips(chat.id, []);
       useChatStore.getState().setAbortController(chat.id, controller);
