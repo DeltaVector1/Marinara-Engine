@@ -131,7 +131,7 @@ Ouvre les informations de commande de la réponse et choisis **Restore original 
 
 ## Echo Chamber
 
-**Echo Chamber** est un agent facultatif qui ajoute un public en direct réagissant à ta scène. Il fonctionne comme un chat de streaming qui publie une nouvelle réaction à intervalle régulier. Active-le dans la section **Chat Settings**, sous **Agents**, sur la carte **Echo Chamber**. Sur ordinateur, fais glisser la barre de titre pour déplacer la fenêtre, tire sur un bord pour la redimensionner ou épingle-la pour la garder ouverte. **X** la réduit à un bouton déplaçable. Sur téléphone, Echo garde une vue compacte au-dessus des messages ; **X** la réduit aussi à un bouton déplaçable. Echo utilise ton **Chat widget style** dans **Settings → Appearance → App**, et chaque chat mémorise sa disposition.
+**Echo Chamber** est un agent facultatif qui ajoute un public en direct réagissant à ta scène. Il fonctionne comme un chat de streaming qui publie une nouvelle réaction à intervalle régulier. Active-le dans la section **Chat Settings**, sous **Agents**, sur la carte **Echo Chamber**. Sur ordinateur, fais glisser la barre de titre pour déplacer la fenêtre, tire sur un bord pour la redimensionner ou épingle-la pour la garder ouverte. **X** la réduit à un bouton déplaçable. Sur téléphone, Echo démarre dans une fenêtre compacte au-dessus des messages. Fais glisser sa barre de titre pour la déplacer, ou un bord ou un coin pour la redimensionner. Épingle-la pour la garder ouverte quand tu appuies ailleurs, ou verrouille-la pour éviter de la déplacer par accident. **X** la réduit aussi à un bouton déplaçable. Echo utilise ton **Chat widget style** dans **Settings → Appearance → App**, et chaque chat mémorise sa disposition.
 
 ## Choix CYOA
 

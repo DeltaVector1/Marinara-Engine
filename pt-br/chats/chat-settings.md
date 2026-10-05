@@ -14,7 +14,7 @@ Na primeira vez que você entrar em um chat após esta atualização, um vídeo 
 
 Chat Settings abre automaticamente ao criar um chat. Para fechar, clique no **X** ou no botão de controles deslizantes novamente.
 
-Os chats anteriores a esta atualização mantêm seus ícones de ferramentas como botões móveis. Ao atualizar uma instalação existente, essa disposição conhecida também vira o layout favorito para novos chats em cada modo, a menos que você já tenha escolhido um. Abra uma ferramenta pelo botão e escolha **Put back in Chat Settings** se preferir guardá-la dentro de Chat Settings. No computador, os trackers de Roleplay ficam juntos na janela **Trackers**. Os layouts já salvos ficam como você os deixou.
+Os chats anteriores a esta atualização mantêm suas ferramentas habituais fora de Chat Settings: como botões móveis no computador ou no menu de três pontos **Chat tools** (ferramentas do chat) no celular. Ao atualizar uma instalação existente, essa disposição conhecida também vira o layout favorito para novos chats em cada modo, a menos que você já tenha escolhido um. Abra uma ferramenta e escolha **Put back in Chat Settings** se preferir guardá-la dentro de Chat Settings. No computador, os trackers de Roleplay ficam juntos na janela **Trackers**. As posições de janelas e botões já salvas são preservadas.
 
 Você pode arrastar o botão de controles deslizantes para um lugar conveniente. Ele se alinha aos botões próximos enquanto você arrasta; no computador, segure Alt para posicioná-lo livremente. Cada chat lembra a posição. Um pontinho no botão indica que os agentes estão trabalhando.
 
@@ -24,9 +24,13 @@ No computador, clique no **X** ao lado das dicas de layout (**Hide these tips fo
 
 ## Mudar a aparência das janelas do chat
 
-Abra **Settings > Appearance > App** e procure **Chat widget style**, no fim de **App Style**. **Default** mantém o visual habitual do Marinara. **Dottore** acrescenta detalhes cianos, letras de estilo técnico e cantos recortados; **Mari** usa rosa e dourado, letras de conto de fadas e molduras arqueadas. Ambos se adaptam aos modos claro e escuro e mudam o visual dos botões móveis, das janelas e das seções expansíveis nos três modos de chat.
+Abra **Settings > Appearance > App** (Configurações > Aparência > Aplicativo) e procure **Chat widget style** (estilo dos widgets do chat), no fim de **App Style**. **Default** mantém o visual habitual do Marinara. **Dottore** combina azuis gelados e metal claro com letras de estilo técnico e cantos recortados; **Mari** combina azuis de pedras preciosas e dourado quente com letras de conto de fadas e molduras arqueadas. Ambos se adaptam aos modos claro e escuro e mudam o visual dos botões móveis, das janelas e das seções expansíveis nos três modos de chat.
 
-Use **Font** ou **Shape**, abaixo dos presets, para combinar outras opções. As fontes instaladas no Marinara também aparecem na lista. Escolher um preset novamente redefine essas duas escolhas; **Default** restaura a aparência habitual. Essas escolhas não movem as janelas nem alteram os layouts salvos. Elas ficam nas preferências do aplicativo e sincronizam com os navegadores conectados ao mesmo servidor.
+Use **Font** (fonte), **Shape** (forma) e os três seletores de cor abaixo dos presets para combinar outras opções. As fontes instaladas no Marinara também aparecem na lista. Escolher um preset novamente redefine a fonte, a forma e as cores personalizadas. Essas escolhas não movem as janelas nem alteram os layouts salvos. Elas ficam nas preferências do aplicativo e sincronizam com os navegadores conectados ao mesmo servidor.
+
+**Button size (px)** (tamanho do botão em pixels) muda os botões móveis do chat e seus ícones sem alterar Display Size. Digite um tamanho de 32 a 96 pixels. Deixe o campo vazio ou use o botão de redefinir para manter o padrão atual. O tamanho fica salvo nas preferências de aparência e se mantém quando você escolhe outro preset.
+
+Para combinar o restante do chat, ative **Apply preset font** (aplicar fonte do preset) ou **Apply preset shape** (aplicar forma do preset). Você também pode ativar **Apply preset colors** (aplicar cores do preset). Cada botão liga/desliga funciona de forma independente e inclui suas escolhas personalizadas acima. Eles se aplicam às mensagens, aos campos de entrada e aos controles do chat; as mensagens de Conversation usam a fonte e as cores opcionais, mas mantêm sua própria forma. Os três começam desativados. Desative um deles para devolver essa parte do chat ao estilo habitual. Veja [Temas de CSS personalizados](../appearance/custom-css-themes.md#ready-made-chat-window-styles) para mais detalhes.
 
 ## Mover, fixar e travar a janela
 
@@ -65,9 +69,19 @@ No computador, você também pode arrastar o título da seção para fora de Cha
 - **Put back in Chat Settings** (a seta curva ao lado do **X**) devolve a seção a Chat Settings. Você também pode arrastar a janela dela sobre Chat Settings.
 - Uma seção não fixada se reduz ao botão ao clicar fora ou pressionar Escape, exceto enquanto você digita em um campo de texto ou usa um menu aberto.
 
-No celular, destacar uma seção fecha Chat Settings e adiciona um botão móvel ao chat. Toque nele para abrir a seção como painel. Feche o painel para voltar ao botão, ou toque em **Put back in Chat Settings** para devolver a seção.
+No celular, destacar uma seção fecha Chat Settings e a adiciona ao menu de três pontos **Chat tools**. Toque nos pontos e depois no botão redondo com o ícone da seção para abrir o painel. Feche o painel para usar o menu novamente ou toque em **Put back in Chat Settings** para devolver a seção.
 
 Os trackers podem sair da janela Trackers da mesma maneira. O botão de retorno deles se chama **Put back in Trackers**.
+
+<a id="the-phones-chat-tools-menu"></a>
+
+## O menu Chat tools do celular
+
+O botão móvel de três pontos reúne as ferramentas que você retirou de Chat Settings. Toque nele para abrir uma coluna de botões redondos com ícones e depois toque em uma ferramenta para abri-la. Toque nos pontos novamente para recolher os botões. Os botões dos trackers, o botão do mapa de Game e Character Profiles continuam separados para você acessá-los diretamente.
+
+Arraste o botão de três pontos para mover o menu inteiro. Abra o menu e use o cadeado no topo para mantê-lo no lugar. Enquanto estiver destravado, arraste um botão de ferramenta para cima ou para baixo para mudar sua posição na coluna. Com um teclado, dê foco ao botão e use a seta para cima ou para baixo. Travar o menu impede tanto mover quanto reordenar; você ainda pode abrir as ferramentas.
+
+Cada chat salva a posição, a trava e a ordem do menu. Os layouts favoritos e os perfis de configurações também incluem essas informações. O menu segue o estilo dos widgets do chat, assim como as janelas que abre.
 
 <a id="control-windows-and-their-buttons"></a>
 
@@ -75,15 +89,15 @@ Os trackers podem sair da janela Trackers da mesma maneira. O botão de retorno 
 
 Algumas ferramentas abrem pequenas janelas próprias: **Game controls**, **Session**, **Volume** e **Game Assets** de um jogo; **Connected chat**; e os controles adicionados por pacotes instalados.
 
-Esses botões começam perto do canto superior direito do chat. Clique ou toque em um para abrir a janela. Fechar a janela traz o botão de volta. No celular, a janela abre como um painel de largura total.
+No computador, esses botões começam perto do canto superior direito do chat. Clique em um para abrir a janela; fechar a janela traz o botão de volta. No celular, encontre essas ferramentas no menu de três pontos **Chat tools**. Elas abrem como painéis de largura total.
 
-Para guardar uma dessas ferramentas dentro de Chat Settings, abra a janela e escolha **Put back in Chat Settings**. Ela vira uma seção expansível. Use o botão para destacar a seção e abrir uma janela própria novamente, ou arraste o título para fora no computador. **Reset View** devolve essas ferramentas aos botões iniciais.
+Para guardar uma dessas ferramentas dentro de Chat Settings, abra a janela e escolha **Put back in Chat Settings**. Ela vira uma seção expansível. Use o botão para destacar a seção e abrir uma janela própria novamente, ou arraste o título para fora no computador. **Reset View** restaura a disposição inicial: botões separados no computador ou itens no Chat tools no celular.
 
-Arraste um botão para movê-lo. Os botões próximos se alinham durante o arraste; no computador, segure Alt para posicioná-lo livremente ou use as setas enquanto o botão está com foco. **Calls** de Conversation continua sendo um botão comum.
+No computador, arraste um botão para movê-lo. Os botões próximos se alinham durante o arraste; segure Alt para posicioná-lo livremente ou use as setas enquanto o botão está com foco. **Calls** de Conversation continua sendo um botão comum. Em Game, **Character Profiles** (perfis de personagens) tem seu próprio botão móvel tanto no computador quanto no celular. O botão **Map** (mapa) do celular também é separado e pode ser movido. Abra qualquer um desses controles e use o cadeado para impedir que a janela e o botão se movam; cada jogo lembra onde você os colocou.
 
 ## Cada chat guarda seu próprio layout de janelas
 
-Cada chat lembra os tamanhos e as posições das janelas, as fixações e as travas, as seções destacadas e as posições dos botões. As posições dos botões do celular são salvas separadamente das do computador. Trocar de chat restaura o layout daquele chat.
+Cada chat lembra os tamanhos e as posições das janelas, as fixações e as travas, as seções destacadas e as posições dos botões. As posições do celular e a ordem e a trava do menu Chat tools são salvas separadamente das posições do computador. Trocar de chat restaura o layout daquele chat.
 
 Um [perfil de configurações](#settings-profiles) pode salvar o layout para outros chats. **Reset View** restaura o layout inicial do chat atual.
 

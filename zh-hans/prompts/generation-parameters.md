@@ -97,7 +97,7 @@
 
 **Custom Parameters**(自定义参数) 用来添加 Marinara 没有单独做成输入框的原始设置。你输入一个 JSON 对象，Marinara 会把它合并进发给服务商的请求。
 
-作为连接默认值保存的 Custom Parameters，会跟着这个连接用在所有走 API 的文本生成上，包括 Conversation、Roleplay、Game、Noodle、摘要和智能体。跑在自己电脑上的自定义端点同样如此。按聊天设置的 Custom Parameters 只作用于那个聊天，并且会覆盖连接层同名的键。
+作为连接默认值保存的 Custom Parameters，会跟着这个连接用在所有走 API 的文本生成上，包括 Conversation、Roleplay、Game、Noodle、摘要、智能体和已安装的智能体资源包。跑在自己电脑上的自定义端点同样如此。按聊天设置的 Custom Parameters 只作用于那个聊天，并且会覆盖连接层同名的键。
 
 这是个高级选项。键写错会让服务商直接拒绝整个请求。对象里必须用小写的 `true`、`false` 和 `null`。除非某家服务商的文档明确要求加某个键，否则留空。
 
@@ -150,6 +150,20 @@
 参数旁的 **Effective**(有效值) 一行显示保存的值和优先采用的设置层，包括模式规则和输出上限。连接编辑器会以当前打开且使用该连接的聊天为准；没有打开聊天时，使用 Roleplay 的基线。保存修改后，显示值才会更新。关闭 Send 开关时会显示 **not sent**，但提供商仍可能强制要求某些参数，或调整不支持的值。Custom Parameters 和上下文适配还可能进一步改变最终请求。
 
 例如，预设为 `8192`，当前聊天为 `16384`，就会显示 **Effective: 16384 · this chat**。如果连接的输出上限为 `4096`，显示会变成 **Effective: 4096 · output token cap**。重置聊天参数会恢复下一层适用的设置，不会移除预设或模式规则。
+
+<a id="parameters-for-agents"></a>
+
+## 智能体参数
+
+智能体调用使用其运行连接上保存的 **Default Parameters**：有专用连接时使用智能体的连接，否则使用聊天的连接。Marinara 按照与聊天回复相同的规则应用这些值，包括 Send 开关和下文的模型限制。除了下面的温度规则，预设和聊天的 **Advanced Parameters** 不会改变智能体调用。
+
+- **发送给智能体的设置**：Temperature、Top P、Top K、Frequency、Presence、Reasoning Effort、Verbosity、OpenRouter Service Tier、Custom Parameters、自定义请求头，以及依次打开 **Settings**(设置)、**Advanced**(高级)、**Parameters** 后添加的额外参数（例如 Top A 或种子）。Send 开关关闭的参数不会发送。
+- **不发送给智能体的设置**：Max Output Tokens、停止序列、预填文本、Thinking Tags 和其他提示词格式设置。每个智能体保留自己的 **Max Output Tokens**。
+- **Temperature**：智能体使用连接的温度；没有保存值时使用 `0.7`。Beholder 始终使用 `0`，Illustrator 的提示词编写器使用自己的值。生成聊天回复时，与聊天共用连接的智能体仍沿用聊天最终确定的温度和 Send 开关，但连接上关闭的参数依然不会发送。重试使用连接保存的值和 Send 开关，而不是聊天的设置。
+- **Reasoning Effort**：选择的级别或 **Off**(关闭)，会应用到该连接上所有使用支持 Reasoning Effort 模型的智能体。开启 **Use custom defaults for this connection**(为此连接使用自定义默认值) 后，大多数连接的 Reasoning Effort 初始为 **Maximum**（Codex 为 **Default**(默认)），因此该连接上的智能体会以模型的最高级别思考，速度更慢，费用也更高。如果希望智能体少思考一些，选择较低级别，或关闭它的 Send 开关。没有保存级别时（自定义默认值关闭，或 Codex 连接选择了 **Default**），以 JSON 作答的智能体会请求关闭思考，其他智能体则保留模型的默认行为。
+- **思考余量**：当连接为模型保存了 Reasoning Effort 时，Marinara 会在智能体的 **Max Output Tokens** 之上增加思考余量，避免答案被截断。这部分余量不会超出连接的输出上限、模型限制，以及放入提示词后剩余的上下文空间。即使不发送该级别，自定义端点也会获得这部分余量，因为本地模型可能自行思考。
+
+已安装的智能体资源包遵循同样的连接值。连接保存并发送的值会替代资源包请求的值；连接未设置的项目则保留资源包自己的设置。连接上关闭了 Send 开关的 **Reasoning Effort** 或 **Max Output Tokens** 即使被资源包请求，也不会发送。Temperature 和 Verbosity 的 Send 开关初始都是关闭的，因此这两项会保留资源包自己的值。资源包保留自己的输出预算；连接的 Reasoning Effort 生效时，还会增加思考余量。
 
 ## 有些模型会忽略部分参数
 

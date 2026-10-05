@@ -213,7 +213,7 @@ Quando alguém adicionar o seu agente a um chat, aparece um menu suspenso **Prom
 
 Os agentes personalizados compartilham algumas configurações com os agentes prontos:
 
-- **Connection Override**: escolhe uma conexão de IA diferente para este agente. Por exemplo, use um modelo mais barato para o trabalho de bastidor. Deixe vazio para usar a conexão do chat.
+- **Connection Override**: escolhe uma conexão de IA diferente para este agente. Por exemplo, use um modelo mais barato para o trabalho de bastidor. Deixe vazio para usar a conexão do chat. O agente envia os parâmetros de geração salvos nessa conexão; veja [Parâmetros para agentes](../prompts/generation-parameters.md#parameters-for-agents).
 - **Agent Budget**: define **Context Size** (quantas mensagens recentes o agente lê; o padrão é 5). Define também **Max Output Tokens** (o espaço de saída reservado; o padrão é 4096, de 128 a 32768).
 - **Add as Prompt Section**: ative para expor a última saída do agente como uma seção que você pode inserir em um preset de prompt.
 

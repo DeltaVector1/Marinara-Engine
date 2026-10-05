@@ -213,7 +213,7 @@ Quand quelqu'un ajoute ton agent à un chat, un menu déroulant **Prompt Mode** 
 
 Les agents personnalisés partagent certains réglages avec les agents intégrés :
 
-- **Connection Override** (connexion de remplacement) : choisis une autre connexion IA pour cet agent. Par exemple, un modèle moins cher pour le travail de fond. Laisse le champ vide pour utiliser la connexion du chat.
+- **Connection Override** (connexion de remplacement) : choisis une autre connexion IA pour cet agent. Par exemple, un modèle moins cher pour le travail de fond. Laisse le champ vide pour utiliser la connexion du chat. L'agent envoie les paramètres de génération enregistrés sur cette connexion ; voir [Paramètres des agents](../prompts/generation-parameters.md#parameters-for-agents).
 - **Agent Budget** (budget de l'agent) : règle **Context Size** (combien de messages récents l'agent lit, 5 par défaut). Règle aussi **Max Output Tokens** (la place réservée à la sortie, 4096 par défaut, de 128 à 32768).
 - **Add as Prompt Section** : active ce réglage pour exposer la dernière sortie de l'agent sous forme de section insérable dans un preset de prompt.
 

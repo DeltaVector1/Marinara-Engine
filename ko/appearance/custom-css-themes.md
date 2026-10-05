@@ -2,9 +2,11 @@
 
 이 가이드에서는 사용자 지정 CSS 테마로 Marinara Engine의 전체 모양을 바꾸는 방법을 설명합니다. 테마를 만들고 가져오고 내보내고 적용하는 방법을 알 수 있습니다. 바꿀 수 있는 CSS 변수와 테마가 Card CSS와 어떻게 함께 동작하는지도 함께 다룹니다.
 
+<a id="ready-made-chat-window-styles"></a>
+
 ## 바로 쓸 수 있는 채팅 창 스타일
 
-CSS 없이 모양을 빠르게 바꾸려면 **Settings → Appearance → App**(설정 → 모양 → 앱)을 열고 **App Style** 아래쪽의 **Chat widget style**(채팅 위젯 스타일)을 찾으세요. **Dottore**는 시안색 계기판 같은 프레임과 잘린 모서리를 사용합니다. **Mari**는 분홍색과 금색 프레임을 사용하고 창 제목에 Primogem을 표시합니다. 버튼 배경은 창 배경과 같습니다. 각 프리셋은 고유한 글꼴이 있으며 라이트 모드와 다크 모드에 맞춰 버튼, 창, 펼치는 섹션을 함께 꾸밉니다.
+CSS 없이 모양을 빠르게 바꾸려면 **Settings > Appearance > App**(설정 > 모양 > 앱)을 열고 **App Style**(앱 스타일) 아래쪽의 **Chat widget style**(채팅 위젯 스타일)을 찾으세요. **Dottore**는 얼음빛 파란색 계기판 같은 프레임, 옅은 금속색 테두리와 잘린 모서리를 사용합니다. **Mari**는 금색 테두리의 이야기책 같은 프레임과 보석 같은 파란색을 사용하고 창 제목에 Primogem을 표시합니다. 버튼 배경은 창 배경과 같습니다. 각 프리셋은 고유한 글꼴이 있으며 라이트 모드와 다크 모드에 맞춰 버튼, 창, 펼치는 섹션을 함께 꾸밉니다.
 
 **Font**(글꼴)와 **Shape**(모양)로 각각을 바꿀 수 있습니다. **Preset font**와 **Preset shape**는 선택한 스타일의 글꼴과 모양을 사용합니다.
 
@@ -17,6 +19,14 @@ CSS 없이 모양을 빠르게 바꾸려면 **Settings → Appearance → App**(
 이 색상 설정은 장식 문양의 원래 색을 바꾸지 않습니다.
 
 색상 옆의 **Reset color**(색상 초기화)를 누르면 다시 프리셋의 라이트 모드나 다크 모드 색상을 따릅니다. 프리셋을 선택하면 **Font**, **Shape**, 세 가지 색상이 모두 초기화됩니다. **Default**는 기본 모양으로 돌아갑니다. 배치한 창 위치는 그대로 유지됩니다.
+
+채팅의 나머지 영역에도 같은 모양을 적용하려면 색상 선택기 아래의 스위치 세 개를 사용하세요.
+
+- **Apply preset font**(프리셋 글꼴 적용)는 선택한 위젯 글꼴을 메시지, 입력란과 채팅 컨트롤에 적용합니다. Game Mode의 HUD 위젯, 지도 패널, 부가 발언과 캐릭터 시트도 포함합니다.
+- **Apply preset shape**(프리셋 모양 적용)는 선택한 프레임 모양을 클래식 및 비주얼 노벨 레이아웃의 Roleplay 메시지, Game 대화 상자, 부가 발언, HUD 위젯, 지도 패널, 캐릭터 시트, 입력란과 컨트롤에 적용합니다. Conversation 메시지는 원래 모양을 유지합니다.
+- **Apply preset colors**(프리셋 색상 적용)는 위젯의 테두리, 배경과 글자 색상을 해당 영역에 적용합니다. Conversation 메시지도 포함하며, 사용자 지정 색상과 그라데이션도 적용됩니다.
+
+각 스위치는 처음에는 꺼져 있으며 독립적으로 동작합니다. 예를 들어 채팅의 원래 색상을 유지하면서 Mari 글꼴을 사용할 수 있습니다. 스위치를 끄면 해당 부분이 원래 채팅 스타일로 돌아갑니다. 다른 프리셋을 선택해도 스위치 선택은 유지됩니다. Professor Mari에게 이 영역의 사용자 지정 테마를 만들게 할 수도 있습니다.
 
 사용자 지정 CSS 테마로도 이 프리셋을 덮어쓸 수 있습니다. 아래의 공개 창 및 드로어 변수는 프리셋 색상보다 우선합니다. 창 글꼴에는 `--mari-window-font-family`, 섹션 모서리에는 `--mari-drawer-radius`를 사용하세요. 제목 장식을 숨기려면 `--mari-window-ornament: none`을 사용하세요. 프리셋 장식을 전부 없애려면 먼저 **Default**를 선택하세요.
 
@@ -114,7 +124,7 @@ CSS 없이 모양을 빠르게 바꾸려면 **Settings → Appearance → App**(
 
 컴퓨터에서 **Chat Settings**(채팅 설정)는 이동 가능한 창으로 열립니다. 펼치고 접는 섹션을 **드로어**라고 합니다. 드로어를 별도 창으로 꺼낸 뒤 작은 이동 버튼으로 최소화할 수 있습니다. 이 버튼을 **버블**이라고 합니다.
 
-Game controls, Session, Volume, Game Assets, 연결된 채팅, 패키지 컨트롤도 같은 창과 버튼을 사용합니다. 휴대폰에서는 창이 화면 너비의 패널로 열리며 Tracker Panel에도 전용 이동 버튼이 있습니다.
+Game controls, Session, Volume, Game Assets, 연결된 채팅과 패키지 컨트롤 등 다른 채팅 도구도 이 창과 버튼을 사용합니다. 휴대폰에서는 대부분의 창이 화면 너비의 패널로 열립니다. Echo Chamber는 이동과 크기 조절이 가능한 작은 창으로 유지됩니다. Chat Settings에서 꺼낸 도구는 이동 가능한 점 세 개짜리 **Chat tools**(채팅 도구) 메뉴에 모이며, 트래커 버튼은 별도로 유지됩니다.
 
 아래의 클래스, 데이터 속성, 변수로 이 요소를 함께 꾸밀 수 있습니다. 테마의 규칙은 `!important` 없이 기본값을 덮어씁니다.
 
@@ -203,6 +213,46 @@ Game controls, Session, Volume, Game Assets, 연결된 채팅, 패키지 컨트�
   --mari-drawer-border: transparent;
 }
 ```
+
+<a id="styling-messages-input-boxes-and-chat-controls"></a>
+
+## 메시지, 입력란과 채팅 컨트롤 꾸미기
+
+세 가지 **Apply preset** 스위치를 사용하면 사용자 지정 테마에서도 채팅의 나머지 영역에 위젯 디자인을 적용할 수 있습니다. 아래 변수로 각 부분을 덮어쓸 수 있습니다. 직접 CSS를 작성하고 싶지 않다면 Professor Mari에게 어울리는 채팅 테마를 요청하세요.
+
+| 부분 | 클래스 |
+| --- | --- |
+| Roleplay와 Game 메시지 상자, Game 부가 발언, HUD 위젯, 지도 패널, 캐릭터 시트와 채팅 입력란 | `.mari-chat-style-surface` |
+| Conversation 메시지(글꼴과 색상만 적용) | `.mari-chat-style-conversation` |
+| 상자 없는 Conversation 메시지 텍스트 | `.mari-chat-style-text` |
+| Calls와 Conversation 그룹 컨트롤을 포함한 채팅 컨트롤 | `.mari-chat-style-control` |
+
+| 변수 | 제어 대상 |
+| --- | --- |
+| `--mari-chat-font-family` | 해당 채팅 영역의 글꼴 |
+| `--mari-chat-bg` | 상자 배경. 단색이나 그라데이션을 사용할 수 있습니다 |
+| `--mari-chat-text` | 읽기 쉬운 단색 글자 색상 |
+| `--mari-chat-border` | 상자 윤곽선. 단색이나 그라데이션을 사용할 수 있습니다 |
+| `--mari-chat-border-color` | 단색 테두리 폴백 |
+| `--mari-chat-radius` | Conversation 메시지를 제외한 상자의 모서리 둥글기 |
+| `--mari-chat-control-bg`, `--mari-chat-control-bg-hover` | 채팅 버튼 배경 |
+| `--mari-chat-control-color`, `--mari-chat-control-radius` | 채팅 버튼 아이콘 색상과 모서리 둥글기 |
+| `--mari-chat-input-bg` | 편집 필드 안쪽 배경 |
+
+예를 들어 **Apply preset font**와 **Apply preset colors**를 켠 상태에서는 다음과 같이 설정할 수 있습니다.
+
+```css
+:root {
+  --mari-chat-font-family: Georgia, serif;
+  --mari-chat-bg: #251e29;
+  --mari-chat-text: #f4e8dc;
+  --mari-chat-border: linear-gradient(100deg, #d6aa66, #dda0b2);
+}
+```
+
+설정하지 않은 변수는 위젯 설정과 프리셋을 따릅니다. 내장 스타일을 통해 이 변수를 적용하려면 해당 스위치가 켜져 있어야 합니다. **Apply preset shape**가 켜져 있어도 Conversation 메시지는 원래 모양을 유지합니다. 사용자 지정 테마에서 클래스를 직접 지정할 수도 있습니다. 장식 때문에 영역을 잘라 내더라도 포커스 윤곽선, 메뉴와 메시지 내용은 잘리지 않게 하세요.
+
+휴대폰에서 점 세 개 메뉴를 열면 둥근 버튼들이 펼쳐집니다. 여닫는 버튼은 `[data-chat-tools-menu-button]`, 펼쳐진 버튼 열은 `[data-chat-tools-menu]`이며, 각 목록 항목의 `data-chat-tools-menu-item`에는 해당 창 ID가 설정됩니다. 도구 버튼은 `.mari-window-bubble.mari-chat-tools-button`을 사용하며 `data-chat-tools-menu-tool`에도 같은 ID가 설정됩니다. 버튼 열에는 창 프레임이 없습니다. 버튼은 둥근 모양을 유지하면서 위젯 색상과 버튼 크기를 따르며, 채팅의 나머지 영역에 적용하는 세 스위치와는 독립적으로 동작합니다.
 
 ## 크기와 이름 제한
 
