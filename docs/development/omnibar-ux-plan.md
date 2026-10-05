@@ -94,6 +94,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 55  | Review of 52-54 (P6)                                            | reviewer, worker | Done                 | 6e7d8f590 |
 | 56  | Professor Mari header: no duplicate ⋮ items, Chats next to + (Q1) | designer         | Done                 | 907fa3bd5 |
 | 57  | Omnibar settings redesign, Mari settings move here, packs grid (Q2) | designer      | Done                 | 05b88f313 |
+| 57b | Chats · + to the right of the header; chat-card visual audit (Q5) | designer       | Pending              |           |
 | 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Pending              |           |
 | 59  | Review of 56-58 (Q4)                                            | reviewer         | Pending              |           |
 
@@ -1106,6 +1107,13 @@ Follow `mari-ui-subtle-effects`: glows are low, faint and soft; nothing loud. Sc
   Group the page in clear sections (Search, Quick answers, Professor Mari, Appearance) in the Home/omnibar style,
   not a long list. The appearance packs become a GRID of cards (pack profile pose, name, one line), selected
   state clear, keyboard and screen-reader friendly, lazy previews (38c tiers).
+- Q5 (slice 57b) Maintainer feedback after Q1/Q2 landed, 2026-10-05. (a) Move the "Chats · +" group from slice 56
+  to the RIGHT side of the Professor Mari header row, next to settings/close — not the left. (b) Look again at the
+  chat cards: screenshot every card type in Mari's chat at 390/1440, dark and light, in a real conversation —
+  reference cards (characters, agents, chats, lorebook entries, settings), the outcome group, the next-step cards,
+  the arrival cards, and the cards in her Chats panel. Judge them against the North star and the mari-v4 mockup:
+  size, density, alignment, consistent anatomy (icon/portrait · name · one fact · action), no visual noise. Fix
+  what is off. Before/after screenshots in the slice's scratch folder.
 - Q3 (slice 58) De-slop every user-facing text of and in the omnibar and Professor Mari. Use the deslop skill in
   `.tmp/deslop/repo/` (SKILL.md plus references/phrases.md, tropes.md, structures.md) together with the
   better-writing rules: short, direct, plain words, no filler, no false agency, no cute padding, consistent names
@@ -1113,5 +1121,9 @@ Follow `mari-ui-subtle-effects`: glows are low, faint and soft; nothing loud. Sc
   pull, the arrival lines/cards, the omnibar settings, toasts and empty states from these surfaces, and the
   CHANGELOG lines of rounds 1-8 if they read as slop. Keep the meaning and the keys; edit English only (community
   locales fall back). Do not change model prompts or user content. Produce a before/after list in the plan. Run
-  `heavy pnpm localization:check`.
-- Q4 (slice 59) Review of 56-58, then a worker fixes the confirmed findings.
+  `heavy pnpm localization:check`. Maintainer feedback, 2026-10-05: rename "What Mari sees" to "Aware of"
+  everywhere (the facet-chip header, e.g. "Aware of · Zylo's chat · Description field") — tooltips,
+  screen-reader text, the omnibar settings, docs and the inventory; semantic en.json keys, remove the old ones.
+  This slice also owns the naming conflict slice 57 flagged ("omnibar" vs "search" in new UI copy) — pick one
+  name and apply it consistently in anything this slice touches.
+- Q4 (slice 59) Review of 56-58 and 57b, then a worker fixes the confirmed findings.
