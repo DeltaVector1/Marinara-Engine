@@ -10,7 +10,7 @@ A seção **Backgrounds** tem três partes:
 
 1. O seletor **Chat Background** (plano de fundo do chat), onde você escolhe a imagem do chat aberto no momento.
 2. O controle deslizante **Background Blur** (desfoque do plano de fundo).
-3. A biblioteca de planos de fundo, onde você importa, organiza, filtra, marca com tags, renomeia e exclui imagens.
+3. A biblioteca de planos de fundo, onde você importa, organiza, filtra, marca com tags, renomeia, baixa e exclui imagens.
 
 O plano de fundo do chat só aparece nos chats de Roleplay e Game Mode. O Conversation Mode usa um gradiente, definido na seção **Conversation Theme**. Isso está explicado em [Configurações de aparência](appearance-settings.md).
 
@@ -74,6 +74,12 @@ As tags ajudam a agrupar e a buscar as imagens que você enviou. Só é possíve
 2. Digite uma tag no campo **Add tag...**. Conforme você digita, Marinara sugere tags já usadas antes.
 3. Pressione Enter ou clique em **Add**.
 4. Para tirar uma tag, clique no X pequeno na etiqueta dela.
+
+<a id="download-a-background"></a>
+
+### Baixar um plano de fundo
+
+Você pode baixar qualquer plano de fundo, inclusive os que já vêm com Marinara. Passe o mouse sobre a linha da imagem e clique no ícone de download (**Download background**). A imagem é salva com o próprio nome de arquivo. No iPhone ou iPad, a folha de compartilhamento se abre para você salvar a imagem; se ela não abrir, toque em **Save file** (salvar arquivo) na mensagem que aparece.
 
 ### Excluir um plano de fundo
 

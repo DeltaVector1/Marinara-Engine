@@ -708,6 +708,8 @@
   "ui.modes.conversationShort": "UNT",
   "ui.modes.gameMasterShort": "GM",
   "ui.modes.roleplayShort": "RP",
+  "ui.panels.backgroundpicker.downloadBackground": "Hintergrund herunterladen",
+  "ui.panels.backgroundpicker.downloadValue1": "{{value1}} herunterladen",
   "ui.panels.trackerpanelappearancedrawer.inATrackerWindow": "Tracker erscheinen stattdessen in einem verschiebbaren Fenster",
   "window.bubble.hint": "Klick, um {{title}} zu öffnen, oder zieh, um diese Schaltfläche zu verschieben.",
   "window.bubble.label": "{{title}} öffnen",

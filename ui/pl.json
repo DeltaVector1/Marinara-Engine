@@ -764,6 +764,8 @@
   "ui.modes.conversationShort": "ROZM.",
   "ui.modes.gameMasterShort": "MG",
   "ui.modes.roleplayShort": "RP",
+  "ui.panels.backgroundpicker.downloadBackground": "Pobierz tło",
+  "ui.panels.backgroundpicker.downloadValue1": "Pobierz {{value1}}",
   "ui.panels.trackerpanelappearancedrawer.inATrackerWindow": "Trackery pojawiają się zamiast tego w ruchomym oknie",
   "ui.ui.generationparametersfields.thinking": "{{value1}}thinking{{value2}}",
   "window.bubble.hint": "Kliknij, żeby otworzyć {{title}}, lub przeciągnij, żeby przesunąć przycisk.",

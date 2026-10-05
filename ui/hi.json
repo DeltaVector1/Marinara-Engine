@@ -319,6 +319,8 @@
   "ui.faq.chatSettings.phone": "फ़ोन पर यही बटन अपनी विंडो पूरी चौड़ाई वाले पैनल में खोलते हैं।",
   "ui.faq.chatSettings.popOut": "सेक्शन को अपनी विंडो देने के लिए उसका अलग विंडो में खोलें बटन दबाएँ। विंडो बंद करने पर वह बटन में सिमट जाती है; वापस रखें से वह चैट सेटिंग्स में लौटती है।",
   "ui.faq.chatSettings.question": "चैट सेटिंग्स, गैलरी और सक्रिय कॉन्टेक्स्ट कहाँ गए?",
+  "ui.panels.backgroundpicker.downloadBackground": "बैकग्राउंड डाउनलोड करें",
+  "ui.panels.backgroundpicker.downloadValue1": "{{value1}} डाउनलोड करें",
   "ui.panels.trackerpanelappearancedrawer.inATrackerWindow": "ट्रैकर इसके बजाय खिसकाई जा सकने वाली विंडो में दिखते हैं",
   "window.bubble.hint": "{{title}} खोलने के लिए क्लिक करें, या बटन खींचकर उसकी जगह बदलें।",
   "window.bubble.label": "{{title}} खोलें",

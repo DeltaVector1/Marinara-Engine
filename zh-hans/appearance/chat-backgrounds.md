@@ -10,7 +10,7 @@
 
 1. **Chat Background**(聊天背景) 选择器，用来给当前所在的聊天挑图。
 2. **Background Blur**(背景模糊) 滑块。
-3. 背景库，导入、整理、筛选、打标签、改名和删除图片都在这里完成。
+3. 背景库，导入、整理、筛选、打标签、改名、下载和删除图片都在这里完成。
 
 聊天背景只在 Roleplay(角色扮演) 和 Game Mode(游戏模式) 的聊天里显示。Conversation(对话模式) 用的是渐变色，在 **Conversation Theme**(Conversation 主题) 区块设置，详见[外观设置](appearance-settings.md)。
 
@@ -74,6 +74,12 @@ Marinara 会检查文件的真实内容，不只看文件名。把一个非图�
 2. 在 **Add tag...** 输入框里输入标签。输入时 Marinara 会提示之前用过的标签。
 3. 按 Enter 或点击 **Add**(添加)。
 4. 想删掉某个标签，点击该标签小块上的小 X。
+
+<a id="download-a-background"></a>
+
+### 下载背景
+
+任何背景都能下载，内置的也一样。把鼠标移到图片所在行，点击下载图标（**Download background**(下载背景)）。图片会按原文件名保存。在 iPhone 或 iPad 上会打开分享面板，从那里保存即可；如果分享面板没有打开，就在随后出现的提示里点按 **Save file**(保存文件)。
 
 ### 删除背景
 

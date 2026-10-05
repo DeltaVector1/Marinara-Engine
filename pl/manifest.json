@@ -1,6 +1,6 @@
 {
   "language": "pl",
-  "sourceCommit": "cd9a6bef3dc91987787cfc38d2ca9843b535da35",
+  "sourceCommit": "cd752aa414b91da21cce1191c24db0d6b5f9ce58",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -79,8 +79,8 @@
     },
     {
       "path": "appearance/chat-backgrounds.md",
-      "sha256": "4c2d0c5e1bfa55074ad08d2ff9d41ef6a9cb0a84e230656cceef129b7d394bb0",
-      "bytes": 8702
+      "sha256": "50dcc4f675fce0136c49fbf779f37deaddc28e8bb63fc93df0449bd38862d024",
+      "bytes": 9147
     },
     {
       "path": "appearance/custom-css-themes.md",

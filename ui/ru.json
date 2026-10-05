@@ -319,6 +319,8 @@
   "ui.faq.chatSettings.phone": "На телефоне те же кнопки открывают окна как панели во всю ширину.",
   "ui.faq.chatSettings.popOut": "Кнопка выноса раздела дает ему отдельное окно. Закрытие сворачивает его в кнопку; Вернуть помещает раздел обратно в настройки чата.",
   "ui.faq.chatSettings.question": "Где теперь настройки чата, галерея и активный контекст?",
+  "ui.panels.backgroundpicker.downloadBackground": "Скачать фон",
+  "ui.panels.backgroundpicker.downloadValue1": "Скачать {{value1}}",
   "ui.panels.trackerpanelappearancedrawer.inATrackerWindow": "Вместо этого трекеры показаны в перемещаемом окне",
   "window.bubble.hint": "Нажмите, чтобы открыть {{title}}, или перетащите кнопку.",
   "window.bubble.label": "Открыть {{title}}",

@@ -209,5 +209,7 @@
   "ui.botBrowser.providerUnavailable.title": "Por ahora, {{value1}} no se puede explorar aquí",
   "ui.chat.chatinput.itLooksLikeYouHavenTConnectedAnyModel": "Parece que aún no has conectado ningún modelo. Abre Chat Settings para hacerlo primero.",
   "ui.chat.slash.usage.illustrate": "/illustrate [range=N|range=N-M (opcional)] [prompt (opcional)]",
-  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "Añade un acceso de traducción junto a Enviar. En Conversation, Traducir borrador siempre está disponible en la pestaña Herramientas del menú de la cara sonriente del cuadro de mensaje, también en móvil."
+  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "Añade un acceso de traducción junto a Enviar. En Conversation, Traducir borrador siempre está disponible en la pestaña Herramientas del menú de la cara sonriente del cuadro de mensaje, también en móvil.",
+  "ui.panels.backgroundpicker.downloadBackground": "Descargar fondo",
+  "ui.panels.backgroundpicker.downloadValue1": "Descargar {{value1}}"
 }
