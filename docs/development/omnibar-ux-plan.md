@@ -92,6 +92,10 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 53  | No small Mari in the bottom-right corner at rest (P4)           | worker           | Pending              |           |
 | 54  | Redesign the Mari on the Home page widget (P5)                  | designer         | Pending              |           |
 | 55  | Review of 52-54 (P6)                                            | reviewer         | Pending              |           |
+| 56  | Professor Mari header: no duplicate ⋮ items, Chats next to + (Q1) | designer         | Pending              |           |
+| 57  | Omnibar settings redesign, Mari settings move here, packs grid (Q2) | designer      | Pending              |           |
+| 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Pending              |           |
+| 59  | Review of 56-58 (Q4)                                            | reviewer         | Pending              |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
@@ -1085,3 +1089,29 @@ Follow `mari-ui-subtle-effects`: glows are low, faint and soft; nothing loud. Sc
   the chibi is the wrong asset, at an integer pixel scale. If new art is truly needed, write the exact request into
   the plan for the Image Creator instead of inventing art.
 - P6 (slice 55) Review of 52-54, then a worker fixes the confirmed findings.
+
+
+### Q. Round 8: Mari header, omnibar settings, packs grid, deslopped text (slices 56-59) — maintainer feedback 2026-10-05
+
+- Q1 (slice 56) Professor Mari header buttons. Today the ⋮ overflow menu repeats items that are already in the bar,
+  and "Chats" sits on the opposite side from New chat (+). Fix: the ⋮ menu holds ONLY actions that are not in the
+  bar (on narrow screens it may also hold the destinations that do not fit, and nothing else). Put Chats directly
+  next to New chat (+): one group "Chats · +". Keep the two-line header (35a), Mari inline (no portrait). Check
+  390/768/1440, keyboard order, labels.
+- Q2 (slice 57) Redesign the omnibar settings page, and make it the home of all Mari and omnibar settings. Move
+  the Professor Mari settings that today live in the app's main Settings (suggestions, permissions-mode default,
+  quick-answer model and delay, Mini Mari visits, appearance pack, and the like; find them all) into the omnibar
+  settings. In main Settings leave one row "Omnibar & Professor Mari settings → Open" that opens them, so nothing
+  is lost. The settings registry and the omnibar search must still find every moved control (anchors updated).
+  Group the page in clear sections (Search, Quick answers, Professor Mari, Appearance) in the Home/omnibar style,
+  not a long list. The appearance packs become a GRID of cards (pack profile pose, name, one line), selected
+  state clear, keyboard and screen-reader friendly, lazy previews (38c tiers).
+- Q3 (slice 58) De-slop every user-facing text of and in the omnibar and Professor Mari. Use the deslop skill in
+  `.tmp/deslop/repo/` (SKILL.md plus references/phrases.md, tropes.md, structures.md) together with the
+  better-writing rules: short, direct, plain words, no filler, no false agency, no cute padding, consistent names
+  (one name per thing), sentence case. Scope: the en.json keys used by the omnibar, the Mari pane/workspace, the
+  pull, the arrival lines/cards, the omnibar settings, toasts and empty states from these surfaces, and the
+  CHANGELOG lines of rounds 1-8 if they read as slop. Keep the meaning and the keys; edit English only (community
+  locales fall back). Do not change model prompts or user content. Produce a before/after list in the plan. Run
+  `heavy pnpm localization:check`.
+- Q4 (slice 59) Review of 56-58, then a worker fixes the confirmed findings.
