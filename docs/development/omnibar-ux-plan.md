@@ -97,7 +97,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 57b | Chats · + to the right of the header; chat-card visual audit (Q5) | designer       | Done                 | 652f57fd8 |
 | 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Done                 | cc3081b93 |
 | 58b | Type icons everywhere, context for recent chats (Q6)            | designer         | Done                 | 9c7701cd6 |
-| 59  | Review of 56-58, 57b, 58b (Q4)                                  | reviewer         | Pending              |           |
+| 59  | Review of 56-58, 57b, 58b (Q4)                                  | reviewer, worker | Done                 | 40314d650 |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
