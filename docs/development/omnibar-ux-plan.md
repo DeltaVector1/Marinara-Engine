@@ -89,7 +89,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 50  | Fix or remove what the value table shows is not faster (O4)     | worker           | Done                 | b06687ab6 |
 | 51  | Review of 47-50 and a short fresh-eyes pass (O5)                | reviewer         | Done                 | 66551c093 |
 | 52  | Mari's working glow is not boxed in; top-bar edge glow (P1-P3)  | designer         | Done                 | 78b8ccdfc |
-| 53  | No small Mari in the bottom-right corner at rest (P4)           | worker           | Pending              |           |
+| 53  | No small Mari in the bottom-right corner at rest (P4)           | worker           | Done                 | 1187e7cab |
 | 54  | Redesign the Mari on the Home page widget (P5)                  | designer         | Pending              |           |
 | 55  | Review of 52-54 (P6)                                            | reviewer         | Pending              |           |
 | 56  | Professor Mari header: no duplicate ⋮ items, Chats next to + (Q1) | designer         | Pending              |           |
