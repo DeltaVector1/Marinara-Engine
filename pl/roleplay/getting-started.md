@@ -6,7 +6,7 @@ Z tego przewodnika dowiesz się, czym jest tryb Roleplay, jak zacząć roleplay 
 
 Tryb Roleplay to jeden z trybów czatu w aplikacji Marinara Engine. Pozostałe to Conversation i Game. Roleplay daje wciągający widok sceny zbudowany wokół opowieści.
 
-Scena w trybie Roleplay może pokazywać obraz tła, sprite'y postaci i pasek HUD ze stanem świata. Sprite to obrazek postaci, który zmienia się razem z emocjami. HUD pokazuje ten stan: na telefonie jako małe widgety na górze czatu, a na komputerze w Tracker Panel lub oknie Trackers.
+Scena w trybie Roleplay może pokazywać obraz tła, sprite'y postaci i pasek HUD ze stanem świata. Sprite to obrazek postaci, który zmienia się razem z emocjami. HUD pokazuje ten stan: na telefonie za pomocą ruchomych przycisków **World State** i **Player & Tracker**, a na komputerze w Tracker Panel lub oknie Trackers.
 
 Tryb Roleplay korzysta też z pomocników zwanych agentami. Agent to małe zadanie, które wykonuje się automatycznie obok odpowiedzi AI. Agenci śledzą stan świata, dobierają sprite'y, wybierają tła i robią jeszcze więcej.
 
@@ -34,7 +34,7 @@ Obszar sceny w trybie Roleplay to przestrzeń za wiadomościami i wokół nich. 
 
 **Sprite'y** to obrazki postaci umieszczone na obszarze sceny. Nie ma tu sztywnego limitu. Pojawić się może każda postać w czacie, która ma włączone sprite'y. Sprite'y wymagają wgranej biblioteki sprite'ów na karcie postaci. Bez niej miejsce na sprite pozostaje puste. Jak dodać sprite'y do postaci, opisuje przewodnik [Sprite'y postaci](../characters/sprites.md).
 
-**HUD** pokazuje trackery. Na telefonie jest rzędem małych widgetów na górze czatu. Na komputerze trackery widać w **Tracker Panel** lub w oknie **Trackers**, gdy Tracker Panel jest wyłączony w ustawieniach. Każdy tracker należy do agenta śledzącego stan, więc pojawia się tylko wtedy, gdy jego agent jest włączony. Trackery pokazują datę, godzinę, pogodę, lokalizację, obecne postacie, ekwipunek, zadania i statystyki. Możesz edytować ich wartości. Wszystkie widgety i tryby blokad opisuje przewodnik [Pasek HUD i trackery w trybie Roleplay](hud-and-trackers.md).
+**HUD** pokazuje trackery. Na telefonie otwierasz trackery przyciskami **World State** i **Player & Tracker**, które możesz przesuwać. Na komputerze trackery widać w **Tracker Panel** lub w oknie **Trackers**, gdy Tracker Panel jest wyłączony w ustawieniach. Każdy tracker należy do agenta śledzącego stan, więc pojawia się tylko wtedy, gdy jego agent jest włączony. Trackery pokazują datę, godzinę, pogodę, lokalizację, obecne postacie, ekwipunek, zadania i statystyki. Możesz edytować ich wartości. Wszystkie widgety i tryby blokad opisuje przewodnik [Pasek HUD i trackery w trybie Roleplay](hud-and-trackers.md).
 
 ### Sterowanie wyświetlaniem sprite'ów
 
@@ -133,7 +133,7 @@ Otwórz informacje o poleceniach użytych w odpowiedzi i wybierz **Restore origi
 
 ## Echo Chamber
 
-**Echo Chamber** to opcjonalny agent, który dodaje do sceny reagującą na żywo publiczność. Działa jak czat na streamingu, w którym co jakiś czas pojawia się nowa reakcja. Włącz go w panelu **Chat Settings**, w sekcji **Agents**, na karcie **Echo Chamber**. Panel unosi się nad sceną i da się go zwinąć do małego kafelka.
+**Echo Chamber** to opcjonalny agent, który dodaje do sceny reagującą na żywo publiczność. Działa jak czat na streamingu, w którym co jakiś czas pojawia się nowa reakcja. Włącz go w panelu **Chat Settings**, w sekcji **Agents**, na karcie **Echo Chamber**. Na komputerze przeciągnij pasek tytułu, żeby przesunąć okno, przeciągnij krawędź, żeby zmienić jego rozmiar, albo przypnij je, żeby pozostało otwarte. **X** zwija je do przycisku, który możesz przesuwać. Na telefonie Echo pozostaje niewielkim panelem nad wiadomościami; **X** również zwija go do ruchomego przycisku. Wygląd Echo zależy od ustawienia **Chat widget style** w **Settings → Appearance → App**, a każdy czat zapamiętuje jego układ.
 
 ## Wybory CYOA
 

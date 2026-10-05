@@ -6,7 +6,7 @@ In dieser Anleitung erfährst du, was Roleplay Mode ist, wie eine Rollenspielrun
 
 Roleplay Mode ist einer der Chat-Modi von Marinara Engine. Die anderen heißen Conversation und Game. Roleplay liefert dir eine Szenenansicht, die ganz auf eine Geschichte ausgerichtet ist.
 
-Eine Roleplay-Szene kann ein Hintergrundbild, Charakter-Sprites und eine Info-Leiste mit dem Weltzustand zeigen. Ein Sprite ist ein Charakterbild auf der Bühne, das sich mit der Stimmung ändert. Das HUD zeigt diesen Zustand am Telefon in kleinen Widgets am oberen Chatrand und am Computer im Tracker Panel oder im Trackers-Fenster.
+Eine Roleplay-Szene kann ein Hintergrundbild, Charakter-Sprites und eine Info-Leiste mit dem Weltzustand zeigen. Ein Sprite ist ein Charakterbild auf der Bühne, das sich mit der Stimmung ändert. Das HUD zeigt diesen Zustand am Telefon über die verschiebbaren Schaltflächen **World State** und **Player & Tracker** und am Computer im Tracker Panel oder im Trackers-Fenster.
 
 Roleplay setzt außerdem auf Helfer, die Agenten heißen. Ein Agent ist eine kleine automatische Aufgabe, die parallel zur KI-Antwort läuft. Agenten führen den Weltzustand mit, wählen Sprites und Hintergründe aus und vieles mehr.
 
@@ -34,7 +34,7 @@ Der **Hintergrund** ist ein bildschirmfüllendes Bild hinter der Nachrichtenspal
 
 **Sprites** sind die Charakterbilder auf der Bühne. Eine feste Obergrenze gibt es nicht. Jeder Charakter im Chat mit aktivierten Sprites kann erscheinen. Dafür braucht die Charakterkarte eine hochgeladene Sprite-Bibliothek. Fehlt sie, bleibt der Sprite-Platz leer. Wie Sprites zu einem Charakter kommen, steht unter [Charakter-Sprites](../characters/sprites.md).
 
-Das **HUD** zeigt deine Tracker. Am Telefon besteht es aus kleinen Widgets am oberen Chatrand. Am Computer erscheinen die Tracker im **Tracker Panel** oder im Fenster **Trackers**, wenn das Tracker Panel in den Einstellungen aus ist. Jeder Tracker gehört zu einem Tracker-Agenten und erscheint nur, wenn dieser eingeschaltet ist. Tracker zeigen Datum, Uhrzeit, Wetter, Ort, anwesende Charaktere, Inventar, Quests und Werte, die du bearbeiten kannst. Alle Widgets und Sperrmodi erklärt [Roleplay-HUD und Tracker](hud-and-trackers.md).
+Das **HUD** zeigt deine Tracker. Am Telefon öffnest du die Tracker über die verschiebbaren Schaltflächen **World State** und **Player & Tracker**. Am Computer erscheinen die Tracker im **Tracker Panel** oder im Fenster **Trackers**, wenn das Tracker Panel in den Einstellungen aus ist. Jeder Tracker gehört zu einem Tracker-Agenten und erscheint nur, wenn dieser eingeschaltet ist. Tracker zeigen Datum, Uhrzeit, Wetter, Ort, anwesende Charaktere, Inventar, Quests und Werte, die du bearbeiten kannst. Alle Widgets und Sperrmodi erklärt [Roleplay-HUD und Tracker](hud-and-trackers.md).
 
 ### Steuerung der Sprite-Darstellung
 
@@ -133,7 +133,7 @@ Das Modell verwendet `[interrupt: part="a verbatim phrase of at least three word
 
 ## Echo Chamber
 
-**Echo Chamber** ist ein optionaler Agent, der ein Live-Publikum in die Szene holt. Das Ganze funktioniert wie ein Streaming-Chat, der in festen Zeitabständen neue Reaktionen einblendet. Aktivieren kannst du ihn unter **Chat Settings** im Bereich **Agents** auf der Karte **Echo Chamber**. Das Panel schwebt über der Szene und lässt sich zu einer kleinen Leiste einklappen.
+**Echo Chamber** ist ein optionaler Agent, der ein Live-Publikum in die Szene holt. Das Ganze funktioniert wie ein Streaming-Chat, der in festen Zeitabständen neue Reaktionen einblendet. Aktivieren kannst du ihn unter **Chat Settings** im Bereich **Agents** auf der Karte **Echo Chamber**. Am Computer kannst du das Fenster an der Titelleiste verschieben, an einem Rand seine Größe ändern oder es anheften, damit es offen bleibt. **X** verkleinert es zu einer verschiebbaren Schaltfläche. Am Telefon bleibt Echo ein kompaktes Panel über den Nachrichten; auch dort verkleinert **X** es zu einer verschiebbaren Schaltfläche. Echo übernimmt deinen **Chat widget style** unter **Settings → Appearance → App**, und jeder Chat merkt sich sein Layout.
 
 ## CYOA-Auswahlmöglichkeiten
 

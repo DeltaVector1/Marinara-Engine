@@ -1,6 +1,6 @@
 {
   "language": "de",
-  "sourceCommit": "18809f3a9d8ca5674c2e344223b69d941f4f23a2",
+  "sourceCommit": "c52904c25571e4f3aaadc2e0880c3f477b8ed226",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -209,8 +209,8 @@
     },
     {
       "path": "connections/decision-models.md",
-      "sha256": "704be9b295ef7b9b209c129f48a5a2cb60f2a6b8cbdf19203a248bbb7295825e",
-      "bytes": 29904
+      "sha256": "a1687993a6626fc1aad8fc96ad5b65f319300ac386c3a9ff1acf41b056a97c36",
+      "bytes": 30475
     },
     {
       "path": "connections/local-model.md",
@@ -229,13 +229,13 @@
     },
     {
       "path": "connections/providers-reference.md",
-      "sha256": "d816fc074f4632a6300514422efa0c13d6434831214cf2d5ac431de0e4c35e7d",
-      "bytes": 14595
+      "sha256": "6ab6f7dffafdc9f88215d8b1108073659123cebf5d5717bc7bc2ce53463701cc",
+      "bytes": 14383
     },
     {
       "path": "connections/subscription-clis.md",
-      "sha256": "671ae6bed83cc594137a544af7f97b268ae867d2a6a111ae7f2342a408b31328",
-      "bytes": 10245
+      "sha256": "6b5e0919503e5665ae6825c585b52da8383062ecc19767ccaa74a4c71d04caff",
+      "bytes": 9321
     },
     {
       "path": "contrib/engine-foundations-overview.md",
@@ -659,13 +659,13 @@
     },
     {
       "path": "roleplay/getting-started.md",
-      "sha256": "15b5d83bca94c0650526dc52e56e7d463f3376bcd8c085d8fe829d547d2ebf95",
-      "bytes": 19915
+      "sha256": "32ae108b4299aae2fc495b510d982c24654a85cdc85bfd0a6a29c230729e6ef5",
+      "bytes": 20393
     },
     {
       "path": "roleplay/hud-and-trackers.md",
-      "sha256": "01f5952e1026a968dbeb1609bbc805977c53f9b02c1b59c52d10ebbb95f0a24f",
-      "bytes": 15699
+      "sha256": "ef41acbfd6f4508a644f4ff19b8eb7ec489129be61ded827250a69eee3fc8d85",
+      "bytes": 16082
     },
     {
       "path": "roleplay/narrative-director.md",
