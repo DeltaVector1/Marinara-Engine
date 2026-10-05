@@ -120,6 +120,8 @@ La sección **Connection** (Conexión) elige qué proveedor de IA y qué modelo 
 
 Elige una conexión guardada del menú desplegable. También puedes elegir **Random** (Aleatorio). Elige una conexión distinta cada vez, entre las conexiones que marcaste para tu grupo aleatorio.
 
+Debajo del menú desplegable, el campo **Model** (Modelo) muestra el modelo que usa la conexión seleccionada. Haz clic en él para abrir la misma lista de modelos que el Quick Connection Switcher: busca o escribe un ID de modelo, fija modelos con la estrella, actualiza la lista y haz clic en un modelo para usarlo. El modelo se guarda en la conexión, así que todos los chats, agentes y funciones auxiliares que usan esta conexión también cambian a él. El campo se oculta con **Random** y con el Local Model integrado. Consulta [El grupo aleatorio y el Quick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher) para más detalles.
+
 Para aprender a crear una conexión desde cero, consulta [Conectarse a un proveedor de IA](../connections/connecting-to-a-provider.md).
 
 <a id="settings-profiles"></a>

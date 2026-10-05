@@ -120,6 +120,8 @@ La section **Connection** (connexion) détermine quel fournisseur d'IA et quel m
 
 Choisis une connexion enregistrée dans le menu déroulant. Autre option : **Random**. Marinara pioche alors une connexion différente à chaque fois parmi celles que tu as ajoutées à ton tirage aléatoire.
 
+Sous le menu déroulant, le champ **Model** (modèle) affiche le modèle qu'utilise la connexion sélectionnée. Clique dessus pour ouvrir la même liste de modèles que dans le Quick Connection Switcher : recherche ou saisis un ID de modèle, épingle des modèles avec l'étoile, actualise la liste et clique sur un modèle pour l'utiliser. Le modèle est enregistré dans la connexion, donc tous les chats, agents et fonctions auxiliaires qui utilisent cette connexion passent eux aussi à ce modèle. Le champ est masqué pour **Random** et pour le Local Model intégré. Pour en savoir plus, consulte [Le pool aléatoire et le Quick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher).
+
 Pour apprendre à créer une connexion, va voir [Se connecter à un fournisseur d'IA](../connections/connecting-to-a-provider.md).
 
 <a id="settings-profiles"></a>

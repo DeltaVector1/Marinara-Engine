@@ -31,8 +31,10 @@ So fügst du den ersten Anbieter hinzu:
 3. Klick unter **Provider** auf die Schaltfläche für den gewünschten Anbieter, etwa **OpenAI**, **Anthropic** oder **OpenRouter**.
 4. Klick auf **Create**. Marinara legt die Verbindung an und öffnet dafür den vollständigen **Connection Editor** (Verbindungs-Editor).
 5. Such das Feld **API Key**. Füge hier den Key vom Anbieter ein. Fehlt dir noch einer, klick auf den Link **Get your {Provider} API key** unter dem Feld. Er öffnet die Key-Seite des Anbieters im Browser.
-6. Öffne das Dropdown-Menü **Model** und wähle ein Modell. Über das Feld **Search models…** (Modelle suchen) lässt sich die Liste filtern. Ist die Liste leer, klick auf **Fetch Models from API**, um die Modelle zu laden, die dein Konto nutzen darf.
+6. Öffne das Dropdown-Menü **Model** und wähle ein Modell. Über das Feld **Search models…** (Modelle suchen) lässt sich die Liste filtern. Ist die Liste leer, klick auf **Fetch Models from API**, um die Modelle zu laden, die dein Konto nutzen darf. Marinara speichert die abgerufene Liste in der Verbindung, sodass das Modellmenü im Eingabebereich des Chats sie später ohne erneuten Abruf anzeigen kann.
 7. Klick auf **Save**. Der Statustext oben wechselt auf **Saved**.
+
+Später kannst du das Modell auch wechseln, ohne den Editor zu öffnen: über den Quick Connection Switcher (das Link-Symbol im Eingabebereich des Chats) oder über das Feld **Model** unter **Chat Settings → Connection** (Chat-Einstellungen → Verbindung). Siehe [Zufallspool und Quick Connection Switcher](organizing-connections.md#the-random-pool-and-quick-connection-switcher).
 
 Das Feld **Base URL** brauchst du normalerweise nicht anzufassen. Bei bekannten Anbietern trägt Marinara es selbst ein. Ändere es nur, wenn ein Proxy oder ein lokaler Server im Spiel ist.
 

@@ -120,6 +120,8 @@ Der Abschnitt **Connection** (Verbindung) legt fest, welcher KI-Anbieter und wel
 
 Wähl im Dropdown-Menü eine gespeicherte Verbindung. Möglich ist außerdem **Random**: Dann kommt jedes Mal eine andere Verbindung aus dem Zufallspool zum Zug, den du selbst markiert hast.
 
+Unter dem Dropdown-Menü zeigt das Feld **Model** (Modell) das Modell, das die gewählte Verbindung nutzt. Ein Klick darauf öffnet dieselbe Modellliste wie der Quick Connection Switcher: Du kannst suchen oder eine Modell-ID eingeben, Modelle mit dem Stern anheften, die Liste aktualisieren und per Klick ein Modell übernehmen. Das Modell wird in der Verbindung gespeichert, daher wechseln alle Chats, Agenten und Hilfsfunktionen, die diese Verbindung nutzen, ebenfalls darauf. Bei **Random** und beim eingebauten Local Model ist das Feld ausgeblendet. Details findest du unter [Zufallspool und Quick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher).
+
 Wie du überhaupt eine Verbindung anlegst, steht unter [Mit einem KI-Anbieter verbinden](../connections/connecting-to-a-provider.md).
 
 <a id="settings-profiles"></a>

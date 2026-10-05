@@ -48,6 +48,8 @@ Um eine einzelne Verbindung zu löschen, klick auf ihre Schaltfläche **Delete**
 
 Um mehrere Verbindungen auf einmal zu löschen oder zu exportieren, klick oben im Panel auf **Select** (Auswählen). Damit schaltet der Auswahlmodus ein. Tipp die gewünschten Verbindungen an und nutz dann in der Aktionsleiste unten **Export** (Exportieren) oder **Delete**. Beim Sammellöschen erscheint vorher das Dialogfenster **Delete Connections** (Verbindungen löschen).
 
+<a id="the-random-pool-and-quick-connection-switcher"></a>
+
 ## Zufallspool und Quick Connection Switcher
 
 Mit dem Zufallspool wählt ein Chat für jede Antwort eine andere Verbindung. Praktisch, wenn du die Anfragen über mehrere Anbieter oder Modelle verteilen willst.
@@ -56,17 +58,26 @@ Um eine Verbindung in den Zufallspool aufzunehmen, klick auf das Mischen-Symbol 
 
 Damit ein Chat den Zufallspool nutzt, öffne **Chat Settings** (Chat-Einstellungen), geh zum Abschnitt **Connection** und wähl im Dropdown-Menü **🎲 Random**. Im Game Mode heißt dieses Dropdown-Menü **GM / Party Model**. Jede Antwort greift dann auf eine zufällige Verbindung aus dem Pool zurück.
 
-Noch schneller wechselst du die Verbindung für den aktuellen Chat mit dem **Quick Connection Switcher** (schneller Verbindungswechsel). Klick dafür auf das Link-Symbol im Eingabebereich des Chats. Er zeigt die Verbindungen in einem kleinen Menü:
+Noch schneller wechselst du die Verbindung für den aktuellen Chat – und ihr Modell – mit dem **Quick Connection Switcher** (schneller Verbindungswechsel). Klick dafür auf das Link-Symbol im Eingabebereich des Chats. Links zeigt er deine Verbindungen, rechts die **Models** (Modelle) der gewählten Verbindung:
 
-- Klick auf eine Verbindung, um sie sofort für den aktuellen Chat zu verwenden.
+- Klick auf eine Verbindung, um sie sofort für den aktuellen Chat zu verwenden. Das Menü bleibt offen, damit du als Nächstes eines ihrer Modelle wählen kannst.
+- Klick auf ein Modell, um es zu verwenden. Marinara speichert das Modell in dieser Verbindung, wählt die Verbindung für den Chat aus, falls sie es noch nicht war, und schließt das Menü. Ein Häkchen markiert das Modell, das die Verbindung gerade nutzt. Wie im Verbindungs-Editor aktualisiert die Wahl eines gelisteten Modells auch das Kontextfenster der Verbindung und ihr Ausgabelimit, sofern der Anbieter diese Werte meldet.
+- Tipp in das Feld **Search or enter model ID…** (suchen oder Modell-ID eingeben), um die Liste zu filtern. Enter wählt das Modell, dessen ID oder Namen du eingegeben hast, oder das einzige Modell, das noch in der Liste steht. Für ein Modell, das nicht in der Liste steht, gibst du seine exakte ID ein: Drück Enter, wenn nichts in der Liste dazu passt, oder klick auf die Zeile **Use "…"**.
+- Klick auf den Stern neben einem Modell, um es anzuheften. Angeheftete Modelle bleiben oben unter **Pinned** (Angeheftet), auch die, die du von Hand eingegeben hast. Ein weiterer Klick auf den Stern hebt das Anheften wieder auf.
+- Wenn du die Modelle einer Verbindung zum ersten Mal öffnest, lädt Marinara die Liste vom Anbieter und speichert sie in der Verbindung. Bei späteren Besuchen erscheint sie dann sofort. Mit der Aktualisieren-Schaltfläche neben dem Suchfeld lädst du die Liste neu, etwa wenn der Anbieter neue Modelle hinzugefügt hat. Auch wenn du API-Key, Basis-URL oder Anbieter der Verbindung änderst, lädt Marinara eine frische Liste.
+- Hat der Anbieter keine Modellliste oder ist er nicht erreichbar, weist das Menü darauf hin. Eine Modell-ID kannst du trotzdem eingeben.
 - Die Würfel-Schaltfläche oben im Menü schaltet den Zufallspool für diesen Chat ein oder aus.
-- Ist der Zufallspool aktiv, nimmt ein Klick auf eine Verbindung sie stattdessen in den Pool auf oder entfernt sie daraus. Ein Häkchen zeigt, welche Verbindungen im Pool liegen.
+- Ist der Zufallspool aktiv, nimmt ein Klick auf eine Verbindung sie stattdessen in den Pool auf oder entfernt sie daraus. Ein Häkchen zeigt, welche Verbindungen im Pool liegen. Die Spalte **Models** ist dann ausgeblendet, weil der Pool keine einzelne Verbindung hat.
+
+Auf dem Handy tippst du neben dem Nachrichtenfeld auf den Pfeil und öffnest den Tab **Connections**. Ein Tipp auf eine Verbindung wählt sie aus und zeigt ihre Modelle im selben Menü. Mit dem Zurück-Pfeil kehrst du zur Verbindungsliste zurück.
+
+**Ein Modellwechsel gilt überall, wo die Verbindung genutzt wird.** Der Hinweis unten im Menü, „Model changes are saved to this connection.“, bedeutet: Agenten, Hilfsfunktionen und andere Chats, die dieselbe Verbindung nutzen, wechseln ebenfalls auf das neue Modell. Andere Modell-Einstellungen der Verbindung, etwa ihr Embedding-Modell oder die Verbindung für die Bildbeschreibung, bleiben unverändert. Willst du nur für einen bestimmten Zweck ein anderes Modell, dupliziere die Verbindung und ändere die Kopie.
 
 ## Verbindungen exportieren und importieren
 
 Verbindungen lassen sich in eine Datei exportieren – als Backup oder für den Umzug auf eine andere Installation. Später importierst du sie einfach wieder.
 
-**Ein Export enthält niemals die API-Keys.** Nach dem Import musst du jede Verbindung öffnen und den API-Key erneut eintragen.
+**Ein Export enthält niemals die API-Keys.** Nach dem Import musst du jede Verbindung öffnen und den API-Key erneut eintragen. Angeheftete Modelle sind enthalten, die gespeicherte Modellliste dagegen nicht. Sie wird neu geladen, wenn du die Modelle der Verbindung zum ersten Mal öffnest.
 
 Um eine einzelne Verbindung zu exportieren, öffne sie im Editor und klick auf ihre Schaltfläche **Export** (das Upload-Symbol). Für mehrere auf einmal nutzt du den **Select**-Modus im Panel und klickst in der Aktionsleiste auf **Export**. Vor dem Download zeigt Marinara das Dialogfenster **Export Connection Data** (Verbindungsdaten exportieren) mit dieser Warnung: This will export your connection data, WITHOUT your provided API Key. Remember to never share those with others! Klick auf **Export**, um fortzufahren.
 

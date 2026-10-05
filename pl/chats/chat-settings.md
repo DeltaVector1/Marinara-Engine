@@ -120,6 +120,8 @@ Sekcja **Connection** (połączenie) decyduje o tym, który dostawca AI i model 
 
 Wybierz zapisane połączenie z listy rozwijanej. Inna opcja to **Random**: za każdym razem losuje inne połączenie spośród tych oznaczonych do puli losowania.
 
+Pod listą rozwijaną pole **Model** pokazuje model, którego używa wybrane połączenie. Kliknij je, żeby otworzyć tę samą listę modeli co w panelu Quick Connection Switcher (szybkie przełączanie połączeń): wyszukaj model lub wpisz jego identyfikator, przypnij modele gwiazdką, odśwież listę i kliknij model, żeby go użyć. Model zapisuje się w połączeniu, więc każdy czat, agent i funkcja pomocnicza korzystające z tego połączenia też na niego przechodzą. Pole jest ukryte przy opcji **Random** i przy wbudowanym modelu Local Model. Szczegóły znajdziesz w sekcji [Pula losowa i panel Quick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher).
+
 O tym, jak w ogóle utworzyć połączenie, przeczytasz w przewodniku [Łączenie z dostawcą AI](../connections/connecting-to-a-provider.md).
 
 <a id="settings-profiles"></a>

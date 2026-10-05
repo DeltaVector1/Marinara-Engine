@@ -120,6 +120,8 @@ Game의 **Game controls**, **Session**, **Volume**, **Game Assets**와 **Connect
 
 드롭다운에서 저장해 둔 연결을 고르세요. **Random**을 고를 수도 있습니다. 이때는 무작위 목록에 넣어 둔 연결 중에서 매번 다른 연결을 고릅니다.
 
+드롭다운 아래의 **Model**(모델) 필드에는 선택한 연결이 사용하는 모델이 표시됩니다. 클릭하면 Quick Connection Switcher(빠른 연결 전환기)와 같은 모델 목록이 열립니다. 모델을 검색하거나 모델 ID를 입력하고, 별로 모델을 고정하고, 목록을 새로 고치고, 모델을 클릭해 사용할 수 있습니다. 모델은 연결에 저장되므로 이 연결을 쓰는 모든 채팅, 에이전트, 보조 기능도 그 모델로 바뀝니다. **Random**과 내장 Local Model(로컬 모델)에서는 이 필드가 표시되지 않습니다. 자세한 내용은 [랜덤 풀과 Quick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher)를 참고하세요.
+
 연결을 처음부터 만드는 방법은 [AI 제공자에 연결하기](../connections/connecting-to-a-provider.md)를 참고하세요.
 
 <a id="settings-profiles"></a>

@@ -120,6 +120,8 @@ Tracker Panel 隐藏时，电脑上的追踪器改用 [Trackers 窗口](../rolep
 
 从下拉菜单里选一个保存好的连接。也可以选 **Random**(随机)，它每次都会从标记进随机池的连接里换一个来用。
 
+下拉菜单下方的 **Model**(模型) 字段显示所选连接当前用的模型。点击它会打开和 Quick Connection Switcher(快速连接切换器) 里一样的模型列表：可以搜索或输入模型 ID、点星标固定模型、刷新列表，点击某个模型就改用它。模型保存在连接上，所以用这个连接的每个聊天、智能体和辅助功能也都会跟着换成它。选的是 **Random** 或内置的 Local Model(本地模型) 时，不显示这个字段。详见[随机池与 Quick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher)。
+
 连接本身怎么创建，见[连接 AI 服务商](../connections/connecting-to-a-provider.md)。
 
 <a id="settings-profiles"></a>

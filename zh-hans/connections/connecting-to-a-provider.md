@@ -31,8 +31,10 @@ Marinara Engine 不自带现成的连接，也不送免费的入门密钥。全�
 3. 在 **Provider**(服务商) 下面点击要用的服务，比如 **OpenAI**、**Anthropic** 或 **OpenRouter**。
 4. 点击 **Create**(创建)。Marinara 会创建这个连接，并打开它完整的 **Connection Editor**(连接编辑器)。
 5. 找到 **API Key**(API 密钥) 输入框，把服务商那边的密钥粘贴进去。还没有密钥的话，点击输入框下方的 **Get your {Provider} API key** 链接，浏览器会打开该服务商的密钥页面。
-6. 打开 **Model**(模型) 下拉菜单选一个模型。在 **Search models…** 搜索框里输入文字可以过滤列表。列表是空的，就点击 **Fetch Models from API**，加载账号能用的模型。
+6. 打开 **Model**(模型) 下拉菜单选一个模型。在 **Search models…** 搜索框里输入文字可以过滤列表。列表是空的，就点击 **Fetch Models from API**，加载账号能用的模型。Marinara 会把获取到的列表随连接一起保存，之后聊天输入框里的模型菜单不用重新获取就能直接显示。
 7. 点击 **Save**(保存)。顶部附近的状态文字会变成 **Saved**。
+
+之后想换模型，不必打开编辑器：用 Quick Connection Switcher(快速连接切换器)（聊天输入框里的链接图标），或者 **Chat Settings → Connection**(聊天设置 → 连接) 里的 **Model** 字段都可以。见[随机池与 Quick Connection Switcher](organizing-connections.md#the-random-pool-and-quick-connection-switcher)。
 
 **Base URL**(基础 URL) 输入框一般不用动，已知的服务商 Marinara 都会自动填好。只有使用代理或本地服务器时才需要改。
 

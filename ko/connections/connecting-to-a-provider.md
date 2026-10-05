@@ -31,8 +31,10 @@ Marinara Engine은 미리 만들어 둔 연결이나 무료 체험용 키를 제
 3. **Provider**(제공자) 아래에서 사용할 서비스의 버튼을 클릭하세요. 예를 들어 **OpenAI**, **Anthropic**, **OpenRouter**입니다.
 4. **Create**(만들기)를 클릭하세요. Marinara가 연결을 만들고 그 연결의 전체 편집 화면인 **Connection Editor**(연결 편집기)를 엽니다.
 5. **API Key**(API 키) 입력란을 찾으세요. 제공자에서 받은 키를 여기에 붙여넣으세요. 아직 키가 없다면 입력란 아래의 **Get your {Provider} API key** 링크를 클릭하세요. 이 링크는 브라우저에서 제공자의 키 발급 페이지를 엽니다.
-6. **Model**(모델) 드롭다운을 열고 모델을 고르세요. **Search models…** 입력란에 입력하면 목록을 좁힐 수 있습니다. 목록이 비어 있으면 **Fetch Models from API**(API에서 모델 가져오기)를 클릭해 계정에서 쓸 수 있는 모델을 불러오세요.
+6. **Model**(모델) 드롭다운을 열고 모델을 고르세요. **Search models…** 입력란에 입력하면 목록을 좁힐 수 있습니다. 목록이 비어 있으면 **Fetch Models from API**(API에서 모델 가져오기)를 클릭해 계정에서 쓸 수 있는 모델을 불러오세요. Marinara는 가져온 목록을 연결과 함께 저장하므로, 나중에 채팅 입력란의 모델 메뉴에서도 다시 가져오지 않고 목록을 보여 줄 수 있습니다.
 7. **Save**(저장)를 클릭하세요. 위쪽의 상태 문구가 **Saved**로 바뀝니다.
+
+나중에는 편집기를 열지 않고도 모델을 바꿀 수 있습니다. Quick Connection Switcher(빠른 연결 전환기, 채팅 입력란의 링크 아이콘)나 **Chat Settings → Connection**(채팅 설정 → 연결)의 **Model** 필드를 사용하세요. [랜덤 풀과 Quick Connection Switcher](organizing-connections.md#the-random-pool-and-quick-connection-switcher)를 참고하세요.
 
 **Base URL**(기본 URL) 입력란은 대개 건드릴 필요가 없습니다. 알려진 제공자라면 Marinara가 알아서 채웁니다. 프록시나 로컬 서버를 쓸 때만 바꾸세요.
 
