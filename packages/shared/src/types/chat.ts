@@ -9,6 +9,7 @@ import type {
 } from "./professor-mari-workspace.js";
 import type { GameDicePlaceholderRecord } from "../utils/dice-placeholder.js";
 import type { GenerationGuideSource } from "../utils/generation-guide.js";
+import type { ContextFitSummary } from "./generation-integration.js";
 import type { HapticFeedbackSensitivity } from "./haptic.js";
 import type { CustomEmojiSelectionPrefs } from "../schemas/custom-emoji.schema.js";
 import type { DiceRollResult, GameDicePoolConsumption, GameDicePoolMismatch } from "./game.js";
@@ -1068,6 +1069,8 @@ export interface GenerationInfo {
   /** Time from generation start until reasoning yielded to visible output. */
   reasoningDurationMs?: number | null;
   finishReason: string | null;
+  /** What the context fit cut from this prompt, for the "replies got worse" checkup. */
+  contextFit?: ContextFitSummary | null;
 }
 
 /** A swipe (alternate response) for a message. */
