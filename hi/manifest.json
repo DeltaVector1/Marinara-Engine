@@ -1,6 +1,6 @@
 {
   "language": "hi",
-  "sourceCommit": "0e3c2b42aaba4f3b90167428b2eb420a5ed995c7",
+  "sourceCommit": "03336e234bb251b7df95976680085825d76fa6ba",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -44,8 +44,8 @@
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "857ca6e7eda886823827464b8b5439991310d00cf3be56e40937b859b0595c32",
-      "bytes": 71394
+      "sha256": "0ad7069283fb1fc7f7f866312569647e46c526565f2b41d052f4f58ad9a49c36",
+      "bytes": 71414
     },
     {
       "path": "agents/custom-agents.md",
