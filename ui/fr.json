@@ -101,6 +101,7 @@
   "chat.help.targets.widgets.title": "Widgets du jeu",
   "chat.input.tools": "Outils",
   "chat.slash.illustrate.rangeUsage": "Utilise /illustrate range=N ou range=N-M, suivi d'un prompt facultatif. Indique les numéros de message dans l'ordre croissant, avec un maximum de 200 messages.",
+  "connections.decision.typesafeAddressHelp": "Pour utiliser un autre serveur qui exécute l’API de TypeSafe, remplacez la Base URL ci-dessous par son adresse, sans /v1/systemone.",
   "connections.mediaSources.atlas.apiKeyLink": "Obtenir votre clé API Atlas Cloud",
   "connections.mediaSources.atlas.imageDescription": "Générez des images avec les modèles hébergés par Atlas Cloud.",
   "connections.mediaSources.atlas.name": "Atlas Cloud",

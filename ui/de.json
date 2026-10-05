@@ -186,6 +186,7 @@
   "chatWindowIntro.gotIt": "Verstanden",
   "chatWindowIntro.title": "Gestalte diesen Chat nach deinen Wünschen",
   "chatWindowIntro.videoLabel": "So ordnest du Chat-Schaltflächen und Fenster an",
+  "connections.decision.typesafeAddressHelp": "Um einen anderen Server zu verwenden, der die API von TypeSafe bereitstellt, ersetze unten die Base URL durch seine Adresse, ohne /v1/systemone.",
   "connections.mediaSources.atlas.apiKeyLink": "Rufe deinen Atlas Cloud API-Schlüssel ab",
   "connections.mediaSources.atlas.imageDescription": "Generiere Bilder mit Atlas Clouds gehosteten Modellen.",
   "connections.mediaSources.atlas.name": "Atlas Cloud",

@@ -880,6 +880,7 @@
   "connections.decision.thinkingLabel": "생각 중",
   "connections.decision.timeLimit": "제한 시간(초)",
   "connections.decision.timeLimitHelp": "채팅 중 각 결정문의 답변을 기다릴 시간으로, {{min}}초에서 {{max}}초 사이입니다(기본값: {{default}}초). 한 번에 여러 결정문을 묻는 턴에서는 결정문마다 이만큼의 시간이 주어집니다. 이보다 늦은 답변은 '아니오'로 처리됩니다. 느린 프로바이더라면 이 값을 높일 수 있지만, 응답 전에 묻는 결정문마다 각각 이 시간만큼 응답이 지연될 수 있습니다.",
+  "connections.decision.typesafeAddressHelp": "TypeSafe의 API를 실행하는 다른 서버를 사용하려면 아래의 기본 URL을 /v1/systemone을 제외한 해당 서버 주소로 바꾸세요.",
   "connections.decision.unavailable.needs_relinking": "재연결 필요함",
   "connections.decision.unavailable.no_model": "다운로드된 모델 없음 — 로컬 모델에서 설정",
   "connections.decision.unavailable.not_enabled": "활성화되지 않음 — 로컬 모델에서 설정",

@@ -103,7 +103,7 @@ Ollama、LM Studio、llama.cppなどのOpenAI互換サーバーですでに動�
 ## Decision接続の設定
 
 1. **Connections**で、プロバイダーが**Decision**の接続を作成します。
-2. **TypeSafe**、**OpenRouter**、**Custom System One endpoint**(カスタムSystem Oneエンドポイント)、**OpenAI-compatible chat model**から選びます。ホスト型にはAPIキーが必要です。CustomではOpen-Jevや[Strands decider](#run-strands-decider-yourself)など稼働中のSystem Oneサーバーを使えます。`/v1/systemone`を含まないベースURLと対応モデル名を入力します。OllamaやLM StudioなどのチャットモデルサーバーはSystem Oneに対応しません。[稼働中のサーバーでの利用](#on-a-server-you-already-run)に従って**OpenAI-compatible chat model**を選んでください。
+2. **TypeSafe**、**OpenRouter**、**Custom System One endpoint**(カスタムSystem Oneエンドポイント)、**OpenAI-compatible chat model**から選びます。ホスト型にはAPIキーが必要です。TypeSafeは、**Base URL**(ベースURL)をTypeSafeのAPIを提供する別のサーバーのアドレスに置き換えない限り、リクエストを`https://api.typesafe.ai`に送信します。アドレスには`/v1/systemone`を含めません。別のサーバーでもTypeSafeのキーが必要で、キーはそのサーバーに送信されます。ローカルネットワーク内の別のマシンにあるサーバーには、他のローカルプロバイダーと同様に`PROVIDER_LOCAL_URLS_ENABLED`が必要です。CustomではOpen-Jevや[Strands decider](#run-strands-decider-yourself)など稼働中のSystem Oneサーバーを使えます。`/v1/systemone`を含まないベースURLと対応モデル名を入力します。OllamaやLM StudioなどのチャットモデルサーバーはSystem Oneに対応しません。[稼働中のサーバーでの利用](#on-a-server-you-already-run)に従って**OpenAI-compatible chat model**を選んでください。
 3. OpenRouterでは**API key source**(APIキーの取得元)で保存済み接続を選ぶか、別のキーを入力します。接続エディターの**Use this key for decisions**(このキーをDecisionに使用)も利用できます。これを使うとOpenRouter経由でJevを設定できます。リンクしたキーは後からの変更に自動追従します。Custom System One接続とOpenAI-compatible chat model接続がカスタムチャット接続のキーを借りられるのは、両方のURLが同一オリジン(スキーム、ホスト、ポート)の場合だけです。
 4. 保存後、**Decision model**で選択して**Test**をクリックします。成功すると確率、回答までの時間、接続の制限時間が表示されます。Testは最低10秒、制限時間がそれより長い場合はその5秒後まで待つため、遅い回答も実際の所要時間で報告されます。制限時間を超えた場合はその旨が表示され、チャットでは回答なしとして扱われることがわかります。
 
