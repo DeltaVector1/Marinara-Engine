@@ -170,7 +170,6 @@
   "chatWindowIntro.gotIt": "Понятно",
   "chatWindowIntro.title": "Настройте чат под себя",
   "chatWindowIntro.videoLabel": "Как расставить кнопки и окна чата",
-  "connections.decision.errors.needs_https": "Ваш ключ TypeSafe отправляется на этот адрес, поэтому адрес должен начинаться с https://, если только он не локальный, например localhost или 192.168.x.x.",
   "connections.decision.typesafeAddressHelp": "Чтобы использовать другой сервер, на котором работает API TypeSafe, замените Base URL ниже на адрес этого сервера без /v1/systemone.",
   "connections.mediaSources.atlas.apiKeyLink": "Получить API-ключ Atlas Cloud",
   "connections.mediaSources.atlas.imageDescription": "Создавайте изображения с помощью моделей, размещённых в Atlas Cloud.",

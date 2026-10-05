@@ -812,7 +812,6 @@
   "connections.decision.errors.invalid_url": "올바른 기본 URL을 입력하세요.",
   "connections.decision.errors.missing_key": "API 키를 입력하거나 기존 연결을 링크하세요.",
   "connections.decision.errors.missing_model": "서버가 사용할 모델 이름을 입력하세요.",
-  "connections.decision.errors.needs_https": "TypeSafe 키가 이 주소로 전송되므로, localhost나 192.168.x.x 같은 로컬 주소가 아니라면 https://로 시작해야 합니다.",
   "connections.decision.errors.needs_relinking": "연동된 연결이 없거나 호환되지 않습니다. 다른 연결을 선택하거나 키를 입력하세요.",
   "connections.decision.errors.network": "엔드포인트에 연결할 수 없거나 연결 정책에 의해 차단되었습니다.",
   "connections.decision.errors.no_answer": "모델이 예 또는 아니오로 답변하지 않았습니다.",
