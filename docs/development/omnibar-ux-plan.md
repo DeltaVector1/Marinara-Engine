@@ -99,7 +99,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 58b | Type icons everywhere, context for recent chats (Q6)            | designer         | Done                 | 9c7701cd6 |
 | 59  | Review of 56-58, 57b, 58b (Q4)                                  | reviewer, worker | Done                 | 40314d650 |
 | 60  | Record what was cut, server-side (R1)                           | worker           | Done                 | 122ec6d2e |
-| 61  | Reply checkup, no model (R2)                                    | designer         | Pending              |           |
+| 61  | Reply checkup, no model (R2)                                    | designer         | Done                 | 5267f2fdd |
 | 62  | Mari reads the checkup: chat.diagnose (R3)                      | designer         | Pending              |           |
 | 62b | One Mari thread per context (R7)                                | designer         | Pending              |           |
 | 63  | Connection doctor (R4)                                          | worker           | Pending              |           |
