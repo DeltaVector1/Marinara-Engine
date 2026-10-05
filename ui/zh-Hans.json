@@ -437,6 +437,7 @@
   "game.toolbar.volume.music": "音乐",
   "game.toolbar.volume.sfx": "音效",
   "game.toolbar.volume.tts": "语音朗读",
+  "generationParameters.reasoningEffort.codexHelp": "控制 Codex 回答前思考多久；“默认”沿用 Codex 自己为该模型设定的级别。",
   "home.achievements.allObtained": "所有成就均已解锁",
   "home.achievements.category.collection": "收藏",
   "home.achievements.category.community": "社区",

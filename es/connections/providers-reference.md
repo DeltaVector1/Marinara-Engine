@@ -128,7 +128,7 @@ Los pasos de instalación e inicio de sesión están en [Conexiones de suscripci
 
 - API key: ninguna. En su lugar, inicias sesión en una herramienta local.
 
-**OpenAI (ChatGPT)** usa tu cuenta de ChatGPT a través de la herramienta Codex. La herramienta se ejecuta en la computadora que aloja el servidor de Marinara, y tú inicias sesión una vez. Los campos **API Key** y **Base URL** quedan ocultos para este proveedor. No ofrece embeddings (consulta la sección Embeddings más abajo).
+**OpenAI (ChatGPT)** usa tu cuenta de ChatGPT a través de la herramienta Codex. La herramienta se ejecuta en la computadora que aloja el servidor de Marinara, y tú inicias sesión una vez. Los campos **API Key** y **Base URL** quedan ocultos para este proveedor. No ofrece embeddings (consulta la sección Embeddings más abajo). Su nivel de razonamiento es el **Reasoning Effort** de los parámetros de la conexión o del chat; hasta que elijas uno, Codex usa su propio valor predeterminado para el modelo.
 
 Los pasos de instalación e inicio de sesión están en [Conexiones de suscripción de Claude, ChatGPT y Grok](subscription-clis.md).
 

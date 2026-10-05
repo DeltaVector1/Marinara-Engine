@@ -73,6 +73,8 @@ codex login
 
 Marinaraはローカルに保存されたCodexのログインファイルを読み取り、可能なときはセッションを更新します。
 
+Codexが答える前にどれだけ考えるかを設定するには、接続を開き、**Default Chat Parameters**(チャットパラメーターのデフォルト)の下にある**Use custom defaults for this connection**(この接続で独自のデフォルトを使う)をオンにして、**Reasoning Effort**(推論の強度)を選びます。最初は**Default**になっています。チャットごとのレベルは**Advanced Parameters**(詳細パラメーター)で選べます。**Default**のままにすると、Codexがそのモデルに使うレベルがそのまま使われます。接続かチャットでレベルを選ぶまでは、Codexはこのデフォルトを使います。プリセットで設定したレベルではこれは変わりません。また、フォールバックとして使われるCodexの接続は、その接続自身のレベルにだけ従います。選べるレベルは、Codexがモデルごとに提供しているものと同じです。GPT-5.5は**xhigh**まで、GPT-5.6とGPT-6のモデルは**max**まで選べます。
+
 ## Grok CLI (Subscription)
 
 SuperGrokまたはX Premium+のアカウントが必要です。

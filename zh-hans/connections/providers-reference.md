@@ -128,7 +128,7 @@ NanoGPT 暂时无法提供的额度会显示为**未知**，而非未使用。�
 
 - API 密钥：不需要，改为登录一个本地工具。
 
-**OpenAI (ChatGPT)** 借助 Codex 工具使用 ChatGPT 账号。该工具运行在托管 Marinara 服务器的那台电脑上，登录一次即可。这家服务商的 **API Key** 和 **Base URL** 输入框会被隐藏。它不提供嵌入，见下文的 Embeddings 一节。
+**OpenAI (ChatGPT)** 借助 Codex 工具使用 ChatGPT 账号。该工具运行在托管 Marinara 服务器的那台电脑上，登录一次即可。这家服务商的 **API Key** 和 **Base URL** 输入框会被隐藏。它不提供嵌入，见下文的 Embeddings 一节。它的思考程度由连接参数或聊天参数里的 **Reasoning Effort** 决定；选定级别之前，Codex 对该模型使用它自己的默认级别。
 
 安装和登录步骤见 [Claude、ChatGPT 和 Grok 订阅连接](subscription-clis.md)。
 
