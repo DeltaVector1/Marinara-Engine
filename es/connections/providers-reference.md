@@ -109,6 +109,13 @@ El mismo indicador aparece debajo del indicador de contexto en el selector de co
 
 **xAI / Grok** ejecuta los modelos Grok. Cuando eliges este proveedor en la ventana **Create Connection**, Marinara rellena de antemano el modelo con Grok 4.5. Puedes cambiar el modelo después. Grok 4.6 y 4.7 ofrecen una ventana de contexto de 500 000 tokens y razonamiento hasta **Maximum** (`xhigh`). Admiten las herramientas existentes del chat, incluida **Web Search** (búsqueda web), para que los resultados de búsqueda puedan incorporarse a la respuesta final.
 
+## Arli AI
+
+- Dónde conseguir una clave: `https://www.arliai.com/account`
+- URL base predeterminada: `https://api.arliai.com/v1`
+
+**Arli AI** es un servicio de chat alojado. No tiene una lista de modelos integrada, así que el desplegable **Model** empieza vacío. Después de pegar tu clave, haz clic en **Fetch Models from API** para cargar sus modelos actuales. Para las imágenes de Arli AI, usa en su lugar el proveedor **Image Generation** y su servicio **Arli AI**.
+
 ## Z.AI
 
 - Dónde conseguir una API key: `https://z.ai/manage-apikey/apikey-list`
@@ -156,9 +163,30 @@ La lista completa de servicios de imágenes, su configuración y sus ajustes de 
 
 ## Video Generation
 
-**Video Generation** también es un proveedor especial con su propio selector **Video Service** (Servicio de video). Game Mode lo usa para crear videos MP4 cortos de escenas. Los servicios son **Google AI Studio**, **xAI Imagine**, **OpenRouter Video** y **Seedance 2.0**. Cada servicio necesita una API key.
+**Video Generation** también es un proveedor especial con su propio selector **Video Service** (Servicio de video). Marinara lo usa para crear videos MP4 cortos de escenas. Los servicios son **Google AI Studio**, **xAI Imagine**, **OpenRouter Video**, **NanoGPT**, **Atlas Cloud**, **Seedance 2.0**, **ComfyUI** y **SwarmUI**. Los servicios en la nube necesitan una API key. **ComfyUI** y **SwarmUI** se ejecutan en tu propia computadora y normalmente no la necesitan.
 
 La configuración completa y los límites de cada servicio de video están en [Generación de video de escenas](../media/scene-video.md).
+
+## Decision
+
+- URL base predeterminada: `https://api.typesafe.ai` para la fuente **TypeSafe**.
+
+**Decision** es un proveedor especial opcional para un modelo que responde preguntas de sí o no sobre tu chat. Por ejemplo, puede decidir si un agente personalizado debe ejecutarse. Sus respuestas guían a Marinara y no se publican en el chat. Después de seleccionarlo, elige una fuente: **TypeSafe**, **OpenRouter**, **Custom System One endpoint** (endpoint System One personalizado) u **OpenAI-compatible chat model** (modelo de chat compatible con OpenAI). Las fuentes alojadas necesitan una API key.
+
+Qué hace un modelo de decisión, cómo elegir uno y la configuración completa están en [Modelos de decisión](decision-models.md).
+
+## Audio
+
+**Audio** es un proveedor especial para voces y sonido generado. Después de seleccionarlo, elige una **Audio Source** (Fuente de audio):
+
+- **ElevenLabs**: voz, efectos de sonido y música.
+- **OpenAI-compatible**: OpenAI, o cualquier servidor que copie el formato de voz de OpenAI.
+- **PocketTTS**: un servidor de voz gratuito que ejecutas en tu propia computadora.
+- **xAI Voice**: el servicio de voz de xAI.
+
+Cada fuente rellena una URL base y un modelo predeterminados. **Default Voice** (Voz predeterminada) es la voz que se usa cuando no hay nada más específico configurado, como una voz por personaje. Para elegir qué conexión de audio usa Marinara de forma predeterminada, abre el panel **Connections**, expande **Defaults** (Predeterminados) y elígela en **Audio**.
+
+Con la fuente **ElevenLabs** aparecen dos interruptores más: **Game sound effects** (Efectos de sonido del juego) y **Game music** (Música del juego). Permiten que Game Mode cree efectos de sonido y música con esta conexión. Consulta [Efectos de sonido y música generados](../game/game-assets.md#generated-sound-effects-and-music). Para las voces y la lectura de mensajes en voz alta, consulta [Configuración de Text to Speech (TTS)](../media/tts-setup.md).
 
 ## Embeddings
 
@@ -173,3 +201,5 @@ Algunos proveedores no pueden crear embeddings. **Anthropic**, **Claude (Subscri
 - [Conectar un modelo local o autoalojado](local-self-hosted.md)
 - [Proveedores y configuración de generación de imágenes](../media/image-providers.md)
 - [Generación de video de escenas](../media/scene-video.md)
+- [Modelos de decisión](decision-models.md)
+- [Configuración de Text to Speech (TTS)](../media/tts-setup.md)

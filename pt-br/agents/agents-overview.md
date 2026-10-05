@@ -8,7 +8,7 @@ Os agentes são pequenos ajudantes de IA que rodam automaticamente em volta da r
 
 Os agentes são ativados por chat, não por personagem. O card de personagem não tem botão liga/desliga de agentes. Dois chats com o mesmo personagem podem rodar agentes completamente diferentes. Você escolhe quais agentes rodam nas configurações de cada chat.
 
-Uma instalação nova do Marinara Engine começa sem nenhum agente opcional. Isso deixa o aplicativo base e a instalação no Termux menores. O catálogo oficial da versão 2.3.0 em diante tem 36 pacotes de um clique: 6 Writer Agents, 11 Tracker Agents e 19 Misc Agents, incluindo Long-Term Memory, Maps, Calls, Inventory Tracker e os seis jogos de Conversation. O código-fonte, os manifestos, os arquivos para download e o catálogo do repositório são públicos em [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). O guia completo de cada agente está em [Referência dos agentes para download](built-in-agents.md). Para criar o seu, veja [Como criar agentes personalizados](custom-agents.md).
+Uma instalação nova do Marinara Engine começa sem nenhum agente opcional. Isso deixa o aplicativo base e a instalação no Termux menores. **Download Agents** (baixar agentes) agrupa os pacotes oficiais de um clique em **Apps**, **Writer Agents**, **Tracker Agents** e **Misc Agents**. O catálogo inclui Long-Term Memory, World Maps, Calls, Inventory Tracker e os seis jogos de Conversation. O código-fonte, os manifestos, os arquivos para download e o catálogo do repositório são públicos em [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). O guia completo de cada agente está em [Referência dos agentes para download](built-in-agents.md). Para criar o seu, veja [Como criar agentes personalizados](custom-agents.md).
 
 ## As três fases
 
@@ -22,17 +22,28 @@ Cada agente roda em um de três pontos em volta da resposta. Esse ponto se chama
 
 Abra o painel **Agents** pelas abas do painel lateral direito (o ícone de estrelinhas). Ali você navega, cria e organiza agentes. Essa é a sua biblioteca. Não é o liga/desliga de um chat específico.
 
-Clique em **Download Agents** (baixar agentes), no topo, para abrir o catálogo oficial em tela cheia. Ele funciona no computador e no celular. Selecione um item para ler a descrição, o tipo de recurso compatível, o tamanho do download, as permissões, a compatibilidade de versão e a documentação. Clique em **Install** para adicionar o pacote; a mesma tela permite atualizar na hora e traz **Uninstall** para os pacotes que você já tem. Marinara também verifica cada pacote oficial instalado quando o servidor inicia e atualiza esse pacote para a versão compatível mais nova do catálogo, antes de o runtime dele ser ativado. Quando o servidor de origem está fora do ar ou a atualização não pode ser verificada, os pacotes continuam funcionando na versão atual.
+Clique em **Download Agents**, no topo, para abrir o catálogo oficial em tela cheia. Ele funciona no computador e no celular. Selecione um item para ler a descrição, o tipo de recurso compatível, o tamanho do download, as permissões, a compatibilidade de versão e a documentação. Clique em **Install** para adicionar o pacote; a mesma tela permite atualizar na hora e traz **Uninstall** para os pacotes que você já tem.
 
 O catálogo dentro do aplicativo vem do [repositório público Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Você pode inspecionar cada pacote e cada arquivo por lá, mas o normal é instalar pela tela **Download Agents**, para que Marinara valide compatibilidade, permissões, hashes, conteúdo do pacote e necessidade de reinício.
 
 O catálogo traz os agentes de chat oficiais, o World Maps, as chamadas de áudio e vídeo do Conversation e todos os jogos opcionais do Conversation. Os agentes instalados ficam agrupados em **Apps**, **Writer Agents**, **Tracker Agents** e **Misc Agents**, mais uma seção **Custom Agents** para os que você cria. Os **Apps** são pacotes com uma aba própria da Home, como Noodle e Slurp, que você usa de forma independente, em vez de adicioná-los a um chat. Desinstalar um pacote do catálogo remove o código e as configurações dele da Engine, mas preserva as mensagens e o histórico do chat. Excluir um agente personalizado é definitivo.
 
-Um pacote marcado **Rules** fornece um conjunto de regras de Game Mode, como 5e (SRD 5.1), e não um agente; não entra nas contagens de agentes acima. Escolha-o em **Rules** ao criar uma partida; veja [Escolher as regras](../game/getting-started.md#choosing-rules). Não há controle de ativação por chat. O pacote 5e é uma prévia e aparece apenas no catálogo do Engine na branch `staging`.
+Um pacote marcado **Rules** fornece um conjunto de regras de Game Mode, como 5e (SRD 5.1), e não um agente. Escolha-o em **Rules** ao criar uma partida; veja [Escolher as regras](../game/getting-started.md#choosing-rules). Não há controle de ativação por chat. O pacote 5e é uma prévia e aparece apenas no catálogo do Engine na branch `staging`.
 
 Ao atualizar de uma versão da Engine que já trazia esses recursos embutidos, Marinara baixa os pacotes correspondentes uma vez e preserva as escolhas de agentes nos chats, as configurações dos agentes, os dados de runtime salvos e o histórico. Se essa migração não conseguir acessar o catálogo, ela tenta de novo na inicialização seguinte, em vez de descartar qualquer coisa.
 
-As atualizações automáticas de inicialização nunca instalam um pacote que você não selecionou. As instalações no computador, em Docker e no Android/Termux atualizam os pacotes salvos pelo servidor local. Clientes em iOS, iPadOS e outros navegadores usam os pacotes instalados e atualizados pelo servidor Marinara ao qual se conectam.
+<a id="updating-packages"></a>
+
+### Como atualizar pacotes
+
+Marinara pergunta antes de atualizar um pacote. Quando há uma versão compatível mais nova de um pacote que você instalou, aparece a janela **Agent updates available** (atualizações de agentes disponíveis). Ela lista cada atualização com a nova versão e informa se é preciso reiniciar. Quando o pacote publica notas de versão, **What changed** (o que mudou) mostra essas notas. Um ponto marca uma mudança que você vai perceber; as atualizações sem ponto são correções de rotina.
+
+- Clique em **Update all** (atualizar tudo) para instalar todas as atualizações da lista. Reinicie o Marinara Engine se ele pedir.
+- Clique em **Not now** (agora não) para manter as versões atuais. Marinara não pergunta de novo sobre uma versão que você pulou.
+
+Você ainda pode atualizar qualquer pacote depois, pela tela **Download Agents**. Os pacotes instalados continuam funcionando na versão atual até você atualizá-los, mesmo quando o catálogo está inacessível.
+
+As atualizações valem só para os pacotes que você já instalou. As instalações no computador, em Docker e no Android/Termux mantêm os pacotes no servidor local. Clientes em iOS, iPadOS e outros navegadores usam os pacotes instalados no servidor Marinara ao qual se conectam.
 
 ## Como ativar agentes em um chat
 

@@ -109,6 +109,13 @@ NanoGPT가 현재 보고할 수 없는 할당량은 미사용이 아닌 **알 �
 
 **xAI / Grok**은 Grok 모델을 운영합니다. **Create Connection** 창에서 이 제공자를 고르면 Marinara가 모델을 Grok 4.5로 미리 채웁니다. 모델은 나중에 바꿀 수 있습니다. Grok 4.6과 4.7은 500,000토큰 컨텍스트 창과 **Maximum** (`xhigh`)까지의 추론을 제공합니다. **Web Search**(웹 검색)를 비롯한 기존 채팅 도구를 지원하므로 검색 결과를 최종 답변에 반영할 수 있습니다.
 
+## Arli AI
+
+- 키를 받는 곳: `https://www.arliai.com/account`
+- 기본 Base URL: `https://api.arliai.com/v1`
+
+**Arli AI**는 호스팅 채팅 서비스입니다. 내장 모델 목록이 없어서 **Model** 드롭다운이 비어 있는 상태로 시작합니다. 키를 붙여넣은 뒤 **Fetch Models from API**를 클릭해 현재 모델을 불러오세요. Arli AI로 이미지를 만들려면 대신 **Image Generation** 제공자와 그 안의 **Arli AI** 서비스를 사용하세요.
+
 ## Z.AI
 
 - 키를 받는 곳: `https://z.ai/manage-apikey/apikey-list`
@@ -156,9 +163,30 @@ Ollama, LM Studio, KoboldCpp처럼 로컬이나 자체 호스팅으로 운영하
 
 ## Video Generation
 
-**Video Generation**(동영상 생성)도 특별한 제공자로, 전용 **Video Service**(동영상 서비스) 선택 항목이 있습니다. Game Mode는 이 기능으로 짧은 MP4 장면 동영상을 만듭니다. 서비스는 **Google AI Studio**, **xAI Imagine**, **OpenRouter Video**, **Seedance 2.0**이며, 모두 API 키가 필요합니다.
+**Video Generation**(동영상 생성)도 특별한 제공자로, 전용 **Video Service**(동영상 서비스) 선택 항목이 있습니다. Marinara는 이 기능으로 짧은 MP4 장면 동영상을 만듭니다. 서비스는 **Google AI Studio**, **xAI Imagine**, **OpenRouter Video**, **NanoGPT**, **Atlas Cloud**, **Seedance 2.0**, **ComfyUI**, **SwarmUI**입니다. 클라우드 서비스에는 API 키가 필요합니다. **ComfyUI**와 **SwarmUI**는 내 컴퓨터에서 실행되며 보통 키가 필요 없습니다.
 
 동영상 서비스별 설정 방법과 제한은 [장면 동영상 생성](../media/scene-video.md)에서 다룹니다.
+
+## Decision
+
+- 기본 Base URL: **TypeSafe** 소스는 `https://api.typesafe.ai`입니다.
+
+**Decision**(판단)은 채팅에 관한 예/아니요 질문에 답하는 모델을 위한 선택형 특별 제공자입니다. 예를 들어 사용자 지정 에이전트를 실행할지 판단할 수 있습니다. 답은 Marinara의 동작을 제어하며 채팅에 게시되지 않습니다. 이 제공자를 고른 다음 **TypeSafe**, **OpenRouter**, **Custom System One endpoint**(사용자 지정 System One 엔드포인트), **OpenAI-compatible chat model**(OpenAI 호환 채팅 모델) 중에서 소스를 고르세요. 호스팅 소스에는 API 키가 필요합니다.
+
+Decision 모델의 역할과 고르는 방법, 전체 설정은 [Decision 모델](decision-models.md)에서 다룹니다.
+
+## Audio
+
+**Audio**(오디오)는 음성과 생성된 소리를 위한 특별 제공자입니다. 이 제공자를 고른 다음 **Audio Source**(오디오 소스)를 고르세요.
+
+- **ElevenLabs**: 음성, 효과음, 음악을 만듭니다.
+- **OpenAI-compatible**: OpenAI, 또는 OpenAI의 음성 형식을 그대로 따르는 서버입니다.
+- **PocketTTS**: 직접 컴퓨터에서 돌리는 무료 음성 서버입니다.
+- **xAI Voice**: xAI의 음성 서비스입니다.
+
+소스마다 기본 Base URL과 모델이 채워집니다. **Default Voice**(기본 음성)는 캐릭터별 음성처럼 더 구체적인 설정이 없을 때 쓰는 음성입니다. Marinara가 기본으로 쓸 오디오 연결을 고르려면 **Connections** 패널을 열고 **Defaults**(기본값)를 펼친 다음 **Audio** 아래에서 고르세요.
+
+**ElevenLabs** 소스에서는 **Game sound effects**(게임 효과음)와 **Game music**(게임 음악) 스위치 2개가 더 나타납니다. 이 스위치를 켜면 Game Mode(게임 모드)가 이 연결로 효과음과 음악을 만듭니다. [효과음과 음악 생성](../game/game-assets.md#generated-sound-effects-and-music)을 참고하세요. 음성과 메시지 소리 내어 읽기는 [Text to Speech(TTS) 설정](../media/tts-setup.md)을 참고하세요.
 
 ## 임베딩
 
@@ -173,3 +201,5 @@ Ollama, LM Studio, KoboldCpp처럼 로컬이나 자체 호스팅으로 운영하
 - [로컬 모델 또는 자체 호스팅 모델 연결하기](local-self-hosted.md)
 - [이미지 생성 제공자와 설정](../media/image-providers.md)
 - [장면 동영상 생성](../media/scene-video.md)
+- [Decision 모델](decision-models.md)
+- [Text to Speech(TTS) 설정](../media/tts-setup.md)

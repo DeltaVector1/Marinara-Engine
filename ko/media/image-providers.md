@@ -33,6 +33,7 @@
 | ChatGPT (Codex login) | 불필요, `codex login` 사용 | 클라우드 |
 | Stability AI | 필요 | 클라우드 |
 | Together AI | 필요 | 클라우드 |
+| Arli AI | 필요 | 클라우드 |
 | NovelAI | 필요 | 클라우드 |
 | OpenRouter Images | 필요 | 클라우드 |
 | xAI / Grok Imagine | 필요 | 클라우드 |
@@ -47,6 +48,7 @@
 | Stable Horde | 선택 | 무료 클라우드 |
 | SD Web UI (AUTOMATIC1111 / Forge) | 불필요 | 로컬 |
 | ComfyUI | 불필요 | 로컬 |
+| SwarmUI | 선택 | 로컬 |
 | Draw Things | 불필요 | 로컬 |
 
 ## OpenAI (DALL-E)
@@ -68,6 +70,12 @@ API 키 대신 ChatGPT 요금제를 사용하는 클라우드 서비스입니다
 ## Together AI
 
 기본 Base URL이 `https://api.together.xyz/v1`인 클라우드 서비스입니다. Together AI API 키가 필요합니다. FLUX를 비롯한 공개 이미지 모델을 제공합니다.
+
+## Arli AI
+
+기본 Base URL이 `https://api.arliai.com/v1`인 클라우드 서비스입니다. Arli AI API 키가 필요합니다. 호스팅된 Stable Diffusion 모델을 실행합니다. **Model**은 필수이므로 사용할 Arli AI 이미지 모델 이름을 입력하세요. **SD Web UI (AUTOMATIC1111 / Forge)**와 같은 **Local Image Defaults**(로컬 이미지 기본값) 입력란을 쓰며, 자세한 내용은 아래에서 설명합니다. 참조 이미지를 보내면 Marinara는 첫 번째 이미지를 시작 그림으로 씁니다(image to image).
+
+여기의 **Arli AI** 서비스는 이미지 전용입니다. Arli AI 채팅 모델을 쓰려면 대신 **Arli AI** 채팅 제공자를 사용하세요. [지원하는 AI 제공자](../connections/providers-reference.md#arli-ai)를 참고하세요.
 
 ## NovelAI
 
@@ -127,6 +135,12 @@ Marinara는 프롬프트와 요청한 크기를 전송하고, 처음 반환된 �
 
 기본 Base URL이 `http://127.0.0.1:8188`인 로컬 서비스입니다. 내 컴퓨터에서 실행 중인 ComfyUI 서버와 통신합니다. 아래에서 설명하는 사용자 지정 워크플로를 지원합니다. API 키는 필요 없습니다.
 
+## SwarmUI
+
+기본 Base URL이 `http://127.0.0.1:7801`인 로컬 서비스입니다. SwarmUI 서버와 통신하며, SwarmUI는 ComfyUI 작업을 자체 대기열로 나눠 처리할 수 있습니다. 계정이 없는 로컬 서버라면 API 키가 필요 없습니다. SwarmUI 서버에 계정이 필요하다면 **API Key**에 Swarm Auth Token을 붙여넣으세요. **Fetch Models from API**를 사용하면 SwarmUI 서버에 있는 모델 목록을 볼 수 있습니다.
+
+SwarmUI에서는 **ComfyUI Workflow** 입력란이 선택 사항입니다. 비워 두면 SwarmUI 자체 이미지 설정을 쓰고, 아래에서 설명하는 워크플로를 붙여넣을 수도 있습니다. 각 이미지를 SwarmUI의 출력 폴더에도 남기려면 **Local Image Defaults**에서 **Save images in SwarmUI**(SwarmUI에 이미지 저장)를 켜세요. 어느 쪽이든 Marinara는 자체 사본을 보관합니다.
+
 ## Draw Things
 
 기본 Base URL이 `http://localhost:7860`인 로컬 서비스입니다. macOS나 iOS의 Draw Things 앱과 통신합니다. Marinara는 이 서비스를 AUTOMATIC1111 서버처럼 다룹니다. API 키는 필요 없습니다.
@@ -141,7 +155,7 @@ Marinara는 프롬프트와 요청한 크기를 전송하고, 처음 반환된 �
 
 ## ComfyUI 워크플로 JSON과 RunPod
 
-**ComfyUI**와 **RunPod Serverless (ComfyUI)**를 고르면 **ComfyUI Workflow** 입력란이 나타납니다. ComfyUI에서 **Save (API Format)**(API 형식으로 저장), **Export (API)**, **Export to API** 중 하나로 내보낸 워크플로 JSON을 붙여넣으세요. 어느 항목이 있는지는 프런트엔드 버전에 따라 다릅니다. 이 입력란은 **ComfyUI**에서는 Optional, **RunPod Serverless (ComfyUI)**에서는 Required로 표시됩니다.
+**ComfyUI**, **SwarmUI**, **RunPod Serverless (ComfyUI)**를 고르면 **ComfyUI Workflow** 입력란이 나타납니다. ComfyUI에서 **Save (API Format)**(API 형식으로 저장), **Export (API)**, **Export to API** 중 하나로 내보낸 워크플로 JSON을 붙여넣으세요. 어느 항목이 있는지는 프런트엔드 버전에 따라 다릅니다. 이 입력란은 **ComfyUI**와 **SwarmUI**에서는 Optional, **RunPod Serverless (ComfyUI)**에서는 Required로 표시됩니다.
 
 Marinara는 플레이스홀더를 이용해 워크플로를 채웁니다. 값이 들어가야 할 자리에 아래 문자열을 넣어 두세요.
 
@@ -151,15 +165,15 @@ Marinara는 플레이스홀더를 이용해 워크플로를 채웁니다. 값이
 - `%reference_image%`와 `%reference_image_01%`부터 `%reference_image_04%`까지는 참조 이미지 데이터를 주입합니다.
 - `%reference_image_name%`과 `%reference_image_name_01%`부터 `%reference_image_name_04%`까지는 참조 이미지를 업로드한 뒤 그 파일 이름을 주입해 로컬 ComfyUI의 LoadImage 노드에서 쓰게 합니다.
 
-가장 중요한 플레이스홀더는 `%prompt%`입니다. 이 플레이스홀더가 없으면 편집기가 경고합니다. **ComfyUI**에서는 입력란을 비워 두면 내장된 기본 워크플로를 씁니다. **RunPod Serverless (ComfyUI)**에서는 엔드포인트에 기본 워크플로가 없으므로 워크플로를 반드시 넣어야 합니다. 두 서비스 모두 base64 원본 참조 이미지를 최대 4장까지 받으며, 파일 이름 업로드 방식의 플레이스홀더는 로컬 ComfyUI에서만 쓸 수 있습니다.
+가장 중요한 플레이스홀더는 `%prompt%`입니다. 이 플레이스홀더가 없으면 편집기가 경고합니다. **ComfyUI**에서는 입력란을 비워 두면 내장된 기본 워크플로를 씁니다. **SwarmUI**에서는 비워 두면 SwarmUI 자체 이미지 설정을 씁니다. **RunPod Serverless (ComfyUI)**에서는 엔드포인트에 기본 워크플로가 없으므로 워크플로를 반드시 넣어야 합니다. 세 서비스 모두 base64 원본 참조 이미지를 최대 4장까지 받으며, 파일 이름 업로드 방식의 플레이스홀더는 로컬 ComfyUI에서만 쓸 수 있습니다.
 
 내보내기 전체 과정과 JSON 예시, 플레이스홀더 따옴표 규칙, 참조 이미지 설정, 캐릭터별 워크플로, LAN 접근, 문제 해결은 [ComfyUI 워크플로 설정](comfyui.md)에서 설명합니다.
 
 ## 연결마다 적용되는 Local Image Defaults
 
-서비스가 **SD Web UI (AUTOMATIC1111 / Forge)**, **ComfyUI**, **NovelAI**, **Draw Things** 중 하나이면 그 연결에 **Local Image Defaults**(로컬 이미지 기본값) 패널이 나타납니다. **Draw Things**의 패널에는 **SD Web UI (AUTOMATIC1111 / Forge)**와 같은 입력란과 기본값이 표시됩니다. 이 설정은 해당 연결로 이미지를 생성할 때만 적용됩니다. **Reset**(초기화) 버튼을 누르면 처음 값으로 되돌아갑니다.
+서비스가 **SD Web UI (AUTOMATIC1111 / Forge)**, **ComfyUI**, **NovelAI**, **Draw Things**, **Arli AI**, **SwarmUI**, **RunPod Serverless (ComfyUI)** 중 하나이면 그 연결에 **Local Image Defaults**(로컬 이미지 기본값) 패널이 나타납니다. **Draw Things**와 **Arli AI**의 패널에는 **SD Web UI (AUTOMATIC1111 / Forge)**와 같은 입력란과 기본값이 표시됩니다. **SwarmUI**와 **RunPod Serverless (ComfyUI)**의 패널에는 **ComfyUI**와 같은 입력란과 기본값이 표시됩니다. 이 설정은 해당 연결로 이미지를 생성할 때만 적용됩니다. **Reset**(초기화) 버튼을 누르면 처음 값으로 되돌아갑니다.
 
-이 4가지 서비스에는 모두 **Seed**(시드) 입력란이 있습니다. 값이 -1이면 이미지마다 무작위로 생성합니다. 다른 숫자를 넣으면 매번 똑같은 시드를 그대로 다시 씁니다.
+이 서비스에는 모두 **Seed**(시드) 입력란이 있습니다. 값이 -1이면 이미지마다 무작위로 생성합니다. 다른 숫자를 넣으면 매번 똑같은 시드를 그대로 다시 씁니다.
 
 나머지 입력란은 서비스마다 다릅니다.
 
@@ -196,8 +210,10 @@ Marinara는 플레이스홀더를 이용해 워크플로를 채웁니다. 값이
 | Atlas Cloud | image-to-image, edit, Kontext를 지원하는 모델 ID에서 첫 번째 이미지만 |
 | NanoGPT | 최대 3장 |
 | Stability AI | 첫 번째 이미지만, image to image 방식으로 사용 |
+| Arli AI | 첫 번째 이미지만, image to image 방식으로 사용 |
 | OpenRouter Images | 지원, 장수 제한 없음 |
 | ComfyUI 및 RunPod Serverless (ComfyUI) | 최대 4장, 워크플로 플레이스홀더를 통해 |
+| SwarmUI | 최대 4장 |
 | Together AI, Pollinations, Stable Horde | 지원하지 않음 |
 
 NovelAI의 정밀 참조 이미지는 `nai-diffusion-4-5-full` 같은 V4.5 모델에서만 작동합니다. NovelAI는 아직 V5용 Precise Reference를 출시하지 않았습니다. 다른 모델에 참조 이미지를 요청하면 Marinara는 참조 이미지 없이 이미지를 생성하고 서버 로그에 경고를 남깁니다.

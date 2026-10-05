@@ -33,6 +33,7 @@
 | ChatGPT (Codex login) | 不要、`codex login`を使用 | クラウド |
 | Stability AI | 必要 | クラウド |
 | Together AI | 必要 | クラウド |
+| Arli AI | 必要 | クラウド |
 | NovelAI | 必要 | クラウド |
 | OpenRouter Images | 必要 | クラウド |
 | xAI / Grok Imagine | 必要 | クラウド |
@@ -47,6 +48,7 @@
 | Stable Horde | 任意 | 無料クラウド |
 | SD Web UI (AUTOMATIC1111 / Forge) | 不要 | ローカル |
 | ComfyUI | 不要 | ローカル |
+| SwarmUI | 任意 | ローカル |
 | Draw Things | 不要 | ローカル |
 
 ## OpenAI (DALL-E)
@@ -68,6 +70,12 @@ APIキーの代わりにChatGPTのプランを使うクラウドサービスで�
 ## Together AI
 
 デフォルトのBase URLが`https://api.together.xyz/v1`のクラウドサービスです。Together AIのAPIキーが必要です。FLUXをはじめとするオープンな画像モデルを利用できます。
+
+## Arli AI
+
+デフォルトのBase URLが`https://api.arliai.com/v1`のクラウドサービスです。Arli AIのAPIキーが必要です。ホスト型のStable Diffusionモデルを利用できます。**Model**の指定が必須なので、使いたいArli AIの画像モデルの名前を入力してください。後述の**Local Image Defaults**では、**SD Web UI (AUTOMATIC1111 / Forge)**と同じ欄を使います。参照画像を送ると、Marinaraは1枚目を元画像として使います(image to image)。
+
+ここでの**Arli AI**サービスは画像専用です。Arli AIのチャットモデルを使うには、代わりに**Arli AI**チャットプロバイダーを使ってください。[対応しているAIプロバイダー](../connections/providers-reference.md#arli-ai)を参照してください。
 
 ## NovelAI
 
@@ -127,6 +135,12 @@ Marinaraはプロンプトと指定サイズを送り、最初に返された画
 
 デフォルトのBase URLが`http://127.0.0.1:8188`のローカルサービスです。自分のコンピューターで動いているComfyUIサーバーと通信します。後述のカスタムワークフローに対応しています。APIキーは不要です。
 
+## SwarmUI
+
+デフォルトのBase URLが`http://127.0.0.1:7801`のローカルサービスです。SwarmUIサーバーと通信します。SwarmUIは、ComfyUIの処理を独自のキューに振り分けられます。アカウントのないローカルサーバーなら、APIキーは不要です。SwarmUIサーバーでアカウントが必要な場合は、**API Key**にSwarm Auth Tokenを貼り付けます。**Fetch Models from API**で、SwarmUIサーバーにあるモデルの一覧を表示できます。
+
+SwarmUIでは、**ComfyUI Workflow**欄は任意です。空のままにするとSwarmUI自身の画像設定を使います。後述のワークフローを貼り付けることもできます。各画像をSwarmUIの出力フォルダーにも残すには、**Local Image Defaults**で**Save images in SwarmUI**(SwarmUIに画像を保存)をオンにします。どちらの場合も、Marinaraは自分用のコピーを保存します。
+
 ## Draw Things
 
 デフォルトのBase URLが`http://localhost:7860`のローカルサービスです。macOSまたはiOSのDraw Thingsアプリと通信します。MarinaraはこれをAUTOMATIC1111のサーバーと同じように扱います。APIキーは不要です。
@@ -141,7 +155,7 @@ Marinaraはプロンプトと指定サイズを送り、最初に返された画
 
 ## ComfyUIのワークフローJSONとRunPod
 
-**ComfyUI**と**RunPod Serverless (ComfyUI)**では、**ComfyUI Workflow**欄が表示されます。ComfyUIから**Save (API Format)**、**Export (API)**、**Export to API**のいずれか(フロントエンドのバージョンによって名前が異なります)で書き出したワークフローJSONを貼り付けます。この欄は、**ComfyUI**ではOptional、**RunPod Serverless (ComfyUI)**ではRequiredと表示されます。
+**ComfyUI**、**SwarmUI**、**RunPod Serverless (ComfyUI)**では、**ComfyUI Workflow**欄が表示されます。ComfyUIから**Save (API Format)**、**Export (API)**、**Export to API**のいずれか(フロントエンドのバージョンによって名前が異なります)で書き出したワークフローJSONを貼り付けます。この欄は、**ComfyUI**と**SwarmUI**ではOptional、**RunPod Serverless (ComfyUI)**ではRequiredと表示されます。
 
 Marinaraはプレースホルダーを使ってワークフローを埋めます。値を入れたい位置に、次のテキストマーカーを書いておきます。
 
@@ -151,15 +165,15 @@ Marinaraはプレースホルダーを使ってワークフローを埋めます
 - `%reference_image%`と`%reference_image_01%`から`%reference_image_04%`までは、参照画像のデータを挿入します。
 - `%reference_image_name%`と`%reference_image_name_01%`から`%reference_image_name_04%`までは、参照画像をアップロードし、ローカルのComfyUIのLoadImageノード用にそのファイル名を挿入します。
 
-中でも重要なのは`%prompt%`です。これが見つからないと、エディターが警告します。**ComfyUI**では、欄を空のままにすると組み込みのデフォルトワークフローを使います。**RunPod Serverless (ComfyUI)**では、エンドポイント側にデフォルトがないため、ワークフローが必須です。どちらもbase64形式の参照画像を最大4枚まで受け付けます。ファイル名でアップロードするプレースホルダーは、ローカルのComfyUIでしか使えません。
+中でも重要なのは`%prompt%`です。これが見つからないと、エディターが警告します。**ComfyUI**では、欄を空のままにすると組み込みのデフォルトワークフローを使います。**SwarmUI**では、空のままにするとSwarmUI自身の画像設定を使います。**RunPod Serverless (ComfyUI)**では、エンドポイント側にデフォルトがないため、ワークフローが必須です。3つともbase64形式の参照画像を最大4枚まで受け付けます。ファイル名でアップロードするプレースホルダーは、ローカルのComfyUIでしか使えません。
 
 書き出しの手順、JSONの例、プレースホルダーの引用符の扱い、参照画像の設定、キャラクターごとのワークフロー、LANからのアクセス、トラブルシューティングについては、[ComfyUIワークフローの設定](comfyui.md)を参照してください。
 
 ## 接続ごとのLocal Image Defaults
 
-サービスが**SD Web UI (AUTOMATIC1111 / Forge)**、**ComfyUI**、**NovelAI**、**Draw Things**のいずれかのとき、その接続に**Local Image Defaults**(ローカル画像のデフォルト設定)パネルが表示されます。**Draw Things**では、**SD Web UI (AUTOMATIC1111 / Forge)**と同じ欄とデフォルト値が並びます。これらの設定は、この接続で画像を生成するときにだけ適用されます。**Reset**ボタンで組み込みの値に戻せます。
+サービスが**SD Web UI (AUTOMATIC1111 / Forge)**、**ComfyUI**、**NovelAI**、**Draw Things**、**Arli AI**、**SwarmUI**、**RunPod Serverless (ComfyUI)**のいずれかのとき、その接続に**Local Image Defaults**(ローカル画像のデフォルト設定)パネルが表示されます。**Draw Things**と**Arli AI**では、**SD Web UI (AUTOMATIC1111 / Forge)**と同じ欄とデフォルト値が並びます。**SwarmUI**と**RunPod Serverless (ComfyUI)**では、**ComfyUI**と同じ欄とデフォルト値が並びます。これらの設定は、この接続で画像を生成するときにだけ適用されます。**Reset**ボタンで組み込みの値に戻せます。
 
-この4つのサービスにはいずれも**Seed**欄があります。-1のままにすると、毎回ランダムな画像になります。ほかの数値を入れると、常に同じシード値を使い回します。
+これらのサービスにはいずれも**Seed**欄があります。-1のままにすると、毎回ランダムな画像になります。ほかの数値を入れると、常に同じシード値を使い回します。
 
 そのほかの欄はサービスによって異なります。
 
@@ -196,8 +210,10 @@ Marinaraはプレースホルダーを使ってワークフローを埋めます
 | Atlas Cloud | image-to-image、編集、Kontextに対応したモデルIDでは1枚目のみ |
 | NanoGPT | 最大3枚 |
 | Stability AI | 1枚目のみ、image to imageとして使用 |
+| Arli AI | 1枚目のみ、image to imageとして使用 |
 | OpenRouter Images | 対応、枚数の上限なし |
 | ComfyUIとRunPod Serverless (ComfyUI) | 最大4枚、ワークフローのプレースホルダー経由 |
+| SwarmUI | 最大4枚 |
 | Together AI、Pollinations、Stable Horde | 非対応 |
 
 NovelAIの精密な参照画像は、`nai-diffusion-4-5-full`のようなV4.5系モデルでしか動作しません。NovelAIはV5向けのPrecise Referenceをまだ公開していません。ほかのモデルで参照画像を指定すると、Marinaraは参照画像なしで画像を生成し、サーバーログに警告を記録します。

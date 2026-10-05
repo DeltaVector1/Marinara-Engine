@@ -1,15 +1,19 @@
 # Eksport i import czatów
 
-Z tego przewodnika dowiesz się, jak zapisać czat do pliku i jak wczytać czat z powrotem do aplikacji Marinara Engine. Wyeksportować można jeden czat albo wiele czatów naraz. Da się też zaimportować plik czatu pochodzący z aplikacji Marinara Engine lub z aplikacji SillyTavern (innego programu do czatów roleplay).
+Z tego przewodnika dowiesz się, jak zapisać czat do pliku i jak wczytać czat z powrotem do aplikacji Marinara Engine. Wyeksportować można jeden czat albo wiele czatów naraz, a pojedynczy czat da się też zapisać jako czytelną opowieść do udostępnienia. Da się też zaimportować plik czatu pochodzący z aplikacji Marinara Engine lub z aplikacji SillyTavern (innego programu do czatów roleplay).
 
 ## Formaty plików, które zobaczysz
 
-Marinara używa dwóch formatów plików czatu.
+Marinara potrafi zapisać czat w czterech formatach.
 
 - **JSONL**: JSONL to skrót od JSON Lines. To zwykły plik tekstowy, w którym każda wiadomość zajmuje jedną linię. To domyślny format eksportu. Plik JSONL da się później zaimportować z powrotem do aplikacji Marinara Engine.
 - **Text**: zwykły, czytelny zapis rozmowy w pliku `.txt`. Łatwo go przeczytać i przekazać dalej, ale Marinara nie potrafi go zaimportować z powrotem. Format **Text** wybieraj tylko wtedy, gdy czat ma przeczytać człowiek.
+- **Markdown**: czytelny plik `.md`. Zaczyna się od nazwy czatu i zakresu dat, których dotyczy, a potem przytacza każdą wiadomość pod imieniem jej autora.
+- **Story**: sformatowana strona internetowa w pliku `.html`. Pokazuje każdą wiadomość z imieniem i awatarem autora. Otwórz ją w dowolnej przeglądarce, żeby ją przeczytać, udostępnić lub wydrukować.
 
-Import czatu przyjmuje wyłącznie plik `.jsonl`. Jeśli czat ma się dać później zaimportować, wyeksportuj go jako **JSONL**, a nie jako **Text**.
+Pliki **Markdown** i **Story** pomijają wiadomości systemowe oraz wiadomości ukryte przed tobą.
+
+Import czatu przyjmuje wyłącznie plik `.jsonl`. Jeśli czat ma się dać później zaimportować, wyeksportuj go jako **JSONL**, a nie jako **Text**, **Markdown** ani **Story**.
 
 ## Eksport pojedynczego czatu
 
@@ -17,7 +21,7 @@ Do zapisania jednego czatu do pliku służy sekcja **Chat Branches** (gałęzie 
 
 1. Otwórz czat przeznaczony do eksportu.
 2. Otwórz **Chat Settings** i rozwiń sekcję **Chat Branches** pod **Chat Name**.
-3. Kliknij przycisk **JSONL**, żeby zapisać czat jako plik JSONL, albo przycisk **Text**, żeby zapisać go jako czytelny plik tekstowy.
+3. Kliknij przycisk **JSONL**, żeby zapisać czat jako plik JSONL, **Text** – jako czytelny plik tekstowy, **Markdown** – jako plik Markdown, albo **Story** – jako sformatowaną stronę internetową.
 4. Przeglądarka pobiera plik.
 
 Pobrany plik zawiera aktualnie otwarty czat razem z jego wiadomościami.
@@ -66,8 +70,8 @@ Niektóre modele zapisują razem z odpowiedzią ukryty tok myślenia lub rozumow
 
 To ustawienie nazywa się **Include reasoning in exports** (dołączanie toku rozumowania do eksportów). Znajdziesz je w panelu **Settings** (Ustawienia), na zakładce **Advanced**, w sekcji **Message Tools**. Jest to przełącznik, domyślnie ustawiony na **off**.
 
-- W pozycji **off** Marinara pomija zapisany tok myślenia i rozumowania zarówno w eksporcie **JSONL**, jak i **Text**.
-- W pozycji **on** Marinara dopisuje ten ukryty tok myślenia i rozumowania do obu formatów.
+- W pozycji **off** Marinara pomija zapisany tok myślenia i rozumowania we wszystkich eksportach czatu.
+- W pozycji **on** Marinara dopisuje ten ukryty tok myślenia i rozumowania do każdego formatu. W plikach **Markdown** i **Story** trafia on do zwijanej sekcji **Thinking** (myślenie) pod wiadomością.
 
 Ustawienie działa tak samo przy eksporcie pojedynczego czatu i przy eksporcie zbiorczym do pliku `.zip`.
 

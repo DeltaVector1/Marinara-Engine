@@ -8,15 +8,58 @@
 
 아래 각 에이전트마다 세 가지 정보를 정리했습니다.
 
-- **단계 또는 연동 방식**: 일반 파이프라인 에이전트가 언제 실행되는지입니다. **Pre-Generation**(생성 전)은 답변 생성 전에 실행되며 프롬프트에 텍스트를 추가할 수 있습니다. **Parallel**(병렬)은 답변 생성과 동시에 실행되므로 완성된 텍스트를 보지 못합니다. **Post-Processing**(후처리)은 답변이 완성된 뒤에 실행되어 그 내용을 읽을 수 있습니다(일부는 고쳐 쓰기까지 합니다). Maps, Calls, Conversation 게임 같은 기능 패키지는 실행 단계 대신 해당 화면에 직접 연동됩니다.
+- **단계 또는 연동 방식**: 일반 파이프라인 에이전트가 언제 실행되는지입니다. **Pre-Generation**(생성 전)은 답변 생성 전에 실행되며 프롬프트에 텍스트를 추가할 수 있습니다. **Parallel**(병렬)은 답변 생성과 동시에 실행되므로 완성된 텍스트를 보지 못합니다. **Post-Processing**(후처리)은 답변이 완성된 뒤에 실행되어 그 내용을 읽을 수 있습니다(일부는 고쳐 쓰기까지 합니다). Maps, Calls, Conversation 게임 같은 기능 패키지는 실행 단계 대신 해당 화면에 직접 연동됩니다. Apps는 전용 Home 탭에서 열립니다.
 - **사용 가능한 곳**: 그 에이전트를 추가할 수 있는 채팅 모드입니다. 대부분은 **Roleplay** 채팅에서 동작합니다. 다른 모드에서 쓰는 것도 몇 가지 있으며, 항목마다 밝혀 두었습니다.
 - **주요 설정**: 가장 많이 손대게 되는 설정입니다. 에이전트를 추가할 때 지정하거나, 나중에 **Chat Settings**(채팅 설정)의 에이전트 설정 카드에서 바꿀 수 있습니다.
 
-Marinara는 **Agents**(에이전트) 패널에서 에이전트를 **Apps**(앱), **Writer Agents**(작가 에이전트), **Tracker Agents**(추적 에이전트), **Misc Agents**(기타 에이전트)로 묶어 보여 줍니다. Apps는 Noodle과 Slurp처럼 전용 Home 탭이 있는 패키지입니다. 이 문서에서는 Noodle을 Misc 에이전트 절에서 다룹니다.
+Marinara는 **Agents**(에이전트) 패널에서 에이전트를 **Apps**(앱), **Writer Agents**(작가 에이전트), **Tracker Agents**(추적 에이전트), **Misc Agents**(기타 에이전트)로 묶어 보여 줍니다. Apps는 Noodle과 Slurp처럼 전용 Home 탭이 있는 패키지입니다. 이 문서에서는 맨 앞의 Apps 절에서 이들을 먼저 소개합니다.
 
 실행 간격을 두면 에이전트가 메시지마다 실행되지 않고 사용자와 어시스턴트 메시지 몇 개마다 한 번씩 실행됩니다. 실행 간격은 에이전트 설정에서 최대 100까지 바꿀 수 있습니다.
 
 Illustrator는 수동 생성 전용 값인 **0**도 허용합니다. Gallery 작업에서는 계속 사용할 수 있지만 자동으로 실행되지는 않습니다. 다른 에이전트는 기존의 양수 실행 간격을 유지합니다.
+
+## Apps
+
+Apps는 **Home**(홈)에 전용 탭이 있는 패키지입니다. 채팅에 추가하지 않고 따로 열어서 사용합니다. 설치하고 나면 모두 Marinara Engine을 다시 시작하라고 안내합니다.
+
+### Noodle
+
+선택적인 로컬 Noodle 공개 타임라인을 추가합니다. 일반 채팅 에이전트 파이프라인 대신 전용 Home 탭에서 열립니다.
+
+- **통합 방식**: 기능 패키지로, Home 탭과 로컬 경로, 생성 및 미디어 흐름, 백그라운드 스케줄러를 제공합니다.
+- **작동 위치**: Home. 필요하면 Conversation, Roleplay, Game 채팅의 맥락을 가져올 수 있습니다.
+- **주요 설정**: **Agents → Download Agents**에서 설치하고 안내가 나오면 Marinara Engine을 다시 시작하세요. Noodle에서 초대 계정, 텍스트와 이미지 연결, 타임라인 새로고침, 무작위 사용자, 채팅 내용 이어받기를 설정할 수 있습니다.
+- **데이터 수명 주기**: 제거하면 Home 탭이 사라지고 재시작 후 패키지 경로와 스케줄러가 멈추며, 기존 Noodle 데이터는 재설치를 위해 보존합니다.
+- **전체 안내서**: [Noodle: 앱 안의 소셜 타임라인](../noodle/overview.md).
+
+### Slurp
+
+캐릭터를 위한 비공개 소셜 앱입니다. 캐릭터와 페르소나를 크리에이터로 만들어 공개 사진이나 잠긴 사진을 올리면, 가상의 관객이 팔로우하고, 구독하고, 잠금을 풀고, 댓글과 메시지를 보냅니다. 기본 설정은 성인 콘텐츠에 맞춰져 있습니다. 모두 가상의 놀이입니다. 가격은 허구이며 실제 결제는 일어나지 않습니다.
+
+- **연동 방식**: 앱입니다. **Home**의 전용 **Slurp** 탭에서 열립니다.
+- **사용 가능한 곳**: Home.
+- **주요 설정**: **Agents → Download Agents**에서 설치하고 안내가 나오면 Marinara Engine을 다시 시작한 다음 **Home → Slurp**을 여세요. 채팅의 캐릭터가 최근 Slurp 게시물과 메시지를 기억하게 하려면 그 채팅의 **Chat Settings**에서 **Connected Chats**(연결된 채팅) 아래에 있는 **Include Slurp activity**(Slurp 활동 포함)를 켜세요. Slurp 설정에서도 해당 채팅 모드의 이어받기가 켜져 있어야 합니다. **Slurp Settings → Autopurge**는 공간을 아끼기 위해 오래된 Slurp 미디어를 지웁니다. 기본값은 꺼짐입니다.
+- **이전 이름**: 이전 카탈로그에서는 **Slurp Remastered**라는 이름으로, 지원이 끝난 **Slurp Legacy** 패키지 옆에 표시됩니다. Slurp Legacy는 더 이상 업데이트되지 않습니다.
+- **전체 가이드**: [Slurp 패키지 가이드](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/slurp2/README.md).
+
+### Gacha Forge
+
+완전한 가챠 게임입니다. 세계를 설명하면 나머지는 Gacha Forge가 만듭니다. 뽑기를 돌릴 배너, 모델이 직접 쓰고 그려 주는 등장인물, 비주얼 노벨 내레이터가 들려주는 스토리 챕터, 그리고 그 주위로 늘어나는 전투, 장비, 이벤트까지 갖춰집니다. 로어북으로 세계를 채울 수도 있지만 직접 쓴 시나리오만으로도 충분합니다.
+
+- **연동 방식**: 앱입니다. **Home**의 전용 **Gacha Forge** 탭에서 열립니다.
+- **사용 가능한 곳**: Home.
+- **주요 설정**: **Agents → Download Agents**에서 설치하고 안내가 나오면 Marinara Engine을 다시 시작한 다음 **Home → Gacha Forge**를 여세요. 제거하면 재시작 후 탭이 사라집니다.
+- **전체 가이드**: [Gacha Forge 패키지 가이드](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/gacha-forge/README.md).
+
+### Modern Life Sim
+
+인생 시뮬레이션입니다. 시간이 흐르는 작은 마을에서 살아가며 일자리를 구해 지키고, 청구서를 내고, 기력과 허기를 챙겨야 합니다. 주변 사람들은 내 캐릭터 카드에서 나오며, 그들과의 관계는 장면마다 깊어집니다. 중요한 장면은 비주얼 노벨 내레이터가 들려줍니다.
+
+- **연동 방식**: 앱입니다. **Home**의 전용 **Life Sim** 탭에서 열립니다.
+- **사용 가능한 곳**: Home.
+- **제공 범위**: **Staging only**(staging 전용). Engine **2.4.4+** (< 4.0.0)가 필요합니다. 알파 버전입니다. 업데이트가 이전 저장 데이터에 필요한 부분을 바꾸면 그 저장 데이터를 열 때 Life Sim이 알려 주며, 새 인생을 시작하거나 위험을 감수하고 계속할 수 있습니다.
+- **주요 설정**: **Agents → Download Agents**에서 설치하고 안내가 나오면 Marinara Engine을 다시 시작한 다음 **Home → Life Sim**을 여세요. 텍스트 연결이 필요합니다. 이미지 연결은 선택 사항이며, 없으면 장소에 생성된 배경 대신 일러스트 카드가 표시됩니다. 모듈이라는 선택형 추가 기능은 인생마다 직접 켜지 않으면 꺼져 있습니다. **Adult** 모듈은 성인인지 확인해 달라고 요청합니다.
+- **전체 가이드**: [Modern Life Sim 패키지 가이드](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md).
 
 ## Writer 에이전트
 
@@ -172,7 +215,7 @@ Roleplay 그룹 채팅에 지정된 캐릭터 카드 간의 관계와 각 캐릭
 
 - **실행 단계**: Post-Processing이며, 이후 응답에 관계 컨텍스트를 제공합니다.
 - **지원 모드**: Roleplay 그룹 채팅.
-- **제공 범위**: **Staging only**. Engine **2.4.4+**와 staging 미리보기 카탈로그가 필요합니다. 안정 버전 공개는 다음 Engine main 릴리스와 함께 예정되어 있습니다.
+- **제공 범위**: **Staging only**. Engine **2.4.4+** (< 4.0.0)와 staging 미리보기 카탈로그가 필요합니다. 안정 버전 공개는 다음 Engine main 릴리스와 함께 예정되어 있습니다.
 - **설치 및 활성화**: **Agents → Download Agents**에서 **Relationship Tracker**를 설치하고 안내가 나오면 다시 시작하세요. 각 Roleplay 채팅에서 **Chat Settings → Agents**를 켜고 **Tracker Agents**에 추가한 다음 모델 연결을 선택하세요. 관계망은 Tracker Panel에 표시됩니다. 관계를 편집하거나 업데이트하기 전에 **All relationships**(모든 관계) 또는 **Scene-only relationships**(현재 장면의 관계만)를 한 번 선택하여 채팅을 초기화하세요.
 - **주요 기능**: **All relationships** 또는 **Scene-only relationships**로 프롬프트 컨텍스트를 정하고, **Update from History**(기록에서 업데이트)로 제한된 수의 최근 메시지를 분석합니다. 수동 편집, 잠금, **Resume automatic updates**(자동 업데이트 재개)도 지원합니다. **Context Size**(컨텍스트 크기, 기본 5개 메시지), **Presence lookback**(등장 여부 확인 범위, 기본 15개), 기록 분석 메시지 수는 별도 설정입니다. 선 위에 포인터를 올리거나 키보드 포커스를 두면 내용을 읽을 수 있습니다. 터치나 펜으로는 선을 누르세요. [Relationship Tracker 패키지 가이드](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md)를 참고하세요.
 
@@ -208,16 +251,6 @@ Misc 에이전트는 이미지, 음악, 관객 반응, 카드 업데이트 같�
 - **단계**: Parallel.
 - **사용 가능한 곳**: Roleplay.
 - **주요 설정**: **AO3 / Wattpad**, **Twitter / Reddit**, **4chan**, **Constructive**, **Hype Squad**, **Harbingers** 같은 이름 붙은 스타일 중에서 하나를 고릅니다. 위젯 안에는 **Re-run Echo Chamber**(에코 챔버 다시 실행)와 **Clear messages**(메시지 지우기) 조작 버튼이 있습니다.
-
-### Noodle
-
-선택적인 로컬 Noodle 공개 타임라인을 추가합니다. 일반 채팅 에이전트 파이프라인 대신 전용 Home 탭에서 열립니다.
-
-- **통합 방식**: 기능 패키지로, Home 탭과 로컬 경로, 생성 및 미디어 흐름, 백그라운드 스케줄러를 제공합니다.
-- **작동 위치**: Home. 필요하면 Conversation, Roleplay, Game 채팅의 맥락을 가져올 수 있습니다.
-- **주요 설정**: **Agents → Download Agents**에서 설치하고 안내가 나오면 Marinara Engine을 다시 시작하세요. Noodle에서 초대 계정, 텍스트와 이미지 연결, 타임라인 새로고침, 무작위 사용자, 채팅 내용 이어받기를 설정할 수 있습니다.
-- **데이터 수명 주기**: 제거하면 Home 탭이 사라지고 재시작 후 패키지 경로와 스케줄러가 멈추며, 기존 Noodle 데이터는 재설치를 위해 보존합니다.
-- **전체 안내서**: [Noodle: 앱 안의 소셜 타임라인](../noodle/overview.md).
 
 ### Long-Term Memory
 

@@ -8,15 +8,60 @@ Agent to niewielki pomocnik AI, który działa automatycznie obok głównej odpo
 
 Przy każdym agencie poniżej znajdziesz trzy szybkie informacje.
 
-- **Faza lub integracja**: kiedy uruchamia się zwykły agent działający w potoku generowania. Faza **Pre-Generation** (przed generowaniem) działa przed odpowiedzią i może dodać tekst do promptu, czyli do tekstu, który Marinara wysyła do AI. Faza **Parallel** (równolegle) działa w tym samym czasie co odpowiedź i nie widzi gotowego tekstu. Faza **Post-Processing** (po wygenerowaniu) działa po zakończeniu odpowiedzi i może ją odczytać, a część agentów potrafi ją też przepisać. Pakiety funkcji, takie jak Maps, Calls i gry w trybie Conversation, zamiast tego integrują się bezpośrednio ze swoim ekranem czatu.
+- **Faza lub integracja**: kiedy uruchamia się zwykły agent działający w potoku generowania. Faza **Pre-Generation** (przed generowaniem) działa przed odpowiedzią i może dodać tekst do promptu, czyli do tekstu, który Marinara wysyła do AI. Faza **Parallel** (równolegle) działa w tym samym czasie co odpowiedź i nie widzi gotowego tekstu. Faza **Post-Processing** (po wygenerowaniu) działa po zakończeniu odpowiedzi i może ją odczytać, a część agentów potrafi ją też przepisać. Pakiety funkcji, takie jak Maps, Calls i gry w trybie Conversation, zamiast tego integrują się bezpośrednio ze swoim ekranem czatu. Aplikacje otwierają się we własnej zakładce Home.
 - **Gdzie działa**: tryby czatu, w których da się dodać danego agenta. Większość agentów działa na czatach w trybie **Roleplay**. Kilku działa w innych trybach – przy każdym jest to napisane.
 - **Najważniejsze ustawienia**: ustawienia, które zmienia się najczęściej. Ustawisz je przy dodawaniu agenta albo później, w karcie konfiguracji agenta w panelu **Chat Settings** (ustawienia czatu).
 
-Marinara dzieli agentów na kategorie w panelu **Agents**: **Apps**, **Writer Agents**, **Tracker Agents** i **Misc Agents**. Apps to pakiety z własną kartą Home, takie jak Noodle i Slurp. Ten przegląd opisuje Noodle w sekcji Agenci różni.
+Marinara dzieli agentów na kategorie w panelu **Agents**: **Apps**, **Writer Agents**, **Tracker Agents** i **Misc Agents**. Apps to pakiety z własną zakładką Home, takie jak Noodle i Slurp. Ten przegląd wymienia je jako pierwsze, w sekcji Aplikacje.
 
 Odstęp uruchamiania oznacza, że agent działa raz na kilka wiadomości użytkownika i asystenta, a nie po każdej wiadomości. Odstęp uruchamiania zmienisz w konfiguracji agenta, maksymalnie do 100.
 
 Agent Illustrator przyjmuje też wartość **0**, która oznacza generowanie wyłącznie ręczne: pozostaje dostępny w działaniach galerii, ale nigdy nie uruchamia się automatycznie. Pozostali agenci zachowują dotychczasowe dodatnie odstępy uruchamiania.
+
+<a id="apps"></a>
+
+## Aplikacje
+
+Aplikacje to pakiety z własną zakładką w **Home**. Otwierasz je i używasz ich samodzielnie, zamiast dodawać je do czatu. Po instalacji każda z nich prosi o ponowne uruchomienie aplikacji Marinara Engine.
+
+### Noodle
+
+Dodaje opcjonalną lokalną publiczną oś czasu Noodle. Otwiera się w osobnej zakładce Home zamiast działać w zwykłym potoku agentów czatu.
+
+- **Integracja**: pakiet funkcji; udostępnia zakładkę Home, lokalne trasy, procesy generowania i multimediów oraz harmonogramy w tle.
+- **Gdzie działa**: Home, z opcjonalnym kontekstem przenoszonym z czatów Conversation, Roleplay i Game.
+- **Najważniejsze ustawienia**: zainstaluj go przez **Agents → Download Agents** i uruchom ponownie Marinara Engine, gdy pojawi się taka prośba. W Noodle możesz skonfigurować zaproszone konta, połączenia tekstowe i obrazowe, odświeżanie osi czasu, losowych użytkowników oraz przenoszenie treści do czatów.
+- **Cykl życia danych**: odinstalowanie usuwa zakładkę Home i po ponownym uruchomieniu zatrzymuje trasy oraz harmonogramy pakietu, zachowując istniejące dane Noodle na wypadek późniejszej instalacji.
+- **Pełny przewodnik**: [Noodle: wbudowana oś czasu społecznościowa](../noodle/overview.md).
+
+### Slurp
+
+Prywatna aplikacja społecznościowa dla twoich postaci. Zamieniaj postacie i persony w twórców (Creators), publikuj zdjęcia publiczne lub zablokowane i patrz, jak symulowana publiczność ich obserwuje, subskrybuje, odblokowuje zdjęcia, komentuje i wysyła im wiadomości. Domyślnie jest nastawiona na treści dla dorosłych. To wszystko na niby: ceny są fikcyjne i nie wiążą się z żadnymi prawdziwymi płatnościami.
+
+- **Integracja**: aplikacja; otwiera się we własnej zakładce **Slurp** w **Home**.
+- **Gdzie działa**: Home.
+- **Najważniejsze ustawienia**: zainstaluj ją przez **Agents → Download Agents**, uruchom aplikację ponownie, gdy pojawi się prośba, a potem otwórz **Home → Slurp**. Żeby postacie z czatu pamiętały swoje ostatnie wpisy i wiadomości z zakładki Slurp, włącz **Include Slurp activity** (uwzględnianie aktywności w Slurp) w **Chat Settings** tego czatu, w sekcji **Connected Chats** (połączone czaty). W ustawieniach Slurp przenoszenie treści do czatów musi być też włączone dla tego trybu czatu. **Slurp Settings → Autopurge** (ustawienia Slurp → automatyczne czyszczenie) usuwa stare multimedia Slurp, żeby oszczędzać miejsce; domyślnie jest wyłączone.
+- **Starsze nazwy**: starsze katalogi pokazują ją jako **Slurp Remastered**, obok wycofanego pakietu **Slurp Legacy**. Slurp Legacy nie dostaje już aktualizacji.
+- **Pełny przewodnik**: [Przewodnik pakietu Slurp](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/slurp2/README.md).
+
+### Gacha Forge
+
+Kompletna gra typu gacha. Opisz świat, a Gacha Forge zbuduje resztę: banery do losowania, obsadę postaci, którą model dla ciebie napisze i narysuje, rozdziały fabuły opowiadane przez narratora w stylu powieści wizualnej oraz bitwy, ekwipunek i wydarzenia, które wokół nich wyrastają. Świat mogą zasilić twoje lorebooki, ale wystarczy też scenariusz napisany ręcznie.
+
+- **Integracja**: aplikacja; otwiera się we własnej zakładce **Gacha Forge** w **Home**.
+- **Gdzie działa**: Home.
+- **Najważniejsze ustawienia**: zainstaluj ją przez **Agents → Download Agents**, uruchom aplikację ponownie, gdy pojawi się prośba, a potem otwórz **Home → Gacha Forge**. Odinstalowanie usuwa zakładkę po ponownym uruchomieniu.
+- **Pełny przewodnik**: [Przewodnik pakietu Gacha Forge](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/gacha-forge/README.md).
+
+### Modern Life Sim
+
+Symulacja życia. Żyjesz w małym miasteczku według zegara: trzeba znaleźć i utrzymać pracę, płacić rachunki oraz pilnować energii i głodu. Ludzie wokół ciebie pochodzą z twoich własnych kart postaci, a relacje z nimi rozwijają się scena po scenie. Ważne sceny opowiada narrator w stylu powieści wizualnej.
+
+- **Integracja**: aplikacja; otwiera się we własnej zakładce **Life Sim** w **Home**.
+- **Gdzie działa**: Home.
+- **Dostępność**: **Staging only**; wymaga aplikacji Marinara Engine w wersji **2.4.4+** (< 4.0.0). To wersja alfa. Jeśli aktualizacja zmieni coś, od czego zależy starszy zapis gry, Life Sim poinformuje o tym przy otwarciu tego zapisu, a ty możesz zacząć nowe życie albo grać dalej na własne ryzyko.
+- **Najważniejsze ustawienia**: zainstaluj ją przez **Agents → Download Agents**, uruchom aplikację ponownie, gdy pojawi się prośba, a potem otwórz **Home → Life Sim**. Wymaga połączenia tekstowego. Połączenie obrazowe jest opcjonalne: bez niego miejsca pokazują ilustrowane karty zamiast generowanych teł. Opcjonalne moduły pozostają wyłączone, dopóki nie włączysz ich dla danego życia; moduł **Adult** (dla dorosłych) prosi o potwierdzenie pełnoletności.
+- **Pełny przewodnik**: [Przewodnik pakietu Modern Life Sim](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md).
 
 ## Agenci piszący
 
@@ -172,7 +217,7 @@ Utrzymuje edytowalną sieć relacji między kartami postaci przypisanymi do grup
 
 - **Faza**: Post-Processing, z kontekstem relacji przekazywanym do kolejnych odpowiedzi.
 - **Gdzie działa**: grupowe czaty Roleplay.
-- **Dostępność**: **Staging only**; wymaga aplikacji Marinara Engine w wersji **2.4.4+** z katalogiem podglądowym staging. Publikacja stabilna jest planowana wraz z następnym wydaniem aplikacji z gałęzi main.
+- **Dostępność**: **Staging only**; wymaga aplikacji Marinara Engine w wersji **2.4.4+** (< 4.0.0) z katalogiem podglądowym staging. Publikacja stabilna jest planowana wraz z następnym wydaniem aplikacji z gałęzi main.
 - **Instalacja i włączanie**: zainstaluj **Relationship Tracker** w sekcji **Agents → Download Agents** i uruchom aplikację ponownie, gdy pojawi się prośba. W każdym czacie Roleplay włącz agentów w sekcji **Chat Settings → Agents**, dodaj pakiet w grupie **Tracker Agents** i wybierz połączenie z modelem. Sieć pojawi się w Tracker Panel. Przed edycją lub aktualizacją relacji wybierz tam raz **All relationships** (wszystkie relacje) albo **Scene-only relationships** (tylko relacje w scenie), aby zainicjować czat.
 - **Najważniejsze opcje**: **All relationships** lub **Scene-only relationships** określają kontekst promptu, **Update from History** (aktualizuj z historii) skanuje ograniczoną liczbę ostatnich wiadomości; dostępne są też ręczna edycja, blokowanie i **Resume automatic updates** (wznów automatyczne aktualizacje). **Context Size** (rozmiar kontekstu; domyślnie 5 wiadomości), **Presence lookback** (zakres sprawdzania obecności; domyślnie 15) i liczba wiadomości skanowanych z historii to osobne ustawienia. Najedź kursorem na linię lub ustaw na niej fokus klawiaturą, aby ją odczytać; na ekranie dotykowym lub przy użyciu rysika naciśnij linię. Zobacz [przewodnik pakietu Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md).
 
@@ -208,16 +253,6 @@ Symuluje publiczność reagującą na żywo na twoją scenę; jej reakcje pokazu
 - **Faza**: Parallel.
 - **Gdzie działa**: Roleplay.
 - **Najważniejsze ustawienia**: styl wybierasz spośród nazwanych opcji, takich jak **AO3 / Wattpad**, **Twitter / Reddit**, **4chan**, **Constructive**, **Hype Squad** i **Harbingers**. Wśród kontrolek widgetu są też przyciski **Re-run Echo Chamber** i **Clear messages**.
-
-### Noodle
-
-Dodaje opcjonalną lokalną publiczną oś czasu Noodle. Otwiera się w osobnej karcie Home zamiast działać w zwykłym potoku agentów czatu.
-
-- **Integracja**: pakiet funkcji; udostępnia kartę Home, lokalne trasy, procesy generowania i multimediów oraz harmonogramy w tle.
-- **Gdzie działa**: Home, z opcjonalnym kontekstem przenoszonym z czatów Conversation, Roleplay i Game.
-- **Najważniejsze ustawienia**: zainstaluj go przez **Agents → Download Agents** i uruchom ponownie Marinara Engine, gdy pojawi się taka prośba. W Noodle możesz skonfigurować zaproszone konta, połączenia tekstowe i obrazowe, odświeżanie osi czasu, losowych użytkowników oraz przenoszenie treści do czatów.
-- **Cykl życia danych**: odinstalowanie usuwa kartę Home i po ponownym uruchomieniu zatrzymuje trasy oraz harmonogramy pakietu, zachowując istniejące dane Noodle na wypadek późniejszej instalacji.
-- **Pełny przewodnik**: [Noodle: oś czasu społeczności w aplikacji](../noodle/overview.md).
 
 ### Long-Term Memory
 

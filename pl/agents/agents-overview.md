@@ -8,7 +8,7 @@ Agenci to niewielcy pomocnicy AI, którzy uruchamiają się automatycznie wokó�
 
 Agentów włącza się osobno w każdym czacie, a nie przy postaci. Na karcie postaci nie ma żadnego przełącznika agentów. Dwa czaty z tą samą postacią mogą korzystać z zupełnie różnych agentów. Wybór agentów odbywa się w ustawieniach danego czatu.
 
-Świeża instalacja aplikacji Marinara Engine nie zawiera opcjonalnych agentów. Dzięki temu podstawowa aplikacja i instalacja w środowisku Termux zajmują mniej miejsca. Oficjalny katalog dla wersji v2.3.0+ zawiera 36 pakietów instalowanych jednym kliknięciem: 6 pakietów Writer Agents, 11 pakietów Tracker Agents i 19 pakietów Misc Agents, w tym Long-Term Memory, Maps, Calls, Inventory Tracker oraz wszystkie sześć gier trybu Conversation. Kod źródłowy, manifesty, pliki do pobrania i katalog na poziomie repozytorium są publicznie dostępne w repozytorium [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Opis każdego agenta z osobna znajdziesz w przewodniku [Agenci do pobrania: przegląd pakietów](built-in-agents.md). Jak zrobić własnego, wyjaśnia [Tworzenie własnych agentów](custom-agents.md).
+Świeża instalacja aplikacji Marinara Engine nie zawiera opcjonalnych agentów. Dzięki temu podstawowa aplikacja i instalacja w środowisku Termux zajmują mniej miejsca. Ekran **Download Agents** (pobieranie agentów) dzieli oficjalne pakiety instalowane jednym kliknięciem na grupy **Apps**, **Writer Agents**, **Tracker Agents** i **Misc Agents**. W katalogu znajdziesz między innymi Long-Term Memory, World Maps, Calls, Inventory Tracker oraz wszystkie sześć gier trybu Conversation. Kod źródłowy, manifesty, pliki do pobrania i katalog na poziomie repozytorium są publicznie dostępne w repozytorium [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Opis każdego agenta z osobna znajdziesz w przewodniku [Agenci do pobrania: przegląd pakietów](built-in-agents.md). Jak zrobić własnego, wyjaśnia [Tworzenie własnych agentów](custom-agents.md).
 
 ## Trzy fazy
 
@@ -22,17 +22,28 @@ Każdy agent działa w jednym z trzech punktów wokół odpowiedzi. Ten punkt to
 
 Panel **Agents** otwiera się z zakładek panelu po prawej stronie (ikona Sparkles). Tu przeglądasz, tworzysz i porządkujesz agentów. To biblioteka agentów. Nie jest to przełącznik włączający agentów w pojedynczym czacie.
 
-Kliknij przycisk **Download Agents** (pobieranie agentów) u góry, aby otworzyć pełnoekranowy oficjalny katalog. Działa on na komputerze i na telefonie. Po wybraniu pozycji zobaczysz jej opis, obsługiwany typ funkcji, rozmiar pliku do pobrania, uprawnienia, zgodność z wersjami oraz dokumentację. Kliknij przycisk **Install**, aby ją dodać. Ten sam ekran pozwala od razu zaktualizować pakiet ręcznie, a przycisk **Uninstall** odinstalowuje już posiadane pakiety. Marinara sprawdza też każdy zainstalowany oficjalny pakiet przy starcie serwera i aktualizuje go do najnowszej zgodnej wersji z katalogu, zanim ten pakiet zacznie działać. Gdy serwer nie jest dostępny albo aktualizacji nie da się zweryfikować, pakiety pracują dalej w obecnej wersji.
+Kliknij przycisk **Download Agents** u góry, aby otworzyć pełnoekranowy oficjalny katalog. Działa on na komputerze i na telefonie. Po wybraniu pozycji zobaczysz jej opis, obsługiwany typ funkcji, rozmiar pliku do pobrania, uprawnienia, zgodność z wersjami oraz dokumentację. Kliknij przycisk **Install**, aby ją dodać. Ten sam ekran pozwala od razu zaktualizować pakiet ręcznie, a przycisk **Uninstall** odinstalowuje już posiadane pakiety.
 
 Katalog w aplikacji opiera się na publicznym [repozytorium Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Można tam obejrzeć każdy pakiet i plik, ale zwykli użytkownicy powinni instalować przez przycisk **Download Agents**, bo wtedy Marinara sprawdza zgodność, uprawnienia, sumy kontrolne, zawartość archiwum i wymagania dotyczące restartu.
 
 W katalogu znajdziesz agentów czatu od twórców aplikacji, World Maps, rozmowy audio i wideo w trybie Conversation oraz wszystkie opcjonalne gry trybu Conversation. Zainstalowani agenci trafiają do grup **Apps**, **Writer Agents**, **Tracker Agents** i **Misc Agents**, a dodatkowo jest sekcja **Custom Agents** na agentów własnych. **Apps** to pakiety z własną kartą Home, takie jak Noodle i Slurp, z których korzystasz samodzielnie, zamiast dodawać je do czatu. Odinstalowanie pakietu z katalogu usuwa jego kod i ustawienia z aplikacji, ale zachowuje wiadomości i historię czatów. Usunięcie własnego agenta jest nieodwracalne.
 
-Pakiet oznaczony **Rules** (zasady) dodaje zestaw zasad Game Mode, np. 5e (SRD 5.1), a nie agenta; nie wlicza się do powyższych liczb agentów. Wybiera się go podczas tworzenia nowej gry w **Rules**; zobacz [Wybór zasad](../game/getting-started.md#choosing-rules). Nie ma przełącznika włączania w czacie. Pakiet 5e jest wersją podglądową, więc na razie katalog pokazuje go tylko w aplikacji Engine na gałęzi `staging`.
+Pakiet oznaczony **Rules** (zasady) dodaje zestaw zasad Game Mode, np. 5e (SRD 5.1), a nie agenta. Wybiera się go podczas tworzenia nowej gry w **Rules**; zobacz [Wybór zasad](../game/getting-started.md#choosing-rules). Nie ma przełącznika włączania w czacie. Pakiet 5e jest wersją podglądową, więc na razie katalog pokazuje go tylko w aplikacji Engine na gałęzi `staging`.
 
 Przy aktualizacji z wersji, która miała te funkcje wbudowane, Marinara pobiera odpowiednie pakiety jeden raz i zachowuje dotychczasowy wybór agentów w czatach, ich ustawienia, zapisane dane działania oraz historię. Jeśli podczas takiej migracji katalog jest nieosiągalny, próba powtarza się przy następnym starcie i nic nie ginie.
 
-Automatyczne aktualizacje przy starcie nigdy nie instalują pakietu, który nie został wybrany. Instalacje na komputerze, w kontenerze Docker oraz w systemie Android i w środowisku Termux aktualizują pakiety zapisane przez swój lokalny serwer. Klienty na iOS, iPadOS i w innych przeglądarkach korzystają z pakietów zainstalowanych i aktualizowanych przez serwer Marinara, z którym się łączą.
+<a id="updating-packages"></a>
+
+### Aktualizowanie pakietów
+
+Marinara pyta, zanim zaktualizuje pakiet. Gdy jest dostępna nowsza zgodna wersja zainstalowanego pakietu, pojawia się okno **Agent updates available** (dostępne aktualizacje agentów). Wymienia każdą aktualizację z jej nową wersją i informacją, czy wymaga restartu. Jeśli pakiet publikuje informacje o zmianach, pokazuje je sekcja **What changed** (co się zmieniło). Kropka oznacza zmianę, którą zauważysz; aktualizacje bez kropki to rutynowe poprawki.
+
+- Kliknij przycisk **Update all** (aktualizacja wszystkich), żeby zainstalować wszystkie wymienione aktualizacje. Gdy pojawi się prośba o restart, uruchom ponownie aplikację Marinara Engine.
+- Kliknij przycisk **Not now** (nie teraz), żeby zachować obecne wersje. Marinara nie pyta ponownie o pominiętą wersję.
+
+Każdy pakiet da się też zaktualizować później przez **Download Agents**. Zainstalowane pakiety działają w obecnej wersji, dopóki ich nie zaktualizujesz, nawet gdy katalog jest nieosiągalny.
+
+Aktualizacje dotyczą wyłącznie już zainstalowanych pakietów. Instalacje na komputerze, w kontenerze Docker oraz w systemie Android i w środowisku Termux trzymają pakiety na swoim lokalnym serwerze. Klienty na iOS, iPadOS i w innych przeglądarkach korzystają z pakietów zainstalowanych na serwerze Marinara, z którym się łączą.
 
 ## Włączanie agentów w czacie
 

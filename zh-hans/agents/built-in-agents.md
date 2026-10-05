@@ -8,15 +8,60 @@
 
 下面每个智能体都会列出三条速查信息。
 
-- **阶段或集成方式**：普通流水线智能体在什么时候运行。**Pre-Generation**(生成前) 在回复之前运行，可以往提示词里加文字。**Parallel**(并行) 与回复同时运行，看不到最终成文。**Post-Processing**(生成后) 在回复完成之后运行，能读到回复内容，有些还能改写。Maps、Calls 和 Conversation 小游戏这类功能包则是直接集成进各自的聊天界面。
+- **阶段或集成方式**：普通流水线智能体在什么时候运行。**Pre-Generation**(生成前) 在回复之前运行，可以往提示词里加文字。**Parallel**(并行) 与回复同时运行，看不到最终成文。**Post-Processing**(生成后) 在回复完成之后运行，能读到回复内容，有些还能改写。Maps、Calls 和 Conversation 小游戏这类功能包则是直接集成进各自的聊天界面。应用类会在自己的 Home 标签页中打开。
 - **适用范围**：哪些聊天模式允许添加这个智能体。多数智能体用在 **Roleplay**(角色扮演) 聊天里。少数适用于其他模式，每个条目都会写明。
 - **主要设置**：最可能需要改动的设置。添加智能体时可以设置，之后也可以在 **Chat Settings**(聊天设置) 里这个智能体的设置卡片中调整。
 
-Marinara 在 **Agents** 面板里把智能体分成 **Apps**(应用类)、**Writer Agents**(写作类)、**Tracker Agents**(追踪类) 和 **Misc Agents**(杂项类)。Apps 是有自己 Home 标签页的包，比如 Noodle 和 Slurp。本参考在杂项类智能体一节介绍 Noodle。
+Marinara 在 **Agents** 面板里把智能体分成 **Apps**(应用类)、**Writer Agents**(写作类)、**Tracker Agents**(追踪类) 和 **Misc Agents**(杂项类)。Apps 是有自己 Home 标签页的包，比如 Noodle 和 Slurp。本参考把它们放在最前面的应用类一节介绍。
 
 运行间隔的意思是，智能体每隔几条用户消息和 AI 回复才运行一次，而不是每条消息之后都运行。运行间隔可以在智能体的设置里改，最大 100。
 
 Illustrator 也接受 **0**，表示仅手动生成：它仍可用于 Gallery 操作，但不会自动运行。其他智能体保持原有的正数运行间隔。
+
+<a id="apps"></a>
+
+## 应用类
+
+应用类是在 **Home**(主页) 里有自己标签页的包。它们单独打开、单独使用，不需要添加到聊天里。每个应用安装后都会提示你重启 Marinara Engine。
+
+### Noodle
+
+添加可选的本地 Noodle 公共时间线。它在专用 Home 标签页中打开，不走常规聊天智能体管线。
+
+- **集成方式**：功能包；提供 Home 标签页、本地路由、生成与媒体流程以及后台调度器。
+- **适用位置**：Home，可选择带入 Conversation、Roleplay 和 Game 聊天中的上下文。
+- **主要设置**：从 **Agents → Download Agents** 安装，并在提示时重启 Marinara Engine。在 Noodle 中可配置受邀账号、文本与图像连接、时间线刷新、随机用户和聊天内容延续。
+- **数据生命周期**：卸载会移除 Home 标签页，并在重启后停止包路由和调度器，同时保留现有 Noodle 数据供将来重装。
+- **完整指南**：[Noodle：应用内社交时间线](../noodle/overview.md)。
+
+### Slurp
+
+一款为你的角色准备的私密社交应用。把角色和用户角色变成创作者，发布公开或上锁的照片，再看着模拟观众关注、订阅、解锁、评论和私信他们。它默认针对成人内容调校。一切都是虚构的：价格是假的，不涉及任何真实付款。
+
+- **集成方式**：应用；在 **Home** 中自己的 **Slurp** 标签页里打开。
+- **适用范围**：Home。
+- **主要设置**：从 **Agents → Download Agents** 安装，在提示时重启 Marinara Engine，然后打开 **Home → Slurp**。想让某个聊天里的角色记住自己最近的 Slurp 帖子和私信，就在该聊天的 **Chat Settings** 中，到 **Connected Chats**(关联聊天) 下开启 **Include Slurp activity**(包含 Slurp 动态)。同时还要在 Slurp 的设置里为该聊天模式开启内容延续。**Slurp Settings → Autopurge** 会删除旧的 Slurp 媒体以节省空间，默认关闭。
+- **旧名称**：旧版目录里它叫 **Slurp Remastered**，旁边是已停用的 **Slurp Legacy** 包。Slurp Legacy 不再更新。
+- **完整指南**：[Slurp 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/slurp2/README.md)。
+
+### Gacha Forge
+
+一款完整的抽卡游戏。描述一个世界，剩下的都交给 Gacha Forge：可以抽的卡池、由模型为你撰写并绘制的角色阵容、由视觉小说式旁白讲述的剧情章节，以及围绕它们不断扩展的战斗、装备和活动。你的世界书可以为这个世界提供素材，不过一段手写的场景设定就够用了。
+
+- **集成方式**：应用；在 **Home** 中自己的 **Gacha Forge** 标签页里打开。
+- **适用范围**：Home。
+- **主要设置**：从 **Agents → Download Agents** 安装，在提示时重启 Marinara Engine，然后打开 **Home → Gacha Forge**。卸载后，该标签页会在重启后移除。
+- **完整指南**：[Gacha Forge 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/gacha-forge/README.md)。
+
+### Modern Life Sim
+
+一款人生模拟游戏。你生活在一座按时钟运转的小镇里，要找到并保住一份工作，按时付账单，还得照顾自己的精力和饥饿。身边的人来自你自己的角色卡，你和他们的关系会一幕一幕地发展。重要的场景由视觉小说式的旁白讲述。
+
+- **集成方式**：应用；在 **Home** 中自己的 **Life Sim** 标签页里打开。
+- **适用范围**：Home。
+- **可用渠道**：**Staging only**(仅 staging)，需要 Engine **2.4.4+** (< 4.0.0)。目前是 alpha 版。如果某次更新改动了旧存档依赖的内容，打开那个存档时 Life Sim 会提示你，你可以开始新的人生，也可以自担风险继续游玩。
+- **主要设置**：从 **Agents → Download Agents** 安装，在提示时重启 Marinara Engine，然后打开 **Home → Life Sim**。它需要一个文本连接。图像连接是可选的：没有的话，地点会显示插画卡片，而不是生成的背景。名为“模块”的可选扩展默认关闭，只有你为某段人生开启时才会启用；**Adult** 模块会要求你确认自己已经成年。
+- **完整指南**：[Modern Life Sim 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md)。
 
 ## 写作类智能体
 
@@ -172,7 +217,7 @@ Knowledge Retrieval 的省钱替代方案。它不做摘要，而是读取世界
 
 - **阶段**：Post-Processing，并为后续回复提供关系上下文。
 - **适用模式**：Roleplay 群聊。
-- **可用渠道**：**Staging only**，需要 Engine **2.4.4+** 和 staging 预览目录。计划随下一次 Engine main 版本发布到稳定渠道。
+- **可用渠道**：**Staging only**，需要 Engine **2.4.4+** (< 4.0.0) 和 staging 预览目录。计划随下一次 Engine main 版本发布到稳定渠道。
 - **安装与启用**：从 **Agents → Download Agents** 安装 **Relationship Tracker**，按提示重启。在每个 Roleplay 聊天中，先在 **Chat Settings → Agents** 启用智能体，再将它添加到 **Tracker Agents**，并选择模型连接。关系网显示在 Tracker Panel 中。编辑或更新关系前，先在那里选择一次 **All relationships**(所有关系) 或 **Scene-only relationships**(仅场景内关系)，完成聊天初始化。
 - **主要操作**：用 **All relationships** 或 **Scene-only relationships** 选择提示词上下文，用 **Update from History**(从历史更新) 扫描指定数量的最近消息，也可手动编辑、锁定或使用 **Resume automatic updates**(恢复自动更新)。**Context Size**(上下文大小，默认 5 条消息)、**Presence lookback**(出场回溯范围，默认 15 条) 和历史扫描的消息数量是不同的设置。将指针悬停在线上或用键盘聚焦，即可读取内容；触屏或触控笔用户可按下该连线。参阅 [Relationship Tracker 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md)。
 
@@ -208,16 +253,6 @@ Knowledge Retrieval 的省钱替代方案。它不做摘要，而是读取世界
 - **阶段**：Parallel。
 - **适用范围**：Roleplay。
 - **主要设置**：从预置选项里挑一种风格，比如 **AO3 / Wattpad**、**Twitter / Reddit**、**4chan**、**Constructive**、**Hype Squad** 和 **Harbingers**。小组件里的操作包括 **Re-run Echo Chamber**(重新运行 Echo Chamber) 和 **Clear messages**(清空消息)。
-
-### Noodle
-
-添加可选的本地 Noodle 公共时间线。它在专用 Home 标签页中打开，不走常规聊天智能体管线。
-
-- **集成方式**：功能包；提供 Home 标签页、本地路由、生成与媒体流程以及后台调度器。
-- **适用位置**：Home，可选择带入 Conversation、Roleplay 和 Game 聊天中的上下文。
-- **主要设置**：从 **Agents → Download Agents** 安装，并在提示时重启 Marinara Engine。在 Noodle 中可配置受邀账号、文本与图像连接、时间线刷新、随机用户和聊天内容延续。
-- **数据生命周期**：卸载会移除 Home 标签页，并在重启后停止包路由和调度器，同时保留现有 Noodle 数据供将来重装。
-- **完整指南**：[Noodle：应用内社交时间线](../noodle/overview.md)。
 
 ### Long-Term Memory
 

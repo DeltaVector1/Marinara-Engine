@@ -109,6 +109,13 @@ NanoGPT 暂时无法提供的额度会显示为**未知**，而非未使用。�
 
 **xAI / Grok** 提供 Grok 系列模型。在 **Create Connection** 窗口里选中这家服务商时，Marinara 会把模型预填为 Grok 4.5，之后可以随时改。 Grok 4.6 和 4.7 提供 500,000 Token 的上下文窗口，推理最高支持 **Maximum** (`xhigh`)。它们支持现有聊天工具，包括 **Web Search**(网络搜索)，让搜索结果能够用于最终回复。
 
+## Arli AI
+
+- 密钥获取地址：`https://www.arliai.com/account`
+- 默认基础 URL：`https://api.arliai.com/v1`
+
+**Arli AI** 是一项托管聊天服务。它没有内置模型清单，所以 **Model** 下拉菜单一开始是空的。粘贴密钥之后点击 **Fetch Models from API**，载入它当前的模型。想用 Arli AI 生成图像，请改用 **Image Generation** 服务商及其中的 **Arli AI** 服务。
+
 ## Z.AI
 
 - 密钥获取地址：`https://z.ai/manage-apikey/apikey-list`
@@ -156,9 +163,30 @@ NanoGPT 暂时无法提供的额度会显示为**未知**，而非未使用。�
 
 ## Video Generation
 
-**Video Generation**(视频生成) 也是特殊服务商，有自己的 **Video Service**(视频服务) 选择器。Game Mode(游戏模式) 用它来生成简短的 MP4 场景视频。可选服务有 **Google AI Studio**、**xAI Imagine**、**OpenRouter Video** 和 **Seedance 2.0**，每个都需要 API 密钥。
+**Video Generation**(视频生成) 也是特殊服务商，有自己的 **Video Service**(视频服务) 选择器。Marinara 用它来生成简短的 MP4 场景视频。可选服务有 **Google AI Studio**、**xAI Imagine**、**OpenRouter Video**、**NanoGPT**、**Atlas Cloud**、**Seedance 2.0**、**ComfyUI** 和 **SwarmUI**。云端服务需要 API 密钥。**ComfyUI** 和 **SwarmUI** 在你自己的电脑上运行，通常不需要。
 
 各视频服务的完整配置和限制，见[场景视频生成](../media/scene-video.md)。
+
+## Decision
+
+- 默认基础 URL：**TypeSafe** 来源为 `https://api.typesafe.ai`。
+
+**Decision**(判定) 是一个可选的特殊服务商，用于接入回答聊天相关是非题的模型。例如，它可以判断某个自定义智能体是否应该运行。它的答案用来引导 Marinara，不会发布到聊天里。选中它之后，再选择一个来源：**TypeSafe**、**OpenRouter**、**Custom System One endpoint**(自定义 System One 端点) 或 **OpenAI-compatible chat model**(OpenAI 兼容聊天模型)。托管来源需要 API 密钥。
+
+判定模型能做什么、怎么挑选，以及完整的设置方法，见 [Decision 模型](decision-models.md)。
+
+## Audio
+
+**Audio**(音频) 是用于语音和生成音效的特殊服务商。选中它之后，再选择一个 **Audio Source**(音频来源)：
+
+- **ElevenLabs**：语音、音效和音乐。
+- **OpenAI-compatible**：OpenAI，或任何照搬 OpenAI 语音格式的服务器。
+- **PocketTTS**：一个在自己电脑上运行的免费语音服务器。
+- **xAI Voice**：xAI 的语音服务。
+
+每个来源都会自动填好默认的基础 URL 和模型。**Default Voice**(默认声音) 是在没有设置更具体的声音（比如单个角色的声音）时使用的声音。要选择 Marinara 默认使用哪个音频连接，打开 **Connections** 面板，展开 **Defaults**(默认值)，在 **Audio** 下选择。
+
+使用 **ElevenLabs** 来源时，还会多出两个开关：**Game sound effects**(游戏音效) 和 **Game music**(游戏音乐)。它们让 Game Mode(游戏模式) 用这个连接生成音效和音乐。参见[生成音效与音乐](../game/game-assets.md#generated-sound-effects-and-music)。语音和朗读消息，见 [Text to Speech (TTS) 设置](../media/tts-setup.md)。
 
 ## 嵌入
 
@@ -173,3 +201,5 @@ NanoGPT 暂时无法提供的额度会显示为**未知**，而非未使用。�
 - [连接本地或自托管模型](local-self-hosted.md)
 - [图像生成服务商与设置](../media/image-providers.md)
 - [场景视频生成](../media/scene-video.md)
+- [Decision 模型](decision-models.md)
+- [Text to Speech (TTS) 设置](../media/tts-setup.md)

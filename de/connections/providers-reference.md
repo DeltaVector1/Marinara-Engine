@@ -109,6 +109,13 @@ Dieselbe Anzeige erscheint unter der Kontextanzeige in der Verbindungsauswahl ei
 
 **xAI / Grok** betreibt die Grok-Modelle. Wählst du diesen Anbieter im Fenster **Create Connection**, trägt Marinara Grok 4.5 als Modell vor. Ändern lässt sich das jederzeit. Grok 4.6 und 4.7 bieten ein Kontextfenster von 500.000 Tokens und Reasoning bis **Maximum** (`xhigh`). Sie unterstützen die vorhandenen Chat-Tools einschließlich **Web Search** (Websuche), sodass Suchergebnisse in die fertige Antwort einfließen können.
 
+## Arli AI
+
+- Key bekommst du hier: `https://www.arliai.com/account`
+- Standard-Base-URL: `https://api.arliai.com/v1`
+
+**Arli AI** ist ein gehosteter Chat-Dienst. Er bringt keine eingebaute Modellliste mit, deshalb ist das Dropdown-Menü **Model** zunächst leer. Füge deinen Key ein und klick dann auf **Fetch Models from API**, um die aktuellen Modelle zu laden. Für Bilder von Arli AI nutzt du stattdessen den Anbieter **Image Generation** mit seinem Dienst **Arli AI**.
+
 ## Z.AI
 
 - Key bekommst du hier: `https://z.ai/manage-apikey/apikey-list`
@@ -156,9 +163,30 @@ Die vollständige Liste der Bilddienste, ihre Einrichtung und die Einstellungen 
 
 ## Video Generation
 
-**Video Generation** (Videogenerierung) ist ebenfalls ein besonderer Anbieter, mit einer eigenen Auswahl **Video Service**. Game Mode erzeugt damit kurze MP4-Szenenvideos. Zur Wahl stehen **Google AI Studio**, **xAI Imagine**, **OpenRouter Video** und **Seedance 2.0**. Jeder Dienst braucht einen API-Key.
+**Video Generation** (Videogenerierung) ist ebenfalls ein besonderer Anbieter, mit einer eigenen Auswahl **Video Service**. Marinara erzeugt damit kurze MP4-Szenenvideos. Zur Wahl stehen **Google AI Studio**, **xAI Imagine**, **OpenRouter Video**, **NanoGPT**, **Atlas Cloud**, **Seedance 2.0**, **ComfyUI** und **SwarmUI**. Die Cloud-Dienste brauchen einen API-Key. **ComfyUI** und **SwarmUI** laufen auf deinem eigenen Rechner und brauchen normalerweise keinen.
 
 Die komplette Einrichtung und die Grenzen jedes Videodienstes stehen unter [Szenenvideos generieren](../media/scene-video.md).
+
+## Decision
+
+- Standard-Base-URL: `https://api.typesafe.ai` für die Quelle **TypeSafe**.
+
+**Decision** ist ein optionaler besonderer Anbieter für ein Modell, das Ja/Nein-Fragen zu deinem Chat beantwortet. Es kann zum Beispiel entscheiden, ob ein eigener Agent laufen soll. Seine Antworten steuern Marinara und erscheinen nicht im Chat. Nach der Auswahl legst du eine Quelle fest: **TypeSafe**, **OpenRouter**, **Custom System One endpoint** (eigener System-One-Endpunkt) oder **OpenAI-compatible chat model** (OpenAI-kompatibles Chat-Modell). Gehostete Quellen brauchen einen API-Key.
+
+Was ein Decision-Modell tut, wie du eines auswählst und wie die vollständige Einrichtung aussieht, steht unter [Decision-Modelle](decision-models.md).
+
+## Audio
+
+**Audio** ist ein besonderer Anbieter für Stimmen und generierten Sound. Nach der Auswahl legst du eine **Audio Source** (Audioquelle) fest:
+
+- **ElevenLabs**: Sprache, Soundeffekte und Musik.
+- **OpenAI-compatible**: OpenAI oder jeder Server, der das Sprachformat von OpenAI nachbildet.
+- **PocketTTS**: ein kostenloser Sprachserver, den du auf dem eigenen Rechner betreibst.
+- **xAI Voice**: der Sprachdienst von xAI.
+
+Jede Quelle trägt eine Standard-Base-URL und ein Standardmodell ein. **Default Voice** (Standardstimme) ist die Stimme, die gilt, solange nichts Spezifischeres festgelegt ist, etwa eine eigene Stimme pro Charakter. Welche Audioverbindung Marinara standardmäßig nutzt, legst du so fest: Öffne das Panel **Connections**, klapp **Defaults** auf und wähle sie unter **Audio** aus.
+
+Mit der Quelle **ElevenLabs** erscheinen zwei weitere Schalter: **Game sound effects** (Soundeffekte im Spiel) und **Game music** (Musik im Spiel). Damit erzeugt der Game Mode über diese Verbindung Soundeffekte und Musik. Siehe [Generierte Soundeffekte und Musik](../game/game-assets.md#generated-sound-effects-and-music). Für Stimmen und das Vorlesen von Nachrichten siehe [Text to Speech (TTS) einrichten](../media/tts-setup.md).
 
 ## Embeddings
 
@@ -173,3 +201,5 @@ Manche Anbieter liefern keine Embeddings. **Anthropic**, **Claude (Subscription)
 - [Ein lokales oder selbst gehostetes Modell verbinden](local-self-hosted.md)
 - [Anbieter und Einrichtung der Bildgenerierung](../media/image-providers.md)
 - [Szenenvideos generieren](../media/scene-video.md)
+- [Decision-Modelle](decision-models.md)
+- [Text to Speech (TTS) einrichten](../media/tts-setup.md)

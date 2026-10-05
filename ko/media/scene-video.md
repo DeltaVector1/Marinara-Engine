@@ -17,25 +17,29 @@
 1. **Settings**(설정)를 열고 **Connections**를 여세요.
 2. **Add Connection**(연결 추가)을 클릭하세요.
 3. 제공자 종류를 **Video Generation**으로 설정하세요.
-4. **Video Service**(동영상 서비스) 항목에서 아래 여섯 가지 서비스 중 하나를 고르세요.
-5. 클라우드 서비스라면 API 키를 입력하세요. 로컬 ComfyUI에는 필요 없습니다.
-6. 클라우드 서비스는 모델을 고르거나 제공자 기본값을 그대로 두세요. ComfyUI는 워크플로가 `%model%`을 쓰지 않는 한 모델을 비워 두세요.
+4. **Video Service**(동영상 서비스) 항목에서 아래 여덟 가지 서비스 중 하나를 고르세요.
+5. 클라우드 서비스라면 API 키를 입력하세요. 로컬 ComfyUI에는 필요 없습니다. SwarmUI는 SwarmUI 서버에 계정이 필요한 경우에만 Swarm Auth Token이 필요합니다.
+6. 클라우드 서비스는 모델을 고르거나 제공자 기본값을 그대로 두세요. NanoGPT에는 기본 모델이 없으므로 **Fetch Models from API**를 클릭해 모델을 고르세요. ComfyUI는 워크플로가 `%model%`을 쓰지 않는 한 모델을 비워 두세요. SwarmUI에서는 모델이 선택 사항입니다.
 7. 연결을 저장하세요.
 
-**Video Service** 선택기에는 여섯 가지 항목이 있습니다. 각 항목은 기본 웹 주소를 채워 넣고, 해당하는 경우 기본 모델도 채웁니다.
+**Video Service** 선택기에는 여덟 가지 항목이 있습니다. 각 항목은 기본 웹 주소를 채워 넣고, 해당하는 경우 기본 모델도 채웁니다.
 
 | Video Service | 기본 모델 | 비고 |
 | -------------------- | --------------------------------- | ---------------------------------------------------------------------------- |
 | **Google AI Studio** | `gemini-omni-flash-preview` | Gemini API를 통해 Gemini Omni와 Veo 동영상 모델을 실행합니다. |
 | **xAI Imagine** | `grok-imagine-video-1.5` | xAI Videos API를 통한 Grok Imagine 동영상입니다. |
 | **OpenRouter Video** | `google/veo-3.1` | OpenRouter를 통한 동영상 모델입니다. OpenRouter의 동영상 모델 ID라면 무엇이든 직접 입력할 수 있습니다. |
+| **NanoGPT** | 없음, 직접 선택 | NanoGPT를 통한 동영상 모델입니다. **Fetch Models from API**로 목록을 불러옵니다. |
 | **Atlas Cloud** | `google/veo3.1/text-to-video` | Atlas Cloud에서 호스팅하는 텍스트-동영상 및 이미지-동영상 모델입니다. |
 | **Seedance 2.0** | `seedance-2-0` | 텍스트, 첫 프레임, 첫 프레임과 마지막 프레임 방식의 동영상 모드를 지원합니다. |
 | **ComfyUI** | 워크플로에서 지정 | API 형식으로 내보낸 로컬 WAN 및 기타 동영상 워크플로입니다. |
+| **SwarmUI** | 워크플로에서 지정 | SwarmUI 서버를 통해 실행하는 ComfyUI 동영상 워크플로입니다. |
 
 **Google AI Studio**는 두 가지 모델 계열을 다룹니다. **Gemini Omni**는 `gemini-omni-flash-preview`를 씁니다. **Google Veo**는 `veo-3.1-generate-preview`를 씁니다. 둘 중 무엇이 실행되는지는 연결에서 고른 모델에 따라 달라집니다.
 
 **ComfyUI**는 보통 로컬 주소 `http://127.0.0.1:8188`을 쓰고, API 형식의 동영상 워크플로를 **ComfyUI Workflow**(ComfyUI 워크플로)에 붙여넣습니다. 워크플로는 필수입니다. 플레이스홀더와 출력 노드 요건은 [ComfyUI 워크플로 설정](comfyui.md#comfyui-video-workflows)을 참고하세요.
+
+**SwarmUI**를 고르면 Marinara가 로컬 주소 `http://127.0.0.1:7801`을 채웁니다. API 형식의 동영상 워크플로를 **ComfyUI Workflow**에 붙여넣으세요. 워크플로는 필수입니다. SwarmUI는 `%reference_image_name%` 플레이스홀더를 쓸 수 없으므로 참조 이미지에는 대신 `%reference_image%`를 쓰세요. SwarmUI 서버에 계정이 필요하다면 **API Key**(API 키)에 Swarm Auth Token을 붙여넣으세요. **Fetch Models from API**를 사용하면 SwarmUI 서버에 있는 모델 목록을 볼 수 있습니다.
 
 ### 기본 동영상 연결로 지정하기
 
@@ -51,9 +55,11 @@ Video Generation 연결에는 연결 편집기 안에 **Video Generation Default
 | Google Veo | 8s | 4, 6, 8s | 16:9 | 720p |
 | xAI Imagine | 10s | 1에서 15s까지 | 16:9 | 720p |
 | OpenRouter Video | 10s | 1에서 60s까지 | 16:9 | 720p |
+| NanoGPT | 10s | 1에서 60s까지 | 16:9 | 720p |
 | Atlas Cloud | 8s | 1에서 60s까지 | 16:9 | 720p |
 | Seedance 2.0 | 5s | 4에서 15s까지 | 16:9 | 720p |
 | ComfyUI | 5s | 1에서 60s까지 | 16:9 | 720p |
+| SwarmUI | 5s | 1에서 60s까지 | 16:9 | 720p |
 
 Gemini Omni에는 해상도 항목이 없고, 길이도 별도 설정이 아니라 프롬프트 글 안에 적힙니다. Google Veo는 참조 이미지를 움직이게 만들 때 항상 8초로 고정합니다. 첫 프레임과 마지막 프레임을 자연스럽게 잇는 데 8초가 필요하기 때문입니다.
 
@@ -67,15 +73,17 @@ Marinara 서버에 이미 공개 웹 주소가 있다면 임시 업로드 대신
 
 ## 제공자 고르기
 
-여섯 가지 서비스 모두 이미지로 짧은 클립을 만듭니다. 차이는 속도, 클립 길이, 참조 이미지를 다루는 방식에 있습니다.
+여덟 가지 서비스 모두 이미지로 짧은 클립을 만듭니다. 차이는 속도, 클립 길이, 참조 이미지를 다루는 방식에 있습니다.
 
 - **Google AI Studio (Gemini Omni)**: 최대 60초까지 길이를 자유롭게 정할 수 있습니다. 길이는 별도 컨트롤이 아니라 프롬프트 안에 들어갑니다.
 - **Google AI Studio (Veo)**: 품질이 뛰어나지만 길이는 4초, 6초, 8초로 고정입니다. 이미지를 움직이게 만들 때는 8초를 씁니다.
 - **xAI Imagine**: 1초에서 15초까지의 클립을 만듭니다. 프롬프트 길이 제한이 다른 서비스보다 짧습니다.
 - **OpenRouter Video**: 1초에서 60초까지 지원하며, OpenRouter 계정에서 쓸 수 있는 동영상 모델이라면 무엇이든 직접 입력할 수 있습니다.
+- **NanoGPT**: 1초에서 60초까지 지원합니다. 기본 모델이 없으므로 **Fetch Models from API**로 NanoGPT의 동영상 모델을 불러와 하나를 고르세요.
 - **Atlas Cloud**: **Fetch Models**(모델 가져오기)는 Atlas Cloud의 최신 동영상 모델 목록을 불러옵니다. 이미지-동영상 모델이 먼저 표시되며, 각 모델의 출력 동영상 1초당 시작 가격도 보여 줍니다. 목록에 접근할 수 없으면 Veo 3.1과 Seedance 2.0 기본 모델을 대신 표시합니다. Atlas Cloud 동영상 모델의 정확한 ID를 입력할 수도 있으며, 모델별 길이, 해상도, 참조 이미지 제한은 그대로 적용됩니다.
 - **Seedance 2.0**: 4초에서 15초까지의 클립을 만들고, 첫 프레임 방식과 첫 프레임과 마지막 프레임 방식을 지원합니다. 참조 이미지에 접근할 공개 링크가 필요합니다.
 - **ComfyUI**: 직접 만든 API 형식 워크플로로 로컬에서 생성합니다. 워크플로가 `%reference_image_name%`을 쓰면 Marinara가 참조 이미지를 ComfyUI에 바로 업로드합니다.
+- **SwarmUI**: 직접 만든 API 형식 워크플로를 SwarmUI 서버로 보내 로컬에서 생성합니다. 참조 이미지는 `%reference_image%`를 통해 워크플로에 들어갑니다.
 
 동영상 작업은 시간이 걸린다고 생각하세요. 제공자가 작업을 시작하면 Marinara는 클립이 완성될 때까지 기다리면서 상태를 확인합니다. 클립 하나에 몇 분이 걸릴 수 있어 정지 이미지보다 오래 걸립니다. 용량이 큰 로컬 WAN 모델은 기본값인 30분을 넘길 수도 있습니다. 그럴 때는 `VIDEO_GEN_TIMEOUT_MS` 값을 늘리고 Marinara를 다시 시작하세요.
 
@@ -197,7 +205,7 @@ Game Mode 채팅을 처음 만들 때는 설정 마법사에도 **Video Generati
 
 ### 동영상 생성이 오래 걸립니다
 
-정상입니다. 제공자가 작업을 시작하면 Marinara는 클립이 완성될 때까지 기다리면서 상태를 확인합니다. Veo, xAI, OpenRouter, Atlas Cloud, Seedance 모두 이런 방식으로 동작하며, 클립 하나에 몇 분이 걸릴 수 있습니다.
+정상입니다. 제공자가 작업을 시작하면 Marinara는 클립이 완성될 때까지 기다리면서 상태를 확인합니다. Veo, xAI, OpenRouter, NanoGPT, Atlas Cloud, Seedance 모두 이런 방식으로 동작하며, 클립 하나에 몇 분이 걸릴 수 있습니다.
 
 ### Seedance가 참조 이미지를 읽지 못합니다
 

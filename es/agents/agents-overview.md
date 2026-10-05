@@ -8,7 +8,7 @@ Los agentes son pequeños ayudantes de IA que se ejecutan automáticamente alred
 
 Los agentes se activan por chat, no por personaje. No hay un interruptor de agente en la tarjeta de personaje. Dos chats con el mismo personaje pueden ejecutar agentes completamente distintos. Tú eliges qué agentes se ejecutan en los ajustes de cada chat.
 
-Las instalaciones nuevas de Marinara Engine empiezan sin agentes opcionales. Así la app base y la instalación de Termux ocupan menos. El catálogo oficial de la versión v2.3.0+ contiene 36 paquetes de un clic: 6 Writer Agents, 11 Tracker Agents y 19 Misc Agents, incluidos Long-Term Memory, Maps, Calls, Inventory Tracker y los seis juegos de Conversation. Su código fuente, manifiestos, artefactos descargables y catálogo a nivel de repositorio son públicos en [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Para ver la guía completa de cada agente, consulta [Downloadable Agents Reference](built-in-agents.md). Para crear los tuyos, consulta [Creating Custom Agents](custom-agents.md). Las importaciones de agentes externos requieren activar **Allow custom Agent imports** en la Danger Zone y revisar sus capacidades de forma explícita; esta protección no afecta a las descargas oficiales ni a los agentes que creas tú mismo.
+Las instalaciones nuevas de Marinara Engine empiezan sin agentes opcionales. Así la app base y la instalación de Termux ocupan menos. **Download Agents** (Descargar agentes) agrupa los paquetes oficiales de un clic en **Apps**, **Writer Agents**, **Tracker Agents** y **Misc Agents**. El catálogo incluye Long-Term Memory, World Maps, Calls, Inventory Tracker y los seis juegos de Conversation. Su código fuente, manifiestos, artefactos descargables y catálogo a nivel de repositorio son públicos en [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Para ver la guía completa de cada agente, consulta [Downloadable Agents Reference](built-in-agents.md). Para crear los tuyos, consulta [Creating Custom Agents](custom-agents.md). Las importaciones de agentes externos requieren activar **Allow custom Agent imports** en la Danger Zone y revisar sus capacidades de forma explícita; esta protección no afecta a las descargas oficiales ni a los agentes que creas tú mismo.
 
 ## Las tres fases
 
@@ -22,17 +22,28 @@ Cada agente se ejecuta en uno de tres puntos alrededor de tu respuesta. Ese punt
 
 Abre el panel **Agents** desde las pestañas de panel del lado derecho (el icono de las estrellas, Sparkles). Aquí exploras, creas y organizas agentes. Esta es tu biblioteca. No es el interruptor de encendido o apagado para un solo chat.
 
-Haz clic en **Download Agents** (Descargar agentes) en la parte de arriba para abrir el catálogo oficial a pantalla completa. Funciona en computadora y en el teléfono. Selecciona un elemento para leer su descripción, el tipo de función que admite, el tamaño de descarga, los permisos, la compatibilidad de versión y la documentación. Haz clic en **Install** (Instalar) para añadirlo; la misma pantalla ofrece actualizaciones manuales inmediatas y **Uninstall** (Desinstalar) para los paquetes que ya tienes. Marinara también revisa cada paquete oficial instalado al arrancar el servidor y lo actualiza a la versión compatible más reciente del catálogo antes de que se active su tiempo de ejecución. Los paquetes siguen funcionando en su versión actual cuando el servidor anfitrión está desconectado o una actualización no se puede verificar.
+Haz clic en **Download Agents** en la parte de arriba para abrir el catálogo oficial a pantalla completa. Funciona en computadora y en el teléfono. Selecciona un elemento para leer su descripción, el tipo de función que admite, el tamaño de descarga, los permisos, la compatibilidad de versión y la documentación. Haz clic en **Install** (Instalar) para añadirlo; la misma pantalla ofrece actualizaciones manuales inmediatas y **Uninstall** (Desinstalar) para los paquetes que ya tienes.
 
 El catálogo dentro de la app se respalda en el [repositorio público Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents). Ahí puedes inspeccionar cada paquete y artefacto, pero los usuarios normales deberían instalar a través de **Download Agents** para que Marinara pueda validar la compatibilidad, los permisos, los hashes, el contenido del archivo comprimido y los requisitos de reinicio.
 
 El catálogo incluye agentes de chat oficiales, World Maps, las llamadas de audio/video de Conversation y todos los juegos opcionales de Conversation. Los agentes instalados se agrupan en **Apps**, **Writer Agents**, **Tracker Agents** y **Misc Agents**, además de una sección **Custom Agents** para los que tú crees. Las **Apps** son paquetes con su propia pestaña de Home, como Noodle y Slurp, que usas de forma independiente en lugar de añadirlos a un chat. Desinstalar un paquete del catálogo elimina su código y sus ajustes del Engine, pero conserva los mensajes y el historial del chat. Borrar un agente personalizado lo elimina para siempre.
 
-Un paquete marcado **Rules** aporta un conjunto de reglas de Game Mode, como 5e (SRD 5.1), no un agente; no cuenta en las cifras de agentes anteriores. Se elige al crear una partida en **Rules**; consulta [Elegir las reglas](../game/getting-started.md#choosing-rules). No tiene interruptor de activación por chat. El paquete 5e es una vista previa y solo aparece en el catálogo de Engine de la rama `staging`.
+Un paquete marcado **Rules** aporta un conjunto de reglas de Game Mode, como 5e (SRD 5.1), no un agente. Se elige al crear una partida en **Rules**; consulta [Elegir las reglas](../game/getting-started.md#choosing-rules). No tiene interruptor de activación por chat. El paquete 5e es una vista previa y solo aparece en el catálogo de Engine de la rama `staging`.
 
 Cuando actualizas desde una versión del Engine que incluía estas funciones, Marinara descarga los paquetes correspondientes una sola vez y conserva las selecciones de chat existentes, los ajustes de los agentes, los datos de tiempo de ejecución guardados y el historial. Si esa migración no puede llegar al catálogo, lo reintenta en el siguiente arranque en lugar de descartar nada.
 
-Las actualizaciones automáticas de arranque nunca instalan un paquete no seleccionado. Las instalaciones de computadora, Docker y Android/Termux actualizan los paquetes guardados por su servidor local. iOS, iPadOS y otros clientes de navegador usan los paquetes instalados y actualizados por el servidor de Marinara al que se conectan.
+<a id="updating-packages"></a>
+
+### Actualizar paquetes
+
+Marinara pregunta antes de actualizar un paquete. Cuando hay disponible una versión compatible más reciente de un paquete que instalaste, aparece una ventana **Agent updates available** (Actualizaciones de agentes disponibles). Enumera cada actualización con su nueva versión e indica si necesita un reinicio. Cuando el paquete publica notas de la versión, **What changed** (Qué cambió) las muestra. Un punto marca un cambio que vas a notar; las actualizaciones sin punto son correcciones rutinarias.
+
+- Haz clic en **Update all** (Actualizar todo) para instalar todas las actualizaciones de la lista. Reinicia Marinara Engine si te lo pide.
+- Haz clic en **Not now** (Ahora no) para conservar tus versiones actuales. Marinara no vuelve a preguntar por una versión que omitiste.
+
+Aun así, puedes actualizar cualquier paquete más tarde desde **Download Agents**. Los paquetes instalados siguen funcionando en su versión actual hasta que los actualices, incluso cuando no se puede llegar al catálogo.
+
+Las actualizaciones solo se aplican a los paquetes que ya instalaste. Las instalaciones de computadora, Docker y Android/Termux guardan sus paquetes en su servidor local. iOS, iPadOS y otros clientes de navegador usan los paquetes instalados en el servidor de Marinara al que se conectan.
 
 ## Activar agentes para un chat
 

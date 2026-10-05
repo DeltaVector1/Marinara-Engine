@@ -8,7 +8,7 @@
 
 智能体按聊天开启，不按角色开启。角色卡上没有智能体开关。同一个角色的两个聊天，可以运行完全不同的智能体。每个聊天要运行哪些智能体，都在这个聊天自己的设置里选。
 
-全新安装的 Marinara Engine 不带任何可选智能体，这样能让基础应用和 Termux 安装包更小。v2.3.0 以后的官方目录收录了 36 个一键安装包：6 个 Writer Agents、11 个 Tracker Agents、19 个 Misc Agents，其中包括 Long-Term Memory、Maps、Calls、Inventory Tracker 以及全部 6 款 Conversation 游戏。它们的源码、清单文件、可下载产物和仓库级目录都公开在 [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents)。每个智能体的详细说明见[可下载智能体参考](built-in-agents.md)。想自己做一个，见[创建自定义智能体](custom-agents.md)。
+全新安装的 Marinara Engine 不带任何可选智能体，这样能让基础应用和 Termux 安装包更小。**Download Agents**(下载智能体) 把官方一键安装包分成 **Apps**(应用)、**Writer Agents**(写作智能体)、**Tracker Agents**(追踪器智能体) 和 **Misc Agents**(其他智能体) 四组。目录里包括 Long-Term Memory、World Maps、Calls、Inventory Tracker 以及全部 6 款 Conversation 游戏。它们的源码、清单文件、可下载产物和仓库级目录都公开在 [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents)。每个智能体的详细说明见[可下载智能体参考](built-in-agents.md)。想自己做一个，见[创建自定义智能体](custom-agents.md)。
 
 ## 三个阶段
 
@@ -22,17 +22,28 @@
 
 从右侧面板的选项卡（Sparkles 图标）打开 **Agents** 面板。这里可以浏览、创建和整理智能体，相当于你自己的智能体库，而不是单个聊天的开关。
 
-点击顶部的 **Download Agents**(下载智能体) 打开全屏的官方目录，桌面端和移动端都能用。选中一项，就能看到它的说明、支持的功能类型、下载体积、权限、版本兼容性和文档。点击 **Install**(安装) 即可添加；同一个界面还提供立即手动更新，以及对已安装包的 **Uninstall**(卸载)。Marinara 还会在服务器启动时检查每个已安装的官方包，在它的运行时激活之前升级到目录里最新的兼容版本。主机服务器不在线，或者更新无法验证时，这些包会继续以当前版本工作。
+点击顶部的 **Download Agents**(下载智能体) 打开全屏的官方目录，桌面端和移动端都能用。选中一项，就能看到它的说明、支持的功能类型、下载体积、权限、版本兼容性和文档。点击 **Install**(安装) 即可添加；同一个界面还提供立即手动更新，以及对已安装包的 **Uninstall**(卸载)。
 
 应用内的目录背后是公开的 [Marinara-Agents 仓库](https://github.com/Pasta-Devs/Marinara-Agents)。每个包和产物都可以在那里查看，但一般情况下还是通过 **Download Agents** 安装，这样 Marinara 才能校验兼容性、权限、哈希、压缩包内容和重启要求。
 
 目录里收录了官方聊天智能体、World Maps、Conversation 的音视频通话，以及全部可选的 Conversation 游戏。已安装的智能体会分成 **Apps**(应用)、**Writer Agents**(写作智能体)、**Tracker Agents**(追踪器智能体) 和 **Misc Agents**(其他智能体) 四组，自己做的则放在 **Custom Agents**(自定义智能体) 分区。**Apps** 是有自己 Home 标签页、单独使用而不是添加到聊天里的包，比如 Noodle 和 Slurp。卸载目录里的包，会从 Engine 中删掉它的代码和设置，聊天消息和历史记录仍然保留。删除自定义智能体则是彻底删除。
 
-标为 **Rules** 的包提供 Game Mode 规则集（如 5e (SRD 5.1)），而不是智能体，因此不计入上文的智能体数量。创建游戏时在 **Rules** 中选择，参见[选择规则](../game/getting-started.md#choosing-rules)。它没有按聊天启用的开关。5e 包仍是预览版，目前只出现在 `staging` 分支 Engine 的目录中。
+标为 **Rules** 的包不是智能体，而是提供 Game Mode 规则集（如 5e (SRD 5.1)）。创建游戏时在 **Rules** 中选择，参见[选择规则](../game/getting-started.md#choosing-rules)。它没有按聊天启用的开关。5e 包仍是预览版，目前只出现在 `staging` 分支 Engine 的目录中。
 
 从内置这些功能的旧版 Engine 升级上来时，Marinara 会把对应的包下载一次，并保留已有的聊天选择、智能体设置、存储的运行时数据和历史记录。如果这次迁移连不上目录，它会在下次启动时重试，不会丢弃任何东西。
 
-启动时的自动更新绝不会安装你没有选择的包。桌面端、Docker 和 Android/Termux 安装会更新本地服务器保存的包。iOS、iPadOS 和其他浏览器客户端使用的，是它们所连接的那台 Marinara 服务器安装并更新的包。
+<a id="updating-packages"></a>
+
+### 更新包
+
+Marinara 会先征求你的同意，再更新包。你安装的包出现兼容的新版本时，会弹出 **Agent updates available**(有智能体更新可用) 窗口，列出每项更新的新版本，以及是否需要重启。包发布了更新日志时，**What changed**(更新内容) 会显示这些内容。带圆点的是你会注意到的改动；没有圆点的更新只是常规修复。
+
+- 点击 **Update all**(全部更新) 安装列出的全部更新。如果 Marinara Engine 提示重启，就重启它。
+- 点击 **Not now**(暂不更新) 保留当前版本。你跳过的版本，Marinara 不会再问。
+
+之后仍然可以随时在 **Download Agents** 里更新任意包。已安装的包在你更新之前会一直以当前版本工作，即使连不上目录也一样。
+
+更新只针对你已经安装的包。桌面端、Docker 和 Android/Termux 安装把包保存在各自的本地服务器上。iOS、iPadOS 和其他浏览器客户端使用的，是它们所连接的那台 Marinara 服务器上安装的包。
 
 ## 为聊天开启智能体
 

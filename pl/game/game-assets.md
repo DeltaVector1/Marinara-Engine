@@ -1,6 +1,6 @@
 # Zasoby gry: muzyka, dźwięki, sprite'y i tła
 
-Ten przewodnik wyjaśnia, jak działa biblioteka zasobów gry, z której Game Mode korzysta przy muzyce, dźwiękach, grafice postaci i tłach scen. Opisuje wbudowany zestaw startowy, menedżer plików **Asset Browser** (przeglądarka zasobów), wgrywanie własnych plików oraz wybór zasobów dostępnych dla poszczególnych gier.
+Ten przewodnik wyjaśnia, jak działa biblioteka zasobów gry, z której Game Mode korzysta przy muzyce, dźwiękach, grafice postaci i tłach scen. Opisuje wbudowany zestaw startowy, menedżer plików **Asset Browser** (przeglądarka zasobów), wgrywanie własnych plików, wybór zasobów dostępnych dla poszczególnych gier oraz efekty dźwiękowe i muzykę, które Game Mode może dla ciebie wygenerować.
 
 ## Czym są zasoby gry
 
@@ -148,6 +148,34 @@ Następnie:
 
 Pasek pokazuje "All folders included" albo liczbę wykluczonych folderów, razem z przyciskiem **Reset to all**, który przywraca wszystkie. Ten wybór zapisuje się tylko dla tego jednego czatu. Zmienia zestaw folderów, z których Game Mode może wybierać, ale nie usuwa ani nie ukrywa żadnych plików. Poza tym czatem w trybie Game Mode nie ma żadnego wpływu.
 
+<a id="generated-sound-effects-and-music"></a>
+
+## Generowane efekty dźwiękowe i muzyka
+
+Game Mode potrafi też tworzyć do twoich scen nowe efekty dźwiękowe i muzykę za pomocą ElevenLabs, usługi AI do generowania dźwięku. Potrzebny jest klucz API do usługi ElevenLabs. Każdy nowy dźwięk lub utwór to osobne żądanie do usługi ElevenLabs na twoim koncie.
+
+Najpierw skonfiguruj połączenie audio:
+
+1. Otwórz panel **Connections** (Połączenia) i utwórz połączenie z dostawcą **Audio**.
+2. W polu **Audio Source** (źródło dźwięku) wybierz **ElevenLabs**, a potem wklej klucz API do usługi ElevenLabs.
+3. Włącz **Game sound effects** (efekty dźwiękowe w grze), **Game music** (muzyka w grze) albo oba przełączniki. Te przełączniki pojawiają się tylko przy źródle **ElevenLabs**.
+4. Zapisz połączenie.
+
+Potem włącz tę funkcję przy tworzeniu gry:
+
+1. W kroku **Features** kreatora konfiguracji znajdź kartę **Game Audio** (dźwięk w grze).
+2. W polu **Audio Connection** (połączenie audio) wybierz swoje połączenie ElevenLabs albo zostaw **Use the default audio connection** (użycie domyślnego połączenia audio).
+3. Zostaw włączone **Sound effects** (efekty dźwiękowe) i **Music** (muzyka) albo wyłącz to, czego nie chcesz.
+
+Opcji **Sound effects** ani **Music** nie da się włączyć, dopóki wybrane połączenie nie jest połączeniem ElevenLabs z włączonym odpowiednim przełącznikiem. Karta wyświetla wtedy odpowiednią informację.
+
+W trakcie gry:
+
+- **Sound effects**: po turach GM Marinara prosi usługę ElevenLabs o krótkie efekty dźwiękowe pasujące do sceny.
+- **Music**: Marinara komponuje jeden instrumentalny utwór, trwający około dwóch minut, dla każdego miejsca odwiedzanego przez drużynę i dla każdego rodzaju walki, na przykład walki z bossem. Każdy utwór powstaje tylko raz, a potem jest używany ponownie. Utwór nowego miejsca zaczyna grać przy późniejszej zmianie sceny, więc muzyka nie wcina się w środek sceny. Utwór walki płynnie się pojawia, gdy tylko jest gotowy.
+
+Wygenerowane dźwięki i utwory zapisują się razem z zasobami gry, więc ten sam dźwięk nie powstaje dwa razy. Jeśli muzykę w grze odtwarza agent **Music DJ**, Game Mode nie generuje muzyki.
+
 ## Własny folder muzyki dla agenta Music DJ
 
 **Music DJ** to pomocniczy agent, który potrafi odtwarzać muzykę w trakcie gry. W trybie Custom odtwarza ścieżki z wybranego folderu. Ten folder da się ustawić w dwóch miejscach.
@@ -168,5 +196,6 @@ Przycisk **Open in system folder** otwiera zaznaczony folder zasobów w zwykłym
 ## Powiązane przewodniki
 
 - [Music DJ: Spotify, YouTube i muzyka lokalna](../media/music.md)
+- [Obsługiwani dostawcy AI](../connections/providers-reference.md)
 - [Game Mode: pierwsze kroki](getting-started.md)
 - [Dostęp zdalny: Basic Auth i lista dozwolonych adresów IP](../REMOTE_ACCESS.md)

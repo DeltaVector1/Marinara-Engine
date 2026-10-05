@@ -109,6 +109,13 @@ Ten sam wskaźnik znajduje się pod wskaźnikiem kontekstu w selektorze połącz
 
 **xAI / Grok** udostępnia modele Grok. Po wybraniu tego dostawcy w oknie **Create Connection** Marinara od razu wpisuje model Grok 4.5. Model można potem zmienić. Modele Grok 4.6 i 4.7 mają okno kontekstu wynoszące 500 000 tokenów i obsługują rozumowanie do poziomu **Maximum** (`xhigh`). Obsługują istniejące narzędzia czatu, w tym **Web Search** (wyszukiwanie w internecie), więc wyniki wyszukiwania mogą zostać wykorzystane w końcowej odpowiedzi.
 
+## Arli AI
+
+- Skąd wziąć klucz: `https://www.arliai.com/account`
+- Domyślny adres bazowy: `https://api.arliai.com/v1`
+
+**Arli AI** to hostowana usługa czatu. Nie ma wbudowanej listy modeli, więc lista rozwijana **Model** jest na początku pusta. Po wklejeniu klucza kliknij przycisk **Fetch Models from API**, żeby wczytać aktualne modele. Do obrazów z Arli AI użyj zamiast tego dostawcy **Image Generation** i jego usługi **Arli AI**.
+
 ## Z.AI
 
 - Skąd wziąć klucz: `https://z.ai/manage-apikey/apikey-list`
@@ -156,9 +163,30 @@ Pełną listę usług graficznych, ich konfigurację i ustawienia generowania zn
 
 ## Video Generation
 
-**Video Generation** to również dostawca szczególny, z własną listą **Video Service**. Game Mode używa go do tworzenia krótkich filmów MP4 ze scenami. Dostępne usługi to **Google AI Studio**, **xAI Imagine**, **OpenRouter Video** i **Seedance 2.0**. Każda z nich wymaga klucza API.
+**Video Generation** to również dostawca szczególny, z własną listą **Video Service**. Marinara używa go do tworzenia krótkich filmów MP4 ze scenami. Dostępne usługi to **Google AI Studio**, **xAI Imagine**, **OpenRouter Video**, **NanoGPT**, **Atlas Cloud**, **Seedance 2.0**, **ComfyUI** i **SwarmUI**. Usługi w chmurze wymagają klucza API. **ComfyUI** i **SwarmUI** działają na twoim własnym komputerze i zwykle go nie potrzebują.
 
 Pełną konfigurację i ograniczenia każdej usługi wideo opisuje przewodnik [Generowanie wideo scen](../media/scene-video.md).
+
+## Decision
+
+- Domyślny adres bazowy: `https://api.typesafe.ai` dla źródła **TypeSafe**.
+
+**Decision** to opcjonalny dostawca szczególny dla modelu, który odpowiada na pytania typu tak lub nie dotyczące twojego czatu. Może na przykład zdecydować, czy własny agent ma się uruchomić. Jego odpowiedzi kierują działaniem aplikacji Marinara Engine i nie trafiają do czatu. Po wybraniu tego dostawcy wskaż źródło: **TypeSafe**, **OpenRouter**, **Custom System One endpoint** (własny punkt końcowy System One) lub **OpenAI-compatible chat model** (model czatu zgodny z OpenAI). Źródła hostowane wymagają klucza API.
+
+Czym jest model decyzyjny, jak go wybrać i jak go w pełni skonfigurować, wyjaśnia przewodnik [Modele decyzyjne](decision-models.md).
+
+## Audio
+
+**Audio** to dostawca szczególny dla głosów i generowanego dźwięku. Po jego wybraniu wskaż **Audio Source** (źródło dźwięku):
+
+- **ElevenLabs**: mowa, efekty dźwiękowe i muzyka.
+- **OpenAI-compatible**: OpenAI albo dowolny serwer naśladujący format mowy od OpenAI.
+- **PocketTTS**: darmowy serwer głosowy uruchamiany na własnym komputerze.
+- **xAI Voice**: usługa głosowa xAI.
+
+Każde źródło wpisuje domyślny adres bazowy i model. **Default Voice** (domyślny głos) to głos używany wtedy, gdy nie ustawiono nic bardziej szczegółowego, na przykład głosu dla konkretnej postaci. Żeby wybrać połączenie audio, którego Marinara używa domyślnie, otwórz panel **Connections**, rozwiń sekcję **Defaults** (ustawienia domyślne) i wybierz je w polu **Audio**.
+
+Przy źródle **ElevenLabs** pojawiają się dwa dodatkowe przełączniki: **Game sound effects** (efekty dźwiękowe w grze) i **Game music** (muzyka w grze). Dzięki nim Game Mode tworzy przez to połączenie efekty dźwiękowe i muzykę. Zobacz [Generowane efekty dźwiękowe i muzyka](../game/game-assets.md#generated-sound-effects-and-music). Głosy i czytanie wiadomości na głos opisuje przewodnik [Konfiguracja syntezy mowy (TTS)](../media/tts-setup.md).
 
 ## Embeddings
 
@@ -173,3 +201,5 @@ Część dostawców nie potrafi tworzyć embeddingów. Nie oferują ich **Anthro
 - [Podłączanie modelu lokalnego lub samodzielnie hostowanego](local-self-hosted.md)
 - [Dostawcy generowania obrazów i konfiguracja](../media/image-providers.md)
 - [Generowanie wideo scen](../media/scene-video.md)
+- [Modele decyzyjne](decision-models.md)
+- [Konfiguracja syntezy mowy (TTS)](../media/tts-setup.md)
