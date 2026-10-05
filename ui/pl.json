@@ -233,7 +233,6 @@
   "chatWindowIntro.gotIt": "Rozumiem",
   "chatWindowIntro.title": "Urządź czat po swojemu",
   "chatWindowIntro.videoLabel": "Jak rozmieścić przyciski i okna czatu",
-  "connections.decision.errors.needs_https": "Twój klucz TypeSafe jest wysyłany na ten adres, więc adres musi zaczynać się od https://, chyba że jest lokalny, np. localhost lub 192.168.x.x.",
   "connections.decision.typesafeAddressHelp": "Aby użyć innego serwera udostępniającego API TypeSafe, zastąp wartość pola Base URL poniżej adresem tego serwera, bez /v1/systemone.",
   "connections.mediaSources.atlas.apiKeyLink": "Pobierz klucz API Atlas Cloud",
   "connections.mediaSources.atlas.imageDescription": "Generuj obrazy przy użyciu modeli hostowanych w Atlas Cloud.",

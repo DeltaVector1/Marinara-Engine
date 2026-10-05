@@ -104,7 +104,6 @@
   "chat.settings.connectionModel.label": "Modelo",
   "chat.settings.connectionModel.none": "Sin modelo configurado",
   "chat.slash.illustrate.rangeUsage": "Usa /illustrate range=N o range=N-M, seguido de un prompt opcional. Usa números de mensaje en orden ascendente, con un máximo de 200 mensajes.",
-  "connections.decision.errors.needs_https": "Tu clave de TypeSafe se envía a esta dirección, así que debe comenzar con https://, salvo que sea una dirección local como localhost o 192.168.x.x.",
   "connections.decision.typesafeAddressHelp": "Para usar otro servidor que ejecute la API de TypeSafe, reemplaza la Base URL de abajo por su dirección, sin /v1/systemone.",
   "connections.mediaSources.atlas.apiKeyLink": "Obtén tu clave API de Atlas Cloud",
   "connections.mediaSources.atlas.imageDescription": "Genera imágenes con los modelos alojados en Atlas Cloud.",
