@@ -45,7 +45,7 @@ Ouvre le panneau **Agents**, choisis **Storyboard**, puis ouvre sa configuration
 | **Clip seconds** | 5, de 1 à 15 | Règle la durée demandée pour chaque clip |
 | **Viewer display** | Floating viewer | Définit la visionneuse par défaut du Game Mode ; en Roleplay, les storyboards s'affichent toujours au fil du chat |
 | **Default Roleplay episode interval** | 1, de 1 à 100 | Détermine la quantité de nouveau contenu Roleplay accumulée entre deux épisodes automatiques |
-| **Attach Card Appearance** | On | Ajoute aux prompts d'image les détails d'apparence des personnages reconnus |
+| **Attach Card Appearance** | On | Ajoute aux prompts d'image les détails d'apparence des personnages reconnus. Si une fiche ou un persona a **Image Appearance Override** (apparence propre aux images) activé et que son champ contient du texte, ce texte remplace **Appearance**. Si l'option est désactivée ou le champ vide, **Appearance** reste utilisé ; le texte reçu par le narrateur ne change pas |
 | **Send Avatar References** | On | Envoie les avatars des personnages et des personas reconnus quand le fournisseur d'images accepte les références |
 | **Use the final image template** | On | Met en forme une image planifiée avant son envoi au fournisseur d'images |
 | **Use NovelAI character prompts** | On | Utilise les prompts natifs par personnage sur les connexions officielles NovelAI V4/V4.5 prises en charge |

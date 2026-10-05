@@ -45,7 +45,7 @@
 | **Clip seconds** | 5(范围 1 到 15) | 设定每个片段请求的时长 |
 | **Viewer display** | Floating viewer | 设定 Game Mode 查看器的默认值；Roleplay 的分镜一律内嵌显示 |
 | **Default Roleplay episode interval** | 1(范围 1 到 100) | 设定两段自动剧集之间要积累多少新的 Roleplay 内容 |
-| **Attach Card Appearance** | On | 把匹配到的角色外观细节加进图像提示词 |
+| **Attach Card Appearance** | On | 把匹配到的角色外观细节加进图像提示词；如果角色卡或用户角色打开了 **Image Appearance Override**(图像专用外貌)，并填写了内容，就用这段文字代替 **Appearance** 字段 |
 | **Send Avatar References** | On | 图像服务商支持参考图时，发送匹配到的角色头像和用户角色头像 |
 | **Use the final image template** | On | 规划好的帧发给图像服务商之前先格式化一次 |
 | **Use NovelAI character prompts** | On | 在受支持的 NovelAI V4/V4.5 官方连接上按角色使用原生提示词 |

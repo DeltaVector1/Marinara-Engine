@@ -1,6 +1,6 @@
 {
   "language": "es",
-  "sourceCommit": "c7742851f390c412d1d35d5994506c7df1eceaca",
+  "sourceCommit": "36b9b76e29d94be388ad908a72808fb2fe1b2d13",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -109,8 +109,8 @@
     },
     {
       "path": "characters/creating-and-editing-characters.md",
-      "sha256": "d8e176e1661ef71c40ebce7713ffe3bad81a54e240eb79f4fde72e6a5e1d7665",
-      "bytes": 15183
+      "sha256": "1dd96fbc3d3b3d100cca42de0e3ec0c8375831b81c5481e88ff4c5edfbb333e4",
+      "bytes": 15792
     },
     {
       "path": "characters/galleries.md",
@@ -129,8 +129,8 @@
     },
     {
       "path": "characters/personas.md",
-      "sha256": "92bc434ce70383ca04a15418be48efe8d91ec0d447f537a7a8b6a66e598fbf34",
-      "bytes": 16749
+      "sha256": "3d22db45a3d8c0db755973c02b3dc95633647dc40396f536eb57b8cddfe7e47a",
+      "bytes": 17287
     },
     {
       "path": "characters/sprites.md",
@@ -269,8 +269,8 @@
     },
     {
       "path": "conversation/selfies.md",
-      "sha256": "a8dde5cb3275480d5e80ad4cda3c5d89989d3bb1f0d8b2079780dc6ab3c9ab65",
-      "bytes": 7967
+      "sha256": "6c2c17e0c003cd1e49adafa0c7f5e4ba9778151319b0bc5bd00890ab02c52cb2",
+      "bytes": 8495
     },
     {
       "path": "conversation/table-games.md",
@@ -464,8 +464,8 @@
     },
     {
       "path": "game/storyboard.md",
-      "sha256": "bfeb27423326e22def72157c83ef8267f5012d5f1ff3309f19f80600690cccb6",
-      "bytes": 28364
+      "sha256": "465e8d7ec3b49b1011e5468a8590d8358bde93ca92a8e7a1232108a6447ecb22",
+      "bytes": 28647
     },
     {
       "path": "home/achievements.md",
@@ -574,8 +574,8 @@
     },
     {
       "path": "media/illustrator-agent.md",
-      "sha256": "c914c82301e528c9ca6510796b83b018e4a323552ef18f38efe9e17507ebbcb1",
-      "bytes": 11964
+      "sha256": "afa2041db6cd4f73dc4199f3cdc5a32254c64807bfeee656b351d706cb4e601a",
+      "bytes": 12704
     },
     {
       "path": "media/image-providers.md",

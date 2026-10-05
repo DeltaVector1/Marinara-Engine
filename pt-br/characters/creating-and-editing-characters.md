@@ -67,6 +67,7 @@ A aba **Card** é o espaço principal de escrita. Ela reúne os campos que a IA 
 - **Personality**. Um resumo curto do temperamento, dos hábitos de fala e dos padrões de comportamento.
 - **Backstory**. História, origem e relações importantes.
 - **Appearance**. Descrição física, roupas e detalhes visuais. Marinara também usa este texto como base para o prompt de avatar gerado por IA.
+- **Image Appearance Override** (aparência alternativa para imagens). Um botão liga/desliga opcional abaixo de **Appearance**, desativado por padrão. Ative para mostrar um segundo campo onde você pode escrever uma descrição do personagem voltada à geração de imagens. Quando a opção está ativada e o campo contém texto, os prompts de imagem usam esse texto no lugar de **Appearance**; ele também serve de base para o prompt de avatar gerado por IA. O narrador sempre recebe o texto completo de **Appearance**. Se a opção estiver desativada ou o campo vazio, **Appearance** continua sendo usado como antes.
 - **Scenario**. O cenário padrão dos chats novos com este personagem.
 
 A seção **Dialogue & Greetings** define como o chat começa e como o personagem soa:

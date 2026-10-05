@@ -67,6 +67,7 @@ La pestaña **Card** es el espacio de escritura principal. Contiene los campos q
 - **Personality**. Un breve resumen del temperamento, los hábitos de habla y los patrones de comportamiento.
 - **Backstory**. Historia, origen y relaciones importantes.
 - **Appearance**. Descripción física, ropa y detalles visuales. Marinara también usa este texto para generar un prompt de avatar de IA.
+- **Image Appearance Override** (Apariencia alternativa para imágenes). Un interruptor opcional debajo de **Appearance**, desactivado de forma predeterminada. Actívalo para mostrar un segundo cuadro donde puedas escribir una descripción del personaje pensada para generar imágenes. Si está activado y el cuadro contiene texto, los prompts de imagen usan ese texto en lugar de **Appearance**; también sirve de base para el prompt de avatar de IA. El narrador siempre recibe el texto completo de **Appearance**. Si lo dejas desactivado o el cuadro está vacío, se sigue usando **Appearance** como antes.
 - **Scenario**. El entorno predeterminado para los nuevos chats con este personaje.
 
 La sección **Dialogue & Greetings** (Diálogo y saludos iniciales) define cómo se abre un chat y cómo suena el personaje:

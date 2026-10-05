@@ -67,6 +67,7 @@ Der Tab **Card** ist der eigentliche Schreibarbeitsbereich. Hier stehen die Feld
 - **Personality**. Eine kurze Zusammenfassung von Temperament, Sprechgewohnheiten und Verhaltensmustern.
 - **Backstory**. Vorgeschichte, Herkunft und wichtige Beziehungen.
 - **Appearance**. Körperliche Beschreibung, Kleidung und optische Details. Marinara nutzt diesen Text außerdem als Grundlage für einen KI-Avatar-Prompt.
+- **Image Appearance Override** (eigene Aussehensbeschreibung für Bilder). Ein optionaler Schalter unter **Appearance**, standardmäßig aus. Schalte ihn ein, um ein zweites Feld für eine Beschreibung zu öffnen, die für das Bildmodell gedacht ist. Ist der Schalter an und das Feld ausgefüllt, verwenden Bild-Prompts diesen Text statt **Appearance**. Er wird auch als Vorschlag für den KI-Avatar-Prompt übernommen. Der Erzähler bekommt immer den vollständigen Text aus **Appearance**. Lass den Schalter aus, wenn du das bisherige Verhalten beibehalten möchtest.
 - **Scenario**. Der Standardrahmen für neue Chats mit diesem Charakter.
 
 Der Abschnitt **Dialogue & Greetings** legt fest, wie ein Chat beginnt und wie der Charakter klingt:

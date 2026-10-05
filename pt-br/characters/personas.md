@@ -82,6 +82,7 @@ Na aba **Card** você escreve os campos principais da persona. Cada campo é uma
 - **Personality**: o seu temperamento, o seu comportamento, os seus jeitos de falar e os seus padrões emocionais.
 - **Backstory**: a sua história, a sua origem, as suas relações e os acontecimentos que marcaram você.
 - **Appearance**: descrição física, roupas e detalhes visuais que o modelo deve lembrar.
+- **Image Appearance Override** (aparência alternativa para imagens): um botão liga/desliga opcional abaixo de **Appearance**, desativado por padrão. Ative para mostrar um segundo campo onde você pode escrever uma descrição da persona voltada à geração de imagens. Quando a opção está ativada e o campo contém texto, os prompts de imagem usam esse texto no lugar de **Appearance**. Se a opção estiver desativada ou o campo vazio, eles continuam usando **Appearance**. O narrador sempre recebe o texto completo de **Appearance**.
 - **Scenario**: a situação ou o contexto padrão para os roleplays. Use esse campo para dizer onde a persona começa.
 
 Essas caixas de texto aceitam macros. Marinara formata automaticamente as aspas que você digita conforme o estilo de aspas do aplicativo.

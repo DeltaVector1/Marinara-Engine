@@ -269,8 +269,8 @@
     },
     {
       "path": "conversation/selfies.md",
-      "sha256": "76feeb34673126e82e8793d434f10eb5e03b5e45ef7158f04b44bd2fd070b2b1",
-      "bytes": 7588
+      "sha256": "bdb388ffcea5b985601ce22b61362be1b6d5ebd306521037b74489de1a50a9fe",
+      "bytes": 7618
     },
     {
       "path": "conversation/table-games.md",
@@ -464,8 +464,8 @@
     },
     {
       "path": "game/storyboard.md",
-      "sha256": "f46f68f8165f6b626bc16259299c7966d6df3e82856cd34006a426e3af715bb9",
-      "bytes": 26346
+      "sha256": "17d3cf77824ec5d658c79d0aee478f3fcce000436fac652e6aeb67d1f6fd9fcf",
+      "bytes": 26367
     },
     {
       "path": "home/achievements.md",

@@ -82,6 +82,7 @@ Im Tab **Card** schreibst du die zentralen Persona-Felder. Jedes Feld ist ein gr
 - **Personality**: Temperament, Verhalten, Sprechgewohnheiten und emotionale Muster.
 - **Backstory**: Vorgeschichte, Herkunft, Beziehungen und prägende Ereignisse.
 - **Appearance**: äußere Beschreibung, Kleidung und visuelle Details, die sich das Modell merken soll.
+- **Image Appearance Override** (eigene Aussehensbeschreibung für Bilder): ein optionaler Schalter unter **Appearance**, standardmäßig aus. Schalte ihn ein, um ein zweites Feld für eine Beschreibung deiner Persona zu öffnen, die für das Bildmodell gedacht ist. Ist der Schalter an und das Feld ausgefüllt, verwenden Bild-Prompts diesen Text statt **Appearance**. Der Erzähler bekommt immer den vollständigen Text aus **Appearance**.
 - **Scenario**: die Standardsituation oder der Rahmen für Roleplay. Damit legst du fest, wo die Persona startet.
 
 Diese Textfelder unterstützen Makros. Anführungszeichen, die du tippst, passt die App automatisch an den eingestellten Zitatstil an.

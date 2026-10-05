@@ -55,6 +55,8 @@
 
 **Attach Card Appearance**(附带角色卡外貌) 是一个开关，默认关闭。打开后，Marinara 会把角色卡里的外貌描述加进自拍描述中，让模型更清楚角色长什么样。
 
+如果角色卡或用户角色还打开了 **Image Appearance Override**(图像专用外貌)，并填写了内容，Marinara 就会发送这段文字，而不是 **Appearance** 的内容。如果完整的 **Appearance** 描述更适合写旁白的模型，而不适合图像模型，可以在角色或用户角色编辑器的 **Appearance** 下方打开这个开关。
+
 ### Resolution
 
 **Resolution** 设定自拍图片的尺寸。**Resolution** 按钮要先选好 **Selfie Connection** 才会出现，直接点其中一个即可。默认是 **896x1152**，一种偏高的竖构图，适合大多数自拍。

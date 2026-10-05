@@ -55,6 +55,8 @@ Para saber más sobre estilos, consulta [Perfiles de estilo de imagen](../media/
 
 **Attach Card Appearance** (Adjuntar apariencia de la tarjeta) es un interruptor que está desactivado de forma predeterminada. Cuando está activado, Marinara agrega el texto de apariencia de la tarjeta de personaje a la descripción del selfie. Esto le da al modelo más detalle sobre cómo se ve el personaje.
 
+Si la tarjeta o la persona también tiene **Image Appearance Override** (Apariencia alternativa para imágenes) activado y su cuadro contiene texto, Marinara envía ese texto en lugar de **Appearance**. Actívalo debajo de **Appearance** en el editor de personajes o de personas cuando la descripción completa esté pensada para el narrador y no para un modelo de imágenes. El narrador sigue recibiendo la descripción completa. Si desactivas la opción o dejas el cuadro vacío, las imágenes vuelven a usar **Appearance**.
+
 ### Resolution
 
 **Resolution** define el tamaño de la imagen del selfie. Los botones de **Resolution** solo aparecen después de que eliges una **Selfie Connection**. Elige uno de los botones rápidos. El valor predeterminado es **896x1152**, una forma vertical alta que se adapta bien a la mayoría de los selfies.

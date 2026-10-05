@@ -45,7 +45,7 @@ Chat SettingsにStoryboardが出てこないときは、パッケージがイン
 | **Clip seconds** | 5(範囲は1から15) | クリップ1本ごとに要求する長さを決めます |
 | **Viewer display** | Floating viewer | Game Modeのビューアーのデフォルトを決めます。Roleplayの絵コンテは常にチャット内にそのまま表示します |
 | **Default Roleplay episode interval** | 1(範囲は1から100) | 自動エピソードの間にRoleplayの新しい本文をどれだけためるかを決めます |
-| **Attach Card Appearance** | On | 該当するキャラクターの外見の情報を画像プロンプトに加えます |
+| **Attach Card Appearance** | On | 該当するキャラクターの外見の情報を画像プロンプトに加えます。カードやペルソナの**Image Appearance Override**(画像用の外見指定)がオンで、欄に内容が入力されている場合は、**Appearance**の代わりにそちらの文章を使います |
 | **Send Avatar References** | On | 画像プロバイダーが参照画像に対応している場合に、該当するキャラクターとペルソナのアバターを送ります |
 | **Use the final image template** | On | 計画したフレームを、画像プロバイダーへ送る前に整形します |
 | **Use NovelAI character prompts** | On | 対応する公式NovelAI V4/V4.5の接続で、キャラクターごとの本来のプロンプト方式を使います |

@@ -55,6 +55,8 @@
 
 **Attach Card Appearance**(카드 외형 첨부)는 기본으로 꺼져 있는 토글입니다. 켜면 Marinara가 캐릭터 카드의 외모 설명을 셀카 설명문에 덧붙입니다. 캐릭터가 어떻게 생겼는지를 모델에 더 자세히 알려 줄 수 있습니다.
 
+카드나 페르소나에서 **Image Appearance Override**(이미지용 외형 지정)도 켜고 내용을 입력했다면, Marinara는 **Appearance** 대신 그 글을 보냅니다. **Appearance**의 전체 설명이 이미지 모델보다 이야기를 서술하는 모델에 맞춰 쓰여 있을 때 유용합니다. 캐릭터 또는 페르소나 편집기의 **Appearance** 아래에서 켜세요.
+
 ### Resolution
 
 **Resolution**은 셀카 이미지의 크기를 정합니다. **Resolution** 버튼은 **Selfie Connection**을 고른 뒤에만 나타납니다. 준비된 버튼 중 하나를 고르세요. 기본값은 **896x1152**이며, 세로로 긴 형태라 대부분의 셀카에 잘 맞습니다.

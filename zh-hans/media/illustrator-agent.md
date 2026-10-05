@@ -65,6 +65,8 @@ Illustrator 卡片上有两个开关，能让角色形象保持一致。两个�
 
 **Attach Card Appearance**(附带角色卡外貌) 会把每个出场角色保存好的外貌描述加进图像提示词。它的帮助文字是：“Append matched character appearance lines to image prompts, using only visible/generated names.”想让画面贴合角色卡上写的样子，就打开它。
 
+打开 **Attach Card Appearance** 后，如果角色卡或用户角色还打开了 **Image Appearance Override**(图像专用外貌)，并填写了内容，发送的就是这段文字，而不是 **Appearance** 的内容。当 **Appearance** 是为旁白写的，图像模型却不容易理解时，可以把完整描述留在 **Appearance**，再在图像专用输入框里填写简短的标签式描述。这个开关关闭或输入框留空时，图像提示词仍会使用 **Appearance**。无论哪种情况，负责写旁白的模型始终会收到 **Appearance** 的完整内容。这个开关就在角色和用户角色编辑器的 **Appearance** 下方。
+
 **Send Avatar References**(发送头像参考图) 会把角色和用户角色的头像，或者他们的立绘，作为参考图发给图像服务商。它的帮助文字是：“Send matching character and persona avatars or sprites as reference images when the provider supports them.”这样图像模型更容易照着画出同一张脸或同一身衣服。并不是所有服务商都接受参考图，实际效果取决于选的那家服务商。
 
 ## NovelAI 中的多角色场景
