@@ -7,6 +7,7 @@ import {
   type ReactNode,
   lazy,
   memo,
+  Fragment,
   Suspense,
   useCallback,
   useEffect,
@@ -2984,7 +2985,6 @@ export function HomeProfessorMariChat({
   const [workspaceTimeline, setWorkspaceTimeline] = useState<WorkspaceTimelineItem[]>([]);
   const [workspaceReviewActionId, setWorkspaceReviewActionId] = useState<string | null>(null);
   const [workspaceDestination, setWorkspaceDestination] = useState<ProfessorMariWorkspaceDestination>("chat");
-  const [panelMenuOpen, setPanelMenuOpen] = useState(false);
   const [chatRowMenuId, setChatRowMenuId] = useState<string | null>(null);
   const chatRowMenuRef = useRef<HTMLDivElement>(null);
   const chatRowPopoverRef = useRef<HTMLDivElement>(null);
@@ -3061,8 +3061,6 @@ export function HomeProfessorMariChat({
   const suppressNextScrollEventRef = useRef(false);
   const connectionButtonRef = useRef<HTMLButtonElement>(null);
   const connectionMenuRef = useRef<HTMLDivElement>(null);
-  const headerMenuRef = useRef<HTMLDivElement>(null);
-  const headerPopoverRef = useRef<HTMLDivElement>(null);
   const skillFileInputRef = useRef<HTMLInputElement>(null);
   const memoryFileInputRef = useRef<HTMLInputElement>(null);
   const lastSyncedMemoryIdRef = useRef<string | null>(null);
@@ -4050,19 +4048,6 @@ export function HomeProfessorMariChat({
   }, [connectionMenuOpen]);
 
   useEffect(() => {
-    if (!panelMenuOpen) return;
-    const handlePointerDown = (event: MouseEvent) => {
-      if (event.target instanceof Node && !headerMenuRef.current?.contains(event.target)) setPanelMenuOpen(false);
-    };
-    document.addEventListener("mousedown", handlePointerDown);
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, [panelMenuOpen]);
-
-  useEffect(() => {
-    if (!omnibarHeaderSlot) setPanelMenuOpen(false);
-  }, [omnibarHeaderSlot]);
-
-  useEffect(() => {
     if (!permissionsMenuOpen) return;
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -4073,7 +4058,7 @@ export function HomeProfessorMariChat({
     return () => document.removeEventListener("mousedown", handlePointerDown);
   }, [permissionsMenuOpen]);
 
-  // The composer's mode and connection menus and the header menu sit inside the omnibar dialog:
+  // The composer's mode and connection menus sit inside the omnibar dialog:
   // Escape closes the menu first, and only a second Escape reaches the dialog.
   const onPermissionsMenuKeyDown = useInDialogFocusScope(
     permissionsMenuRef,
@@ -4085,8 +4070,7 @@ export function HomeProfessorMariChat({
     () => setConnectionMenuOpen(false),
     connectionMenuOpen,
   );
-  const onHeaderMenuKeyDown = useInDialogFocusScope(headerPopoverRef, () => setPanelMenuOpen(false), panelMenuOpen);
-  // M6: a Chats row's Rename/Delete live in its own ⋮ menu, which works like the header menu.
+  // M6: a Chats row's Rename/Delete live in its own ⋮ menu.
   const onChatRowMenuKeyDown = useInDialogFocusScope(
     chatRowPopoverRef,
     () => setChatRowMenuId(null),
@@ -5662,7 +5646,6 @@ export function HomeProfessorMariChat({
 
   const selectHeaderDestination = (destination: Exclude<ProfessorMariWorkspaceDestination, "chat">) => {
     setWorkspaceDestination(workspaceDestination === destination ? "chat" : destination);
-    setPanelMenuOpen(false);
   };
 
   const ActivePermissionsModeIcon = MARI_PERMISSIONS_MODE_ICONS[permissionsMode];
@@ -5743,73 +5726,43 @@ export function HomeProfessorMariChat({
               aria-label={localizeUi("ui.chat.homeprofessormarichat.workspaceDestinations")}
             >
               {headerDestinations.map(({ id, Icon, label, shortLabel, count }) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-pressed={workspaceDestination === id}
-                  onClick={() => selectHeaderDestination(id)}
-                  disabled={id === "chats" && isBusy}
-                  data-destination={id}
-                  data-active={workspaceDestination === id ? "true" : "false"}
-                  aria-label={label}
-                  title={label}
-                >
-                  <Icon size="0.8rem" aria-hidden="true" />
-                  <span className="mari-omnibar-header-destination-label-full" aria-hidden="true">
-                    {label}
-                  </span>
-                  <span className="mari-omnibar-header-destination-label-short" aria-hidden="true">
-                    {shortLabel ?? label}
-                  </span>
-                  {count > 0 ? <b>{count}</b> : null}
-                </button>
+                <Fragment key={id}>
+                  <button
+                    type="button"
+                    aria-pressed={workspaceDestination === id}
+                    onClick={() => selectHeaderDestination(id)}
+                    disabled={id === "chats" && isBusy}
+                    data-destination={id}
+                    data-active={workspaceDestination === id ? "true" : "false"}
+                    aria-label={label}
+                    title={label}
+                  >
+                    <Icon size="0.8rem" aria-hidden="true" />
+                    <span className="mari-omnibar-header-destination-label-full" aria-hidden="true">
+                      {label}
+                    </span>
+                    <span className="mari-omnibar-header-destination-label-short" aria-hidden="true">
+                      {shortLabel ?? label}
+                    </span>
+                    {count > 0 ? <b>{count}</b> : null}
+                  </button>
+                  {/* Q1: New chat sits right after Chats, one "Chats · +" group; every destination fits the
+                      bar at every width, so the header has no ⋮ menu. */}
+                  {id === "chats" ? (
+                    <button
+                      type="button"
+                      onClick={() => void runRestart()}
+                      disabled={isBusy}
+                      className="mari-omnibar-header-new-chat"
+                      aria-label={localizeUi("ui.chat.homeprofessormarichat.newChat")}
+                      title={t("home.professorMari.newChat")}
+                    >
+                      <Plus size="0.85rem" aria-hidden="true" />
+                    </button>
+                  ) : null}
+                </Fragment>
               ))}
             </nav>
-            <button
-              type="button"
-              onClick={() => void runRestart()}
-              disabled={isBusy}
-              className="mari-omnibar-header-menu__trigger"
-              aria-label={localizeUi("ui.chat.homeprofessormarichat.newChat")}
-              title={t("home.professorMari.newChat")}
-            >
-              <Plus size="0.85rem" aria-hidden="true" />
-            </button>
-            <div ref={headerMenuRef} className="mari-omnibar-header-menu">
-              <button
-                type="button"
-                onClick={() => setPanelMenuOpen((open) => !open)}
-                className="mari-omnibar-header-menu__trigger"
-                aria-expanded={panelMenuOpen}
-                aria-label={localizeUi("ui.chat.homeprofessormarichat.moreMariActions", "More Professor Mari actions")}
-              >
-                <EllipsisVertical size="0.9rem" aria-hidden="true" />
-              </button>
-              {panelMenuOpen ? (
-                <div
-                  ref={headerPopoverRef}
-                  className="mari-omnibar-header-menu__popover"
-                  onKeyDown={onHeaderMenuKeyDown}
-                >
-                  <div className="mari-omnibar-header-menu__destinations">
-                    {headerDestinations.map(({ id, Icon, label, count }) => (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => selectHeaderDestination(id)}
-                        disabled={id === "chats" && isBusy}
-                        aria-pressed={workspaceDestination === id}
-                        data-destination={id}
-                      >
-                        <Icon size="0.875rem" aria-hidden="true" />
-                        <span>{label}</span>
-                        {count > 0 ? <b>{count}</b> : null}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </div>
           </div>,
           omnibarHeaderSlot,
         )

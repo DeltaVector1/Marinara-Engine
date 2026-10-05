@@ -2043,7 +2043,7 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
 }
 
 /* Mari's header is two lines and has no portrait (she is in the transcript): row 1 is Back, her name with
-   her status, settings and Close; this row 2 holds the destinations, New chat and ⋮. */
+   her status, settings and Close; this row 2 holds the destinations with New chat right after Chats. */
 .mari-omnibar-header-row {
   position: relative;
   z-index: 50;
@@ -2108,8 +2108,7 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   display: none;
 }
 
-/* A phone shows icon + a short visible label stacked underneath; the full label stays for aria/title and
-   the ⋮ menu. The four share the free width and the count sits on the icon's corner, so none of them clips
+/* A phone shows icon + a short visible label stacked underneath; the full label stays for aria/title. The four share the free width and the count sits on the icon's corner, so none of them clips
    at 390 px (F8/D2, slice 41). */
 @media (max-width: 30rem) {
   .mari-omnibar-header-slot .mari-omnibar-header-destinations button {
@@ -2146,6 +2145,23 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
     line-height: 1;
     white-space: nowrap;
   }
+}
+
+/* Q1: New chat belongs to Chats, one "Chats · +" group; a hairline sets it off from the other destinations. */
+.mari-omnibar-header-slot .mari-omnibar-header-destinations button.mari-omnibar-header-new-chat {
+  flex: 0 0 2.25rem;
+  justify-content: center;
+  margin-inline-end: 0.5rem;
+  padding-inline: 0;
+}
+
+.mari-omnibar-header-new-chat::after {
+  content: "";
+  position: absolute;
+  inset-block: 0.6rem;
+  inset-inline-end: calc(-0.25rem - 0.5px);
+  width: 1px;
+  background: var(--border);
 }
 
 .mari-omnibar-header-controls {
@@ -2425,27 +2441,6 @@ html[data-mari-pull-landing] .mari-arrival-content * {
 
 .omnibar-horizontal-strip {
   scroll-padding-inline: 0.75rem;
-}
-
-.mari-omnibar-header-menu__popover [role="separator"] {
-  height: 1px;
-  margin-block: 0.2rem;
-  background: var(--border);
-}
-
-@media (min-width: 64rem) {
-  /* Every destination is in the bar at this width, so the overflow menu would open empty. */
-  .mari-omnibar-header-menu {
-    display: none;
-  }
-
-  .mari-omnibar-header-menu__destinations {
-    display: none;
-  }
-
-  .mari-omnibar-header-destinations button[data-destination="details"] {
-    margin-left: auto;
-  }
 }
 
 @media (min-width: 40rem) {

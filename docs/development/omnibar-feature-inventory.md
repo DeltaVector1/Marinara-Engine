@@ -46,7 +46,7 @@ Rules that must survive:
 - Escape collapses an expansion if one is open; otherwise it leaves a takeover;
   otherwise it closes. One level, so Escape and the back arrow always agree.
 - A view or menu inside the dialog (the settings sheet, Mari's mode,
-  connection and paperclip menus, her header ⋮ menu) takes focus when it opens, keeps Tab inside, and handles
+  connection and paperclip menus, a Chats row's ⋮ menu) takes focus when it opens, keeps Tab inside, and handles
   Escape itself (`useInDialogFocusScope`); the dialog's own Escape needs a
   second press.
 - Escape from a takeover never cancels a running answer.
@@ -223,13 +223,14 @@ Rules that must survive:
     "Working on it..." with a soft shimmer while she works, "Needs your
     answer" while a review waits), settings and Close; the chat portals the
     status text into the row (`omnibarStatusSlot`). Row 2
-    (`.mari-omnibar-header-row`): the tabs (Chats, Skills, Memories, What Mari
-    sees with its count), New chat and, below 64rem, the ⋮ menu. No mode
+    (`.mari-omnibar-header-row`): Chats with New chat (+) right after it as
+    one group behind a hairline, then Skills, Memories and What Mari sees
+    with its count. Every tab fits the bar at every width, so there is no ⋮
+    menu that would only repeat them (Q1, slice 56). No mode
     control. Below 30rem the tabs show icon + count plus a short visible label
     under the icon (`context`'s short label reuses the "Mari sees" composer
     chip copy), not only screen-reader text, so the icons are identifiable
-    without opening the ⋮ menu (F8/D2, slice 41); the full label stays for
-    `aria-label`/`title` and in the ⋮ menu.
+    (F8/D2, slice 41); the full label stays for `aria-label`/`title`.
   - What Mari sees (M7; destination id `context`): the handoff facets ride
     above the textarea behind a "Mari sees" label as `MariContextFacetChips`
     with `onRemove`, one X per facet (`withoutProfessorMariContextFacet`
@@ -251,7 +252,7 @@ Rules that must survive:
     `.mari-edit` group rows. Opening a panel focuses its first visible control;
     closing it returns focus to the tab that opened it, so Escape still steps
     back one level at a time (open row, then panel, then Mari). A Chats row's
-    Rename and Delete sit in its ⋮ menu (header-menu popover, Escape closes
+    Rename and Delete sit in its ⋮ menu (popover, Escape closes
     only the menu); Select keeps multi-select with Delete selected.
   - The composer puts the textarea on its own row and a toolbar under it:
     attach, the connection as a labelled `.mari-chrome-control--compact` menu

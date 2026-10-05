@@ -102,19 +102,21 @@ assert.ok(!("home.professorMari.restart" in enJson));
 assert.ok(mariChatFlat.includes('setWorkspaceDestination("chat"); void runRestart();'));
 
 // ── #5741: Skills and Memories never crowd the header ───────────────────────
-// The omnibar workspace routes them through header destinations, which
-// collapse into the overflow menu at narrow widths, each with its own badge.
+// The omnibar workspace routes them through header destinations, each with its own badge.
 assert.ok(
   mariChatFlat.includes(
-    'id: "skills", Icon: Brain, label: localizeUi("ui.chat.homeprofessormarichat.skills"), count: activeSkillCount,',
+    'id: "skills", Icon: Brain, label: localizeUi("ui.chat.homeprofessormarichat.skills"), shortLabel: undefined, count: activeSkillCount,',
   ),
 );
 assert.ok(
   mariChatFlat.includes(
-    'id: "memories", Icon: BookOpen, label: localizeUi("ui.chat.homeprofessormarichat.memories"), count: activeMemoryCount,',
+    'id: "memories", Icon: BookOpen, label: localizeUi("ui.chat.homeprofessormarichat.memories"), shortLabel: undefined, count: activeMemoryCount,',
   ),
 );
-assert.match(mariChat, /mari-omnibar-header-menu__destinations/u);
+// Q1 (slice 56): every destination fits the bar at every width, so the header has no ⋮ menu that would
+// only repeat them, and New chat sits right after Chats as one group.
+assert.doesNotMatch(mariChat, /mari-omnibar-header-menu__destinations|moreMariActions/u);
+assert.ok(mariChatFlat.includes('{id === "chats" ? ( <button type="button" onClick={() => void runRestart()}'));
 
 // ── #5742: the chip row is reachable by mouse and shows its overflow ────────
 const chipsComponent = readSource("packages/client/src/components/chat/MariSuggestionChips.tsx");
