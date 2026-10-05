@@ -92,7 +92,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 53  | No small Mari in the bottom-right corner at rest (P4)           | worker           | Done                 | 1187e7cab |
 | 54  | Redesign the Mari on the Home page widget (P5)                  | designer         | Done                 | 9af31a821 |
 | 55  | Review of 52-54 (P6)                                            | reviewer, worker | Done                 | 6e7d8f590 |
-| 56  | Professor Mari header: no duplicate ⋮ items, Chats next to + (Q1) | designer         | Pending              |           |
+| 56  | Professor Mari header: no duplicate ⋮ items, Chats next to + (Q1) | designer         | Done                 | 907fa3bd5 |
 | 57  | Omnibar settings redesign, Mari settings move here, packs grid (Q2) | designer      | Pending              |           |
 | 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Pending              |           |
 | 59  | Review of 56-58 (Q4)                                            | reviewer         | Pending              |           |
