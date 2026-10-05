@@ -6,7 +6,7 @@
 
 Roleplay(角色扮演) 是 Marinara Engine 的聊天模式之一，另外两种是 Conversation(对话模式) 和 Game。Roleplay 围绕一个故事展开，给出一块沉浸式的场景画面。
 
-角色扮演场景可以有背景图、角色立绘和显示世界状态的 HUD。立绘是随情绪变化的角色图片。HUD 在手机上是一排位于聊天顶部的小组件，在电脑上则是 Tracker Panel 或 Trackers 窗口。
+角色扮演场景可以有背景图、角色立绘和显示世界状态的 HUD。立绘是随情绪变化的角色图片。HUD 在手机上是可以移动的 **World State** 和 **Player & Tracker** 按钮，在电脑上则是 Tracker Panel 或 Trackers 窗口。
 
 Roleplay 还会用到一类叫智能体的帮手。智能体是跟着 AI 回复一起跑的小型自动任务，负责追踪世界状态、挑立绘、选背景等等。
 
@@ -34,7 +34,7 @@ Roleplay 舞台指消息背后和四周的那片场景区域，主要由三部�
 
 **Sprites**(立绘) 是摆在舞台上的角色图片，数量没有上限，聊天里每个开了立绘的角色都能出现。立绘需要角色卡上传过立绘库。没有立绘库，这个立绘位就什么都不显示。给角色添加立绘的方法见[角色立绘](../characters/sprites.md)。
 
-**HUD** 显示追踪器。手机上是一排位于聊天顶部的小组件；电脑上显示在 **Tracker Panel** 中，或者在 Settings 关闭 Tracker Panel 后改用 **Trackers** 窗口。每个追踪器属于一个追踪智能体，只有开启对应智能体才会出现。它们能显示日期、时间、天气、位置、在场角色、物品、任务和属性，数值也可以编辑。每种组件和锁定方式见 [Roleplay HUD 与追踪器](hud-and-trackers.md)。
+**HUD** 显示追踪器。手机上通过可以移动的 **World State** 和 **Player & Tracker** 按钮打开追踪器；电脑上显示在 **Tracker Panel** 中，或者在 Settings 关闭 Tracker Panel 后改用 **Trackers** 窗口。每个追踪器属于一个追踪智能体，只有开启对应智能体才会出现。它们能显示日期、时间、天气、位置、在场角色、物品、任务和属性，数值也可以编辑。每种组件和锁定方式见 [Roleplay HUD 与追踪器](hud-and-trackers.md)。
 
 ### 立绘显示控制
 
@@ -131,7 +131,7 @@ Narrative Director 在输入框上方有一个 **Push Story** 按钮，按下后
 
 ## Echo Chamber
 
-**Echo Chamber** 是一个可选智能体，会给场景加上一批实时观众来做出反应。它的效果像直播弹幕，按定时器不断刷出新反应。开关在 **Chat Settings** 的 **Agents** 里，位于 **Echo Chamber** 卡片上。这个面板浮在场景上方，也可以收起成一个小胶囊。
+**Echo Chamber** 是一个可选智能体，会给场景加上一批实时观众来做出反应。它的效果像直播弹幕，按定时器不断刷出新反应。开关在 **Chat Settings** 的 **Agents** 里，位于 **Echo Chamber** 卡片上。电脑上，拖动标题栏可以移动窗口，拖动边缘可以调整大小，固定窗口则能让它保持打开。**X** 会把它收起为可以移动的按钮。手机上，Echo 仍以小面板显示在消息上方，**X** 同样会把它收起为可以移动的按钮。Echo 会使用 **Settings → Appearance → App** 中的 **Chat widget style**，每个聊天都会记住自己的布局。
 
 ## CYOA 选项
 

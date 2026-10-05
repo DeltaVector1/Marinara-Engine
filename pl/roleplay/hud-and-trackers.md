@@ -1,10 +1,10 @@
 # Pasek HUD i trackery w trybie Roleplay
 
-Ten przewodnik wyjaśnia, czym jest pasek HUD w trybie Roleplay i jakie małe widgety trackerów pokazuje. Zobaczysz, jak zmieniać i blokować ich wartości oraz jak działa większy panel **Tracker Panel**. Dotyczy trybu Roleplay w aplikacji Marinara Engine.
+Ten przewodnik opisuje trackery w trybie Roleplay: ruchome przyciski i panele na telefonie oraz okno **Trackers** i Tracker Panel na komputerze. Dowiesz się, jak zmieniać i blokować ich wartości. Dotyczy trybu Roleplay w Marinara Engine.
 
 ## Czym jest pasek HUD
 
-Na telefonie HUD (heads-up display) jest rzędem małych widgetów trackerów na górze czatu. Każdy widget pokazuje fragment bieżącego stanu opowieści: godzinę, statystyki albo to, kto jest obecny. Marinara sama dba o aktualność tych wartości w miarę rozwoju fabuły.
+Na telefonie HUD (heads-up display) ma przyciski **World State** i **Player & Tracker**. Możesz przesuwać je w obrębie czatu. Dotknij przycisku, żeby zobaczyć aktualne szczegóły opowieści, takie jak godzina, statystyki czy obecne postacie. Marinara dba o aktualność tych wartości w miarę rozwoju fabuły.
 
 Na komputerze trackery nie znajdują się w rzędzie HUD. Są w **Tracker Panel**, gdy jest widoczny, a w przeciwnym razie w opisanym poniżej oknie **Trackers**.
 
@@ -60,11 +60,11 @@ Tracker może też mieć własne okno: kliknij przycisk otwierania w osobnym okn
 
 Na dole **Agent activity** pokazuje, co zrobili agenci czatu. Możesz tu ponownie uruchomić trackery, ponowić działania agentów po błędzie, zatrzymać działających agentów i użyć **Clear Trackers**. Tracker Panel ma tę samą sekcję na dole.
 
-## Zmiana wartości w panelu podręcznym
+## Zmiana wartości trackerów
 
-Na telefonie dotknij dowolny widget, żeby otworzyć jego panel podręczny. Na komputerze te same edytory są w rozwijanych sekcjach okna Trackers. Panel podręczny to mały pływający panel. Każde pole w nim można zmienić, więc wartość źle ustawioną przez AI da się poprawić. Zmiany zapisują się od razu.
+Na telefonie przeciągnij przyciski **World State** i **Player & Tracker** w wybrane miejsca w czacie. Dotknij przycisku, żeby otworzyć jego panel, a **X**, żeby go zamknąć. Przyciski i panele korzystają z ustawienia **Chat widget style** w **Settings → Appearance → App**. Czat zapamiętuje położenie każdego przycisku. Na komputerze te same edytory są w rozwijanych sekcjach okna Trackers. Każde pole można zmienić, więc wartość źle ustawioną przez AI da się poprawić. Zmiany zapisują się od razu.
 
-Oto, co da się zmienić w poszczególnych panelach podręcznych:
+Oto, co da się zmienić w poszczególnych trackerach:
 
 - **World State**: pola **Location**, **Date**, **Time**, **Weather**, **Temperature** oraz wiersze własnych pól świata.
 - **Persona Stats**: linia **Status** oraz nazwane paski statystyk z wartością bieżącą i maksymalną. Paski da się dodawać i usuwać.
@@ -82,18 +82,18 @@ Zablokowanego pola kolejne automatyczne uruchomienie trackera już nie rusza. Za
 
 Blokowanie pola:
 
-1. Otwórz panel podręczny widgetu.
-2. Kliknij przełącznik kłódki przy górnej krawędzi panelu podręcznego. Jego podpowiedź (tekst po najechaniu kursorem) brzmi **Enter lock mode**.
+1. Otwórz tracker, który chcesz edytować.
+2. Kliknij przełącznik kłódki przy górnej krawędzi trackera. Jego podpowiedź (tekst po najechaniu kursorem) brzmi **Enter lock mode**.
 3. Obok każdej edytowalnej wartości pojawia się teraz mały przycisk kłódki.
 4. Kliknij przycisk kłódki przy wartości, którą chcesz przypiąć. Jego podpowiedź brzmi **Lock field**.
 
-Żeby odblokować, kliknij ten sam przycisk ponownie (podpowiedź **Unlock field**). Żeby wyjść z trybu blokady, kliknij ponownie górny przełącznik (podpowiedź **Exit lock mode**). Tryb blokady obejmuje cały pasek HUD, więc włączenie go w jednym panelu podręcznym odsłania przyciski kłódki wszędzie.
+Żeby odblokować, kliknij ten sam przycisk ponownie (podpowiedź **Unlock field**). Żeby wyjść z trybu blokady, kliknij ponownie górny przełącznik (podpowiedź **Exit lock mode**). Tryb blokady obejmuje cały pasek HUD, więc włączenie go w jednym trackerze odsłania przyciski kłódki wszędzie.
 
 ## Ponowne uruchomienie trackera
 
 Tracker da się zaktualizować od razu, bez czekania na kolejną wiadomość.
 
-W każdym panelu podręcznym jest mały przycisk odświeżania z okrągłą strzałką. Kliknij go, żeby uruchomić ponownie tylko ten jeden tracker dla ostatniej tury. Podpowiedzi wymieniają nazwę trackera, na przykład **Re-run world state tracker only** albo **Re-run quest tracker only**.
+W każdym trackerze jest mały przycisk odświeżania z okrągłą strzałką. Kliknij go, żeby uruchomić ponownie tylko ten jeden tracker dla ostatniej tury. Podpowiedzi wymieniają nazwę trackera, na przykład **Re-run world state tracker only** albo **Re-run quest tracker only**.
 
 W panelu **Chat Settings → Agents** przełącznik **Manual Trackers** przestawia wszystkie włączone trackery na sterowanie ręczne. Można też zostawić go wyłączonym i ustawić ręcznie tylko wybranych agentów w sekcji **Individual tracker schedule**. Gdy przynajmniej jeden tracker działa ręcznie, pojawia się przycisk odświeżania: na telefonie w rzędzie HUD, a na komputerze obok tytułu okna Trackers. Kliknij go, żeby uruchomić komplet ręcznych trackerów dla bieżącej tury. Przycisk odświeżania wewnątrz danego trackera nadal uruchamia go pojedynczo.
 
@@ -105,7 +105,7 @@ W panelu **Chat Settings → Agents** przełącznik **Manual Trackers** przestaw
 
 Żeby włączyć panel w czacie Roleplay, otwórz **Chat Settings** i kliknij przycisk **Tracker Panel** (kostka) na pasku tytułu, obok przypięcia i kłódki. Przycisk pozostaje wyróżniony, gdy panel jest włączony, a panel pojawia się obok czatu. Kliknij ponownie, żeby go wyłączyć i ukryć. Na komputerze trackery pojawią się wtedy w oknie Trackers.
 
-Na telefonie włączenie panelu dodaje do czatu przycisk Tracker Panel, który można dowolnie przeciągać. Dotknij go, żeby otworzyć panel; zamknięcie panelu przywraca przycisk. Przy wyłączonym panelu widgety trackerów pozostają w rzędzie HUD.
+Na telefonie włączenie panelu dodaje do czatu przycisk Tracker Panel, który można dowolnie przeciągać. Dotknij go, żeby otworzyć panel; zamknięcie panelu przywraca przycisk. Przy wyłączonym panelu korzystaj z osobnych przycisków **World State** i **Player & Tracker**.
 
 Dzięki kontrolkom w nagłówku panelu można też zmienić strukturę trackerów:
 
@@ -119,7 +119,7 @@ Nazwy własnych pól wyznaczają strukturę i nie zmieniają się między urucho
 Odpowiadają za to następujące ustawienia:
 
 - **Tracker Panel**: główny przełącznik panelu, ten sam, którym steruje kostka w Chat Settings. Domyślnie jest włączony. Po włączeniu etykieta brzmi "Shown in the Roleplay HUD". Po wyłączeniu na komputerze trackery pojawiają się w oknie Trackers.
-- **Replace tracker HUD icons**: ukrywa kompaktowy pasek ikon na telefonach i pozwala umieścić panel przy krawędzi ekranu.
+- **Replace tracker HUD icons**: ukrywa osobne przyciski trackerów na telefonie i pozwala zamiast tego zadokować panel przy krawędzi ekranu.
 - **Use expression sprites for tracker portraits**: sprawia, że portrety trackerów korzystają ze sprite'a wyrazu twarzy postaci (portretu z bieżącą emocją) zamiast zwykłego awatara, o ile taki istnieje. Sprite'y wyrazu twarzy opisuje przewodnik [Sprite'y postaci](../characters/sprites.md).
 - **Panel background**: wybór koloru lub gradientu tła panelu.
 - **Desktop size**: wybór szerokości panelu. Dostępne opcje to **Compact**, **Standard** i **Expanded**.

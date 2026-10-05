@@ -1,10 +1,10 @@
 # Le HUD de Roleplay et les trackers
 
-Ce guide explique les trackers de Roleplay : les petits widgets sur téléphone, la fenêtre **Trackers** et Tracker Panel sur ordinateur. Tu apprendras à modifier et verrouiller leurs valeurs. Il concerne le mode Roleplay de Marinara Engine.
+Ce guide explique les trackers de Roleplay : les boutons et panneaux déplaçables sur téléphone, la fenêtre **Trackers** et Tracker Panel sur ordinateur. Tu apprendras à modifier et verrouiller leurs valeurs. Il concerne le mode Roleplay de Marinara Engine.
 
 ## Le HUD, qu'est-ce que c'est
 
-Sur téléphone, le HUD (heads-up display) est une rangée de petits widgets en haut du chat. Chacun montre un élément de l'état de l'histoire, comme l'heure, tes caractéristiques ou les personnages présents. Marinara les tient à jour au fil du récit.
+Sur téléphone, tu trouves les boutons **World State** et **Player & Tracker** dans le HUD (heads-up display). Tu peux les déplacer dans le chat. Appuie sur un bouton pour voir les détails actuels de l'histoire, comme l'heure, tes caractéristiques ou les personnages présents. Marinara tient ces valeurs à jour au fil du récit.
 
 Sur ordinateur, les trackers ne sont pas dans la rangée du HUD. Ils apparaissent dans **Tracker Panel** quand il est affiché, sinon dans la fenêtre **Trackers** décrite ci-dessous.
 
@@ -60,11 +60,11 @@ Un tracker peut aussi avoir sa propre fenêtre : clique sur le bouton de détach
 
 En bas, **Agent activity** montre ce que les agents ont fait. Tu peux y relancer les trackers, réessayer les agents en échec, arrêter ceux qui tournent et utiliser **Clear Trackers**. Tracker Panel possède la même section en bas.
 
-## Modifier les valeurs dans un panneau contextuel
+## Modifier les valeurs des trackers
 
-Sur téléphone, appuie sur un widget pour ouvrir son panneau contextuel. Sur ordinateur, les mêmes éditeurs se trouvent dans les tiroirs de la fenêtre Trackers. Un panneau contextuel est un petit panneau flottant. Tous ses champs sont modifiables pour corriger les erreurs de l'IA. Les changements sont enregistrés immédiatement.
+Sur téléphone, fais glisser les boutons **World State** et **Player & Tracker** où tu veux dans le chat. Appuie sur un bouton pour ouvrir son panneau et sur **X** pour le fermer. Les boutons et panneaux utilisent ton **Chat widget style** dans **Settings → Appearance → App**. Ton chat mémorise la position de chaque bouton. Sur ordinateur, les mêmes éditeurs se trouvent dans les tiroirs de la fenêtre Trackers. Tous les champs sont modifiables pour corriger les erreurs de l'IA. Les changements sont enregistrés immédiatement.
 
-Voici ce que chaque panneau contextuel permet de modifier :
+Voici ce que chaque tracker permet de modifier :
 
 - **World State** : les champs **Location**, **Date**, **Time**, **Weather**, **Temperature** et les lignes des champs de monde personnalisés.
 - **Persona Stats** : une ligne **Status**, plus des barres de caractéristiques nommées, avec une valeur actuelle et une valeur maximale. Tu peux ajouter ou supprimer des barres.
@@ -82,18 +82,18 @@ Quand un champ est verrouillé, le passage automatique suivant du tracker n'y to
 
 Pour verrouiller un champ :
 
-1. Ouvre le panneau contextuel du widget.
-2. Clique sur l'interrupteur de verrouillage, en haut du panneau contextuel. Son infobulle indique **Enter lock mode**.
+1. Ouvre le tracker que tu veux modifier.
+2. Clique sur l'interrupteur de verrouillage, en haut du tracker. Son infobulle indique **Enter lock mode**.
 3. Un petit bouton de verrouillage apparaît alors à côté de chaque valeur modifiable.
 4. Clique sur le bouton de verrouillage placé à côté de la valeur à figer. Son infobulle indique **Lock field**.
 
-Pour déverrouiller, clique une nouvelle fois sur ce même bouton (infobulle **Unlock field**). Pour quitter le mode verrouillage, clique de nouveau sur l'interrupteur du haut (infobulle **Exit lock mode**). Le mode verrouillage vaut pour tout le HUD : l'activer dans un panneau contextuel fait apparaître les boutons de verrouillage partout.
+Pour déverrouiller, clique une nouvelle fois sur ce même bouton (infobulle **Unlock field**). Pour quitter le mode verrouillage, clique de nouveau sur l'interrupteur du haut (infobulle **Exit lock mode**). Le mode verrouillage vaut pour tout le HUD : l'activer dans un tracker fait apparaître les boutons de verrouillage partout.
 
 ## Relancer un tracker
 
 Tu peux forcer la mise à jour d'un tracker au lieu d'attendre le message suivant.
 
-Chaque panneau contextuel contient un petit bouton d'actualisation, en forme de flèche circulaire. Clique dessus pour relancer ce seul tracker sur le dernier tour. Les infobulles nomment le tracker concerné, par exemple **Re-run world state tracker only** ou **Re-run quest tracker only**.
+Chaque tracker contient un petit bouton d'actualisation, en forme de flèche circulaire. Clique dessus pour relancer ce seul tracker sur le dernier tour. Les infobulles nomment le tracker concerné, par exemple **Re-run world state tracker only** ou **Re-run quest tracker only**.
 
 Dans **Chat Settings → Agents**, **Manual Trackers** passe tous les trackers actifs en commande manuelle. Tu peux aussi le laisser désactivé et choisir seulement certains agents sous **Individual tracker schedule**. Dès qu'un tracker est manuel, un bouton d'actualisation apparaît : dans la rangée du HUD sur téléphone, et près du titre de Trackers sur ordinateur. Clique dessus pour lancer les trackers manuels sur le tour actuel. Le bouton de chaque tracker continue de lancer ce tracker seul.
 
@@ -105,7 +105,7 @@ Le **Tracker Panel** est un panneau latéral plus grand, qui affiche les mêmes 
 
 Pour l'activer dans un chat Roleplay, ouvre **Chat Settings** et clique sur **Tracker Panel** (le dé) dans la barre de titre, près de l'épinglage et du verrouillage. Il reste mis en évidence quand le panneau est actif, et le panneau apparaît à côté du chat. Clique à nouveau pour le désactiver et le masquer. Sur ordinateur, les trackers passent alors dans la fenêtre Trackers.
 
-Sur téléphone, l'activer ajoute au chat un bouton Tracker Panel que tu peux déplacer librement. Appuie dessus pour ouvrir le panneau ; le fermer ramène le bouton. Quand le panneau est désactivé, la rangée du HUD garde les widgets.
+Sur téléphone, l'activer ajoute au chat un bouton Tracker Panel que tu peux déplacer librement. Appuie dessus pour ouvrir le panneau ; le fermer ramène le bouton. Quand le panneau est désactivé, utilise les boutons séparés **World State** et **Player & Tracker**.
 
 Les contrôles de l'en-tête du panneau permettent aussi de personnaliser la structure des trackers :
 
@@ -119,7 +119,7 @@ Les noms des champs personnalisés définissent la structure et restent stables 
 Voici les réglages disponibles :
 
 - **Tracker Panel** : l'interrupteur principal, le même que contrôle le dé de Chat Settings. Il est activé par défaut. Quand il est actif, l'étiquette indique "Shown in the Roleplay HUD". Quand il est désactivé, les trackers sur ordinateur apparaissent dans la fenêtre Trackers.
-- **Replace tracker HUD icons** : masque la bande compacte d'icônes sur téléphone et permet au panneau de s'ancrer au bord de l'écran.
+- **Replace tracker HUD icons** : masque les boutons séparés des trackers sur téléphone et permet d'ancrer le panneau au bord de l'écran à leur place.
 - **Use expression sprites for tracker portraits** : les portraits des trackers utilisent le sprite d'expression du personnage (l'image de son émotion du moment) au lieu du simple avatar, quand il en existe un. Les sprites d'expression sont expliqués dans [Sprites de personnage](../characters/sprites.md).
 - **Panel background** : un sélecteur de couleur ou de dégradé pour l'arrière-plan du panneau.
 - **Desktop size** : choisis la largeur du panneau. Les options sont **Compact**, **Standard** et **Expanded**.
