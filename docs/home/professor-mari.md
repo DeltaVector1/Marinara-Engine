@@ -12,7 +12,7 @@ You talk to her in plain language. Type a message in the box, then press Enter t
 
 Sending your very first message to her unlocks the **Hello World** achievement.
 
-A thin line along the bottom of the app's top bar also shows her state from any screen: it wavers while she works, turns green when she finishes, gold while an approval waits, or red if the last run failed. It clears once you open her chat. (It is off while **Ask Mari from search** is turned off.) All of her settings are in the omnibar's settings: the gear in the omnibar, or **Settings** > **General** > **Omnibar & Professor Mari settings** > **Open**.
+A thin line along the bottom of the app's top bar also shows her state from any screen: it wavers while she works, turns green when she finishes, gold while an approval waits, or red if the last run failed. It clears once you open her chat. (It is off while **Ask Mari from Search** is turned off.) All of her settings are in the Search and Professor Mari settings: the gear in Search, or **Settings** > **General** > **Search and Professor Mari settings** > **Open**.
 
 ## Ask Mari from your current work
 
@@ -22,11 +22,11 @@ You can open Mari from the place where you need help. These entry points create 
 
 - **Character**, **Persona**, **Lorebook**, and **Preset** editors: ask about the open resource or a selected field.
 - **FAQ** answers: use **Ask Professor Mari** to include the matched question and its written answer as the starting point.
-- **Command Center**: search with `Cmd/Ctrl+K`, select a result, then use **Ask Professor Mari** to include the selected result in the draft. Search does not send a model request by itself.
+- **Search**: press `Cmd/Ctrl+K`, select a result, then use **Ask Professor Mari** to include the selected result in the draft. Search does not send a model request by itself.
 - **Recent Chats** and other error states: use **Ask Professor Mari** beside **Retry** to send the error description and the requested repair action.
 - Normal Professor Mari character chat and Home workspace chat use the same handoff format.
 
-Remove a context item when it is not relevant. Mari resolves larger resource content on the server under the context budget after you send the message. She does not receive a full resource just because you opened an editor.
+The attached items show as **Aware of** chips above her message box. Remove a context item when it is not relevant. Mari resolves larger resource content on the server under the context budget after you send the message. She does not receive a full resource just because you opened an editor.
 
 Ask her for help with any of these:
 
@@ -125,7 +125,7 @@ Mari can write agent **Activation questions**, lorebook-entry **Decision** state
 
 If you have no Decision model selected, she keeps ordinary creations and edits free of new Decision dependencies. Existing Decision content stays intact during unrelated edits. If you explicitly ask for Decision content, she explains the relevant fallback and asks whether to proceed once in that Mari chat. Her record survives reopening the chat and conversations longer than her recent-message window. An unanswered question or a refusal is not permission.
 
-You can tell her, **“Stop reminding me to set up a Decision model.”** She stops in the current chat and can save that preference as a Memory. Use **Keep & Enable** to apply it in future chats too. Turning that Memory off or deleting it removes the standing preference. Suppressing setup reminders does not invite her to add Decisions to ordinary requests.
+You can tell her, **“Stop reminding me to set up a Decision model.”** She stops in the current chat and can save that preference as a Memory. Use **Keep and enable** to apply it in future chats too. Turning that Memory off or deleting it removes the standing preference. Suppressing setup reminders does not invite her to add Decisions to ordinary requests.
 
 With a model selected, she follows your relevant enabled Memories and Skills. If they contain no authoring preference, she asks whether you want Decisions used and whether to remember your answer. You can allow or decline them, or approve only the current task. A Skill that merely explains Decision syntax does not count as permission. A direct request such as “add Decision activation to this entry” already supplies permission for that task.
 
@@ -133,13 +133,13 @@ Her default is sparse use with a suitable timing control: **Sticky** or **Cooldo
 
 Mari also aims to keep the early assembled prompt stable. She asks before adding changing content early in a prompt or inserting context inside chat history unless your instruction or enabled preference already permits that placement. There is no universal “safe after 1,000 tokens” rule: cache reuse depends on the provider, model, and matching rendered prefix. Approving Decision use does not automatically approve these placements.
 
-The usual Permissions Mode and review controls still apply to her edits. Memories she saves start disabled until you enable them. For what each Decision feature sees, its fallbacks, and examples, see [Decision Models](../connections/decision-models.md), [Conditional Prompts](../prompts/conditional-prompts.md), [Custom Agents](../agents/custom-agents.md#activation-questions), and [Lorebook Entries](../lorebooks/entries.md#decision-activation).
+The usual permissions mode and review controls still apply to her edits. Memories she saves start disabled until you enable them. For what each Decision feature sees, its fallbacks, and examples, see [Decision Models](../connections/decision-models.md), [Conditional Prompts](../prompts/conditional-prompts.md), [Custom Agents](../agents/custom-agents.md#activation-questions), and [Lorebook Entries](../lorebooks/entries.md#decision-activation).
 
 ## Custom Skills
 
 A Skill is a short instruction document you write to change how Professor Mari handles a certain kind of request.
 
-Click the **Skills** button in her chat header to open the **Professor Mari Skills** panel. From there you can:
+Click the **Skills** button in her chat header to open the **Professor Mari skills** panel. From there you can:
 
 - Click **New** to start a Skill from a template.
 - Click **Upload** to add a Skill from a `.md` or `.txt` file.
@@ -185,9 +185,9 @@ On a phone or a narrow screen, she becomes a small round avatar you can drag aro
 
 ## Trust and recovery status
 
-The compact trust strip in the Mari header shows the selected connection, the context budget, sandbox availability, pending approvals, enabled Skills, and enabled Memories. Use these indicators before a request when you need to check what Mari can access.
+Open **Aware of** in the Mari header to see what goes with your next message, what stays in this Mari chat, and how she works: the model she answers with, the context budget, and whether her shell commands run in a sandbox. The header also shows pending approvals, Skills, and Memories. Check these before a request when you need to know what Mari can read.
 
-Mari keeps consequential workspace changes behind the existing server approval and review rules. The trust strip does not grant extra access. Sensitive file changes, dependency changes, shell limits, and app-data validation remain server enforced.
+Mari keeps consequential workspace changes behind the existing server approval and review rules. **Aware of** does not grant extra access. Sensitive file changes, dependency changes, shell limits, and app-data validation remain server enforced.
 
 When a request fails, the transcript keeps the failure reason and shows **Retry** when the request can be sent again. Fix the shown connection, sandbox, capability, or remote-access problem first, then retry. A retry does not silently start from a search, FAQ, or error state. It remains a user action.
 
@@ -213,7 +213,7 @@ Professor Mari is a helper, not the full documentation. Keep these limits in min
 
 ## Troubleshooting
 
-- No reply at all: check the connection shown in the trust strip or select one using the link icon. If none is set up, open the **Connections** panel and add one.
+- No reply at all: check the connection shown in **Aware of** or select one using the link icon. If none is set up, open the **Connections** panel and add one.
 - A handoff has the wrong item: remove the context item, restart or switch to the correct Mari chat, and open the handoff again from the source surface. Context is scoped to the handoff and current Mari chat.
 - A result does not appear in an editor: use **Open** on the result card. Mari may have completed the command while the resource list was stale.
 - A request fails: read the failure status, correct the named setup problem, and use **Retry**. Ask Mari again from the original source only when the context itself is no longer correct.

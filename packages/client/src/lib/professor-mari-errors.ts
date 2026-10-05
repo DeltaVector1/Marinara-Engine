@@ -12,11 +12,11 @@ export function describeProfessorMariError(error: unknown) {
   if (message) {
     return translate("mari.errors.withDetails", {
       message: formatGenerationParameterError(message),
-      defaultValue: "{{message}} This message will stay visible long enough to screenshot for troubleshooting.",
+      defaultValue: "{{message}} This message stays open so you can take a screenshot.",
     });
   }
   return translate("mari.errors.beforeAnswer", {
     defaultValue:
-      "The request failed before Professor Mari could answer. This message will stay visible long enough to screenshot for troubleshooting.",
+      "The request failed before Professor Mari could answer. This message stays open so you can take a screenshot.",
   });
 }

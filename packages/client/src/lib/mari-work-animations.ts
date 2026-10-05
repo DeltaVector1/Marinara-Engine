@@ -74,7 +74,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "basic",
     label: "Basic",
-    description: "Mari's familiar pixel look, with a little story for every state.",
+    description: "Mari's pixel look, with a short scene for each state.",
     portraits: {
       idle: sprite("basic/portrait-idle.webp"),
       blink: sprite("basic/portrait-blink.webp"),
@@ -90,7 +90,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "dottore",
     label: "Mari loves Dottore",
-    description: "A cyan heart pin, a Dottore plush and little fangirl stories.",
+    description: "A cyan heart pin, a Dottore plush and fangirl scenes.",
     portraits: {
       idle: sprite("dottore/portrait-idle.webp"),
       blink: sprite("dottore/portrait-blink.webp"),
@@ -106,7 +106,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "golden",
     label: "Golden Mari",
-    description: "Shiny gold and a larger-than-life Chad expression.",
+    description: "Gold colours and a Chad expression.",
     portraits: {
       idle: sprite("golden/portrait-idle.webp"),
       blink: sprite("golden/portrait-blink.webp"),
@@ -122,7 +122,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "safari",
     label: "Safari Mari",
-    description: "Safari gear and little jungle expeditions.",
+    description: "Safari gear and jungle expeditions.",
     portraits: {
       idle: sprite("safari/portrait-idle.webp"),
       blink: sprite("safari/portrait-blink.webp"),

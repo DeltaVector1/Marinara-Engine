@@ -82,7 +82,7 @@ export type MemoryDraftState = {
 export const MARI_SIDE_ROW_CLASS = "mari-edit__row flex min-h-12 items-center gap-3 px-3 py-2";
 
 /**
- * M6: the one header every side panel (Chats, Skills, Memories, What Mari sees) shares: title, a
+ * M6: the one header every side panel (Chats, Skills, Memories, Aware of) shares: title, a
  * one-line hint and Close; on a phone, where the panel is a full sheet, Back instead. `onBack` is a
  * panel's own sub-view back (it then shows at every width). On open, the panel's first control takes
  * focus; on close, focus returns to its opener.

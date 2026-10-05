@@ -229,7 +229,7 @@ const englishLocale = JSON.parse(
 ) as Record<string, string>;
 assert.equal(
   englishLocale["ui.chat.homeprofessormarichat.selectAConnectionFirst"],
-  "Select a connection first by clicking the chainlink icon in the input box below!",
+  "Select a connection first. Use the link icon in the message box below.",
 );
 
 const chatsHookSource = readFileSync(new URL("../../packages/client/src/hooks/use-chats.ts", import.meta.url), "utf8");

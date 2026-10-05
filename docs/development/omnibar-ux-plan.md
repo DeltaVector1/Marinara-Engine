@@ -1142,3 +1142,109 @@ Follow `mari-ui-subtle-effects`: glows are low, faint and soft; nothing loud. Sc
   Proof: screenshots of the empty omnibar (Recent), a mixed search ("ne": chats, characters, lorebooks, entries,
   settings, docs), Mari cards and the Chats panel, at 390/1440, dark and light.
 - Q4 (slice 59) Review of 56-58, 57b and 58b, then a worker fixes the confirmed findings.
+
+#### Q3 before/after (slice 58)
+
+Key · old → new. `homeprofessormarichat.whatMariSees*` keys became `awareOf*`; rows with the same text only changed the key.
+
+- `omnibar.aside.disclosure`: "Professor Mari answered this because nothing matched what you typed." → "No results matched, so Professor Mari answered."
+- `omnibar.aside.needsModel`: "Professor Mari can answer searches like this once she has a model." → "Choose a model so Professor Mari can answer searches like this."
+- `omnibar.askMari.peek.change`: "Mari will help you change this." → "Mari helps you change this."
+- `omnibar.askMari.peek.create`: "Mari will help you create this." → "Mari helps you create this."
+- `omnibar.askMari.peek.explain`: "Mari will explain this and guide your next step." → "Mari explains this and suggests a next step."
+- `omnibar.askMari.peek.recommend`: "Mari will compare the options and recommend one." → "Mari compares the options and recommends one."
+- `omnibar.askMari.peek.repair`: "Mari will help troubleshoot and fix this." → "Mari finds the problem and helps you fix it."
+- `omnibar.greetings.chat.one`: "Oh, a chat. What should we look into?" → "What should we look into in this chat?"
+- `omnibar.greetings.conversation.one`: "A conversation. What should we look into?" → "What should we look into in this conversation?"
+- `omnibar.greetings.conversation.two`: "I found your chat. What do you need?" → "Your conversation is open. What do you need?"
+- `omnibar.greetings.roleplay.one`: "A roleplay chat. What should we look into?" → "What should we look into in this roleplay?"
+- `omnibar.greetings.roleplay.two`: "Oh, a scene in progress. Need a hand?" → "A scene is in progress. What do you need?"
+- `omnibar.hello`: "Hi, I'm Mari. Type to search, or ask me for anything..." → "Hi, I'm Mari. Type to search, or ask me anything."
+- `omnibar.settings.appearance.description`: "One look for Mari everywhere: her workspace, search, Home and the top bar." → "How Mari looks in her workspace, Search, Home and the top bar."
+- `omnibar.settings.aside.connection.description`: "Your search text is sent to this model, never your memories or the field you are editing." → "Quick answers send only your search text to this model, not your memories or the field you are editing."
+- `omnibar.settings.aside.delay.description`: "How long you stop typing before Mari answers." → "How long Mari waits after you stop typing."
+- `omnibar.settings.aside.description`: "Answer a search that finds nothing." → "Mari answers when a search finds nothing."
+- `omnibar.settings.aside.localMissingNote`: "No local model is downloaded yet, so quick answers stay silent. Download one, or choose a connection." → "No local model is downloaded, so quick answers are off. Download one or choose a connection."
+- `omnibar.settings.label`: "Omnibar & Professor Mari settings" → "Search and Professor Mari settings"
+- `omnibar.settings.mari.label`: "Ask Mari from search" → "Ask Mari from Search"
+- `omnibar.settings.mari.description`: "Ask Mari from the search field, the pull-down and Ctrl/Command+J." → "Ask Mari from the Search field, the pull-down and Ctrl/Command+J."
+- `omnibar.settings.suggestions.description`: "Offer context and edits before you ask." → "Mari offers context and edits before you ask."
+- `mari.animationPacks.core.description`: "Mari's everyday desk work — reading, writing, tinkering, thinking." → "Mari at her desk: reading, writing and thinking."
+- `mari.animationPacks.expeditions.description`: "Trips, dives and launches, for the long-running jobs." → "Trips, dives and launches for long jobs."
+- `mari.appearancePacks.basic.description`: "Mari's familiar pixel look, with a little story for every state." → "Mari's pixel look, with a short scene for each state."
+- `mari.appearancePacks.dottore.description`: "A cyan heart pin, a Dottore plush and little fangirl stories." → "A cyan heart pin, a Dottore plush and fangirl scenes."
+- `mari.appearancePacks.golden.description`: "Shiny gold and a larger-than-life Chad expression." → "Gold colours and a Chad expression."
+- `mari.appearancePacks.safari.description`: "Safari gear and little jungle expeditions." → "Safari gear and jungle expeditions."
+- `mari.errors.beforeAnswer`: "The request failed before Professor Mari could answer. This message will stay visible long enough to screenshot for troubleshooting." → "The request failed before Professor Mari could answer. This message stays open so you can take a screenshot."
+- `mari.errors.withDetails`: "{{message}} This message will stay visible long enough to screenshot for troubleshooting." → "{{message}} This message stays open so you can take a screenshot."
+- `mari.stories.cancelled`: "Stopped. Ready when you are." → "Stopped."
+- `mari.stories.retry`: "That attempt ran into trouble. Ready to try again." → "That attempt failed. You can try again."
+- `mari.workCard.phrases.veryLong.p3`: "Almost there, I promise" → "Still cooking"
+- `mari.workCard.phrases.veryLong.p4`: "Still stirring, don't worry" → "Still stirring"
+- `commandCenter.approval.decide`: "Mari is waiting on you" → "Mari needs your answer"
+- `commandCenter.empty.description`: "Try a chat, character, setting, or message. Use the category shortcuts above to browse." → "Type a chat, character, setting or message. Pick a category above to browse."
+- `commandCenter.placeholder`: "Search everything — or narrow with faq:, docs:, msg:, char:" → "Search everything, or narrow with faq:, docs:, msg:, char:"
+- `commandCenter.messages.seeAllDescription`: "Opens Search All Chats, with filters." → "Opens Search all chats with filters."
+- `commandCenter.newChat.conversationDescription`: "Opens the same new-chat flow as Home’s Conversation button." → "Same as Conversation on Home."
+- `commandCenter.newChat.gameDescription`: "Opens the same new-chat flow as Home’s Game button." → "Same as Game on Home."
+- `commandCenter.newChat.roleplayDescription`: "Opens the same new-chat flow as Home’s Roleplay button." → "Same as Roleplay on Home."
+- `commandCenter.shortcuts.startChatDescription`: "Choose the mode, then the chat opens." → "Pick a mode to open the chat."
+- `commandCenter.suggestions.editFocusedFieldDescription`: "Ask Mari to suggest a useful change for the selected field." → "Mari suggests a change to the selected field."
+- `…marichat.awaitingApprovalHint`: "Mari is waiting for your approval - nothing has been changed yet. Accept to apply, or reply with what to change." → "Mari needs your OK. Nothing has changed yet. Accept to apply, or reply with what to change."
+- `…marichat.couldNotChangeThePermissionsMode`: "Could not change the Permissions Mode." → "Could not change the permissions mode."
+- `…marichat.permissionsMode`: "Permissions Mode" → "Permissions mode"
+- `…marichat.permissionsModeForThisChat`: "Permissions Mode (this chat)" → "Permissions mode (this chat)"
+- `…marichat.deleteMessage`: "Delete Message" → "Delete message"
+- `…marichat.editMessage`: "Edit Message" → "Edit message"
+- `…marichat.regenerateResponse`: "Regenerate Response" → "Regenerate response"
+- `…marichat.removeAttachment`: "Remove Attachment" → "Remove attachment"
+- `…marichat.deleteMessageConfirmation`: "Are you sure you want to delete this message? This cannot be undone." → "Delete this message? This cannot be undone."
+- `…marichat.regenerateResponseConfirmation`: "Are you sure you want to regenerate this response? This cannot be undone." → "Regenerate this response? This cannot be undone."
+- `…marichat.removeAttachmentConfirmation`: "Are you sure you want to remove this attachment? This cannot be undone." → "Remove this attachment? This cannot be undone."
+- `…marichat.detailsEmpty`: "Completed results and resource details will appear here." → "Results and resource details show here."
+- `…marichat.emptyWelcomeDescription`: "I can inspect your setup, explain how something works, or make a reversible change." → "I can check your setup, explain a feature, or make a change you can undo."
+- `…marichat.suggestions.start`: "What should we work on? I can inspect your setup, explain how something works, or make a reversible change." → "What should we work on? I can check your setup, explain a feature, or make a change you can undo."
+- `…marichat.professorMariMemoriesAreUnavailable`: "Professor Mari memories are unavailable." → "Professor Mari's memories are unavailable."
+- `…marichat.professorMariSkillsAreUnavailable`: "Professor Mari skills are unavailable." → "Professor Mari's skills are unavailable."
+- `…marichat.selectAConnectionFirst`: "Select a connection first by clicking the chainlink icon in the input box below!" → "Select a connection first. Use the link icon in the message box below."
+- `…marichat.theModelOrServerMayStillBeBusyThis`: "The model or server may still be busy. This message stays visible long enough to screenshot." → "The model or server may still be busy. This message stays open so you can take a screenshot."
+- `…marichat.thinkingUpSuggestions`: "Thinking up suggestions..." → "Finding suggestions..."
+- `home.professorMari.chats`: "Professor Mari Chats" → "Professor Mari chats"
+- `home.professorMari.newChat`: "New chat - the current Professor Mari conversation is saved to Chats" → "New chat · the current chat is saved in Chats"
+- `settings.controls.miniMari.help`: "Allow rare Chibi Professor Mari messages while scrolling." → "Chibi Professor Mari sometimes appears with a message while you scroll."
+- `settings.controls.omnibarSettings.help`: "Search, quick answers, Professor Mari and her appearance have their own settings page. Open takes you there." → "Settings for Search, quick answers, Professor Mari and her appearance are on their own page."
+- `settings.controls.omnibarSettings.label`: "Omnibar & Professor Mari settings" → "Search and Professor Mari settings"
+- `settings.controls.mariPermissionsMode.manual.description`: "Always ask before making changes: Mari describes first and stages only after you say go." → "Mari describes each change first and stages it only after you say go."
+- `settings.controls.mariPermissionsMode.plan.description`: "Mari never changes anything: she lays out the exact changes she would make, in chat." → "Mari changes nothing. She lists the exact changes she would make, in chat."
+- `shortcuts.general.askMari`: "Ask Mari about this screen, or go back to the search" → "Ask Mari about this screen, or go back to Search"
+- `ui.chat.mariediteasyviewer.notVectorizedHint`: "Can be found by meaning once it's vectorized, which hasn't happened yet." → "Not vectorized yet, so search by meaning cannot find it."
+- `ui.chat.mariediteasyviewer.rejectHint`: "Revert just this entry. The rest of the change stays applied." → "Revert only this entry. The rest of the change stays applied."
+- `ui.chat.maripromptpreviewmodal.explainer`: "A synthetic preview assembled on its own, without a persona or chat history. Added text is green, removed text is red." → "A preview built without a persona or chat history. Added text is green, removed text is red."
+- `ui.chat.databaseworkspaceapprovalcard.keepAndEnable`: "Keep & Enable" → "Keep and enable"
+- `ui.chat.professormarimemoriesmenu.professorMariMemories`: "Professor Mari Memories" → "Professor Mari memories"
+- `ui.chat.professormariskillsmenu.professorMariSkills`: "Professor Mari Skills" → "Professor Mari skills"
+- `omnibar.settings.suggestions.label`: "Proactive suggestions" → "Context suggestions"
+- `commandCenter.controls.mariAssist`: "Professor Mari assistance" → "Ask Mari from Search"
+- `…marichat.whatMariSees → awareOf`: "What Mari sees" → "Aware of"
+- `…marichat.whatMariSeesAlways → awareOfAlways`: (text kept)
+- `…marichat.whatMariSeesAttach → awareOfAttach`: (text kept)
+- `…marichat.whatMariSeesBack → awareOfBack`: "Back to What Mari sees" → "Back to Aware of"
+- `…marichat.whatMariSeesChangeModel → awareOfChangeModel`: (text kept)
+- `…marichat.whatMariSeesChipsLabel → awareOfChipsLabel`: "Mari sees" → "Aware of"
+- `…marichat.whatMariSeesClose → awareOfClose`: "Close What Mari sees" → "Close Aware of"
+- `…marichat.whatMariSeesContextUse → awareOfContextUse`: (text kept)
+- `…marichat.whatMariSeesFacetLaterTitle → awareOfFacetLaterTitle`: "{{label}}: {{text}}. Name only now; the content goes when you send." → "{{label}}: {{text}}. Name only for now. The content goes when you send."
+- `…marichat.whatMariSeesFocusMeta → awareOfFocusMeta`: (text kept)
+- `…marichat.whatMariSeesGoesNext → awareOfGoesNext`: (text kept)
+- `…marichat.whatMariSeesHint → awareOfHint`: (text kept)
+- `…marichat.whatMariSeesHowSheWorks → awareOfHowSheWorks`: (text kept)
+- `…marichat.whatMariSeesModelMeta → awareOfModelMeta`: (text kept)
+- `…marichat.whatMariSeesNameOnly → awareOfNameOnly`: "Name only now · the content goes when you send" → "Name only for now · the content goes when you send"
+- `…marichat.whatMariSeesNextEmpty → awareOfNextEmpty`: "Nothing extra. She sees what you type." → "Nothing extra. Mari reads only what you type."
+- `…marichat.whatMariSeesNextMessage → awareOfNextMessage`: (text kept)
+- `…marichat.whatMariSeesOpen → awareOfOpen`: "Show what Mari sees" → "Show what Mari is aware of"
+- `…marichat.whatMariSeesPrivacy → awareOfPrivacy`: "Nothing here reaches the model until you press Send. Quick answers in search only see what you type and the name of the open screen." → "Nothing here goes to the model until you press Send. Quick answers in Search get only what you type and the name of the open screen."
+- `…marichat.whatMariSeesRemoveFacet → awareOfRemoveFacet`: (text kept)
+- `…marichat.whatMariSeesSandboxOff → awareOfSandboxOff`: (text kept)
+- `…marichat.whatMariSeesSandboxOn → awareOfSandboxOn`: (text kept)
+- Code-only labels (`settings-registry.ts`): "Ask Mari from search" → "Ask Mari from Search", "Professor Mari Permissions Mode" → "Professor Mari permissions mode", "Proactive suggestions" → "Context suggestions" (one name for the `omnibarSuggestionsEnabled` toggle).

@@ -18022,7 +18022,7 @@ test("Professor Mari starter suggestions stay confined to an empty chat", async 
       .toBe("#14b8a6");
     const chromeMutedColor = await readCssVariableColor(page, "--marinara-chat-chrome-panel-muted");
     await expect(window.getByText("You", { exact: true }).last()).toHaveCSS("color", chromeMutedColor);
-    await expect(window.getByRole("button", { name: "Edit Message" }).last()).toHaveCSS("color", chromeMutedColor);
+    await expect(window.getByRole("button", { name: "Edit message" }).last()).toHaveCSS("color", chromeMutedColor);
   } finally {
     await Promise.all(
       createdMessageIds.map((id) => bestEffortDelete(page.request, `/api/chats/${chat.id}/messages/${id}`)),
@@ -18158,7 +18158,7 @@ test("Professor Mari shows the latest context budget when token usage is enabled
     await page.getByRole("tab", { name: "Professor", exact: true }).click();
 
     const window = page.locator('[data-component="HomeProfessorMariChat.Window"]');
-    // M7: the trust strip became the "How she works" group of What Mari sees.
+    // M7: the trust strip became the "How she works" group of Aware of.
     await page.locator('[data-destination="context"]').click();
     const howSheWorks = window.locator('[data-component="HomeProfessorMariChat.WhatMariSees"] [data-group="how"]');
     await expect(howSheWorks).toContainText("Budget connection");

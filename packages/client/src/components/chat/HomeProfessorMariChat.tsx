@@ -339,7 +339,7 @@ const PROFESSOR_MARI_PDF_ATTACHMENT_MIME_TYPE = "application/pdf";
 const MARI_PANEL_SLOT_CLASS =
   "mari-workspace-canvas absolute inset-0 z-10 flex h-full min-h-0 min-w-0 flex-col sm:relative sm:inset-auto sm:z-auto sm:h-full sm:w-[24rem] sm:min-w-[24rem] sm:shrink-0 sm:border-l sm:border-[var(--mari-hairline)]";
 
-/** M7: the "What Mari sees" panel's group labels and rows, on the direction A `.mari-edit` group. */
+/** M7: the "Aware of" panel's group labels and rows, on the direction A `.mari-edit` group. */
 const SEES_KICKER_CLASS = "px-1 text-[0.625rem] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]";
 
 const PROFESSOR_MARI_PANE_TRANSITION = { duration: 0.24, ease: [0.16, 1, 0.3, 1] } as const;
@@ -5628,8 +5628,8 @@ export function HomeProfessorMariChat({
     {
       id: "context",
       Icon: Eye,
-      label: localizeUi("ui.chat.homeprofessormarichat.whatMariSees"),
-      shortLabel: localizeUi("ui.chat.homeprofessormarichat.whatMariSeesChipsLabel"),
+      label: localizeUi("ui.chat.homeprofessormarichat.awareOf"),
+      shortLabel: localizeUi("ui.chat.homeprofessormarichat.awareOfChipsLabel"),
       count: persistentContextCount + oneShotContextFacets.length,
     },
     {
@@ -5819,7 +5819,7 @@ export function HomeProfessorMariChat({
           type="button"
           className="mari-link"
           onClick={onRemove}
-          aria-label={localizeUi("ui.chat.homeprofessormarichat.whatMariSeesRemoveFacet", { text: title })}
+          aria-label={localizeUi("ui.chat.homeprofessormarichat.awareOfRemoveFacet", { text: title })}
         >
           {localizeUi("ui.chat.homeprofessormarichat.contextViewerRemove")}
         </button>
@@ -7194,14 +7194,14 @@ export function HomeProfessorMariChat({
                           title={
                             (selectedContextId
                               ? attachedContext?.find((item) => item.id === selectedContextId)?.label
-                              : undefined) ?? localizeUi("ui.chat.homeprofessormarichat.whatMariSees")
+                              : undefined) ?? localizeUi("ui.chat.homeprofessormarichat.awareOf")
                           }
-                          hint={localizeUi("ui.chat.homeprofessormarichat.whatMariSeesHint")}
+                          hint={localizeUi("ui.chat.homeprofessormarichat.awareOfHint")}
                           onClose={() => setWorkspaceDestination("chat")}
-                          closeLabel={localizeUi("ui.chat.homeprofessormarichat.whatMariSeesClose")}
+                          closeLabel={localizeUi("ui.chat.homeprofessormarichat.awareOfClose")}
                           onBack={selectedContextId ? () => setSelectedContextId(null) : undefined}
                           backLabel={
-                            selectedContextId ? localizeUi("ui.chat.homeprofessormarichat.whatMariSeesBack") : undefined
+                            selectedContextId ? localizeUi("ui.chat.homeprofessormarichat.awareOfBack") : undefined
                           }
                         />
                         <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
@@ -7232,7 +7232,7 @@ export function HomeProfessorMariChat({
                             >
                               <section className="space-y-1.5" data-group="next">
                                 <h4 className={SEES_KICKER_CLASS}>
-                                  {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesNextMessage")}
+                                  {localizeUi("ui.chat.homeprofessormarichat.awareOfNextMessage")}
                                 </h4>
                                 <div className="mari-edit">
                                   {oneShotContextFacets.length > 0 ? (
@@ -7243,8 +7243,8 @@ export function HomeProfessorMariChat({
                                         title: facet.text,
                                         meta: localizeUi(
                                           professorMariFacetSendsContentLater(facet.kind)
-                                            ? "ui.chat.homeprofessormarichat.whatMariSeesNameOnly"
-                                            : "ui.chat.homeprofessormarichat.whatMariSeesGoesNext",
+                                            ? "ui.chat.homeprofessormarichat.awareOfNameOnly"
+                                            : "ui.chat.homeprofessormarichat.awareOfGoesNext",
                                         ),
                                         onRemove: () => removeOneShotFacet(facet),
                                       }),
@@ -7256,19 +7256,19 @@ export function HomeProfessorMariChat({
                                       title: localizeUi("ui.chat.homeprofessormarichat.searchContextValue1", {
                                         value1: oneShotContext.query,
                                       }),
-                                      meta: localizeUi("ui.chat.homeprofessormarichat.whatMariSeesGoesNext"),
+                                      meta: localizeUi("ui.chat.homeprofessormarichat.awareOfGoesNext"),
                                       onRemove: () => setHandoffContext(null),
                                     })
                                   ) : (
                                     <p className="px-3 py-3 text-xs text-[var(--muted-foreground)]">
-                                      {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesNextEmpty")}
+                                      {localizeUi("ui.chat.homeprofessormarichat.awareOfNextEmpty")}
                                     </p>
                                   )}
                                 </div>
                               </section>
                               <section className="space-y-1.5" data-group="always">
                                 <h4 className={SEES_KICKER_CLASS}>
-                                  {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesAlways")}
+                                  {localizeUi("ui.chat.homeprofessormarichat.awareOfAlways")}
                                 </h4>
                                 <div className="mari-edit">
                                   {handoffContext && !oneShotContext
@@ -7279,7 +7279,7 @@ export function HomeProfessorMariChat({
                                           handoffContext.resource?.label ??
                                           handoffContext.resource?.kind ??
                                           handoffContext.source,
-                                        meta: localizeUi("ui.chat.homeprofessormarichat.whatMariSeesFocusMeta"),
+                                        meta: localizeUi("ui.chat.homeprofessormarichat.awareOfFocusMeta"),
                                         onRemove: () => setHandoffContext(null),
                                       })
                                     : null}
@@ -7314,13 +7314,13 @@ export function HomeProfessorMariChat({
                                     )}
                                   >
                                     <Plus size="0.85rem" className="shrink-0" aria-hidden="true" />
-                                    {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesAttach")}
+                                    {localizeUi("ui.chat.homeprofessormarichat.awareOfAttach")}
                                   </button>
                                 </div>
                               </section>
                               <section className="space-y-1.5" data-group="how">
                                 <h4 className={SEES_KICKER_CLASS}>
-                                  {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesHowSheWorks")}
+                                  {localizeUi("ui.chat.homeprofessormarichat.awareOfHowSheWorks")}
                                 </h4>
                                 <div className="mari-edit">
                                   {renderSeesRow({
@@ -7332,11 +7332,11 @@ export function HomeProfessorMariChat({
                                       localizeUi("ui.chat.homeprofessormarichat.missingConnection"),
                                     meta:
                                       showContextUsage && contextBudget
-                                        ? localizeUi("ui.chat.homeprofessormarichat.whatMariSeesContextUse", {
+                                        ? localizeUi("ui.chat.homeprofessormarichat.awareOfContextUse", {
                                             used: formatCompactTokenCount(contextBudget.usedTokens),
                                             maximum: formatCompactTokenCount(contextBudget.maxTokens),
                                           })
-                                        : localizeUi("ui.chat.homeprofessormarichat.whatMariSeesModelMeta"),
+                                        : localizeUi("ui.chat.homeprofessormarichat.awareOfModelMeta"),
                                     action: (
                                       <button
                                         type="button"
@@ -7346,7 +7346,7 @@ export function HomeProfessorMariChat({
                                           setConnectionMenuOpen(true);
                                         }}
                                       >
-                                        {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesChangeModel")}
+                                        {localizeUi("ui.chat.homeprofessormarichat.awareOfChangeModel")}
                                       </button>
                                     ),
                                   })}
@@ -7365,14 +7365,14 @@ export function HomeProfessorMariChat({
                                         ? undefined
                                         : localizeUi(
                                             sandboxAvailable
-                                              ? "ui.chat.homeprofessormarichat.whatMariSeesSandboxOn"
-                                              : "ui.chat.homeprofessormarichat.whatMariSeesSandboxOff",
+                                              ? "ui.chat.homeprofessormarichat.awareOfSandboxOn"
+                                              : "ui.chat.homeprofessormarichat.awareOfSandboxOff",
                                           ),
                                   })}
                                 </div>
                               </section>
                               <p className="px-1 text-xs leading-relaxed text-[var(--muted-foreground)]">
-                                {localizeUi("ui.chat.homeprofessormarichat.whatMariSeesPrivacy")}
+                                {localizeUi("ui.chat.homeprofessormarichat.awareOfPrivacy")}
                               </p>
                             </div>
                           )}

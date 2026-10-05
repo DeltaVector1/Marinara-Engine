@@ -21,7 +21,7 @@ export const FACET_ICON: Record<ProfessorMariContextFacetKind, typeof Sparkles> 
  * location, error, aside answer), each as its own small pill. Used both in
  * the composer before sending and, unchanged, on the sent message (C2) so
  * the user can see exactly what Mari received. With `onRemove` they are the
- * composer's (M7): a "Mari sees" label, an X per facet, and a facet whose
+ * composer's (M7): an "Aware of" label, an X per facet, and a facet whose
  * content only leaves on Send is outlined.
  */
 export function MariContextFacetChips({
@@ -47,7 +47,7 @@ export function MariContextFacetChips({
     <div className={cn("flex flex-wrap items-center gap-1", className)}>
       {onRemove ? (
         <span className="mr-0.5 text-[0.6875rem] text-[var(--muted-foreground)]">
-          {t("ui.chat.homeprofessormarichat.whatMariSeesChipsLabel")}
+          {t("ui.chat.homeprofessormarichat.awareOfChipsLabel")}
         </span>
       ) : null}
       {facets.map((facet) => {
@@ -61,7 +61,7 @@ export function MariContextFacetChips({
             data-later={later ? "true" : undefined}
             title={t(
               later
-                ? "ui.chat.homeprofessormarichat.whatMariSeesFacetLaterTitle"
+                ? "ui.chat.homeprofessormarichat.awareOfFacetLaterTitle"
                 : "ui.chat.homeprofessormarichat.contextFacetTitle",
               values,
             )}
@@ -84,7 +84,7 @@ export function MariContextFacetChips({
                 type="button"
                 onClick={() => onRemove(facet)}
                 className="mari-workspace-context-chip__remove"
-                aria-label={t("ui.chat.homeprofessormarichat.whatMariSeesRemoveFacet", values)}
+                aria-label={t("ui.chat.homeprofessormarichat.awareOfRemoveFacet", values)}
               >
                 <X size="0.625rem" aria-hidden="true" />
               </button>

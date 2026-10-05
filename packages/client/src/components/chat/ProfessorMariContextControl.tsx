@@ -164,7 +164,7 @@ export function ProfessorMariContextControl({
         <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-2.5">
           <Sparkles size="0.8125rem" className="shrink-0 text-[var(--primary)]" />
           <h2 id={titleId} className="min-w-0 flex-1 text-xs font-semibold text-[var(--foreground)]">
-            {t("ui.chat.homeprofessormarichat.whatMariSees")}
+            {t("ui.chat.homeprofessormarichat.awareOf")}
           </h2>
           <button
             type="button"
@@ -280,8 +280,8 @@ export function ProfessorMariContextControl({
           "mari-workspace-destination mari-chrome-accent-text-muted mari-accent-animated",
           context && "text-[var(--primary)]",
         )}
-        title={t("ui.chat.homeprofessormarichat.whatMariSeesOpen")}
-        aria-label={t("ui.chat.homeprofessormarichat.whatMariSeesOpen")}
+        title={t("ui.chat.homeprofessormarichat.awareOfOpen")}
+        aria-label={t("ui.chat.homeprofessormarichat.awareOfOpen")}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={open ? panelId : undefined}
@@ -311,7 +311,7 @@ export function ProfessorMariContextControl({
           <Sparkles size="0.75rem" />
         )}
         <span className="max-w-28 truncate">
-          {character?.name ?? lorebook?.name ?? t("ui.chat.homeprofessormarichat.whatMariSees")}
+          {character?.name ?? lorebook?.name ?? t("ui.chat.homeprofessormarichat.awareOf")}
         </span>
         {totalCount > 0 && <span className="mari-chrome-muted-badge px-1.5 py-0.5 text-[0.56rem]">{totalCount}</span>}
         {context && <span className="sr-only">{t("ui.chat.homeprofessormarichat.contextControlFocused")}</span>}

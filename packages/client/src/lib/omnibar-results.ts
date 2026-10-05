@@ -312,14 +312,14 @@ export function buildOmnibarControlResults({
     [
       "commandCenterMariEnabled",
       "commandCenter.controls.mariAssist",
-      "Mari assistance",
+      "Ask Mari from Search",
       mariEnabled,
       setters.setCommandCenterMariEnabled,
     ],
     [
       "omnibarSuggestionsEnabled",
       "commandCenter.controls.omnibarSuggestions",
-      "Omnibar suggestions",
+      "Context suggestions",
       omnibarSuggestionsEnabled,
       setters.setOmnibarSuggestionsEnabled,
     ],
@@ -613,17 +613,17 @@ export function buildOmnibarSearchResults({
   const capability = inferProfessorMariCommandCenterCapability(trimmedQuery);
   const intent = parseOmnibarIntent(trimmedQuery);
   const askPeeks: Partial<Record<typeof capability, string>> = {
-    repair: t("omnibar.askMari.peek.repair", "Mari will help troubleshoot and fix this."),
-    recommend: t("omnibar.askMari.peek.recommend", "Mari will compare the options and recommend one."),
-    create: t("omnibar.askMari.peek.create", "Mari will help you create this."),
-    edit: t("omnibar.askMari.peek.change", "Mari will help you change this."),
+    repair: t("omnibar.askMari.peek.repair", "Mari finds the problem and helps you fix it."),
+    recommend: t("omnibar.askMari.peek.recommend", "Mari compares the options and recommends one."),
+    create: t("omnibar.askMari.peek.create", "Mari helps you create this."),
+    edit: t("omnibar.askMari.peek.change", "Mari helps you change this."),
   };
   // The row names what it will send (R8); the line under it says what she will do.
   const askTitle = trimmedQuery
     ? t("omnibar.askMari.withQuery", "Ask Mari: “{{query}}”", { query: trimmedQuery })
     : t("omnibar.askProfessorMari", "Ask Professor Mari");
   const askPeek =
-    askPeeks[capability] ?? t("omnibar.askMari.peek.explain", "Mari will explain this and guide your next step.");
+    askPeeks[capability] ?? t("omnibar.askMari.peek.explain", "Mari explains this and suggests a next step.");
   // R40: with a query typed, a choice control's options join the searchable set,
   // so "gpt" reaches "Use GPT-4 for this chat" without finding the Model row and
   // drilling into it. They stay out of the idle deck, which would otherwise gain
@@ -819,7 +819,7 @@ export function buildOmnibarGlobalMessageResults({
       id: "global-search:see-all",
       action: { kind: "open-global-search", query },
       title: t("commandCenter.messages.seeAll", "See all results for “{{query}}”", { query }),
-      description: t("commandCenter.messages.seeAllDescription", "Opens Search All Chats, with filters."),
+      description: t("commandCenter.messages.seeAllDescription", "Opens Search all chats with filters."),
       category: "chat",
       group: "messages",
       score: 280 - rows.length,
@@ -934,7 +934,7 @@ export function buildOmnibarIntentShortcuts({
       id: `shortcut:start-chat:${character.id}`,
       action: { kind: "start-character-chat" as const, characterId: character.id, characterName: character.name },
       title: t("commandCenter.shortcuts.startChat", "Start a chat with {{name}}", { name: character.name }),
-      description: t("commandCenter.shortcuts.startChatDescription", "Choose the mode, then the chat opens."),
+      description: t("commandCenter.shortcuts.startChatDescription", "Pick a mode to open the chat."),
       category: "chat" as const,
       group: "current-work" as const,
       score: 600 - index,
@@ -972,7 +972,7 @@ const NEW_CHAT_COMMANDS: readonly {
     titleKey: "commandCenter.newChat.conversation",
     titleFallback: "New conversation",
     descriptionKey: "commandCenter.newChat.conversationDescription",
-    descriptionFallback: "Opens the same new-chat flow as Home’s Conversation button.",
+    descriptionFallback: "Same as Conversation on Home.",
     icon: "chats",
   },
   {
@@ -982,7 +982,7 @@ const NEW_CHAT_COMMANDS: readonly {
     titleKey: "commandCenter.newChat.roleplay",
     titleFallback: "New roleplay",
     descriptionKey: "commandCenter.newChat.roleplayDescription",
-    descriptionFallback: "Opens the same new-chat flow as Home’s Roleplay button.",
+    descriptionFallback: "Same as Roleplay on Home.",
     icon: "chats",
   },
   {
@@ -992,7 +992,7 @@ const NEW_CHAT_COMMANDS: readonly {
     titleKey: "commandCenter.newChat.game",
     titleFallback: "New game",
     descriptionKey: "commandCenter.newChat.gameDescription",
-    descriptionFallback: "Opens the same new-chat flow as Home’s Game button.",
+    descriptionFallback: "Same as Game on Home.",
     icon: "game-assets",
   },
 ];
@@ -1198,7 +1198,7 @@ export function buildOmnibarContextResults({
         }),
         description: t(
           "commandCenter.suggestions.editFocusedFieldDescription",
-          "Ask Mari to suggest a useful change for the selected field.",
+          "Mari suggests a change to the selected field.",
         ),
         category: "professor",
         score: 460,
@@ -1618,7 +1618,7 @@ export function buildOmnibarApprovalResults({
         : {
             control: {
               type: "choice" as const,
-              label: t("commandCenter.approval.decide", "Mari is waiting on you"),
+              label: t("commandCenter.approval.decide", "Mari needs your answer"),
               // No option is selected yet: the row is the question, not a setting.
               value: pendingId === approval.id ? "pending" : "",
               options: [

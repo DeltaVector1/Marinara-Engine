@@ -31,7 +31,7 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
     .click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("Control+k");
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
-  await omnibar.getByRole("button", { name: "Omnibar settings", exact: true }).click();
+  await omnibar.getByRole("button", { name: "Search and Professor Mari settings", exact: true }).click();
   const packs = omnibar.getByRole("radiogroup", { name: "Mari appearance" });
   await expect(packs.getByRole("radio")).toHaveCount(4);
   const golden = packs.getByRole("radio", { name: /^Golden Mari/ });
@@ -59,7 +59,7 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
     "naturalWidth",
     512,
   );
-  await omnibar.getByRole("button", { name: "Omnibar settings", exact: true }).click();
+  await omnibar.getByRole("button", { name: "Search and Professor Mari settings", exact: true }).click();
   await expect(safari).toBeChecked();
   await golden.check();
   await page.reload();
@@ -73,7 +73,7 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
     "naturalWidth",
     512,
   );
-  await omnibar.getByRole("button", { name: "Omnibar settings", exact: true }).click();
+  await omnibar.getByRole("button", { name: "Search and Professor Mari settings", exact: true }).click();
   await expect(golden).toBeChecked();
   await packs.getByRole("radio", { name: /^Basic/ }).check();
   await expect(packs.getByRole("radio", { name: /^Basic/ })).toBeChecked();

@@ -247,8 +247,8 @@ export function OmnibarSettingsButton({ open, onOpen }: { open: boolean; onOpen:
       type="button"
       onClick={onOpen}
       aria-expanded={open}
-      aria-label={t("omnibar.settings.label", "Omnibar & Professor Mari settings")}
-      title={t("omnibar.settings.label", "Omnibar & Professor Mari settings")}
+      aria-label={t("omnibar.settings.label", "Search and Professor Mari settings")}
+      title={t("omnibar.settings.label", "Search and Professor Mari settings")}
       className={cn("omnibar-settings-menu__trigger", open && "omnibar-settings-menu__trigger--open")}
     >
       <Settings2 size={14} />
@@ -334,14 +334,14 @@ export function OmnibarSettingsSheet({
           >
             <ChevronLeft size={16} />
           </button>
-          <h2 id="omnibar-settings-title">{t("omnibar.settings.label", "Omnibar & Professor Mari settings")}</h2>
+          <h2 id="omnibar-settings-title">{t("omnibar.settings.label", "Search and Professor Mari settings")}</h2>
         </header>
 
         <Section title={t("omnibar.settings.search.heading", "Search")}>
           <SettingRow
             controlId="omnibar-suggestions"
-            label={t("omnibar.settings.suggestions.label", "Proactive suggestions")}
-            description={t("omnibar.settings.suggestions.description", "Offer context and edits before you ask.")}
+            label={t("omnibar.settings.suggestions.label", "Context suggestions")}
+            description={t("omnibar.settings.suggestions.description", "Mari offers context and edits before you ask.")}
             checked={suggestionsEnabled}
             onChange={setSuggestionsEnabled}
           />
@@ -367,7 +367,7 @@ export function OmnibarSettingsSheet({
           <SettingRow
             controlId="quick-answers"
             label={t("omnibar.settings.aside.label", "Quick answers")}
-            description={t("omnibar.settings.aside.description", "Answer a search that finds nothing.")}
+            description={t("omnibar.settings.aside.description", "Mari answers when a search finds nothing.")}
             checked={asideEnabled}
             onChange={setAsideEnabled}
           />
@@ -382,7 +382,7 @@ export function OmnibarSettingsSheet({
               <span className="omnibar-settings-menu__description">
                 {t(
                   "omnibar.settings.aside.connection.description",
-                  "Your search text is sent to this model, never your memories or the field you are editing.",
+                  "Quick answers send only your search text to this model, not your memories or the field you are editing.",
                 )}
               </span>
             </label>
@@ -413,7 +413,7 @@ export function OmnibarSettingsSheet({
               <p className="omnibar-settings-sheet__note">
                 {t(
                   "omnibar.settings.aside.localMissingNote",
-                  "No local model is downloaded yet, so quick answers stay silent. Download one, or choose a connection.",
+                  "No local model is downloaded, so quick answers are off. Download one or choose a connection.",
                 )}
                 {onSetUpLocalModel ? (
                   <button
@@ -438,10 +438,7 @@ export function OmnibarSettingsSheet({
           <div id={anchorId("quick-answer-delay")} className="omnibar-settings-menu__row">
             <SettingText
               label={t("omnibar.settings.aside.delay.label", "Wait before answering")}
-              description={t(
-                "omnibar.settings.aside.delay.description",
-                "How long you stop typing before Mari answers.",
-              )}
+              description={t("omnibar.settings.aside.delay.description", "How long Mari waits after you stop typing.")}
             />
             <span className="omnibar-settings-menu__segmented">
               {OMNIBAR_ASIDE_DELAY_CHOICES_MS.map((delayMs) => (
@@ -462,10 +459,10 @@ export function OmnibarSettingsSheet({
         <Section title={t("omnibar.settings.mari.heading", "Professor Mari")}>
           <SettingRow
             controlId="ask-mari"
-            label={t("omnibar.settings.mari.label", "Ask Mari from search")}
+            label={t("omnibar.settings.mari.label", "Ask Mari from Search")}
             description={t(
               "omnibar.settings.mari.description",
-              "Ask Mari from the search field, the pull-down and Ctrl/Command+J.",
+              "Ask Mari from the Search field, the pull-down and Ctrl/Command+J.",
             )}
             checked={mariEnabled}
             onChange={setMariEnabled}
@@ -529,7 +526,7 @@ export function OmnibarSettingsSheet({
           title={t("omnibar.settings.appearance.heading", "Appearance")}
           description={t(
             "omnibar.settings.appearance.description",
-            "One look for Mari everywhere: her workspace, search, Home and the top bar.",
+            "How Mari looks in her workspace, Search, Home and the top bar.",
           )}
         >
           <AppearancePacks />

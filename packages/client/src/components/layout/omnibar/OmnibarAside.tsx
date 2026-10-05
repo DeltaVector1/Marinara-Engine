@@ -114,9 +114,7 @@ export function OmnibarAside({
         data-component="GlobalOmnibar.Aside"
         className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]"
       >
-        <span>
-          {t("omnibar.aside.needsModel", "Professor Mari can answer searches like this once she has a model.")}
-        </span>
+        <span>{t("omnibar.aside.needsModel", "Choose a model so Professor Mari can answer searches like this.")}</span>
         <button type="button" onClick={onChooseModel} className={textAction}>
           {t("omnibar.aside.chooseModel", "Choose a model")}
         </button>
@@ -222,9 +220,7 @@ export function OmnibarAside({
       )}
       {!disclosed && complete ? (
         <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.6875rem] text-[var(--muted-foreground)]">
-          <span>
-            {t("omnibar.aside.disclosure", "Professor Mari answered this because nothing matched what you typed.")}
-          </span>
+          <span>{t("omnibar.aside.disclosure", "No results matched, so Professor Mari answered.")}</span>
           <button type="button" onClick={onDisable} className={textAction}>
             {t("omnibar.aside.turnOff", "Turn this off")}
           </button>

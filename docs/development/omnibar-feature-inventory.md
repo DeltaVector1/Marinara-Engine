@@ -189,7 +189,7 @@ Rules that must survive:
     an open chat shows the new swipe without a reload. "Show exact
     changes" swaps every field to the line-by-line diff and back. Raw is one disclosure (`.mari-tech`: tables,
     rows, the command and every created row's snapshot); the "Edit review opens
-    in" setting opens it by default. Undo, Keep (and Keep & Enable for a new
+    in" setting opens it by default. Undo, Keep (and Keep and enable for a new
     memory) are small `.mari-link` / `.mari-btn` buttons (their hit area grows
     to 44px on touch); View as prompt and a multi-row lorebook entry's Reject
     stay as quiet links. No panel sits inside another. A folded row's content
@@ -227,22 +227,23 @@ Rules that must survive:
     "Working on it..." with a soft shimmer while she works, "Needs your
     answer" while a review waits), settings and Close; the chat portals the
     status text into the row (`omnibarStatusSlot`). Row 2
-    (`.mari-omnibar-header-row`): Skills, Memories and What Mari sees with its
+    (`.mari-omnibar-header-row`): Skills, Memories and Aware of with its
     count, then Chats with New chat (+) right after it as one group behind a
     hairline that closes the row, at the right under settings and Close (Q5,
     slice 57b; above 30rem the other three stay centred). Every tab fits the
     bar at every width, so there is no ⋮ menu that would only repeat them (Q1,
     slice 56). No mode
     control. Below 30rem the tabs show icon + count plus a short visible label
-    under the icon (`context`'s short label reuses the "Mari sees" composer
+    under the icon (`context`'s short label reuses the "Aware of" composer
     chip copy), not only screen-reader text, so the icons are identifiable
     (F8/D2, slice 41); the full label stays for `aria-label`/`title`.
-  - What Mari sees (M7; destination id `context`): the handoff facets ride
-    above the textarea behind a "Mari sees" label as `MariContextFacetChips`
+  - Aware of (M7, renamed from "What Mari sees" in Q3, slice 58; destination
+    id `context`, keys `ui.chat.homeprofessormarichat.awareOf*`): the handoff
+    facets ride above the textarea behind an "Aware of" label as `MariContextFacetChips`
     with `onRemove`, one X per facet (`withoutProfessorMariContextFacet`
     removes only that facet; the context clears once none is left). Chat,
     field and error facets are outlined (`professorMariFacetSendsContentLater`)
-    with the tooltip "Name only now; the content goes when you send" (R22).
+    with the tooltip "Name only for now. The content goes when you send." (R22).
     The panel is three `.mari-edit` groups: "With your next message" (the same
     facets, each with Remove), "Always in this Mari chat" (the persistent
     character/lorebook focus, attached chat histories that open their content,
@@ -250,7 +251,7 @@ Rules that must survive:
     use when Show context usage is on, Change, and the sandbox state; this
     replaced the trust strip), then one privacy line. On a phone the panel is
     an opaque canvas sheet over the transcript.
-  - Side panels (M6): Chats, Skills, Memories and What Mari sees share one
+  - Side panels (M6): Chats, Skills, Memories and Aware of share one
     surface: the canvas colour, one hairline on the left beside the stream, a
     full opaque sheet on a phone. They share `MariSidePanelHeader` (title, a
     hint of up to two lines, Close; on a phone Back instead; a sub-view such as an
@@ -361,9 +362,9 @@ scores below a label/alias hit (section 4). Every system command
   ids keep that older shape because the context bonus matches on them.
 - **The `omnibar` section (Q2, slice 57).** Every search and Professor Mari
   setting lives in the omnibar's own settings view (`OmnibarSettingsMenu.tsx`),
-  not in the Settings panel: Search (proactive suggestions, clear search
+  not in the Settings panel: Search (context suggestions, clear search
   history), Quick answers (on/off, model, wait), Professor Mari (Ask Mari from
-  search, Permissions Mode, suggestion chips, edit review view, Enter sends to
+  Search, permissions mode, suggestion chips, edit review view, Enter sends to
   Mari, Home navigator, Mini Mari visits) and Appearance (the pack grid). Their
   registry entries use `sectionId: "omnibar"`; `isOmnibarSettingsTarget` sends
   any jump to that section or its controls (an omnibar row, the Settings
@@ -371,7 +372,8 @@ scores below a label/alias hit (section 4). Every system command
   `executeStateNavigation`) to `ui.openOmnibarSettings(controlId)`, which opens
   the view and scrolls to `#omnibar-setting-<id>` with its control focused. The
   omnibar stays open for these rows. Settings > General keeps one row,
-  "Omnibar & Professor Mari settings → Open". The appearance packs are a grid of
+  "Search and Professor Mari settings → Open" (Q3, slice 58: the user-facing
+  name is Search; "omnibar" stays the code and doc name). The appearance packs are a grid of
   cards around visually hidden native radios (Tab, arrows, Space/Enter; the
   checked card has a primary ring and a check badge); previews are tier 3
   profile poses at 64 px, mounted only once the grid is within 200 px of the

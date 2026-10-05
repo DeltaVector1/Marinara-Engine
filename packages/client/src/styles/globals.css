@@ -1900,7 +1900,7 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
   background: color-mix(in srgb, var(--background) 97%, oklch(0.2 0.025 315));
 }
 
-/* M6: Chats, Skills, Memories and What Mari sees share one surface - the canvas, one hairline on the
+/* M6: Chats, Skills, Memories and Aware of share one surface - the canvas, one hairline on the
    left (a full opaque sheet with Back on a phone), this header, and Mari's own `.mari-edit` group rows. */
 .mari-side-head {
   display: flex;

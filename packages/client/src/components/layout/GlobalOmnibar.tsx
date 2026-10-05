@@ -623,23 +623,23 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const editorDirty = useUIStore((state) => state.editorDirty);
 
   const idleGreeting = useMemo(() => {
-    if (!activeChat) return t("omnibar.hello", "Hi, I'm Mari. Type to search, or ask me for anything...");
+    if (!activeChat) return t("omnibar.hello", "Hi, I'm Mari. Type to search, or ask me anything.");
 
     const greetings =
       activeChat.mode === "roleplay"
         ? [
-            t("omnibar.greetings.roleplay.one", "A roleplay chat. What should we look into?"),
-            t("omnibar.greetings.roleplay.two", "Oh, a scene in progress. Need a hand?"),
+            t("omnibar.greetings.roleplay.one", "What should we look into in this roleplay?"),
+            t("omnibar.greetings.roleplay.two", "A scene is in progress. What do you need?"),
             t("omnibar.greetings.roleplay.three", "This story is open. What would you like to find?"),
           ]
         : activeChat.mode === "conversation"
           ? [
-              t("omnibar.greetings.conversation.one", "A conversation. What should we look into?"),
-              t("omnibar.greetings.conversation.two", "I found your chat. What do you need?"),
+              t("omnibar.greetings.conversation.one", "What should we look into in this conversation?"),
+              t("omnibar.greetings.conversation.two", "Your conversation is open. What do you need?"),
               t("omnibar.greetings.conversation.three", "This chat is open. What would you like to find?"),
             ]
           : [
-              t("omnibar.greetings.chat.one", "Oh, a chat. What should we look into?"),
+              t("omnibar.greetings.chat.one", "What should we look into in this chat?"),
               t("omnibar.greetings.chat.two", "Your chat is open. What do you need?"),
               t("omnibar.greetings.chat.three", "A chat is open. What would you like to find?"),
             ];
@@ -3352,10 +3352,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                         : // ponytail: read once per open (the dialog remounts each time); a resize
                           // while open keeps the old text. Use a shared media hook if one lands.
                           window.matchMedia("(min-width: 640px)").matches
-                          ? t(
-                              "commandCenter.placeholder",
-                              "Search everything — or narrow with faq:, docs:, msg:, char:",
-                            )
+                          ? t("commandCenter.placeholder", "Search everything, or narrow with faq:, docs:, msg:, char:")
                           : t("commandCenter.placeholderShort", "Search everything")
                     }
                     className="min-w-0 flex-1 bg-transparent text-base font-medium text-[var(--foreground)] outline-none placeholder:font-normal placeholder:text-[var(--muted-foreground)] [&::-webkit-search-cancel-button]:hidden"
@@ -3520,7 +3517,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             <p className="mt-1 max-w-[32rem] text-xs leading-relaxed text-[var(--muted-foreground)]">
               {t(
                 "commandCenter.empty.description",
-                "Try a chat, character, setting, or message. Use the category shortcuts above to browse.",
+                "Type a chat, character, setting or message. Pick a category above to browse.",
               )}
             </p>
           </div>
