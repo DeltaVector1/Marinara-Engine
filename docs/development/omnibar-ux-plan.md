@@ -98,7 +98,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Done                 | cc3081b93 |
 | 58b | Type icons everywhere, context for recent chats (Q6)            | designer         | Done                 | 9c7701cd6 |
 | 59  | Review of 56-58, 57b, 58b (Q4)                                  | reviewer, worker | Done                 | 40314d650 |
-| 60  | Record what was cut, server-side (R1)                           | worker           | Pending              |           |
+| 60  | Record what was cut, server-side (R1)                           | worker           | Done                 | 122ec6d2e |
 | 61  | Reply checkup, no model (R2)                                    | designer         | Pending              |           |
 | 62  | Mari reads the checkup: chat.diagnose (R3)                      | designer         | Pending              |           |
 | 62b | One Mari thread per context (R7)                                | designer         | Pending              |           |
