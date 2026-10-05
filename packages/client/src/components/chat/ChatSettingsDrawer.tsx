@@ -400,7 +400,16 @@ interface ChatSettingsDrawerProps {
   /** Show the Help Layout button beside the title (chats that mount the Help overlay). */
   showHelpLayout?: boolean;
   initialSection?:
-    "autonomous" | "memory-recall" | "multiplayer" | "summary" | "active-context" | "message-search" | null;
+    | "autonomous"
+    | "memory-recall"
+    | "multiplayer"
+    | "summary"
+    | "active-context"
+    | "message-search"
+    // R2: the reply checkup's links to Max output tokens and the lorebook token budget.
+    | "advanced-parameters"
+    | "lorebooks"
+    | null;
   /**
    * Chat Branches, Search, Active Context, Gallery and the drawers in `ChatSettingsTools`. Regular chats
    * pass it; multiplayer hosting does not.
@@ -1384,9 +1393,15 @@ export function ChatSettingsDrawer({
     return () => window.cancelAnimationFrame(frame);
   }, [chatMode, initialSection, open]);
   useEffect(() => {
-    if (!open || initialSection !== "multiplayer") return;
+    if (
+      !open ||
+      (initialSection !== "multiplayer" && initialSection !== "advanced-parameters" && initialSection !== "lorebooks")
+    )
+      return;
     const frame = window.requestAnimationFrame(() =>
-      panelRef.current?.querySelector('[data-chat-settings-section="multiplayer"]')?.scrollIntoView({ block: "start" }),
+      panelRef.current
+        ?.querySelector(`[data-chat-settings-section="${initialSection}"]`)
+        ?.scrollIntoView({ block: "start" }),
     );
     return () => window.cancelAnimationFrame(frame);
   }, [initialSection, open]);
@@ -7463,6 +7478,7 @@ export function ChatSettingsDrawer({
 
           <div style={{ order: CHAT_SETTINGS_ORDER.lorebooks }}>
             <LorebooksSection
+              forceOpen={initialSection === "lorebooks"}
               chatId={chat.id}
               activeLorebooks={activeLorebooks}
               lorebooks={(lorebooks ?? []) as Lorebook[]}
@@ -9879,6 +9895,7 @@ export function ChatSettingsDrawer({
           {/* Advanced Parameters */}
           <div style={{ order: CHAT_SETTINGS_ORDER.advancedParameters }}>
             <AdvancedParametersSection
+              forceOpen={initialSection === "advanced-parameters"}
               metadata={metadata}
               isConversation={isConversation}
               connectionId={chat.connectionId ?? null}

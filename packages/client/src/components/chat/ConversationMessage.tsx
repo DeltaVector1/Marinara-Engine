@@ -5,7 +5,7 @@ import { useMessagePresetVariables } from "../../hooks/use-message-preset-variab
 // Resolves character/persona identity, builds render context,
 // and delegates to the appropriate layout component.
 // ──────────────────────────────────────────────
-import { useState, useCallback, useRef, useEffect, memo, useMemo, type CSSProperties } from "react";
+import { useState, useCallback, useRef, useEffect, memo, useMemo, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle, Phone, PhoneIncoming, PhoneOff, Trash2 } from "lucide-react";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
@@ -105,6 +105,8 @@ interface ConversationMessageProps {
   failedReply?: boolean;
   failedReplyReason?: string;
   onRetryFailedReply?: () => void;
+  /** R2: the reply checkup's quiet line, set only on the reply it describes. */
+  replyCheckup?: ReactNode;
   onSetActiveSwipe?: (messageId: string, index: number) => void;
   onToggleHiddenFromAI?: (messageId: string, current: boolean) => void;
   onPeekPrompt?: () => void;
@@ -150,6 +152,7 @@ export const ConversationMessage = memo(function ConversationMessage({
   failedReply,
   failedReplyReason,
   onRetryFailedReply,
+  replyCheckup,
   onSetActiveSwipe,
   onToggleHiddenFromAI,
   onPeekPrompt,
@@ -1169,6 +1172,7 @@ export const ConversationMessage = memo(function ConversationMessage({
         </div>
         <div className="px-4">
           <MessageMarkIndicators message={message} className="px-1" />
+          {!isUser && replyCheckup && <div className="px-1">{replyCheckup}</div>}
           {isUser && failedReply && (
             <p className="mari-send-failed" role="alert" title={failedReplyReason}>
               <AlertTriangle size="0.8rem" aria-hidden="true" />

@@ -13,6 +13,7 @@ import {
   useState,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
+  type ReactNode,
 } from "react";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 import { Loader2, ChevronUp, Puzzle } from "lucide-react";
@@ -87,6 +88,9 @@ interface ConversationViewProps {
   failedReplyMessageId?: string | null;
   failedReplyReason?: string;
   onRetryFailedReply?: () => void;
+  /** R2: the reply that gets the checkup's quiet line, and the line itself. */
+  replyCheckupMessageId?: string | null;
+  replyCheckup?: ReactNode;
   onSetActiveSwipe: (messageId: string, index: number) => void;
   onToggleHiddenFromAI: (messageId: string, current: boolean) => void;
   onPeekPrompt: (messageId?: string) => void;
@@ -387,6 +391,8 @@ export function ConversationView({
   failedReplyMessageId,
   failedReplyReason,
   onRetryFailedReply,
+  replyCheckupMessageId,
+  replyCheckup,
   onSetActiveSwipe,
   onToggleHiddenFromAI,
   onPeekPrompt,
@@ -1421,6 +1427,7 @@ export function ConversationView({
                 failedReply={msg.id === failedReplyMessageId}
                 failedReplyReason={failedReplyReason}
                 onRetryFailedReply={onRetryFailedReply}
+                replyCheckup={msg.id === replyCheckupMessageId ? replyCheckup : undefined}
                 onSetActiveSwipe={onSetActiveSwipe}
                 onToggleHiddenFromAI={onToggleHiddenFromAI}
                 onPeekPrompt={() => onPeekPrompt(msg.id)}

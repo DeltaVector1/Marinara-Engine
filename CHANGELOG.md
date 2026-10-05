@@ -870,6 +870,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 - A generated reply now records what its context fit cut to make the prompt fit (dropped history messages, token counts before/after, and the reply budget) alongside its other generation info, so a later "replies got worse" checkup can read real numbers instead of nothing. No UI yet; this is the data plumbing a following slice reads.
 
+- A reply that was cut off, or whose prompt dropped older messages or shrank the reply limit to fit, now gets a quiet line under it (for example "Cut off · Check" or "42 older messages not sent · Check") in conversation and roleplay chats. Check opens a short list of facts, each with a link to the setting that fixes it (Max output tokens, Max context window, the lorebook token budget, or the character card), plus Peek at the prompt. The same checkup heads the Peek prompt window and appears in the omnibar as "Fix: Check the last reply". It reads numbers already saved with the reply and makes no model call. The omnibar's "Preview next prompt" row is gone; use Peek from the checkup or the message menu.
+
 ## [2.4.6]
 
 - Shutdown regression checks use persisted cleanup results after terminal exit, avoiding false failures when a closed terminal discards its final log output (#6245).

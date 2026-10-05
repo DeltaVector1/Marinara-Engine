@@ -27,6 +27,8 @@ import { getChatCharacterIds } from "./chat-macros";
 import { isLanguageGenerationConnection, type ConnectionProviderLike } from "./connection-filters";
 import type { DocsCommandSearchPassage } from "./docs-command-search";
 import type { OmnibarNamedRow, OmnibarTranslate } from "./omnibar-entity-rows";
+import { replyCheckupLabel, replyLineFindings } from "./reply-checkup";
+import type { ReplyCheckupFinding } from "@marinara-engine/shared";
 import {
   getUnambiguousOmnibarResult,
   isOmnibarAddIntent,
@@ -250,6 +252,8 @@ export type OmnibarContextResultsInput = {
   presets: readonly unknown[] | undefined;
   surface: OmnibarSurface;
   t: OmnibarTranslate;
+  /** R2: the reply checkup of the active chat's newest reply, when that reply is loaded. */
+  lastReplyFindings?: readonly ReplyCheckupFinding[];
 };
 
 export type OmnibarVerbSuggestionsInput = {
@@ -1068,6 +1072,7 @@ export function buildOmnibarContextResults({
   presets,
   surface,
   t,
+  lastReplyFindings = [],
 }: OmnibarContextResultsInput): OmnibarResult[] {
   const out: OmnibarResult[] = [];
   const push = (result: OmnibarResult) => {
@@ -1121,6 +1126,23 @@ export function buildOmnibarContextResults({
           : t("commandCenter.filters.connections", "Connections"),
         description: lastAppError.message,
       }),
+    });
+  }
+
+  // R2: a reply that was cut off or trimmed is the next most useful fix. Enter opens the checkup
+  // under that reply, which links to the exact settings and to Peek.
+  const replyFindings = replyLineFindings(lastReplyFindings);
+  if (isActiveChatSurface && activeChat && activeChat.mode !== "game" && replyFindings.length > 0) {
+    push({
+      id: `chat-tool:reply-checkup:${activeChat.id}`,
+      title: t("commandCenter.context.checkReply", "Fix: Check the last reply"),
+      description: replyFindings.map((finding) => replyCheckupLabel(finding, t)).join(" · "),
+      category: "chat",
+      group: "current-work",
+      score: 0,
+      kind: "action",
+      icon: "command",
+      action: { kind: "open-chat-tool", chatId: activeChat.id, tool: "reply-checkup" },
     });
   }
 
@@ -1282,7 +1304,7 @@ export function buildOmnibarContextResults({
   }
   if (isActiveChatSurface && activeChat) {
     const chatTool = (
-      tool: "summary" | "lorebook" | "peek-prompt" | "search" | "regenerate",
+      tool: "summary" | "lorebook" | "search" | "regenerate",
       title: string,
       icon: OmnibarResult["icon"],
     ): OmnibarResult => ({
@@ -1302,7 +1324,6 @@ export function buildOmnibarContextResults({
       push(chatTool("search", t("commandCenter.chatTools.search", "Search this chat"), "command"));
     }
     push(chatTool("lorebook", t("commandCenter.chatTools.lorebook", "Active lorebook entries"), "lorebook"));
-    push(chatTool("peek-prompt", t("commandCenter.chatTools.peekPrompt", "Preview next prompt"), "command"));
     if (activeChat.mode === "roleplay") {
       push(chatTool("summary", t("commandCenter.chatTools.summary", "Summary"), "chats"));
     }

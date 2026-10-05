@@ -2063,14 +2063,8 @@ assert.ok(!("mariDetailId" in mariSession));
   });
   assert.deepEqual(
     toolIds(roleplayOnChatSurface),
-    [
-      "chat-tool:search:chat-1",
-      "chat-tool:lorebook:chat-1",
-      "chat-tool:peek-prompt:chat-1",
-      "chat-tool:summary:chat-1",
-      "chat-tool:regenerate:chat-1",
-    ],
-    "roleplay on the chat surface gets all five tool rows, Summary included",
+    ["chat-tool:search:chat-1", "chat-tool:lorebook:chat-1", "chat-tool:summary:chat-1", "chat-tool:regenerate:chat-1"],
+    "roleplay on the chat surface gets all four tool rows, Summary included",
   );
   const summaryRow = roleplayOnChatSurface.find((row) => row.id === "chat-tool:summary:chat-1");
   assert.deepEqual(summaryRow?.action, { kind: "open-chat-tool", chatId: "chat-1", tool: "summary" });
@@ -2082,12 +2076,7 @@ assert.ok(!("mariDetailId" in mariSession));
   });
   assert.deepEqual(
     toolIds(conversationOnChatSurface),
-    [
-      "chat-tool:search:chat-1",
-      "chat-tool:lorebook:chat-1",
-      "chat-tool:peek-prompt:chat-1",
-      "chat-tool:regenerate:chat-1",
-    ],
+    ["chat-tool:search:chat-1", "chat-tool:lorebook:chat-1", "chat-tool:regenerate:chat-1"],
     "conversation mode has no Summary feature, so no Summary row",
   );
 
@@ -2102,9 +2091,40 @@ assert.ok(!("mariDetailId" in mariSession));
   });
   assert.deepEqual(
     toolIds(gameOnChatSurface),
-    ["chat-tool:lorebook:chat-1", "chat-tool:peek-prompt:chat-1"],
-    "game mode gets only lorebook and peek-prompt tool rows, not search or regenerate",
+    ["chat-tool:lorebook:chat-1"],
+    "game mode gets only the lorebook tool row, not search or regenerate",
   );
+
+  // R2 (slice 61): a reply finding puts "Fix: Check the last reply" first in the chat's rows; a
+  // setup-only finding (a large card) does not, and game mode has no quiet line to open.
+  const cutOff = {
+    code: "cut_off" as const,
+    text: "",
+    values: {},
+    link: { kind: "chat-settings" as const, section: "advanced-parameters" as const },
+  };
+  const largeCard = { ...cutOff, code: "card_large" as const };
+  const withCheckup = buildOmnibarContextResults({
+    ...toolBaseInput,
+    activeChat: roleplayChat,
+    surface: "chat",
+    lastReplyFindings: [cutOff, largeCard],
+  });
+  assert.equal(withCheckup[0]?.id, "chat-tool:reply-checkup:chat-1", "the reply checkup row leads the chat rows");
+  assert.deepEqual(withCheckup[0]?.action, { kind: "open-chat-tool", chatId: "chat-1", tool: "reply-checkup" });
+  assert.equal(withCheckup[0]?.description, "Cut off", "only reply findings are named on the row");
+  for (const [chat, findings, why] of [
+    [roleplayChat, [largeCard], "a large card alone is a setup fact, not a reply fix"],
+    [gameChat, [cutOff], "game mode has no quiet line to open"],
+  ] as const) {
+    const rows = buildOmnibarContextResults({
+      ...toolBaseInput,
+      activeChat: chat,
+      surface: "chat",
+      lastReplyFindings: findings,
+    });
+    assert.ok(!rows.some((row) => row.id.startsWith("chat-tool:reply-checkup:")), why);
+  }
 
   const roleplayOffChatSurface = buildOmnibarContextResults({
     ...toolBaseInput,

@@ -93,7 +93,7 @@ import { useEncounter } from "../../hooks/use-encounter";
 import { useScene } from "../../hooks/use-scene";
 import { useEncounterStore } from "../../stores/encounter.store";
 import { useTranslationStore } from "../../stores/translation.store";
-import { getChatTranslationConfig, type ChatMode } from "@marinara-engine/shared";
+import { getChatTranslationConfig, type ChatMode, type ReplyCheckupLink } from "@marinara-engine/shared";
 import { ttsService } from "../../lib/tts-service";
 import { useTTSConfig } from "../../hooks/use-tts";
 import {
@@ -122,6 +122,7 @@ import {
   CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT,
   CHAT_PEEK_PROMPT_REQUEST_EVENT,
   CHAT_REGENERATE_REQUEST_EVENT,
+  CHAT_REPLY_CHECKUP_REQUEST_EVENT,
   CHAT_RETRY_WITH_CONNECTION_REQUEST_EVENT,
   CHAT_SEARCH_OPEN_REQUEST_EVENT,
   CHAT_SUMMARY_OPEN_REQUEST_EVENT,
@@ -154,6 +155,8 @@ import type {
   PeekPromptData,
 } from "./chat-area.types";
 import { HomeCreditsModal } from "./HomeCreditsModal";
+import { ReplyCheckup } from "./ReplyCheckup";
+import { checkReply, replyLineFindings } from "../../lib/reply-checkup";
 import { HomeBrowserHub } from "./HomeBrowserHub";
 import { NewChatConnectionGate } from "./NewChatConnectionGate";
 import { ChatCommonOverlays, preloadChatSettingsDrawer, type ChatSettingsInitialSection } from "./ChatCommonOverlays";
@@ -2405,6 +2408,30 @@ const LocalChatArea = memo(function LocalChatArea({
     [activeChatId, forkScene, isForking, isStreaming],
   );
 
+  // R2: the reply checkup reads facts already saved on a reply (no model call).
+  const checkMessage = useCallback(
+    (message: { content: string; extra?: unknown; characterId?: string | null }) =>
+      checkReply(message, {
+        connectionId: chat?.connectionId ?? null,
+        character: chatCharacterRows.find((row) => row.id === message.characterId) ?? null,
+      }),
+    [chat?.connectionId, chatCharacterRows],
+  );
+
+  const handleReplyCheckupLink = useCallback(
+    (link: ReplyCheckupLink) => {
+      if (link.kind === "chat-settings") {
+        handleOpenSettingsPanel(undefined, { initialSection: link.section });
+        return;
+      }
+      const ui = useUIStore.getState();
+      if (link.resource === "connection") ui.openConnectionDetail(link.id);
+      else if (link.resource === "lorebook") ui.openLorebookDetail(link.id);
+      else ui.openCharacterDetail(link.id);
+    },
+    [handleOpenSettingsPanel],
+  );
+
   // Peek prompt state
   const [peekPromptData, setPeekPromptData] = useState<PeekPromptData | null>(null);
 
@@ -2412,7 +2439,27 @@ const LocalChatArea = memo(function LocalChatArea({
     (messageId?: string) => {
       if (!activeChatId) return;
       peekPrompt.mutate(messageId ? { chatId: activeChatId, messageId } : activeChatId, {
-        onSuccess: (data) => setPeekPromptData({ ...data, chatId: activeChatId }),
+        onSuccess: (data) => {
+          // A cached prompt belongs to the newest reply; its checkup leads the Peek header.
+          const reply = messageId
+            ? messages?.find((message) => message.id === messageId)
+            : data.source === "cached"
+              ? messages?.findLast((message) => message.role === "assistant" || message.role === "narrator")
+              : undefined;
+          setPeekPromptData({
+            ...data,
+            chatId: activeChatId,
+            checkup: reply
+              ? {
+                  findings: checkMessage(reply),
+                  onLink: (link) => {
+                    setPeekPromptData(null);
+                    handleReplyCheckupLink(link);
+                  },
+                }
+              : undefined,
+          });
+        },
         onError: (error) => {
           const message =
             error instanceof ApiError
@@ -2424,8 +2471,46 @@ const LocalChatArea = memo(function LocalChatArea({
         },
       });
     },
-    [activeChatId, peekPrompt],
+    [activeChatId, checkMessage, handleReplyCheckupLink, messages, peekPrompt],
   );
+
+  // R2: only the newest reply gets the quiet line, and only for facts about the reply itself.
+  const replyCheckup = useMemo(() => {
+    const last = messages?.[messages.length - 1];
+    if (!last || isStreaming || (last.role !== "assistant" && last.role !== "narrator")) return null;
+    const findings = checkMessage(last);
+    return replyLineFindings(findings).length > 0 ? { messageId: last.id, findings } : null;
+  }, [checkMessage, isStreaming, messages]);
+  const [openReplyCheckupId, setOpenReplyCheckupId] = useState<string | null>(null);
+  const replyCheckupNode = useMemo(
+    () =>
+      replyCheckup ? (
+        <ReplyCheckup
+          messageId={replyCheckup.messageId}
+          findings={replyCheckup.findings}
+          open={openReplyCheckupId === replyCheckup.messageId}
+          onOpenChange={(open) => setOpenReplyCheckupId(open ? replyCheckup.messageId : null)}
+          onLink={handleReplyCheckupLink}
+          onPeek={() => handlePeekPrompt(replyCheckup.messageId)}
+        />
+      ) : null,
+    [handlePeekPrompt, handleReplyCheckupLink, openReplyCheckupId, replyCheckup],
+  );
+  // The omnibar's "Check the last reply" row opens the line's checkup in place.
+  useEffect(() => {
+    if (!activeChatId || !replyCheckup) return;
+    const handleReplyCheckupRequest = (event: Event) => {
+      if ((event as CustomEvent<{ chatId?: string }>).detail?.chatId !== activeChatId) return;
+      setOpenReplyCheckupId(replyCheckup.messageId);
+      requestAnimationFrame(() =>
+        document
+          .querySelector(`[data-reply-checkup="${replyCheckup.messageId}"]`)
+          ?.scrollIntoView({ block: "nearest", behavior: "smooth" }),
+      );
+    };
+    window.addEventListener(CHAT_REPLY_CHECKUP_REQUEST_EVENT, handleReplyCheckupRequest);
+    return () => window.removeEventListener(CHAT_REPLY_CHECKUP_REQUEST_EVENT, handleReplyCheckupRequest);
+  }, [activeChatId, replyCheckup]);
 
   // Find the last assistant message for peek-prompt eligibility
   const lastAssistantMessageId = useMemo(() => {
@@ -3436,6 +3521,8 @@ const LocalChatArea = memo(function LocalChatArea({
             failedReplyMessageId={failedReplyMessageId}
             failedReplyReason={lastAppError?.message}
             onRetryFailedReply={handleRetryFailedReply}
+            replyCheckupMessageId={replyCheckup?.messageId ?? null}
+            replyCheckup={replyCheckupNode}
             onSetActiveSwipe={handleSetActiveSwipe}
             onToggleHiddenFromAI={handleToggleHiddenFromAI}
             onPeekPrompt={handlePeekPrompt}
@@ -3573,6 +3660,8 @@ const LocalChatArea = memo(function LocalChatArea({
           failedReplyMessageId={failedReplyMessageId}
           failedReplyReason={lastAppError?.message}
           onRetryFailedReply={handleRetryFailedReply}
+          replyCheckupMessageId={replyCheckup?.messageId ?? null}
+          replyCheckup={replyCheckupNode}
           onSetActiveSwipe={handleSetActiveSwipe}
           onToggleConversationStart={handleToggleConversationStart}
           onToggleHiddenFromAI={handleToggleHiddenFromAI}

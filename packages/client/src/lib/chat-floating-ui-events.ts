@@ -4,6 +4,7 @@ export const CHAT_LOREBOOK_ENTRIES_OPEN_REQUEST_EVENT = "marinara:chat-lorebook-
 export const CHAT_SEARCH_OPEN_REQUEST_EVENT = "marinara:chat-search-open-request";
 export const CHAT_PEEK_PROMPT_REQUEST_EVENT = "marinara:chat-peek-prompt-request";
 export const CHAT_REGENERATE_REQUEST_EVENT = "marinara:chat-regenerate-request";
+export const CHAT_REPLY_CHECKUP_REQUEST_EVENT = "marinara:chat-reply-checkup-request";
 export const CHAT_RETRY_WITH_CONNECTION_REQUEST_EVENT = "marinara:chat-retry-with-connection-request";
 
 export function announceChatFloatingUiDismiss() {
@@ -29,6 +30,12 @@ export function requestChatSearchOpen(chatId: string) {
 export function requestChatPeekPrompt(chatId: string) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new CustomEvent(CHAT_PEEK_PROMPT_REQUEST_EVENT, { detail: { chatId } }));
+}
+
+/** R2: opens the reply checkup under the chat's newest reply (the omnibar Fix row). */
+export function requestChatReplyCheckup(chatId: string) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(CHAT_REPLY_CHECKUP_REQUEST_EVENT, { detail: { chatId } }));
 }
 
 export function requestChatRegenerate(chatId: string) {

@@ -991,6 +991,8 @@ interface ChatMessageProps {
   failedReply?: boolean;
   failedReplyReason?: string;
   onRetryFailedReply?: () => void;
+  /** R2: the reply checkup's quiet line, set only on the reply it describes. */
+  replyCheckup?: ReactNode;
   onSetActiveSwipe?: (messageId: string, index: number) => void;
   onToggleConversationStart?: ToggleConversationStart;
   memoryStartCharacterIds?: string[];
@@ -1870,6 +1872,7 @@ export const ChatMessage = memo(function ChatMessage({
   failedReply,
   failedReplyReason,
   onRetryFailedReply,
+  replyCheckup,
   onSetActiveSwipe,
   onToggleConversationStart,
   memoryStartCharacterIds,
@@ -4091,6 +4094,8 @@ export const ChatMessage = memo(function ChatMessage({
 
             <MessageMarkIndicators message={message} className="px-1" />
 
+            {!isUser && replyCheckup && <div className="px-1">{replyCheckup}</div>}
+
             {isUser && failedReply && (
               <p className="mari-send-failed" role="alert" title={failedReplyReason}>
                 <AlertTriangle size="0.8rem" aria-hidden="true" />
@@ -4534,6 +4539,8 @@ export const ChatMessage = memo(function ChatMessage({
           )}
 
           <MessageMarkIndicators message={message} className="px-3" />
+
+          {!isUser && replyCheckup && <div className="px-3">{replyCheckup}</div>}
 
           {isUser && failedReply && (
             <p className="mari-send-failed" role="alert" title={failedReplyReason}>

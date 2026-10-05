@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { checkReply } from "../../lib/reply-checkup";
 import { useAgentConfigs } from "../../hooks/use-agents";
 import { useCharacter, useCharacters, usePersonas } from "../../hooks/use-characters";
 import {
@@ -57,7 +58,7 @@ import { useGlobalChatSearch } from "../../hooks/use-chat-insights";
 import { openGlobalSearch } from "../../lib/chat-insights";
 import {
   requestChatLorebookEntriesOpen,
-  requestChatPeekPrompt,
+  requestChatReplyCheckup,
   requestChatRegenerate,
   requestChatRetryWithConnection,
   requestChatSearchOpen,
@@ -1281,6 +1282,13 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () => buildOmnibarSlashResults({ activeChatId, deferredQuery, slashAvailability, surface: omnibarContext.surface }),
     [activeChatId, deferredQuery, omnibarContext.surface, slashAvailability],
   );
+  const queryClient = useQueryClient();
+  // R2: the checkup of the open chat's newest message when it is a reply, from the cached page only.
+  const lastReplyFindings = useMemo(() => {
+    if (!activeChat || activeChat.id !== activeChatId) return [];
+    const newest = queryClient.getQueryData<{ pages: Message[][] }>(chatKeys.messages(activeChat.id))?.pages[0]?.at(-1);
+    return newest && (newest.role === "assistant" || newest.role === "narrator") ? checkReply(newest) : [];
+  }, [activeChat, activeChatId, queryClient]);
   // Context-aware results: read the app's current location (active chat, open
   // editor) and surface direct jumps to whatever is on screen and under it.
   const contextResults = useMemo<OmnibarResult[]>(() => {
@@ -1307,6 +1315,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       presets: presets.data,
       surface: omnibarContext.surface,
       t,
+      lastReplyFindings,
     });
     // The Fix row for a failed reply only opened the broken connection's
     // editor; picking one of the chat's other connections here now retries
@@ -1343,6 +1352,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     connectionById,
     languageConnections,
     lastAppError,
+    lastReplyFindings,
     lorebooks.data,
     mariEnabled,
     openAgentId,
@@ -1360,7 +1370,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   ]);
   // M9: what Mari says when she opens on this screen. Built here, where the omnibar context already is,
   // so every door (⌘J, the pull, Home, ⌘K) shows the same thing. Names, counts and times only (R22).
-  const queryClient = useQueryClient();
   const arrivalChat = activeChat && activeChat.id === activeChatId ? activeChat : null;
   const arrivalMessageCount = useChatMessageCount(
     mariEnabled && omnibarContext.surface === "chat" ? (arrivalChat?.id ?? null) : null,
@@ -2335,8 +2344,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             case "search":
               requestChatSearchOpen(action.chatId);
               return;
-            case "peek-prompt":
-              requestChatPeekPrompt(action.chatId);
+            case "reply-checkup":
+              requestChatReplyCheckup(action.chatId);
               return;
             case "regenerate":
               requestChatRegenerate(action.chatId);

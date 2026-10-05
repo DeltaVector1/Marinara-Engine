@@ -1873,6 +1873,44 @@ html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
   color: var(--marinara-chat-chrome-text);
 }
 
+/* R2: the reply checkup line uses the Failed line's shape, but muted and under a reply (left). */
+.mari-reply-checkup {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.mari-reply-checkup .mari-send-failed {
+  margin-inline-start: 0;
+  color: inherit;
+}
+
+.mari-reply-checkup .mari-link {
+  color: var(--foreground);
+  text-decoration: underline 1px var(--mari-hairline);
+  text-underline-offset: 3px;
+}
+
+[data-chat-mode] .mari-reply-checkup .mari-link {
+  color: var(--marinara-chat-chrome-text);
+}
+
+.mari-reply-checkup__panel {
+  display: grid;
+  max-width: min(85%, 36rem);
+  justify-items: start;
+  gap: 0.35rem;
+  margin-block-start: 0.35rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--mari-hairline);
+  border-radius: 0.5rem;
+}
+
+.mari-reply-checkup__facts {
+  display: grid;
+  gap: 0.3rem;
+}
+
 @media (width < 40rem) {
   .mari-edit__body {
     padding-inline-start: 0.9rem;

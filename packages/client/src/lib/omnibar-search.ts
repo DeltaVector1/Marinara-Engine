@@ -54,7 +54,7 @@ export type OmnibarAction =
   | {
       kind: "open-chat-tool";
       chatId: string;
-      tool: "summary" | "lorebook" | "peek-prompt" | "search" | "regenerate";
+      tool: "summary" | "lorebook" | "reply-checkup" | "search" | "regenerate";
     };
 
 export type OmnibarResult = {

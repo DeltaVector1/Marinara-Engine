@@ -763,6 +763,9 @@ type RoleplaySurfaceProps = {
   failedReplyMessageId?: string | null;
   failedReplyReason?: string;
   onRetryFailedReply?: () => void;
+  /** R2: the reply that gets the checkup's quiet line, and the line itself. */
+  replyCheckupMessageId?: string | null;
+  replyCheckup?: ReactNode;
   onSetActiveSwipe: (messageId: string, index: number) => void;
   onToggleConversationStart: (
     messageId: string,
@@ -883,6 +886,8 @@ export function ChatRoleplaySurface({
   failedReplyMessageId,
   failedReplyReason,
   onRetryFailedReply,
+  replyCheckupMessageId,
+  replyCheckup,
   onSetActiveSwipe,
   onToggleConversationStart,
   onToggleHiddenFromAI,
@@ -1943,6 +1948,7 @@ export function ChatRoleplaySurface({
                           failedReply={msg.id === failedReplyMessageId}
                           failedReplyReason={failedReplyReason}
                           onRetryFailedReply={onRetryFailedReply}
+                          replyCheckup={msg.id === replyCheckupMessageId ? replyCheckup : undefined}
                           onSetActiveSwipe={onSetActiveSwipe}
                           onToggleConversationStart={onToggleConversationStart}
                           onToggleHiddenFromAI={onToggleHiddenFromAI}
