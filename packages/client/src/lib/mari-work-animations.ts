@@ -74,8 +74,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "basic",
     label: "Basic",
-    description:
-      "Mari's familiar pixel look, with a little story for every state. Shared by the workspace, omnibar and top bar.",
+    description: "Mari's familiar pixel look, with a little story for every state.",
     portraits: {
       idle: sprite("basic/portrait-idle.webp"),
       blink: sprite("basic/portrait-blink.webp"),
@@ -91,8 +90,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "dottore",
     label: "Mari loves Dottore",
-    description:
-      "A cyan heart pin, a Dottore plush and twelve little fangirl stories. Shared by the workspace, omnibar and top bar.",
+    description: "A cyan heart pin, a Dottore plush and little fangirl stories.",
     portraits: {
       idle: sprite("dottore/portrait-idle.webp"),
       blink: sprite("dottore/portrait-blink.webp"),
@@ -108,8 +106,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "golden",
     label: "Golden Mari",
-    description:
-      "Shiny gold, a larger-than-life Chad expression and twelve golden stories. Shared by the workspace, omnibar and top bar.",
+    description: "Shiny gold and a larger-than-life Chad expression.",
     portraits: {
       idle: sprite("golden/portrait-idle.webp"),
       blink: sprite("golden/portrait-blink.webp"),
@@ -125,8 +122,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
   {
     id: "safari",
     label: "Safari Mari",
-    description:
-      "Safari gear, jungle discoveries and twelve little expeditions. Shared by the workspace, omnibar and top bar.",
+    description: "Safari gear and little jungle expeditions.",
     portraits: {
       idle: sprite("safari/portrait-idle.webp"),
       blink: sprite("safari/portrait-blink.webp"),

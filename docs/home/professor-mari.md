@@ -12,7 +12,7 @@ You talk to her in plain language. Type a message in the box, then press Enter t
 
 Sending your very first message to her unlocks the **Hello World** achievement.
 
-A thin line along the bottom of the app's top bar also shows her state from any screen: it wavers while she works, turns green when she finishes, gold while an approval waits, or red if the last run failed. It clears once you open her chat. (It is off while Mari is turned off in search settings.)
+A thin line along the bottom of the app's top bar also shows her state from any screen: it wavers while she works, turns green when she finishes, gold while an approval waits, or red if the last run failed. It clears once you open her chat. (It is off while **Ask Mari from search** is turned off.) All of her settings are in the omnibar's settings: the gear in the omnibar, or **Settings** > **General** > **Omnibar & Professor Mari settings** > **Open**.
 
 ## Ask Mari from your current work
 

@@ -2,6 +2,7 @@ import { useChatStore } from "../stores/chat.store";
 import { isMobileShellViewport, useUIStore } from "../stores/ui.store";
 import { requestProfessorMariOpen } from "./professor-mari-open";
 import type { ProfessorMariNavigationTarget } from "./professor-mari-navigation";
+import { isOmnibarSettingsTarget } from "./settings-registry";
 
 export interface StateNavigationHandlers {
   home?: () => void;
@@ -45,6 +46,10 @@ export function executeStateNavigation(
     useChatStore.getState().setActiveChatId(target.chatId);
   } else if (target.kind === "panel") {
     ui.openRightPanel(target.panel);
+  } else if (target.kind === "settings" && isOmnibarSettingsTarget(target)) {
+    // Q2: these live in the omnibar's settings view, which keeps the omnibar open.
+    ui.openOmnibarSettings(target.controlId ?? null);
+    return true;
   } else if (target.kind === "settings") {
     ui.setSettingsTab(target.tab);
     ui.setSettingsTargetControlId(target.controlId ?? null);

@@ -35,6 +35,7 @@ import {
   SETTINGS_SEARCHABLE_CONTROLS,
   SETTINGS_SECTION_BY_ID,
   SETTINGS_SECTIONS,
+  isOmnibarSettingsTarget,
   searchSettings,
   type SettingsSearchResult,
   type SettingsSectionId,
@@ -175,7 +176,6 @@ import { TrackerPanelIcon } from "../ui/TrackerPanelIcon";
 import { TrackerSizeTierIcon } from "../ui/TrackerSizeTierIcon";
 import {
   ConversationSoundSetting,
-  MariPermissionsModeSetting,
   SettingsIntro,
   SettingsSection,
   SettingsSwitch,
@@ -1548,6 +1548,10 @@ export function SettingsPanel() {
 
   const jumpToSection = useCallback(
     (section: SettingsSectionMeta) => {
+      if (isOmnibarSettingsTarget({ sectionId: section.id })) {
+        useUIStore.getState().openOmnibarSettings();
+        return;
+      }
       setSettingsTab(section.tab);
       if (section.tab === "appearance") setAppearanceGroup(appearanceGroupForSection(section.id));
       mountedSettingsTabs.add(section.tab);
@@ -1565,6 +1569,11 @@ export function SettingsPanel() {
     (result: SettingsSearchResult) => {
       setSettingsSearch("");
       const section = result.section;
+      // Q2: the omnibar's settings live in the omnibar; open them there, at the control.
+      if (isOmnibarSettingsTarget({ sectionId: section.id })) {
+        useUIStore.getState().openOmnibarSettings(result.type === "control" ? result.control.id : null);
+        return;
+      }
       if (section.tab === "appearance") setAppearanceGroup(appearanceGroupForSection(section.id));
       const targetId =
         result.type === "control"
@@ -2299,8 +2308,6 @@ function GeneralSettings() {
   const setEnterToSendConvo = useUIStore((s) => s.setEnterToSendConvo);
   const enterToSendGame = useUIStore((s) => s.enterToSendGame);
   const setEnterToSendGame = useUIStore((s) => s.setEnterToSendGame);
-  const enterToSendProfessorMari = useUIStore((s) => s.enterToSendProfessorMari);
-  const setEnterToSendProfessorMari = useUIStore((s) => s.setEnterToSendProfessorMari);
   const keepGuidanceAfterRegenerate = useUIStore((s) => s.keepGuidanceAfterRegenerate);
   const setKeepGuidanceAfterRegenerate = useUIStore((s) => s.setKeepGuidanceAfterRegenerate);
   const confirmBeforeDelete = useUIStore((s) => s.confirmBeforeDelete);
@@ -2327,12 +2334,6 @@ function GeneralSettings() {
   const setContinueAddsNewline = useUIStore((s) => s.setContinueAddsNewline);
   const speechToTextEnabled = useUIStore((s) => s.speechToTextEnabled);
   const setSpeechToTextEnabled = useUIStore((s) => s.setSpeechToTextEnabled);
-  const chibiProfessorMariEnabled = useUIStore((s) => s.chibiProfessorMariEnabled);
-  const setChibiProfessorMariEnabled = useUIStore((s) => s.setChibiProfessorMariEnabled);
-  const professorMariSuggestionsEnabled = useUIStore((s) => s.professorMariSuggestionsEnabled);
-  const setProfessorMariSuggestionsEnabled = useUIStore((s) => s.setProfessorMariSuggestionsEnabled);
-  const professorMariNavigationEnabled = useUIStore((s) => s.professorMariNavigationEnabled);
-  const setProfessorMariNavigationEnabled = useUIStore((s) => s.setProfessorMariNavigationEnabled);
   const musicPlayerEnabled = useUIStore((s) => s.musicPlayerEnabled);
   const setMusicPlayerEnabled = useUIStore((s) => s.setMusicPlayerEnabled);
   const intuitiveSwipeNavigation = useUIStore((s) => s.intuitiveSwipeNavigation);
@@ -2391,28 +2392,25 @@ function GeneralSettings() {
             )}
             disabled={!musicDjInstalled}
           />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("mini-mari")}
-            label={localizeUi("settings.controls.miniMari.label")}
-            checked={chibiProfessorMariEnabled}
-            onChange={setChibiProfessorMariEnabled}
-            help={localizeUi("settings.controls.miniMari.help")}
-          />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("professor-mari-suggestions")}
-            label={localizeUi("settings.controls.professorMariSuggestions.label")}
-            checked={professorMariSuggestionsEnabled}
-            onChange={setProfessorMariSuggestionsEnabled}
-            help={localizeUi("settings.controls.professorMariSuggestions.help")}
-          />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("professor-mari-navigation")}
-            label={localizeUi("settings.controls.professorMariNavigation.label")}
-            checked={professorMariNavigationEnabled}
-            onChange={setProfessorMariNavigationEnabled}
-            help={localizeUi("settings.controls.professorMariNavigation.help")}
-          />
-          <MariPermissionsModeSetting anchorId={getSettingsControlAnchorId("mari-permissions-mode")} />
+          {/* Q2: every omnibar and Professor Mari setting lives in the omnibar; this row opens it. */}
+          <div
+            id={getSettingsSectionAnchorId("omnibar")}
+            className="flex scroll-mt-3 items-center justify-between gap-3 p-1.5"
+          >
+            <span className="flex min-w-0 items-center gap-1.5 text-xs">
+              <span id="settings-omnibar-row-label">{localizeUi("settings.controls.omnibarSettings.label")}</span>
+              <HelpTooltip text={localizeUi("settings.controls.omnibarSettings.help")} />
+            </span>
+            <button
+              type="button"
+              id="settings-omnibar-row-open"
+              aria-labelledby="settings-omnibar-row-open settings-omnibar-row-label"
+              className={SETTINGS_BUTTON_CLASS}
+              onClick={() => useUIStore.getState().openOmnibarSettings()}
+            >
+              {localizeUi("settings.controls.omnibarSettings.open")}
+            </button>
+          </div>
         </div>
       </SettingsSection>
 
@@ -2577,19 +2575,6 @@ function GeneralSettings() {
                 )}
               >
                 {localizeUi("settings.modes.game")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEnterToSendProfessorMari(!enterToSendProfessorMari)}
-                aria-pressed={enterToSendProfessorMari}
-                className={cn(
-                  "mari-chrome-tag min-h-9 px-2.5 py-1.5 text-[0.6875rem] font-medium transition-colors",
-                  enterToSendProfessorMari
-                    ? "bg-[var(--primary)]/15 text-[var(--primary)] ring-1 ring-[var(--primary)]/30"
-                    : "bg-[var(--secondary)] text-[var(--muted-foreground)] ring-1 ring-[var(--border)] hover:bg-[var(--accent)]",
-                )}
-              >
-                {localizeUi("settings.modes.professorMari")}
               </button>
             </div>
           </div>

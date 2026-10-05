@@ -10,6 +10,7 @@ export type SettingsTabId = "general" | "appearance" | "generations" | "addons" 
 
 export type SettingsSectionId =
   | "application"
+  | "omnibar"
   | "notifications"
   | "responses"
   | "input-editing"
@@ -109,7 +110,16 @@ export const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     tab: "general",
     label: "App Behavior",
     description: "Language, safety confirmations, achievements, music, and playful extras.",
-    aliases: ["language", "delete", "confirm", "music", "achievements", "mini mari", "app"],
+    aliases: ["language", "delete", "confirm", "music", "achievements", "app"],
+  },
+  {
+    // Q2: lives in the omnibar's own settings view, not in this panel. General shows one row
+    // that opens it, and every jump to this section or its controls opens the omnibar instead.
+    id: "omnibar",
+    tab: "general",
+    label: "Omnibar & Professor Mari",
+    description: "Search, quick answers, Professor Mari and her appearance. Opens in the omnibar.",
+    aliases: ["omnibar", "search", "command palette", "ctrl k", "quick answers", "professor mari", "mari", "mini mari"],
   },
   {
     id: "notifications",

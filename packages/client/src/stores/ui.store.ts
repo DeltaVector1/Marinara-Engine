@@ -1086,6 +1086,11 @@ interface UIState {
   /** Transient request for the chat sidebar to focus a fixed mode shortcut. */
   chatModeShortcutRequest: { mode: ChatModeShortcut; token: number } | null;
   omnibarOpen: boolean;
+  /**
+   * Transient (Q2): the omnibar's settings view is open; `controlId` names the setting to scroll
+   * to and focus. Main Settings, search rows and Mari's links open it through `openOmnibarSettings`.
+   */
+  omnibarSettings: { controlId: string | null } | null;
   /** Transient: Mari's pane in the omnibar is open and showing her, so her result counts as seen (P3). */
   mariPaneVisible: boolean;
 
@@ -1321,6 +1326,8 @@ interface UIState {
   setCenterCompact: (v: boolean) => void;
   requestChatModeShortcut: (mode: ChatModeShortcut) => void;
   setOmnibarOpen: (open: boolean) => void;
+  openOmnibarSettings: (controlId?: string | null) => void;
+  closeOmnibarSettings: () => void;
   setMariPaneVisible: (visible: boolean) => void;
   setVisualTheme: (v: VisualTheme) => void;
   setConvoGradientField: (scheme: "dark" | "light", field: "from" | "to", value: string) => void;
@@ -2108,6 +2115,7 @@ export const useUIStore = create<UIState>()(
         centerCompact: false,
         chatModeShortcutRequest: null,
         omnibarOpen: false,
+        omnibarSettings: null,
         mariPaneVisible: false,
 
         // Impersonate settings defaults
@@ -2753,8 +2761,13 @@ export const useUIStore = create<UIState>()(
           // K6: mark the start of every real open (any trigger routes through
           // here) so the first-result-paint effect can measure against it.
           if (open && !get().omnibarOpen && get().debugMode) markOmnibarOpenStart();
-          set({ omnibarOpen: open });
+          set(open ? { omnibarOpen: true } : { omnibarOpen: false, omnibarSettings: null });
         },
+        openOmnibarSettings: (controlId = null) => {
+          if (!get().omnibarOpen && get().debugMode) markOmnibarOpenStart();
+          set({ omnibarOpen: true, omnibarSettings: { controlId } });
+        },
+        closeOmnibarSettings: () => set({ omnibarSettings: null }),
         setMariPaneVisible: (visible) => set({ mariPaneVisible: visible }),
 
         // Settings actions

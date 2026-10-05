@@ -89,6 +89,7 @@ import {
   type MariArrivalAction,
 } from "../../lib/mari-arrival";
 import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
+import { isOmnibarSettingsTarget } from "../../lib/settings-registry";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
 import { useOmnibarAside } from "../../hooks/use-omnibar-aside";
@@ -465,7 +466,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const setFilter = (value: CommandCenterCategoryFilter) => setSessionValue("filter", value);
   const setPane = (value: OmnibarPane) => setSessionValue("pane", value);
   const setActiveResultId = (value: string | null) => setSessionValue("activeResultId", value);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsTarget = useUIStore((state) => state.omnibarSettings);
+  const settingsOpen = settingsTarget !== null;
+  const openSettings = useUIStore((state) => state.openOmnibarSettings);
+  const closeSettings = useUIStore((state) => state.closeOmnibarSettings);
   const [mariChatOpen, setMariChatOpen] = useState(() => session.pane === "mari");
   const [mariMounted, setMariMounted] = useState(() => session.pane === "mari");
   const [mariContext, setMariContext] = useState<ProfessorMariAskContext | null>(
@@ -2044,6 +2048,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     hasEditorLeaveHandler(ui()) ||
     window.confirm(t("commandCenter.dirtyEditor", "You have unsaved changes. Leave this editor?"));
   const navigate = (target: ProfessorMariNavigationTarget) => {
+    // Q2: a setting that lives in this omnibar opens its settings view here, so the omnibar stays
+    // open and nothing is left behind (no editor-leave prompt, no close).
+    if (target.kind === "settings" && isOmnibarSettingsTarget(target)) {
+      openSettings(target.controlId ?? null);
+      return false;
+    }
     if (!confirmLeaveEditor()) return false;
     executeStateNavigation(target);
     return true;
@@ -3165,7 +3175,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           setAsideDisclosed(true);
         }}
         onEscalate={() => escalateAside()}
-        onChooseModel={() => setSettingsOpen(true)}
+        onChooseModel={() => openSettings("quick-answer-model")}
         onRetry={asideState.retry}
         onAnswerAgain={asideState.answerAgain}
         // One quick follow-up; the question after it goes to full Mari (G4).
@@ -3390,7 +3400,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 </span>
               </button>
             ) : null}
-            {mariSurface ? <OmnibarSettingsButton open={settingsOpen} onOpen={() => setSettingsOpen(true)} /> : null}
+            {mariSurface ? <OmnibarSettingsButton open={settingsOpen} onOpen={() => openSettings()} /> : null}
             <button
               type="button"
               onClick={onClose}
@@ -3721,13 +3731,14 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               {!idle ? (
                 <span className="hidden sm:inline">{t("commandCenter.keyboard.escape", "Esc close")}</span>
               ) : null}
-              <OmnibarSettingsButton open={settingsOpen} onOpen={() => setSettingsOpen(true)} />
+              <OmnibarSettingsButton open={settingsOpen} onOpen={() => openSettings()} />
             </span>
           </footer>
         ) : null}
-        {settingsOpen ? (
+        {settingsTarget ? (
           <OmnibarSettingsSheet
-            onClose={() => setSettingsOpen(false)}
+            focusControlId={settingsTarget.controlId}
+            onClose={closeSettings}
             connections={languageConnections}
             onClearSearchHistory={() => {
               clearOmnibarFrecencyHistory();

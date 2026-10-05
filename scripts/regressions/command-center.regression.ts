@@ -65,9 +65,11 @@ import {
 } from "../../packages/client/src/lib/omnibar-frecency.js";
 import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "../../packages/client/src/lib/omnibar-settings-toggle-bindings.js";
 import {
+  OMNIBAR_SETTINGS_SECTION_ID,
   SETTINGS_SEARCHABLE_CONTROLS,
   SETTINGS_SECTIONS,
   SETTINGS_TABS,
+  isOmnibarSettingsTarget,
 } from "../../packages/client/src/lib/settings-registry.js";
 import {
   getCharacterDisplayIdentity,
@@ -2053,6 +2055,43 @@ assert.ok(!("mariDetailId" in mariSession));
     surface: "home",
   });
   assert.deepEqual(toolIds(roleplayOffChatSurface), [], "tool rows only show on the chat surface");
+}
+
+{
+  // Q2: the omnibar's settings view is the home of every search and Professor Mari setting. Jumps
+  // to its section or its controls route there; every control it lists has an anchor in the view.
+  const omnibarControls = SETTINGS_SEARCHABLE_CONTROLS.filter(
+    (control) => control.sectionId === OMNIBAR_SETTINGS_SECTION_ID,
+  );
+  assert.ok(SETTINGS_SECTIONS.some((section) => section.id === OMNIBAR_SETTINGS_SECTION_ID));
+  for (const id of [
+    "mini-mari",
+    "professor-mari-navigation",
+    "professor-mari-suggestions",
+    "mari-permissions-mode",
+    "mari-send-on-enter",
+    "quick-answers",
+    "quick-answer-model",
+    "quick-answer-delay",
+    "mari-appearance-pack",
+  ]) {
+    assert.ok(
+      omnibarControls.some((control) => control.id === id),
+      `${id} lives in the omnibar settings section`,
+    );
+    assert.equal(isOmnibarSettingsTarget({ controlId: id }), true, `${id} opens the omnibar settings`);
+  }
+  assert.equal(isOmnibarSettingsTarget({ sectionId: OMNIBAR_SETTINGS_SECTION_ID }), true);
+  assert.equal(isOmnibarSettingsTarget({ controlId: "send-on-enter" }), false, "chat Send on Enter stays in Settings");
+  assert.equal(isOmnibarSettingsTarget({ sectionId: "application" }), false);
+  assert.equal(isOmnibarSettingsTarget({}), false);
+  const view = readFileSync(
+    new URL("../../packages/client/src/components/layout/omnibar/OmnibarSettingsMenu.tsx", import.meta.url),
+    "utf8",
+  );
+  for (const control of omnibarControls) {
+    assert.ok(view.includes(`"${control.id}"`), `omnibar settings view has an anchor for ${control.id}`);
+  }
 }
 
 {

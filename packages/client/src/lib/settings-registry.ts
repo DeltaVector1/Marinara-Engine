@@ -31,6 +31,20 @@ export { SETTINGS_TABS, SETTINGS_SECTIONS, SETTINGS_SECTION_BY_ID } from "@marin
  */
 export const QUICK_REPLIES_SETTINGS_CONTROL_ID = "quick-replies" as const;
 
+/**
+ * Q2: the settings that live in the omnibar's own view rather than in the Settings panel. A
+ * jump to this section, or to one of its controls, opens that view instead of the panel.
+ */
+export const OMNIBAR_SETTINGS_SECTION_ID = "omnibar" satisfies SettingsSectionId;
+
+export function isOmnibarSettingsTarget(target: { sectionId?: string | null; controlId?: string | null }): boolean {
+  if (target.sectionId === OMNIBAR_SETTINGS_SECTION_ID) return true;
+  if (!target.controlId) return false;
+  return SETTINGS_SEARCHABLE_CONTROLS.some(
+    (control) => control.id === target.controlId && control.sectionId === OMNIBAR_SETTINGS_SECTION_ID,
+  );
+}
+
 export type SettingsControlKind = "Toggle" | "Slider" | "Select" | "Input" | "Picker" | "Button group";
 
 export type SettingsSearchableControlMeta = {
@@ -139,29 +153,111 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     aliases: ["spotify", "youtube", "music dj"],
     kind: "Toggle",
   },
+  // Q2: everything below up to "notification-position" lives in the omnibar's settings view
+  // (`OmnibarSettingsMenu.tsx`), in its order: Search, Quick answers, Professor Mari, Appearance.
   {
-    id: "mini-mari",
-    sectionId: "application",
-    label: "Mini Mari surprise visits",
-    description: "Allow rare Chibi Professor Mari messages while scrolling.",
-    aliases: ["chibi", "professor", "surprise"],
+    id: "omnibar-suggestions",
+    sectionId: "omnibar",
+    label: "Proactive suggestions",
+    description: "Offer context and edits before you ask.",
+    aliases: ["omnibar suggestions", "context suggestions", "search"],
+    kind: "Toggle",
+  },
+  {
+    id: "omnibar-search-history",
+    sectionId: "omnibar",
+    label: "Clear search history",
+    description: "Forgets which results you use most on each screen. Stored only on this device.",
+    aliases: ["search history", "recent", "forget", "frecency"],
+    kind: "Button group",
+  },
+  {
+    id: "quick-answers",
+    sectionId: "omnibar",
+    label: "Quick answers",
+    description: "Answer a search that finds nothing.",
+    aliases: ["quick answer", "aside", "dead end", "ask mari"],
+    kind: "Toggle",
+  },
+  {
+    id: "quick-answer-model",
+    sectionId: "omnibar",
+    label: "Answers come from",
+    description: "Your search text is sent to this model, never your memories or the field you are editing.",
+    aliases: ["quick answer model", "quick answer connection", "local model"],
+    kind: "Select",
+  },
+  {
+    id: "quick-answer-delay",
+    sectionId: "omnibar",
+    label: "Wait before answering",
+    description: "How long you stop typing before Mari answers.",
+    aliases: ["quick answer delay", "delay", "seconds"],
+    kind: "Button group",
+  },
+  {
+    id: "ask-mari",
+    sectionId: "omnibar",
+    label: "Ask Mari from search",
+    description: "Ask Mari from the search field, the pull-down and Ctrl/Command+J.",
+    aliases: ["professor mari", "mari assistance", "assistant", "ctrl j"],
+    kind: "Toggle",
+  },
+  {
+    id: "professor-mari-suggestions",
+    sectionId: "omnibar",
+    label: "Professor Mari suggestions",
+    description: "Show Mari's suggestion chips after her replies.",
+    aliases: ["mari", "chips", "next steps"],
+    kind: "Toggle",
+  },
+  {
+    id: "mari-permissions-mode",
+    sectionId: "omnibar",
+    label: "Professor Mari Permissions Mode",
+    description: "When Mari may stage or apply workspace changes: Auto, Manual, Accept edits, Plan, or Bypass.",
+    aliases: ["mari", "permissions", "mode", "plan", "bypass", "accept", "manual", "approve"],
+    kind: "Select",
+  },
+  {
+    id: "mari-edit-view",
+    sectionId: "omnibar",
+    label: "Edit review opens in",
+    description: "The default view for Mari's change cards.",
+    aliases: ["mari", "easy", "raw", "review", "diff"],
+    kind: "Button group",
+  },
+  {
+    id: "mari-send-on-enter",
+    sectionId: "omnibar",
+    label: "Enter sends to Mari",
+    description: "When off, Enter adds a new line and Ctrl/Command+Enter sends.",
+    aliases: ["mari", "send on enter", "enter to send", "enter key"],
     kind: "Toggle",
   },
   {
     id: "professor-mari-navigation",
-    sectionId: "application",
+    sectionId: "omnibar",
     label: "Professor Mari navigation",
     description: "Show Professor Mari's deterministic navigator on Home.",
     aliases: ["home", "helper", "navigation", "navigator", "where is", "find"],
     kind: "Toggle",
   },
   {
-    id: "mari-permissions-mode",
-    sectionId: "application",
-    label: "Professor Mari Permissions Mode",
-    description: "When Mari may stage or apply workspace changes: Auto, Manual, Accept edits, Plan, or Bypass.",
-    aliases: ["mari", "permissions", "mode", "plan", "bypass", "accept", "manual", "approve"],
-    kind: "Select",
+    id: "mini-mari",
+    sectionId: "omnibar",
+    label: "Mini Mari surprise visits",
+    description: "Allow rare Chibi Professor Mari messages while scrolling.",
+    aliases: ["chibi", "professor", "surprise"],
+    kind: "Toggle",
+  },
+  {
+    id: "mari-appearance-pack",
+    sectionId: "omnibar",
+    label: "Mari appearance",
+    description: "One look for Mari everywhere: her workspace, search, Home and the top bar.",
+    aliases: ["appearance pack", "mari look", "pack", "basic", "dottore", "golden", "safari"],
+    kind: "Picker",
   },
   {
     id: "notification-position",

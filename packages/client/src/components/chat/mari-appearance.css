@@ -68,20 +68,6 @@ html[data-marinara-effects-paused="true"] .mari-live-work__sprite[data-appearanc
   background-position: 100% center;
 }
 
-/* The pack preview is a still, not another looping story in the settings menu. */
-.omnibar-settings-menu__pack .omnibar-settings-menu__pack-sprite {
-  animation: none;
-  background-position: 100% center;
-  background-size: 400% 100%;
-}
-
-.omnibar-settings-menu__pack input[type="radio"] {
-  accent-color: var(--primary);
-  width: 1rem;
-  height: 1rem;
-  flex: 0 0 auto;
-}
-
 html[data-marinara-reduced-effects="true"] .mari-story-sprite > span,
 html[data-marinara-reduced-effects="true"] .mari-live-work__sprite[data-appearance-pack] > span {
   animation: none;

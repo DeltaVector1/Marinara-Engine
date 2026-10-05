@@ -351,6 +351,23 @@ scores below a label/alias hit (section 4). Every system command
 - A row deep-links to a control (`settings-control:<id>`), a section
   (`settings-section-detail:<id>`) or a tab (`settings-section:<tab>`). The tab
   ids keep that older shape because the context bonus matches on them.
+- **The `omnibar` section (Q2, slice 57).** Every search and Professor Mari
+  setting lives in the omnibar's own settings view (`OmnibarSettingsMenu.tsx`),
+  not in the Settings panel: Search (proactive suggestions, clear search
+  history), Quick answers (on/off, model, wait), Professor Mari (Ask Mari from
+  search, Permissions Mode, suggestion chips, edit review view, Enter sends to
+  Mari, Home navigator, Mini Mari visits) and Appearance (the pack grid). Their
+  registry entries use `sectionId: "omnibar"`; `isOmnibarSettingsTarget` sends
+  any jump to that section or its controls (an omnibar row, the Settings
+  panel's own search and Quick Access, Mari's setting links,
+  `executeStateNavigation`) to `ui.openOmnibarSettings(controlId)`, which opens
+  the view and scrolls to `#omnibar-setting-<id>` with its control focused. The
+  omnibar stays open for these rows. Settings > General keeps one row,
+  "Omnibar & Professor Mari settings → Open". The appearance packs are a grid of
+  cards around visually hidden native radios (Tab, arrows, Space/Enter; the
+  checked card has a primary ring and a check badge); previews are tier 3
+  profile poses at 64 px, mounted only once the grid is within 200 px of the
+  visible part of the view (an `IntersectionObserver` on the view's scroller).
 
 ## 4. Ranking
 
