@@ -98,6 +98,12 @@ revised from the original pill design per maintainer feedback). Slices 1-9
 were deployed to prod as of the 2026-09-30 pause (2d999a330 is slices 1-8;
 slice 9 fixes are c4f88b4ce, not yet deployed). Slices 11-15 are Done. Slices 16-22 are Done. Slices 23-29 (section L) are Done. Slices 30-41 (section M) are Done. Slices 42-46 (section N) are Done. Slices 47-51 (section O) are Done. Remaining order: 52-55 (section P). Stop after 55.
 
+Staging merge 2026-10-05 (merge commit 94bf98972, staging up to #7096): the #7034
+chat window redesign moved chat tools into Chat Settings drawers and deleted
+`ActiveLorebookEntriesButton`, so the omnibar's "Active lorebook entries" and
+"Search this chat" rows now open Chat Settings at their drawer (`initialSection`
+"active-context" / "message-search", like staging's Summary request).
+
 Slice 10 resume note: the unfinished work is on branch `wip/omnibar-slice-10`
 (commit 88e297d68), NOT on this branch. Cherry-pick it first
 (`git cherry-pick 88e297d68`). Done there: the gesture (touch only, phone shell,
