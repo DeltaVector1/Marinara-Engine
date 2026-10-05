@@ -95,7 +95,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 56  | Professor Mari header: no duplicate ⋮ items, Chats next to + (Q1) | designer         | Done                 | 907fa3bd5 |
 | 57  | Omnibar settings redesign, Mari settings move here, packs grid (Q2) | designer      | Done                 | 05b88f313 |
 | 57b | Chats · + to the right of the header; chat-card visual audit (Q5) | designer       | Done                 | 652f57fd8 |
-| 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Pending              |           |
+| 58  | De-slop all omnibar and Mari text (Q3)                          | designer         | Done                 | cc3081b93 |
 | 58b | Type icons everywhere, context for recent chats (Q6)            | designer         | Pending              |           |
 | 59  | Review of 56-58, 57b, 58b (Q4)                                  | reviewer         | Pending              |           |
 
