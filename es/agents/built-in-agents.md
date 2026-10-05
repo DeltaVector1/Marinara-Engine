@@ -57,7 +57,7 @@ Una simulación de vida. Vives en un pueblo pequeño con el reloj en marcha: tie
 
 - **Integración**: app; se abre en su propia pestaña **Life Sim** dentro de **Home**.
 - **Dónde funciona**: Home.
-- **Disponibilidad**: **Staging only**, con Engine **2.4.4+**. Es una versión alfa. Si una actualización cambia algo de lo que depende una partida guardada antigua, Life Sim te avisa al abrir esa partida, y puedes empezar una vida nueva o continuar bajo tu propio riesgo.
+- **Disponibilidad**: **Staging only**, con Engine **2.4.4+** (< 4.0.0). Es una versión alfa. Si una actualización cambia algo de lo que depende una partida guardada antigua, Life Sim te avisa al abrir esa partida, y puedes empezar una vida nueva o continuar bajo tu propio riesgo.
 - **Ajustes clave**: instálala desde **Agents → Download Agents**, reinicia Marinara Engine cuando se te pida y luego abre **Home → Life Sim**. Necesita una conexión de texto. Una conexión de imagen es opcional: sin ella, los lugares muestran tarjetas ilustradas en lugar de fondos generados. Los extras opcionales, llamados módulos, permanecen desactivados salvo que los actives para una vida; el módulo **Adult** (Adultos) te pide confirmar que eres mayor de edad.
 - **Guía completa**: [guía del paquete Modern Life Sim](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md).
 
@@ -215,7 +215,7 @@ Mantiene una red editable de relaciones entre las tarjetas de personaje asignada
 
 - **Fase**: Post-Processing, con contexto de relaciones para las respuestas posteriores.
 - **Dónde funciona**: chats Roleplay de grupo.
-- **Disponibilidad**: **Staging only**, con Engine **2.4.4+** y el catálogo de vista previa de staging. La publicación estable está prevista para el próximo lanzamiento de Engine desde main.
+- **Disponibilidad**: **Staging only**, con Engine **2.4.4+** (< 4.0.0) y el catálogo de vista previa de staging. La publicación estable está prevista para el próximo lanzamiento de Engine desde main.
 - **Instalación y activación**: instala **Relationship Tracker** desde **Agents → Download Agents** y reinicia cuando se te indique. En cada chat Roleplay, activa los agentes en **Chat Settings → Agents**, añádelo en **Tracker Agents** y elige su conexión al modelo. La red aparece en el Tracker Panel. Selecciona allí **All relationships** (Todas las relaciones) o **Scene-only relationships** (Solo relaciones de la escena) una vez para inicializar el chat antes de editar o actualizar relaciones.
 - **Controles principales**: **All relationships** o **Scene-only relationships** para el contexto del prompt, **Update from History** (Actualizar desde el historial) para analizar un número limitado de mensajes recientes, edición manual, bloqueo y **Resume automatic updates** (Reanudar actualizaciones automáticas). **Context Size** (Tamaño del contexto; 5 mensajes por defecto), **Presence lookback** (Historial de presencia; 15 por defecto) y el número de mensajes del análisis del historial son controles separados. Pasa el puntero o mueve el foco del teclado sobre una línea para leerla; con pantalla táctil o lápiz, presiónala. Consulta la [guía del paquete Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md).
 

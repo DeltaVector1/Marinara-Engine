@@ -59,7 +59,7 @@ Illustrator 也接受 **0**，表示仅手动生成：它仍可用于 Gallery �
 
 - **集成方式**：应用；在 **Home** 中自己的 **Life Sim** 标签页里打开。
 - **适用范围**：Home。
-- **可用渠道**：**Staging only**(仅 staging)，需要 Engine **2.4.4+**。目前是 alpha 版。如果某次更新改动了旧存档依赖的内容，打开那个存档时 Life Sim 会提示你，你可以开始新的人生，也可以自担风险继续游玩。
+- **可用渠道**：**Staging only**(仅 staging)，需要 Engine **2.4.4+** (< 4.0.0)。目前是 alpha 版。如果某次更新改动了旧存档依赖的内容，打开那个存档时 Life Sim 会提示你，你可以开始新的人生，也可以自担风险继续游玩。
 - **主要设置**：从 **Agents → Download Agents** 安装，在提示时重启 Marinara Engine，然后打开 **Home → Life Sim**。它需要一个文本连接。图像连接是可选的：没有的话，地点会显示插画卡片，而不是生成的背景。名为“模块”的可选扩展默认关闭，只有你为某段人生开启时才会启用；**Adult** 模块会要求你确认自己已经成年。
 - **完整指南**：[Modern Life Sim 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md)。
 
@@ -217,7 +217,7 @@ Knowledge Retrieval 的省钱替代方案。它不做摘要，而是读取世界
 
 - **阶段**：Post-Processing，并为后续回复提供关系上下文。
 - **适用模式**：Roleplay 群聊。
-- **可用渠道**：**Staging only**，需要 Engine **2.4.4+** 和 staging 预览目录。计划随下一次 Engine main 版本发布到稳定渠道。
+- **可用渠道**：**Staging only**，需要 Engine **2.4.4+** (< 4.0.0) 和 staging 预览目录。计划随下一次 Engine main 版本发布到稳定渠道。
 - **安装与启用**：从 **Agents → Download Agents** 安装 **Relationship Tracker**，按提示重启。在每个 Roleplay 聊天中，先在 **Chat Settings → Agents** 启用智能体，再将它添加到 **Tracker Agents**，并选择模型连接。关系网显示在 Tracker Panel 中。编辑或更新关系前，先在那里选择一次 **All relationships**(所有关系) 或 **Scene-only relationships**(仅场景内关系)，完成聊天初始化。
 - **主要操作**：用 **All relationships** 或 **Scene-only relationships** 选择提示词上下文，用 **Update from History**(从历史更新) 扫描指定数量的最近消息，也可手动编辑、锁定或使用 **Resume automatic updates**(恢复自动更新)。**Context Size**(上下文大小，默认 5 条消息)、**Presence lookback**(出场回溯范围，默认 15 条) 和历史扫描的消息数量是不同的设置。将指针悬停在线上或用键盘聚焦，即可读取内容；触屏或触控笔用户可按下该连线。参阅 [Relationship Tracker 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md)。
 

@@ -59,7 +59,7 @@ Appsは、**Home**に専用のタブを持つパッケージです。チャッ�
 
 - **統合方法**: アプリ。**Home**にある専用の**Life Sim**タブで開きます。
 - **使える場所**: Home。
-- **提供状況**: **Staging only**(stagingのみ)。Engine **2.4.4+**が必要です。アルファ版です。古いセーブが依存している部分がアップデートで変わった場合は、そのセーブを開いたときにLife Simが知らせます。新しい人生を始めるか、自己責任で続けるかを選べます。
+- **提供状況**: **Staging only**(stagingのみ)。Engine **2.4.4+** (< 4.0.0)が必要です。アルファ版です。古いセーブが依存している部分がアップデートで変わった場合は、そのセーブを開いたときにLife Simが知らせます。新しい人生を始めるか、自己責任で続けるかを選べます。
 - **主な設定**: **Agents → Download Agents**からインストールし、案内が表示されたらMarinara Engineを再起動してから、**Home → Life Sim**を開きます。テキスト接続が必要です。画像接続は任意で、ない場合は生成した背景の代わりにイラストのカードで場所を表示します。モジュールと呼ばれる追加要素は、人生ごとにオンにしない限りオフのままです。**Adult**(成人向け)モジュールでは、成人であることの確認を求められます。
 - **詳しいガイド**: [Modern Life Simパッケージガイド](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md)。
 
@@ -217,7 +217,7 @@ Roleplayグループチャットに割り当てたキャラクターカード間
 
 - **実行フェーズ**: Post-Processing。関係のコンテキストは後続の応答に渡されます。
 - **対応モード**: Roleplayグループチャット。
-- **提供状況**: **Staging only**。Engine **2.4.4+**とstagingのプレビューカタログが必要です。安定版への公開は、次のEngineのmainリリースに合わせて予定されています。
+- **提供状況**: **Staging only**。Engine **2.4.4+** (< 4.0.0)とstagingのプレビューカタログが必要です。安定版への公開は、次のEngineのmainリリースに合わせて予定されています。
 - **インストールと有効化**: **Agents → Download Agents**から**Relationship Tracker**をインストールし、案内が表示されたら再起動してください。各Roleplayチャットで**Chat Settings → Agents**を有効にし、**Tracker Agents**に追加して、モデル接続を選択します。ネットワークはTracker Panelに表示されます。関係を編集または更新する前に、そこで**All relationships**(すべての関係)か**Scene-only relationships**(シーン内の関係のみ)を一度選んでチャットを初期化してください。
 - **主な操作**: プロンプトのコンテキストを**All relationships**か**Scene-only relationships**で選び、**Update from History**(履歴から更新)で指定件数の最近のメッセージを解析できます。手動編集、ロック、**Resume automatic updates**(自動更新を再開)も使えます。**Context Size**(コンテキストサイズ、初期値5メッセージ)、**Presence lookback**(登場確認の遡及件数、初期値15)、履歴解析のメッセージ数は別々の設定です。線にポインターを重ねるかキーボードでフォーカスすると内容を読めます。タッチやペンでは線を押してください。[Relationship Trackerパッケージガイド](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md)も参照してください。
 
