@@ -82,6 +82,7 @@ W zakładce **Card** wpisujesz najważniejsze pola persony. Każde pole to duże
 - **Personality**: temperament, zachowanie, nawyki językowe i wzorce emocjonalne.
 - **Backstory**: historia, pochodzenie, relacje i wydarzenia, które ukształtowały postać.
 - **Appearance**: wygląd fizyczny, ubiór i szczegóły wizualne, o których model ma pamiętać.
+- **Image Appearance Override** (osobny opis wyglądu do obrazów): opcjonalny przełącznik pod polem **Appearance**, domyślnie wyłączony. Włącz go, aby pokazać drugie pole na opis persony przygotowany dla modelu graficznego. Gdy przełącznik jest włączony, a pole wypełnione, prompty obrazów korzystają z tego tekstu zamiast z **Appearance**. Narrator zawsze otrzymuje pełny opis z **Appearance**.
 - **Scenario**: domyślna sytuacja albo kontekst dla roleplayu. Ustal tu, w jakim miejscu startuje persona.
 
 Te okna tekstowe obsługują makra. Wpisywane cudzysłowy formatują się automatycznie zgodnie ze stylem cudzysłowów ustawionym w aplikacji.

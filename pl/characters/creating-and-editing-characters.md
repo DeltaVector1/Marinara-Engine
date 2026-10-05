@@ -67,6 +67,7 @@ Zakładka **Card** to główne miejsce pisania. Zbiera pola, które AI czyta, ż
 - **Personality**. Krótkie podsumowanie temperamentu, sposobu mówienia i typowych zachowań.
 - **Backstory**. Historia, pochodzenie i ważne relacje.
 - **Appearance**. Opis fizyczny, ubiór i szczegóły wyglądu. Marinara używa tego tekstu również jako zalążka promptu do awatara AI.
+- **Image Appearance Override** (osobny opis wyglądu do obrazów). Opcjonalny przełącznik pod polem **Appearance**, domyślnie wyłączony. Włącz go, aby pokazać drugie pole na opis postaci przygotowany dla modelu graficznego. Gdy przełącznik jest włączony, a pole wypełnione, prompty obrazów korzystają z tego tekstu zamiast z **Appearance**. Ten tekst służy też do wstępnego wypełnienia promptu awatara AI. Narrator zawsze otrzymuje pełny opis z **Appearance**. Zostaw przełącznik wyłączony, aby zachować dotychczasowe działanie.
 - **Scenario**. Domyślna sytuacja wyjściowa nowych czatów z tą postacią.
 
 Sekcja **Dialogue & Greetings** ustala, jak zaczyna się czat i jak brzmi postać:

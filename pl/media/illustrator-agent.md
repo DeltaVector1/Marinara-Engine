@@ -65,6 +65,8 @@ Dwa przełączniki na karcie agenta **Illustrator** pomagają zachować spójny 
 
 Przełącznik **Attach Card Appearance** dopisuje do promptu obrazu zapisany opis wyglądu każdej widocznej postaci. Tekst pomocy brzmi: "Append matched character appearance lines to image prompts, using only visible/generated names." Włącz go, gdy obraz ma odpowiadać temu, jak postać została opisana.
 
+Gdy **Attach Card Appearance** jest włączone, karta lub persona z włączonym **Image Appearance Override** (osobny opis wyglądu do obrazów) przekazuje ten osobny opis zamiast tekstu z **Appearance**. Przydaje się to, gdy opis z **Appearance** sprawdza się u narratora, ale model graficzny źle go interpretuje: zostaw pełny opis w **Appearance**, a w osobnym polu wpisz krótszą wersję w postaci tagów. Gdy przełącznik jest wyłączony lub osobne pole jest puste, prompty obrazów nadal korzystają z **Appearance**. Narrator zawsze otrzymuje pełny tekst z **Appearance**. Przełącznik znajdziesz pod polem **Appearance** w edytorze postaci i persony.
+
 Przełącznik **Send Avatar References** wysyła do dostawcy obrazów awatary postaci i persony albo ich sprite'y jako obrazy referencyjne. Tekst pomocy brzmi: "Send matching character and persona avatars or sprites as reference images when the provider supports them." Dzięki temu model graficzny łatwiej odwzorowuje twarz albo strój. Nie każdy dostawca przyjmuje obrazy referencyjne, więc efekt zależy od wybranego dostawcy.
 
 ## Wiele postaci w usłudze NovelAI

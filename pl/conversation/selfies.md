@@ -55,6 +55,8 @@ Przełącznik **Send Avatar References** jest domyślnie wyłączony. Po jego w�
 
 Przełącznik **Attach Card Appearance** jest domyślnie wyłączony. Po jego włączeniu Marinara dokłada do opisu selfie tekst wyglądu z karty postaci. Model dostaje wtedy więcej szczegółów o tym, jak postać wygląda.
 
+Jeśli karta lub persona ma też włączony **Image Appearance Override** (osobny opis wyglądu do obrazów), Marinara wysyła ten opis zamiast tekstu z **Appearance**. Włącz tę opcję pod polem **Appearance** w edytorze postaci lub persony, gdy pełny opis jest przeznaczony dla narratora, a nie dla modelu graficznego.
+
 ### Resolution
 
 Ustawienie **Resolution** decyduje o rozmiarze obrazka selfie. Przyciski **Resolution** pokazują się dopiero po wybraniu połączenia w polu **Selfie Connection**. Wybierz jeden z gotowych przycisków. Domyślna wartość to **896x1152**, czyli wysoki format portretowy, który pasuje do większości selfie.
