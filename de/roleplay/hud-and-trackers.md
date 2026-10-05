@@ -1,10 +1,10 @@
 # Roleplay-HUD und Tracker
 
-In dieser Anleitung erfährst du, was das Roleplay-HUD ist und welche kleinen Tracker-Widgets es anzeigt. Du lernst, wie du deren Werte bearbeitest und sperrst und wie das größere Tracker Panel funktioniert. Alles hier gilt für den Roleplay Mode in Marinara Engine.
+Diese Anleitung erklärt die Roleplay-Tracker: die verschiebbaren Schaltflächen und Panels am Telefon sowie das **Trackers**-Fenster und das Tracker Panel am Computer. Du lernst, wie du ihre Werte bearbeitest und sperrst. Sie gilt für den Roleplay Mode in Marinara Engine.
 
 ## Was das HUD ist
 
-Am Telefon ist das HUD (heads-up display) eine Reihe kleiner Tracker-Widgets am oberen Chatrand. Jedes Widget zeigt einen Ausschnitt des aktuellen Geschehens: die Uhrzeit, deine Werte oder die anwesenden Charaktere. Marinara hält diese Angaben automatisch aktuell, während die Geschichte weiterläuft.
+Am Telefon bietet dir das HUD (heads-up display) die Schaltflächen **World State** und **Player & Tracker**. Du kannst sie im Chat verschieben. Tippe auf eine davon, um aktuelle Angaben zur Geschichte zu sehen, etwa die Uhrzeit, deine Werte oder die anwesenden Charaktere. Marinara hält diese Angaben aktuell, während die Geschichte weiterläuft.
 
 Am Computer liegen die Tracker nicht in der HUD-Zeile. Sie erscheinen im **Tracker Panel**, solange es sichtbar ist, und sonst im unten beschriebenen Fenster **Trackers**.
 
@@ -60,11 +60,11 @@ Ein Tracker kann auch ein eigenes Fenster bekommen: Klick auf die Schaltfläche 
 
 Unten zeigt **Agent activity**, was die Agenten des Chats getan haben. Hier kannst du Tracker neu ausführen, fehlgeschlagene Agenten erneut starten, laufende Agenten stoppen und **Clear Trackers** nutzen. Derselbe Abschnitt steht unten im Tracker Panel.
 
-## Werte im Popover bearbeiten
+## Tracker-Werte bearbeiten
 
-Tippe am Telefon auf ein Widget, um sein Popover zu öffnen. Am Computer stehen dieselben Bearbeitungsfelder in den Abschnitten des Trackers-Fensters. Ein Popover ist ein kleines Einblendfenster. Jedes Feld darin lässt sich bearbeiten, sodass du einen falsch geratenen Wert der KI korrigieren kannst. Änderungen werden sofort gespeichert.
+Am Telefon kannst du die Schaltflächen **World State** und **Player & Tracker** an beliebige Stellen im Chat ziehen. Tippe auf eine Schaltfläche, um ihr Panel zu öffnen, und auf **X**, um es zu schließen. Schaltflächen und Panels übernehmen deinen **Chat widget style** unter **Settings → Appearance → App**. Dein Chat merkt sich die Position jeder Schaltfläche. Am Computer stehen dieselben Bearbeitungsfelder in den Abschnitten des Trackers-Fensters. Jedes Feld lässt sich bearbeiten, sodass du einen falsch geratenen Wert der KI korrigieren kannst. Änderungen werden sofort gespeichert.
 
-Diese Angaben lassen sich pro Popover bearbeiten:
+Diese Angaben lassen sich in den einzelnen Trackern bearbeiten:
 
 - **World State**: **Location**, **Date**, **Time**, **Weather**, **Temperature** sowie die Zeilen eigener Weltzustand-Felder.
 - **Persona Stats**: eine **Status**-Zeile und benannte Statusbalken mit aktuellem Wert und Maximalwert. Balken lassen sich hinzufügen und entfernen.
@@ -82,18 +82,18 @@ Ein gesperrtes Feld bleibt beim nächsten automatischen Tracker-Durchlauf unange
 
 So sperrst du ein Feld:
 
-1. Öffne das Popover des Widgets.
-2. Klick auf den Schalter mit dem Schloss oben im Popover. Sein Tooltip (Kurzhinweis beim Draufzeigen) lautet **Enter lock mode**.
+1. Öffne den Tracker, den du bearbeiten möchtest.
+2. Klick auf den Schalter mit dem Schloss oben im Tracker. Sein Tooltip (Kurzhinweis beim Draufzeigen) lautet **Enter lock mode**.
 3. Neben jedem bearbeitbaren Wert erscheint nun eine kleine Schloss-Schaltfläche.
 4. Klick auf das Schloss neben dem Wert, den du festhalten willst. Der Tooltip dazu lautet **Lock field**.
 
-Zum Entsperren klickst du dieselbe Schaltfläche erneut an (Tooltip **Unlock field**). Den Sperrmodus verlässt du über den Schalter oben (Tooltip **Exit lock mode**). Der Sperrmodus gilt für das gesamte HUD: Schaltest du ihn in einem Popover ein, tauchen die Schloss-Schaltflächen überall auf.
+Zum Entsperren klickst du dieselbe Schaltfläche erneut an (Tooltip **Unlock field**). Den Sperrmodus verlässt du über den Schalter oben (Tooltip **Exit lock mode**). Der Sperrmodus gilt für das gesamte HUD: Schaltest du ihn in einem Tracker ein, tauchen die Schloss-Schaltflächen überall auf.
 
 ## Einen Tracker erneut laufen lassen
 
 Du kannst einen Tracker sofort aktualisieren, statt auf die nächste Nachricht zu warten.
 
-In jedem Popover sitzt eine kleine Schaltfläche zum Aktualisieren (Pfeil im Kreis). Ein Klick darauf lässt genau diesen einen Tracker für den letzten Zug erneut laufen. Die Tooltips nennen den jeweiligen Tracker beim Namen, etwa **Re-run world state tracker only** oder **Re-run quest tracker only**.
+In jedem Tracker sitzt eine kleine Schaltfläche zum Aktualisieren (Pfeil im Kreis). Ein Klick darauf lässt genau diesen einen Tracker für den letzten Zug erneut laufen. Die Tooltips nennen den jeweiligen Tracker beim Namen, etwa **Re-run world state tracker only** oder **Re-run quest tracker only**.
 
 Unter **Chat Settings → Agents** stellt **Manual Trackers** sämtliche aktivierten Tracker auf manuelle Steuerung um. Alternativ lässt du diesen Schalter aus und setzt unter **Individual tracker schedule** nur einzelne Agenten auf manuell. Sobald mindestens ein Tracker manuell läuft, erscheint eine Schaltfläche zum Aktualisieren: am Telefon in der HUD-Zeile, am Computer neben dem Titel des Trackers-Fensters; ein Klick darauf startet alle manuellen Tracker für den aktuellen Zug. Die Schaltfläche im jeweiligen Tracker startet weiterhin nur diesen einen Tracker.
 
@@ -105,7 +105,7 @@ Das **Tracker Panel** ist ein größeres Panel an der Seite und zeigt dieselben 
 
 Um das Panel im Roleplay-Chat einzuschalten, öffne **Chat Settings** und klick auf **Tracker Panel** (den Würfel) in der Titelleiste neben Anheften und Sperren. Die Schaltfläche bleibt hervorgehoben, solange das Panel an ist; das Panel erscheint neben dem Chat. Ein weiterer Klick schaltet es aus und blendet es aus. Am Computer erscheinen die Tracker dann im Trackers-Fenster.
 
-Am Telefon fügt das Einschalten eine Tracker-Panel-Schaltfläche zum Chat hinzu, die du frei verschieben kannst. Tippe darauf, um das Panel zu öffnen; beim Schließen kommt die Schaltfläche zurück. Ist das Panel aus, bleiben die Tracker-Widgets in der HUD-Zeile.
+Am Telefon fügt das Einschalten eine Tracker-Panel-Schaltfläche zum Chat hinzu, die du frei verschieben kannst. Tippe darauf, um das Panel zu öffnen; beim Schließen kommt die Schaltfläche zurück. Ist das Panel aus, nutze die separaten Schaltflächen **World State** und **Player & Tracker**.
 
 Über die Bedienelemente in der Panel-Kopfzeile passt du außerdem den Aufbau der Tracker an:
 
@@ -119,7 +119,7 @@ Die Namen eigener Felder legen den Aufbau fest und bleiben über alle Tracker-Du
 Diese Einstellungen steuern das Panel:
 
 - **Tracker Panel**: der Hauptschalter, den auch der Würfel in Chat Settings bedient. Er ist standardmäßig an. Ist er an, lautet die Beschriftung „Shown in the Roleplay HUD“. Ist er aus, erscheinen die Tracker am Computer im Trackers-Fenster.
-- **Replace tracker HUD icons**: blendet die kompakte Symbolleiste am Telefon aus, damit das Panel stattdessen am Bildschirmrand andocken kann.
+- **Replace tracker HUD icons**: blendet die separaten Tracker-Schaltflächen am Telefon aus und lässt stattdessen das Panel am Bildschirmrand andocken.
 - **Use expression sprites for tracker portraits**: lässt die Tracker-Porträts das Ausdrucks-Sprite eines Charakters verwenden – also sein Porträt zur aktuellen Stimmung – statt des schlichten Avatars, sofern eines vorhanden ist. Ausdrucks-Sprites erklärt der Artikel [Charakter-Sprites](../characters/sprites.md).
 - **Panel background**: eine Auswahl an Farben und Verläufen für den Hintergrund des Panels.
 - **Desktop size**: legt die Breite des Panels fest. Zur Wahl stehen **Compact**, **Standard** und **Expanded**.

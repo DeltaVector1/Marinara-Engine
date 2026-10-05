@@ -1,10 +1,10 @@
 # HUD e trackers do Roleplay
 
-Este guia explica os trackers do Roleplay: os widgets pequenos no celular, a janela **Trackers** e Tracker Panel no computador. Você aprende a editar e travar os valores. Vale para o Roleplay Mode no Marinara Engine.
+Este guia explica os trackers do Roleplay: os botões e painéis que você pode mover no celular, a janela **Trackers** e Tracker Panel no computador. Você aprende a editar e travar os valores. Vale para o Roleplay Mode no Marinara Engine.
 
 ## O que é o HUD
 
-No celular, o HUD (heads-up display) é uma fileira de widgets pequenos no topo do chat. Cada um mostra uma parte do estado da história, como a hora, seus atributos ou quem está presente. Marinara atualiza esses valores conforme a história avança.
+No celular, o HUD (heads-up display) traz os botões **World State** e **Player & Tracker**. Você pode movê-los pelo chat. Toque em um deles para ver detalhes atuais da história, como a hora, seus atributos ou quem está presente. Marinara atualiza esses valores conforme a história avança.
 
 No computador, os trackers não ficam na fileira do HUD. Eles aparecem em **Tracker Panel** enquanto o painel está visível, ou na janela **Trackers** descrita abaixo.
 
@@ -60,11 +60,11 @@ Um tracker também pode ter uma janela própria: clique no botão para destacar 
 
 No fim, **Agent activity** mostra o que os agentes fizeram. Por ali você pode executar trackers novamente, tentar de novo os agentes que falharam, parar os que estão rodando e usar **Clear Trackers**. Tracker Panel tem a mesma seção no fim.
 
-## Editar valores no popover
+## Editar os valores dos trackers
 
-No celular, toque em um widget para abrir seu popover. No computador, os mesmos editores ficam nas gavetas da janela Trackers. Um popover é um pequeno painel flutuante. Todos os campos são editáveis para você corrigir erros da IA. As mudanças são salvas na hora.
+No celular, arraste os botões **World State** e **Player & Tracker** para onde quiser no chat. Toque em um botão para abrir o painel e use **X** para fechá-lo. Os botões e painéis usam o **Chat widget style** escolhido em **Settings → Appearance → App**. Seu chat lembra a posição de cada botão. No computador, os mesmos editores ficam nas gavetas da janela Trackers. Todos os campos são editáveis para você corrigir erros da IA. As mudanças são salvas na hora.
 
-Veja o que cada popover permite editar:
+Veja o que cada tracker permite editar:
 
 - **World State**: os campos **Location**, **Date**, **Time**, **Weather**, **Temperature** e as linhas dos campos de mundo personalizados.
 - **Persona Stats**: uma linha **Status**, mais barras de atributo com nome, valor atual e valor máximo. Adicione ou remova barras.
@@ -82,18 +82,18 @@ Com o campo bloqueado, a próxima execução automática do tracker não mexe ne
 
 Para bloquear um campo:
 
-1. Abra o popover do widget.
-2. Clique no botão liga/desliga de bloqueio, perto do topo do popover. A dica dele diz **Enter lock mode**.
+1. Abra o tracker que você quer editar.
+2. Clique no botão liga/desliga de bloqueio, perto do topo do tracker. A dica dele diz **Enter lock mode**.
 3. Um pequeno botão de cadeado aparece ao lado de cada valor editável.
 4. Clique no cadeado ao lado do valor que você quer fixar. A dica dele diz **Lock field**.
 
-Para desbloquear, clique no mesmo botão de novo (dica **Unlock field**). Para sair do modo de bloqueio, clique outra vez no botão liga/desliga do topo (dica **Exit lock mode**). O modo de bloqueio vale para o HUD inteiro: ao ativá-lo em um popover, os cadeados aparecem em todos os outros.
+Para desbloquear, clique no mesmo botão de novo (dica **Unlock field**). Para sair do modo de bloqueio, clique outra vez no botão liga/desliga do topo (dica **Exit lock mode**). O modo de bloqueio vale para o HUD inteiro: ao ativá-lo em um tracker, os cadeados aparecem em todos os outros.
 
 ## Executar um tracker de novo
 
 Você pode forçar a atualização de um tracker em vez de esperar a próxima mensagem.
 
-Dentro de cada popover há um pequeno botão de atualizar (a seta circular). Clique nele para executar só aquele tracker no turno mais recente. As dicas trazem o nome do tracker, por exemplo **Re-run world state tracker only** ou **Re-run quest tracker only**.
+Dentro de cada tracker há um pequeno botão de atualizar (a seta circular). Clique nele para executar só aquele tracker no turno mais recente. As dicas trazem o nome do tracker, por exemplo **Re-run world state tracker only** ou **Re-run quest tracker only**.
 
 Em **Chat Settings → Agents**, **Manual Trackers** passa todos os trackers ativos para controle manual. Você também pode deixar a opção desligada e escolher só alguns agentes em **Individual tracker schedule**. Quando há pelo menos um tracker manual, aparece um botão de atualizar: na fileira do HUD no celular e ao lado do título de Trackers no computador. Clique nele para executar os trackers manuais no turno atual. O botão dentro de cada tracker continua executando apenas aquele tracker.
 
@@ -105,7 +105,7 @@ O **Tracker Panel** (painel de trackers) é um painel lateral maior que mostra o
 
 Para ativar em um chat de Roleplay, abra **Chat Settings** e clique em **Tracker Panel** (o dado) na barra de título, perto de fixar e travar. Ele fica destacado enquanto o painel está ativo, e o painel aparece ao lado do chat. Clique novamente para desativar e ocultar. No computador, os trackers passam para a janela Trackers.
 
-No celular, ativar adiciona ao chat um botão Tracker Panel que você pode arrastar para qualquer lugar. Toque nele para abrir o painel; fechar devolve o botão. Com o painel desligado, a fileira do HUD mantém os widgets.
+No celular, ativar adiciona ao chat um botão Tracker Panel que você pode arrastar para qualquer lugar. Toque nele para abrir o painel; fechar devolve o botão. Com o painel desligado, use os botões separados **World State** e **Player & Tracker**.
 
 Os controles no cabeçalho do painel também permitem mudar a estrutura dos trackers:
 
@@ -119,7 +119,7 @@ Os nomes dos campos personalizados definem a estrutura e continuam estáveis ent
 Estas configurações controlam o painel:
 
 - **Tracker Panel**: o botão liga/desliga principal, o mesmo controlado pelo dado de Chat Settings. Vem ativado por padrão. Quando ativo, o rótulo diz "Shown in the Roleplay HUD". Quando desligado, os trackers do computador aparecem na janela Trackers.
-- **Replace tracker HUD icons**: oculta a faixa compacta de ícones no celular e permite encaixar o painel na borda da tela.
+- **Replace tracker HUD icons**: oculta os botões separados dos trackers no celular e permite encaixar o painel na borda da tela no lugar deles.
 - **Use expression sprites for tracker portraits**: faz os retratos do tracker usarem o sprite de expressão do personagem (o retrato da emoção atual) em vez do avatar simples, quando existe um. Os sprites de expressão são explicados em [Sprites de personagem](../characters/sprites.md).
 - **Panel background**: um seletor de cor ou gradiente para o plano de fundo do painel.
 - **Desktop size**: escolha a largura do painel. As opções são **Compact**, **Standard** e **Expanded**.

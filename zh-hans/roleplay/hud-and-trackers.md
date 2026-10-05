@@ -1,10 +1,10 @@
 # Roleplay 的 HUD 与追踪器
 
-本指南介绍 Roleplay 追踪器：手机上的小组件、电脑上的 **Trackers** 窗口和 Tracker Panel，以及如何编辑和锁定数值。内容适用于 Marinara Engine 的 Roleplay(角色扮演) 模式。
+本指南介绍 Roleplay 追踪器：手机上可以移动的按钮和面板、电脑上的 **Trackers** 窗口和 Tracker Panel，以及如何编辑和锁定数值。内容适用于 Marinara Engine 的 Roleplay(角色扮演) 模式。
 
 ## HUD 是什么
 
-手机上，HUD(抬头显示) 是聊天顶部的一排追踪器小组件。每个组件显示一项故事状态，比如时间、属性或谁在场。Marinara 会随着故事发展更新数值。
+手机上的 HUD(抬头显示) 提供 **World State** 和 **Player & Tracker** 按钮。你可以在聊天中移动它们。点开按钮，就能查看故事的当前状态，比如时间、属性或谁在场。Marinara 会随着故事发展更新这些数值。
 
 电脑上的追踪器不在 HUD 图标行里。**Tracker Panel** 显示时，追踪器放在面板中；否则使用下面介绍的 **Trackers** 窗口。
 
@@ -60,11 +60,11 @@
 
 底部的 **Agent activity** 显示智能体做了什么，也能重跑追踪器、重试失败的智能体、停止正在运行的智能体，以及 **Clear Trackers**。Tracker Panel 底部也有同样的区域。
 
-## 在弹出面板里改值
+## 编辑追踪器数值
 
-手机上，点击小组件打开弹出面板；电脑上，相同的编辑器放在 Trackers 窗口的抽屉里。弹出面板是一小块浮动面板，其中每个字段都能编辑，可以直接纠正 AI 写错的值，改完立即保存。
+手机上，把 **World State** 和 **Player & Tracker** 按钮拖到聊天中喜欢的位置。点击按钮打开面板，使用 **X** 关闭。按钮和面板会使用 **Settings → Appearance → App** 中的 **Chat widget style**。聊天会记住每个按钮的位置。电脑上，相同的编辑器放在 Trackers 窗口的抽屉里。每个字段都能编辑，可以直接纠正 AI 写错的值，改完立即保存。
 
-各个弹出面板能改的内容如下：
+各个追踪器能改的内容如下：
 
 - **World State**：**Location**、**Date**、**Time**、**Weather**、**Temperature**，以及自定义的世界字段行。
 - **Persona Stats**：一行 **Status**，再加上若干带名字的状态条，每条有当前值和最大值。状态条可以增删。
@@ -82,18 +82,18 @@
 
 锁定一个字段的步骤：
 
-1. 打开该小组件的弹出面板。
-2. 点击面板顶部附近的锁定开关，它的提示文字是 **Enter lock mode**。
+1. 打开你想编辑的追踪器。
+2. 点击追踪器顶部附近的锁定开关，它的提示文字是 **Enter lock mode**。
 3. 这时每个可编辑的值旁边都会出现一个小锁按钮。
 4. 点击要钉住的那个值旁边的锁按钮，它的提示文字是 **Lock field**。
 
-再点一次同一个按钮即可解锁（提示文字变成 **Unlock field**）。再点一次顶部的开关就退出锁定模式（提示文字是 **Exit lock mode**）。锁定模式对整个 HUD 生效，在一个弹出面板里打开它，所有地方的锁按钮都会显示出来。
+再点一次同一个按钮即可解锁（提示文字变成 **Unlock field**）。再点一次顶部的开关就退出锁定模式（提示文字是 **Exit lock mode**）。锁定模式对整个 HUD 生效，在一个追踪器里打开它，所有地方的锁按钮都会显示出来。
 
 ## 重跑某个追踪器
 
 不想等下一条消息的话，可以强制让追踪器立刻更新。
 
-每个弹出面板里都有一个小小的刷新按钮（圆形箭头）。点它就只重跑这一个追踪器，针对最新的回合。提示文字里会写明是哪个追踪器，比如 **Re-run world state tracker only** 或 **Re-run quest tracker only**。
+每个追踪器里都有一个小小的刷新按钮（圆形箭头）。点它就只重跑这一个追踪器，针对最新的回合。提示文字里会写明是哪个追踪器，比如 **Re-run world state tracker only** 或 **Re-run quest tracker only**。
 
 在 **Chat Settings → Agents** 里，**Manual Trackers** 会把所有启用的追踪器改成手动控制。也可以保持关闭，只在 **Individual tracker schedule** 下选择几个智能体设为手动。只要有一个手动追踪器，就会显示刷新按钮：手机上在 HUD 行里，电脑上在 Trackers 窗口标题旁。点击可为当前回合运行这组手动追踪器。每个追踪器内部的刷新按钮仍只运行它自己。
 
@@ -105,7 +105,7 @@
 
 要在 Roleplay 聊天中开启面板，打开 **Chat Settings**，点击标题栏里固定和锁定按钮旁的 **Tracker Panel**(骰子)。开启时按钮保持高亮，面板显示在聊天旁边。再点一次会关闭并隐藏面板；电脑上的追踪器随后转到 Trackers 窗口。
 
-手机上，开启后会在聊天中添加一个可以任意拖动的 Tracker Panel 按钮。点击打开面板，关闭后恢复为按钮。面板关闭时，HUD 行保留追踪器小组件。
+手机上，开启后会在聊天中添加一个可以任意拖动的 Tracker Panel 按钮。点击打开面板，关闭后恢复为按钮。面板关闭时，请使用独立的 **World State** 和 **Player & Tracker** 按钮。
 
 面板顶栏的几个控件还能用来调整追踪器的结构：
 
@@ -119,7 +119,7 @@
 控制它的设置项如下：
 
 - **Tracker Panel**：总开关，与 Chat Settings 的骰子控制的是同一项。默认开启，开启时标签显示“Shown in the Roleplay HUD”。关闭后，电脑上的追踪器显示在 Trackers 窗口里。
-- **Replace tracker HUD icons**：隐藏手机上的紧凑图标行，让面板停靠到屏幕边缘。
+- **Replace tracker HUD icons**：隐藏手机上独立的追踪器按钮，改为让面板停靠在屏幕边缘。
 - **Use expression sprites for tracker portraits**：有表情立绘（角色当前情绪的那张立绘）时，追踪器肖像就用它，而不是普通头像。表情立绘的说明见[角色立绘](../characters/sprites.md)。
 - **Panel background**：面板背景的颜色或渐变选择器。
 - **Desktop size**：选择面板宽度，可选 **Compact**、**Standard** 和 **Expanded**。

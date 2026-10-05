@@ -6,7 +6,7 @@ Ce guide explique ce qu'est le mode Roleplay, comment lancer un roleplay et ce q
 
 Le mode Roleplay est l'un des modes de chat de Marinara Engine. Les deux autres sont Conversation et Game. Le roleplay t'offre une vue de scène immersive, construite autour d'une histoire.
 
-Une scène de roleplay peut afficher un arrière-plan, des sprites de personnages et un HUD de l'état du monde. Un sprite est une image du personnage qui change selon son émotion. Le HUD montre cet état : de petits widgets en haut du chat sur téléphone, et Tracker Panel ou la fenêtre Trackers sur ordinateur.
+Une scène de roleplay peut afficher un arrière-plan, des sprites de personnages et un HUD de l'état du monde. Un sprite est une image du personnage qui change selon son émotion. Le HUD montre cet état : les boutons déplaçables **World State** et **Player & Tracker** sur téléphone, et Tracker Panel ou la fenêtre Trackers sur ordinateur.
 
 Le roleplay s'appuie aussi sur des aides appelées agents. Un agent est une petite tâche automatique qui tourne en parallèle de la réponse de l'IA. Les agents suivent l'état du monde, choisissent les sprites, sélectionnent les arrière-plans, et bien plus encore.
 
@@ -34,7 +34,7 @@ L'**arrière-plan** est une image pleine scène placée derrière la colonne des
 
 Les **sprites** sont les images de personnages posées sur le plateau. Il n'y a aucune limite fixe. Chaque personnage du chat dont les sprites sont activés peut apparaître. Les sprites exigent une bibliothèque de sprites téléversée sur la fiche de personnage. Sans elle, l'emplacement de sprite n'affiche rien. Voir [Sprites de personnage](../characters/sprites.md) pour ajouter des sprites à un personnage.
 
-Le **HUD** montre tes trackers. Sur téléphone, c'est une rangée de petits widgets en haut du chat. Sur ordinateur, ils apparaissent dans **Tracker Panel**, ou dans la fenêtre **Trackers** quand Tracker Panel est désactivé dans Settings. Chaque tracker appartient à un agent et n'apparaît que si cet agent est activé. Ils peuvent montrer date, heure, météo, lieu, personnages présents, inventaire, quêtes et caractéristiques, et tu peux modifier leurs valeurs. Consulte [HUD et trackers en Roleplay](hud-and-trackers.md) pour chaque widget et mode de verrouillage.
+Le **HUD** montre tes trackers. Sur téléphone, les trackers s'ouvrent avec les boutons **World State** et **Player & Tracker**, que tu peux déplacer. Sur ordinateur, ils apparaissent dans **Tracker Panel**, ou dans la fenêtre **Trackers** quand Tracker Panel est désactivé dans Settings. Chaque tracker appartient à un agent et n'apparaît que si cet agent est activé. Ils peuvent montrer date, heure, météo, lieu, personnages présents, inventaire, quêtes et caractéristiques, et tu peux modifier leurs valeurs. Consulte [HUD et trackers en Roleplay](hud-and-trackers.md) pour chaque widget et mode de verrouillage.
 
 ### Réglages d'affichage des sprites
 
@@ -131,7 +131,7 @@ Ouvre les informations de commande de la réponse et choisis **Restore original 
 
 ## Echo Chamber
 
-**Echo Chamber** est un agent facultatif qui ajoute un public en direct réagissant à ta scène. Il fonctionne comme un chat de streaming qui publie une nouvelle réaction à intervalle régulier. Active-le dans la section **Chat Settings**, sous **Agents**, sur la carte **Echo Chamber**. Le panneau flotte au-dessus de la scène et se replie en petite pastille.
+**Echo Chamber** est un agent facultatif qui ajoute un public en direct réagissant à ta scène. Il fonctionne comme un chat de streaming qui publie une nouvelle réaction à intervalle régulier. Active-le dans la section **Chat Settings**, sous **Agents**, sur la carte **Echo Chamber**. Sur ordinateur, fais glisser la barre de titre pour déplacer la fenêtre, tire sur un bord pour la redimensionner ou épingle-la pour la garder ouverte. **X** la réduit à un bouton déplaçable. Sur téléphone, Echo garde une vue compacte au-dessus des messages ; **X** la réduit aussi à un bouton déplaçable. Echo utilise ton **Chat widget style** dans **Settings → Appearance → App**, et chaque chat mémorise sa disposition.
 
 ## Choix CYOA
 
