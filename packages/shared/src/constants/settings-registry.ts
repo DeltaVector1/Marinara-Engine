@@ -305,7 +305,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
   {
     id: "multiplayer",
     tab: "advanced",
-    label: "Multiplayer",
+    label: "Multiplayer WIP",
     description: "Optional shared roleplay, conversation and game sessions.",
     aliases: ["multiplayer", "host", "join", "players", "invite", "shared", "online"],
   },
