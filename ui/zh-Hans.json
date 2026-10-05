@@ -7201,6 +7201,8 @@
   "ui.panels.backgroundpicker.deleteFolderValue1": "删除文件夹 {{value1}}",
   "ui.panels.backgroundpicker.deleteValue1ThisCannotBeUndone": "要删除“{{value1}}”吗？此操作无法撤销。",
   "ui.panels.backgroundpicker.doubleClickDoubleTapOrPressF2ToRename": "双击、双点或按 F2 重命名。",
+  "ui.panels.backgroundpicker.downloadBackground": "下载背景",
+  "ui.panels.backgroundpicker.downloadValue1": "下载 {{value1}}",
   "ui.panels.backgroundpicker.dragAndDropBackgroundsToFoldersDoubleClickOr": "将背景拖放到文件夹中；双击或双点可重命名。",
   "ui.panels.backgroundpicker.dragBackgroundsOntoAFolderChip": "将背景拖到文件夹标签上即可归档。",
   "ui.panels.backgroundpicker.dragValue1ToAFolder": "将 {{value1}} 拖到文件夹",

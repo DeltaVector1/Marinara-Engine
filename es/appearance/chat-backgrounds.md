@@ -10,7 +10,7 @@ La sección **Backgrounds** tiene tres partes:
 
 1. El selector **Chat Background** (Fondo del chat), donde eliges la imagen para el chat en el que estás.
 2. El control deslizante **Background Blur** (Desenfoque del fondo).
-3. La biblioteca de fondos, donde importas, organizas, filtras, etiquetas, renombras y eliminas imágenes.
+3. La biblioteca de fondos, donde importas, organizas, filtras, etiquetas, renombras, descargas y eliminas imágenes.
 
 Un fondo de chat solo se muestra en los chats de Roleplay y de Game Mode. El modo Conversation usa en su lugar un degradado, que configuras en la sección **Conversation Theme** (Tema de conversación). Consulta [Configuración de apariencia](appearance-settings.md) para eso.
 
@@ -74,6 +74,12 @@ Las etiquetas te ayudan a agrupar y buscar tus subidas. Solo puedes etiquetar la
 2. Escribe una etiqueta en el campo **Add tag...** (Añadir etiqueta). A medida que escribes, Marinara sugiere etiquetas que usaste antes.
 3. Pulsa Enter o haz clic en **Add** (Añadir).
 4. Para quitar una etiqueta, haz clic en la pequeña X de esa etiqueta.
+
+<a id="download-a-background"></a>
+
+### Descargar un fondo
+
+Puedes descargar cualquier fondo, incluidos los integrados. Pasa el cursor por la fila de la imagen y haz clic en el icono de descarga (**Download background**, Descargar fondo). La imagen se guarda con su nombre de archivo. En un iPhone o iPad, se abre la hoja para compartir, donde puedes guardarla; si no se abre, toca **Save file** (Guardar archivo) en el mensaje que aparece.
 
 ### Eliminar un fondo
 

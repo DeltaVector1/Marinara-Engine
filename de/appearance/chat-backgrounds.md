@@ -10,7 +10,7 @@ Der Abschnitt **Backgrounds** besteht aus drei Teilen:
 
 1. Die Auswahl **Chat Background** (Chat-Hintergrund) für das Bild im aktuellen Chat.
 2. Der Schieberegler **Background Blur** (Hintergrund-Unschärfe).
-3. Die Hintergrund-Bibliothek zum Importieren, Sortieren, Filtern, Taggen, Umbenennen und Löschen von Bildern.
+3. Die Hintergrund-Bibliothek zum Importieren, Sortieren, Filtern, Taggen, Umbenennen, Herunterladen und Löschen von Bildern.
 
 Ein Chat-Hintergrund erscheint nur in Roleplay- und Game-Mode-Chats. Conversation nutzt stattdessen einen Farbverlauf, den du im Abschnitt **Conversation Theme** (Conversation-Design) festlegst. Näheres dazu unter [Darstellungs-Einstellungen](appearance-settings.md).
 
@@ -74,6 +74,12 @@ Tags helfen beim Gruppieren und Suchen der eigenen Uploads. Taggen lassen sich n
 2. Gib im Feld **Add tag...** ein Tag ein. Beim Tippen schlägt Marinara bereits verwendete Tags vor.
 3. Drück Enter oder klick auf **Add** (Hinzufügen).
 4. Ein Klick auf das kleine X am Tag-Chip entfernt das Tag wieder.
+
+<a id="download-a-background"></a>
+
+### Einen Hintergrund herunterladen
+
+Herunterladen lassen sich alle Hintergründe, auch die mitgelieferten. Zeig auf die Bildzeile und klick auf das Download-Symbol (**Download background**, Hintergrund herunterladen). Das Bild wird unter seinem Dateinamen gespeichert. Auf iPhone oder iPad öffnet sich das Teilen-Menü, über das du es sichern kannst. Öffnet es sich nicht, tippe in der eingeblendeten Meldung auf **Save file** (Datei speichern).
 
 ### Einen Hintergrund löschen
 

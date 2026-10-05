@@ -10,7 +10,7 @@ Sekcja **Backgrounds** składa się z trzech części:
 
 1. Selektor **Chat Background** (tło czatu), w którym wybierasz obraz dla otwartego czatu.
 2. Suwak **Background Blur** (rozmycie tła).
-3. Biblioteka teł, w której importujesz, porządkujesz, filtrujesz, tagujesz, zmieniasz nazwy i usuwasz obrazy.
+3. Biblioteka teł, w której importujesz, porządkujesz, filtrujesz, tagujesz, zmieniasz nazwy, pobierasz i usuwasz obrazy.
 
 Tło czatu widać wyłącznie w czatach w trybie Roleplay i Game Mode. Tryb Conversation używa zamiast tego gradientu, który ustawisz w sekcji **Conversation Theme** (motyw trybu Conversation). Opisują to [Ustawienia wyglądu](appearance-settings.md).
 
@@ -74,6 +74,12 @@ Tagi ułatwiają grupowanie i wyszukiwanie wgranych obrazów. Otagować można t
 2. Wpisz tag w polu **Add tag...**. W trakcie pisania Marinara podpowiada wcześniej używane tagi.
 3. Naciśnij Enter albo kliknij przycisk **Add**.
 4. Aby usunąć tag, kliknij mały X na jego kafelku.
+
+<a id="download-a-background"></a>
+
+### Pobieranie tła
+
+Pobrać można każde tło, także wbudowane. Najedź na wiersz obrazu i kliknij ikonę pobierania (**Download background**, Pobierz tło). Obraz zapisuje się pod swoją nazwą pliku. Na urządzeniu iPhone lub iPad otwiera się arkusz udostępniania, w którym możesz zapisać obraz; jeśli się nie otworzy, stuknij **Save file** (Zapisz plik) w wyświetlonym komunikacie.
 
 ### Usuwanie tła
 

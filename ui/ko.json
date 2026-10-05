@@ -9522,6 +9522,8 @@
   "ui.panels.backgroundpicker.deleteFolderValue1": "{{value1}} 폴더 삭제",
   "ui.panels.backgroundpicker.deleteValue1ThisCannotBeUndone": "“{{value1}}” 배경을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
   "ui.panels.backgroundpicker.doubleClickDoubleTapOrPressF2ToRename": "이름을 바꾸려면 두 번 클릭하거나 두 번 탭하거나 F2를 누르세요.",
+  "ui.panels.backgroundpicker.downloadBackground": "배경 다운로드",
+  "ui.panels.backgroundpicker.downloadValue1": "{{value1}} 다운로드",
   "ui.panels.backgroundpicker.dragAndDropBackgroundsToFoldersDoubleClickOr": "배경을 폴더로 드래그 앤 드롭하고, 이름을 변경하려면 더블 클릭하거나 두 번 탭하세요.",
   "ui.panels.backgroundpicker.dragBackgroundsOntoAFolderChip": "배경을 폴더 칩 위로 드래그하면 정리할 수 있습니다.",
   "ui.panels.backgroundpicker.dragValue1ToAFolder": "{{value1}}을 폴더로 드래그",

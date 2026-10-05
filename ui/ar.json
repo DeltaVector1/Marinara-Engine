@@ -219,5 +219,7 @@
   "ui.botBrowser.providerUnavailable.openSite": "فتح {{value1}}",
   "ui.botBrowser.providerUnavailable.title": "لا يمكن تصفّح {{value1}} هنا حاليًا",
   "ui.chat.slash.usage.illustrate": "/illustrate [range=N|range=N-M (اختياري)] [وصف (اختياري)]",
-  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "أضف اختصار الترجمة بجانب الإرسال. في Conversation، تتوفر ترجمة المسودة دائمًا في تبويب الأدوات بقائمة الوجه المبتسم في حقل الرسالة، بما في ذلك على الهاتف."
+  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "أضف اختصار الترجمة بجانب الإرسال. في Conversation، تتوفر ترجمة المسودة دائمًا في تبويب الأدوات بقائمة الوجه المبتسم في حقل الرسالة، بما في ذلك على الهاتف.",
+  "ui.panels.backgroundpicker.downloadBackground": "تنزيل الخلفية",
+  "ui.panels.backgroundpicker.downloadValue1": "تنزيل {{value1}}"
 }

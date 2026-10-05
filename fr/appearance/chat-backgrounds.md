@@ -10,7 +10,7 @@ La section **Backgrounds** compte trois parties :
 
 1. Le sélecteur **Chat Background** (arrière-plan du chat), pour choisir l'image du chat ouvert.
 2. Le curseur **Background Blur** (flou d'arrière-plan).
-3. La bibliothèque d'arrière-plans, où tu importes, organises, filtres, tagues, renommes et supprimes les images.
+3. La bibliothèque d'arrière-plans, où tu importes, organises, filtres, tagues, renommes, télécharges et supprimes les images.
 
 Un arrière-plan de chat ne s'affiche que dans les chats en mode Roleplay et Game Mode. Le mode Conversation utilise plutôt un dégradé, que tu règles dans la section **Conversation Theme** (thème de la Conversation). Voir [Paramètres d'apparence](appearance-settings.md) pour cela.
 
@@ -74,6 +74,12 @@ Les tags aident à regrouper et à retrouver tes imports. Seules les images port
 2. Saisis un tag dans le champ **Add tag...**. Au fil de la frappe, Marinara propose les tags déjà utilisés.
 3. Appuie sur Enter ou clique sur **Add** (ajouter).
 4. Pour retirer un tag, clique sur la petite croix de sa pastille.
+
+<a id="download-a-background"></a>
+
+### Télécharger un arrière-plan
+
+Tu peux télécharger n'importe quel arrière-plan, y compris les arrière-plans intégrés. Survole la ligne de l'image et clique sur l'icône de téléchargement (**Download background**, télécharger l'arrière-plan). L'image est enregistrée sous son nom de fichier. Sur iPhone ou iPad, la feuille de partage s'ouvre pour que tu puisses l'enregistrer ; si elle ne s'ouvre pas, touche **Save file** (enregistrer le fichier) dans le message qui s'affiche.
 
 ### Supprimer un arrière-plan
 

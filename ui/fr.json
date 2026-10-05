@@ -209,5 +209,7 @@
   "ui.botBrowser.providerUnavailable.title": "Impossible de parcourir {{value1}} ici pour le moment",
   "ui.chat.chatinput.itLooksLikeYouHavenTConnectedAnyModel": "Il semble que tu n'aies encore connecté aucun modèle. Ouvre Chat Settings pour le faire d'abord.",
   "ui.chat.slash.usage.illustrate": "/illustrate [range=N|range=N-M (facultatif)] [prompt (facultatif)]",
-  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "Ajoute un raccourci Traduire à côté d'Envoyer. Dans Conversation, Traduire le brouillon est toujours disponible dans l'onglet Outils du menu souriant du champ de message, y compris sur mobile."
+  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "Ajoute un raccourci Traduire à côté d'Envoyer. Dans Conversation, Traduire le brouillon est toujours disponible dans l'onglet Outils du menu souriant du champ de message, y compris sur mobile.",
+  "ui.panels.backgroundpicker.downloadBackground": "Télécharger l’arrière-plan",
+  "ui.panels.backgroundpicker.downloadValue1": "Télécharger {{value1}}"
 }

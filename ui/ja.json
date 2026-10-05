@@ -209,5 +209,7 @@
   "ui.botBrowser.providerUnavailable.title": "{{value1}}は現在ここでは閲覧できません",
   "ui.chat.chatinput.itLooksLikeYouHavenTConnectedAnyModel": "まだモデルが接続されていないようです。まずチャット設定を開いて接続してください。",
   "ui.chat.slash.usage.illustrate": "/illustrate [range=N|range=N-M（任意）] [プロンプト（任意）]",
-  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "送信の横に翻訳ショートカットを追加します。Conversationでは、入力欄のスマイルメニューにあるツールタブから、モバイルでも常に下書きを翻訳できます。"
+  "ui.chatSettings.translationsection.addATranslateButtonBesideSendSoYouCan": "送信の横に翻訳ショートカットを追加します。Conversationでは、入力欄のスマイルメニューにあるツールタブから、モバイルでも常に下書きを翻訳できます。",
+  "ui.panels.backgroundpicker.downloadBackground": "背景をダウンロード",
+  "ui.panels.backgroundpicker.downloadValue1": "{{value1}}をダウンロード"
 }
