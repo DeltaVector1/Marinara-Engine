@@ -31,8 +31,10 @@ Marinara Engineには、あらかじめ用意された接続も、無料のお�
 3. **Provider**(プロバイダー)の下で、使いたいサービスのボタンをクリックします。たとえば**OpenAI**、**Anthropic**、**OpenRouter**などです。
 4. **Create**(作成)をクリックします。Marinaraが接続を作り、その接続の**Connection Editor**(接続エディター)を開きます。
 5. **API Key**(APIキー)欄を探し、プロバイダーで取得したキーを貼り付けます。まだキーがない場合は、欄の下にある**Get your {Provider} API key**のリンクをクリックしてください。ブラウザーでプロバイダーのキー発行ページが開きます。
-6. **Model**(モデル)ドロップダウンを開いてモデルを選びます。**Search models…**の欄に文字を入力すると、一覧を絞り込めます。一覧が空のときは**Fetch Models from API**をクリックすると、アカウントで使えるモデルを読み込みます。
+6. **Model**(モデル)ドロップダウンを開いてモデルを選びます。**Search models…**の欄に文字を入力すると、一覧を絞り込めます。一覧が空のときは**Fetch Models from API**をクリックすると、アカウントで使えるモデルを読み込みます。Marinaraは取得した一覧を接続と一緒に保存します。そのため、チャット入力欄のモデルメニューでも、あとから取得し直さずに一覧を表示できます。
 7. **Save**(保存)をクリックします。上部付近の状態表示が**Saved**に変わります。
+
+あとからモデルを変更するときは、エディターを開く必要はありません。Quick Connection Switcher(チャット入力欄のリンクアイコン)か、**Chat Settings → Connection**(チャット設定 → 接続)の**Model**欄を使います。[ランダムプールとQuick Connection Switcher](organizing-connections.md#the-random-pool-and-quick-connection-switcher)を参照してください。
 
 **Base URL**(ベースURL)欄は、ふつう触る必要はありません。既知のプロバイダーならMarinaraが自動で入力します。プロキシやローカルサーバーを使う場合だけ変更してください。
 

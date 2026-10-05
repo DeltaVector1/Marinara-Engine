@@ -48,6 +48,8 @@ Para borrar una sola conexión, haz clic en su botón **Delete** (Borrar), el ic
 
 Para borrar o exportar varias conexiones a la vez, haz clic en el botón **Select** (Seleccionar) en la parte superior del panel. Esto activa el modo de selección. Toca las conexiones que quieras y luego usa el botón **Export** (Exportar) o **Delete** en la barra de acciones de abajo. El borrado en lote muestra una ventana **Delete Connections** (Borrar conexiones) antes de eliminarlas.
 
+<a id="the-random-pool-and-quick-connection-switcher"></a>
+
 ## El grupo aleatorio y el Quick Connection Switcher
 
 El grupo aleatorio permite que un chat elija una conexión distinta cada vez que genera una respuesta. Esto es útil cuando quieres repartir las peticiones entre varios proveedores o modelos.
@@ -56,17 +58,26 @@ Para añadir una conexión al grupo aleatorio, haz clic en el icono de barajar d
 
 Para que un chat use el grupo aleatorio, abre **Chat Settings** (Ajustes del chat), busca la sección **Connection** (Conexión) y elige **🎲 Random** en el menú desplegable. En Game Mode este menú desplegable se llama **GM / Party Model**. Cada respuesta elige entonces una conexión al azar de tu grupo.
 
-El **Quick Connection Switcher** es una forma más rápida de cambiar la conexión del chat en el que estás. Haz clic en el icono de enlace en el área de entrada del chat para abrirlo. Muestra tus conexiones en un menú pequeño:
+El **Quick Connection Switcher** es una forma más rápida de cambiar la conexión, y su modelo, del chat en el que estás. Haz clic en el icono de enlace en el área de entrada del chat para abrirlo. Muestra tus conexiones a la izquierda y los **Models** (Modelos) de la conexión elegida a la derecha:
 
-- Haz clic en una conexión para usarla en el chat actual de inmediato.
+- Haz clic en una conexión para usarla en el chat actual de inmediato. El menú sigue abierto para que puedas elegir después uno de sus modelos.
+- Haz clic en un modelo para usarlo. El modelo se guarda en esa conexión, la conexión se selecciona para el chat si todavía no lo estaba, y el menú se cierra. Una marca de verificación señala el modelo que usa ahora la conexión. Igual que en el editor de conexión, elegir un modelo de la lista también actualiza la ventana de contexto de la conexión, y su límite de salida, cuando el proveedor los indica.
+- Escribe en el cuadro **Search or enter model ID…** (Buscar o escribir un ID de modelo) para filtrar la lista. Al pulsar Enter se elige el modelo cuyo ID o nombre escribiste, o el único modelo que queda en la lista. Para usar un modelo que no aparece en la lista, escribe su ID exacto: pulsa Enter cuando nada de la lista coincida con él, o haz clic en la fila **Use "…"**.
+- Haz clic en la estrella junto a un modelo para fijarlo. Los modelos fijados se quedan arriba, bajo **Pinned** (Fijados), incluso los que escribiste a mano. Haz clic de nuevo en la estrella para dejar de fijarlo.
+- La primera vez que abres los modelos de una conexión, Marinara carga la lista desde el proveedor y la guarda con la conexión, así que en las siguientes visitas aparece de inmediato. Haz clic en el botón de actualizar junto al cuadro de búsqueda para volver a cargar la lista, por ejemplo después de que el proveedor añada modelos nuevos. Cambiar la API key, la URL base o el proveedor de la conexión también carga una lista nueva.
+- Si el proveedor no tiene lista de modelos o está inalcanzable, el menú lo indica, y aun así puedes escribir un ID de modelo.
 - Haz clic en el botón de dados en la parte superior del menú para activar o desactivar el grupo aleatorio en este chat.
-- Mientras el grupo aleatorio está activado, hacer clic en una conexión en vez de eso la añade al grupo o la quita de él. Una marca de verificación muestra qué conexiones están en el grupo.
+- Mientras el grupo aleatorio está activado, hacer clic en una conexión en vez de eso la añade al grupo o la quita de él. Una marca de verificación muestra qué conexiones están en el grupo. La columna **Models** se oculta, porque el grupo no tiene una única conexión.
+
+En un teléfono, toca el chevron junto al cuadro de mensaje y abre la pestaña **Connections**. Al tocar una conexión, esta se selecciona y sus modelos aparecen en el mismo menú; toca la flecha hacia atrás para volver a la lista de conexiones.
+
+**Un cambio de modelo se aplica en todos los lugares donde se usa la conexión.** La nota al pie del menú, "Model changes are saved to this connection." (Los cambios de modelo se guardan en esta conexión), significa que los agentes, las funciones auxiliares y los demás chats que usan la misma conexión también cambian al modelo nuevo. Los demás ajustes de modelo de la conexión, como su modelo de embedding o la conexión de descripción de imágenes, no cambian. Si quieres un modelo distinto solo para un uso concreto, duplica la conexión y cambia la copia.
 
 ## Exportar e importar conexiones
 
 Puedes exportar conexiones a un archivo para hacer una copia de seguridad o pasarlas a otra instalación, y luego importarlas más tarde.
 
-**Tus API keys nunca se incluyen en una exportación.** Después de importar conexiones, tienes que abrir cada una y volver a escribir su API key.
+**Tus API keys nunca se incluyen en una exportación.** Después de importar conexiones, tienes que abrir cada una y volver a escribir su API key. Los modelos fijados sí se incluyen; la lista de modelos guardada no, así que se vuelve a cargar la primera vez que abres los modelos de la conexión.
 
 Para exportar una sola conexión, ábrela en el editor y haz clic en su botón **Export** (Exportar), el icono de subir. Para exportar varias a la vez, usa el modo **Select** en el panel y haz clic en **Export** en la barra de acciones. Antes de que empiece la descarga, Marinara muestra una ventana **Export Connection Data** (Exportar datos de conexión) con esta advertencia: This will export your connection data, WITHOUT your provided API Key. Remember to never share those with others! Haz clic en **Export** para continuar.
 

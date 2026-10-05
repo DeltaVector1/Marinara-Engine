@@ -31,8 +31,10 @@ Sigue estos pasos para añadir tu primer proveedor.
 3. En **Provider** (Proveedor), haz clic en el botón del servicio que quieras, por ejemplo **OpenAI**, **Anthropic** u **OpenRouter**.
 4. Haz clic en **Create** (Crear). Marinara crea la conexión y abre el **Connection Editor** (Editor de conexión) completo para ella.
 5. Busca el campo **API Key**. Pega aquí tu clave del proveedor. Si todavía no tienes una clave, haz clic en el enlace **Get your {Provider} API key** debajo del campo. Ese enlace abre la página de claves del proveedor en tu navegador.
-6. Abre el menú desplegable **Model** (Modelo) y elige un modelo. Puedes escribir en el cuadro **Search models…** para filtrar la lista. Si la lista está vacía, haz clic en **Fetch Models from API** para cargar los modelos que tu cuenta puede usar.
+6. Abre el menú desplegable **Model** (Modelo) y elige un modelo. Puedes escribir en el cuadro **Search models…** para filtrar la lista. Si la lista está vacía, haz clic en **Fetch Models from API** para cargar los modelos que tu cuenta puede usar. Marinara guarda la lista obtenida con la conexión, para que el menú de modelos del área de entrada del chat pueda mostrarla más tarde sin volver a obtenerla.
 7. Haz clic en **Save** (Guardar). El texto de estado cerca de la parte superior cambia a **Saved**.
+
+Más adelante puedes cambiar el modelo sin abrir el editor: usa el Quick Connection Switcher (el icono de enlace en el área de entrada del chat) o el campo **Model** en **Chat Settings → Connection** (Ajustes del chat → Conexión). Consulta [El grupo aleatorio y el Quick Connection Switcher](organizing-connections.md#the-random-pool-and-quick-connection-switcher).
 
 Normalmente no necesitas tocar el campo **Base URL**. Marinara lo rellena para los proveedores conocidos. Cámbialo solo si usas un proxy o un servidor local.
 

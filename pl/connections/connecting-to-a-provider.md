@@ -31,8 +31,10 @@ Wykonaj kolejno te kroki, aby dodać pierwszego dostawcę.
 3. W sekcji **Provider** kliknij przycisk usługi, której chcesz użyć, na przykład **OpenAI**, **Anthropic** albo **OpenRouter**.
 4. Kliknij przycisk **Create**. Marinara tworzy połączenie i otwiera dla niego pełny edytor **Connection Editor**.
 5. Znajdź pole **API Key**. Wklej tutaj klucz otrzymany od dostawcy. Jeśli klucza jeszcze nie ma, kliknij link **Get your {Provider} API key** pod polem. Ten link otwiera w przeglądarce stronę z kluczami danego dostawcy.
-6. Otwórz listę rozwijaną **Model** i wybierz model. Listę da się zawęzić, wpisując tekst w polu **Search models…**. Jeśli lista jest pusta, kliknij przycisk **Fetch Models from API**, aby wczytać modele dostępne dla konta u dostawcy.
+6. Otwórz listę rozwijaną **Model** i wybierz model. Listę da się zawęzić, wpisując tekst w polu **Search models…**. Jeśli lista jest pusta, kliknij przycisk **Fetch Models from API**, aby wczytać modele dostępne dla konta u dostawcy. Marinara zapisuje pobraną listę razem z połączeniem, dzięki czemu menu modeli w polu wpisywania wiadomości może ją później pokazać bez ponownego pobierania.
 7. Kliknij przycisk **Save**. Tekst stanu u góry zmienia się na **Saved**.
+
+Później model da się zmienić bez otwierania edytora: użyj panelu Quick Connection Switcher (ikona ogniwa w polu wpisywania wiadomości) albo pola **Model** w sekcji **Chat Settings → Connection**. Zobacz [Pula losowa i panel Quick Connection Switcher](organizing-connections.md#the-random-pool-and-quick-connection-switcher).
 
 Pola **Base URL** zwykle nie trzeba ruszać. Marinara wypełnia je sama dla znanych dostawców. Zmieniaj je tylko przy korzystaniu z serwera proxy albo serwera lokalnego.
 

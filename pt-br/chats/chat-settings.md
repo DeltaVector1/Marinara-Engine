@@ -120,6 +120,8 @@ A seção **Connection** (conexão) define qual provedor de IA e qual modelo res
 
 Escolha uma conexão salva no menu suspenso. Outra opção: escolher **Random**. Assim, a cada vez uma conexão diferente é sorteada entre as que você marcou para o sorteio.
 
+Abaixo do menu suspenso, o campo **Model** (modelo) mostra o modelo que a conexão selecionada usa. Clique nele para abrir a mesma lista de modelos do Quick Connection Switcher (troca rápida de conexão): busque ou digite o ID de um modelo, fixe modelos com a estrela, atualize a lista e clique em um modelo para usá-lo. O modelo é salvo na conexão, então todo chat, agente e recurso auxiliar que usa essa conexão também passa para ele. O campo fica oculto com **Random** e com o Local Model embutido. Veja os detalhes em [O conjunto aleatório e o Quick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher).
+
 Para aprender a criar uma conexão do zero, veja [Conectando a um provedor de IA](../connections/connecting-to-a-provider.md).
 
 <a id="settings-profiles"></a>

@@ -48,6 +48,8 @@ Aby usunąć pojedyncze połączenie, kliknij jego przycisk **Delete** (usunięc
 
 Aby usunąć lub wyeksportować kilka połączeń naraz, kliknij przycisk **Select** (wybieranie) u góry panelu. Włącza się tryb zaznaczania. Dotknij połączeń, które mają zostać objęte operacją, a potem użyj przycisku **Export** lub **Delete** na pasku akcji na dole. Przy usuwaniu zbiorczym pojawia się najpierw okno **Delete Connections**.
 
+<a id="the-random-pool-and-quick-connection-switcher"></a>
+
 ## Pula losowa i panel Quick Connection Switcher
 
 Dzięki puli losowej czat przy każdej odpowiedzi wybiera inne połączenie. Przydaje się to wtedy, gdy zapytania mają się rozkładać na kilku dostawców lub kilka modeli.
@@ -56,17 +58,26 @@ Aby dodać połączenie do puli losowej, kliknij ikonę tasowania w jego wierszu
 
 Aby czat korzystał z puli losowej, otwórz **Chat Settings** (ustawienia czatu), znajdź sekcję **Connection** i wybierz z listy rozwijanej opcję **🎲 Random**. W trybie Game Mode ta lista rozwijana nosi nazwę **GM / Party Model**. Każda odpowiedź losuje wtedy połączenie z puli.
 
-Panel **Quick Connection Switcher** to szybszy sposób na zmianę połączenia w otwartym czacie. Kliknij ikonę ogniwa w polu wpisywania wiadomości, żeby go otworzyć. Połączenia pokazują się w małym menu:
+Panel **Quick Connection Switcher** to szybszy sposób na zmianę połączenia w otwartym czacie, a także jego modelu. Kliknij ikonę ogniwa w polu wpisywania wiadomości, żeby go otworzyć. Po lewej stronie widać połączenia, a po prawej kolumnę **Models** (modele) wybranego połączenia:
 
-- Kliknij połączenie, żeby od razu użyć go w bieżącym czacie.
+- Kliknij połączenie, żeby od razu użyć go w bieżącym czacie. Menu zostaje otwarte, więc zaraz potem da się wybrać jeden z modeli tego połączenia.
+- Kliknij model, żeby go użyć. Model zapisuje się w tym połączeniu, połączenie zostaje wybrane dla czatu, jeśli nie było wybrane wcześniej, a menu się zamyka. Znacznik pokazuje model, którego połączenie używa w tej chwili. Tak jak w edytorze połączenia, wybranie modelu z listy aktualizuje też rozmiar kontekstu połączenia oraz jego limit odpowiedzi, jeśli dostawca je podaje.
+- Wpisz tekst w polu **Search or enter model ID…**, żeby zawęzić listę. Naciśnięcie Enter wybiera model o wpisanym identyfikatorze lub nazwie albo jedyny model, który został na liście. Aby użyć modelu spoza listy, wpisz jego dokładny identyfikator: naciśnij Enter, gdy nic na liście do niego nie pasuje, albo kliknij wiersz **Use "…"**.
+- Kliknij gwiazdkę obok modelu, żeby go przypiąć. Przypięte modele zostają na górze, w grupie **Pinned** (przypięte), także te wpisane ręcznie. Ponowne kliknięcie gwiazdki odpina model.
+- Przy pierwszym otwarciu modeli połączenia Marinara wczytuje listę od dostawcy i zapisuje ją razem z połączeniem, więc przy kolejnych otwarciach lista pojawia się od razu. Kliknij przycisk odświeżania obok pola wyszukiwania, żeby wczytać listę ponownie, na przykład gdy dostawca doda nowe modele. Zmiana klucza API, bazowego adresu URL lub dostawcy połączenia także wczytuje świeżą listę.
+- Jeśli dostawca nie udostępnia listy modeli albo jest nieosiągalny, menu o tym informuje, a identyfikator modelu nadal da się wpisać.
 - Kliknij przycisk z kością u góry menu, żeby włączyć lub wyłączyć pulę losową dla tego czatu.
-- Gdy pula losowa jest włączona, kliknięcie połączenia dodaje je do puli albo z niej usuwa. Znacznik pokazuje, które połączenia są w puli.
+- Gdy pula losowa jest włączona, kliknięcie połączenia dodaje je do puli albo z niej usuwa. Znacznik pokazuje, które połączenia są w puli. Kolumna **Models** jest wtedy ukryta, bo pula nie ma jednego połączenia.
+
+Na telefonie dotknij strzałki obok pola wiadomości i otwórz zakładkę **Connections**. Dotknięcie połączenia wybiera je i pokazuje jego modele w tym samym menu; strzałka wstecz wraca do listy połączeń.
+
+**Zmiana modelu obowiązuje wszędzie, gdzie używane jest to połączenie.** Napis u dołu menu, "Model changes are saved to this connection.", oznacza, że agenci, funkcje pomocnicze i inne czaty korzystające z tego samego połączenia też przechodzą na nowy model. Pozostałe ustawienia modeli w połączeniu, takie jak model embeddingu czy połączenie do opisywania obrazów, się nie zmieniają. Jeśli inny model jest potrzebny tylko do jednego zadania, zduplikuj połączenie i zmień kopię.
 
 ## Eksport i import połączeń
 
 Połączenia da się wyeksportować do pliku jako kopię zapasową albo po to, żeby przenieść je do innej instalacji, a później zaimportować.
 
-**Eksport nigdy nie zawiera kluczy API.** Po zaimportowaniu połączeń trzeba otworzyć każde z nich i wpisać klucz API jeszcze raz.
+**Eksport nigdy nie zawiera kluczy API.** Po zaimportowaniu połączeń trzeba otworzyć każde z nich i wpisać klucz API jeszcze raz. Przypięte modele trafiają do eksportu, ale zapisana lista modeli już nie, więc wczytuje się ponownie przy pierwszym otwarciu modeli połączenia.
 
 Aby wyeksportować pojedyncze połączenie, otwórz je w edytorze i kliknij przycisk **Export** (eksport) z ikoną wgrywania. Aby wyeksportować kilka naraz, włącz w panelu tryb **Select** i kliknij przycisk **Export** na pasku akcji. Zanim pobieranie ruszy, Marinara pokazuje okno **Export Connection Data** z takim ostrzeżeniem: This will export your connection data, WITHOUT your provided API Key. Remember to never share those with others! Kliknij przycisk **Export**, żeby kontynuować.
 

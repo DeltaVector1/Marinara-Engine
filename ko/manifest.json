@@ -1,6 +1,6 @@
 {
   "language": "ko",
-  "sourceCommit": "e032c12dddef9cf0b61fbc7cd15a16648ac72146",
+  "sourceCommit": "7e556947b4f3275e888752897af967dfb5d588d7",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -144,8 +144,8 @@
     },
     {
       "path": "chats/chat-settings.md",
-      "sha256": "a7738adac85ee4efbd1b346f5d3a996c450e42e979c13f786b609dba150955b9",
-      "bytes": 22333
+      "sha256": "8155142eb52d243f0dad0690659c58d817f75bde2d9aacecded4d0dde5fa6a31",
+      "bytes": 23112
     },
     {
       "path": "chats/connected-chats.md",
@@ -204,8 +204,8 @@
     },
     {
       "path": "connections/connecting-to-a-provider.md",
-      "sha256": "21ef9e01599537cd8034385ecd0d524360ef6d1a4c3b45c27bec693d9b6f9876",
-      "bytes": 7143
+      "sha256": "234d23896a6facb729d2798ce934012cceb2d0cde239230c4d8054ce575db02d",
+      "bytes": 7733
     },
     {
       "path": "connections/decision-models.md",
@@ -224,8 +224,8 @@
     },
     {
       "path": "connections/organizing-connections.md",
-      "sha256": "05f07f8d806a974a9e7f27314805f78cf6ad38a733e2259e470901a95417bef6",
-      "bytes": 7457
+      "sha256": "dc125cf85580c8f6935c7a768c4707d9549ff9ebd593cbe2ad962f6ceb53635b",
+      "bytes": 10486
     },
     {
       "path": "connections/providers-reference.md",

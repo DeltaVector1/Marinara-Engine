@@ -120,6 +120,8 @@ Trackersウィンドウのトラッカーも同じように切り離せます。
 
 ドロップダウンから、保存済みの接続を選びます。**Random**を選ぶこともできます。この場合は、ランダム用に指定しておいた接続の中から毎回別の接続が選ばれます。
 
+ドロップダウンの下にある**Model**(モデル)欄には、選んだ接続が使うモデルが表示されます。クリックすると、Quick Connection Switcherと同じモデル一覧が開きます。モデルIDを検索または入力したり、星でモデルをピン留めしたり、一覧を更新したりでき、モデルをクリックするとそのモデルを使います。モデルは接続に保存されるので、この接続を使うすべてのチャット、エージェント、補助機能も同じモデルに切り替わります。**Random**と内蔵のLocal Modelでは、この欄は表示されません。詳しくは[ランダムプールとQuick Connection Switcher](../connections/organizing-connections.md#the-random-pool-and-quick-connection-switcher)を参照してください。
+
 接続の作り方そのものについては、[AIプロバイダーへの接続](../connections/connecting-to-a-provider.md)を参照してください。
 
 <a id="settings-profiles"></a>
