@@ -1,6 +1,6 @@
 {
   "language": "fr",
-  "sourceCommit": "7e1cd8c261d6995997f8cc514aa141fe19e67c8f",
+  "sourceCommit": "9d3d6154d251343179ec55f90d54d80f2d583870",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -94,8 +94,8 @@
     },
     {
       "path": "characters/bot-browser.md",
-      "sha256": "064fcb3b772adaacd53431b52fbeae593f219d94668a6ae1f71967b7b4086a3c",
-      "bytes": 16720
+      "sha256": "8fa7f4643fae7877090e6e3af0a4a5ec68ebfed0a9009101c98c6babfcca2287",
+      "bytes": 17243
     },
     {
       "path": "characters/choosing-your-persona.md",
@@ -209,8 +209,8 @@
     },
     {
       "path": "connections/decision-models.md",
-      "sha256": "140539f210da3280f2362f4769865582df0862557d07476543ad681984dbc855",
-      "bytes": 31406
+      "sha256": "749fe55f03e1d59ffe41de673489c0f03e44136b96000cf67691b7c18477c006",
+      "bytes": 30992
     },
     {
       "path": "connections/local-model.md",
