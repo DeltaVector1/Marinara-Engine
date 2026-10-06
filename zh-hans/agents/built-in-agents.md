@@ -207,9 +207,9 @@ Knowledge Retrieval 的省钱替代方案。它不做摘要，而是读取世界
 
 - **阶段**：Post-Processing，并为后续回复提供物品栏上下文。
 - **适用模式**：Roleplay；跟踪当前人设，不跟踪队友或 NPC。
-- **可用渠道**：**Staging only**(仅 staging)，需要 Engine **2.4.6+**。计划随下一次 Engine main 版本发布到稳定渠道。
+- **可用渠道**：需要 Engine **2.4.6+**。
 - **安装与启用**：从 **Agents → Download Agents** 安装 **Quartermaster**，按提示重启。在每个 Roleplay 聊天中，先在 **Chat Settings → Agents**(聊天设置 → 智能体) 启用智能体，再将 Quartermaster 添加到 **Tracker Agents**(跟踪智能体)，并选择模型连接。使用 Tracker Panel 上方的启动按钮打开浮动面板。
-- **主要操作**：装备和存放物品、保存服装搭配、恢复物品栏或撤销最近的跟踪器更改，以及导出/导入聊天配置。图片生成使用单独配置的图片连接。外观宏和替换人设头像是可选功能；启用前先查看 [Quartermaster 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/quartermaster/README.md)。
+- **主要操作**：装备和存放物品、保存服装搭配、恢复物品栏或撤销最近的跟踪器更改，以及导出/导入聊天配置。图片生成使用单独配置的图片连接。外观宏和替换人设头像是可选功能；启用前先查看 [Quartermaster 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/quartermaster/README.md)。
 
 ### Relationship Tracker
 
@@ -217,9 +217,9 @@ Knowledge Retrieval 的省钱替代方案。它不做摘要，而是读取世界
 
 - **阶段**：Post-Processing，并为后续回复提供关系上下文。
 - **适用模式**：Roleplay 群聊。
-- **可用渠道**：**Staging only**，需要 Engine **2.4.4+** (< 4.0.0) 和 staging 预览目录。计划随下一次 Engine main 版本发布到稳定渠道。
+- **可用渠道**：需要 Engine **2.4.4+** (< 4.0.0)。
 - **安装与启用**：从 **Agents → Download Agents** 安装 **Relationship Tracker**，按提示重启。在每个 Roleplay 聊天中，先在 **Chat Settings → Agents** 启用智能体，再将它添加到 **Tracker Agents**，并选择模型连接。关系网显示在 Tracker Panel 中。编辑或更新关系前，先在那里选择一次 **All relationships**(所有关系) 或 **Scene-only relationships**(仅场景内关系)，完成聊天初始化。
-- **主要操作**：用 **All relationships** 或 **Scene-only relationships** 选择提示词上下文，用 **Update from History**(从历史更新) 扫描指定数量的最近消息，也可手动编辑、锁定或使用 **Resume automatic updates**(恢复自动更新)。**Context Size**(上下文大小，默认 5 条消息)、**Presence lookback**(出场回溯范围，默认 15 条) 和历史扫描的消息数量是不同的设置。将指针悬停在线上或用键盘聚焦，即可读取内容；触屏或触控笔用户可按下该连线。参阅 [Relationship Tracker 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md)。
+- **主要操作**：用 **All relationships** 或 **Scene-only relationships** 选择提示词上下文，用 **Update from History**(从历史更新) 扫描指定数量的最近消息，也可手动编辑、锁定或使用 **Resume automatic updates**(恢复自动更新)。**Context Size**(上下文大小，默认 5 条消息)、**Presence lookback**(出场回溯范围，默认 15 条) 和历史扫描的消息数量是不同的设置。将指针悬停在线上或用键盘聚焦，即可读取内容；触屏或触控笔用户可按下该连线。参阅 [Relationship Tracker 包指南](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/relationship-tracker/README.md)。
 
 ### Memory Nag
 

@@ -30,7 +30,7 @@ Roleplay 中滑块按钮旁的小提示只需关闭一次。点击它的 **X** �
 
 **Button size (px)**(按钮大小，px) 可以改变可移动聊天按钮及其图标的大小，而不改变 Display Size。输入 32 到 96 像素之间的值。留空或使用重置按钮，会保留当前默认值。大小会和外观偏好一起保存，选择其他预设也不会改变。
 
-想让聊天其他区域保持同样的风格，可以开启 **Apply preset font**(应用预设字体)、**Apply preset shape**(应用预设形状) 或 **Apply preset colors**(应用预设颜色)。每个开关独立生效，也会应用上方的自定义选择。它们作用于消息、输入框和聊天控件；Conversation 消息可以使用所选字体和颜色，但保留自己的形状。三个开关初始都是关闭的。关闭某个开关，就会恢复聊天对应部分原本的样式。详情见[自定义 CSS 主题](../appearance/custom-css-themes.md#ready-made-chat-window-styles)。
+想让聊天其他区域保持同样的风格，可以开启 **Apply preset font**(应用预设字体)、**Apply preset shape**(应用预设形状) 或 **Apply preset colors**(应用预设颜色)。每个开关独立生效，也会应用上方的自定义选择。它们作用于消息、输入框和聊天控件；Conversation 消息可以使用所选字体和颜色，但保留自己的形状。开启 **Apply preset colors** 时，引号内的对白仍保留每个角色或用户角色自己的 Dialogue Highlight Color。三个开关初始都是关闭的。关闭某个开关，就会恢复聊天对应部分原本的样式。详情见[自定义 CSS 主题](../appearance/custom-css-themes.md#ready-made-chat-window-styles)。
 
 ## 移动、固定和锁定窗口
 

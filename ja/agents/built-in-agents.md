@@ -207,9 +207,9 @@ Knowledge Retrievalより費用を抑えられる代替手段です。要約す�
 
 - **実行フェーズ**: Post-Processing。インベントリのコンテキストは後続の応答に渡されます。
 - **対応モード**: Roleplay。追跡対象は有効なペルソナで、パーティーメンバーやNPCではありません。
-- **提供状況**: **Staging only**(stagingのみ)。Engine **2.4.6+**が必要です。安定版への公開は、次のEngineのmainリリースに合わせて予定されています。
+- **提供状況**: Engine **2.4.6+**が必要です。
 - **インストールと有効化**: **Agents → Download Agents**から**Quartermaster**をインストールし、案内が表示されたら再起動してください。各Roleplayチャットで**Chat Settings → Agents**(チャット設定 → エージェント)を有効にし、**Tracker Agents**(トラッカーエージェント)にQuartermasterを追加して、モデル接続を選択します。Tracker Panelの上にある起動ボタンからフローティングパネルを開きます。
-- **主な操作**: アイテムの装備と保管、衣装の保存、インベントリの復元や最近のトラッカー変更の取り消し、チャット設定のエクスポートとインポートができます。画像生成には別途設定した画像接続を使います。外見マクロとペルソナのアバター置換は任意です。有効にする前に[Quartermasterパッケージガイド](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/quartermaster/README.md)を確認してください。
+- **主な操作**: アイテムの装備と保管、衣装の保存、インベントリの復元や最近のトラッカー変更の取り消し、チャット設定のエクスポートとインポートができます。画像生成には別途設定した画像接続を使います。外見マクロとペルソナのアバター置換は任意です。有効にする前に[Quartermasterパッケージガイド](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/quartermaster/README.md)を確認してください。
 
 ### Relationship Tracker
 
@@ -217,9 +217,9 @@ Roleplayグループチャットに割り当てたキャラクターカード間
 
 - **実行フェーズ**: Post-Processing。関係のコンテキストは後続の応答に渡されます。
 - **対応モード**: Roleplayグループチャット。
-- **提供状況**: **Staging only**。Engine **2.4.4+** (< 4.0.0)とstagingのプレビューカタログが必要です。安定版への公開は、次のEngineのmainリリースに合わせて予定されています。
+- **提供状況**: Engine **2.4.4+** (< 4.0.0)が必要です。
 - **インストールと有効化**: **Agents → Download Agents**から**Relationship Tracker**をインストールし、案内が表示されたら再起動してください。各Roleplayチャットで**Chat Settings → Agents**を有効にし、**Tracker Agents**に追加して、モデル接続を選択します。ネットワークはTracker Panelに表示されます。関係を編集または更新する前に、そこで**All relationships**(すべての関係)か**Scene-only relationships**(シーン内の関係のみ)を一度選んでチャットを初期化してください。
-- **主な操作**: プロンプトのコンテキストを**All relationships**か**Scene-only relationships**で選び、**Update from History**(履歴から更新)で指定件数の最近のメッセージを解析できます。手動編集、ロック、**Resume automatic updates**(自動更新を再開)も使えます。**Context Size**(コンテキストサイズ、初期値5メッセージ)、**Presence lookback**(登場確認の遡及件数、初期値15)、履歴解析のメッセージ数は別々の設定です。線にポインターを重ねるかキーボードでフォーカスすると内容を読めます。タッチやペンでは線を押してください。[Relationship Trackerパッケージガイド](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md)も参照してください。
+- **主な操作**: プロンプトのコンテキストを**All relationships**か**Scene-only relationships**で選び、**Update from History**(履歴から更新)で指定件数の最近のメッセージを解析できます。手動編集、ロック、**Resume automatic updates**(自動更新を再開)も使えます。**Context Size**(コンテキストサイズ、初期値5メッセージ)、**Presence lookback**(登場確認の遡及件数、初期値15)、履歴解析のメッセージ数は別々の設定です。線にポインターを重ねるかキーボードでフォーカスすると内容を読めます。タッチやペンでは線を押してください。[Relationship Trackerパッケージガイド](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/relationship-tracker/README.md)も参照してください。
 
 ### Memory Nag
 

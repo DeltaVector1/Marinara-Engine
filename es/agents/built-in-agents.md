@@ -205,9 +205,9 @@ Gestiona el inventario de la persona activa, los espacios de equipo, las cantida
 
 - **Fase**: Post-Processing, con contexto del inventario para las respuestas posteriores.
 - **Dónde funciona**: Roleplay; sigue a la persona activa, no a los miembros del grupo ni a los NPC.
-- **Disponibilidad**: **Staging only** (solo staging), con Engine **2.4.6+**. La publicación estable está prevista para el próximo lanzamiento de Engine desde main.
+- **Disponibilidad**: requiere Engine **2.4.6+**.
 - **Instalación y activación**: instala **Quartermaster** desde **Agents → Download Agents** y reinicia cuando se te indique. En cada chat Roleplay, activa los agentes en **Chat Settings → Agents** (Ajustes del chat → Agentes), añade Quartermaster en **Tracker Agents** (Agentes de seguimiento) y elige su conexión al modelo. Abre el panel flotante desde el botón situado encima del Tracker Panel.
-- **Controles principales**: equipar y guardar objetos, guardar atuendos, restaurar el inventario o deshacer cambios recientes del tracker y exportar/importar la configuración del chat. La generación de imágenes usa una conexión de imágenes configurada por separado. La macro de apariencia y el reemplazo del avatar de la persona son opcionales; consulta la [guía del paquete Quartermaster](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/quartermaster/README.md) antes de activarlos.
+- **Controles principales**: equipar y guardar objetos, guardar atuendos, restaurar el inventario o deshacer cambios recientes del tracker y exportar/importar la configuración del chat. La generación de imágenes usa una conexión de imágenes configurada por separado. La macro de apariencia y el reemplazo del avatar de la persona son opcionales; consulta la [guía del paquete Quartermaster](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/quartermaster/README.md) antes de activarlos.
 
 ### Relationship Tracker
 
@@ -215,9 +215,9 @@ Mantiene una red editable de relaciones entre las tarjetas de personaje asignada
 
 - **Fase**: Post-Processing, con contexto de relaciones para las respuestas posteriores.
 - **Dónde funciona**: chats Roleplay de grupo.
-- **Disponibilidad**: **Staging only**, con Engine **2.4.4+** (< 4.0.0) y el catálogo de vista previa de staging. La publicación estable está prevista para el próximo lanzamiento de Engine desde main.
+- **Disponibilidad**: requiere Engine **2.4.4+** (< 4.0.0).
 - **Instalación y activación**: instala **Relationship Tracker** desde **Agents → Download Agents** y reinicia cuando se te indique. En cada chat Roleplay, activa los agentes en **Chat Settings → Agents**, añádelo en **Tracker Agents** y elige su conexión al modelo. La red aparece en el Tracker Panel. Selecciona allí **All relationships** (Todas las relaciones) o **Scene-only relationships** (Solo relaciones de la escena) una vez para inicializar el chat antes de editar o actualizar relaciones.
-- **Controles principales**: **All relationships** o **Scene-only relationships** para el contexto del prompt, **Update from History** (Actualizar desde el historial) para analizar un número limitado de mensajes recientes, edición manual, bloqueo y **Resume automatic updates** (Reanudar actualizaciones automáticas). **Context Size** (Tamaño del contexto; 5 mensajes por defecto), **Presence lookback** (Historial de presencia; 15 por defecto) y el número de mensajes del análisis del historial son controles separados. Pasa el puntero o mueve el foco del teclado sobre una línea para leerla; con pantalla táctil o lápiz, presiónala. Consulta la [guía del paquete Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md).
+- **Controles principales**: **All relationships** o **Scene-only relationships** para el contexto del prompt, **Update from History** (Actualizar desde el historial) para analizar un número limitado de mensajes recientes, edición manual, bloqueo y **Resume automatic updates** (Reanudar actualizaciones automáticas). **Context Size** (Tamaño del contexto; 5 mensajes por defecto), **Presence lookback** (Historial de presencia; 15 por defecto) y el número de mensajes del análisis del historial son controles separados. Pasa el puntero o mueve el foco del teclado sobre una línea para leerla; con pantalla táctil o lápiz, presiónala. Consulta la [guía del paquete Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/relationship-tracker/README.md).
 
 ### Memory Nag
 

@@ -78,7 +78,7 @@ Algunos clientes se saltan la contraseña incluso con Basic Auth activado:
 - Loopback (`127.0.0.1`, `::1`), así que nunca necesitas una contraseña en la propia máquina host.
 - Cualquier dirección en `IP_ALLOWLIST`. Cuidado: configurar una lista permitida también bloquea toda dirección que no esté en la lista (ver Opción 2).
 - Tailscale (`100.64.0.0/10`) y el tráfico de puente/puerta de enlace de Docker en el mismo host, salvo que desactives su bypass.
-- La dirección `/api/health`, para que los monitores de disponibilidad sigan funcionando.
+- La dirección `/api/health`, para que los monitores de disponibilidad sigan funcionando. Sin contraseña, solo muestra el estado básico, no tus modelos locales ni tu tarjeta gráfica.
 
 Importante: Basic Auth solo codifica la contraseña. No la cifra. Cualquiera que observe una conexión sin cifrar puede leerla. Si expones Marinara al internet público, combina Basic Auth con HTTPS (ver abajo).
 

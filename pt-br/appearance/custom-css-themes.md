@@ -24,7 +24,7 @@ Para levar esse visual ao restante do chat, use os três botões liga/desliga ab
 
 - **Apply preset font** (aplicar fonte do preset) usa a fonte escolhida para os widgets nas mensagens, nos campos de entrada e nos controles do chat, incluindo os widgets do HUD, o painel do mapa, os comentários laterais e as fichas de personagem do Game Mode.
 - **Apply preset shape** (aplicar forma do preset) usa a forma de moldura escolhida nas mensagens de Roleplay com layout clássico ou de visual novel, na caixa de diálogo de Game, nos comentários laterais, nos widgets do HUD, no painel do mapa, nas fichas de personagem, nos campos de entrada e nos controles. As mensagens de Conversation mantêm sua própria forma.
-- **Apply preset colors** (aplicar cores do preset) usa as cores de borda, fundo e texto do widget nessas áreas, incluindo as mensagens de Conversation. Suas cores e gradientes personalizados também se aplicam.
+- **Apply preset colors** (aplicar cores do preset) usa as cores de borda, fundo e texto do widget nessas áreas, incluindo as mensagens de Conversation. Suas cores e gradientes personalizados também se aplicam. As falas entre aspas mantêm a Dialogue Highlight Color própria de cada personagem ou persona.
 
 Cada botão começa desativado e funciona de forma independente. Por exemplo, você pode usar as letras de Mari e manter as cores habituais do chat. Desativar um botão restaura essa parte do estilo habitual do chat. Escolher outro preset mantém as opções desses botões. Professor Mari também pode criar temas personalizados para essas áreas.
 

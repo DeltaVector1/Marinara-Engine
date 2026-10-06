@@ -44,13 +44,13 @@ Professor Mari peut regarder à l'intérieur des fichiers de programme de Marina
 Voici la limite de confiance, en clair :
 
 - Ses outils de fichiers restent dans le dossier où Marinara est installé. Les commandes shell brutes peuvent lire l'espace de travail et les programmes système nécessaires, mais pas tes autres fichiers personnels.
-- Les fichiers de secrets d'environnement comme le fichier `.env` et les fichiers internes de Git restent hors de portée de ses outils de fichiers et du shell brut.
-- Elle ne peut pas écrire directement dans ton dossier de données enregistrées, là où vivent tes personnages et tes chats. Elle passe par le circuit de modification révisable décrit plus bas.
+- Les fichiers de secrets d'environnement comme le fichier `.env`, le fichier de clé qui protège tes clés API enregistrées et les fichiers internes de Git restent hors de portée de ses outils de fichiers et du shell brut.
+- Ni ses outils de fichiers ni le shell brut ne lui permettent d'écrire directement dans ton dossier de données enregistrées, là où vivent tes personnages et tes chats. Elle passe par le circuit de modification révisable décrit plus bas.
 - Les commandes shell brutes n'ont aucun accès réseau, n'héritent pas des secrets du serveur et ne peuvent écrire que des fichiers ordinaires de l'espace de travail ainsi qu'un dossier temporaire privé.
 - Elle peut continuer à modifier directement les fichiers source normaux. Les modifications des manifestes de dépendances, des fichiers de verrouillage, des lanceurs, des installateurs et des workflows CI sont préparées et te sont présentées avant que Marinara ne les applique.
-- Elle peut lire les fichiers compilés de Marinara, c'est-à-dire les dossiers `dist` à partir desquels l'application s'exécute, mais ne peut ni créer, ni modifier, ni déplacer, ni supprimer ces fichiers. Elle modifie plutôt les fichiers source.
+- Elle peut lire les fichiers compilés de Marinara, c'est-à-dire les dossiers `dist` à partir desquels l'application s'exécute, mais ne peut ni créer, ni modifier, ni déplacer, ni supprimer ces fichiers. Elle modifie plutôt les fichiers source. Seule la commande `mari code check` les recompile, dans le même bac à sable.
 - Si une modification de source nécessite une bibliothèque npm publique, elle demande un paquet précis. Marinara résout `latest` en une version exacte, affiche l'intégrité du registre dans un encart de révision, et n'installe qu'après ton approbation. Les scripts de cycle de vie des paquets restent désactivés.
-- Si Marinara ne peut pas fournir son bac à sable shell macOS ou Linux, les commandes shell brutes sont désactivées. Elle garde alors les outils structurés, plus sûrs, pour les fichiers et les données de l'application.
+- Si Marinara ne peut pas fournir son bac à sable shell macOS ou Linux, les commandes shell brutes et la commande `mari code check` sont désactivées. Elle garde alors les outils structurés, plus sûrs, pour les fichiers et les données de l'application.
 - Les commandes qu'elle lance s'arrêtent d'elles-mêmes au bout d'un court délai : une commande bloquée ne peut pas tourner indéfiniment.
 
 La plupart des gens n'en ont jamais besoin. Cette capacité existe pour qu'elle puisse inspecter ou réparer l'application elle-même quand quelque chose casse.

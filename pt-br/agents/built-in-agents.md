@@ -57,7 +57,7 @@ Uma simulação de vida. Você vive em uma cidadezinha com o relógio correndo, 
 
 - **Integração**: App; abre na própria aba **Life Sim** da **Home**.
 - **Onde funciona**: Home.
-- **Disponibilidade**: **Staging only**, com Engine **2.4.4+** (< 4.0.0). É uma versão alfa. Se uma atualização mudar algo de que um save antigo depende, o Life Sim avisa quando você abre esse save, e você pode começar uma vida nova ou continuar por sua conta e risco.
+- **Disponibilidade**: **Staging only** (somente staging), com Engine **2.4.4+** (< 4.0.0). É uma versão alfa. Se uma atualização mudar algo de que um save antigo depende, o Life Sim avisa quando você abre esse save, e você pode começar uma vida nova ou continuar por sua conta e risco.
 - **Configurações principais**: instale em **Agents → Download Agents**, reinicie o Marinara Engine quando solicitado e depois abra **Home → Life Sim**. Ele precisa de uma conexão de texto. Uma conexão de imagem é opcional: sem ela, os lugares mostram cartões ilustrados em vez de planos de fundo gerados. Extras opcionais chamados módulos ficam desligados, a menos que você os ative para uma vida; o módulo **Adult** (adulto) pede que você confirme que é maior de idade.
 - **Guia completo**: [guia do pacote Modern Life Sim](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md).
 
@@ -205,9 +205,9 @@ Gerencia o inventário da persona ativa, os espaços de equipamento, as quantida
 
 - **Fase**: Post-Processing, com o contexto do inventário enviado às respostas seguintes.
 - **Onde funciona**: Roleplay; acompanha a persona ativa, não os membros do grupo nem os NPCs.
-- **Disponibilidade**: **Staging only** (somente staging), com Engine **2.4.6+**. A publicação estável está prevista para a próxima versão do Engine lançada a partir de main.
+- **Disponibilidade**: requer Engine **2.4.6+**.
 - **Instalação e ativação**: instale **Quartermaster** em **Agents → Download Agents** e reinicie quando solicitado. Em cada chat Roleplay, ative os agentes em **Chat Settings → Agents** (configurações do chat → agentes), adicione Quartermaster em **Tracker Agents** (agentes de acompanhamento) e escolha sua conexão com o modelo. Abra o painel flutuante pelo botão acima do Tracker Panel.
-- **Controles principais**: equipar e guardar itens, salvar trajes, restaurar o inventário ou reverter mudanças recentes do tracker e exportar/importar a configuração do chat. A geração de imagens usa uma conexão de imagens configurada separadamente. A macro de aparência e a substituição do avatar da persona são opcionais; leia o [guia do pacote Quartermaster](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/quartermaster/README.md) antes de ativá-las.
+- **Controles principais**: equipar e guardar itens, salvar trajes, restaurar o inventário ou reverter mudanças recentes do tracker e exportar/importar a configuração do chat. A geração de imagens usa uma conexão de imagens configurada separadamente. A macro de aparência e a substituição do avatar da persona são opcionais; leia o [guia do pacote Quartermaster](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/quartermaster/README.md) antes de ativá-las.
 
 ### Relationship Tracker
 
@@ -215,9 +215,9 @@ Mantém uma rede editável de relações entre os cartões de personagem atribu�
 
 - **Fase**: Post-Processing, com o contexto das relações enviado às respostas seguintes.
 - **Onde funciona**: chats Roleplay em grupo.
-- **Disponibilidade**: **Staging only**, com Engine **2.4.4+** (< 4.0.0) e o catálogo de prévia de staging. A publicação estável está prevista para a próxima versão do Engine lançada a partir de main.
+- **Disponibilidade**: requer Engine **2.4.4+** (< 4.0.0).
 - **Instalação e ativação**: instale **Relationship Tracker** em **Agents → Download Agents** e reinicie quando solicitado. Em cada chat Roleplay, ative os agentes em **Chat Settings → Agents**, adicione-o em **Tracker Agents** e escolha sua conexão com o modelo. A rede aparece no Tracker Panel. Selecione **All relationships** (todas as relações) ou **Scene-only relationships** (somente relações da cena) ali uma vez para inicializar o chat antes de editar ou atualizar relações.
-- **Controles principais**: **All relationships** ou **Scene-only relationships** para o contexto do prompt, **Update from History** (atualizar pelo histórico) para analisar uma quantidade limitada de mensagens recentes, além de edição manual, bloqueio e **Resume automatic updates** (retomar atualizações automáticas). **Context Size** (tamanho do contexto; padrão de 5 mensagens), **Presence lookback** (histórico de presença; padrão de 15) e a quantidade de mensagens da análise do histórico são controles separados. Passe o ponteiro ou coloque o foco do teclado sobre uma linha para lê-la; com toque ou caneta, pressione a linha. Consulte o [guia do pacote Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md).
+- **Controles principais**: **All relationships** ou **Scene-only relationships** para o contexto do prompt, **Update from History** (atualizar pelo histórico) para analisar uma quantidade limitada de mensagens recentes, além de edição manual, bloqueio e **Resume automatic updates** (retomar atualizações automáticas). **Context Size** (tamanho do contexto; padrão de 5 mensagens), **Presence lookback** (histórico de presença; padrão de 15) e a quantidade de mensagens da análise do histórico são controles separados. Passe o ponteiro ou coloque o foco do teclado sobre uma linha para lê-la; com toque ou caneta, pressione a linha. Consulte o [guia do pacote Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/relationship-tracker/README.md).
 
 ### Memory Nag
 

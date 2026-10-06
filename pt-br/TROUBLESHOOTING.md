@@ -29,11 +29,9 @@ Ao relatar um erro, inclua modo, plataforma, mensagem visível e se a admissão 
 
 ### Termux: memória insuficiente ao compilar o cliente
 
-Se o Vite termina com `Reached heap limit` ou `JavaScript heap out of memory`, falta heap do Node.js para compilar o cliente. É diferente de um binário nativo do Rollup ausente. Atualize e execute `start-termux.sh` novamente: a compilação eleva temporariamente um limite automático menor em direção a 1536 MiB, limitado à metade da RAM conhecida, com piso de 1024 MiB. O servidor mantém o limite menor baseado no perfil. Um limite explícito em `NODE_OPTIONS` tem prioridade nos dois processos; verifique se sobrou uma configuração antiga de 1024 MiB.
+Se o Vite termina com `Reached heap limit` ou `JavaScript heap out of memory`, falta heap do Node.js para compilar o cliente. É diferente de um binário nativo do Rollup ausente. Atualize e execute `start-termux.sh` novamente: as compilações do cliente, inclusive as das atualizações dentro do aplicativo, agora rodam com um heap próprio de 1536 MiB, limitado à metade da RAM conhecida do aparelho, mas nunca abaixo dos 1280 MiB de que a compilação precisa. O limite baseado na RAM é arredondado para baixo em passos de 128 MiB. O servidor mantém o limite menor baseado no perfil. Um limite explícito em `NODE_OPTIONS` tem prioridade nos dois processos; verifique se sobrou uma configuração antiga de 1024 MiB, porque o cliente não compila mais com 1024 MiB.
 
-O limite baseado na RAM é arredondado para baixo em passos de 128 MiB. Se a metade da RAM for menor que 1024 MiB, o piso de 1024 MiB tem prioridade.
-
-Feche outros aplicativos antes de tentar de novo. Dispositivos com pouca memória ainda podem falhar ou ter o processo encerrado pelo Android; guarde toda a saída do launcher para relatar o caso. Não exclua chats nem o perfil para corrigir uma falha de compilação.
+Feche outros aplicativos antes de tentar de novo. Celulares com menos de cerca de 3 GB de RAM ainda podem ficar sem memória ou ter o processo encerrado pelo Android; guarde toda a saída do inicializador para relatar o caso. Não exclua chats nem o perfil para corrigir uma falha de compilação.
 
 ### Termux: arquivo do cliente convidado multijogador ausente ou Sharp incompatível
 

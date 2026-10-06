@@ -29,11 +29,9 @@ Al reportar un error, incluye modo, plataforma, mensaje visible y si la admisió
 
 ### Termux: memoria insuficiente al compilar el cliente
 
-Si Vite termina con `Reached heap limit` o `JavaScript heap out of memory`, falta memoria de heap de Node.js para compilar el cliente. No es el mismo problema que un binario nativo de Rollup ausente. Actualiza y ejecuta de nuevo `start-termux.sh`: la compilación eleva temporalmente un límite automático menor hacia 1536 MiB, sin superar la mitad de la RAM conocida del dispositivo y con un mínimo de 1024 MiB. El servidor conserva su límite menor según el perfil. Un límite explícito en `NODE_OPTIONS` tiene prioridad para ambos; revisa si quedó una configuración antigua de 1024 MiB.
+Si Vite termina con `Reached heap limit` o `JavaScript heap out of memory`, falta memoria de heap de Node.js para compilar el cliente. No es el mismo problema que un binario nativo de Rollup ausente. Actualiza y ejecuta de nuevo `start-termux.sh`: las compilaciones del cliente, incluidas las de las actualizaciones dentro de la app, ahora se ejecutan con su propio heap de 1536 MiB, sin superar la mitad de la RAM conocida del dispositivo, pero nunca por debajo de los 1280 MiB que necesita la compilación. El límite de RAM se redondea hacia abajo en pasos de 128 MiB. El servidor conserva su límite menor según el perfil. Un límite explícito en `NODE_OPTIONS` tiene prioridad para ambos; revisa si quedó una configuración antigua de 1024 MiB: el cliente ya no se compila con 1024 MiB.
 
-El límite de RAM se redondea hacia abajo en pasos de 128 MiB. Si la mitad de la RAM es inferior a 1024 MiB, tiene prioridad el mínimo de 1024 MiB.
-
-Cierra otras apps antes de reintentar. Un dispositivo con poca memoria aún puede fallar o Android puede detener el proceso; conserva toda la salida del lanzador para el reporte. No borres chats ni el perfil para corregir un fallo de compilación.
+Cierra otras apps antes de reintentar. Un teléfono con menos de unos 3 GB de RAM aún puede quedarse sin memoria o Android puede detener el proceso; conserva toda la salida del lanzador para el reporte. No borres chats ni el perfil para corregir un fallo de compilación.
 
 ### Termux: falta un archivo del cliente invitado multijugador o Sharp es incompatible
 

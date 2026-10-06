@@ -44,13 +44,13 @@ Professor Mari consegue olhar dentro dos arquivos de programa do Marinara, alter
 Veja o limite de confiança em palavras simples:
 
 - As ferramentas de arquivo dela ficam dentro da pasta onde Marinara está instalado. Os comandos de terminal diretos leem o espaço de trabalho e os programas de sistema necessários, mas não leem os seus outros arquivos pessoais.
-- Arquivos com segredos de ambiente, como o arquivo `.env` e os arquivos internos do Git, ficam fora do alcance das ferramentas de arquivo e do terminal direto.
-- Ela não escreve direto na pasta dos seus dados salvos, onde ficam os personagens e os chats. No lugar disso, ela usa o fluxo de revisão descrito abaixo.
+- Arquivos com segredos de ambiente, como o arquivo `.env`, o arquivo de chave que protege as suas chaves de API salvas e os arquivos internos do Git, ficam fora do alcance das ferramentas de arquivo e do terminal direto.
+- Ela não escreve direto na pasta dos seus dados salvos, onde ficam os personagens e os chats, usando as ferramentas de arquivo ou o terminal direto. No lugar disso, ela usa o fluxo de revisão descrito abaixo.
 - Os comandos de terminal diretos não têm acesso à rede, não herdam segredos do servidor e só escrevem arquivos comuns do espaço de trabalho e uma pasta temporária privada.
 - Ela continua editando os arquivos de código normais direto. Já as mudanças em manifestos de dependência, arquivos de lock, inicializadores, instaladores e fluxos de CI ficam separadas e são mostradas a você antes que Marinara aplique.
-- Ela pode ler os arquivos compilados do Marinara, as pastas `dist` de onde o aplicativo roda, mas não pode criar, editar, mover nem excluir esses arquivos. No lugar disso, ela altera os arquivos de código-fonte.
+- Ela pode ler os arquivos compilados do Marinara, as pastas `dist` de onde o aplicativo roda, mas não pode criar, editar, mover nem excluir esses arquivos. No lugar disso, ela altera os arquivos de código-fonte. Só o comando `mari code check` gera de novo os arquivos compilados, dentro do mesmo ambiente isolado.
 - Se uma mudança de código precisa de uma biblioteca pública do npm, ela pede um pacote específico. Marinara converte `latest` em uma versão exata, mostra a integridade do registro em um card de revisão e só instala depois da sua aprovação. Os scripts de ciclo de vida do pacote continuam desativados.
-- Se Marinara não conseguir oferecer o ambiente isolado de terminal do macOS ou do Linux, os comandos de terminal diretos ficam desativados. Ela ainda usa as ferramentas mais seguras de arquivo e de dados do aplicativo.
+- Se Marinara não conseguir oferecer o ambiente isolado de terminal do macOS ou do Linux, os comandos de terminal diretos e o `mari code check` ficam desativados. Ela ainda usa as ferramentas mais seguras de arquivo e de dados do aplicativo.
 - Os comandos que ela roda param sozinhos depois de pouco tempo, então um comando travado não roda para sempre.
 
 Quase ninguém precisa disso. O recurso existe para ela inspecionar ou consertar o próprio aplicativo quando algo quebra.

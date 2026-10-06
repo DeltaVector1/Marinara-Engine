@@ -29,11 +29,9 @@ Zgłaszając błąd połączenia, podaj tryb, platformę, widoczny błąd i info
 
 ### Termux: brak pamięci podczas budowania klienta
 
-Jeśli Vite kończy pracę z `Reached heap limit` lub `JavaScript heap out of memory`, zabrakło pamięci sterty Node.js podczas budowania klienta. To inny problem niż brak natywnego pliku Rollup. Zaktualizuj aplikację i uruchom ponownie `start-termux.sh`: budowanie klienta tymczasowo podnosi mniejszy automatyczny limit sterty w kierunku 1536 MiB, nie przekraczając połowy znanej pamięci RAM urządzenia, z dolną granicą 1024 MiB. Serwer zachowuje mniejszy limit zależny od profilu. Jawny limit w `NODE_OPTIONS` ma pierwszeństwo dla obu procesów; sprawdź, czy nie pozostało tam wcześniejsze ograniczenie 1024 MiB.
+Jeśli Vite kończy pracę z `Reached heap limit` lub `JavaScript heap out of memory`, zabrakło pamięci sterty Node.js podczas budowania klienta. To inny problem niż brak natywnego pliku Rollup. Zaktualizuj aplikację i uruchom ponownie `start-termux.sh`: budowanie klienta, także przy aktualizacjach w aplikacji, korzysta teraz z własnego limitu sterty 1536 MiB, nie większego niż połowa znanej pamięci RAM urządzenia, ale nigdy mniejszego niż 1280 MiB, których wymaga budowanie. Limit wynikający z RAM jest zaokrąglany w dół do wielokrotności 128 MiB. Serwer zachowuje mniejszy limit zależny od profilu. Jawny limit w `NODE_OPTIONS` ma pierwszeństwo dla obu procesów, więc sprawdź, czy nie pozostało tam wcześniejsze ograniczenie 1024 MiB: przy takim limicie klient już się nie zbuduje.
 
-Limit wynikający z RAM jest zaokrąglany w dół do wielokrotności 128 MiB. Jeżeli połowa pamięci urządzenia jest mniejsza niż 1024 MiB, pierwszeństwo ma dolna granica 1024 MiB.
-
-Przed ponowną próbą zamknij inne aplikacje. Na urządzeniach z małą pamięcią nadal może jej zabraknąć lub Android może zatrzymać proces; do zgłoszenia dołącz pełny zapis uruchamiania. Nie usuwaj czatów ani profilu, aby naprawić błąd budowania.
+Przed ponowną próbą zamknij inne aplikacje. Na telefonach z mniej niż około 3 GB RAM nadal może zabraknąć pamięci lub Android może zatrzymać proces; do zgłoszenia dołącz pełny zapis uruchamiania. Nie usuwaj czatów ani profilu, aby naprawić błąd budowania.
 
 ### Termux: brak pliku klienta gościa w trybie wieloosobowym lub niezgodna wersja Sharp
 

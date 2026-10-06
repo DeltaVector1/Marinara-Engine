@@ -44,13 +44,13 @@ Professor Mari zagląda do plików programu aplikacji Marinara Engine, zmienia j
 Oto granica zaufania w prostych słowach:
 
 - Narzędzia plikowe działają wyłącznie w folderze, w którym zainstalowana jest aplikacja Marinara Engine. Surowe polecenia powłoki mogą czytać przestrzeń roboczą i potrzebne programy systemowe, ale nie sięgną do innych plików osobistych.
-- Pliki z sekretami środowiska, takie jak `.env`, oraz wewnętrzne pliki Git pozostają niedostępne dla narzędzi plikowych i surowej powłoki.
-- Nie zapisuje niczego wprost w folderze z zapisanymi danymi, gdzie leżą postacie i czaty. Zamiast tego korzysta z opisanego niżej trybu zmian do zatwierdzenia.
+- Pliki z sekretami środowiska, takie jak `.env`, plik z kluczem, który chroni zapisane klucze API, oraz wewnętrzne pliki Git pozostają niedostępne dla narzędzi plikowych i surowej powłoki.
+- Nie zapisuje niczego wprost w folderze z zapisanymi danymi, gdzie leżą postacie i czaty – ani przez narzędzia plikowe, ani przez surową powłokę. Zamiast tego korzysta z opisanego niżej trybu zmian do zatwierdzenia.
 - Surowe polecenia powłoki nie mają dostępu do sieci, nie dziedziczą sekretów serwera i mogą zapisywać tylko zwykłe pliki przestrzeni roboczej oraz prywatny folder tymczasowy.
 - Zwykłe pliki źródłowe może edytować dalej bez ograniczeń. Zmiany w manifestach zależności, plikach blokad, programach uruchamiających, instalatorach i przepływach CI czekają w poczekalni i pokazują się do wglądu, zanim aplikacja Marinara Engine je zastosuje.
-- Może czytać zbudowane pliki aplikacji Marinara Engine, czyli foldery `dist`, z których działa program, ale nie może ich tworzyć, edytować, przenosić ani usuwać. Zamiast tego zmienia pliki źródłowe.
+- Może czytać zbudowane pliki aplikacji Marinara Engine, czyli foldery `dist`, z których działa program, ale nie może ich tworzyć, edytować, przenosić ani usuwać. Zamiast tego zmienia pliki źródłowe. Zbudowane pliki przebudowuje tylko polecenie `mari code check`, w tej samej piaskownicy.
 - Jeśli zmiana w kodzie wymaga publicznej biblioteki npm, asystentka prosi o konkretny pakiet. Marinara Engine zamienia `latest` na dokładną wersję, pokazuje jej sumę kontrolną z rejestru na karcie do zatwierdzenia i instaluje ją dopiero po twojej zgodzie. Skrypty cyklu życia pakietu pozostają wyłączone.
-- Jeśli aplikacja Marinara Engine nie może uruchomić piaskownicy powłoki dla macOS albo Linux, surowe polecenia powłoki są wyłączone. Zostają bezpieczniejsze narzędzia do pracy z plikami i danymi aplikacji.
+- Jeśli aplikacja Marinara Engine nie może uruchomić piaskownicy powłoki dla macOS albo Linux, surowe polecenia powłoki i polecenie `mari code check` są wyłączone. Zostają bezpieczniejsze narzędzia do pracy z plikami i danymi aplikacji.
 - Uruchamiane polecenia same kończą się po krótkim czasie, więc zawieszone polecenie nie będzie działać w nieskończoność.
 
 Większość osób nigdy tego nie potrzebuje. Ta możliwość istnieje po to, żeby asystentka mogła sprawdzić albo naprawić samą aplikację, kiedy coś się zepsuje.

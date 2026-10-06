@@ -24,7 +24,7 @@ Mit den drei Schaltern unter den Farbwählern überträgst du den Stil auf den r
 
 - **Apply preset font** (Preset-Schrift anwenden) nutzt die gewählte Widget-Schrift für Nachrichten, Eingabefelder und Chat-Bedienelemente, einschließlich HUD-Widgets, Kartenpanel, Randbemerkungen und Charakterbögen in Game Mode.
 - **Apply preset shape** (Preset-Form anwenden) nutzt die gewählte Rahmenform für Roleplay-Nachrichten im klassischen und im Visual-Novel-Layout, das Game-Dialogfeld, Randbemerkungen, HUD-Widgets, Kartenpanel und Charakterbögen sowie Eingabefelder und Bedienelemente. Conversation-Nachrichten behalten ihre eigene Form.
-- **Apply preset colors** (Preset-Farben anwenden) nutzt die Rahmen-, Hintergrund- und Textfarben des Widgets für diese Bereiche, einschließlich Conversation-Nachrichten. Auch deine eigenen Farben und Farbverläufe gelten dort.
+- **Apply preset colors** (Preset-Farben anwenden) nutzt die Rahmen-, Hintergrund- und Textfarben des Widgets für diese Bereiche, einschließlich Conversation-Nachrichten. Auch deine eigenen Farben und Farbverläufe gelten dort. Wörtliche Rede behält die eigene Dialogue Highlight Color des jeweiligen Charakters oder der jeweiligen Persona.
 
 Jeder Schalter ist anfangs aus und funktioniert unabhängig von den anderen. So kannst du etwa die Mari-Schrift mit den gewohnten Chatfarben kombinieren. Schaltest du eine Option aus, kehrt dieser Teil zur üblichen Chatgestaltung zurück. Die Auswahl eines anderen Presets behält deine Schalterstellungen bei. Professor Mari kann auch eigene Themes für diese Bereiche erstellen.
 
