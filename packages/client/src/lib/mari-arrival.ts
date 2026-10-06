@@ -114,13 +114,15 @@ export function mariFixRowId(
  * points at (a built-in agent's editor row shares its id with its Fix row) — that's fine, the row
  * still carries the right resource; only a deliberate pick of the Fix row attaches the error text
  * (see `buildAskContext`'s explicit `fix` flag at the call site). On an arrival, never the open
- * chat either (it is its own facet).
+ * chat either (it is its own facet). Never a chat tool row (`chat-tool:…`, e.g. "Fix: Check the last
+ * reply") either: it is an action, not a subject, and handing it over made Mari read any question
+ * asked in that chat as a request to repair the last reply (slice 66).
  */
 export function mariFallbackFocus<Row extends { id: string }>(
   rows: readonly Row[],
   arrivalChatRowId?: string | null,
 ): Row | null {
-  const first = rows[0] ?? null;
+  const first = rows.find((row) => !row.id.startsWith("chat-tool:")) ?? null;
   return first && first.id === arrivalChatRowId ? null : first;
 }
 

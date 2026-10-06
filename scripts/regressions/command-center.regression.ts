@@ -2943,6 +2943,22 @@ assert.ok(!("mariDetailId" in mariSession));
     "nor does any other unpicked door (Ask Mari row, aside) drop the resource",
   );
   assert.equal(mariFallbackFocus(arrivalRows.slice(1))?.id, "chat:chat-1", "without a Fix row the first row stays");
+  // Slice 66: a chat tool row is an action, not a subject - the fallback skips it.
+  const checkupRow = {
+    id: "chat-tool:reply-checkup:chat-1",
+    title: "Fix: Check the last reply",
+    category: "chat" as const,
+  };
+  assert.equal(
+    mariFallbackFocus([checkupRow, ...arrivalRows.slice(1)], "chat:chat-1"),
+    null,
+    "an arrival over a cut-off reply hands Mari the chat only",
+  );
+  assert.equal(
+    mariFallbackFocus([checkupRow, ...arrivalRows.slice(1)])?.id,
+    "chat:chat-1",
+    "a typed ask falls back to the chat, not the checkup action",
+  );
   const typedAfterArrival = askPayload("how do I add a lorebook?", arrivalFocus, false);
   assert.ok(
     !JSON.stringify(typedAfterArrival).includes("SECRET-ERROR"),
