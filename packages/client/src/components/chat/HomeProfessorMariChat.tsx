@@ -6320,15 +6320,15 @@ export function HomeProfessorMariChat({
       <div className="mari-run-error__actions">
         {retry ? (
           <>
-            <button type="button" onClick={retryRun} className="mari-link">
+            <button type="button" onClick={retryRun} className="mari-btn">
               {localizeUi("ui.chat.homeprofessormarichat.retry")}
             </button>
-            <button type="button" onClick={retryWithAnotherModel} className="mari-link">
+            <button type="button" onClick={retryWithAnotherModel} className="mari-btn">
               {localizeUi("ui.chat.homeprofessormarichat.retryWithAnotherModel")}
             </button>
           </>
         ) : null}
-        <button type="button" onClick={() => void dismissRunError()} className="mari-link mari-run-error__dismiss">
+        <button type="button" onClick={() => void dismissRunError()} className="mari-btn mari-run-error__dismiss">
           {localizeUi("ui.chat.homeprofessormarichat.dismissError")}
         </button>
       </div>

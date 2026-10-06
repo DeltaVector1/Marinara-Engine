@@ -2188,7 +2188,8 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
 .mari-run-error__text > svg {
   flex: none;
   margin-top: 0.2rem;
-  color: color-mix(in srgb, oklch(0.72 0.17 25) 80%, var(--foreground));
+  /* F14: the v5 destructive token, not a one-off hard-coded red. */
+  color: color-mix(in srgb, var(--destructive) 80%, var(--foreground));
 }
 
 .mari-run-error__text > span {
@@ -2200,7 +2201,7 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
 }
 
 .mari-run-error__label {
-  color: color-mix(in srgb, oklch(0.72 0.17 25) 80%, var(--foreground));
+  color: color-mix(in srgb, var(--destructive) 80%, var(--foreground));
 }
 
 .mari-run-error__actions {
@@ -2211,20 +2212,22 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   padding-inline-start: 1.2rem;
 }
 
-.mari-run-error__actions .mari-link {
+/* F14: v5's established quiet capsule (`.mari-row .mari-btn`'s own shape), not bold underlined links. */
+.mari-run-error__actions .mari-btn {
   min-height: 1.75rem;
+  border-color: transparent;
+  padding-inline: 0.7rem;
+  border-radius: 999px;
   color: var(--foreground);
-  text-decoration: underline 1px var(--mari-hairline);
-  text-underline-offset: 3px;
+  font-size: var(--mari-card-fact);
 }
 
 .mari-run-error__actions .mari-run-error__dismiss {
   color: var(--muted-foreground);
-  text-decoration: none;
 }
 
 @media (pointer: coarse) {
-  .mari-run-error__actions .mari-link {
+  .mari-run-error__actions .mari-btn {
     min-height: 2.75rem;
   }
 }
