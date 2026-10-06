@@ -3372,6 +3372,23 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   stroke-width: 1.8;
 }
 
+/* R13: the same check, small, on each done step and on a phase whose steps all succeeded. */
+.mari-done-mark--step {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-inline-start: 0.35rem;
+}
+
+/* An answer without steps ends on a small check and "Done". */
+.mari-work-timeline__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .mari-work-timeline__done-mark circle {
   stroke-dasharray: 51;
   stroke-dashoffset: 51;

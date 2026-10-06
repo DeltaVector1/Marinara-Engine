@@ -1566,9 +1566,13 @@ assert.ok(!("mariDetailId" in mariSession));
     "words she said before a step belong to that step's phase",
   );
   assert.deepEqual(
-    live.phases.map((phase) => phase.open),
-    [false, false, true],
-    "while she runs, only the phase she is in stays open",
+    live.phases.map((phase) => [phase.open, phase.live]),
+    [
+      [true, false],
+      [true, false],
+      [true, true],
+    ],
+    "R13: while she runs every phase stays open (done marks visible); only the one she is in is live",
   );
   const answering = groupRunPhases(
     [...run, { id: "a", type: "text", content: "Done: the greeting opens the scene." }],
@@ -1577,14 +1581,18 @@ assert.ok(!("mariDetailId" in mariSession));
       describe,
     },
   );
-  assert.equal(answering.phases.at(-1)!.open, false, "the last phase folds once she starts answering");
+  assert.deepEqual(
+    [answering.phases.at(-1)!.open, answering.phases.at(-1)!.live],
+    [true, false],
+    "R13: once she starts answering the last phase is done but stays open until the run ends",
+  );
   assert.deepEqual(
     answering.tail.map((item) => item.id),
     ["a"],
     "her answer is the tail",
   );
   assert.ok(
-    groupRunPhases(run, { active: false, describe }).phases.every((phase) => !phase.open),
+    groupRunPhases(run, { active: false, describe }).phases.every((phase) => !phase.open && !phase.live),
     "a finished run folds every phase",
   );
   const noSteps = groupRunPhases<Step>(

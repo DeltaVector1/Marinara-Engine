@@ -133,8 +133,12 @@ Rules that must survive:
     `groupRunPhases` (`lib/mari-work-timeline.ts`) buckets back-to-back steps by
     verb class (`stepVerbClass`, shared with the step icons): read/search are
     "Looked at N things", create/edit/delete "Changed N things", anything else
-    "Ran N steps", plus "N failed". Only the phase she is in stays open (until she
-    starts answering); a finished phase folds to its line and opens on click.
+    "Ran N steps", plus "N failed". Every phase stays open while she runs (R13,
+    slice 62g: folding them earlier hid the done marks); only the phase she is in
+    reads live ("Looking 3") until she starts answering. Each done step row ends on
+    a small green check that draws itself as the row plops in, and a phase whose
+    steps all succeeded carries the same check on its summary line. When the run
+    ends every phase folds to its line, which opens on click.
     App-data writes are labelled as writes ("Updating lorebook entry"), so they
     land in "Changed".
   - Her answer and what it made sit in one column with an avatar gutter on the
@@ -145,7 +149,8 @@ Rules that must survive:
     (success just after the run, then idle, or the retry / stopped / approval
     story); older turns keep only the words. A turn without words keeps her on
     the "Worked for" line instead, and the retry / stopped / approval words stay
-    on a line under the turn. So she is always in the transcript: the welcome
+    on a line under the turn. An answer without steps ends on a small check and
+    "Done" in place of "Worked for". So she is always in the transcript: the welcome
     sprite when empty, the live line while she works, and the resting sprite
     beside her newest reply.
   - **Scroll contract** (slice 31): sending a message reserves

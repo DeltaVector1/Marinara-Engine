@@ -1801,6 +1801,16 @@ function MariAnswer({
   );
 }
 
+/** The green "done" check: it draws itself once when it mounts. */
+function MariDoneMark({ className }: { className?: string }) {
+  return (
+    <svg className={cn("mari-work-timeline__done-mark", className)} viewBox="0 0 18 18" aria-hidden="true">
+      <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
+      <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
+    </svg>
+  );
+}
+
 function MariWorkTimeline({
   items,
   character,
@@ -1839,7 +1849,7 @@ function MariWorkTimeline({
   const failed = !active && toolItems.some(({ tool }) => tool.status === "error");
   // The running step is the live line itself, so it is not also a row in the list.
   const shownItems = active ? items.filter((item) => item.type !== "tool" || item.tool.status !== "running") : items;
-  // M5a: what came before her first step, her steps as phases (only the one she is in stays open), then
+  // M5a: what came before her first step, her steps as phases (all open while she runs, R13), then
   // her answer.
   const { intro, phases, tail } = groupRunPhases(shownItems, {
     active,
@@ -1955,6 +1965,7 @@ function MariWorkTimeline({
                     <span className="mari-live-work__step-duration">
                       {stepSeconds === null ? "—" : t("mari.workCard.stepSeconds", { seconds: stepSeconds })}
                     </span>
+                    {tool.status === "done" ? <MariDoneMark className="mari-done-mark--step" /> : null}
                     <ChevronRight size="0.7rem" className="mari-live-work__step-chevron shrink-0" aria-hidden="true" />
                   </summary>
                   <div className="mari-live-work__step-details-body">
@@ -2025,16 +2036,17 @@ function MariWorkTimeline({
                   key={phase.id}
                   className="mari-phase"
                   open={phase.open}
-                  data-state={phase.open ? "live" : "done"}
+                  data-state={phase.live ? "live" : "done"}
                 >
                   <summary className="mari-disclosure">
                     <PhaseIcon size="0.85rem" className="shrink-0" aria-hidden="true" />
                     <span>
-                      {phase.open
+                      {phase.live
                         ? t(`mari.workCard.phase.${phase.kind}Live`)
                         : t(`mari.workCard.phase.${phase.kind}`, { count: phase.steps })}
                     </span>
-                    {phase.open ? <span className="mari-phase__count">{phase.steps}</span> : null}
+                    {phase.live ? <span className="mari-phase__count">{phase.steps}</span> : null}
+                    {!phase.live && phase.failed === 0 ? <MariDoneMark className="mari-done-mark--step" /> : null}
                     {phase.failed > 0 ? (
                       <span className="mari-phase__failed">
                         {t("mari.workCard.phase.failed", { count: phase.failed })}
@@ -2074,7 +2086,7 @@ function MariWorkTimeline({
               ))}
             </span>
           </div>
-        ) : toolItems.length > 0 || (restStory && (!spriteBesideAnswer || restStoryText)) ? (
+        ) : toolItems.length > 0 || answerBlocks.length > 0 || (restStory && (!spriteBesideAnswer || restStoryText)) ? (
           // Done: where the live line was, one line says how long she worked and folds the work away. On the
           // newest turn she rests beside her reply; only a turn without words keeps her on this line. Older
           // turns keep only the words.
@@ -2090,6 +2102,12 @@ function MariWorkTimeline({
             {toolItems.length === 0 ? (
               restStoryText ? (
                 <span className="text-xs text-[var(--muted-foreground)]">{restStoryText}</span>
+              ) : answerBlocks.length > 0 ? (
+                // R13: an answer without steps still ends on a small done check.
+                <span className="mari-work-timeline__done">
+                  <MariDoneMark />
+                  {t("mari.workCard.done")}
+                </span>
               ) : null
             ) : (
               <button
@@ -2101,10 +2119,7 @@ function MariWorkTimeline({
                 {failed ? (
                   <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
                 ) : (
-                  <svg className="mari-work-timeline__done-mark" viewBox="0 0 18 18" aria-hidden="true">
-                    <circle cx="9" cy="9" r="8" transform="rotate(-90 9 9)" />
-                    <path d="M5.5 9.2l2.3 2.2 4.6-4.8" />
-                  </svg>
+                  <MariDoneMark />
                 )}
                 <span className="mari-work-timeline__status">{workedFor}</span>
                 <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />

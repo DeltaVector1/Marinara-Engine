@@ -75,15 +75,18 @@ export interface RunPhase<Tool> {
   items: WorkTimelineItem<Tool>[];
   steps: number;
   failed: number;
-  /** Only the phase she is still in is open; a finished phase folds to its one summary line. */
+  /** R13: every phase stays open while she runs, so each step's done mark is seen; a finished run folds them. */
   open: boolean;
+  /** The phase she is still in: its label reads "Looking", not "Looked at 4 things", and it has no done mark yet. */
+  live: boolean;
 }
 
 /**
  * M5a: a run as phases. Back-to-back steps of one kind (looking, changing, anything else) share a phase,
  * together with the thoughts and words that led up to them. What came before her first step stays as it
  * was (`intro`), and what came after her last step is her answer (`tail`), so neither moves when a phase
- * starts. The last phase stays open while she runs, until she starts answering.
+ * starts. Phases stay open while she runs and fold when the run ends (R13: folding them earlier hid
+ * every done mark); the last one is live until she starts answering.
  */
 export function groupRunPhases<Tool>(
   items: readonly WorkTimelineItem<Tool>[],
@@ -104,7 +107,7 @@ export function groupRunPhases<Tool>(
     if (phases.length === 0) intro.push(...pending.splice(0));
     let phase = phases.at(-1);
     if (phase?.kind !== kind) {
-      phase = { id: item.id, kind, items: [], steps: 0, failed: 0, open: false };
+      phase = { id: item.id, kind, items: [], steps: 0, failed: 0, open: active, live: false };
       phases.push(phase);
     }
     phase.items.push(...pending, item);
@@ -114,7 +117,7 @@ export function groupRunPhases<Tool>(
   }
   const last = phases.at(-1);
   const answering = pending.some((item) => item.type === "text" && item.content.trim());
-  if (last && active && !answering) last.open = true;
+  if (last && active && !answering) last.live = true;
   return { intro, phases, tail: pending };
 }
 
