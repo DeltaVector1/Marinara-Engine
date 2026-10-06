@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { seedUIState } from "./ui-state-fixture.js";
 
-test("Golden and Safari Mari are selectable without achievements and survive reload", async ({ page }, testInfo) => {
+test("Golden (once unlocked) and Safari Mari are selectable and survive reload", async ({ page }, testInfo) => {
   const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
   await page.addInitScript((appVersion) => {
     localStorage.setItem("marinara:whats-new:seen-version", appVersion);
@@ -14,6 +14,8 @@ test("Golden and Safari Mari are selectable without achievements and survive rel
       professorMariNavigationEnabled: false,
       rightPanelOpen: false,
       sidebarOpen: false,
+      // R12: Golden needs 100 h of play time; this test is about selection, so it starts unlocked.
+      mariUnlockedPackIds: ["golden"],
     },
     "if-missing",
   );

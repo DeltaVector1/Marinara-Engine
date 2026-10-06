@@ -10,7 +10,7 @@
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronLeft, Settings2 } from "lucide-react";
+import { Check, ChevronLeft, Lock, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DEFAULT_MARI_PERMISSIONS_MODE,
@@ -25,7 +25,14 @@ import { useSidecarStore } from "../../../stores/sidecar.store";
 import { useUIStore } from "../../../stores/ui.store";
 import { api } from "../../../lib/api-client";
 import { enqueueMariPermissionsModeWrite } from "../../../lib/mari-permissions-write-chain";
-import { MARI_APPEARANCE_PACKS, mariImgLoading } from "../../../lib/mari-work-animations";
+import {
+  isMariPackUnlocked,
+  MARI_APPEARANCE_PACKS,
+  mariImgLoading,
+  playHoursFromMs,
+  resolveMariAppearancePack,
+} from "../../../lib/mari-work-animations";
+import { useActivityOverview } from "../../../hooks/use-chat-insights";
 import { OMNIBAR_ASIDE_DELAY_CHOICES_MS } from "../../../lib/omnibar-aside-text";
 import { useLocalizedUiText } from "../../../localization/use-localized-ui-text";
 import { cn } from "../../../lib/utils";
@@ -167,12 +174,20 @@ function PermissionsModeRow() {
  * pack's profile pose, tier 3: never at app load, and only once the grid comes within 200 px of
  * the visible part of this view. The browser's own `loading="lazy"` margin is far larger than this
  * view, so it alone would fetch every preview the moment the view opens.
+ *
+ * R12: a pack with a play-time rule stays locked (a disabled radio, a lock instead of its preview, so
+ * none of its art loads) until Activity's play time reaches the rule. The checked card is the pack
+ * that renders, so a stored locked pick shows Basic checked while the pick itself is kept.
  */
 function AppearancePacks() {
   const { t } = useTranslation();
   const baseId = useId();
-  const selected = useUIStore((state) => state.mariAppearancePackId);
+  const storedId = useUIStore((state) => state.mariAppearancePackId);
+  const unlockedIds = useUIStore((state) => state.mariUnlockedPackIds);
   const selectPack = useUIStore((state) => state.setMariAppearancePack);
+  const anyLocked = MARI_APPEARANCE_PACKS.some((pack) => !isMariPackUnlocked(pack, unlockedIds));
+  const playHours = playHoursFromMs(useActivityOverview(anyLocked).data?.playTime.totalMs);
+  const selected = resolveMariAppearancePack(storedId, unlockedIds, playHours).id;
   const gridRef = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
   useEffect(() => {
@@ -199,12 +214,23 @@ function AppearancePacks() {
       {MARI_APPEARANCE_PACKS.map((pack) => {
         const nameId = `${baseId}-${pack.id}-name`;
         const descriptionId = `${baseId}-${pack.id}-description`;
+        const locked = !isMariPackUnlocked(pack, unlockedIds, playHours);
+        const requirement = pack.unlock
+          ? t("mari.appearancePacks.lockedRequirement", { total: pack.unlock.playHours })
+          : "";
         return (
-          <label key={pack.id} className="omnibar-settings-pack" data-pack={pack.id}>
+          <label
+            key={pack.id}
+            className="omnibar-settings-pack"
+            data-pack={pack.id}
+            data-locked={locked || undefined}
+            title={locked ? requirement : undefined}
+          >
             <input
               type="radio"
               name="mari-appearance-pack"
               className="sr-only"
+              disabled={locked}
               checked={selected === pack.id}
               onChange={() => selectPack(pack.id)}
               onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
@@ -216,19 +242,32 @@ function AppearancePacks() {
               aria-labelledby={nameId}
               aria-describedby={descriptionId}
             />
-            <img
-              className="omnibar-settings-pack__sprite"
-              src={near ? pack.poses.profile : undefined}
-              {...mariImgLoading(3)}
-              width={64}
-              height={64}
-              alt=""
-            />
+            {locked ? (
+              <span className="omnibar-settings-pack__sprite omnibar-settings-pack__lock" aria-hidden="true">
+                <Lock size={18} />
+              </span>
+            ) : (
+              <img
+                className="omnibar-settings-pack__sprite"
+                src={near ? pack.poses.profile : undefined}
+                {...mariImgLoading(3)}
+                width={64}
+                height={64}
+                alt=""
+              />
+            )}
             <span id={nameId} className="omnibar-settings-pack__name">
               {t(`mari.appearancePacks.${pack.id}.label`, pack.label)}
             </span>
             <span id={descriptionId} className="omnibar-settings-pack__description">
-              {t(`mari.appearancePacks.${pack.id}.description`, pack.description)}
+              {!locked
+                ? t(`mari.appearancePacks.${pack.id}.description`, pack.description)
+                : playHours === null
+                  ? requirement
+                  : t("mari.appearancePacks.lockedProgress", {
+                      hours: playHours,
+                      total: pack.unlock!.playHours,
+                    })}
             </span>
             <span className="omnibar-settings-pack__check" aria-hidden="true">
               <Check size={12} strokeWidth={3} />

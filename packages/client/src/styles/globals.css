@@ -12832,6 +12832,27 @@ html[data-marinara-reduced-effects="true"] .mari-window {
   image-rendering: pixelated;
 }
 
+/* R12: a locked pack is quiet, not hidden: a lock where the preview goes and its play-time progress. */
+.omnibar-settings-pack[data-locked] {
+  cursor: default;
+}
+
+.omnibar-settings-pack[data-locked]:hover {
+  background: var(--mari-group-bg);
+}
+
+.omnibar-settings-pack__lock {
+  display: grid;
+  place-items: center;
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  color: var(--muted-foreground);
+}
+
+.omnibar-settings-pack[data-locked] .omnibar-settings-pack__name {
+  color: var(--muted-foreground);
+}
+
 .omnibar-settings-pack__name {
   color: var(--foreground);
   font-size: 0.75rem;

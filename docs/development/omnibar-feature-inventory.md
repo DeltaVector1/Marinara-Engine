@@ -441,6 +441,12 @@ scores below a label/alias hit (section 4). Every system command
   checked card has a primary ring and a check badge); previews are tier 3
   profile poses at 64 px, mounted only once the grid is within 200 px of the
   visible part of the view (an `IntersectionObserver` on the view's scroller).
+  R12 (slice 62f): a pack with an `unlock: { playHours }` rule (Golden, 100 h)
+  is locked until the Activity overview's `playTime.totalMs` reaches it: a
+  disabled radio, a lock icon instead of the preview (none of its art loads),
+  and "64h of 100h play time". A stored locked pick renders as Basic and keeps
+  its stored id; the first time play time reaches the rule, the id goes into
+  `mariUnlockedPackIds` (kept from then on) with one quiet toast.
 
 ## 4. Ranking
 

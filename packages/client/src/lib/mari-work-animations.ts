@@ -49,6 +49,8 @@ export interface MariAppearancePack {
   stories: Record<MariStoryState, MariWorkAnimation>;
   /** Every pack ships all nine; the Record type makes a missing pose a compile error, not a broken image. */
   poses: Record<MariPose, string>;
+  /** R12: locked until the Activity overview's play time reaches this many hours. */
+  unlock?: { playHours: number };
 }
 
 /**
@@ -118,6 +120,7 @@ export const MARI_APPEARANCE_PACKS: readonly MariAppearancePack[] = [
     },
     stories: packStories("golden"),
     poses: packPoses("golden"),
+    unlock: { playHours: 100 },
   },
   {
     id: "safari",
@@ -188,6 +191,37 @@ export function mariAssetUrls(pack: MariAppearancePack, tier: 1 | 2): string[] {
 
 export function getMariAppearancePack(id: unknown): MariAppearancePack {
   return MARI_APPEARANCE_PACKS.find((pack) => pack.id === id) ?? MARI_APPEARANCE_PACKS[0]!;
+}
+
+/** Whole hours of play time (`ActivityOverview.playTime.totalMs`), or null while unknown. */
+export function playHoursFromMs(totalMs: number | null | undefined): number | null {
+  return typeof totalMs === "number" && Number.isFinite(totalMs) ? Math.floor(totalMs / 3_600_000) : null;
+}
+
+/**
+ * R12: a pack is usable once it has no rule, was unlocked before (kept even if play time later
+ * drops, e.g. after deleting chats), or play time has reached its rule.
+ */
+export function isMariPackUnlocked(
+  pack: MariAppearancePack,
+  unlockedIds: readonly string[],
+  playHours: number | null = null,
+): boolean {
+  if (!pack.unlock || unlockedIds.includes(pack.id)) return true;
+  return playHours !== null && playHours >= pack.unlock.playHours;
+}
+
+/**
+ * The pack that renders: the stored choice, or Basic while that choice is locked. The stored id is
+ * never rewritten, so a locked pick returns by itself once it unlocks. Locked packs never load.
+ */
+export function resolveMariAppearancePack(
+  storedId: unknown,
+  unlockedIds: readonly string[],
+  playHours: number | null = null,
+): MariAppearancePack {
+  const pack = getMariAppearancePack(storedId);
+  return isMariPackUnlocked(pack, unlockedIds, playHours) ? pack : MARI_APPEARANCE_PACKS[0]!;
 }
 
 /** A completed reply alone is not evidence that a workspace change succeeded. */

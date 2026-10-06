@@ -110,6 +110,12 @@ import {
 } from "../../packages/client/src/lib/mari-edit-diff.js";
 import { replyCheckupRow } from "../../packages/client/src/lib/reply-checkup.js";
 import {
+  getMariAppearancePack,
+  isMariPackUnlocked,
+  playHoursFromMs,
+  resolveMariAppearancePack,
+} from "../../packages/client/src/lib/mari-work-animations.js";
+import {
   groupRunPhases,
   pastTenseStepTitle,
   splitMariAnswerWhy,
@@ -3693,6 +3699,23 @@ assert.ok(!("mariDetailId" in mariSession));
     ).why,
     `Needed ${(30000).toLocaleString()} tokens, budget ${(7000).toLocaleString()}`,
   );
+}
+
+// R12: Golden Mari unlocks at 100 h of play time; a stored locked pick renders as Basic and returns by itself.
+{
+  const golden = getMariAppearancePack("golden");
+  assert.deepEqual(golden.unlock, { playHours: 100 });
+  assert.equal(playHoursFromMs(undefined), null, "unknown play time stays unknown");
+  assert.equal(playHoursFromMs(100 * 3_600_000 - 1), 99, "hours round down");
+  assert.equal(isMariPackUnlocked(golden, [], null), false, "unknown play time keeps Golden locked");
+  assert.equal(isMariPackUnlocked(golden, [], 99), false, "99 h: locked");
+  assert.equal(isMariPackUnlocked(golden, [], 100), true, "100 h: unlocked");
+  assert.equal(isMariPackUnlocked(golden, ["golden"], 0), true, "an unlock already recorded stays");
+  assert.equal(isMariPackUnlocked(getMariAppearancePack("safari"), [], 0), true, "packs without a rule are open");
+  assert.equal(resolveMariAppearancePack("golden", [], 99).id, "basic", "stored Golden under 100 h renders Basic");
+  assert.equal(resolveMariAppearancePack("golden", [], 100).id, "golden", "stored Golden at 100 h renders Golden");
+  assert.equal(resolveMariAppearancePack("golden", ["golden"]).id, "golden", "a recorded unlock renders Golden");
+  assert.equal(resolveMariAppearancePack("dottore", []).id, "dottore");
 }
 
 console.info("Command Center regression checks passed.");

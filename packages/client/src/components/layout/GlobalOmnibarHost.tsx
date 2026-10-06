@@ -17,7 +17,7 @@ import {
   requestProfessorMariOpen,
   type ProfessorMariOpenDetail,
 } from "../../lib/professor-mari-open";
-import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import { useMariAppearancePack, useMariPackUnlocks } from "../../hooks/use-mari-appearance-pack";
 import { useMariPresence } from "../../hooks/use-mari-presence";
 import { mariAssetUrls } from "../../lib/mari-work-animations";
 import { useUIStore } from "../../stores/ui.store";
@@ -108,6 +108,7 @@ export function GlobalOmnibar() {
   // first ⌘K, ⌘J or pull shows Mari at once. Only this pack; a switch warms the new one (its tier 1
   // sprites come from the Home <img> tags themselves).
   const pack = useMariAppearancePack();
+  useMariPackUnlocks();
   useEffect(() => {
     let idleId: number | undefined;
     let timer: number | undefined;

@@ -676,6 +676,8 @@ interface UIState {
   mariEditViewMode: MariEditViewMode;
   /** One complete appearance, shared by every Professor Mari surface. */
   mariAppearancePackId: string;
+  /** R12: packs whose play-time rule was met once; the one-time "unlocked" toast has been shown for them. */
+  mariUnlockedPackIds: string[];
   chatBackground: string | null;
   /** Default background applied when a Roleplay chat has no saved background yet. */
   defaultRoleplayBackground: string;
@@ -1162,6 +1164,7 @@ interface UIState {
   setOmnibarAsideDelayMs: (delayMs: number) => void;
   setMariEditViewMode: (mode: MariEditViewMode) => void;
   setMariAppearancePack: (packId: string) => void;
+  markMariPackUnlocked: (packId: string) => void;
   setChatBackground: (url: string | null) => void;
   setDefaultRoleplayBackground: (url: string) => void;
   setChatBackgroundBlur: (v: number) => void;
@@ -1717,6 +1720,7 @@ export function pickPersistedUIState(state: UIState) {
     omnibarAsideDelayMs: state.omnibarAsideDelayMs,
     mariEditViewMode: state.mariEditViewMode,
     mariAppearancePackId: getMariAppearancePack(state.mariAppearancePackId).id,
+    mariUnlockedPackIds: state.mariUnlockedPackIds,
     chatBackground: state.chatBackground,
     defaultRoleplayBackground: state.defaultRoleplayBackground,
     chatBackgroundBlur: state.chatBackgroundBlur,
@@ -1938,6 +1942,7 @@ export const useUIStore = create<UIState>()(
         omnibarAsideDelayMs: OMNIBAR_ASIDE_DELAY_MS,
         mariEditViewMode: "easy",
         mariAppearancePackId: "basic",
+        mariUnlockedPackIds: [],
         chatBackground: null,
         defaultRoleplayBackground: DEFAULT_ROLEPLAY_BACKGROUND_URL,
         chatBackgroundBlur: 0,
@@ -2297,6 +2302,12 @@ export const useUIStore = create<UIState>()(
         setOmnibarAsideDelayMs: (delayMs) => set({ omnibarAsideDelayMs: delayMs }),
         setMariEditViewMode: (mode) => set({ mariEditViewMode: mode }),
         setMariAppearancePack: (packId) => set({ mariAppearancePackId: getMariAppearancePack(packId).id }),
+        markMariPackUnlocked: (packId) =>
+          set((state) =>
+            state.mariUnlockedPackIds.includes(packId)
+              ? state
+              : { mariUnlockedPackIds: [...state.mariUnlockedPackIds, packId] },
+          ),
         setChatBackground: (url) => set({ chatBackground: url }),
         setDefaultRoleplayBackground: (url) =>
           set({ defaultRoleplayBackground: normalizeDefaultRoleplayBackground(url) }),
@@ -3888,6 +3899,9 @@ export const useUIStore = create<UIState>()(
           ...currentState,
           ...persisted,
           mariAppearancePackId: getMariAppearancePack(persisted.mariAppearancePackId).id,
+          mariUnlockedPackIds: Array.isArray(persisted.mariUnlockedPackIds)
+            ? persisted.mariUnlockedPackIds.filter((id): id is string => typeof id === "string")
+            : [],
           conversationBackgroundImageOpacity: normalizeConversationBackgroundImageOpacity(
             persisted.conversationBackgroundImageOpacity,
           ),
