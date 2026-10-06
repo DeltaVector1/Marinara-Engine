@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
+import { acquireMariThreadLock, releaseMariThreadLock } from "./mari-thread-lock.js";
 import { seedUIState } from "./ui-state-fixture.js";
 
 const APP_VERSION = (
@@ -14,6 +15,25 @@ const APP_VERSION = (
  * while she is still working (slice 36 folded them away), and an answer without steps still ends on a
  * small done check.
  */
+// F11: like the mari-arrival specs, this reads "the most recent Mari thread", so a thread left over
+// from another spec changes which thread the run lands in. The lock keeps this file from running at
+// the same time as any other locked Mari-thread spec; the cleanup then starts from a clean slate.
+test.beforeEach(async ({ request }) => {
+  await acquireMariThreadLock();
+  const existing = (await (await request.get("/api/chats/internal/professor-mari/chats")).json()) as Array<{
+    id: string;
+  }>;
+  await Promise.all(
+    existing.map((chat) =>
+      request.delete(`/api/chats/internal/professor-mari/chats/${chat.id}`).catch(() => undefined),
+    ),
+  );
+});
+
+test.afterEach(() => {
+  releaseMariThreadLock();
+});
+
 test("done marks show on each step while Mari is still working", async ({ page, request }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "One live run on desktop is enough proof.");
   test.setTimeout(90_000);
@@ -105,7 +125,7 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     for (const row of await doneSteps.all()) {
       await expect(row.locator(".mari-done-mark--step")).toBeVisible();
     }
-    await page.screenshot({ path: ".tmp/omnibar-ux/62g/live-done-marks-round1-1440.png" });
+    await page.screenshot({ path: "test-results/mari-live-done-marks-proof/live-done-marks-round1-1440.png" });
 
     // Round 2's read lands while the final answer is still held: three checked rows, still in an open phase.
     await expect(doneSteps).toHaveCount(3);
@@ -113,16 +133,17 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     for (const row of await doneSteps.all()) {
       await expect(row.locator(".mari-done-mark--step")).toBeVisible();
     }
-    await page.screenshot({ path: ".tmp/omnibar-ux/62g/live-done-marks-round2-1440.png" });
+    await page.screenshot({ path: "test-results/mari-live-done-marks-proof/live-done-marks-round2-1440.png" });
 
-    // The run ends: the phase folds to its summary line, which carries the check, and so does "Worked for".
+    // The run ends: this phase has 3 steps (at MAX_OPEN_PHASE_STEPS), so 62h keeps it open instead of
+    // folding it; its summary and "Worked for" both still carry the check.
     const finished = mariPane.locator('.mari-work-timeline[data-active="false"]').last();
     await expect(finished).toContainText("You have no characters", { timeout: 20_000 });
     const phase = finished.locator("details.mari-phase").first();
-    await expect(phase).not.toHaveAttribute("open", "");
+    await expect(phase).toHaveAttribute("open", "");
     await expect(phase.locator("> summary .mari-done-mark--step")).toBeVisible();
     await expect(finished.locator(".mari-work-timeline__header .mari-work-timeline__done-mark")).toBeVisible();
-    await page.screenshot({ path: ".tmp/omnibar-ux/62g/live-done-marks-finished-1440.png" });
+    await page.screenshot({ path: "test-results/mari-live-done-marks-proof/live-done-marks-finished-1440.png" });
 
     // R13.2: the prompt she really got no longer sends her on reads just to make a card show, lets a
     // question that needs it get a paragraph, and keeps chat.diagnose for real bad-reply complaints.
@@ -139,7 +160,7 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     await page.keyboard.press("Control+Enter");
     const plain = mariPane.locator(".mari-work-timeline").filter({ hasText: "Hello! Ask me anything." }).last();
     await expect(plain.locator(".mari-work-timeline__done")).toBeVisible({ timeout: 20_000 });
-    await page.screenshot({ path: ".tmp/omnibar-ux/62g/no-step-answer-done-1440.png" });
+    await page.screenshot({ path: "test-results/mari-live-done-marks-proof/no-step-answer-done-1440.png" });
   } finally {
     if (mariChatId)
       await request.delete(`/api/chats/internal/professor-mari/chats/${mariChatId}`).catch(() => undefined);

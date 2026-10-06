@@ -84,7 +84,7 @@ assert.match(
 );
 assert.match(
   professorMariHomeSource,
-  /<form[\s\S]*?mari-workspace-question-dock[\s\S]*?mari-workspace-answer-strip[\s\S]*?mari-professor-composer/u,
+  /<form[\s\S]*?mari-workspace-question-dock[\s\S]*?mari-workspace-answer-strip[\s\S]*?mari-workspace-composer\b/u,
   "Mari's question and suggestions must stay together above the composer",
 );
 assert.doesNotMatch(
@@ -129,7 +129,7 @@ assert.match(
 );
 assert.match(
   professorMariHomeSource,
-  /<form[\s\S]*?mari-workspace-answer-strip[\s\S]*?mari-professor-composer/u,
+  /<form[\s\S]*?mari-workspace-answer-strip[\s\S]*?mari-workspace-composer\b/u,
   "Suggestion answers must stay in the composer dock instead of inside transcript turns",
 );
 

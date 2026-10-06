@@ -79,12 +79,12 @@ test("a trimmed reply shows how many older messages were not sent, and Peek lead
     const line = page.locator("[data-reply-checkup]");
     await expect(line).toContainText("42 older messages not sent");
     await line.getByRole("button", { name: "Check", exact: true }).click();
-    await expect(line).toContainText(
-      "42 older messages were not sent. The prompt needed 9,100 tokens; the budget was 7,000.",
-    );
+    // F11: slice 62d's v5 panel shows the finding as a title + why row, not the Peek's full sentence.
+    await expect(line).toContainText("42 older messages not sent");
+    await expect(line).toContainText("Needed 9,100 tokens, budget 7,000");
     await page.screenshot({ path: `${shots}${info.project.name}-trimmed.png` });
 
-    await line.getByRole("button", { name: "Peek at the prompt", exact: true }).click();
+    await line.getByRole("button", { name: "Peek at the prompt" }).click();
     const header = page.locator("[data-peek-checkup]");
     await expect(header).toContainText("Reply checkup");
     await expect(header).toContainText("42 older messages were not sent.");
@@ -127,10 +127,12 @@ test("a cut-off reply says so, links to Max output tokens, and the omnibar Fix r
     } else {
       await line.getByRole("button", { name: "Check", exact: true }).click();
     }
-    await expect(line).toContainText("The reply hit its 512-token limit and stopped mid-sentence.");
+    // F11: slice 62d's v5 panel shows the finding as a title + why row, not the Peek's full sentence.
+    await expect(line).toContainText("Cut off at 512 tokens");
+    await expect(line).toContainText("Stopped mid-sentence");
     await page.screenshot({ path: `${shots}${info.project.name}-cut-off.png` });
 
-    await line.getByRole("button", { name: "Max output tokens", exact: true }).click();
+    await line.getByRole("button", { name: "Max output tokens" }).click();
     await expect(page.locator('[data-chat-settings-section="advanced-parameters"]')).toBeVisible();
   } finally {
     await request.delete(`/api/chats/${chat.id}?force=true`);
