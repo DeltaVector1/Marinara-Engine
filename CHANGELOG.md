@@ -4,6 +4,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Connections can share a reusable provider with its own name, color, tag, address and credentials. Manage providers alongside connections, update shared credentials in one place, and keep separate gateway providers even when they use the same address and key. Existing standalone connections continue to work.
+
 - On phones and tablets, Home's browser bar now matches the color of the top bar above it instead of showing as a lighter strip. With reduced motion turned on, theme and accent changes no longer play slow transitions, and dialogs close at once. On phone-width screens in some WebKit browsers, Conversation message buttons such as Regenerate and **Bookmark, pin or note** no longer ignore a press, and Tab reaches them (#7146).
 
 - On phones with Chromium-based browsers, tapping a chat button right after flicking it into place now opens it on the first tap instead of being ignored (#7146).
