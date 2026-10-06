@@ -274,7 +274,7 @@ Rules that must survive:
     hairline that closes the row, at the right under settings and Close (Q5,
     slice 57b; above 30rem the other three stay centred). Every tab fits the
     bar at every width, so there is no ⋮ menu that would only repeat them (Q1,
-    slice 56). No mode
+    slice 56), except while a phone keyboard is open (R11, below). No mode
     control. Below 30rem the tabs show icon + count plus a short visible label
     under the icon (`context`'s short label reuses the "Aware of" composer
     chip copy), not only screen-reader text, so the icons are identifiable
@@ -305,15 +305,26 @@ Rules that must survive:
     (Q5, slice 57b, like the mari-v4 panel). Its
     Rename and Delete sit in its ⋮ menu (popover, Escape closes
     only the menu); Select keeps multi-select with Delete selected.
-  - The composer puts the textarea on its own row and a toolbar under it:
-    attach, the connection as a labelled `.mari-chrome-control--compact` menu
-    (it replaced the bare link icon; a red dot when none is set), and the
-    Permissions Mode as a labelled menu (current mode on the chip, Bypass in
-    red, Plan in the primary colour). The mode menu keeps "Use default" plus the
-    five modes with their one-line descriptions, writes the same per-chat
-    `PUT /professor-mari/workspace/permissions-mode { mode, chatId }`, and
-    keeps the Bypass wording unchanged. On a phone both menus span the composer;
-    every toolbar control is 44px on a coarse pointer.
+  - The composer (R11, slice 62e, composer v5; `.mari-workspace-composer`, its own
+    shell, not the regular chat input's `getChatInputShellClass`, which stays for
+    character chats) is neutral at rest with a primary ring only on focus. Inside
+    one shell: a context row (attachment chips first, then "Aware of" and its
+    facet chips, all capsules), the textarea, and a toolbar: attach, the connection
+    menu (a red dot when none is set) and the Permissions Mode menu (Bypass in red,
+    Plan in the primary colour) as quiet borderless 34px controls with a 44px
+    touch area, then Send, a neutral filled circle (grey while empty). The field
+    grows with a height transition to 8 lines (6 on a coarse pointer), then
+    scrolls with a top fade (`data-scrolled`). Both menus use the v5 row anatomy;
+    the mode menu keeps "Use default" plus the five modes, each with a one-line
+    fact (`ui.chat.homeprofessormarichat.modeFact.*`; the full description is the
+    row's tooltip), writes the same per-chat `PUT
+    /professor-mari/workspace/permissions-mode { mode, chatId }`, and keeps the
+    Bypass wording. On a phone both menus span the composer. While she works the
+    bar folds into the unchanged Stop pill.
+  - Phone keyboard (R11): while `useChatKeyboardOpen()` reports the software
+    keyboard (below 40rem), header row 2 hides and a ⋮ menu in row 1
+    (`omnibarMenuSlot`) lists Skills, Memories, Aware of, Chats and New chat; an
+    open menu keeps the header compact. It expands when the keyboard closes.
   - **The composer floats over the transcript** (slice 30): scrolled content
     passes under it through a soft, always-on fade at the top and bottom edges
     instead of a hard cut, and her working glow shows through that fade rather
