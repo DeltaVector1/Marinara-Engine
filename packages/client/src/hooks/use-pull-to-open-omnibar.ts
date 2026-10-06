@@ -115,6 +115,20 @@ function go(value: MotionValue<number>, to: number, [stiffness, damping]: Spring
   });
 }
 
+/** R8: a mouse pull must not also drag a text selection across the page. Lifted when that pointer comes up. */
+function blockTextSelectionUntilRelease() {
+  window.getSelection()?.removeAllRanges();
+  const root = document.documentElement;
+  root.classList.add("mari-pull-no-select");
+  const release = () => {
+    root.classList.remove("mari-pull-no-select");
+    window.removeEventListener("pointerup", release, true);
+    window.removeEventListener("pointercancel", release, true);
+  };
+  window.addEventListener("pointerup", release, true);
+  window.addEventListener("pointercancel", release, true);
+}
+
 /** What the gesture reads from a pointer event: a React one from the bar, or a native one from the document. */
 type PullPointerEvent = Pick<
   PointerEvent,
@@ -668,6 +682,7 @@ export function usePullToOpenOmnibar({
           // The pointer is already gone (or synthetic); moves still bubble here.
         }
         swallowClickRef.current = true;
+        if (event.pointerType === "mouse") blockTextSelectionUntilRelease();
         onPullStart();
         lock(event.clientX);
       }

@@ -5,13 +5,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { PULL_ICON_SIZE, type PullDropVisuals } from "../../hooks/use-pull-to-open-omnibar";
 import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import type { MariEdgeGlow } from "../../lib/mari-presence-seen";
 import type { OmnibarTranslate } from "../../lib/omnibar-entity-rows";
 /**
  * The pull-to-open sheet, its circle and small bar. Decorative only: the gesture
  * lives on the top bar and the opened dialog takes focus. The hook paints every
- * frame straight into these elements through `visuals.els`.
+ * frame straight into these elements through `visuals.els`. `edgeGlow` is the top bar's
+ * own edge state (R8), so the rim shares its colour.
  */
-export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
+export function OmnibarPullDrop({ visuals, edgeGlow }: { visuals: PullDropVisuals; edgeGlow: MariEdgeGlow }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const appearance = useMariAppearancePack();
@@ -73,6 +75,7 @@ export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
       className="mari-pull-overlay"
       data-armed={armed ? "true" : "false"}
       data-context={about ? "true" : "false"}
+      data-mari-edge={edgeGlow ?? undefined}
     >
       <div ref={(el) => void (els.shadow = el)} className="mari-pull-shadow" />
       <div ref={(el) => void (els.glass = el)} className="mari-pull-glass" />
@@ -81,12 +84,12 @@ export function OmnibarPullDrop({ visuals }: { visuals: PullDropVisuals }) {
           <clipPath id={`${id}clip`}>
             <path ref={(el) => void (els.rimClip = el)} />
           </clipPath>
-          {/* The shimmer takes the app's accent, so it follows a theme change. */}
+          {/* The shimmer takes the app's accent (it follows a theme change), or the top bar's edge state colours. */}
           <linearGradient ref={(el) => void (els.rimGrad = el)} id={`${id}rim`} gradientUnits="userSpaceOnUse">
-            <stop offset="0" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.2" />
-            <stop offset="0.45" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.75" />
-            <stop offset="0.7" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.15" />
-            <stop offset="1" style={{ stopColor: "var(--marinara-app-accent-solid)" }} stopOpacity="0.45" />
+            <stop offset="0" style={{ stopColor: "var(--mari-pull-rim-color)" }} stopOpacity="0.2" />
+            <stop offset="0.45" style={{ stopColor: "var(--mari-pull-rim-mid)" }} stopOpacity="0.75" />
+            <stop offset="0.7" style={{ stopColor: "var(--mari-pull-rim-end)" }} stopOpacity="0.15" />
+            <stop offset="1" style={{ stopColor: "var(--mari-pull-rim-color)" }} stopOpacity="0.45" />
           </linearGradient>
           {/* The rim fades in below the bar, so the sheet leaves the bar without a seam. */}
           <linearGradient

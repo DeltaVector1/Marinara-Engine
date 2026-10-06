@@ -596,6 +596,17 @@ This is the part most likely to break silently. All of it must survive.
   runs off the side instead of narrowing, the circle follows the finger to the
   edge while staying whole on screen, and releasing near a side pops the
   dialog open from the circle's position instead of from half off-screen.
+- **Pull drop shares the edge state** (slice 62c, R8): while the top-bar edge
+  line glows (slice 52), the rim and its shimmer take the same state colour —
+  the working gradient with a slow waver, green when done, gold for an
+  approval, red for an error — from the same CSS variables (`--mari-edge*`);
+  `TopBar` passes its one `useMariEdgeGlow()` value to `OmnibarPullDrop`
+  (`data-mari-edge`). With no state glow the rim keeps the accent; the body
+  keeps the top-bar surface; reduced motion or reduced effects stop the waver.
+  A mouse drag that locks as a pull clears any text selection and sets
+  `html.mari-pull-no-select` (`user-select: none`) until that pointer comes up
+  or is cancelled, so the desktop drag cannot select page text
+  (`e2e/pull-drag-text-select.e2e.ts`).
 - **Mari looks down on the pull** (slice 45b, N7): on the Mari side the circle
   shows a head from the selected pack's `pull-heads.webp` (six 96 px frames,
   prefetched with the tier-2 portraits). While pulled she looks at the

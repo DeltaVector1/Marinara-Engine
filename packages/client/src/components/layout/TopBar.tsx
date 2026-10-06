@@ -597,7 +597,7 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
       />
       {header}
       {/* Phones pull with a finger, desktop drags with the mouse from empty bar space (M18). */}
-      <OmnibarPullDrop visuals={pull.visuals} />
+      <OmnibarPullDrop visuals={pull.visuals} edgeGlow={mariEdgeGlow} />
     </>
   );
 }

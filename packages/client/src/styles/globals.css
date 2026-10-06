@@ -902,8 +902,32 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 /* P2: while Mari works, or has a result you have not seen, the top bar's bottom edge carries a thin line in
    her state colour: a ~1.5px core with a short soft fade, fading out at both ends. Working wavers slowly; the
    other states hold still. Opening her pane clears it (P3). */
-.mari-topbar-edge-glow {
+/* R8: one state colour for the edge line and the pull drop's rim (the TopBar hands the same state to both). */
+.mari-topbar-edge-glow,
+.mari-pull-overlay[data-mari-edge] {
   --mari-edge: oklch(0.72 0.14 155);
+}
+
+.mari-topbar-edge-glow[data-state="working"],
+.mari-pull-overlay[data-mari-edge="working"] {
+  --mari-edge: var(--mari-logo-pink);
+  --mari-edge-mid: var(--mari-logo-orange);
+  --mari-edge-end: var(--mari-logo-cyan);
+}
+
+.mari-topbar-edge-glow[data-state="approval"],
+.mari-pull-overlay[data-mari-edge="approval"] {
+  --mari-edge: oklch(0.82 0.11 79);
+}
+
+/* An explicit red, not --destructive - that token is pink in dark mode, too close
+   to the working state's pink/orange gradient to read as a distinct failure. */
+.mari-topbar-edge-glow[data-state="error"],
+.mari-pull-overlay[data-mari-edge="error"] {
+  --mari-edge: oklch(0.58 0.2 25);
+}
+
+.mari-topbar-edge-glow {
   position: absolute;
   inset-inline: 0;
   /* Inside the bar's own paint area (over its 1px border), not below it - a line
@@ -918,38 +942,44 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 }
 
 .mari-topbar-edge-glow[data-state="working"] {
-  --mari-edge: var(--mari-logo-pink);
-  background: linear-gradient(
-      90deg,
-      var(--mari-logo-pink),
-      var(--mari-logo-orange),
-      var(--mari-logo-cyan),
-      var(--mari-logo-pink)
-    )
+  background: linear-gradient(90deg, var(--mari-edge), var(--mari-edge-mid), var(--mari-edge-end), var(--mari-edge))
     0 0 / 200% 100%;
   animation: mari-edge-waver 6s ease-in-out infinite alternate;
 }
 
 .mari-topbar-edge-glow[data-state="approval"] {
-  --mari-edge: oklch(0.82 0.11 79);
   opacity: 0.6;
 }
 
 .mari-topbar-edge-glow[data-state="error"] {
-  /* An explicit red, not --destructive - that token is pink in dark mode, too close
-     to the working state's pink/orange gradient to read as a distinct failure. */
-  --mari-edge: oklch(0.58 0.2 25);
   opacity: 0.55;
 }
 
+/* While she works the pull drop's rim wavers with the edge line. */
+.mari-pull-overlay[data-mari-edge="working"] .mari-pull-rim-hair {
+  animation: mari-pull-rim-waver 6s ease-in-out infinite alternate;
+}
+
 html[data-marinara-reduced-effects="true"] .mari-topbar-edge-glow,
-html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow {
+html[data-marinara-effects-paused="true"] .mari-topbar-edge-glow,
+html[data-marinara-reduced-effects="true"] .mari-pull-overlay[data-mari-edge] .mari-pull-rim-hair,
+html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .mari-pull-rim-hair {
   animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mari-topbar-edge-glow {
+  .mari-topbar-edge-glow,
+  .mari-pull-overlay[data-mari-edge] .mari-pull-rim-hair {
     animation: none;
+  }
+}
+
+@keyframes mari-pull-rim-waver {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -9212,6 +9242,9 @@ strong {
 }
 
 .mari-pull-overlay {
+  --mari-pull-rim-color: var(--marinara-app-accent-solid);
+  --mari-pull-rim-mid: var(--mari-pull-rim-color);
+  --mari-pull-rim-end: var(--mari-pull-rim-color);
   --mari-pull-edge: color-mix(in srgb, var(--foreground) 12%, transparent);
   --mari-pull-ring: color-mix(in srgb, var(--foreground) 22%, transparent);
   --mari-pull-shadow: rgb(0 0 0 / 0.4);
@@ -9222,8 +9255,21 @@ strong {
   pointer-events: none;
 }
 
+.mari-pull-overlay[data-mari-edge] {
+  --mari-pull-rim-color: var(--mari-edge);
+  --mari-pull-rim-mid: var(--mari-edge-mid, var(--mari-edge));
+  --mari-pull-rim-end: var(--mari-edge-end, var(--mari-edge));
+}
+
 [data-theme="light"] .mari-pull-overlay {
   --mari-pull-shadow: rgb(40 20 80 / 0.16);
+}
+
+/* R8: no text selection while a mouse pulls the bar (set and lifted by the pull hook). */
+html.mari-pull-no-select,
+html.mari-pull-no-select * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 
 .mari-pull-overlay > * {
