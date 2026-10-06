@@ -2426,8 +2426,10 @@ const LocalChatArea = memo(function LocalChatArea({
       }
       const ui = useUIStore.getState();
       if (link.resource === "connection") ui.openConnectionDetail(link.id);
-      else if (link.resource === "lorebook") ui.openLorebookDetail(link.id);
-      else ui.openCharacterDetail(link.id);
+      // F7: land on the exact setting the finding names, not the editor's default tab.
+      else if (link.resource === "lorebook")
+        ui.openLorebookDetail(link.id, { initialTab: "overview", field: "token-budget" });
+      else ui.openCharacterDetail(link.id, { initialTab: "card" });
     },
     [handleOpenSettingsPanel],
   );
