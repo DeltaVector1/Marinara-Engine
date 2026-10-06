@@ -57,7 +57,7 @@ pnpm 是 Marinara 用来安装自身代码的包管理器。如果看到 `EPERM:
 2. 自己安装 pnpm。运行下面这条命令，再重新运行启动脚本：
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. 在管理员终端里更新 corepack，然后重新运行启动脚本：
@@ -73,7 +73,7 @@ Marinara v2.3.0 能通过 Corepack 正常启动 pnpm，却会在构建 shared �
 如果仓库本身没法更新，在 Marinara 文件夹里运行 `git pull` 再启动。在 v2.3.0 上还可以临时这样绕过：全局安装指定版本的包管理器，重新运行启动脚本，然后照常更新：
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### 将启动器更新至 pnpm 10.34.5

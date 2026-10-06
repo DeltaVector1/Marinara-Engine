@@ -57,7 +57,7 @@ Wybierz jedno z rozwiązań:
 2. Zainstaluj pnpm samodzielnie. Wykonaj to polecenie, a potem uruchom program uruchamiający ponownie:
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. Zaktualizuj corepack w terminalu administratora, a potem uruchom program uruchamiający ponownie:
@@ -73,7 +73,7 @@ Marinara v2.3.0 potrafiła uruchomić pnpm przez Corepack, a mimo to przerywała
 Jeśli sama kopia repozytorium nie potrafi się zaktualizować, wykonaj `git pull` w folderze aplikacji Marinara Engine i uruchom ją ponownie. Jako tymczasowe obejście w wersji v2.3.0 zainstaluj globalnie przypiętą wersję menedżera pakietów, uruchom program uruchamiający ponownie, a potem zaktualizuj aplikację w zwykły sposób:
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### Aktualizacja programu uruchamiającego do pnpm 10.34.5

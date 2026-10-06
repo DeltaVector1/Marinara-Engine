@@ -57,7 +57,7 @@ pnpm은 Marinara가 코드를 설치할 때 쓰는 패키지 관리자입니다.
 2. pnpm을 직접 설치하세요. 다음 명령을 실행한 뒤 런처를 다시 실행하세요.
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. 관리자 권한 터미널에서 corepack을 업데이트한 다음 런처를 다시 실행하세요.
@@ -73,7 +73,7 @@ Marinara v2.3.0은 Corepack으로 pnpm을 실행하는 데까지는 성공했지
 체크아웃 자체가 업데이트되지 않으면 Marinara 폴더에서 `git pull`을 실행한 다음 다시 시작하세요. v2.3.0을 그대로 쓴다면 임시 방편으로 고정된 버전의 패키지 관리자를 전역 설치하고, 런처를 다시 실행한 뒤 평소대로 업데이트하세요.
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### 런처를 pnpm 10.34.5로 업데이트하기

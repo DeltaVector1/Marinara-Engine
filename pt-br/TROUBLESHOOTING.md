@@ -57,7 +57,7 @@ Escolha uma das soluções:
 2. Instale o pnpm por conta própria. Rode este comando e depois rode o inicializador de novo:
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. Atualize o corepack em um terminal de administrador e rode o inicializador de novo:
@@ -73,7 +73,7 @@ Na versão 2.3.0, Marinara conseguia iniciar o pnpm pelo Corepack e depois falha
 Se o próprio checkout não conseguir atualizar, rode `git pull` na pasta do Marinara e inicie de novo. Como solução temporária na versão 2.3.0, instale globalmente a versão fixada do gerenciador de pacotes, rode o inicializador outra vez e depois atualize normalmente:
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### Atualização do inicializador para o pnpm 10.34.5

@@ -57,7 +57,7 @@ Elige una solución:
 2. Instala pnpm tú mismo. Ejecuta este comando y luego vuelve a ejecutar el lanzador:
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. Actualiza corepack en una terminal de administrador y luego vuelve a ejecutar el lanzador:
@@ -73,7 +73,7 @@ Marinara v2.3.0 podía iniciar pnpm mediante Corepack correctamente y luego fall
 Si el propio checkout no puede actualizarse, ejecuta `git pull` en la carpeta de Marinara e inícialo de nuevo. Como solución temporal para v2.3.0, instala el gestor de paquetes fijado de forma global, vuelve a ejecutar el lanzador y luego actualiza normalmente:
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### Actualización del lanzador a pnpm 10.34.5

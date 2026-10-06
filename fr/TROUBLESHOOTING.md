@@ -57,7 +57,7 @@ Choisis l'une de ces solutions :
 2. Installe pnpm toi-même. Lance cette commande, puis relance le lanceur :
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. Mets corepack à jour dans un terminal administrateur, puis relance le lanceur :
@@ -73,7 +73,7 @@ Marinara v2.3.0 arrivait à démarrer pnpm via Corepack, puis échouait pendant 
 Si le dépôt lui-même n'arrive pas à se mettre à jour, lance `git pull` dans le dossier Marinara puis redémarre. Contournement temporaire en v2.3.0 : installe globalement la version épinglée du gestionnaire de paquets, relance le lanceur, puis mets à jour normalement :
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### Mise à jour du lanceur vers pnpm 10.34.5

@@ -57,7 +57,7 @@ Wähl eine der drei Lösungen:
 2. pnpm selbst installieren. Führ diesen Befehl aus und starte danach den Launcher erneut:
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. Corepack in einem Administrator-Terminal aktualisieren und den Launcher erneut starten:
@@ -73,7 +73,7 @@ Marinara v2.3.0 konnte pnpm zwar über Corepack starten, scheiterte dann aber be
 Lässt sich die lokale Kopie selbst nicht aktualisieren, führ `git pull` im Marinara-Ordner aus und starte erneut. Als vorübergehende Notlösung für v2.3.0 installierst du den festgelegten Paketmanager global, startest den Launcher erneut und aktualisierst anschließend ganz normal:
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### Launcher-Update auf pnpm 10.34.5
