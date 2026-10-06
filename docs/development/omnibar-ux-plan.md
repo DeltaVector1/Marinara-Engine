@@ -102,7 +102,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 61  | Reply checkup, no model (R2)                                    | designer         | Done                 | 5267f2fdd |
 | 62  | Mari reads the checkup: chat.diagnose (R3)                      | designer         | Done                 | 25fe9dea7 |
 | 62a | Fix the "Mari needs your answer" / "working" row navigation (R9) | worker           | Done                 | 8bfa1f99a, e6067407e |
-| 62b | One Mari thread per context (R7)                                | designer         | Pending              |           |
+| 62b | One Mari thread per context (R7)                                | designer         | Done                 | dcd18dd78 |
 | 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Pending              |           |
 | 62d | Mari cards v5 (R10)                                             | designer         | Pending              |           |
 | 62e | Mari composer v5 (R11)                                          | designer         | Pending              |           |
