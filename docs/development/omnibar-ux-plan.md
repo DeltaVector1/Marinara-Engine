@@ -101,7 +101,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 60  | Record what was cut, server-side (R1)                           | worker           | Done                 | 122ec6d2e |
 | 61  | Reply checkup, no model (R2)                                    | designer         | Done                 | 5267f2fdd |
 | 62  | Mari reads the checkup: chat.diagnose (R3)                      | designer         | Done                 | 25fe9dea7 |
-| 62a | Fix the "Mari needs your answer" / "working" row navigation (R9) | worker           | Pending              |           |
+| 62a | Fix the "Mari needs your answer" / "working" row navigation (R9) | worker           | Done                 | 8bfa1f99a, e6067407e |
 | 62b | One Mari thread per context (R7)                                | designer         | Pending              |           |
 | 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Pending              |           |
 | 63  | Connection doctor (R4)                                          | worker           | Pending              |           |
