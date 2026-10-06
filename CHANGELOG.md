@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari's cards have one calm look. Every card is now a row with a picture or icon, a name, one useful fact and one thing at the end, and rows that belong together share one rounded group instead of a stack of boxes. The fact says something about that item (a character's first line, a lorebook's entry count, which key fires an entry, whether an agent is on) instead of repeating what kind of thing it is. The end of a row says what a tap does: › opens it, a gold ✦ asks Mari, Undo and Keep sit right in the row. After a run, what needs your OK is listed first, then what changed; each change is closed to one line until you open it, and the same record no longer shows twice. A kept or undone change stays in place with "✓ Kept" or "✓ Undone". Next steps, the cards Mari shows when she arrives, the reply checkup under a cut-off reply and her Chats list use the same rows, and on a phone the groups use the full width.
 - Fixed dragging the top bar down with a mouse on desktop also selecting text across the page. Text selection is paused only for that drag, so buttons in the bar and selecting text in a chat work as before.
 - The pull-down sheet's rim now takes Professor Mari's state colour from the top-bar edge line while it shows (her working colours with a slow waver, green when she is done, gold when she needs your OK, red after an error), and keeps your accent colour otherwise.
 

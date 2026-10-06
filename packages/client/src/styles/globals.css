@@ -1367,6 +1367,7 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
 .mari-row__links {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   gap: 0.25rem 1rem;
 }
 
@@ -1384,7 +1385,11 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   color: var(--foreground);
 }
 
-/* Raw opens below the links line, across it. */
+/* Raw is one more quiet link in the line (no chevron); open, it spans the line below. */
+.mari-row__links > .mari-tech > summary > svg {
+  display: none;
+}
+
 .mari-row__links > .mari-tech[open] {
   flex-basis: 100%;
 }
@@ -1997,14 +2002,7 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
 }
 
 /* A batch of several records: its links and Undo/Keep close the group on one line. */
-.mari-edit__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  min-height: 2.75rem;
-}
-
-.mari-edit__footer > .mari-row__links {
+.mari-edit__footer .mari-row__links {
   flex: 1;
 }
 

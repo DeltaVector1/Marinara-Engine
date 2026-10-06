@@ -243,7 +243,7 @@ export function MariEditEasyViewer({
         return (
           <div
             key={`${index}:${change.table}:${change.id}`}
-            className="mari-list__item mari-edit__row"
+            className="mari-list__item mari-review-row"
             data-open={open}
             data-state={running && single ? "busy" : undefined}
           >
