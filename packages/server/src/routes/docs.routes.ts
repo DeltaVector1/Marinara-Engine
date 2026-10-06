@@ -629,7 +629,12 @@ export async function docsRoutes(app: FastifyInstance) {
         if (matches > 0) results.push({ ...doc, matches, snippets });
       }
 
-      results.sort((a, b) => b.matches - a.matches || a.path.localeCompare(b.path));
+      // F8: a precise title hit ("Lorebooks Overview" for "lorebooks work") should outrank a long doc
+      // that merely mentions the words more times by accident.
+      const titleHit = (doc: DocSearchResult) => needles.some((needle) => doc.title.toLowerCase().includes(needle));
+      results.sort(
+        (a, b) => Number(titleHit(b)) - Number(titleHit(a)) || b.matches - a.matches || a.path.localeCompare(b.path),
+      );
       return { query, language, results };
     } catch (err) {
       logger.error(err, "Failed to search documentation files");

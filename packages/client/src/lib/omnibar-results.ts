@@ -599,7 +599,9 @@ export function buildOmnibarSearchResults({
           const searchText = getFaqSearchText(item, localize);
           if (!matchesAtWordStart(searchText, normalizedQuery)) return [];
           const question = `${item.question} ${localize(item.question)}`.toLowerCase();
-          const score = matchesAtWordStart(question, normalizedQuery) ? 230 : 130;
+          // F8: a FAQ that only matches in its answer text is a weaker signal than any docs row that
+          // matched by its own title (score 200) — it should not preselect over a real docs title hit.
+          const score = matchesAtWordStart(question, normalizedQuery) ? 230 : 90;
           return [
             {
               id: `faq:${item.id}`,
