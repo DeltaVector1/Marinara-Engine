@@ -73,7 +73,7 @@ Les tags aident à regrouper et à retrouver tes imports. Seules les images port
 1. Clique sur l'icône de tag (**Edit tags**, modifier les tags) sur la ligne de l'image.
 2. Saisis un tag dans le champ **Add tag...**. Au fil de la frappe, Marinara propose les tags déjà utilisés.
 3. Appuie sur Enter ou clique sur **Add** (ajouter).
-4. Pour retirer un tag, clique sur la petite croix de sa pastille.
+4. Pour retirer un tag, clique dessus. Pendant la modification des tags, chaque tag s'affiche sous forme de bouton avec une croix.
 
 <a id="download-a-background"></a>
 
@@ -90,10 +90,12 @@ Seules les images portant l'étiquette **Library** peuvent être supprimées. Su
 L'arrière-plan Roleplay par défaut est l'image avec laquelle démarre chaque nouveau chat Roleplay, avant qu'il ne choisisse la sienne. Une fois défini, tous les nouveaux chats Roleplay l'utilisent.
 
 1. Dans la section **Backgrounds**, repère l'image voulue dans la grille.
-2. Clique sur l'icône d'étoile (**Set as default for new Roleplay chats**, définir par défaut pour les nouveaux chats Roleplay) sur la ligne de cette image.
-3. L'étoile se remplit de couleur sans changer de place. Les nouveaux chats Roleplay démarrent désormais avec cette image.
+2. Clique sur l'icône d'épingle (**Set as default for new Roleplay chats**, définir par défaut pour les nouveaux chats Roleplay) sur la ligne de cette image.
+3. Le bouton d'épingle reste mis en évidence, et une étiquette **Default** (par défaut) apparaît sur la miniature. Les nouveaux chats Roleplay démarrent désormais avec cette image.
 
-Pour revenir en arrière, clique sur l'étoile de l'image par défaut actuelle. Autre option : le lien **Reset Roleplay default** (réinitialiser l'arrière-plan Roleplay par défaut), en haut de la grille. Ce lien n'apparaît que si ton arrière-plan par défaut diffère de celui d'origine intégré.
+L'étoile dans le coin supérieur gauche de l'image l'ajoute à tes favoris. Elle ne change pas l'arrière-plan par défaut.
+
+Pour revenir en arrière, clique sur l'épingle de l'image par défaut actuelle. Autre option : le bouton **Reset Roleplay default** (réinitialiser l'arrière-plan Roleplay par défaut), en haut de la grille. Ce bouton n'apparaît que si ton arrière-plan par défaut diffère de celui d'origine intégré.
 
 ## Background Blur
 

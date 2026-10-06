@@ -35,7 +35,7 @@ Para las preguntas de activación y las declaraciones de prompts/lorebooks, el m
 - Las macros de la declaración se completan primero, así que `{{char}}` llega como el nombre del personaje.
 - Cuando los mensajes no caben en el presupuesto del modelo, se descartan primero los más antiguos. Consulta [Configurar una conexión Decision](#set-up-a-decision-connection) para el presupuesto alojado.
 
-**Advanced Memory usa su propia conexión por chat.** Las comprobaciones de escena leen la ventana pertinente del historial. La recuperación envía conversación reciente y resúmenes archivados o mensajes originales accesibles tras comprobar el acceso de los personajes; no usa la regla fija de las últimas 5 intervenciones. Los proveedores alojados reciben esos textos, a veces en varios lotes limitados. Tras un total de 10 segundos, la recuperación previa a la respuesta usa su alternativa habitual. Consulta [Modelo de decisión opcional](../agents/memory.md#optional-decision-model).
+**Advanced Memory usa su propia conexión por chat.** Las comprobaciones de escena leen la ventana pertinente del historial. La recuperación envía conversación reciente y hasta 24 resúmenes archivados preseleccionados, o más si **Maximum recalled scenes** (máximo de escenas recuperadas) es mayor, y luego mensajes originales de las escenas que eligió el modelo, tras comprobar el acceso de los personajes; no usa la regla fija de las últimas 5 intervenciones. Los proveedores alojados reciben esos textos, a veces en varios lotes limitados. Cada pasada de recuperación recurre a la recuperación habitual tras 10 segundos. Consulta [Modelo de decisión opcional](../agents/memory.md#optional-decision-model).
 
 ## Elegir un modelo de decisión
 

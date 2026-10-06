@@ -35,7 +35,7 @@ Pour les questions d'activation et les énoncés des prompts/lorebooks, le modè
 - Les macros de l'énoncé sont d'abord résolues : `{{char}}` arrive donc sous forme du nom du personnage.
 - Si les messages dépassent le budget du modèle, les plus anciens sont supprimés en premier. Consulte [Configurer une connexion Decision](#set-up-a-decision-connection) pour le budget hébergé.
 
-**Advanced Memory utilise sa propre connexion par discussion.** Les vérifications de scène lisent la fenêtre concernée de l'historique. Le rappel envoie la conversation récente et les résumés archivés ou messages originaux accessibles après vérification de l'accès des personnages ; la règle fixe des 5 derniers messages ne s'applique pas. Les services hébergés reçoivent ces textes, parfois en plusieurs lots limités. Après 10 secondes au total, le rappel avant réponse utilise sa solution de repli. Consulte [Modèle de décision facultatif](../agents/memory.md#optional-decision-model).
+**Advanced Memory utilise sa propre connexion par discussion.** Les vérifications de scène lisent la fenêtre concernée de l'historique. Le rappel envoie la conversation récente et jusqu'à 24 résumés archivés présélectionnés, ou davantage si le réglage **Maximum recalled scenes** (maximum de scènes rappelées) est plus élevé, puis les messages originaux des scènes choisies par le modèle, après vérification de l'accès des personnages ; la règle fixe des 5 derniers messages ne s'applique pas. Les services hébergés reçoivent ces textes, parfois en plusieurs lots limités. Chaque passe de rappel revient au rappel habituel après 10 secondes. Consulte [Modèle de décision facultatif](../agents/memory.md#optional-decision-model).
 
 ## Choisir un modèle de décision
 

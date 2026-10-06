@@ -33,11 +33,26 @@ Se o Vite termina com `Reached heap limit` ou `JavaScript heap out of memory`, f
 
 Feche outros aplicativos antes de tentar de novo. Celulares com menos de cerca de 3 GB de RAM ainda podem ficar sem memória ou ter o processo encerrado pelo Android; guarde toda a saída do inicializador para relatar o caso. Não exclua chats nem o perfil para corrigir uma falha de compilação.
 
-### Termux: arquivo do cliente convidado multijogador ausente ou Sharp incompatível
+### Termux: arquivo do cliente convidado multijogador ausente
 
 Se a inicialização ainda informar que falta `packages/client/dist/multiplayer/guest.js` depois de recompilar, atualize o Engine e execute `./start-termux.sh` novamente. O inicializador agora executa a compilação completa do cliente com pouca memória, incluindo os arquivos do convidado verificados na inicialização. Não é preciso ativar o modo multijogador para corrigir esse erro de compilação.
 
-Se o processamento de imagens informar que o Sharp não pode ser carregado no Android, atualize o Engine e deixe o inicializador reinstalar as dependências. A alternativa correspondente `@img/sharp-wasm32` faz parte das dependências regulares, então instalações com versões fixadas e atualizações a mantêm. Evite substituí-la por uma versão incompatível do Sharp. Guarde a saída completa do erro se o problema persistir.
+### Termux: o servidor para quando você abre o Engine, ou o Sharp não carrega
+
+O Sharp é a biblioteca de imagens que o Engine usa para miniaturas e sprites. No Android, ele roda por meio de uma alternativa em WebAssembly. Uma atualização feita sobre a instalação existente a partir da 2.4.6 podia deixar parte dessa alternativa sem instalar, e então o servidor parava na primeira vez que um navegador abria o Engine.
+
+Atualize o Engine e deixe o inicializador reinstalar as dependências. A atualização instala a parte que faltava, e o Engine a mantém nas atualizações seguintes. Se o servidor continuar parando quando você abre o Engine, antes que consiga atualizar, repare a instalação manualmente no Termux:
+
+```bash
+cd ~/Marinara-Engine
+rm -f node_modules/.modules.yaml
+SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm --config.trustPolicy=off --config.confirmModulesPurge=false install --frozen-lockfile --prefer-offline
+./start-termux.sh
+```
+
+Isso limpa o registro de instalação desatualizado do pnpm e reinstala as dependências. Os seus chats e configurações não são alterados.
+
+Se o Sharp ainda não carregar, o Engine agora continua rodando com o processamento de imagens desligado: as miniaturas já criadas continuam aparecendo, as novas mostram a imagem em tamanho original no lugar delas, e a geração de sprites e a remoção de plano de fundo integrada ficam indisponíveis. Não substitua o Sharp por uma versão incompatível. Guarde a saída completa do erro quando relatar o problema.
 
 ### Página em branco ou JavaScript servido como HTML depois de atualizar
 

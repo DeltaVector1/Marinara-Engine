@@ -105,7 +105,7 @@ Le **Tracker Panel** est un panneau latéral plus grand, qui affiche les mêmes 
 
 Pour l'activer dans un chat Roleplay, ouvre **Chat Settings** et clique sur **Tracker Panel** (le dé) dans la barre de titre, près de l'épinglage et du verrouillage. Il reste mis en évidence quand le panneau est actif, et le panneau apparaît à côté du chat. Clique à nouveau pour le désactiver et le masquer. Sur ordinateur, les trackers passent alors dans la fenêtre Trackers.
 
-Sur téléphone, l'activer ajoute au chat un bouton Tracker Panel que tu peux déplacer librement. Appuie dessus pour ouvrir le panneau ; le fermer ramène le bouton. Quand le panneau est désactivé, utilise les boutons séparés **World State** et **Player & Tracker**.
+Sur téléphone ou tablette, l'activer ajoute au chat un bouton Tracker Panel que tu peux déplacer librement. Appuie dessus pour ouvrir le panneau, puis appuie de nouveau dessus pour le fermer. Tant que le panneau ou un autre écran recouvre le chat, les boutons déplaçables du chat sont masqués ; ils réapparaissent aux mêmes endroits quand tu reviens au chat. Quand le panneau est désactivé, utilise les boutons séparés **World State** et **Player & Tracker**.
 
 Les contrôles de l'en-tête du panneau permettent aussi de personnaliser la structure des trackers :
 
@@ -125,7 +125,7 @@ Voici les réglages disponibles :
 - **Desktop size** : choisis la largeur du panneau. Les options sont **Compact**, **Standard** et **Expanded**.
 - **Thought display mode** : choisis la façon dont les pensées d'un personnage s'affichent. **Docked** les ouvre dans la carte du personnage. **Floating** les ouvre en bulle, à côté du portrait.
 - **Always show Docked thoughts** : quand **Thought display mode** vaut **Docked**, la pensée de chaque personnage mis en avant reste visible, au lieu d'être cachée derrière un bouton.
-- **Temperature unit** : bascule l'affichage des températures entre **Celsius** et **Fahrenheit**. Celsius est la valeur par défaut. Cela ne change que l'affichage, pas la valeur enregistrée dans l'état du monde.
+- **Temperature unit** : choisis **°C** (Celsius) ou **°F** (Fahrenheit) pour l'affichage des températures. La valeur par défaut est °C. Cela ne change que l'affichage, pas la valeur enregistrée dans l'état du monde.
 
 ## Quels agents alimentent le HUD
 

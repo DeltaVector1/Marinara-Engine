@@ -73,7 +73,7 @@ Tagi ułatwiają grupowanie i wyszukiwanie wgranych obrazów. Otagować można t
 1. Kliknij ikonę tagu (**Edit tags**, edycja tagów) w wierszu obrazu.
 2. Wpisz tag w polu **Add tag...**. W trakcie pisania Marinara podpowiada wcześniej używane tagi.
 3. Naciśnij Enter albo kliknij przycisk **Add**.
-4. Aby usunąć tag, kliknij mały X na jego kafelku.
+4. Aby usunąć tag, kliknij go. Gdy edycja tagów jest otwarta, każdy tag wyświetla się jako przycisk ze znakiem X.
 
 <a id="download-a-background"></a>
 
@@ -90,10 +90,12 @@ Usunąć można tylko obrazy z etykietą **Library**. Najedź na wiersz obrazu, 
 Domyślne tło trybu Roleplay to obraz, od którego zaczyna każdy nowy czat w trybie Roleplay, zanim wybierze własne. Wystarczy ustawić je raz, a korzystają z niego wszystkie nowe czaty w trybie Roleplay.
 
 1. Znajdź w siatce w sekcji **Backgrounds** obraz, który ci odpowiada.
-2. Kliknij ikonę gwiazdki (**Set as default for new Roleplay chats**, ustawienie jako domyślne dla nowych czatów w trybie Roleplay) w wierszu tego obrazu.
-3. Gwiazdka wypełnia się kolorem i nie zmienia położenia. Nowe czaty w trybie Roleplay startują od tego obrazu.
+2. Kliknij ikonę pinezki (**Set as default for new Roleplay chats**, ustawienie jako domyślne dla nowych czatów w trybie Roleplay) w wierszu tego obrazu.
+3. Przycisk z pinezką pozostaje podświetlony, a na miniaturze pojawia się etykieta **Default** (domyślne). Nowe czaty w trybie Roleplay startują od tego obrazu.
 
-Aby to cofnąć, kliknij gwiazdkę na bieżącym obrazie domyślnym. Inna opcja: kliknij odnośnik **Reset Roleplay default** (przywrócenie domyślnego tła trybu Roleplay) u góry siatki. Ten odnośnik pojawia się tylko wtedy, gdy tło domyślne różni się od wbudowanego.
+Gwiazdka w lewym górnym rogu obrazu dodaje go do ulubionych. Nie zmienia tła domyślnego.
+
+Aby to cofnąć, kliknij pinezkę na bieżącym obrazie domyślnym. Inna opcja: kliknij przycisk **Reset Roleplay default** (przywrócenie domyślnego tła trybu Roleplay) u góry siatki. Ten przycisk pojawia się tylko wtedy, gdy tło domyślne różni się od wbudowanego.
 
 ## Background Blur
 

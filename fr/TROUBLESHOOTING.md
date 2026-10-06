@@ -33,11 +33,26 @@ Si Vite s'arrête avec `Reached heap limit` ou `JavaScript heap out of memory`, 
 
 Ferme les autres applications avant de réessayer. Sur un téléphone avec moins de 3 Go de RAM environ, la compilation peut encore manquer de mémoire ou être arrêtée par Android ; conserve toute la sortie du lanceur pour le signaler. Ne supprime ni chats ni profil pour réparer une compilation.
 
-### Termux : fichier du client invité multijoueur manquant ou Sharp incompatible
+### Termux : fichier du client invité multijoueur manquant
 
 Si le démarrage signale toujours l'absence de `packages/client/dist/multiplayer/guest.js` après une recompilation, mets Engine à jour et relance `./start-termux.sh`. Le lanceur effectue maintenant la compilation complète du client à faible consommation de mémoire, y compris les fichiers du client invité vérifiés au démarrage. Il n'est pas nécessaire d'activer le multijoueur pour corriger cette erreur de compilation.
 
-Si le traitement des images indique que Sharp ne peut pas se charger sur Android, mets Engine à jour et laisse le lanceur réinstaller les dépendances. La solution de repli correspondante `@img/sharp-wasm32` est une dépendance ordinaire, conservée lors des installations à versions figées et des mises à jour. Ne la remplace pas par une version de Sharp sans rapport. Conserve toute la sortie d'erreur si le problème persiste.
+### Termux : le serveur s'arrête quand tu ouvres Engine, ou Sharp ne peut pas se charger
+
+Sharp est la bibliothèque d'images qu'Engine utilise pour les miniatures et les sprites – un sprite, c'est l'image du personnage sur le plateau. Sur Android, elle passe par une solution de repli WebAssembly. Une mise à jour sur place depuis la version 2.4.6 pouvait laisser une partie de cette solution de repli non installée, et le serveur s'arrêtait alors la première fois qu'un navigateur ouvrait Engine.
+
+Mets Engine à jour et laisse le lanceur réinstaller les dépendances. La mise à jour installe la partie manquante, et Engine la conserve lors des mises à jour suivantes. Si le serveur continue de s'arrêter quand tu ouvres Engine, avant même que tu puisses faire la mise à jour, répare l'installation à la main dans Termux :
+
+```bash
+cd ~/Marinara-Engine
+rm -f node_modules/.modules.yaml
+SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm --config.trustPolicy=off --config.confirmModulesPurge=false install --frozen-lockfile --prefer-offline
+./start-termux.sh
+```
+
+Cela efface l'état d'installation obsolète que pnpm a enregistré, puis réinstalle les dépendances. Tes chats et tes réglages restent intacts.
+
+Si Sharp ne peut toujours pas se charger, Engine continue désormais de fonctionner avec le traitement des images désactivé : les miniatures déjà créées s'affichent toujours, l'image en taille réelle remplace les nouvelles, et la génération de sprites comme la suppression d'arrière-plan intégrée sont indisponibles. Ne remplace pas Sharp par une version sans rapport. Conserve toute la sortie d'erreur quand tu signales le problème.
 
 ### Page blanche ou JavaScript renvoyé en HTML après une mise à jour
 
@@ -360,13 +375,13 @@ Si ça s'arrête encore, ferme les autres applications Android, rouvre Termux et
 
 ### Termux se ferme ou redémarre pendant l'exécution de Marinara
 
-Le lanceur demande un `wake lock` Android, qui empêche la mise en veille pendant l'exécution du serveur, et enregistre chaque session dans `~/.marinara-engine/logs/`. Après un redémarrage inattendu, joins au rapport le fichier `server-*.log` le plus récent. S'il se termine sans erreur Marinara ou Node, Android ou le fabricant du téléphone a très probablement arrêté Termux en dehors du processus serveur.
+Le lanceur demande un wake lock Android, qui empêche la mise en veille pendant l'exécution du serveur, et enregistre chaque session dans `~/.marinara-engine/logs/`. Après un redémarrage inattendu, joins au rapport le fichier `server-*.log` le plus récent. S'il se termine sans erreur Marinara ou Node, Android ou le fabricant du téléphone a très probablement arrêté Termux en dehors du processus serveur.
 
 Autorise Termux à s'exécuter en arrière-plan et désactive son optimisation de la batterie dans les réglages Android. Les commandes `termux-wake-lock` et `termux-wake-unlock` sont fournies avec toute installation Termux standard (le paquet de base `termux-tools`) : aucune extension n'est nécessaire. Ces réglages ne peuvent pas empêcher tous les arrêts propres aux fabricants, mais ils éliminent la cause courante de suspension en veille, tandis que le journal persistant conserve les indices des échecs de l'application.
 
 ### Marinara ne répond plus tant que Termux n'est pas remis au premier plan
 
-Si les chats restent bloqués sur "Opening chat..." et que l'application signale ensuite **Server unreachable**, que le texte copié par Support Diagnostics affiche **Unreachable (request timed out)** pour les champs du serveur, et que tout repart à l'instant où tu ouvres Termux, c'est que le processus hôte est **gelé**, pas planté. Le mécanisme Android de gel des applications mises en cache (et ses équivalents chez les fabricants, particulièrement agressifs sur certains téléphones) suspend l'ensemble du processus Termux : le téléphone accepte toujours la connexion, mais le serveur gelé n'y répond jamais. Un `wake lock` seul n'exempte pas un processus de ce gel, et le journal de session montre un trou dans les horodatages pendant la période de gel, plutôt qu'une erreur.
+Si les chats restent bloqués sur "Opening chat..." et que l'application signale ensuite **Server unreachable**, que le texte copié par Support Diagnostics affiche **Unreachable (request timed out)** pour les champs du serveur, et que tout repart à l'instant où tu ouvres Termux, c'est que le processus hôte est **gelé**, pas planté. Le mécanisme Android de gel des applications mises en cache (et ses équivalents chez les fabricants, particulièrement agressifs sur certains téléphones) suspend l'ensemble du processus Termux : le téléphone accepte toujours la connexion, mais le serveur gelé n'y répond jamais. Un wake lock seul n'exempte pas un processus de ce gel, et le journal de session montre un trou dans les horodatages pendant la période de gel, plutôt qu'une erreur.
 
 Pour limiter le problème : exclus Termux de l'optimisation de la batterie et autorise son activité en arrière-plan dans les réglages Android, verrouille Termux dans l'écran des applications récentes si ton téléphone le permet, et garde la notification Termux visible. Si les gels persistent, la solution de contournement fiable consiste à garder Termux au premier plan (ou l'écran allumé) pendant que tu utilises activement Marinara.
 

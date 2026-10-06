@@ -105,7 +105,7 @@ Das **Tracker Panel** ist ein größeres Panel an der Seite und zeigt dieselben 
 
 Um das Panel im Roleplay-Chat einzuschalten, öffne **Chat Settings** und klick auf **Tracker Panel** (den Würfel) in der Titelleiste neben Anheften und Sperren. Die Schaltfläche bleibt hervorgehoben, solange das Panel an ist; das Panel erscheint neben dem Chat. Ein weiterer Klick schaltet es aus und blendet es aus. Am Computer erscheinen die Tracker dann im Trackers-Fenster.
 
-Am Telefon fügt das Einschalten eine Tracker-Panel-Schaltfläche zum Chat hinzu, die du frei verschieben kannst. Tippe darauf, um das Panel zu öffnen; beim Schließen kommt die Schaltfläche zurück. Ist das Panel aus, nutze die separaten Schaltflächen **World State** und **Player & Tracker**.
+Am Telefon oder Tablet fügt das Einschalten eine Tracker-Panel-Schaltfläche zum Chat hinzu, die du frei verschieben kannst. Tippe darauf, um das Panel zu öffnen, und tippe erneut darauf, um es zu schließen. Solange das Panel oder ein anderer Bildschirm den Chat verdeckt, sind die verschiebbaren Schaltflächen des Chats ausgeblendet; kehrst du zum Chat zurück, erscheinen sie wieder an denselben Stellen. Ist das Panel aus, nutze die separaten Schaltflächen **World State** und **Player & Tracker**.
 
 Über die Bedienelemente in der Panel-Kopfzeile passt du außerdem den Aufbau der Tracker an:
 
@@ -125,7 +125,7 @@ Diese Einstellungen steuern das Panel:
 - **Desktop size**: legt die Breite des Panels fest. Zur Wahl stehen **Compact**, **Standard** und **Expanded**.
 - **Thought display mode**: legt fest, wie die Gedanken eines Charakters erscheinen. **Docked** öffnet sie in der Charakterkarte. **Floating** zeigt sie als Blase neben dem Porträt.
 - **Always show Docked thoughts**: hält bei **Thought display mode** auf **Docked** den Gedanken jedes hervorgehobenen Charakters dauerhaft sichtbar, statt ihn hinter einer Schaltfläche zu verstecken.
-- **Temperature unit**: schaltet die Temperaturanzeige zwischen **Celsius** und **Fahrenheit** um. Standard ist Celsius. Das ändert nur die Anzeige, nicht den gespeicherten Weltzustand-Wert.
+- **Temperature unit**: legt fest, ob Temperaturen in **°C** (Celsius) oder **°F** (Fahrenheit) angezeigt werden. Standard ist °C. Das ändert nur die Anzeige, nicht den gespeicherten Weltzustand-Wert.
 
 ## Welche Agenten das HUD füllen
 

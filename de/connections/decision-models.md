@@ -35,7 +35,7 @@ Bei Aktivierungsfragen und Aussagen in Prompts oder Lorebooks erhält das Modell
 - Makros in der Aussage werden zuerst aufgelöst; `{{char}}` kommt also als Charaktername an.
 - Passen die Nachrichten nicht in das Budget des Modells, werden zuerst ältere entfernt. Das Budget gehosteter Verbindungen steht unter [Eine Decision-Verbindung einrichten](#set-up-a-decision-connection).
 
-**Advanced Memory verwendet eine eigene Verbindung pro Chat.** Szenenprüfungen lesen das betreffende Transkriptfenster. Der Abruf sendet aktuelle Gesprächsteile und zugängliche archivierte Zusammenfassungen oder Originalnachrichten nach Prüfung des Charakterzugriffs; die feste Regel der letzten 5 Nachrichten gilt hier nicht. Gehostete Anbieter erhalten diese Texte gegebenenfalls in mehreren begrenzten Paketen. Nach insgesamt 10 Sekunden greift vor der Antwort der normale Abruf. Siehe [Optionales Decision-Modell](../agents/memory.md#optional-decision-model).
+**Advanced Memory verwendet eine eigene Verbindung pro Chat.** Szenenprüfungen lesen das betreffende Transkriptfenster. Der Abruf sendet nach Prüfung des Charakterzugriffs aktuelle Gesprächsteile und bis zu 24 vorausgewählte archivierte Zusammenfassungen – mehr, wenn **Maximum recalled scenes** (maximal abgerufene Szenen) höher ist –, danach Originalnachrichten aus den Szenen, die das Modell gewählt hat; die feste Regel der letzten 5 Nachrichten gilt hier nicht. Gehostete Anbieter erhalten diese Texte gegebenenfalls in mehreren begrenzten Paketen. Jeder Abrufdurchgang greift nach 10 Sekunden auf den normalen Abruf zurück. Siehe [Optionales Decision-Modell](../agents/memory.md#optional-decision-model).
 
 ## Ein Decision-Modell auswählen
 

@@ -105,7 +105,7 @@ W panelu **Chat Settings → Agents** przełącznik **Manual Trackers** przestaw
 
 Żeby włączyć panel w czacie Roleplay, otwórz **Chat Settings** i kliknij przycisk **Tracker Panel** (kostka) na pasku tytułu, obok przypięcia i kłódki. Przycisk pozostaje wyróżniony, gdy panel jest włączony, a panel pojawia się obok czatu. Kliknij ponownie, żeby go wyłączyć i ukryć. Na komputerze trackery pojawią się wtedy w oknie Trackers.
 
-Na telefonie włączenie panelu dodaje do czatu przycisk Tracker Panel, który można dowolnie przeciągać. Dotknij go, żeby otworzyć panel; zamknięcie panelu przywraca przycisk. Przy wyłączonym panelu korzystaj z osobnych przycisków **World State** i **Player & Tracker**.
+Na telefonie lub tablecie włączenie panelu dodaje do czatu przycisk Tracker Panel, który można dowolnie przeciągać. Dotknij go, żeby otworzyć panel, i dotknij ponownie, żeby go zamknąć. Gdy panel lub inny ekran zasłania czat, przesuwane przyciski czatu są ukryte i po powrocie do czatu wracają na te same miejsca. Przy wyłączonym panelu korzystaj z osobnych przycisków **World State** i **Player & Tracker**.
 
 Dzięki kontrolkom w nagłówku panelu można też zmienić strukturę trackerów:
 
@@ -125,7 +125,7 @@ Odpowiadają za to następujące ustawienia:
 - **Desktop size**: wybór szerokości panelu. Dostępne opcje to **Compact**, **Standard** i **Expanded**.
 - **Thought display mode**: wybór sposobu wyświetlania myśli postaci. Opcja **Docked** otwiera je wewnątrz karty postaci. Opcja **Floating** otwiera je jako dymek obok portretu.
 - **Always show Docked thoughts**: przy ustawieniu **Thought display mode** na **Docked** myśl każdej wyróżnionej postaci pozostaje widoczna, zamiast chować się pod przyciskiem.
-- **Temperature unit**: przełącza wyświetlanie temperatury między **Celsius** a **Fahrenheit**. Domyślnie jest to Celsius. Zmienia się tylko sposób wyświetlania, a nie zapisana wartość stanu świata.
+- **Temperature unit**: wybór jednostki **°C** (stopnie Celsjusza) lub **°F** (stopnie Fahrenheita) do wyświetlania temperatury. Domyślnie jest to °C. Zmienia się tylko sposób wyświetlania, a nie zapisana wartość stanu świata.
 
 ## Którzy agenci zasilają pasek HUD
 

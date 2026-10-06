@@ -53,7 +53,7 @@ Roleplayのスライダーボタンの横にある小さな案内は、一度閉
 - **Help**(ヘルプ、タイトルの横の**?**)は、チャットの操作を説明するラベルを表示します。スマートフォンでは、チャットが見えるよう先にChat Settingsを閉じます。強調表示された**Chat Settings**ボタンをタップすると、Reset View、お気に入りレイアウト、RoleplayのTracker Panel、ロックと解除、閉じる操作、セクションの切り離しを説明するガイドが開きます。ガイド内をスクロールして、すべての項目を読めます。Helpボタンは**Settings → General → App Behavior → Hide chat Help button**で非表示にできます。
 - **Reset View**(表示をリセット、円形の矢印)は、確認後に、このチャットの初期レイアウトを復元します。切り離したセクションを戻し、ウィンドウのサイズ、位置、ピン留め、ロックをデフォルトに戻します。
 - **Favorite layout**(お気に入りレイアウト、Reset Viewの横の星)は、この配置を現在のモードの新しいチャット用に保存します。[新しいチャットのレイアウトを選ぶ](#choosing-a-layout-for-new-chats)を参照してください。
-- **Tracker Panel**(トラッカーパネル、サイコロ)は、エージェントまたはAdvanced Memoryを使うRoleplayチャットで、パネルのオンとオフを切り替えます。コンピューターではチャットの横にパネルが開き、スマートフォンでは移動できるボタンから開きます。この設定は、**Settings → Appearance**のTracker Panelの設定も変更します。
+- **Tracker Panel**(トラッカーパネル、サイコロ)は、エージェントまたはAdvanced Memoryを使うRoleplayチャットで、パネルのオンとオフを切り替えます。コンピューターではチャットの横にパネルが開き、スマートフォンやタブレットでは移動できるボタンで開閉します。この設定は、**Settings → Appearance**のTracker Panelの設定も変更します。
 
 Tracker Panelを表示しない場合、コンピューターのトラッカーは[Trackersウィンドウ](../roleplay/hud-and-trackers.md#the-trackers-window)に表示されます。メッセージの横に十分な空きがなければ、小さな**Trackers**ボタンとして始まります。ウィンドウを閉じると、そのボタンに戻ります。Tracker Panelを再表示するには、Chat Settingsのタイトルバーのサイコロを使ってください。
 

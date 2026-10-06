@@ -73,7 +73,7 @@ Tags helfen beim Gruppieren und Suchen der eigenen Uploads. Taggen lassen sich n
 1. Klick in der Bildzeile auf das Tag-Symbol (**Edit tags**, Tags bearbeiten).
 2. Gib im Feld **Add tag...** ein Tag ein. Beim Tippen schlägt Marinara bereits verwendete Tags vor.
 3. Drück Enter oder klick auf **Add** (Hinzufügen).
-4. Ein Klick auf das kleine X am Tag-Chip entfernt das Tag wieder.
+4. Um ein Tag zu entfernen, klick darauf. Solange die Tag-Bearbeitung geöffnet ist, erscheint jedes Tag als Schaltfläche mit einem X.
 
 <a id="download-a-background"></a>
 
@@ -90,10 +90,12 @@ Löschen lassen sich nur Bilder mit der Beschriftung **Library**. Zeig auf die B
 Der Standard-Hintergrund für Roleplay ist das Bild, mit dem jeder neue Roleplay-Chat startet, bevor er sich ein eigenes sucht. Einmal festgelegt, gilt er für alle neuen Roleplay-Chats.
 
 1. Suche im Abschnitt **Backgrounds** das gewünschte Bild im Raster.
-2. Klick in dessen Bildzeile auf das Stern-Symbol (**Set as default for new Roleplay chats**, als Standard für neue Roleplay-Chats festlegen).
-3. Der Stern färbt sich ein und bleibt an seiner Position. Neue Roleplay-Chats starten ab jetzt mit diesem Bild.
+2. Klick in dessen Bildzeile auf das Stecknadel-Symbol (**Set as default for new Roleplay chats**, als Standard für neue Roleplay-Chats festlegen).
+3. Die Stecknadel-Schaltfläche bleibt hervorgehoben, und auf dem Vorschaubild erscheint die Beschriftung **Default**. Neue Roleplay-Chats starten ab jetzt mit diesem Bild.
 
-Zurück geht es mit einem Klick auf den Stern des aktuellen Standardbilds. Genauso funktioniert der Link **Reset Roleplay default** (Roleplay-Standard zurücksetzen) oben am Raster. Dieser Link erscheint nur, wenn dein Standard-Hintergrund vom mitgelieferten abweicht.
+Der Stern oben links im Bild fügt es deinen Favoriten hinzu. Am Standard ändert er nichts.
+
+Zurück geht es mit einem Klick auf die Stecknadel des aktuellen Standardbilds. Genauso funktioniert die Schaltfläche **Reset Roleplay default** (Roleplay-Standard zurücksetzen) oben am Raster. Diese Schaltfläche erscheint nur, wenn dein Standard-Hintergrund vom mitgelieferten abweicht.
 
 ## Background Blur
 
