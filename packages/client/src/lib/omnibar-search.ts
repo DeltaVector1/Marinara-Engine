@@ -152,7 +152,7 @@ export type OmnibarIntent = {
 
 export type OmnibarSurface = "home" | "chat" | "editor" | "settings" | "library" | "game";
 export type OmnibarContextReason =
-  "surface" | "open-resource" | "active-chat" | "settings-target" | "dirty" | "setup" | "error" | "pinned" | "recent";
+  "surface" | "open-resource" | "active-chat" | "settings-target" | "dirty" | "setup" | "error" | "recent";
 
 export type OmnibarContext = {
   surface: OmnibarSurface;
@@ -161,7 +161,6 @@ export type OmnibarContext = {
   openResource?: { kind: OmnibarCategory; id: string; resultId: string };
   settingsTarget?: { tab?: string; controlId?: string; resultId: string };
   editorDirty: boolean;
-  pinnedResultIds: readonly string[];
   recentResultIds: readonly string[];
   setupResultIds: readonly string[];
   error?: { resultIds: readonly string[]; message?: string };
@@ -246,7 +245,6 @@ export function createOmnibarContext(input: Partial<OmnibarContext> & Pick<Omnib
         }
       : undefined,
     editorDirty: input.editorDirty === true,
-    pinnedResultIds: boundedIds(input.pinnedResultIds),
     recentResultIds: boundedIds(input.recentResultIds),
     setupResultIds: boundedIds(input.setupResultIds),
     error: input.error
@@ -460,7 +458,6 @@ function getContextScore(resultId: string, context: OmnibarContext | undefined) 
   if (context.error && matches(context.error.resultIds)) return { score: 50, reason: "error" as const };
   if (matches(context.setupResultIds)) return { score: 35, reason: "setup" as const };
   if (matches(context.surfaceResultIds)) return { score: 30, reason: "surface" as const };
-  if (matches(context.pinnedResultIds)) return { score: 25, reason: "pinned" as const };
   if (matches(context.recentResultIds)) return { score: 15, reason: "recent" as const };
   return { score: 0, reason: undefined };
 }

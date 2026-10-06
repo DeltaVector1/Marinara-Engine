@@ -383,7 +383,7 @@ scores below a label/alias hit (section 4). Every system command
 ## 4. Ranking
 
 Score is the source score plus a context bonus plus an intent bonus, then the
-shared command ranking (recency and pins) reorders it.
+shared command ranking (recency) reorders it.
 
 - Text scoring prefers exact title, then prefix, then whole word, then substring.
 - **Keyword synonyms (O3, slice 49).** A settings control's or command's
@@ -396,9 +396,8 @@ shared command ranking (recency and pins) reorders it.
 - Context bonuses, highest first: the open resource (80, or "unsaved changes"
   when the editor is dirty), the current settings target (80), something used by
   the active chat (55), something related to a current error (50), available
-  setup (35), the current screen (30), pinned (25), recent (15). The winning
+  setup (35), the current screen (30), recent (15). The winning
   reason becomes the row's context label.
-- Pins are ignored while a query is typed, so typing always beats a pin.
 - **Top hit.** Groups render in a fixed category order, so the best match could
   sit below weaker rows of an earlier category. The best-ranked row with a
   prefix match or better (score ≥ 200) whose visible title the query starts —
@@ -667,7 +666,7 @@ This is the part most likely to break silently. All of it must survive.
   bug, not a feature (see section 11).
 - Both expansions — the focused row's preview and a choice row's options — are
   component state, not session state. Every open starts from a bare list.
-- Command ranking (recency and pins) is persisted separately.
+- Command ranking (recency) is persisted separately.
 - Local frecency (O2) is a third, separate `localStorage` key
   (`marinara:omnibar:frecency:v1`): one `{ resultId, surface, timestamp }`
   tuple per selection, capped at 300, recorded by `recordUse` (the same

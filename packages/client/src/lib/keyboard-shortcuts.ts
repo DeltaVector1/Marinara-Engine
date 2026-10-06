@@ -32,8 +32,6 @@ export const KEYBOARD_SHORTCUT_GROUPS: readonly KeyboardShortcutGroup[] = [
       { keys: [["↑"], ["↓"], ["Enter"]], labelKey: "shortcuts.general.omnibarNavigate" },
       // GlobalOmnibar ghost completion
       { keys: [["Tab"]], labelKey: "shortcuts.general.omnibarComplete" },
-      // GlobalOmnibar pin toggle
-      { keys: [["Mod", "P"]], labelKey: "shortcuts.general.omnibarPin" },
       // GlobalOmnibarHost (ignored while typing or while a dialog is open)
       { keys: [["?"]], labelKey: "shortcuts.general.help" },
       // Modal.tsx and every popover's Escape listener

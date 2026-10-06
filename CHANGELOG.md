@@ -915,6 +915,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 - Fixed Professor Mari's Memories panel expanding the first memory entry automatically; opening it now shows every entry collapsed, as the rest of her panels do.
 
+- Removed the unused Cmd/Ctrl+P "pin" shortcut in search, along with its footer hint and the "Pinned" group — there was no visible way to pin or unpin anything, so the shortcut and hint pointed at a feature that no longer did anything. An old pinned list saved on your device from before this change is now simply ignored.
+
 ## [2.4.6]
 
 - Shutdown regression checks use persisted cleanup results after terminal exit, avoiding false failures when a closed terminal discards its final log output (#6245).

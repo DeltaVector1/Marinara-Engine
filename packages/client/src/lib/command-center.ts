@@ -61,7 +61,6 @@ export type CommandCenterResultGroupId =
   | "context"
   | "current-work"
   | "continue"
-  | "pinned"
   | "frecent"
   | "recent"
   | "quick-controls"
@@ -152,14 +151,12 @@ export interface CommandRecentEntry {
 }
 
 export interface CommandRankingState {
-  pinnedIds: string[];
   recent: CommandRecentEntry[];
 }
 
 export interface RankedCommandResult<T extends CommandResult = CommandResult> {
   result: T;
   rankingScore: number;
-  pinned: boolean;
 }
 
 export interface CommandControl {
@@ -217,14 +214,12 @@ export const COMMAND_CENTER_SEARCH_GROUP_ORDER: readonly CommandCenterResultGrou
 const COMMAND_CENTER_EMPTY_GROUP_ORDER = [
   "current-work",
   "continue",
-  "pinned",
   // O2: the surface's most frecent rows lead the fallback, above plain "last used anywhere" recents.
   "frecent",
   "recent",
   "quick-controls",
   "create-navigation",
 ] as const satisfies readonly CommandCenterResultGroupId[];
-const MAX_PINNED_COMMANDS = 50;
 const MAX_RECENT_COMMANDS = 100;
 const MAX_COMMAND_ID_LENGTH = 256;
 const MAX_USE_COUNT = 10_000;
@@ -475,14 +470,8 @@ function getBrowserStorage(): CommandStorage | null {
 
 export function normalizeCommandRankingState(value: unknown): CommandRankingState {
   const source = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-  const pinnedIds: string[] = [];
-  for (const value of Array.isArray(source.pinnedIds) ? source.pinnedIds : []) {
-    const id = normalizeCommandId(value);
-    if (!id || pinnedIds.includes(id)) continue;
-    pinnedIds.push(id);
-    if (pinnedIds.length === MAX_PINNED_COMMANDS) break;
-  }
-
+  // R9: a stale `pinnedIds` field from a state saved before pinning was removed is simply
+  // dropped here, never read — so a "Pinned" group cannot silently reappear from old data.
   const recentById = new Map<string, CommandRecentEntry>();
   for (const value of Array.isArray(source.recent) ? source.recent : []) {
     if (!value || typeof value !== "object" || Array.isArray(value)) continue;
@@ -499,17 +488,16 @@ export function normalizeCommandRankingState(value: unknown): CommandRankingStat
   }
 
   return {
-    pinnedIds,
     recent: [...recentById.values()].sort((a, b) => b.lastUsedAt - a.lastUsedAt).slice(0, MAX_RECENT_COMMANDS),
   };
 }
 
 export function readCommandRankingState(storage: CommandStorage | null = getBrowserStorage()): CommandRankingState {
-  if (!storage) return { pinnedIds: [], recent: [] };
+  if (!storage) return { recent: [] };
   try {
     return normalizeCommandRankingState(JSON.parse(storage.getItem(COMMAND_RANKING_STORAGE_KEY) ?? "null"));
   } catch {
-    return { pinnedIds: [], recent: [] };
+    return { recent: [] };
   }
 }
 
@@ -540,24 +528,12 @@ export function recordCommandUse(state: CommandRankingState, commandId: string, 
   });
 }
 
-export function setCommandPinned(state: CommandRankingState, commandId: string, pinned: boolean): CommandRankingState {
-  const id = normalizeCommandId(commandId);
-  if (!id) return normalizeCommandRankingState(state);
-  return normalizeCommandRankingState({
-    ...state,
-    pinnedIds: pinned
-      ? [id, ...state.pinnedIds.filter((value) => value !== id)]
-      : state.pinnedIds.filter((value) => value !== id),
-  });
-}
-
 export function rankCommandResults<T extends CommandResult>(
   results: readonly T[],
   state: CommandRankingState,
   now = Date.now(),
 ): RankedCommandResult<T>[] {
   const normalized = normalizeCommandRankingState(state);
-  const pinned = new Set(normalized.pinnedIds);
   const recent = new Map(normalized.recent.map((entry) => [entry.id, entry]));
   const currentTime = normalizeTimestamp(now) ?? Date.now();
 
@@ -567,11 +543,9 @@ export function rankCommandResults<T extends CommandResult>(
       const age = entry ? Math.max(0, currentTime - entry.lastUsedAt) : RECENCY_WINDOW_MS;
       const recencyBoost = entry ? Math.max(0, 40 * (1 - age / RECENCY_WINDOW_MS)) : 0;
       const frequencyBoost = entry ? Math.min(20, Math.log2(entry.useCount + 1) * 4) : 0;
-      const isPinned = pinned.has(result.command.id);
       return {
         result,
-        rankingScore: result.score + (isPinned ? 1000 : 0) + recencyBoost + frequencyBoost,
-        pinned: isPinned,
+        rankingScore: result.score + recencyBoost + frequencyBoost,
         index,
       };
     })
@@ -689,12 +663,10 @@ export function presentCommandCenterResults<T extends CommandCenterPresentableRe
 
   if (!options.query.trim()) {
     const ranking = normalizeCommandRankingState(options.rankingState);
-    const pinnedIds = new Set(ranking.pinnedIds);
     const recentIds = new Set(ranking.recent.map((entry) => entry.id));
     for (const result of results) {
       if (result.group === "current-work" || result.group === "context") addToGroup("current-work", result);
       else if (result.group === "continue") addToGroup("continue", result);
-      else if (pinnedIds.has(result.id)) addToGroup("pinned", result);
       else if (result.group === "frecent") addToGroup("frecent", result);
       else if (result.group === "recent" || recentIds.has(result.id)) addToGroup("recent", result);
       else if (result.control) addToGroup("quick-controls", result);

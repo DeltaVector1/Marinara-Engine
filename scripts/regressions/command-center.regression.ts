@@ -10,7 +10,6 @@ import {
   rankCommandResults,
   readCommandRankingState,
   recordCommandUse,
-  setCommandPinned,
   writeCommandRankingState,
   type CommandDefinition,
   type CommandCenterPresentableResult,
@@ -172,23 +171,31 @@ const commands: CommandDefinition[] = [
   { id: "settings", title: "Settings", kind: "settings", icon: "settings" },
 ];
 const malformed = normalizeCommandRankingState({
-  pinnedIds: ["home", "home", 42, ""],
   recent: [
     { id: "home", lastUsedAt: 10, useCount: 2 },
     { id: "home", lastUsedAt: 20, useCount: 3 },
     { id: "settings", lastUsedAt: "bad", useCount: 1 },
   ],
 });
-assert.deepEqual(malformed, { pinnedIds: ["home"], recent: [{ id: "home", lastUsedAt: 20, useCount: 3 }] });
+assert.deepEqual(malformed, { recent: [{ id: "home", lastUsedAt: 20, useCount: 3 }] });
+
+// R9: a state object saved before the pin feature was removed still carries a
+// `pinnedIds` array. Normalizing it must not error, and must strip the field
+// rather than carry it forward, so a stale "Pinned" group can never reappear.
+const legacyPinnedState = normalizeCommandRankingState({
+  pinnedIds: ["home"],
+  recent: [{ id: "home", lastUsedAt: 10, useCount: 1 }],
+});
+assert.deepEqual(legacyPinnedState, { recent: [{ id: "home", lastUsedAt: 10, useCount: 1 }] });
+assert.ok(!("pinnedIds" in legacyPinnedState), "a stale pinnedIds field is dropped, not carried forward");
 
 const used = recordCommandUse(malformed, "settings", 30);
 const ranked = rankCommandResults(
   commands.map((command) => ({ command, score: command.id === "settings" ? 300 : 1 })),
-  setCommandPinned(used, "home", true),
+  used,
   30,
 );
-assert.equal(ranked[0]?.result.command.id, "home");
-assert.equal(ranked[0]?.pinned, true);
+assert.equal(ranked[0]?.result.command.id, "settings");
 
 const values = new Map<string, string>();
 const storage = {
@@ -198,7 +205,6 @@ const storage = {
 assert.equal(writeCommandRankingState(used, storage), true);
 assert.deepEqual(readCommandRankingState(storage), used);
 assert.deepEqual(readCommandRankingState({ getItem: () => "{", setItem: () => undefined }), {
-  pinnedIds: [],
   recent: [],
 });
 
@@ -212,27 +218,29 @@ assert.equal(systemCommands.find((command) => command.id === "spotify-settings")
 assert.equal(systemCommands.find((command) => command.id === "tts-settings")?.action.kind, "navigate");
 
 const presentationResults: CommandCenterPresentableResult[] = [
-  { id: "chat:pinned", category: "chat", metadata: [{ label: "rank", value: "first" }] },
+  { id: "chat:dup", category: "chat", metadata: [{ label: "rank", value: "first" }] },
   { id: "chat:recent", category: "chat" },
   { id: "control:theme", category: "settings", control: {} },
   { id: "characters", category: "navigation" },
-  { id: "chat:pinned", category: "chat" },
+  { id: "chat:dup", category: "chat" },
 ];
+// R9: a rankingState saved before pinning was removed still carries `pinnedIds` (cast past
+// the type, which no longer has that field). It must be fully ignored: no "pinned" group,
+// and the row it once named ranks exactly like any other recently used row.
 const emptyPresentation = presentCommandCenterResults(presentationResults, {
   query: "",
   rankingState: {
-    pinnedIds: ["chat:pinned"],
+    pinnedIds: ["chat:dup"],
     recent: [
-      { id: "chat:pinned", lastUsedAt: 20, useCount: 2 },
+      { id: "chat:dup", lastUsedAt: 20, useCount: 2 },
       { id: "chat:recent", lastUsedAt: 10, useCount: 1 },
     ],
-  },
+  } as never,
 });
 assert.deepEqual(
   emptyPresentation.groups.map((group) => [group.id, group.results.map((result) => result.id)]),
   [
-    ["pinned", ["chat:pinned"]],
-    ["recent", ["chat:recent"]],
+    ["recent", ["chat:dup", "chat:recent"]],
     ["quick-controls", ["control:theme"]],
     ["create-navigation", ["characters"]],
   ],
@@ -274,7 +282,7 @@ assert.deepEqual(
     ],
     {
       query: "",
-      rankingState: { pinnedIds: [], recent: [{ id: "chat:recent", lastUsedAt: 1, useCount: 1 }] },
+      rankingState: { recent: [{ id: "chat:recent", lastUsedAt: 1, useCount: 1 }] },
     },
   ).results.map((result) => result.id),
   ["chat:current", "chat:recent", "control:theme"],
@@ -632,19 +640,19 @@ const contextRankedResults = searchOmnibar("Luna", {
 });
 assert.equal(contextRankedResults[0]?.id, "character:current-luna");
 assert.equal(contextRankedResults[0]?.score, 359);
-const exactBeforePinnedPrefix = searchOmnibar("Luna", {
+const exactBeforeRecentPrefix = searchOmnibar("Luna", {
   commands: [],
   chats: [],
   resources: [
     { kind: "character", id: "exact", name: "Luna" },
-    { kind: "character", id: "pinned-prefix", name: "Luna Park" },
+    { kind: "character", id: "recent-prefix", name: "Luna Park" },
   ],
   connections: [],
-  context: createOmnibarContext({ surface: "home", pinnedResultIds: ["character:pinned-prefix"] }),
+  context: createOmnibarContext({ surface: "home", recentResultIds: ["character:recent-prefix"] }),
 });
 assert.deepEqual(
-  exactBeforePinnedPrefix.slice(0, 2).map((result) => result.id),
-  ["character:exact", "character:pinned-prefix"],
+  exactBeforeRecentPrefix.slice(0, 2).map((result) => result.id),
+  ["character:exact", "character:recent-prefix"],
 );
 assert.deepEqual(parseOmnibarIntent("Go to the Moonlight preset"), {
   kind: "navigate",
@@ -1352,7 +1360,6 @@ assert.ok(!("mariDetailId" in mariSession));
       surface: "home",
       surfaceResultIds: [],
       editorDirty: false,
-      pinnedResultIds: [],
       recentResultIds: [],
       setupResultIds: [],
     } as never,
@@ -1388,7 +1395,6 @@ assert.ok(!("mariDetailId" in mariSession));
       surface: "home",
       surfaceResultIds: [],
       editorDirty: false,
-      pinnedResultIds: [],
       recentResultIds: [],
       setupResultIds: [],
     } as never,
