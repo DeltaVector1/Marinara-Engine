@@ -30,6 +30,11 @@ history" missing half the usage store, the frecency boost being able to decide M
 phone persona switcher's "Ungrouped" folder. See `CHANGELOG.md` and
 `docs/development/omnibar-feature-inventory.md` for what slice 51 actually shipped.
 
+**Re-measured after round 9 (slice 65, 2026-10-06):** see
+[Re-measure after round 9](#re-measure-after-round-9-slice-65) at the end of this file. It re-walks the 15
+tasks on the current build and adds T18-T20 from round 9's strategy report. The original table below stays
+as the historical baseline.
+
 ## How it was measured
 
 - **Build.** `feat/omnibar-professor-mari` at `04ce44f41`, run with
@@ -166,3 +171,134 @@ Removal beats a new feature (O4). Each item names the measured gap and one concr
   visible without searching. Those cases favor the omnibar and were not measured.
 - Quick-answer quality: the answer in task 9 came from a stub. Only the flow was judged.
 - Light theme and other visual themes: everything was measured in the default dark theme.
+
+## Re-measure after round 9 (slice 65)
+
+Round 9 (slices 60-62g, 62f) added the reply checkup and Mari's `chat.diagnose`, and slice 65 cut two things
+(below). This section re-walks the 15 tasks after eight rounds of changes and measures the new tasks T18-T20
+from `.tmp/omnibar-ux/strategy-report-2.md` §7. T16 and T17 (connection setup) are not measured: R4/R5 were
+dropped because the maintainer is redesigning connection setup.
+
+### How it was measured
+
+- **Build.** `feat/omnibar-professor-mari` at `c4e535878` (slice 65's cuts plus the chat-tool fix below, on
+  top of the 2026-10-06 staging merge), run with `scripts/dev.mjs` on client :5288 / server :8081 and a
+  throwaway `DATA_DIR` under `.tmp/omnibar-ux/round9/slice-65/measurements/data`. Same widths, same emulated
+  touch, same step rules, same "clear win" bar as above.
+- **Data.** The same `seed.mjs` as slice 47 (5 characters, 2 personas, 5 chats, 2 lorebooks, 1 custom agent,
+  two dead-port connections), plus a working "Mock Model" connection on a local stub (port 8099).
+  `seed2.mjs` adds the round-9 cases, and each case's last reply is **generated for real** through
+  `POST /api/generate` against the stub, so the server computes the context fit, the lorebook scan and the
+  card share itself (no hand-written `generationInfo`):
+  - T18 "Long voyage": 80 messages + 1 generated reply on "Mock 4k" (Max Context Window 4,096) with an
+    always-on 18-entry lorebook. The server dropped 60 history messages (7,587 tokens needed, budget 3,468)
+    and cut the reply limit from 4,096 to 128.
+  - T19 "Harbor intrigue": "Harbor secrets" has a 300-token budget; the last message matches four entries.
+    The server skipped "The night bell" and "The Saltmarsh Pact" (297 of 300 tokens used).
+  - T20 "The drowned library": Odile's card is about 3,760 tokens on "Mock 6k". The server dropped 6 messages,
+    cut the reply limit to 1,713, and the checkup measures the card at 96% of the prompt budget.
+- **Professor Mari.** No real model. The stub plays Mari's workspace protocol from a script: on a new
+  question it calls `chat.diagnose` for `activeChat` from her context, then answers by quoting the **first**
+  finding the real server returned; on "shorten the card" it proposes `character.update` (applied, with the
+  Keep/Restore review). This proves the plumbing (the right chat, the right numbers reach her, the review
+  works); it does not measure a real model's judgment.
+- **"Without" for T18-T20** means without the round-9 doors (quiet line, checkup, Peek header,
+  `chat.diagnose`): only what the app showed before round 9 (Peek prompt, Active Context, editors).
+- **Evidence.** Screenshots and drivers in `.tmp/omnibar-ux/round9/slice-65/measurements/`
+  (`t<NN>-<path>-<width>-<step>-<action>.png`, raw step lists in `rec/`, all runs in `summary.txt`).
+  Slice 65's cut proofs: `cuts-row-dumps.txt`, `before-empty-*`/`after-empty-*`,
+  `before-askmari-*`/`after-askmari-*`.
+
+### Slice 65 cuts
+
+- **The empty list no longer shows the chat's own model, preset and persona.** In a chat, the empty omnibar
+  listed the chat's connection, preset and persona rows (Enter opened their editors) before the chat tools,
+  and they pushed "Regenerate reply" out of the 8-row context group. They repeat the composer's switchers,
+  which win (tasks 3 and 11). They are gone from the empty list only; typing "claude", "kai", "model",
+  "preset" or "persona" still finds "Model / Preset / Persona for this chat". A Fix row that reuses the
+  chat's connection id stays.
+- **No model, no promoted "Ask Mari".** With no language connection and no downloaded local model, a
+  question such as "how do lorebooks work?" put "Ask Mari" first and selected, above six docs rows, where
+  Enter led to a Mari who cannot answer. Now the docs and FAQ rows lead and Ask Mari is last; on a real dead
+  end (no docs, no FAQ, nothing else) her row is still promoted, because it carries the "Choose a model"
+  setup hint.
+
+### The 15 tasks, re-measured
+
+Steps are given as **1440 / 390**. "Was" is the slice 47 count.
+
+| #   | Task                                              | Steps without                                                                                                   | Steps with                                                                                                                         | Winner                                   | Note                                                                                                                                                                                                                                                                                                                    |
+| --- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Reopen last chat                                  | **2 / 2** (was 2 / 2)                                                                                           | **2 / 2** (was 2 / 3)                                                                                                              | Tie                                      | The phone no longer needs the extra Chats-sheet close (slice 50). Not a step win.                                                                                                                                                                                                                                       |
+| 2   | Find a message in another chat ("silver compass") | **3 / 4** (was 3 / 4)                                                                                           | **3 / 3** (was 3 / 3)                                                                                                              | Tie on desktop; phone 1 step fewer       | Both paths now land on the hit, and the message row is preselected, so Enter opens it (slice 51). Not a step win.                                                                                                                                                                                                       |
+| 3   | Change the model in this chat                     | **2 / 2** (was 2 / 2)                                                                                           | **3 / 3** (was 3 / 3)                                                                                                              | Without                                  | The omnibar now closes after the choice with a "Model for this chat: Claude Sonnet" toast; no Esc. Slice 65 removed the chat's connection row from the empty list, so the omnibar no longer advertises a slower door; typing "claude" still preselects "Model for this chat". The composer switcher is the cleaner win. |
+| 4   | Attach a lorebook ("Monastery codex")             | Panel icon **2 / 3**; Chat Settings **4 / 5** (was 5 / 6)                                                       | **3 / 3** with the plain name or "add monastery" (was: plain name disabled the lorebook)                                           | Without (cheapest path)                  | The plain name + Enter now attaches it and leaves the lorebook enabled. The Chat Settings path lost one step.                                                                                                                                                                                                           |
+| 5   | Flip a deep setting ("Dynamic weather effects")   | Settings search **5 / 6**; browsing **9 / 11** (was 7 / 8)                                                      | **3 / 3**                                                                                                                          | **Omnibar** (clear)                      | Unchanged win. Browsing to Atmosphere now takes six or seven scrolls because the Appearance tab grew.                                                                                                                                                                                                                   |
+| 6   | Find a lorebook entry ("The Vesper Gate")         | **6 / 7**                                                                                                       | **3 / 3**                                                                                                                          | **Omnibar** (clear)                      | The entry row is now preselected, so Enter opens it (was: Enter asked Mari).                                                                                                                                                                                                                                            |
+| 7   | Start a new roleplay                              | **1 / 2** (was 1 / 3)                                                                                           | **3 / 3** (was 3 / 4)                                                                                                              | Without                                  | Both paths open the wizard in front; the phone Chats-sheet bug is gone.                                                                                                                                                                                                                                                 |
+| 8   | Fix a failed reply (real failure: dead port)      | Switch and retry **3 / 4** (was 3 / 3: the phone Quick Switcher now stays open on the model list, one more tap) | Fix row "Retry with": **3 / 3** (Ctrl+K → Enter → pick "Mock Model"; it retries at once and closes). Switch row + Retry: **4 / 4** | Tie on desktop; phone 1 step fewer       | Slice 50's "Retry with" choice on the Fix row works and closes the omnibar. Still not a step win; the "Failed · Retry" line remains the fast path when the connection itself is fine.                                                                                                                                   |
+| 9   | Ask how X works ("how do lorebooks work?")        | Lorebooks "?" **2 / 3**; Docs **5 / 6**                                                                         | With a model: **2 / 2**. Fresh install: **3 / 3** (Ctrl+K → type → open "Lorebooks Overview")                                      | **Omnibar**, now also on a fresh install | Slice 65: with no model the docs rows lead instead of "Ask Mari". Defect left for review: the server docs search ranks "World Maps" first and "Lorebooks Overview" fifth for this question, so Enter on a fresh install opens the wrong article.                                                                        |
+| 10  | Open a character ("Juniper Ashgrove", 5 cards)    | **2 / 3**                                                                                                       | **3 / 3** (was 3 / 4)                                                                                                              | Without (tie on the phone)               | Entity rows open on the first tap now.                                                                                                                                                                                                                                                                                  |
+| 11  | Change persona to "Kai"                           | **2 / 3** (was 3 / 4: the "Ungrouped" folder is gone)                                                           | **3 / 3**                                                                                                                          | Without (tie on the phone)               | The switcher got one step faster, so the omnibar lost its old tie/phone win. "Persona for this chat" is preselected after typing and closes the omnibar. Slice 65 removed the chat's persona row from the empty list.                                                                                                   |
+| 12  | Peek prompt                                       | **1 / 2**                                                                                                       | No door for a healthy reply. Typing "peek" lists the Peek Prompt doc. With a checkup finding: Fix row → Check → Peek, **3 / 3**    | Without                                  | By design: slice 61 deleted the separate "Preview next prompt" row and folded Peek into the reply checkup.                                                                                                                                                                                                              |
+| 13  | Search docs ("openrouter")                        | **5 / 6**                                                                                                       | **3 / 4**                                                                                                                          | **Omnibar** (clear)                      | Defect left for review: the preselected first row is the FAQ "Can I use Google Cloud's free credit with Marinara?" (its answer mentions OpenRouter), so Enter opens that instead of "Supported AI Providers". The phone still needs a second tap on docs rows.                                                          |
+| 14  | Switch theme Dark → Light                         | **5 / 6**                                                                                                       | **3 / 3**                                                                                                                          | **Omnibar** (clear)                      | Unchanged.                                                                                                                                                                                                                                                                                                              |
+| 15  | Open an agent's settings ("Scene Critic")         | **2 / 3**                                                                                                       | **3 / 3** (was 3 / 4)                                                                                                              | Without (tie on the phone)               | Entity rows open on the first tap now.                                                                                                                                                                                                                                                                                  |
+
+**Win count: still 5 of 15** (tasks 5, 6, 9, 13, 14), as the strategy report expected. Task 9 now also wins
+on a fresh install. No task regressed to a loss; task 11 lost its phone win because the normal switcher got
+faster, which is the right direction. Tasks 3 and 11 stay "Without": the composer switchers are the cleaner
+path and the empty list no longer competes with them.
+
+### T18-T20: the round-9 tasks
+
+"Cause" is counted until the right cause **with its number** is on screen. "Fix" is counted until the change
+is saved.
+
+| #   | Task                                        | Steps without (pre-round-9 UI)                                                                                                                                                                                                                                                                                                                                                                                                       | Steps with (round 9)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Winner                                        | Note                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| T18 | Replies got worse at message 80             | **Cause: not named in 10 minutes.** Peek prompt (**1 / 2**) shows "23 sections · ~3,314 tokens" and "Max Output Tokens 128", but nothing says that 60 messages were dropped or why. Naming it needs counting sections against the 81 messages and knowing that Max Context Window minus the reply limit is the input budget. Fix (raise Max Context Window): Connections → editor → scroll → field → Save, **6 / 8**, once you know. | **Cause: 0 / 0** (the quiet line "60 older messages not sent · Check" is under the reply on arrival); the numbers ("Needed 7,587 tokens, budget 3,468") after **1 / 1** (Check) or **2 / 2** (Ctrl+K → Enter on "Fix: Check the last reply"). Mari: **3 / 3** (Ctrl+J or pull right → type → Enter) and she names "60 older messages were not sent: the prompt needed 7587 tokens, the budget was 3468". **Fix: 6 / 8** (Check → "Max context window" → scroll → field → type → Save; the phone needs two scrolls and a second Save tap). | **Round 9** (cause), fix unchanged            | Target met for the cause (≤ 3) at both widths; the fix target (≤ 6) is met on desktop and missed by 2 on the phone. Correct: the line, the checkup and `chat.diagnose` all name the real numbers the server recorded. After saving 16,384 and regenerating, the reply is no longer trimmed. The 2 extra phone steps are the connection editor (the link opens it at the top, not at the field; the first Save tap only commits the field and the button moves), which is out of scope while connection setup is being redesigned. Found and fixed here: every Mari send from a chat with a checkup finding failed with "The selected chat is no longer available", and the typed text vanished with no error line (`c4e535878`; see the review list below for the silent failure). |
+| T19 | Entry X does not fire because of the budget | **Cause: 4 / 4** (Chat Settings → scroll → Active Context → open the amber "2 matching lore entries were skipped by token budget" notice, which names both entries and "blocked by lorebook budget"; since #814, May 2026). The round-2 omnibar row "Active lorebook entries" does it in **3 / 3**. Fix: Lorebooks → Harbor secrets → scroll → Token Budget → type → Save, **6 / 8**.                                                | **Cause: 1 / 2** (Peek prompt on the reply; the header says "2 lorebook entries matched but did not fit the token budget: The night bell, The Saltmarsh Pact" with a "Lorebook budget" link). No quiet line and no Fix row: lore skips are not reply-line findings. Mari (scripted `chat.diagnose`): **3 / 3**, names the same entries. **Fix: 6 / 8** (Peek → "Lorebook budget" → scroll → Token Budget → type → Save).                                                                                                                  | Round 9 for the cause (by 2-3 steps); fix tie | The checkup names the right entries and the budget, but not the numbers (300 budget, 297 used); the old notice shows those. After raising the budget to 1,000 and regenerating, nothing is skipped. **Correctness risk for Mari:** her prompt routes "why didn't X fire" to `lorebook.testScan`, not `chat.diagnose`, and the scan ignores budgets: on this seed it reports "The Saltmarsh Pact" as **activated**. A real model following its prompt is likely to name the wrong cause. The "Lorebook budget" link opens the editor at the top, not at Token Budget.                                                                                                                                                                                                               |
+| T20 | Card too large for the context              | **Cause: not stated.** The Characters panel shows "Odile the Archivist · ~3,769 tokens" (**2 / 3**, one scroll) next to ~25-token cards, but nothing relates it to the 6k context. Shorter card by hand: editor → Card tab → description → rewrite → Save, with no review.                                                                                                                                                           | **Cause: 1 / 1** (the quiet line says "6 older messages not sent"; Check lists "Large character card · About 3,761 tokens, 96% of the budget · Edit the card" as the **third** row). The Fix row names only the trim. Mari (scripted, quoting the first finding): names the 6 dropped messages, **not** the card. **Reviewed shorter card: 5 / 5** (Ctrl+J or pull right → "shorten Odile's card" → Enter → open "Changed 1 thing" → Keep); the description went from 14,990 to 140 characters, applied in 3 and confirmed with Keep.     | Round 9 (a reviewed fix no button offers)     | Correct number (3,761 tokens, 96% of 3,931), but the **ranking is wrong for this case**: the card is the root cause and the trim is its symptom, yet the line, the Fix row and the first `chat.diagnose` finding all lead with the trim. A real Mari told to "name exactly one cause" may pick the first finding. "Edit the card" opens the editor on Metadata, not on the description. The run's "GOAL No request phrase reported" line is placeholder text shown to the user (seen with the scripted model).                                                                                                                                                                                                                                                                     |
+
+### Headline
+
+- **The old 15: still 5 clear wins** (5, 6, 9, 13, 14). The cuts did not cost a win; they removed rows that
+  only competed with the composer.
+- **T18 is the clear round-9 win:** before, the cause was invisible in the UI; now it is on screen on arrival
+  with the right numbers, and Mari names it in 3 steps. The fix stays 6 / 8 because it lives in the
+  connection editor.
+- **T19 is a modest win** (cause 1-2 steps instead of 3-4, because the old Active Context notice already
+  listed budget skips). Mari's own "why didn't X fire" path can name the wrong cause.
+- **T20 is a win for the fix** (a reviewed shorter card in 5 steps; no button does that), but the checkup
+  ranks the symptom above the cause.
+
+### For the slice 65 review and fix phase
+
+Found while measuring; not fixed in this phase unless noted.
+
+1. **Fixed here (`c4e535878`):** Mari sends from any chat with a reply-checkup finding failed: the "Fix: Check
+   the last reply" row's id (`chat-tool:reply-checkup:<chatId>`) reached the server as chat id
+   `reply-checkup:<chatId>`. Regression assert added.
+2. **Silent send failure:** when that send failed, the user's message disappeared, the composer cleared, and no
+   red "failed · Retry" line appeared (console only).
+3. **T20 ranking:** when `card_large` holds, it is the cause of `history_trimmed`/`reply_budget_cut`; the
+   line, the Fix row and `chat.diagnose` should lead with the card (or Mari's prompt should say so).
+4. **T19 Mari routing:** "why didn't X fire" goes to `lorebook.testScan`, which reports budget-skipped entries
+   as activated. Either add the budget result to the scan or route this question through `chat.diagnose` too.
+5. **Arrival block after the first send:** on the first send into a brand-new Mari thread, a second arrival
+   block is appended under her answer and the view scrolls to it, hiding the answer (1440, scripted model).
+6. **Mari on the chat's connection:** in one run a fresh Mari thread opened from "Long voyage" was created on
+   that chat's 4k connection instead of the default; her prompt was truncated and she failed the protocol.
+   Not reproduced cleanly; the drivers pinned Mari's connection afterwards. Verify.
+7. **Docs ranking (task 9) and FAQ preselection (task 13):** see the notes in the table.
+8. **Deep links land at the top:** "Max context window", "Lorebook budget" and "Edit the card" open the right
+   editor but not the right field or tab (+1-2 steps each, more on the phone).
+
+### Not verified
+
+- Real models: Mari's answers came from a script that quotes the first finding. Her judgment with a real
+  model (which cause she picks, whether she calls `chat.diagnose` or `lorebook.testScan`) was not measured.
+- One reviewer, not three: the strategy report asked for three fresh-eyes reviewers per task (3/3 bar). This
+  pass had one, who knows the codebase, which favors the "without" paths.
+- Real phones, light theme and large libraries: as in slice 47.
