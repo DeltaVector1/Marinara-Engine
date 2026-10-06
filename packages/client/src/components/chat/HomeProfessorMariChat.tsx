@@ -5183,8 +5183,12 @@ export function HomeProfessorMariChat({
       if (isProfessorMariAbortError(error)) return;
       console.error("[Professor Mari] Run failed", error);
       setRecovery({ ...retry, kind: classifyProfessorMariFailure(error), detail: describeProfessorMariError(error) });
+      // F15: the server already saved this failure on the message; without a reload the local copy
+      // still lacks mariRunError, so an OLDER failure in the same session loses its quiet line until
+      // the next full reload.
+      if (chatId) void loadMessages(chatId, { restoreFocus: false });
     },
-    [],
+    [chatId, loadMessages, setRecovery],
   );
   const retryOf = (message: Message | undefined) => ({
     text: message?.content ?? "",
