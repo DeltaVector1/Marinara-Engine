@@ -261,6 +261,23 @@ function mergeConversationStatusOverrides(current: unknown, incoming: unknown): 
   return incoming;
 }
 
+function exclusiveMemoryRecallPatch(current: MetadataPatch, patch: MetadataPatch): MetadataPatch {
+  // Explicit enables switch modes in the same queued write. Unrelated saves and
+  // disables preserve the other mode, and switching never discards prepared memory.
+  // A bulk patch enabling both retains generation's existing Advanced precedence.
+  if (patch.advancedMemory === current.advancedMemory && patch.enableMemoryRecall === current.enableMemoryRecall) {
+    return patch; // An updater spreading unchanged settings is not an explicit mode choice.
+  }
+  if (isPlainRecord(patch.advancedMemory) && patch.advancedMemory.enabled === true) {
+    return { ...patch, enableMemoryRecall: false };
+  }
+  const advancedMemory = Object.hasOwn(patch, "advancedMemory") ? patch.advancedMemory : current.advancedMemory;
+  if (patch.enableMemoryRecall === true && isPlainRecord(advancedMemory) && advancedMemory.enabled === true) {
+    return { ...patch, advancedMemory: { ...advancedMemory, enabled: false } };
+  }
+  return patch;
+}
+
 function mergeMetadataPatch(current: MetadataPatch, patch: MetadataPatch): MetadataPatch {
   const merged = { ...current, ...patch };
   if (Object.prototype.hasOwnProperty.call(patch, "conversationStatusOverrides")) {
@@ -759,6 +776,36 @@ async function countSwipesByMessageId(db: DB, ids: string[]): Promise<Map<string
 }
 
 /** Create the chat storage facade used by routes and importers. */
+type AgentLoreProvenance = Pick<
+  typeof lorebookEntries.$inferSelect,
+  "sourceMessageRefs" | "previousContent" | "previousSourceMessageRefs" | "previousSourceAgentId"
+>;
+
+/**
+ * What deleting `deletedIds` does to one agent-authored lorebook entry (the rules are on
+ * cascadeAgentLorebookEntriesForMessages): null when it is untouched, "delete", or the columns
+ * written. Message-trash restore runs the same rule to tell whether an entry is still as the
+ * delete left it.
+ */
+export function agentLoreCascadeChange(entry: AgentLoreProvenance, deletedIds: ReadonlySet<string>) {
+  const currentHit = parseSourceMessageRefs(entry.sourceMessageRefs).some((ref) => deletedIds.has(ref.id));
+  const snapshotPoisoned = parseSourceMessageRefs(entry.previousSourceMessageRefs).some((ref) =>
+    deletedIds.has(ref.id),
+  );
+  if (!currentHit && !snapshotPoisoned) return null;
+  const clearedSnapshot = { previousContent: null, previousSourceMessageRefs: null, previousSourceAgentId: null };
+  if (!currentHit) return clearedSnapshot;
+  if (snapshotPoisoned || typeof entry.previousContent !== "string") return "delete" as const;
+  return {
+    content: entry.previousContent,
+    embedding: null,
+    embeddingSpaceId: null,
+    sourceMessageRefs: entry.previousSourceAgentId ? (entry.previousSourceMessageRefs ?? "[]") : "[]",
+    sourceAgentId: entry.previousSourceAgentId ?? null,
+    ...clearedSnapshot,
+  };
+}
+
 export function createChatsStorage(db: DB) {
   let chatLastMessageAtBackfilled = false;
   let chatLastMessageAtBackfillPromise: Promise<void> | null = null;
@@ -1222,40 +1269,16 @@ export function createChatsStorage(db: DB) {
 
     const removed: string[] = [];
     for (const entry of candidates) {
-      const currentRefs = parseSourceMessageRefs(entry.sourceMessageRefs);
-      const previousRefs = parseSourceMessageRefs(entry.previousSourceMessageRefs);
-      const currentHit = currentRefs.some((ref) => deletedIds.has(ref.id));
-      const snapshotPoisoned = previousRefs.some((ref) => deletedIds.has(ref.id));
-      if (!currentHit && !snapshotPoisoned) continue;
-
-      if (snapshotPoisoned) {
+      const change = agentLoreCascadeChange(entry, deletedIds);
+      if (!change) continue;
+      if (change === "delete") {
+        await db.delete(lorebookEntries).where(eq(lorebookEntries.id, entry.id));
+        removed.push(entry.id);
+      } else {
         await db
           .update(lorebookEntries)
-          .set({ previousContent: null, previousSourceMessageRefs: null, previousSourceAgentId: null })
+          .set("content" in change ? { ...change, updatedAt: now() } : change)
           .where(eq(lorebookEntries.id, entry.id));
-      }
-
-      if (currentHit) {
-        const canRevert = !snapshotPoisoned && typeof entry.previousContent === "string";
-        if (canRevert) {
-          await db
-            .update(lorebookEntries)
-            .set({
-              content: entry.previousContent as string,
-              embedding: null,
-              embeddingSpaceId: null,
-              sourceMessageRefs: entry.previousSourceAgentId ? (entry.previousSourceMessageRefs ?? "[]") : "[]",
-              sourceAgentId: entry.previousSourceAgentId ?? null,
-              previousSourceAgentId: null,
-              previousContent: null,
-              previousSourceMessageRefs: null,
-              updatedAt: now(),
-            })
-            .where(eq(lorebookEntries.id, entry.id));
-        } else {
-          await db.delete(lorebookEntries).where(eq(lorebookEntries.id, entry.id));
-          removed.push(entry.id);
-        }
       }
     }
     return removed;
@@ -1873,7 +1896,13 @@ export function createChatsStorage(db: DB) {
     async patchMetadata(
       id: string,
       patchOrUpdater: MetadataPatch | MetadataUpdater,
-      opts: { touchUpdatedAt?: boolean; metadataQueueHeld?: boolean; allowRoomKeys?: readonly RoomMetadataKey[] } = {},
+      opts: {
+        touchUpdatedAt?: boolean;
+        metadataQueueHeld?: boolean;
+        allowRoomKeys?: readonly RoomMetadataKey[];
+        /** Synchronous side effects after a successful row write, while the metadata queue is still held. */
+        afterWrite?: (previous: MetadataPatch, saved: MetadataPatch) => void;
+      } = {},
     ) {
       const applyPatch = async () => {
         const existing = await this.getById(id);
@@ -1890,7 +1919,7 @@ export function createChatsStorage(db: DB) {
         // post-hoc comparison would see two identical objects and skip the stamp.
         const before = typeof patchOrUpdater === "function" ? fingerprintMetadata(current) : null;
         const raw = typeof patchOrUpdater === "function" ? await patchOrUpdater({ ...current }) : patchOrUpdater;
-        const patch = stripOrdinalMirrorKey(room ? { ...raw } : raw);
+        const patch = exclusiveMemoryRecallPatch(current, stripOrdinalMirrorKey(room ? { ...raw } : raw));
         if (room) {
           room.signal?.throwIfAborted();
           protectRoomMetadata(patch, opts.allowRoomKeys);
@@ -1926,6 +1955,7 @@ export function createChatsStorage(db: DB) {
             ...(opts.touchUpdatedAt !== false && { updatedAt: now() }),
           })
           .where(eq(chats.id, id));
+        opts.afterWrite?.(current, merged);
         return this.getById(id);
       };
       return opts.metadataQueueHeld ? applyPatch() : withChatMetadataPatchQueue(id, applyPatch);
@@ -1960,7 +1990,7 @@ export function createChatsStorage(db: DB) {
         }
         const before = fingerprintMetadata(current);
         const { metadata: raw, characterIds } = await updater({ ...current });
-        const patch = stripOrdinalMirrorKey(room ? { ...raw } : raw);
+        const patch = exclusiveMemoryRecallPatch(current, stripOrdinalMirrorKey(room ? { ...raw } : raw));
         if (room) {
           if (characterIds.some((characterId) => !room.characterIds.includes(characterId)))
             throw new Error("The character is not approved for this room.");

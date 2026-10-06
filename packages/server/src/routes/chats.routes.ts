@@ -3,7 +3,6 @@
 // ──────────────────────────────────────────────
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { z } from "zod";
-import AdmZip from "adm-zip";
 import { logger } from "../lib/logger.js";
 import { getMariDbService } from "../services/mari-db/mari-db.service.js";
 import { cardPromptText } from "../services/prompt/card-text.js";
@@ -158,6 +157,7 @@ import { and, desc, eq, inArray } from "../db/file-query.js";
 import { existsSync } from "fs";
 import { join } from "path";
 import { DATA_DIR } from "../utils/data-dir.js";
+import { singleChunk, streamExportZip } from "../utils/export-stream.js";
 import { normalizeTimestampOverrides } from "../services/import/import-timestamps.js";
 import {
   appendNonLeadingSystemMessagesToLastUser,
@@ -1153,6 +1153,20 @@ export async function chatsRoutes(app: FastifyInstance) {
     if (data.characterIds?.includes(PROFESSOR_MARI_ID) && !hasProfessorMariCharacter(existing)) {
       return reply.status(400).send({ error: "Professor Mari is only available from the Home screen." });
     }
+    if (data.characterIds !== undefined) {
+      // A hosted room's AI roster lives in the room. Changing it here would leave the room's
+      // own list behind and every later room reply would be refused.
+      const room = parseChatMetadata(existing.metadata).multiplayer as { role?: unknown; status?: unknown } | null;
+      const before = new Set(resolveChatCharacterIds(existing.characterIds));
+      const after = new Set(data.characterIds);
+      if (
+        room?.role === "host" &&
+        room.status !== "ended" &&
+        (before.size !== after.size || [...after].some((id) => !before.has(id)))
+      ) {
+        return reply.status(409).send({ error: "Add or remove room characters from Players." });
+      }
+    }
     const nextPersonaCharacterId =
       data.personaCharacterId === undefined ? existing.personaCharacterId : data.personaCharacterId;
     if ((data.mode ?? existing.mode) === "game" && nextPersonaCharacterId) {
@@ -1457,66 +1471,81 @@ export async function chatsRoutes(app: FastifyInstance) {
     ) {
       return reply.status(400).send({ error: "slurp2ActivityContextEnabled must be a boolean" });
     }
+    const cancelReplacedAdvancedMemory = (previous: Record<string, unknown>, saved: Record<string, unknown>) => {
+      if (
+        incoming.enableMemoryRecall === true &&
+        !normalizeAdvancedMemorySettings(saved.advancedMemory).enabled &&
+        normalizeAdvancedMemorySettings(previous.advancedMemory).enabled
+      ) {
+        createAdvancedMemoryService(app.db).cancelActiveOperation(req.params.id);
+      }
+    };
     if (
       Object.prototype.hasOwnProperty.call(incoming, "hideSummarisedMessages") &&
       typeof incoming.hideSummarisedMessages === "boolean"
     ) {
-      const updated = await storage.patchMetadata(req.params.id, async (freshMeta) => {
-        const previousHideEnabled = freshMeta.hideSummarisedMessages === true;
-        if (previousHideEnabled === incoming.hideSummarisedMessages) {
-          return incoming;
-        }
-
-        const allMessages = await storage.listMessages(req.params.id);
-        const currentEntries = normalizeChatSummaryEntries(freshMeta.summaryEntries, {
-          legacySummary: typeof freshMeta.summary === "string" ? freshMeta.summary : null,
-        });
-        const now = new Date().toISOString();
-        let nextEntries: ChatSummaryEntry[];
-
-        if (incoming.hideSummarisedMessages) {
-          const tail = resolveRoleplaySummaryTail(freshMeta.summaryTailMessages);
-          nextEntries = [];
-          for (const entry of currentEntries) {
-            if (!entry.enabled || !entry.messageIds?.length) {
-              nextEntries.push(entry);
-              continue;
-            }
-
-            const eligibleToHide = computeSummaryHideIds({
-              messages: allMessages,
-              entryMessageIds: entry.messageIds,
-              tail,
-            });
-            const hiddenMessageIds =
-              eligibleToHide.length > 0 ? await storage.bulkSetHiddenFromAI(req.params.id, eligibleToHide, true) : [];
-            const ownedHiddenMessageIds = Array.from(new Set([...(entry.hiddenMessageIds ?? []), ...hiddenMessageIds]));
-            nextEntries.push(
-              ownedHiddenMessageIds.length > 0
-                ? { ...entry, hiddenMessageIds: ownedHiddenMessageIds, updatedAt: now }
-                : entry,
-            );
+      const updated = await storage.patchMetadata(
+        req.params.id,
+        async (freshMeta) => {
+          const previousHideEnabled = freshMeta.hideSummarisedMessages === true;
+          if (previousHideEnabled === incoming.hideSummarisedMessages) {
+            return incoming;
           }
-        } else {
-          const summaryOwnedHiddenIds = Array.from(
-            new Set(currentEntries.flatMap((entry) => entry.hiddenMessageIds ?? [])),
-          );
-          if (summaryOwnedHiddenIds.length > 0) {
-            await storage.bulkSetHiddenFromAI(req.params.id, summaryOwnedHiddenIds, false);
-          }
-          nextEntries = currentEntries.map((entry) => {
-            if (!entry.hiddenMessageIds?.length) return entry;
-            const { hiddenMessageIds: _hiddenMessageIds, ...rest } = entry;
-            return { ...rest, updatedAt: now };
+
+          const allMessages = await storage.listMessages(req.params.id);
+          const currentEntries = normalizeChatSummaryEntries(freshMeta.summaryEntries, {
+            legacySummary: typeof freshMeta.summary === "string" ? freshMeta.summary : null,
           });
-        }
+          const now = new Date().toISOString();
+          let nextEntries: ChatSummaryEntry[];
 
-        return {
-          ...incoming,
-          summaryEntries: nextEntries,
-          summary: compileChatSummaryEntries(nextEntries),
-        };
-      });
+          if (incoming.hideSummarisedMessages) {
+            const tail = resolveRoleplaySummaryTail(freshMeta.summaryTailMessages);
+            nextEntries = [];
+            for (const entry of currentEntries) {
+              if (!entry.enabled || !entry.messageIds?.length) {
+                nextEntries.push(entry);
+                continue;
+              }
+
+              const eligibleToHide = computeSummaryHideIds({
+                messages: allMessages,
+                entryMessageIds: entry.messageIds,
+                tail,
+              });
+              const hiddenMessageIds =
+                eligibleToHide.length > 0 ? await storage.bulkSetHiddenFromAI(req.params.id, eligibleToHide, true) : [];
+              const ownedHiddenMessageIds = Array.from(
+                new Set([...(entry.hiddenMessageIds ?? []), ...hiddenMessageIds]),
+              );
+              nextEntries.push(
+                ownedHiddenMessageIds.length > 0
+                  ? { ...entry, hiddenMessageIds: ownedHiddenMessageIds, updatedAt: now }
+                  : entry,
+              );
+            }
+          } else {
+            const summaryOwnedHiddenIds = Array.from(
+              new Set(currentEntries.flatMap((entry) => entry.hiddenMessageIds ?? [])),
+            );
+            if (summaryOwnedHiddenIds.length > 0) {
+              await storage.bulkSetHiddenFromAI(req.params.id, summaryOwnedHiddenIds, false);
+            }
+            nextEntries = currentEntries.map((entry) => {
+              if (!entry.hiddenMessageIds?.length) return entry;
+              const { hiddenMessageIds: _hiddenMessageIds, ...rest } = entry;
+              return { ...rest, updatedAt: now };
+            });
+          }
+
+          return {
+            ...incoming,
+            summaryEntries: nextEntries,
+            summary: compileChatSummaryEntries(nextEntries),
+          };
+        },
+        { afterWrite: cancelReplacedAdvancedMemory },
+      );
       return updated ? normalizeChatForResponse(updated) : updated;
     }
     // Rearranging windows or dismissing their hint is a view preference, not new chat activity.
@@ -1524,7 +1553,10 @@ export async function chatsRoutes(app: FastifyInstance) {
     const viewOnly =
       changedKeys.length > 0 &&
       changedKeys.every((key) => key === "windowLayout" || key === "chatSettingsHintDismissed");
-    const updated = await storage.patchMetadata(req.params.id, incoming, { touchUpdatedAt: !viewOnly });
+    const updated = await storage.patchMetadata(req.params.id, incoming, {
+      touchUpdatedAt: !viewOnly,
+      afterWrite: cancelReplacedAdvancedMemory,
+    });
     return updated ? normalizeChatForResponse(updated) : updated;
   });
 
@@ -4628,59 +4660,63 @@ export async function chatsRoutes(app: FastifyInstance) {
 
     if (chatsToExport.length === 0) return reply.status(404).send({ error: "No chats found to export" });
 
-    const zip = new AdmZip();
-    const manifest: Array<Record<string, unknown>> = [];
-
-    for (let index = 0; index < chatsToExport.length; index++) {
-      const chat = chatsToExport[index]!;
-      const serialized = await serializeChatTranscript(chat, format, { includeReasoning, includePrivateNotes });
-      const file = buildBulkExportFilename(
-        chat,
-        index,
-        chatsToExport.length,
-        serialized.branchName,
-        serialized.extension,
-      );
-      zip.addFile(file, Buffer.from(serialized.content, "utf8"));
-      manifest.push({
-        file,
-        id: chat.id,
-        name: chat.name,
-        mode: chat.mode,
-        groupId: chat.groupId,
-        folderId: chat.folderId,
-        branchName: serialized.branchName || null,
-        createdAt: chat.createdAt,
-        updatedAt: chat.updatedAt,
-        messageCount: serialized.messageCount,
-      });
-    }
-
-    zip.addFile(
-      "manifest.json",
-      Buffer.from(
-        JSON.stringify(
-          {
-            exportedAt: new Date().toISOString(),
-            format,
-            includeReasoning,
-            includePrivateNotes,
-            scope,
-            count: chatsToExport.length,
-            chats: manifest,
-          },
-          null,
-          2,
+    // One transcript is read and compressed at a time while the ZIP is sent (#7115); the manifest goes last.
+    const files = (async function* () {
+      const manifest: Array<Record<string, unknown>> = [];
+      for (let index = 0; index < chatsToExport.length; index++) {
+        const chat = chatsToExport[index]!;
+        const serialized = await serializeChatTranscript(chat, format, { includeReasoning, includePrivateNotes });
+        const file = buildBulkExportFilename(
+          chat,
+          index,
+          chatsToExport.length,
+          serialized.branchName,
+          serialized.extension,
+        );
+        manifest.push({
+          file,
+          id: chat.id,
+          name: chat.name,
+          mode: chat.mode,
+          groupId: chat.groupId,
+          folderId: chat.folderId,
+          branchName: serialized.branchName || null,
+          createdAt: chat.createdAt,
+          updatedAt: chat.updatedAt,
+          messageCount: serialized.messageCount,
+        });
+        yield {
+          stem: file.slice(0, -(serialized.extension.length + 1)),
+          extension: serialized.extension,
+          content: singleChunk(serialized.content),
+        };
+      }
+      yield {
+        stem: "manifest",
+        extension: "json",
+        content: singleChunk(
+          JSON.stringify(
+            {
+              exportedAt: new Date().toISOString(),
+              format,
+              includeReasoning,
+              includePrivateNotes,
+              scope,
+              count: chatsToExport.length,
+              chats: manifest,
+            },
+            null,
+            2,
+          ),
         ),
-        "utf8",
-      ),
-    );
+      };
+    })();
 
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
     return reply
       .header("Content-Type", "application/zip")
       .header("Content-Disposition", `attachment; filename="chat-transcripts-${format}-${stamp}.zip"`)
-      .send(zip.toBuffer());
+      .send(streamExportZip(files));
   });
 
   // Export chat — supports JSONL (default, SillyTavern-compatible), plain text, Markdown and a standalone HTML story
