@@ -1,6 +1,6 @@
 // R2: the quiet line under a reply that went wrong ("Cut off · Check"), modeled on N1's
 // "Failed · Retry", and the findings it opens. Facts come from diagnoseReply, no model call.
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import { CircleAlert, Eye, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { REPLY_CHECKUP_LINE_CODES, type ReplyCheckupFinding, type ReplyCheckupLink } from "@marinara-engine/shared";
@@ -26,6 +26,13 @@ export function ReplyCheckup({ messageId, findings, open, onOpenChange, onLink, 
   const { t } = useTranslation();
   const panelId = `reply-checkup-${useId().replace(/:/gu, "")}`;
   const lead = replyLineFindings(findings)[0];
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  // F6: nothing scrolled the opened panel into view, so its rows could land under the composer.
+  useEffect(() => {
+    if (!open) return;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    panelRef.current?.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "nearest" });
+  }, [open]);
   if (!lead) return null;
   return (
     <div className="mari-reply-checkup" data-reply-checkup={messageId}>
@@ -45,30 +52,32 @@ export function ReplyCheckup({ messageId, findings, open, onOpenChange, onLink, 
       </p>
       {/* R10: opened, the findings are rows of one group; a row goes to the setting it names. */}
       {open && (
-        <MariList id={panelId} data-cards="checkup">
-          {findings.map((finding) => {
-            const { title, why } = replyCheckupRow(finding, t);
-            const Icon = REPLY_CHECKUP_LINE_CODES.includes(finding.code) ? CircleAlert : Info;
-            const link = finding.link;
-            return (
-              <MariRow
-                key={finding.code}
-                slot={<Icon />}
-                title={title}
-                fact={[why, link ? replyCheckupLinkLabel(link, t) : null].filter(Boolean).join(" · ")}
-                trail={link ? "open" : undefined}
-                onClick={link ? () => onLink(link) : undefined}
-              />
-            );
-          })}
-          <MariRow
-            slot={<Eye />}
-            title={t("chat.replyCheckup.peek", "Peek at the prompt")}
-            fact={t("chat.replyCheckup.peekFact", "See exactly what was sent")}
-            trail="open"
-            onClick={onPeek}
-          />
-        </MariList>
+        <div ref={panelRef} className="mari-reply-checkup__panel">
+          <MariList id={panelId} data-cards="checkup">
+            {findings.map((finding) => {
+              const { title, why } = replyCheckupRow(finding, t);
+              const Icon = REPLY_CHECKUP_LINE_CODES.includes(finding.code) ? CircleAlert : Info;
+              const link = finding.link;
+              return (
+                <MariRow
+                  key={finding.code}
+                  slot={<Icon />}
+                  title={title}
+                  fact={[why, link ? replyCheckupLinkLabel(link, t) : null].filter(Boolean).join(" · ")}
+                  trail={link ? "open" : undefined}
+                  onClick={link ? () => onLink(link) : undefined}
+                />
+              );
+            })}
+            <MariRow
+              slot={<Eye />}
+              title={t("chat.replyCheckup.peek", "Peek at the prompt")}
+              fact={t("chat.replyCheckup.peekFact", "See exactly what was sent")}
+              trail="open"
+              onClick={onPeek}
+            />
+          </MariList>
+        </div>
       )}
     </div>
   );

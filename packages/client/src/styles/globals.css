@@ -2269,11 +2269,19 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   color: var(--marinara-chat-chrome-text);
 }
 
+/* F5: muted-foreground sits on roleplay's mid-grey chat surface at ~1.2:1 in light theme. Same token
+   family as the link above, just dimmed instead of muted, so the line stays readable there. */
+[data-chat-mode] .mari-reply-checkup {
+  color: color-mix(in srgb, var(--marinara-chat-chrome-text) 72%, transparent);
+}
+
 /* R10: opened, the findings are rows of one group: the number in the title, why and the setting as the
-   fact; the whole row goes to the setting. */
-.mari-reply-checkup > .mari-list {
+   fact; the whole row goes to the setting. F6: the scrollIntoView target also keeps the panel's rows
+   clear of the sticky composer below it. */
+.mari-reply-checkup__panel {
   max-width: 28rem;
   margin-block-start: 0.35rem;
+  scroll-margin-bottom: 7rem;
 }
 
 /* The Peek header keeps the findings as a short list of sentences. */
