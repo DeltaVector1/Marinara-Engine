@@ -26,15 +26,19 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     { delayMs: 4_000, action: { say: "You have no characters, lorebooks or personas yet.", commands: [], stop: true } },
     { delayMs: 0, action: { say: "Hello! Ask me anything.", commands: [], stop: true } },
   ];
+  const prompts: string[] = [];
   const provider = createServer((incoming, response) => {
-    incoming.resume();
     // Model-list probes are not a round of her run.
     if (incoming.method !== "POST") {
+      incoming.resume();
       response.writeHead(200, { "content-type": "application/json" });
       response.end(JSON.stringify({ data: [{ id: "fixture" }] }));
       return;
     }
+    const chunks: Buffer[] = [];
+    incoming.on("data", (chunk: Buffer) => chunks.push(chunk));
     incoming.on("end", () => {
+      prompts.push(Buffer.concat(chunks).toString());
       const round = rounds.shift() ?? { delayMs: 0, action: { say: "Done.", commands: [], stop: true } };
       setTimeout(() => {
         response.writeHead(200, { "content-type": "text/event-stream", connection: "close" });
@@ -119,6 +123,16 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     await expect(phase.locator("> summary .mari-done-mark--step")).toBeVisible();
     await expect(finished.locator(".mari-work-timeline__header .mari-work-timeline__done-mark")).toBeVisible();
     await page.screenshot({ path: ".tmp/omnibar-ux/62g/live-done-marks-finished-1440.png" });
+
+    // R13.2: the prompt she really got no longer sends her on reads just to make a card show, lets a
+    // question that needs it get a paragraph, and keeps chat.diagnose for real bad-reply complaints.
+    const systemPrompt = prompts[0] ?? "";
+    expect(systemPrompt).toContain("never run a read only to make a card show");
+    expect(systemPrompt).toContain("write a short paragraph or a few steps");
+    expect(systemPrompt).toContain("Never run a read only to fill a suggestion");
+    expect(systemPrompt).toContain("Do not call it for other questions");
+    expect(systemPrompt).not.toContain("so its card can show");
+    expect(systemPrompt).not.toContain("she forgets things");
 
     // An answer without any step still ends on a small done check.
     await mariPane.locator("textarea:visible").fill("Hi!");
