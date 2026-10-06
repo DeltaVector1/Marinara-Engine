@@ -101,7 +101,9 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 60  | Record what was cut, server-side (R1)                           | worker           | Done                 | 122ec6d2e |
 | 61  | Reply checkup, no model (R2)                                    | designer         | Done                 | 5267f2fdd |
 | 62  | Mari reads the checkup: chat.diagnose (R3)                      | designer         | Done                 | 25fe9dea7 |
+| 62a | Fix the "Mari needs your answer" / "working" row navigation (R9) | worker           | Pending              |           |
 | 62b | One Mari thread per context (R7)                                | designer         | Pending              |           |
+| 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Pending              |           |
 | 63  | Connection doctor (R4)                                          | worker           | Pending              |           |
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Pending              |           |
 | 65  | Cut and re-measure, review (R6)                                 | reviewer, worker | Pending              |           |
@@ -1296,7 +1298,29 @@ a cut-off/trimmed reply DOES get a quiet line in the chat. Lorebook batch review
   EMPTY omnibar list (keep them reachable by typing); never promote Ask Mari above docs rows when no model is
   set; re-run the 15 old tasks and T16-T20; update the value table, inventory and CHANGELOG; fix confirmed review
   findings.
-- R7 (slice 62b, designer, after 62) One Mari thread per context (maintainer decision 2026-10-05, option C).
+- R9 (slice 62a, worker, after 62, priority bug) Clicking the omnibar row "Mari needs your answer" does not
+  navigate. The row (`lib/omnibar-results.ts` ≈1600-1650, category `professor`, score 480, group "continue")
+  carries a `choice` control (Keep/Restore) with no selected value, so a click or Enter on the row body does
+  nothing. Fix: click or Enter on the row opens the omnibar's Mari pane and scrolls to THAT pending review card,
+  focused and briefly highlighted — use the existing `mariPendingReviewRequest` path (`GlobalOmnibar.tsx` ≈493,
+  ≈2869, ≈2920 → `OmnibarMariPane`'s `pendingReviewRequest`), targeting the specific approval id, not just "any
+  pending review". The inline Keep/Restore choice may stay as a quick action, but the row itself must navigate.
+  If the review belongs to a different Mari thread or chat, open that thread (compatible with R7 below). The same
+  rule applies to the "Mari is working" row: click it to go to her live run. Proof: e2e with a mocked pending
+  review — click the row → the Mari pane opens with the card in view and focused; Enter does the same; Keep/
+  Restore inline still works; a regression assert for the row's action at 390 and 1440.
+  Also in this slice: (1) a CHANGELOG line for the maintainer's own already-shipped fix (`6bf8bf780`, "Mari's
+  memories open collapsed instead of auto-expanding the first one") — no code change needed, just the entry.
+  (2) Remove the pin shortcut and its UI entirely — there is a Cmd/Ctrl+P shortcut and hint but no visible way to
+  pin or unpin anything, so cut the dead feature rather than leave an orphaned hint: the Cmd/Ctrl+P handler and
+  `togglePinned` in `GlobalOmnibar.tsx` (≈2100, ≈2584); the footer hint `commandCenter.keyboard.pin` (≈3781); the
+  shortcut entry in `lib/keyboard-shortcuts.ts:35-36` plus `shortcuts.general.omnibarPin`; the "pinned" group, its
+  icon branch, `commandCenter.groups.pinned` / `commandCenter.context.pinned`; `pinnedResultIds` in
+  `omnibar-search.ts` (≈164, ≈249, ≈463); `setCommandPinned` / `MAX_PINNED_COMMANDS` in `command-center.ts`.
+  `normalizeCommandRankingState` must ignore any old stored `pinnedIds` so no stale "Pinned" group can appear from
+  existing user data. Update the regression asserts in `command-center.regression.ts` (≈13, ≈175-187), the
+  inventory, the shortcut docs and the CHANGELOG. Run `heavy pnpm check` and the regression.
+- R7 (slice 62b, designer, after 62a) One Mari thread per context (maintainer decision 2026-10-05, option C).
   Each Mari conversation carries a context key (chat id, agent type, editor resource, or "general" for Home and
   no context). Opening Mari through an arrival door (⌘J, pull, drag, Home "Ask", the Fix/Check rows) continues the
   newest thread with the same context key, or creates one; the arrival block (slice 39/40) shows in it. If the
@@ -1306,3 +1330,19 @@ a cut-off/trimmed reply DOES get a quiet line in the chat. Lorebook batch review
   without a key count as "general". Reuse `ensureProfessorMariChat` and the existing chat metadata; no new storage
   format if a metadata field suffices. Proof: regression on the thread-choice function (same key, different key,
   recent other thread, no key); e2e ⌘J from two chats lands in two threads, and back in the first one; 390/1440.
+- R8 (slice 62c, designer, after 62b) Two small pull-system fixes, maintainer feedback 2026-10-05/06.
+  (1) The pull drop's rim should share the top bar's current state colour. When the top-bar bottom edge glows
+  (slice 52: the working colour while it pulses, green when done, gold for approval, red for an error), the pull
+  sheet's rim and shimmer (`OmnibarPullDrop`, slice 33b set it to the accent) must use that SAME current state
+  colour, including the slow pulse while she works. When the bar has no state glow, they keep the accent. The
+  sheet body keeps the top-bar surface. Reduced motion: no pulse. Use one shared source for the state colour (the
+  same CSS variables or state hook the edge glow itself uses) — not a second copy that can drift. Proof: frame
+  screenshots of a pull while Mari works, after she is done, and at rest, on mobile-chromium, dark and light.
+  (2) Desktop mouse-drag text-selection bug (slice 39): dragging the top bar selects all page text. Fix in the
+  shared pull recognizer (`use-pull-to-open-omnibar.ts`): once a mouse drag is recognized as a pull (after the
+  direction lock), clear the current selection and block text selection for the whole drag — a class on `<html>`
+  setting `user-select: none` (and `-webkit-user-select`), or `preventDefault` on `pointermove`/`selectstart`
+  while the drag is active; remove the block on release or cancel. Must not block a normal click on bar buttons,
+  and must not block text selection anywhere when no drag is active. Proof: e2e on desktop-chromium — drag the
+  top bar 200px and assert `window.getSelection().toString() === ""` during and after the drag; a bar-button
+  click still works; selecting text in a chat message still works after the drag.
