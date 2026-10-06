@@ -207,9 +207,9 @@ Zarządza ekwipunkiem aktywnej persony, miejscami na wyposażenie, liczbą przed
 
 - **Faza**: Post-Processing, z kontekstem ekwipunku przekazywanym do kolejnych odpowiedzi.
 - **Gdzie działa**: Roleplay; śledzi aktywną personę, a nie członków drużyny ani NPC.
-- **Dostępność**: **Staging only** (tylko staging); wymaga aplikacji Marinara Engine w wersji **2.4.6+**. Publikacja stabilna jest planowana wraz z następnym wydaniem aplikacji z gałęzi main.
+- **Dostępność**: wymaga aplikacji Marinara Engine w wersji **2.4.6+**.
 - **Instalacja i włączanie**: zainstaluj **Quartermaster** w sekcji **Agents → Download Agents** i uruchom aplikację ponownie, gdy pojawi się prośba. W każdym czacie Roleplay włącz agentów w sekcji **Chat Settings → Agents** (ustawienia czatu → agenci), dodaj Quartermaster w grupie **Tracker Agents** (agenci śledzący stan) i wybierz połączenie z modelem. Otwórz pływający panel przyciskiem nad Tracker Panel.
-- **Najważniejsze opcje**: zakładanie i przechowywanie przedmiotów, zapisywanie strojów, przywracanie ekwipunku lub cofanie ostatnich zmian trackera oraz eksport i import konfiguracji czatu. Generowanie obrazów wymaga osobno skonfigurowanego połączenia obrazowego. Makro wyglądu i zastępowanie awatara persony są opcjonalne; przed włączeniem przeczytaj [przewodnik pakietu Quartermaster](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/quartermaster/README.md).
+- **Najważniejsze opcje**: zakładanie i przechowywanie przedmiotów, zapisywanie strojów, przywracanie ekwipunku lub cofanie ostatnich zmian trackera oraz eksport i import konfiguracji czatu. Generowanie obrazów wymaga osobno skonfigurowanego połączenia obrazowego. Makro wyglądu i zastępowanie awatara persony są opcjonalne; przed włączeniem przeczytaj [przewodnik pakietu Quartermaster](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/quartermaster/README.md).
 
 ### Relationship Tracker
 
@@ -217,9 +217,9 @@ Utrzymuje edytowalną sieć relacji między kartami postaci przypisanymi do grup
 
 - **Faza**: Post-Processing, z kontekstem relacji przekazywanym do kolejnych odpowiedzi.
 - **Gdzie działa**: grupowe czaty Roleplay.
-- **Dostępność**: **Staging only**; wymaga aplikacji Marinara Engine w wersji **2.4.4+** (< 4.0.0) z katalogiem podglądowym staging. Publikacja stabilna jest planowana wraz z następnym wydaniem aplikacji z gałęzi main.
+- **Dostępność**: wymaga aplikacji Marinara Engine w wersji **2.4.4+** (< 4.0.0).
 - **Instalacja i włączanie**: zainstaluj **Relationship Tracker** w sekcji **Agents → Download Agents** i uruchom aplikację ponownie, gdy pojawi się prośba. W każdym czacie Roleplay włącz agentów w sekcji **Chat Settings → Agents**, dodaj pakiet w grupie **Tracker Agents** i wybierz połączenie z modelem. Sieć pojawi się w Tracker Panel. Przed edycją lub aktualizacją relacji wybierz tam raz **All relationships** (wszystkie relacje) albo **Scene-only relationships** (tylko relacje w scenie), aby zainicjować czat.
-- **Najważniejsze opcje**: **All relationships** lub **Scene-only relationships** określają kontekst promptu, **Update from History** (aktualizuj z historii) skanuje ograniczoną liczbę ostatnich wiadomości; dostępne są też ręczna edycja, blokowanie i **Resume automatic updates** (wznów automatyczne aktualizacje). **Context Size** (rozmiar kontekstu; domyślnie 5 wiadomości), **Presence lookback** (zakres sprawdzania obecności; domyślnie 15) i liczba wiadomości skanowanych z historii to osobne ustawienia. Najedź kursorem na linię lub ustaw na niej fokus klawiaturą, aby ją odczytać; na ekranie dotykowym lub przy użyciu rysika naciśnij linię. Zobacz [przewodnik pakietu Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md).
+- **Najważniejsze opcje**: **All relationships** lub **Scene-only relationships** określają kontekst promptu, **Update from History** (aktualizuj z historii) skanuje ograniczoną liczbę ostatnich wiadomości; dostępne są też ręczna edycja, blokowanie i **Resume automatic updates** (wznów automatyczne aktualizacje). **Context Size** (rozmiar kontekstu; domyślnie 5 wiadomości), **Presence lookback** (zakres sprawdzania obecności; domyślnie 15) i liczba wiadomości skanowanych z historii to osobne ustawienia. Najedź kursorem na linię lub ustaw na niej fokus klawiaturą, aby ją odczytać; na ekranie dotykowym lub przy użyciu rysika naciśnij linię. Zobacz [przewodnik pakietu Relationship Tracker](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/relationship-tracker/README.md).
 
 ### Memory Nag
 

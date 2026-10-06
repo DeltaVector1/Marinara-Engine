@@ -45,6 +45,14 @@
 
 两者只能开一个。开启 **RGB Mode** 会关闭 **Accent Pulse**，开启 **Accent Pulse** 也会关闭 **RGB Mode**。只要 Appearance 选项卡是打开的，Accent Pulse 就会实时预览。如果设备开启了减少动态效果，这两种动画都不会播放。
 
+## 聊天组件样式
+
+在 **App Style** 底部，为可移动的聊天按钮、窗口和区域选择 **Default**(默认)、**Dottore** 或 **Mari**。字体、边框形状和三种主要颜色都可以单独更改。颜色选择器也支持渐变。
+
+**Button size (px)**(按钮大小，px) 可以改变可移动聊天按钮及其图标的大小，而不改变 Display Size。输入 32 到 96 像素之间的值。留空或使用重置按钮，会保留当前默认值。大小会和外观偏好一起保存，选择其他预设也不会改变。
+
+颜色选择器下方的 **Apply preset font**(应用预设字体)、**Apply preset shape**(应用预设形状) 和 **Apply preset colors**(应用预设颜色) 可以让聊天的其他区域保持同样的风格。它们初始都是关闭的，且独立生效。它们作用于消息、输入框和聊天控件，也包括 Game Mode 的 HUD 组件、地图面板、补充发言和角色表；Conversation 消息可以使用所选字体和颜色，但保留自己的形状。你自定义的字体、形状和颜色也会一并应用。开启 **Apply preset colors** 时，引号内的对白仍使用每个角色或用户角色自己的 Dialogue Highlight Color。示例和自定义主题见[自定义 CSS 主题](custom-css-themes.md#ready-made-chat-window-styles)。
+
 ## 自定义鼠标指针
 
 **Custom Mouse Pointer**(自定义鼠标指针，默认开启) 会在整个应用里使用 Marinara 的强调色光标。关闭它就恢复成系统原本的光标，也可以把光标交给自定义 CSS 主题去控制。
@@ -63,7 +71,7 @@
 同样在 **Text & Scale** 板块，有四项控件决定聊天文字在背景上的观感。
 
 - **Chat Text Color**(聊天文字颜色) 决定聊天消息正文的主色。默认值在 Dark 模式下是 `#d4d4d4`，在 Light 模式下是 `#1a1025`。
-- **Default Dialogue Color**(默认对白颜色) 决定引号内对白的颜色，前提是角色卡或用户角色没有指定自己的 Dialogue Highlight Color。这一项始终处于启用状态，只是角色卡自带的颜色优先级更高。
+- **Default Dialogue Color**(默认对白颜色) 决定引号内对白的颜色，前提是角色卡或用户角色没有指定自己的 Dialogue Highlight Color。角色卡自带的颜色优先级更高。开启 **Apply preset colors** 时，这类对白会改用聊天组件样式的文字颜色。
 - **Chat Chrome Text Color**(聊天界面文字颜色) 决定追踪器小组件、文件夹标签和设置项说明里的普通文字。默认值与 **Chat Text Color** 相同。
 - **Text Outline / Stroke**(文字描边) 会给聊天文字加一圈描边，背景再花也能看清。可以设置描边颜色和 **Width**(宽度)，范围 0px 到 5px，默认 0.5px。宽度设为 0 就是关闭描边。
 

@@ -29,11 +29,9 @@ Nenne bei Verbindungsfehlern Modus, Plattform, sichtbare Fehlermeldung und ob di
 
 ### Termux: zu wenig JavaScript-Heap beim Client-Build
 
-Wenn Vite mit `Reached heap limit` oder `JavaScript heap out of memory` endet, reicht der Node.js-Heap für den Client-Build nicht. Das unterscheidet sich von einer fehlenden nativen Rollup-Datei. Aktualisiere und starte `start-termux.sh` erneut: Der Build hebt einen kleineren automatischen Heap vorübergehend in Richtung 1536 MiB an, begrenzt auf die Hälfte des bekannten Geräte-RAMs bei einer Untergrenze von 1024 MiB. Der Server behält sein kleineres profilabhängiges Limit. Ein ausdrückliches Limit in `NODE_OPTIONS` gilt für beide Prozesse; prüfe auf eine alte 1024-MiB-Vorgabe.
+Wenn Vite mit `Reached heap limit` oder `JavaScript heap out of memory` endet, reicht der Node.js-Heap für den Client-Build nicht. Das unterscheidet sich von einer fehlenden nativen Rollup-Datei. Aktualisiere und starte `start-termux.sh` erneut: Client-Builds, auch bei Updates in der App, laufen jetzt mit einem eigenen Heap von 1536 MiB, begrenzt auf die Hälfte des bekannten Geräte-RAMs, aber nie unter den 1280 MiB, die der Build braucht. Die RAM-Grenze wird auf Schritte von 128 MiB abgerundet. Der Server behält sein kleineres profilabhängiges Limit. Ein ausdrückliches Limit in `NODE_OPTIONS` gilt für beide Prozesse; prüfe auf eine alte 1024-MiB-Vorgabe, denn mit 1024 MiB lässt sich der Client nicht mehr bauen.
 
-Die RAM-Grenze wird auf Schritte von 128 MiB abgerundet. Liegt die Hälfte des Geräte-RAMs unter 1024 MiB, hat die Untergrenze von 1024 MiB Vorrang.
-
-Schließe vor dem nächsten Versuch andere Apps. Geräte mit wenig Speicher können weiterhin scheitern oder von Android beendet werden. Heb für eine Meldung die vollständige Launcher-Ausgabe auf. Lösche weder Chats noch Profil, um einen Buildfehler zu beheben.
+Schließe vor dem nächsten Versuch andere Apps. Handys mit weniger als etwa 3 GB Arbeitsspeicher können weiterhin scheitern oder von Android beendet werden. Heb für eine Meldung die vollständige Launcher-Ausgabe auf. Lösche weder Chats noch Profil, um einen Buildfehler zu beheben.
 
 ### Termux: fehlende Mehrspieler-Gastdatei oder inkompatibles Sharp
 
@@ -59,7 +57,7 @@ Wähl eine der drei Lösungen:
 2. pnpm selbst installieren. Führ diesen Befehl aus und starte danach den Launcher erneut:
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. Corepack in einem Administrator-Terminal aktualisieren und den Launcher erneut starten:
@@ -75,7 +73,7 @@ Marinara v2.3.0 konnte pnpm zwar über Corepack starten, scheiterte dann aber be
 Lässt sich die lokale Kopie selbst nicht aktualisieren, führ `git pull` im Marinara-Ordner aus und starte erneut. Als vorübergehende Notlösung für v2.3.0 installierst du den festgelegten Paketmanager global, startest den Launcher erneut und aktualisierst anschließend ganz normal:
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### Launcher-Update auf pnpm 10.34.5

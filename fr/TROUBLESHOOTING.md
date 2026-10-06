@@ -29,11 +29,9 @@ Pour signaler une erreur, indique le mode, la plateforme, le message visible et 
 
 ### Termux : mémoire insuffisante pendant la compilation du client
 
-Si Vite s'arrête avec `Reached heap limit` ou `JavaScript heap out of memory`, le tas mémoire de Node.js est insuffisant pour compiler le client. Ce n'est pas une absence de binaire natif Rollup. Mets à jour puis relance `start-termux.sh` : la compilation relève temporairement un plafond automatique plus bas vers 1536 MiB, sans dépasser la moitié de la RAM connue, avec un minimum de 1024 MiB. Le serveur conserve son plafond plus bas lié au profil. Une limite explicite dans `NODE_OPTIONS` prime pour les deux processus ; vérifie qu'une ancienne limite de 1024 MiB n'est pas restée configurée.
+Si Vite s'arrête avec `Reached heap limit` ou `JavaScript heap out of memory`, le tas mémoire de Node.js est insuffisant pour compiler le client. Ce n'est pas une absence de binaire natif Rollup. Mets à jour puis relance `start-termux.sh` : la compilation du client, y compris pendant les mises à jour depuis l'application, dispose désormais de son propre tas de 1536 MiB, sans dépasser la moitié de la RAM connue de l'appareil, mais jamais en dessous des 1280 MiB dont elle a besoin. Le plafond lié à la RAM est arrondi vers le bas par pas de 128 MiB. Le serveur conserve son plafond plus bas lié au profil. Une limite explicite dans `NODE_OPTIONS` prime pour les deux processus ; vérifie qu'une ancienne limite de 1024 MiB n'est pas restée configurée : le client ne peut plus se compiler avec 1024 MiB.
 
-Le plafond lié à la RAM est arrondi vers le bas par pas de 128 MiB. Si la moitié de la RAM est inférieure à 1024 MiB, le minimum de 1024 MiB est prioritaire.
-
-Ferme les autres apps avant de réessayer. Un appareil avec peu de mémoire peut encore échouer ou Android peut arrêter le processus ; conserve toute la sortie du lanceur pour le signaler. Ne supprime ni chats ni profil pour réparer une compilation.
+Ferme les autres applications avant de réessayer. Sur un téléphone avec moins de 3 Go de RAM environ, la compilation peut encore manquer de mémoire ou être arrêtée par Android ; conserve toute la sortie du lanceur pour le signaler. Ne supprime ni chats ni profil pour réparer une compilation.
 
 ### Termux : fichier du client invité multijoueur manquant ou Sharp incompatible
 
@@ -59,7 +57,7 @@ Choisis l'une de ces solutions :
 2. Installe pnpm toi-même. Lance cette commande, puis relance le lanceur :
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. Mets corepack à jour dans un terminal administrateur, puis relance le lanceur :
@@ -75,7 +73,7 @@ Marinara v2.3.0 arrivait à démarrer pnpm via Corepack, puis échouait pendant 
 Si le dépôt lui-même n'arrive pas à se mettre à jour, lance `git pull` dans le dossier Marinara puis redémarre. Contournement temporaire en v2.3.0 : installe globalement la version épinglée du gestionnaire de paquets, relance le lanceur, puis mets à jour normalement :
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### Mise à jour du lanceur vers pnpm 10.34.5

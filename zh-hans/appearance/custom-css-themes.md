@@ -24,7 +24,7 @@
 
 - **Apply preset font**(应用预设字体) 将所选组件字体用于消息、输入框和聊天控件，包括 Game Mode 的 HUD 组件、地图面板、补充发言和角色表。
 - **Apply preset shape**(应用预设形状) 将所选边框形状用于经典布局和视觉小说布局中的 Roleplay 消息、Game 对话框、补充发言、HUD 组件、地图面板、角色表、输入框和控件。Conversation 消息保留自己的形状。
-- **Apply preset colors**(应用预设颜色) 将组件的边框、背景和文字颜色用于这些区域，也包括 Conversation 消息。自定义颜色和渐变同样适用。
+- **Apply preset colors**(应用预设颜色) 将组件的边框、背景和文字颜色用于这些区域，也包括 Conversation 消息。自定义颜色和渐变同样适用。引号内的对白仍保留每个角色或用户角色自己的 Dialogue Highlight Color。
 
 每个开关初始都是关闭的，且独立生效。例如，可以使用 Mari 的字体，同时保留聊天原本的颜色。关闭某个开关，就会恢复聊天对应部分原本的样式。选择其他预设不会改变开关状态。也可以让 Professor Mari 为这些区域创建自定义主题。
 

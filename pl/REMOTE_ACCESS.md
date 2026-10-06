@@ -78,7 +78,7 @@ Część klientów pomija hasło nawet przy włączonym Basic Auth:
 - Loopback (`127.0.0.1`, `::1`), więc na samym komputerze z serwerem hasło nigdy nie jest potrzebne.
 - Każdy adres z `IP_ALLOWLIST`. Uwaga: ustawienie listy blokuje jednocześnie wszystkie adresy spoza niej (zobacz opcję 2).
 - Ruch z sieci Tailscale (`100.64.0.0/10`) oraz z mostka lub bramy Docker na tym samym komputerze, o ile pominięcie nie zostanie wyłączone.
-- Adres `/api/health`, dzięki czemu monitory dostępności dalej działają.
+- Adres `/api/health`, dzięki czemu monitory dostępności dalej działają. Bez hasła zwraca on tylko podstawowy stan, bez informacji o twoich lokalnych modelach i karcie graficznej.
 
 Ważne: Basic Auth tylko koduje hasło, ale go nie szyfruje. Ktoś, kto podsłuchuje niezaszyfrowane połączenie, odczyta je bez trudu. Przy udostępnianiu aplikacji Marinara w publicznym internecie połącz Basic Auth z HTTPS (zobacz niżej).
 

@@ -78,7 +78,7 @@ Certains clients passent outre le mot de passe, même quand Basic Auth est activ
 - Loopback (`127.0.0.1`, `::1`) : tu n'as donc jamais besoin de mot de passe sur la machine hôte elle-même.
 - Toute adresse présente dans `IP_ALLOWLIST`. Attention : définir une liste d'autorisation bloque aussi toutes les adresses absentes de cette liste (voir l'option 2).
 - Tailscale (`100.64.0.0/10`) et le trafic Docker du même hôte, pont ou passerelle, sauf si tu désactives leur contournement.
-- L'adresse `/api/health`, pour que les outils de surveillance continuent de fonctionner.
+- L'adresse `/api/health`, pour que les outils de surveillance continuent de fonctionner. Sans mot de passe, elle ne renvoie qu'un état de base, sans rien dire de tes modèles locaux ni de ta carte graphique.
 
 Important : Basic Auth se contente d'encoder le mot de passe, il ne le chiffre pas. N'importe qui surveillant une connexion non chiffrée peut le lire. Si tu exposes Marinara sur Internet, associe Basic Auth au HTTPS (voir plus bas).
 

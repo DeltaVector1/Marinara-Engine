@@ -30,7 +30,7 @@ Roleplay에서 슬라이더 버튼 옆의 짧은 안내는 한 번만 닫으면 
 
 **Button size (px)**(버튼 크기, px)는 Display Size를 바꾸지 않고 이동 가능한 채팅 버튼과 아이콘의 크기를 바꿉니다. 32부터 96픽셀 사이의 값을 입력하세요. 필드를 비우거나 초기화 버튼을 누르면 현재 기본값을 유지합니다. 크기는 모양 환경설정에 저장되며 다른 프리셋을 선택해도 그대로 유지됩니다.
 
-채팅의 나머지 영역도 맞추려면 **Apply preset font**(프리셋 글꼴 적용), **Apply preset shape**(프리셋 모양 적용) 또는 **Apply preset colors**(프리셋 색상 적용)를 켜세요. 각 스위치는 독립적으로 동작하며 위에서 선택한 사용자 지정 설정도 포함합니다. 메시지, 입력란과 채팅 컨트롤에 적용됩니다. Conversation 메시지는 선택한 글꼴과 색상을 사용하지만 원래 모양은 유지합니다. 세 스위치는 모두 꺼진 상태로 시작합니다. 스위치를 끄면 해당 부분이 원래 채팅 스타일로 돌아갑니다. 자세한 내용은 [사용자 지정 CSS 테마](../appearance/custom-css-themes.md#ready-made-chat-window-styles)를 참고하세요.
+채팅의 나머지 영역도 맞추려면 **Apply preset font**(프리셋 글꼴 적용), **Apply preset shape**(프리셋 모양 적용) 또는 **Apply preset colors**(프리셋 색상 적용)를 켜세요. 각 스위치는 독립적으로 동작하며 위에서 선택한 사용자 지정 설정도 포함합니다. 메시지, 입력란과 채팅 컨트롤에 적용됩니다. Conversation 메시지는 선택한 글꼴과 색상을 사용하지만 원래 모양은 유지합니다. **Apply preset colors**를 켜도 따옴표 안의 대사는 각 캐릭터나 페르소나에 지정된 Dialogue Highlight Color를 그대로 유지합니다. 세 스위치는 모두 꺼진 상태로 시작합니다. 스위치를 끄면 해당 부분이 원래 채팅 스타일로 돌아갑니다. 자세한 내용은 [사용자 지정 CSS 테마](../appearance/custom-css-themes.md#ready-made-chat-window-styles)를 참고하세요.
 
 ## 창 이동, 고정, 잠금
 

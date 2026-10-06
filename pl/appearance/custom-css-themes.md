@@ -24,7 +24,7 @@ Aby przenieść ten wygląd na resztę czatu, użyj trzech przełączników pod 
 
 - **Apply preset font** (zastosowanie czcionki presetu) stosuje wybraną czcionkę widgetów w wiadomościach, polach wpisywania i kontrolkach czatu, w tym widgetach paska HUD, panelu mapy, uwagach pobocznych i kartach postaci w trybie Game Mode.
 - **Apply preset shape** (zastosowanie kształtu presetu) stosuje wybrany kształt ramki w wiadomościach Roleplay w układzie klasycznym i visual novel, polu dialogowym Game, uwagach pobocznych, widgetach paska HUD, panelu mapy i kartach postaci, polach wpisywania oraz kontrolkach. Wiadomości Conversation zachowują swój kształt.
-- **Apply preset colors** (zastosowanie kolorów presetu) stosuje kolory obramowań, tła i tekstu widgetów w tych obszarach, także w wiadomościach Conversation. Uwzględnia też własne kolory i gradienty.
+- **Apply preset colors** (zastosowanie kolorów presetu) stosuje kolory obramowań, tła i tekstu widgetów w tych obszarach, także w wiadomościach Conversation. Uwzględnia też własne kolory i gradienty. Wypowiedzi w cudzysłowie zachowują kolor Dialogue Highlight Color ustawiony dla danej postaci lub persony.
 
 Każdy przełącznik jest początkowo wyłączony i działa niezależnie. Możesz na przykład użyć czcionki Mari, zachowując zwykłe kolory czatu. Wyłączenie przełącznika przywraca zwykły wygląd odpowiedniej części czatu. Wybranie innego presetu zachowuje ustawienia przełączników. Asystentka Professor Mari może też tworzyć własne motywy dla tych obszarów.
 

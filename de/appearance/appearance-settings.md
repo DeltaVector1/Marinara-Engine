@@ -45,6 +45,14 @@ Zwei Schalter verändern das Verhalten der Accent Color:
 
 Beides gleichzeitig geht nicht. **RGB Mode** einzuschalten deaktiviert **Accent Pulse**, und umgekehrt schaltet **Accent Pulse** den **RGB Mode** ab. Accent Pulse zeigt sich sofort in der Vorschau, solange der Appearance-Tab geöffnet ist. Ist am Gerät reduzierte Bewegung eingestellt, entfallen beide Animationen.
 
+## Chat widget style
+
+Unten in **App Style** wählst du **Default** (Standard), **Dottore** oder **Mari** für verschiebbare Chat-Schaltflächen, Fenster und Abschnitte. Schrift, Rahmenform und die drei Hauptfarben kannst du einzeln ändern. Die Farbwähler unterstützen auch Farbverläufe.
+
+**Button size (px)** (Schaltflächengröße in Pixeln) ändert verschiebbare Chat-Schaltflächen und ihre Symbole, ohne Display Size zu ändern. Gib eine Größe von 32 bis 96 Pixeln ein. Lass das Feld leer oder nutze seine Schaltfläche zum Zurücksetzen, um den aktuellen Standard beizubehalten. Die Größe wird mit deinen Darstellungseinstellungen gespeichert und bleibt beim Wechsel des Presets gleich.
+
+Unter den Farbwählern sorgen **Apply preset font** (Preset-Schrift anwenden), **Apply preset shape** (Preset-Form anwenden) und **Apply preset colors** (Preset-Farben anwenden) dafür, dass der restliche Chat dazu passt. Sie sind anfangs aus und funktionieren unabhängig voneinander. Sie gelten für Nachrichten, Eingabefelder und Chat-Bedienelemente sowie für HUD-Widgets, Kartenpanel, Randbemerkungen und Charakterbögen in Game Mode; Conversation-Nachrichten übernehmen auf Wunsch Schrift und Farben, behalten aber ihre eigene Form. Deine eigene Schrift, Form und Farben sind mit eingeschlossen. Ist **Apply preset colors** an, nutzt wörtliche Rede weiterhin die eigene Dialogue Highlight Color des jeweiligen Charakters oder der jeweiligen Persona. Beispiele und eigene Themes findest du unter [Eigene CSS-Themes](custom-css-themes.md#ready-made-chat-window-styles).
+
 ## Custom Mouse Pointer
 
 **Custom Mouse Pointer** (eigener Mauszeiger, standardmäßig an) zeigt in der ganzen App den Marinara-Zeiger in der Akzentfarbe. Schalte die Option aus, um den gewohnten Systemzeiger zu nutzen oder den Zeiger von einem eigenen CSS-Theme steuern zu lassen.
@@ -63,7 +71,7 @@ Im selben Abschnitt sitzt das Dropdown-Menü **Font**. Wie du eigene Schriftarte
 Ebenfalls im Abschnitt **Text & Scale** steuern vier Bedienelemente, wie gut sich Chat-Text vom Hintergrund abhebt.
 
 - **Chat Text Color** (Chat-Textfarbe) legt die Hauptfarbe für den Text der Chat-Nachrichten fest. Der Standard ist `#d4d4d4` im Dark-Modus und `#1a1025` im Light-Modus.
-- **Default Dialogue Color** färbt wörtliche Rede, wenn eine Charakterkarte oder Persona keine eigene Dialogue Highlight Color definiert. Sie ist immer aktiv; kartenspezifische Farben haben Vorrang.
+- **Default Dialogue Color** färbt wörtliche Rede, wenn eine Charakterkarte oder Persona keine eigene Dialogue Highlight Color definiert. Kartenspezifische Farben haben Vorrang. Solange **Apply preset colors** eingeschaltet ist, nutzt diese wörtliche Rede stattdessen die Textfarbe des Chat-Widget-Stils.
 - **Chat Chrome Text Color** legt die Farbe für gewöhnlichen Text in Tracker-Widgets, Ordnerbeschriftungen und Beschreibungen in den Einstellungen fest. Es gelten dieselben Standardwerte wie bei **Chat Text Color**.
 - **Text Outline / Stroke** legt eine Kontur um den Chat-Text, damit er auch vor unruhigen Hintergründen lesbar bleibt. Stell die Konturfarbe und eine **Width** (Breite) von 0px bis 5px ein. Der Standard beträgt 0.5px. Bei einer Breite von 0 verschwindet die Kontur.
 

@@ -24,7 +24,7 @@ Para llevar este aspecto al resto del chat, usa los tres interruptores debajo de
 
 - **Apply preset font** (Aplicar fuente del preset) usa la fuente elegida para los widgets en los mensajes, los campos de entrada y los controles del chat, incluidos los widgets del HUD, el panel del mapa, los comentarios al margen y las fichas de personaje de Game Mode.
 - **Apply preset shape** (Aplicar forma del preset) usa la forma de marco elegida en los mensajes de Roleplay con diseño clásico o de novela visual, el cuadro de diálogo de Game, los comentarios al margen, los widgets del HUD, el panel del mapa, las fichas de personaje, los campos de entrada y los controles. Los mensajes de Conversation conservan su propia forma.
-- **Apply preset colors** (Aplicar colores del preset) usa los colores del borde, el fondo y el texto del widget en esas áreas, incluidos los mensajes de Conversation. También se aplican tus colores y degradados personalizados.
+- **Apply preset colors** (Aplicar colores del preset) usa los colores del borde, el fondo y el texto del widget en esas áreas, incluidos los mensajes de Conversation. También se aplican tus colores y degradados personalizados. El diálogo entrecomillado conserva el Dialogue Highlight Color propio de cada personaje o persona.
 
 Cada interruptor empieza desactivado y funciona de forma independiente. Por ejemplo, puedes usar las letras de Mari y conservar los colores habituales del chat. Desactivar un interruptor restaura esa parte del estilo habitual del chat. Elegir otro preset conserva tus elecciones de los interruptores. Professor Mari también puede crear temas personalizados para estas áreas.
 

@@ -44,13 +44,13 @@ Professor Mari puede mirar dentro de los propios archivos de programa de Marinar
 Aquí está el límite de confianza en términos sencillos:
 
 - Sus herramientas de archivos permanecen dentro de la carpeta donde está instalado Marinara. Los comandos de shell sin procesar pueden leer el área de trabajo y los programas del sistema necesarios, pero no pueden leer tus otros archivos personales.
-- Los archivos con secretos de entorno como `.env` y los archivos internos de Git no están disponibles para sus herramientas de archivos ni para el shell sin procesar.
-- No puede escribir directamente en tu carpeta de datos guardados, donde viven tus personajes y chats. En su lugar usa el flujo de cambios revisables que se describe abajo.
+- Los archivos con secretos de entorno como `.env`, el archivo de clave que protege tus API keys (claves de API) guardadas y los archivos internos de Git no están disponibles para sus herramientas de archivos ni para el shell sin procesar.
+- No puede escribir directamente en tu carpeta de datos guardados, donde viven tus personajes y chats, ni con sus herramientas de archivos ni con el shell sin procesar. En su lugar usa el flujo de cambios revisables que se describe abajo.
 - Los comandos de shell sin procesar no tienen acceso a la red, no heredan los secretos del servidor y solo pueden escribir archivos ordinarios del área de trabajo y una carpeta temporal privada.
 - Puede seguir editando archivos de código normales directamente. Los cambios en manifiestos de dependencias, archivos de bloqueo, lanzadores, instaladores y flujos de CI se preparan y se te muestran antes de que Marinara los aplique.
-- Puede leer los archivos compilados de Marinara, las carpetas `dist` desde las que se ejecuta la app, pero no puede crearlos, editarlos, moverlos ni eliminarlos. En su lugar, ella cambia los archivos de código fuente.
+- Puede leer los archivos compilados de Marinara, las carpetas `dist` desde las que se ejecuta la app, pero no puede crearlos, editarlos, moverlos ni eliminarlos. En su lugar, ella cambia los archivos de código fuente. Solo `mari code check` los vuelve a compilar, dentro del mismo entorno aislado.
 - Si un cambio de código necesita una biblioteca pública de npm, solicita un paquete específico como destino. Marinara resuelve `latest` a una versión exacta, muestra la integridad del registro en una tarjeta de revisión, y la instala solo después de que la apruebas. Los scripts de ciclo de vida de los paquetes permanecen desactivados.
-- Si Marinara no puede proporcionar su entorno aislado de shell de macOS o Linux, los comandos de shell sin procesar quedan desactivados. Ella todavía puede usar las herramientas estructuradas más seguras de archivos y de datos de la app.
+- Si Marinara no puede proporcionar su entorno aislado de shell de macOS o Linux, los comandos de shell sin procesar y `mari code check` quedan desactivados. Ella todavía puede usar las herramientas estructuradas más seguras de archivos y de datos de la app.
 - Los comandos que ejecuta se detienen por sí solos tras un corto tiempo, así que un comando atascado no puede correr para siempre.
 
 La mayoría de las personas nunca necesitan esto. Existe para que ella pueda inspeccionar o reparar la propia app cuando algo está roto.

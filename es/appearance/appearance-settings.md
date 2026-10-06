@@ -45,6 +45,14 @@ Dos interruptores cambian el comportamiento del Accent Color:
 
 Solo puedes usar uno de estos a la vez. Activar **RGB Mode** desactiva **Accent Pulse**, y activar **Accent Pulse** desactiva **RGB Mode**. Accent Pulse se previsualiza en vivo mientras la pestaña Appearance está abierta. Si tu dispositivo está configurado para reducir el movimiento, ambas animaciones se omiten.
 
+## Chat widget style
+
+Al final de **App Style**, elige **Default**, **Dottore** o **Mari** para los botones, las ventanas y las secciones móviles del chat. Puedes cambiar por separado la fuente, la forma del marco y los tres colores principales. Los selectores de color también admiten degradados.
+
+**Button size (px)** (tamaño del botón en píxeles) cambia los botones móviles del chat y sus iconos sin cambiar Display Size. Introduce un tamaño de 32 a 96 píxeles. Deja el campo vacío o usa su botón de restablecer para conservar el valor predeterminado actual. El tamaño se guarda con tus preferencias de apariencia y se mantiene al elegir otro preset.
+
+Debajo de los selectores de color, **Apply preset font** (aplicar fuente del preset), **Apply preset shape** (aplicar forma del preset) y **Apply preset colors** (aplicar colores del preset) hacen que el resto del chat tenga el mismo aspecto. Empiezan desactivados y funcionan de forma independiente. Se aplican a los mensajes, los campos de entrada y los controles del chat, además de los widgets del HUD, el panel del mapa, los comentarios al margen y las fichas de personaje de Game Mode; los mensajes de Conversation usan la fuente y los colores opcionales, pero conservan su propia forma. También incluyen tu fuente, tu forma y tus colores personalizados. Con **Apply preset colors** activado, el diálogo entrecomillado sigue usando el Dialogue Highlight Color propio de cada personaje o persona. Para ver ejemplos y temas personalizados, consulta [Temas de CSS personalizado](custom-css-themes.md#ready-made-chat-window-styles).
+
 ## Custom Mouse Pointer
 
 **Custom Mouse Pointer** (puntero del ratón personalizado, activado de forma predeterminada) usa el cursor con el color de acento de Marinara en toda la app. Desactívalo para usar tu cursor normal del sistema, o para dejar que un tema de CSS personalizado controle el cursor.
@@ -63,7 +71,7 @@ El menú desplegable **Font** (fuente) está en esta misma sección. Para añadi
 También en la sección **Text & Scale**, cuatro controles cambian cómo se lee el texto del chat sobre tu fondo.
 
 - **Chat Text Color** (color del texto del chat) fija el color principal del texto de los mensajes del chat. El predeterminado es `#d4d4d4` en modo Dark y `#1a1025` en modo Light.
-- **Default Dialogue Color** (color de diálogo predeterminado) da color al diálogo entrecomillado cuando una tarjeta de personaje o persona no define su propio Dialogue Highlight Color. Siempre está activo; los colores específicos de la tarjeta tienen prioridad.
+- **Default Dialogue Color** (color de diálogo predeterminado) da color al diálogo entrecomillado cuando una tarjeta de personaje o persona no define su propio Dialogue Highlight Color. Los colores específicos de la tarjeta tienen prioridad. Mientras **Apply preset colors** está activado, este diálogo usa en su lugar el color del texto del estilo del chat.
 - **Chat Chrome Text Color** fija el texto ordinario de los widgets del tracker, las etiquetas de las carpetas y las descripciones de la configuración. Usa los mismos valores predeterminados que **Chat Text Color**.
 - **Text Outline / Stroke** (contorno del texto) añade un contorno alrededor del texto del chat para que siga siendo legible sobre fondos recargados. Fija el color del contorno y un **Width** (ancho) de 0px a 5px. El ancho predeterminado es 0.5px. Fija el ancho en 0 para desactivar el contorno.
 

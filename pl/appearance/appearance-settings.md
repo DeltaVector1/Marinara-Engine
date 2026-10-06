@@ -45,6 +45,14 @@ Zachowaniem koloru akcentu sterują dwa przełączniki:
 
 Naraz działa tylko jedna z tych opcji. Włączenie **RGB Mode** wyłącza **Accent Pulse**, a włączenie **Accent Pulse** wyłącza **RGB Mode**. Efekt Accent Pulse widać na żywo, dopóki zakładka Appearance jest otwarta. Jeśli urządzenie ma włączone ograniczenie animacji, obie animacje są pomijane.
 
+## Chat widget style
+
+Na dole sekcji **App Style** wybierz **Default** (domyślny), **Dottore** lub **Mari** dla przesuwanych przycisków, okien i sekcji czatu. Czcionkę, kształt ramki i trzy główne kolory można zmieniać osobno. Narzędzia wyboru kolorów obsługują też gradienty.
+
+**Button size (px)** (rozmiar przycisków w pikselach) zmienia rozmiar przesuwanych przycisków czatu i ich ikon bez zmiany ustawienia Display Size. Wpisz rozmiar od 32 do 96 pikseli. Zostaw pole puste lub użyj jego przycisku resetowania, aby zachować bieżący rozmiar domyślny. Rozmiar zapisuje się w preferencjach wyglądu i nie zmienia się po wybraniu innego presetu.
+
+Pod narzędziami wyboru kolorów przełączniki **Apply preset font** (zastosowanie czcionki presetu), **Apply preset shape** (zastosowanie kształtu presetu) i **Apply preset colors** (zastosowanie kolorów presetu) pozwalają dopasować resztę czatu. Są początkowo wyłączone i działają niezależnie. Obejmują wiadomości, pola wpisywania i kontrolki czatu, a także widgety paska HUD, panel mapy, uwagi poboczne i karty postaci w trybie Game Mode; wiadomości Conversation mogą korzystać z wybranej czcionki i kolorów, ale zachowują swój kształt. Uwzględniają też własną czcionkę, kształt i kolory. Przy włączonym przełączniku **Apply preset colors** wypowiedzi w cudzysłowie nadal mają kolor Dialogue Highlight Color ustawiony dla danej postaci lub persony. Przykłady i własne motywy opisuje przewodnik [Własne motywy CSS](custom-css-themes.md#ready-made-chat-window-styles).
+
 ## Custom Mouse Pointer
 
 **Custom Mouse Pointer** (własny wskaźnik myszy, domyślnie włączony) wyświetla w całej aplikacji kursor w kolorze akcentu. Wyłącz go, żeby korzystać ze zwykłego kursora systemowego albo żeby o wyglądzie kursora decydował własny motyw CSS.
@@ -63,7 +71,7 @@ W tej samej sekcji leży lista rozwijana **Font**. Aby dodać własne czcionki a
 Również w sekcji **Text & Scale** cztery kontrolki decydują o tym, jak tekst czatu czyta się na tle.
 
 - **Chat Text Color** (kolor tekstu czatu) ustawia główny kolor tekstu wiadomości. Domyślnie jest to `#d4d4d4` w trybie Dark i `#1a1025` w trybie Light.
-- **Default Dialogue Color** (domyślny kolor dialogów) koloruje wypowiedzi w cudzysłowie wtedy, gdy karta postaci lub karta persony nie definiuje własnego koloru Dialogue Highlight Color. Działa zawsze, ale kolory z karty mają pierwszeństwo.
+- **Default Dialogue Color** (domyślny kolor dialogów) koloruje wypowiedzi w cudzysłowie wtedy, gdy karta postaci lub karta persony nie definiuje własnego koloru Dialogue Highlight Color. Kolory z karty mają pierwszeństwo. Gdy przełącznik **Apply preset colors** jest włączony, takie wypowiedzi przyjmują zamiast tego kolor tekstu ze stylu widgetów czatu.
 - **Chat Chrome Text Color** ustawia zwykły tekst w widgetach trackerów, etykietach folderów i opisach ustawień. Korzysta z tych samych wartości domyślnych co **Chat Text Color**.
 - **Text Outline / Stroke** (obrys tekstu) dodaje wokół tekstu czatu obwódkę, dzięki której pozostaje on czytelny na niespokojnym tle. Ustaw kolor obrysu i szerokość **Width** od 0px do 5px. Domyślna szerokość to 0.5px. Szerokość 0 wyłącza obrys.
 

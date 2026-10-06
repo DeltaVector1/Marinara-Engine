@@ -1,6 +1,6 @@
 {
   "language": "hi",
-  "sourceCommit": "67c043d861b43a35251da00829ea2d8f57094af2",
+  "sourceCommit": "e4590b02f7faceea9f8d8bd6e780c6e6a112d69c",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -19,13 +19,13 @@
     },
     {
       "path": "REMOTE_ACCESS.md",
-      "sha256": "b2b9fc77ca273e01e510022f384e7412e21da4cbdaad93666e87fdc7f7f5c9af",
-      "bytes": 36088
+      "sha256": "18aaa1eef4b6f2ae5e03deb8ebe3df153e21c8d2826af4d99cc16ed0e398e637",
+      "bytes": 36362
     },
     {
       "path": "TROUBLESHOOTING.md",
-      "sha256": "b58c96f2db27875965559024a0a36eec0e5b736060b843861d894d4793be1c18",
-      "bytes": 95529
+      "sha256": "646c94de885410f0ddcfe2c390ba06d9a2f00a5e7be51e554d720c2e470edfdd",
+      "bytes": 95577
     },
     {
       "path": "UPGRADING.md",
@@ -44,8 +44,8 @@
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "0ad7069283fb1fc7f7f866312569647e46c526565f2b41d052f4f58ad9a49c36",
-      "bytes": 71414
+      "sha256": "a688a93365f541f639f2f3c89062ea197b33a163e92e3a4e8a8eb1df90fb8759",
+      "bytes": 70948
     },
     {
       "path": "agents/custom-agents.md",
@@ -69,8 +69,8 @@
     },
     {
       "path": "appearance/appearance-settings.md",
-      "sha256": "44eccb1d9d58ca4ffba6f29f158357ebe3789f149f893070f958fdae5bec5281",
-      "bytes": 18705
+      "sha256": "b997210866731fb2742ecf906e13da1925da03bb2adf4d0a34a8baee71efd430",
+      "bytes": 22086
     },
     {
       "path": "appearance/card-css-theming.md",
@@ -84,8 +84,8 @@
     },
     {
       "path": "appearance/custom-css-themes.md",
-      "sha256": "cca8ef8df2185512d154943854b377a4b2bde136dab571eb41fa4e4bc57ee735",
-      "bytes": 43782
+      "sha256": "648755cd11b0bd9a209aa8c4a6f2803254d4204fb92617b4e21adea3011bc56d",
+      "bytes": 43985
     },
     {
       "path": "appearance/fonts.md",
@@ -144,8 +144,8 @@
     },
     {
       "path": "chats/chat-settings.md",
-      "sha256": "125b122f87f8495d0a1213c6b2aea263eac2ce0c814f32c6dc21e59f216bd7f8",
-      "bytes": 48455
+      "sha256": "751012dc79a28dd65858179b68451bc8e92ca3b2f8c78924b02c587cadb64123",
+      "bytes": 48722
     },
     {
       "path": "chats/connected-chats.md",
@@ -474,8 +474,8 @@
     },
     {
       "path": "home/professor-mari.md",
-      "sha256": "b4028ccb0139a4bd680b9895cb752fccb3b9dd6f3768c948b7985e7cd380c447",
-      "bytes": 45513
+      "sha256": "053144b1dc0416dd24c4e0f52b03fc12d258a49077606a0d8802cbe91374356a",
+      "bytes": 46042
     },
     {
       "path": "home/tutorial.md",

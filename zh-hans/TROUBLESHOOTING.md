@@ -29,11 +29,9 @@
 
 ### Termux：构建客户端时 JavaScript 堆内存不足
 
-如果 Vite 报 `Reached heap limit` 或 `JavaScript heap out of memory` 后退出，说明客户端构建耗尽了 Node.js 堆内存，与缺少原生 Rollup 二进制文件不同。更新后重新运行 `start-termux.sh`：构建会将较小的自动堆上限临时提高到接近 1536 MiB，但不超过已知设备 RAM 的一半，并保留 1024 MiB 下限。服务器继续使用按配置文件大小确定的较小上限。`NODE_OPTIONS` 中明确设置的上限对两个进程都优先，因此请检查是否残留旧的 1024 MiB 设置。
+如果 Vite 报 `Reached heap limit` 或 `JavaScript heap out of memory` 后退出，说明客户端构建耗尽了 Node.js 堆内存，与缺少原生 Rollup 二进制文件不同。更新后重新运行 `start-termux.sh`：客户端构建（包括应用内更新）现在使用独立的 1536 MiB 堆上限，不超过已知设备 RAM 的一半，但不会低于构建所需的 1280 MiB。RAM 上限按 128 MiB 向下取整。服务器继续使用按配置文件大小确定的较小上限。`NODE_OPTIONS` 中明确设置的上限对两个进程都优先，因此请检查是否残留旧的 1024 MiB 设置：客户端已经无法在 1024 MiB 内完成构建。
 
-RAM 上限按 128 MiB 向下取整。如果设备 RAM 的一半低于 1024 MiB，则优先采用 1024 MiB 下限。
-
-重试前关闭其他应用。低内存设备仍可能失败，或被 Android 终止进程；报告时保留完整启动输出。不要为了修复构建而删除聊天或配置文件。
+重试前关闭其他应用。RAM 低于约 3 GB 的手机仍可能耗尽内存，或被 Android 终止进程；报告时保留完整启动输出。不要为了修复构建而删除聊天或配置文件。
 
 ### Termux：缺少多人模式访客文件或 Sharp 不兼容
 
@@ -59,7 +57,7 @@ pnpm 是 Marinara 用来安装自身代码的包管理器。如果看到 `EPERM:
 2. 自己安装 pnpm。运行下面这条命令，再重新运行启动脚本：
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@10.34.5
 ```
 
 3. 在管理员终端里更新 corepack，然后重新运行启动脚本：
@@ -75,7 +73,7 @@ Marinara v2.3.0 能通过 Corepack 正常启动 pnpm，却会在构建 shared �
 如果仓库本身没法更新，在 Marinara 文件夹里运行 `git pull` 再启动。在 v2.3.0 上还可以临时这样绕过：全局安装指定版本的包管理器，重新运行启动脚本，然后照常更新：
 
 ```bash
-npm install -g pnpm@10.33.2
+npm install -g pnpm@10.34.5
 ```
 
 ### 将启动器更新至 pnpm 10.34.5

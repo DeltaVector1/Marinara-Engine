@@ -44,13 +44,13 @@ Professor Mari kann in die Programmdateien von Marinara hineinschauen, sie ände
 Die Vertrauensgrenze in einfachen Worten:
 
 - Ihre Datei-Werkzeuge bleiben in dem Ordner, in dem Marinara installiert ist. Reine Shell-Befehle dürfen den Arbeitsbereich und die nötigen Systemprogramme lesen, kommen aber nicht an deine übrigen persönlichen Dateien.
-- Dateien mit Umgebungs-Geheimnissen wie `.env` sowie die internen Dateien von Git bleiben für ihre Datei-Werkzeuge und die Shell gesperrt.
-- In deinen gespeicherten Datenordner, in dem Charaktere und Chats liegen, kann sie nicht direkt schreiben. Stattdessen nutzt sie den weiter unten beschriebenen Prüfablauf.
+- Dateien mit Umgebungs-Geheimnissen wie `.env`, die Schlüsseldatei, die deine gespeicherten API-Keys schützt, sowie die internen Dateien von Git bleiben für ihre Datei-Werkzeuge und die Shell gesperrt.
+- In deinen gespeicherten Datenordner, in dem Charaktere und Chats liegen, kann sie weder mit ihren Datei-Werkzeugen noch über die Shell direkt schreiben. Stattdessen nutzt sie den weiter unten beschriebenen Prüfablauf.
 - Reine Shell-Befehle haben keinen Netzwerkzugriff, erben keine Server-Geheimnisse und dürfen nur gewöhnliche Dateien im Arbeitsbereich sowie ein privates temporäres Verzeichnis beschreiben.
 - Normale Quelldateien darf sie weiterhin direkt bearbeiten. Änderungen an Abhängigkeits-Manifesten, Lockfiles, Startern, Installern und CI-Workflows werden vorgemerkt und dir gezeigt, bevor Marinara sie anwendet.
-- Die gebauten App-Dateien von Marinara – die `dist`-Ordner, aus denen die App ausgeführt wird – kann sie lesen, aber nicht anlegen, bearbeiten, verschieben oder löschen. Stattdessen ändert sie die Quelldateien.
+- Die gebauten App-Dateien von Marinara – die `dist`-Ordner, aus denen die App ausgeführt wird – kann sie lesen, aber nicht anlegen, bearbeiten, verschieben oder löschen. Stattdessen ändert sie die Quelldateien. Neu gebaut werden diese Dateien nur über `mari code check`, und zwar in derselben Sandbox.
 - Braucht eine Quelltext-Änderung eine öffentliche npm-Bibliothek, fordert sie ein konkretes Paket an. Marinara löst `latest` zu einer exakten Version auf, zeigt die Registry-Integrität in einer Prüfkarte und installiert erst nach deiner Freigabe. Lifecycle-Skripte der Pakete bleiben abgeschaltet.
-- Kann Marinara seine Shell-Sandbox unter macOS oder Linux nicht bereitstellen, sind reine Shell-Befehle deaktiviert. Die sichereren strukturierten Werkzeuge für Dateien und App-Daten stehen ihr weiterhin zur Verfügung.
+- Kann Marinara seine Shell-Sandbox unter macOS oder Linux nicht bereitstellen, sind reine Shell-Befehle und `mari code check` deaktiviert. Die sichereren strukturierten Werkzeuge für Dateien und App-Daten stehen ihr weiterhin zur Verfügung.
 - Befehle, die sie ausführt, brechen nach kurzer Zeit von selbst ab. Ein hängender Befehl läuft also nicht endlos weiter.
 
 Die meisten Menschen brauchen das nie. Es existiert, damit sie die App selbst untersuchen oder reparieren kann, wenn etwas kaputt ist.

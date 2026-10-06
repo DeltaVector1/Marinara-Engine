@@ -78,7 +78,7 @@ Alguns clientes pulam a senha mesmo com Basic Auth ativo:
 - Loopback (`127.0.0.1`, `::1`), então você nunca precisa de senha na própria máquina do servidor.
 - Qualquer endereço na variável `IP_ALLOWLIST`. Atenção: definir uma lista de IPs permitidos também bloqueia todos os endereços que não estiverem nela (veja a Opção 2).
 - Tailscale (`100.64.0.0/10`) e o tráfego de bridge/gateway do Docker no mesmo host, a menos que você desative a liberação deles.
-- O endereço `/api/health`, para que os monitores de disponibilidade continuem funcionando.
+- O endereço `/api/health`, para que os monitores de disponibilidade continuem funcionando. Sem senha, ele informa só o status básico, não os seus modelos locais nem a placa de vídeo.
 
 Importante: Basic Auth apenas codifica a senha. Não criptografa. Quem estiver observando uma conexão sem criptografia consegue ler a senha. Se você expõe Marinara à internet pública, combine Basic Auth com HTTPS (veja abaixo).
 

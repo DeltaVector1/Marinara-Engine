@@ -205,9 +205,9 @@ Verwaltet das Inventar der aktiven Persona, Ausrüstungsplätze, Gegenstandsmeng
 
 - **Phase**: Post-Processing; spätere Antworten erhalten den Inventarkontext.
 - **Verfügbar in**: Roleplay; verfolgt die aktive Persona, keine Gruppenmitglieder oder NPCs.
-- **Verfügbarkeit**: **Staging only** (nur staging), ab Engine **2.4.6+**. Die stabile Veröffentlichung ist mit der nächsten Engine-Veröffentlichung aus main geplant.
+- **Verfügbarkeit**: benötigt Engine **2.4.6+**.
 - **Installation und Aktivierung**: Installiere **Quartermaster** über **Agents → Download Agents** und starte die App bei Aufforderung neu. Aktiviere in jedem Roleplay-Chat die Agenten unter **Chat Settings → Agents** (Chat-Einstellungen → Agenten), füge Quartermaster unter **Tracker Agents** (Tracker-Agenten) hinzu und wähle seine Modellverbindung. Öffne das Dock über die Schaltfläche oberhalb des Tracker Panel.
-- **Wichtige Bedienelemente**: Gegenstände anlegen und lagern, Outfits speichern, das Inventar wiederherstellen oder letzte Tracker-Änderungen zurücknehmen sowie die Chat-Konfiguration exportieren/importieren. Die Bilderzeugung nutzt eine separat eingerichtete Bildverbindung. Das Aussehensmakro und das Ersetzen des Persona-Avatars sind optional; lies vor der Aktivierung die [Quartermaster-Paketanleitung](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/quartermaster/README.md).
+- **Wichtige Bedienelemente**: Gegenstände anlegen und lagern, Outfits speichern, das Inventar wiederherstellen oder letzte Tracker-Änderungen zurücknehmen sowie die Chat-Konfiguration exportieren/importieren. Die Bilderzeugung nutzt eine separat eingerichtete Bildverbindung. Das Aussehensmakro und das Ersetzen des Persona-Avatars sind optional; lies vor der Aktivierung die [Quartermaster-Paketanleitung](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/quartermaster/README.md).
 
 ### Relationship Tracker
 
@@ -215,9 +215,9 @@ Pflegt ein bearbeitbares Beziehungsnetz für die Charakterkarten eines Roleplay-
 
 - **Phase**: Post-Processing; spätere Antworten erhalten den Beziehungskontext.
 - **Verfügbar in**: Roleplay-Gruppenchats.
-- **Verfügbarkeit**: **Staging only**, ab Engine **2.4.4+** (< 4.0.0) mit dem staging-Vorschaukatalog. Die stabile Veröffentlichung ist mit der nächsten Engine-Veröffentlichung aus main geplant.
+- **Verfügbarkeit**: benötigt Engine **2.4.4+** (< 4.0.0).
 - **Installation und Aktivierung**: Installiere **Relationship Tracker** über **Agents → Download Agents** und starte die App bei Aufforderung neu. Aktiviere in jedem Roleplay-Chat die Agenten unter **Chat Settings → Agents**, füge ihn unter **Tracker Agents** hinzu und wähle seine Modellverbindung. Das Netz erscheint im Tracker Panel. Wähle dort einmal **All relationships** (Alle Beziehungen) oder **Scene-only relationships** (Nur Beziehungen der Szene), um den Chat vor dem Bearbeiten oder Aktualisieren von Beziehungen zu initialisieren.
-- **Wichtige Bedienelemente**: **All relationships** oder **Scene-only relationships** für den Prompt-Kontext, **Update from History** (Aus Verlauf aktualisieren) für einen begrenzten Ausschnitt neuerer Nachrichten sowie manuelles Bearbeiten, Sperren und **Resume automatic updates** (Automatische Aktualisierungen fortsetzen). **Context Size** (Kontextgröße; standardmäßig 5 Nachrichten), **Presence lookback** (Rückblick für Anwesenheit; standardmäßig 15) und die Nachrichtenanzahl der Verlaufsanalyse sind getrennte Einstellungen. Fahre mit dem Zeiger über eine Linie oder fokussiere sie per Tastatur, um sie zu lesen; drücke sie bei Touch- oder Stiftbedienung. Siehe die [Relationship-Tracker-Paketanleitung](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/relationship-tracker/README.md).
+- **Wichtige Bedienelemente**: **All relationships** oder **Scene-only relationships** für den Prompt-Kontext, **Update from History** (Aus Verlauf aktualisieren) für einen begrenzten Ausschnitt neuerer Nachrichten sowie manuelles Bearbeiten, Sperren und **Resume automatic updates** (Automatische Aktualisierungen fortsetzen). **Context Size** (Kontextgröße; standardmäßig 5 Nachrichten), **Presence lookback** (Rückblick für Anwesenheit; standardmäßig 15) und die Nachrichtenanzahl der Verlaufsanalyse sind getrennte Einstellungen. Fahre mit dem Zeiger über eine Linie oder fokussiere sie per Tastatur, um sie zu lesen; drücke sie bei Touch- oder Stiftbedienung. Siehe die [Relationship-Tracker-Paketanleitung](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/relationship-tracker/README.md).
 
 ### Memory Nag
 

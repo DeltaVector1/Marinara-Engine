@@ -45,6 +45,14 @@ Deux interrupteurs changent le comportement de la couleur **Accent Color** :
 
 Ces deux options ne s'utilisent pas ensemble. Activer **RGB Mode** désactive **Accent Pulse**, et activer **Accent Pulse** désactive **RGB Mode**. L'effet **Accent Pulse** s'affiche en aperçu direct tant que l'onglet **Appearance** reste ouvert. Si l'appareil est réglé pour réduire les animations, les deux effets sont ignorés.
 
+## Chat widget style
+
+En bas de **App Style**, choisis **Default**, **Dottore** ou **Mari** pour les boutons, les fenêtres et les sections déplaçables du chat. Tu peux changer séparément la police, la forme du cadre et les trois couleurs principales. Les sélecteurs de couleur acceptent aussi les dégradés.
+
+**Button size (px)** (taille du bouton en pixels) change la taille des boutons déplaçables du chat et de leurs icônes sans modifier Display Size. Saisis une taille de 32 à 96 pixels. Laisse le champ vide, ou utilise son bouton de réinitialisation, pour garder la valeur par défaut actuelle. La taille est enregistrée avec tes préférences d'apparence et reste identique quand tu choisis un autre preset.
+
+Sous les sélecteurs de couleur, **Apply preset font** (appliquer la police du preset), **Apply preset shape** (appliquer la forme du preset) et **Apply preset colors** (appliquer les couleurs du preset) permettent d'assortir le reste du chat. Ils sont désactivés au départ et fonctionnent indépendamment. Ils s'appliquent aux messages, aux champs de saisie et aux contrôles du chat, ainsi qu'aux widgets du HUD, au panneau de carte, aux apartés et aux fiches de personnage de Game Mode ; les messages Conversation utilisent la police et les couleurs facultatives, mais gardent leur propre forme. Tes choix personnalisés de police, de forme et de couleurs sont inclus. Quand **Apply preset colors** est activé, les dialogues entre guillemets utilisent toujours la **Dialogue Highlight Color** (couleur de surbrillance des dialogues) propre à chaque personnage ou persona. Pour des exemples et des thèmes personnalisés, voir [Thèmes CSS personnalisés](custom-css-themes.md#ready-made-chat-window-styles).
+
 ## Custom Mouse Pointer
 
 **Custom Mouse Pointer** (curseur de souris personnalisé, activé par défaut) affiche le curseur aux couleurs d'accentuation de Marinara dans toute l'application. Désactive-le pour retrouver le curseur habituel du système, ou pour laisser un thème CSS personnalisé piloter le curseur.
@@ -63,7 +71,7 @@ Le menu déroulant **Font** se trouve dans cette même section. Pour ajouter tes
 Toujours dans la section **Text & Scale**, quatre réglages déterminent la lisibilité du texte du chat par-dessus l'arrière-plan.
 
 - **Chat Text Color** (couleur du texte du chat) définit la couleur principale du texte des messages. Par défaut : `#d4d4d4` en mode Dark et `#1a1025` en mode Light.
-- **Default Dialogue Color** colore les dialogues entre guillemets quand une fiche de personnage ou de persona ne définit pas sa propre **Dialogue Highlight Color**. Ce réglage reste toujours actif ; les couleurs définies dans une fiche ont la priorité.
+- **Default Dialogue Color** colore les dialogues entre guillemets quand une fiche de personnage ou de persona ne définit pas sa propre **Dialogue Highlight Color**. Les couleurs définies dans une fiche ont la priorité. Tant que l'interrupteur **Apply preset colors** est activé, ces dialogues prennent plutôt la couleur de texte du style de chat choisi.
 - **Chat Chrome Text Color** définit le texte courant des widgets de tracker, des libellés de dossier et des descriptions de réglages. Mêmes valeurs par défaut que **Chat Text Color**.
 - **Text Outline / Stroke** ajoute un contour autour du texte du chat pour qu'il reste lisible sur les arrière-plans chargés. Choisis la couleur du contour et une largeur (**Width**) de 0px à 5px. La largeur par défaut est 0.5px. Mets la largeur à 0 pour supprimer le contour.
 

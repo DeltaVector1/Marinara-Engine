@@ -78,7 +78,7 @@ Manche Clients umgehen das Passwort auch bei aktiviertem Basic Auth:
 - Loopback (`127.0.0.1`, `::1`) – auf dem Rechner mit dem Server brauchst du also nie ein Passwort.
 - Jede Adresse in `IP_ALLOWLIST`. Achtung: Eine gesetzte Allowlist blockiert zugleich jede nicht gelistete Adresse (siehe Option 2).
 - Tailscale (`100.64.0.0/10`) sowie Docker-Bridge- und Gateway-Verkehr vom selben Host, solange du deren Ausnahme nicht abschaltest.
-- Die Adresse `/api/health`, damit Verfügbarkeitsprüfungen weiterlaufen.
+- Die Adresse `/api/health`, damit Verfügbarkeitsprüfungen weiterlaufen. Ohne Passwort meldet sie nur den grundlegenden Status, nicht deine lokalen Modelle oder deine Grafikkarte.
 
 Wichtig: Basic Auth kodiert das Passwort nur, verschlüsselt wird es nicht. Wer eine unverschlüsselte Verbindung mitliest, kann es lesen. Wenn Marinara aus dem öffentlichen Internet erreichbar ist, kombiniere Basic Auth mit HTTPS (siehe unten).
 
