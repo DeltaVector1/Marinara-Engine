@@ -105,7 +105,7 @@
 
 要在 Roleplay 聊天中开启面板，打开 **Chat Settings**，点击标题栏里固定和锁定按钮旁的 **Tracker Panel**(骰子)。开启时按钮保持高亮，面板显示在聊天旁边。再点一次会关闭并隐藏面板；电脑上的追踪器随后转到 Trackers 窗口。
 
-手机上，开启后会在聊天中添加一个可以任意拖动的 Tracker Panel 按钮。点击打开面板，关闭后恢复为按钮。面板关闭时，请使用独立的 **World State** 和 **Player & Tracker** 按钮。
+手机或平板上，开启后会在聊天中添加一个可以任意拖动的 Tracker Panel 按钮。点击它打开面板，再点击一次关闭。面板或其他界面盖住聊天时，聊天上的可移动按钮会隐藏，回到聊天后会在原来的位置重新出现。面板关闭时，请使用独立的 **World State** 和 **Player & Tracker** 按钮。
 
 面板顶栏的几个控件还能用来调整追踪器的结构：
 
@@ -125,7 +125,7 @@
 - **Desktop size**：选择面板宽度，可选 **Compact**、**Standard** 和 **Expanded**。
 - **Thought display mode**：选择角色的想法以什么方式呈现。**Docked** 把想法展开在角色卡内部，**Floating** 把想法做成肖像旁边的气泡。
 - **Always show Docked thoughts**：当 **Thought display mode** 为 **Docked** 时，让每个重点角色的想法一直显示，而不是收在按钮后面。
-- **Temperature unit**：在 **Celsius** 和 **Fahrenheit** 之间切换气温显示单位，默认是 Celsius。这只改变显示方式，保存下来的世界状态数值不变。
+- **Temperature unit**：气温显示单位可选 **°C**(摄氏度) 或 **°F**(华氏度)，默认是 °C。这只改变显示方式，保存下来的世界状态数值不变。
 
 ## 哪些智能体在填充 HUD
 

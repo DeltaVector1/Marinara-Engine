@@ -33,11 +33,26 @@
 
 重试前关闭其他应用。RAM 低于约 3 GB 的手机仍可能耗尽内存，或被 Android 终止进程；报告时保留完整启动输出。不要为了修复构建而删除聊天或配置文件。
 
-### Termux：缺少多人模式访客文件或 Sharp 不兼容
+### Termux：缺少多人模式访客文件
 
 如果重新构建后，启动时仍提示缺少 `packages/client/dist/multiplayer/guest.js`，请更新 Engine 并重新运行 `./start-termux.sh`。启动脚本现在会执行完整的低内存客户端构建，包括启动时检查的访客文件。修复这个构建错误不需要启用多人模式。
 
-如果图像处理提示 Sharp 无法在 Android 上加载，请更新 Engine，让启动脚本重新安装依赖。匹配的备用包 `@img/sharp-wasm32` 已作为常规依赖包含在内，因此锁定版本的安装和更新都会保留它。不要换成不匹配的 Sharp 版本。如果问题仍然存在，请保留完整的错误输出。
+### Termux：打开 Engine 时服务器停止，或 Sharp 无法加载
+
+Sharp 是 Engine 用来处理缩略图和立绘的图像库。在 Android 上，它通过 WebAssembly 备用实现运行。从 2.4.6 就地更新时，这个备用实现可能有一部分没有装上，服务器随后会在浏览器第一次打开 Engine 时停止运行。
+
+请更新 Engine，让启动脚本重新安装依赖。更新会补装缺失的部分，之后的更新中 Engine 也会保留它。如果还没来得及更新，服务器就在你打开 Engine 时一再停止，可以在 Termux 里手动修复安装：
+
+```bash
+cd ~/Marinara-Engine
+rm -f node_modules/.modules.yaml
+SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm --config.trustPolicy=off --config.confirmModulesPurge=false install --frozen-lockfile --prefer-offline
+./start-termux.sh
+```
+
+这会清除 pnpm 过时的安装记录，并重新安装依赖。聊天和设置都不会受影响。
+
+如果 Sharp 仍然无法加载，Engine 现在会关闭图像处理并继续运行：已经生成的缩略图照常显示，新的缩略图改为显示原尺寸图片，立绘生成和内置的背景移除不可用。不要换成不相关的 Sharp 版本。报告问题时，请保留完整的错误输出。
 
 ### 更新后页面空白，或 JavaScript 被当作 HTML 返回
 

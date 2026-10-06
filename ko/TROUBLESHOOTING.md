@@ -33,11 +33,26 @@ Vite가 `Reached heap limit` 또는 `JavaScript heap out of memory`로 종료되
 
 다시 시도하기 전에 다른 앱을 닫으세요. RAM이 약 3 GB 미만인 휴대폰은 여전히 메모리가 부족하거나 Android가 프로세스를 종료할 수 있습니다. 이 경우 시작 출력 전체를 보관해 보고하세요. 빌드 실패를 고치려고 채팅이나 프로필을 삭제하지 마세요.
 
-### Termux: 멀티플레이어 게스트 파일 누락 또는 Sharp 호환 문제
+### Termux: 멀티플레이어 게스트 파일 누락
 
 다시 빌드한 뒤에도 시작할 때 `packages/client/dist/multiplayer/guest.js`가 없다고 나오면 Engine을 업데이트하고 `./start-termux.sh`를 다시 실행하세요. 런처는 이제 시작 시 확인하는 게스트 파일까지 포함한 전체 저메모리 클라이언트 빌드를 실행합니다. 이 빌드 오류를 고치려고 멀티플레이어를 켤 필요는 없습니다.
 
-이미지 처리에서 Android의 Sharp를 불러올 수 없다고 나오면 Engine을 업데이트하고 런처가 의존성을 다시 설치하도록 하세요. 맞는 버전의 대체 패키지 `@img/sharp-wasm32`는 일반 의존성으로 포함되므로 버전을 고정한 설치와 업데이트에서도 유지됩니다. 관련 없는 Sharp 버전으로 바꾸지 마세요. 문제가 계속되면 전체 오류 출력을 보관하세요.
+### Termux: Engine을 열면 서버가 멈추거나 Sharp를 불러올 수 없음
+
+Sharp는 Engine이 썸네일과 스프라이트에 쓰는 이미지 라이브러리입니다. Android에서는 WebAssembly 대체 구현으로 실행됩니다. 2.4.6에서 그대로 업데이트하면 이 대체 구현의 일부가 설치되지 않은 채 남을 수 있었고, 그러면 브라우저가 처음 Engine을 열 때 서버가 멈췄습니다.
+
+Engine을 업데이트하고 런처가 의존성을 다시 설치하도록 하세요. 업데이트가 빠진 부분을 설치하며, 이후 업데이트에서도 Engine이 이를 유지합니다. 업데이트하기 전에 Engine을 열 때마다 서버가 계속 멈춘다면 Termux에서 다음 명령으로 설치를 직접 복구하세요.
+
+```bash
+cd ~/Marinara-Engine
+rm -f node_modules/.modules.yaml
+SHARP_IGNORE_GLOBAL_LIBVIPS=1 pnpm --config.trustPolicy=off --config.confirmModulesPurge=false install --frozen-lockfile --prefer-offline
+./start-termux.sh
+```
+
+이 명령은 pnpm의 오래된 설치 기록을 지우고 의존성을 다시 설치합니다. 채팅과 설정은 건드리지 않습니다.
+
+그래도 Sharp를 불러올 수 없으면 Engine은 이제 이미지 처리를 끈 채 계속 실행됩니다. 이미 만든 썸네일은 그대로 보이고, 새 썸네일 대신 원본 크기 이미지가 표시되며, 스프라이트 생성과 기본 제공 배경 제거 기능은 사용할 수 없습니다. Sharp를 관련 없는 버전으로 바꾸지 마세요. 문제를 보고할 때 쓸 수 있도록 전체 오류 출력을 보관하세요.
 
 ### 업데이트 후 빈 페이지가 나타나거나 JavaScript가 HTML로 반환됨
 

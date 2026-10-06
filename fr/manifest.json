@@ -1,6 +1,6 @@
 {
   "language": "fr",
-  "sourceCommit": "e4590b02f7faceea9f8d8bd6e780c6e6a112d69c",
+  "sourceCommit": "73bb8d7b6dd4a9ea9f9a78858f245ab82a2899f1",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -24,8 +24,8 @@
     },
     {
       "path": "TROUBLESHOOTING.md",
-      "sha256": "e91909191fe90862eaf5a4f0e8d638689818b85415aa87cec72a5cf81e1f0936",
-      "bytes": 52978
+      "sha256": "6bcd4241035626260f9fd95cc60babb9866be7c254ec9ef9f56422bb54b61e97",
+      "bytes": 54177
     },
     {
       "path": "UPGRADING.md",
@@ -64,8 +64,8 @@
     },
     {
       "path": "agents/memory.md",
-      "sha256": "549b3340474d5340ee26a0c159346a7cb604eb0c510b12d6910d7ec333f7b2d4",
-      "bytes": 37717
+      "sha256": "dab12e2966b652ffd0ecc4b526db0561001d40b45ad6229061128862cc42886d",
+      "bytes": 38635
     },
     {
       "path": "appearance/appearance-settings.md",
@@ -79,8 +79,8 @@
     },
     {
       "path": "appearance/chat-backgrounds.md",
-      "sha256": "d66d03e219e8b00a6987628f8c03a4cf72773dc330029f768ac0705fe4461193",
-      "bytes": 10430
+      "sha256": "cf022208b9bcf6e4b5fb4cb4043a2f3683c3df92c68eaa41338fc710ef641d71",
+      "bytes": 10688
     },
     {
       "path": "appearance/custom-css-themes.md",
@@ -144,8 +144,8 @@
     },
     {
       "path": "chats/chat-settings.md",
-      "sha256": "d39ae9ea3de0526fdb3e7a4bcefad99785384b8a6dfa9a23f00cb0e1e0b9d6a3",
-      "bytes": 25144
+      "sha256": "7968bcceb115200844cb1217eb8b459b76fdcbaa39ef87f7ce48bd966f5f7542",
+      "bytes": 25168
     },
     {
       "path": "chats/connected-chats.md",
@@ -209,8 +209,8 @@
     },
     {
       "path": "connections/decision-models.md",
-      "sha256": "10179278093cdab0d500b7512bd9912e52afde688d3efede195103630b8a78a4",
-      "bytes": 31434
+      "sha256": "8f41b757794c2c211b6ad61bb8a672ba14e2e9f4ab56e12bf6bdef850493cd14",
+      "bytes": 31585
     },
     {
       "path": "connections/local-model.md",
@@ -664,8 +664,8 @@
     },
     {
       "path": "roleplay/hud-and-trackers.md",
-      "sha256": "4099d76b9214dcb7d865be255b4ce0dc0e55424422db4de4f33950d00e64cf28",
-      "bytes": 15766
+      "sha256": "8a875be2f18cafba8966b28dfda6606d6d27d16cb1b08091361e7122fec44b5f",
+      "bytes": 15974
     },
     {
       "path": "roleplay/narrative-director.md",

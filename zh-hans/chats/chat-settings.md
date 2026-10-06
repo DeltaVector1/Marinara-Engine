@@ -53,7 +53,7 @@ Roleplay 中滑块按钮旁的小提示只需关闭一次。点击它的 **X** �
 - **Help**(标题旁的 **?**) 显示解释聊天控件的标签。手机上会先关闭 Chat Settings，让聊天露出来。点击高亮的 **Chat Settings** 按钮，可以查看图标说明：Reset View、收藏布局、Roleplay Tracker Panel、锁定/解锁、关闭，以及把区域移到外面。说明内部可以滚动，方便看完全部内容。可以在 **Settings → General → App Behavior → Hide chat Help button** 隐藏 Help 按钮。
 - **Reset View**(圆形箭头) 先要求确认，再恢复当前聊天的初始布局。它会把弹出的区域放回去，恢复默认窗口大小、位置、固定和锁定状态。
 - **Favorite layout**(Reset View 旁的星标) 把这套排列保存给当前模式的新聊天。见[为新聊天选择布局](#choosing-a-layout-for-new-chats)。
-- **Tracker Panel**(骰子) 在使用智能体或 Advanced Memory 的 Roleplay 聊天中开关追踪面板。电脑上显示在聊天旁，手机上通过可移动按钮打开。这也会改变 **Settings → Appearance** 中的 Tracker Panel 偏好。
+- **Tracker Panel**(骰子) 在使用智能体或 Advanced Memory 的 Roleplay 聊天中开关追踪面板。电脑上显示在聊天旁，手机或平板上通过可移动按钮打开和关闭。这也会改变 **Settings → Appearance** 中的 Tracker Panel 偏好。
 
 Tracker Panel 隐藏时，电脑上的追踪器改用 [Trackers 窗口](../roleplay/hud-and-trackers.md#the-trackers-window)。消息旁空间不足时，最初会显示一个小小的 **Trackers** 按钮。关闭窗口后会恢复为按钮。用 Chat Settings 标题栏的骰子可以重新显示 Tracker Panel。
 

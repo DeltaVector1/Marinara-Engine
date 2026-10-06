@@ -53,7 +53,7 @@ Roleplay에서 슬라이더 버튼 옆의 짧은 안내는 한 번만 닫으면 
 - **Help**(도움말, 제목 옆의 **?**)는 채팅의 각 컨트롤을 설명합니다. 휴대폰에서는 채팅이 보이도록 먼저 Chat Settings를 닫습니다. 강조된 **Chat Settings** 버튼을 탭하면 Reset View, 즐겨찾는 배치, Roleplay Tracker Panel, 잠금/해제, 닫기, 섹션 꺼내기의 아이콘 설명이 나옵니다. 안내 안에서 스크롤하면 전체 목록을 읽을 수 있습니다. **Settings → General → App Behavior → Hide chat Help button**(설정 → 일반 → 앱 동작 → 채팅 도움말 버튼 숨기기)에서 Help 버튼을 숨길 수 있습니다.
 - **Reset View**(화면 배치 초기화, 원형 화살표)는 확인을 받은 뒤 현재 채팅의 초기 배치로 돌아갑니다. 꺼낸 섹션을 원래 위치로 돌려놓고 창 크기, 위치, 고정, 잠금을 기본값으로 되돌립니다.
 - **Favorite layout**(즐겨찾는 배치, Reset View 옆의 별)은 이 모드의 새 채팅에 쓸 배치를 저장합니다. [새 채팅의 배치 고르기](#choosing-a-layout-for-new-chats)를 참고하세요.
-- **Tracker Panel**(주사위)은 에이전트나 Advanced Memory를 사용하는 Roleplay 채팅에서 패널을 켜고 끕니다. 컴퓨터에서는 채팅 옆에 패널이 나타나고, 휴대폰에서는 이동 가능한 버튼으로 패널을 엽니다. **Settings → Appearance**(설정 → 모양)의 Tracker Panel 설정도 함께 바뀝니다.
+- **Tracker Panel**(주사위)은 에이전트나 Advanced Memory를 사용하는 Roleplay 채팅에서 패널을 켜고 끕니다. 컴퓨터에서는 채팅 옆에 패널이 나타나고, 휴대폰이나 태블릿에서는 이동 가능한 버튼으로 패널을 열고 닫습니다. **Settings → Appearance**(설정 → 모양)의 Tracker Panel 설정도 함께 바뀝니다.
 
 Tracker Panel이 숨겨져 있으면 컴퓨터에서는 [Trackers 창](../roleplay/hud-and-trackers.md#the-trackers-window)으로 트래커를 볼 수 있습니다. 메시지 옆 공간이 부족하면 처음에는 작은 **Trackers** 버튼이 나타납니다. 창을 닫으면 그 버튼으로 돌아갑니다. Tracker Panel을 다시 보려면 Chat Settings 제목 표시줄의 주사위를 누르세요.
 

@@ -105,7 +105,7 @@ El **Tracker Panel** es un panel lateral más grande que muestra los mismos dato
 
 Para activarlo en un chat de Roleplay, abre **Chat Settings** y pulsa **Tracker Panel** (el dado) en la barra de título, junto a fijar y bloquear. Queda resaltado mientras el panel está activo, y el panel aparece junto al chat. Púlsalo otra vez para desactivarlo y ocultarlo. En una computadora, los trackers pasan a la ventana Trackers.
 
-En un teléfono, activarlo añade al chat un botón Tracker Panel que puedes arrastrar donde quieras. Tócalo para abrir el panel; cerrarlo devuelve el botón. Con el panel apagado, usa los botones separados **World State** y **Player & Tracker**.
+En un teléfono o una tableta, activarlo añade al chat un botón Tracker Panel que puedes arrastrar donde quieras. Tócalo para abrir el panel y vuelve a tocarlo para cerrarlo. Mientras el panel u otra pantalla cubre el chat, los botones móviles del chat se ocultan y vuelven a aparecer en las mismas posiciones cuando regresas al chat. Con el panel apagado, usa los botones separados **World State** y **Player & Tracker**.
 
 Los controles en el encabezado del panel también te permiten personalizar la estructura del tracker:
 
@@ -125,7 +125,7 @@ Estos ajustes lo controlan:
 - **Desktop size**: elige el ancho del panel. Las opciones son **Compact**, **Standard** y **Expanded**.
 - **Thought display mode**: elige cómo aparecen los pensamientos de un personaje. **Docked** los abre dentro de la tarjeta de personaje. **Floating** los abre como un globo junto al retrato.
 - **Always show Docked thoughts**: cuando **Thought display mode** está en **Docked**, mantiene visible el pensamiento de cada personaje destacado en lugar de esconderlo detrás de un botón.
-- **Temperature unit**: cambia las pantallas de temperatura entre **Celsius** y **Fahrenheit**. El valor predeterminado es Celsius. Esto cambia solo la visualización, no el valor de estado del mundo guardado.
+- **Temperature unit**: elige **°C** (Celsius) o **°F** (Fahrenheit) para mostrar las temperaturas. El valor predeterminado es °C. Esto cambia solo la visualización, no el valor de estado del mundo guardado.
 
 ## Qué agentes rellenan el HUD
 

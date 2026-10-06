@@ -35,7 +35,7 @@ Przy pytaniach aktywacyjnych i stwierdzeniach w promptach lub lorebookach model 
 - Makra w stwierdzeniu są rozwijane wcześniej, więc `{{char}}` dociera jako imię postaci.
 - Gdy wiadomości nie mieszczą się w limicie modelu, najpierw usuwane są starsze. Limit zdalnego połączenia opisuje [Konfiguracja połączenia Decision](#set-up-a-decision-connection).
 
-**Advanced Memory używa własnego połączenia dla każdego czatu.** Kontrola scen odczytuje odpowiednie okno transkryptu. Przywoływanie wysyła niedawną rozmowę oraz dostępne podsumowania archiwalne lub kandydatów na fragmenty po sprawdzeniu dostępu postaci; nie obowiązuje tu reguła ostatnich 5 wiadomości. Zewnętrzny dostawca otrzymuje te teksty, czasem w kilku ograniczonych partiach. Decyzje przed odpowiedzią mają łączny limit 10 sekund, po którym przywoływanie korzysta z rozwiązania awaryjnego. Zobacz [Opcjonalny model decyzyjny](../agents/memory.md#optional-decision-model).
+**Advanced Memory używa własnego połączenia dla każdego czatu.** Kontrola scen odczytuje odpowiednie okno transkryptu. Przywoływanie wysyła niedawną rozmowę oraz do 24 wstępnie wybranych podsumowań archiwalnych, a potem oryginalne wiadomości ze scen wybranych przez model, po sprawdzeniu dostępu postaci; nie obowiązuje tu reguła ostatnich 5 wiadomości. Podsumowań może być więcej, jeśli ustawienie **Maximum recalled scenes** (maksymalna liczba przywołanych scen) ma wyższą wartość. Zewnętrzny dostawca otrzymuje te teksty, czasem w kilku ograniczonych partiach. Po 10 sekundach każdy przebieg przywoływania przechodzi na zwykłe przywoływanie. Zobacz [Opcjonalny model decyzyjny](../agents/memory.md#optional-decision-model).
 
 ## Wybór modelu decyzyjnego
 

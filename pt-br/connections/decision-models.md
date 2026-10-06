@@ -35,7 +35,7 @@ Nas perguntas de ativação e declarações de prompts/lorebooks, o modelo receb
 - As macros da declaração são preenchidas primeiro; assim, `{{char}}` chega como o nome do personagem.
 - Se as mensagens não couberem no orçamento do modelo, as mais antigas são descartadas primeiro. Veja [Configurar uma conexão Decision](#set-up-a-decision-connection) para o orçamento hospedado.
 
-**Advanced Memory usa uma conexão própria por chat.** As verificações de cena leem a janela relevante do histórico. A recuperação envia a conversa recente e resumos arquivados ou mensagens originais acessíveis após verificar o acesso dos personagens; a regra fixa das últimas 5 mensagens não se aplica. Provedores hospedados recebem esses textos, possivelmente em vários lotes limitados. Após 10 segundos no total, a recuperação antes da resposta usa a alternativa normal. Consulte [Modelo de decisão opcional](../agents/memory.md#optional-decision-model).
+**Advanced Memory usa uma conexão própria por chat.** As verificações de cena leem a janela relevante do histórico. A recuperação envia a conversa recente e até 24 resumos arquivados pré-selecionados, ou mais, se **Maximum recalled scenes** (máximo de cenas recuperadas) for maior, e depois mensagens originais das cenas que o modelo escolheu, sempre após verificar o acesso dos personagens; a regra fixa das últimas 5 mensagens não se aplica. Provedores hospedados recebem esses textos, possivelmente em vários lotes limitados. Cada etapa da recuperação recorre à recuperação normal após 10 segundos. Consulte [Modelo de decisão opcional](../agents/memory.md#optional-decision-model).
 
 ## Escolher um modelo de decisão
 

@@ -73,7 +73,7 @@ Las etiquetas te ayudan a agrupar y buscar tus subidas. Solo puedes etiquetar la
 1. Haz clic en el icono de etiqueta (**Edit tags**, Editar etiquetas) en la fila de la imagen.
 2. Escribe una etiqueta en el campo **Add tag...** (Añadir etiqueta). A medida que escribes, Marinara sugiere etiquetas que usaste antes.
 3. Pulsa Enter o haz clic en **Add** (Añadir).
-4. Para quitar una etiqueta, haz clic en la pequeña X de esa etiqueta.
+4. Para quitar una etiqueta, haz clic en ella. Mientras la edición de etiquetas está abierta, cada etiqueta se muestra como un botón con una X.
 
 <a id="download-a-background"></a>
 
@@ -90,10 +90,12 @@ Solo puedes eliminar las imágenes con la etiqueta **Library**. Pasa el cursor p
 El fondo de Roleplay predeterminado es la imagen con la que empieza cada chat de Roleplay nuevo, antes de que elija el suyo. Configúralo una vez y cada chat de Roleplay nuevo lo usa.
 
 1. En la sección **Backgrounds**, busca en la cuadrícula la imagen que quieras.
-2. Haz clic en el icono de la estrella (**Set as default for new Roleplay chats**, Establecer como predeterminado para los chats de Roleplay nuevos) en la fila de esa imagen.
-3. La estrella se rellena de color sin moverse de su posición. Los chats de Roleplay nuevos ahora empiezan con ella.
+2. Haz clic en el icono del pin (**Set as default for new Roleplay chats**, Establecer como predeterminado para los chats de Roleplay nuevos) en la fila de esa imagen.
+3. El botón del pin queda resaltado y aparece una etiqueta **Default** (Predeterminado) en la miniatura. Los chats de Roleplay nuevos ahora empiezan con ella.
 
-Para volver atrás, haz clic en la estrella de la imagen predeterminada actual. También puedes hacer clic en el enlace **Reset Roleplay default** (Restablecer el predeterminado de Roleplay) cerca de la parte superior de la cuadrícula. Ese enlace solo aparece cuando tu fondo predeterminado difiere del integrado.
+La estrella de la esquina superior izquierda de la imagen la añade a tus favoritos. No cambia el predeterminado.
+
+Para volver atrás, haz clic en el pin de la imagen predeterminada actual. También puedes hacer clic en el botón **Reset Roleplay default** (Restablecer el predeterminado de Roleplay) cerca de la parte superior de la cuadrícula. Ese botón solo aparece cuando tu fondo predeterminado difiere del integrado.
 
 ## Background Blur (Desenfoque del fondo)
 

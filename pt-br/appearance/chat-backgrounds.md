@@ -73,7 +73,7 @@ As tags ajudam a agrupar e a buscar as imagens que você enviou. Só é possíve
 1. Clique no ícone de tag (**Edit tags**) na linha da imagem.
 2. Digite uma tag no campo **Add tag...**. Conforme você digita, Marinara sugere tags já usadas antes.
 3. Pressione Enter ou clique em **Add**.
-4. Para tirar uma tag, clique no X pequeno na etiqueta dela.
+4. Para tirar uma tag, clique nela. Enquanto a edição de tags está aberta, cada tag aparece como um botão com um X.
 
 <a id="download-a-background"></a>
 
@@ -90,10 +90,12 @@ Só é possível excluir imagens com a etiqueta **Library**. Passe o mouse sobre
 O plano de fundo padrão do Roleplay é a imagem com que todo chat novo de Roleplay começa, antes de escolher a própria. Basta definir uma vez e todo chat novo de Roleplay passa a usá-la.
 
 1. Na seção **Backgrounds**, localize a imagem que você quer na grade.
-2. Clique no ícone de estrela (**Set as default for new Roleplay chats**) na linha dessa imagem.
-3. A estrela ganha cor sem sair do lugar. A partir daí, os chats novos de Roleplay começam com ela.
+2. Clique no ícone de alfinete (**Set as default for new Roleplay chats**) na linha dessa imagem.
+3. O botão de alfinete continua destacado, e a etiqueta **Default** (padrão) aparece na miniatura. A partir daí, os chats novos de Roleplay começam com ela.
 
-Para voltar atrás, clique na estrela da imagem que está como padrão. Outra opção: clique no link **Reset Roleplay default** perto do topo da grade. Esse link só aparece quando o plano de fundo padrão é diferente do que já vem com Marinara.
+A estrela no canto superior esquerdo da imagem a adiciona aos favoritos. Ela não muda o padrão.
+
+Para voltar atrás, clique no alfinete da imagem que está como padrão. Outra opção: clique no botão **Reset Roleplay default** perto do topo da grade. Esse botão só aparece quando o plano de fundo padrão é diferente do que já vem com Marinara.
 
 ## Background Blur
 

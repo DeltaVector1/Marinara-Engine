@@ -73,7 +73,7 @@ Marinara 会检查文件的真实内容，不只看文件名。把一个非图�
 1. 点击图片所在行的标签图标（**Edit tags**(编辑标签)）。
 2. 在 **Add tag...** 输入框里输入标签。输入时 Marinara 会提示之前用过的标签。
 3. 按 Enter 或点击 **Add**(添加)。
-4. 想删掉某个标签，点击该标签小块上的小 X。
+4. 想删掉某个标签，直接点击它。标签编辑打开时，每个标签都显示为一个带 X 的按钮。
 
 <a id="download-a-background"></a>
 
@@ -90,10 +90,12 @@ Marinara 会检查文件的真实内容，不只看文件名。把一个非图�
 默认 Roleplay 背景是每个新建 Roleplay 聊天在自行挑图之前使用的初始背景。设置一次，之后所有新建的 Roleplay 聊天都会用它。
 
 1. 在 **Backgrounds** 区块的网格里找到想用的图片。
-2. 点击该行的星形图标（**Set as default for new Roleplay chats**(设为新建 Roleplay 聊天的默认背景)）。
-3. 星形会填充颜色，位置不变。之后新建的 Roleplay 聊天就从这张图开始。
+2. 点击该行的图钉图标（**Set as default for new Roleplay chats**(设为新建 Roleplay 聊天的默认背景)）。
+3. 图钉按钮会保持高亮，缩略图上会出现 **Default**(默认) 标签。之后新建的 Roleplay 聊天就从这张图开始。
 
-想改回来，点击当前默认图上的星形即可。也可以点击网格顶部附近的 **Reset Roleplay default**(重置 Roleplay 默认背景) 链接。只有当默认背景不是内置那张时，这个链接才会出现。
+图片左上角的星形用来把它加入收藏，不会改变默认背景。
+
+想改回来，点击当前默认图上的图钉即可。也可以点击网格顶部附近的 **Reset Roleplay default**(重置 Roleplay 默认背景) 按钮。只有当默认背景不是内置那张时，这个按钮才会出现。
 
 ## Background Blur(背景模糊)
 

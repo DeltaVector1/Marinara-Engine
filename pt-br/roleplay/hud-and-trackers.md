@@ -105,7 +105,7 @@ O **Tracker Panel** (painel de trackers) é um painel lateral maior que mostra o
 
 Para ativar em um chat de Roleplay, abra **Chat Settings** e clique em **Tracker Panel** (o dado) na barra de título, perto de fixar e travar. Ele fica destacado enquanto o painel está ativo, e o painel aparece ao lado do chat. Clique novamente para desativar e ocultar. No computador, os trackers passam para a janela Trackers.
 
-No celular, ativar adiciona ao chat um botão Tracker Panel que você pode arrastar para qualquer lugar. Toque nele para abrir o painel; fechar devolve o botão. Com o painel desligado, use os botões separados **World State** e **Player & Tracker**.
+No celular ou no tablet, ativar adiciona ao chat um botão Tracker Panel que você pode arrastar para qualquer lugar. Toque nele para abrir o painel e toque de novo para fechá-lo. Enquanto o painel ou outra tela cobre o chat, os botões móveis do chat ficam ocultos e voltam aos mesmos lugares quando você retorna ao chat. Com o painel desligado, use os botões separados **World State** e **Player & Tracker**.
 
 Os controles no cabeçalho do painel também permitem mudar a estrutura dos trackers:
 
@@ -125,7 +125,7 @@ Estas configurações controlam o painel:
 - **Desktop size**: escolha a largura do painel. As opções são **Compact**, **Standard** e **Expanded**.
 - **Thought display mode**: escolha como os pensamentos do personagem aparecem. **Docked** abre os pensamentos dentro do card do personagem. **Floating** abre os pensamentos como um balão ao lado do retrato.
 - **Always show Docked thoughts**: com **Thought display mode** em **Docked**, mantém visível o pensamento de cada personagem em destaque, em vez de escondê-lo atrás de um botão.
-- **Temperature unit**: alterna a exibição da temperatura entre **Celsius** e **Fahrenheit**. O padrão é Celsius. Isso muda só a exibição, não o valor salvo no estado do mundo.
+- **Temperature unit**: escolha **°C** (Celsius) ou **°F** (Fahrenheit) para a exibição da temperatura. O padrão é °C. Isso muda só a exibição, não o valor salvo no estado do mundo.
 
 ## Quais agentes abastecem o HUD
 
