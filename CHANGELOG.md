@@ -909,6 +909,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 - A reply that was cut off, or whose prompt dropped older messages or shrank the reply limit to fit, now gets a quiet line under it (for example "Cut off · Check" or "42 older messages not sent · Check") in conversation and roleplay chats. Check opens a short list of facts, each with a link to the setting that fixes it (Max output tokens, Max context window, the lorebook token budget, or the character card), plus Peek at the prompt. The same checkup heads the Peek prompt window and appears in the omnibar as "Fix: Check the last reply". It reads numbers already saved with the reply and makes no model call. The omnibar's "Preview next prompt" row is gone; use Peek from the checkup or the message menu.
 
+- Professor Mari can now diagnose a bad reply when asked ("why did that get worse?", "it got cut off", "she forgets things", "my character doesn't act like the card"). She reads the same checkup facts as the chat's own "Cut off · Check" line, plus the generation's raw numbers, the chat's lorebook budgets and the active preset's name, names one real cause with its exact number, and offers one fix: a reviewed change she can already make, or a link to the exact Chat Settings section. She never sees the chat's own text to do this.
+
 ## [2.4.6]
 
 - Shutdown regression checks use persisted cleanup results after terminal exit, avoiding false failures when a closed terminal discards its final log output (#6245).

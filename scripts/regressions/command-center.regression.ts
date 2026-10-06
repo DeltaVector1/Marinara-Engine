@@ -2278,6 +2278,11 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.ok(!appDataActionLooksReadOnly("agent.update"), "agent.update must stay a write action");
 }
 
+// R3: `chat.diagnose` must be classified read-only so it never arms the mutation gate.
+{
+  assert.ok(appDataActionLooksReadOnly("chat.diagnose"), "chat.diagnose should be read-only");
+}
+
 // L4: `lorebook.testScan` must be classified read-only, and `buildProfessorMariCommandCenterContext`
 // must resolve a lorebook-entry row's id to the lorebookId (not the lorebookId:entryId pair glued
 // together) - the existing lorebook-attachment UI resolves `resource.id` as a lorebookId and shows

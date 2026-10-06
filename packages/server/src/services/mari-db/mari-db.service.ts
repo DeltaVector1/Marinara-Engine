@@ -22,8 +22,12 @@ import { logger } from "../../lib/logger.js";
 import { chatIdForMariSession } from "../professor-mari/mari-session.js";
 import { createCharactersStorage } from "../storage/characters.storage.js";
 import { createChatsStorage } from "../storage/chats.storage.js";
+import { createConnectionsStorage } from "../storage/connections.storage.js";
+import { createPromptsStorage } from "../storage/prompts.storage.js";
 import { createLorebooksStorage } from "../storage/lorebooks.storage.js";
 import { runLorebookTestScan } from "../lorebook/test-scan.js";
+import { loadLorebookIncludes } from "../lorebook/index.js";
+import { buildGenerationPromptPresetCandidates } from "../../routes/generate/prompt-preset-selection.js";
 import { createAgentsStorage } from "../storage/agents.storage.js";
 import {
   clearCharacterEmbeddedLorebook,
@@ -74,6 +78,10 @@ import {
   type Lorebook,
   type LorebookEntry,
   type LorebookFolder,
+  diagnoseReply,
+  GENERATION_PARAMETER_SEND_KEYS,
+  type CharacterData,
+  type ReplyCheckupInput,
 } from "@marinara-engine/shared";
 import { guardMariDecisionWrites, MARI_DECISION_STATE_KEY } from "../professor-mari/decision-authoring.js";
 import { computePersonalExtensionHash } from "../extensions/personal-extension-hash.js";
@@ -7231,6 +7239,8 @@ export class MariDbService {
     // L5: a repair write, not a read — handled on its own path (chat storage's addSwipe +
     // a bespoke Keep/Restore review), never through the read-only CLI commands below.
     if (sub === "updatemessage") return this.executeChatUpdateMessage(args, context);
+    // R3: the reply checkup for Professor Mari — numbers and names only, never message text.
+    if (sub === "diagnose") return this.executeChatDiagnose(args, context);
     const argv = [sub];
     const fieldRead = Boolean(firstString(args, ["field"]));
     const addFlag = (flag: string, value: unknown) => {
@@ -7387,6 +7397,112 @@ export class MariDbService {
       summary: plan.summary,
       validation: plan.validation,
       approval: { status: "pending", id: review.id, operationHash: plan.operationHash },
+    };
+  }
+
+  /**
+   * R3: Professor Mari's read on the reply checkup (R2's `diagnoseReply`). Returns findings,
+   * the generation's raw numbers, attached lorebook budgets and the active preset's name and
+   * sampler keys — never the message's own text, per R22. `messageId` omitted means the chat's
+   * newest assistant/narrator reply (same lookup `ChatArea.tsx` uses for the quiet checkup line).
+   */
+  private async executeChatDiagnose(
+    args: Row,
+    context: { command: string; sessionId: string; cwd?: string },
+  ): Promise<MariDbCommandResult> {
+    const chatId = requiredString(args, ["chatId", "chat_id"], "chat id");
+    const chatsStorage = createChatsStorage(this.db);
+    const chat = await chatsStorage.getById(chatId);
+    if (!chat) return { ok: false, mode: "read", command: context.command, error: `Chat ${chatId} not found` };
+
+    const requestedMessageId = firstString(args, ["messageId", "message_id"]);
+    let message = requestedMessageId ? await chatsStorage.getMessage(requestedMessageId) : null;
+    if (requestedMessageId && (!message || message.chatId !== chatId)) {
+      return {
+        ok: false,
+        mode: "read",
+        command: context.command,
+        error: `Message ${requestedMessageId} was not found in chat ${chatId}.`,
+      };
+    }
+    if (!message) {
+      const messages = await chatsStorage.listMessages(chatId);
+      for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i]!.role === "assistant" || messages[i]!.role === "narrator") {
+          message = messages[i]!;
+          break;
+        }
+      }
+    }
+    if (!message) {
+      return { ok: true, mode: "read", command: context.command, output: { chatId, messageId: null, findings: [] } };
+    }
+
+    const extra = parseJsonMaybe(message.extra) as ReplyCheckupInput["message"]["extra"];
+
+    let character: { id: string; data: Partial<CharacterData> } | null = null;
+    if (message.characterId) {
+      const row = await createCharactersStorage(this.db).getById(message.characterId);
+      if (row) character = { id: message.characterId, data: parseJsonMaybe(row.data) as Partial<CharacterData> };
+    }
+
+    const findings = diagnoseReply({
+      message: { content: message.content ?? "", extra },
+      connectionId: chat.connectionId ?? null,
+      character,
+    });
+
+    const info = extra?.generationInfo ?? null;
+
+    const { currentBookIds } = await loadLorebookIncludes(this.db, chatId);
+    const lorebooksStorage = createLorebooksStorage(this.db);
+    const lorebookRows = await Promise.all(currentBookIds.map((id) => lorebooksStorage.getById(id)));
+    const lorebooks = lorebookRows
+      .filter((row): row is NonNullable<typeof row> => Boolean(row))
+      .map((row) => ({
+        name: (row as unknown as Lorebook).name,
+        tokenBudget: (row as unknown as Lorebook).tokenBudget,
+      }));
+
+    const connection = chat.connectionId ? await createConnectionsStorage(this.db).getById(chat.connectionId) : null;
+    const presetCandidates = buildGenerationPromptPresetCandidates({
+      chatMode: chat.mode,
+      chatPromptPresetId: chat.promptPresetId,
+      connectionPromptPresetId: connection?.promptPresetId ?? null,
+    });
+    const promptsStorage = createPromptsStorage(this.db);
+    let preset: { name: string; samplerKeys: string[] } | null = null;
+    for (const candidate of presetCandidates) {
+      const row = await promptsStorage.getById(candidate.id);
+      if (!row) continue;
+      const parameters = parseJsonMaybe(row.parameters);
+      const enabledParameters =
+        parameters && typeof parameters === "object" && !Array.isArray(parameters)
+          ? ((parameters as Row).enabledParameters as Record<string, boolean> | undefined)
+          : undefined;
+      const samplerKeys = GENERATION_PARAMETER_SEND_KEYS.filter((key) => enabledParameters?.[key] !== false);
+      preset = { name: row.name, samplerKeys };
+      break;
+    }
+
+    return {
+      ok: true,
+      mode: "read",
+      command: context.command,
+      output: {
+        chatId,
+        messageId: message.id,
+        findings,
+        generationInfo: {
+          tokensContext: info?.tokensContext ?? null,
+          maxContext: info?.maxContext ?? null,
+          finishReason: info?.finishReason ?? null,
+          tokensCompletion: info?.tokensCompletion ?? null,
+          contextFit: info?.contextFit ?? null,
+        },
+        lorebooks,
+        preset,
+      },
     };
   }
 
