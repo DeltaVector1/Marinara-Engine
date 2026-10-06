@@ -884,6 +884,15 @@ assert.deepEqual(
   }).resource,
   { kind: "setting", id: "theme-mode", label: "Color scheme" },
 );
+assert.deepEqual(
+  buildProfessorMariCommandCenterContext("why did the replies get worse?", {
+    id: "chat-tool:reply-checkup:chat-one",
+    title: "Fix: Check the last reply",
+    category: "chat",
+  }).resource,
+  { kind: "chat", id: "chat-one", label: "Fix: Check the last reply" },
+  "slice 65: a chat tool row hands Mari its chat id, not `<tool>:<chatId>`",
+);
 assert.equal(buildProfessorMariCommandCenterContext("explain this", undefined)?.commandCenterResultId, undefined);
 assert.deepEqual(
   buildProfessorMariCommandCenterContext("explain this", undefined, [], undefined, {

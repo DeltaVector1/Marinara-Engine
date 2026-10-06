@@ -37,7 +37,9 @@ function resourceIdFromResult(result: Pick<OmnibarResult, "id" | "category">) {
   // lorebook-attachment UI resolves `resource.id` as a lorebookId (it shows "no longer
   // available" otherwise). The entry's own name already travels as `resource.label`.
   if (result.id.startsWith("lorebook-entry:")) return result.id.split(":")[1] ?? null;
-  if (result.id.startsWith("context:")) {
+  // A chat tool row (`chat-tool:<tool>:<chatId>`, e.g. the R2 "Fix: Check the last reply" row) is about
+  // its chat; sending `<tool>:<chatId>` made the server answer "the selected chat is no longer available".
+  if (result.id.startsWith("context:") || result.id.startsWith("chat-tool:")) {
     const parts = result.id.split(":");
     return parts.at(-1) ?? null;
   }
