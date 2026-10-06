@@ -3540,7 +3540,6 @@ export function HomeProfessorMariChat({
         const choice = chooseMariThread({
           threads: threads.map(readMariThread),
           contextKey: context.key,
-          now: Date.now(),
           continuedThereId: continuedThereByContext.get(context.key),
         });
         if (choice.kind === "new") return (await startMariThread(context)).id;
@@ -3915,6 +3914,21 @@ export function HomeProfessorMariChat({
   }, [pendingChangeReviews]);
 
   const workspaceTimelineActive = workspaceActive || hasActiveGeneration;
+  // When a run ends, the composer halo flashes once and lets go instead of vanishing mid-turn. Set while
+  // rendering (not in an effect), so the arrival routing below never sees the end of a run without it.
+  const [composerHaloEnding, setComposerHaloEnding] = useState(false);
+  const [haloSeenActive, setHaloSeenActive] = useState(workspaceTimelineActive);
+  if (haloSeenActive !== workspaceTimelineActive) {
+    setHaloSeenActive(workspaceTimelineActive);
+    setComposerHaloEnding(!workspaceTimelineActive);
+  }
+  useEffect(() => {
+    if (!composerHaloEnding) return;
+    // Long enough for the faint green glow to sink out of view (mari-glow-settle) and her success story
+    // to finish on the "Worked for" line before she rests.
+    const timer = window.setTimeout(() => setComposerHaloEnding(false), 5_000);
+    return () => window.clearTimeout(timer);
+  }, [composerHaloEnding]);
   const emptyStateReady =
     omnibarMode && messages.length === 0 && !isBusy && chatId !== null && loadedMessagesChatId === chatId;
   // D1: an arrival door (⌘J, the pull, the drag, Home's "Ask Professor Mari") opened into a chat that
@@ -3932,7 +3946,9 @@ export function HomeProfessorMariChat({
   // R7: an arrival after the first load (the pane was already open) routes here.
   useEffect(() => {
     if (!arrivalThread || arrivalAppendRequest <= handledArrivalRouteRef.current) return;
-    if (loadingHistory || isBusy || !chatId || loadedMessagesChatId !== chatId) return;
+    // R13: an arrival during a run waits until the finished run (its done marks, "Worked for") has been on
+    // screen for the halo's settle time; rerouting the moment isBusy cleared wiped it unseen.
+    if (loadingHistory || isBusy || composerHaloEnding || !chatId || loadedMessagesChatId !== chatId) return;
     void routeArrivalThread(chatId).then((targetId) => {
       if (targetId === chatId) return;
       setWorkspaceTimeline([]);
@@ -3942,6 +3958,7 @@ export function HomeProfessorMariChat({
     arrivalAppendRequest,
     arrivalThread,
     chatId,
+    composerHaloEnding,
     isBusy,
     loadMessages,
     loadedMessagesChatId,
@@ -3983,19 +4000,6 @@ export function HomeProfessorMariChat({
   // applies the reply, and keeps showing workspaceTimeline (now with active=false) as the turn's
   // permanent record afterward - it is only cleared when the next send or chat switch starts a new run.
   const workspaceTimelineVisible = workspaceTimelineActive || workspaceTimeline.length > 0;
-  // When a run ends, the composer halo flashes once and lets go instead of vanishing mid-turn.
-  const [composerHaloEnding, setComposerHaloEnding] = useState(false);
-  const composerHaloWasActiveRef = useRef(false);
-  useEffect(() => {
-    const wasActive = composerHaloWasActiveRef.current;
-    composerHaloWasActiveRef.current = workspaceTimelineActive;
-    if (workspaceTimelineActive || !wasActive) return;
-    setComposerHaloEnding(true);
-    // Long enough for the faint green glow to sink out of view (mari-glow-settle) and her success story
-    // to finish on the "Worked for" line before she rests.
-    const timer = window.setTimeout(() => setComposerHaloEnding(false), 5_000);
-    return () => window.clearTimeout(timer);
-  }, [workspaceTimelineActive]);
   const visiblePendingChangeReviews = useMemo(
     () => (!sending && !workspaceTimelineActive ? pendingChangeReviews : []),
     [pendingChangeReviews, sending, workspaceTimelineActive],
@@ -6735,7 +6739,7 @@ export function HomeProfessorMariChat({
                                       "HomeProfessorMariChat.AppendedArrival",
                                       appendedArrivalNodeRef,
                                       arrivalThread && chatId && arrivalChoiceChatId === chatId ? (
-                                        // R7: another thread was in use a moment ago; one quiet choice, no prompt.
+                                        // R7/R13: no thread for this screen yet, so she continued her latest one; one quiet choice, no prompt.
                                         <div
                                           className="mari-arrival__choice"
                                           role="group"

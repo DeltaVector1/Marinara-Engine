@@ -73,10 +73,14 @@ Rules that must survive:
   An arrival door (⌘J, the pull, the drag, Home's "Ask", ⌘K's empty Ask Mari, a
   Fix-row pick that sends nothing) routes before the thread loads, through the
   pure `chooseMariThread`: the newest thread with the same key continues; with
-  none, if another thread had a message in the last 30 minutes, she stays there
-  and the arrival shows two quiet buttons, "Continue here" (remembered for this
-  context for the page session) and "New about <context>"; otherwise a thread
-  for the context starts silently. "+" always starts fresh, keyed to the screen.
+  none, she continues her most recent conversation (however old; R13, slice 62g:
+  a silent empty thread read as "she forgot everything") and the arrival shows
+  two quiet buttons, "Continue here" (remembered for this context for the page
+  session) and "New about <context>". Only with no conversation at all does a
+  thread for the context start. An arrival while she is working never switches
+  threads until the run has ended and its done line has shown for the same ~5 s
+  the composer halo settles in (`composerHaloEnding`). "+" always starts fresh,
+  keyed to the screen.
   An empty, unkeyed thread (the one first opening her made) is reused rather
   than left behind. The Chats panel (titled "Chats") rows show the Mari-chat icon
   in the row slot and one fact, "<context or General> · <time> · N messages";

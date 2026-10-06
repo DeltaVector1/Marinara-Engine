@@ -3519,7 +3519,7 @@ assert.ok(!("mariDetailId" in mariSession));
 }
 
 {
-  // R7: one Mari thread per context; arrivals continue it, start one, or ask.
+  // R7: one Mari thread per context; arrivals continue it, or continue her latest one and ask (R13).
   const now = Date.parse("2026-10-06T12:00:00Z");
   const ago = (minutes: number) => new Date(now - minutes * 60_000).toISOString();
   const thread = (id: string, key: string | null, lastMinutesAgo: number | null, createdMinutesAgo = 600) =>
@@ -3530,7 +3530,7 @@ assert.ok(!("mariDetailId" in mariSession));
       createdAt: ago(createdMinutesAgo),
     });
   const choose = (threads: ReturnType<typeof thread>[], contextKey: string, continuedThereId?: string) =>
-    chooseMariThread({ threads, contextKey, now, continuedThereId });
+    chooseMariThread({ threads, contextKey, continuedThereId });
 
   assert.deepEqual(
     choose([thread("a-old", "chat:a", 900), thread("a-new", "chat:a", 120), thread("b", "chat:b", 5)], "chat:a"),
@@ -3539,14 +3539,19 @@ assert.ok(!("mariDetailId" in mariSession));
   );
   assert.deepEqual(
     choose([thread("b", "chat:b", 45)], "chat:a"),
-    { kind: "new" },
-    "a different key and no other thread used in the last 30 minutes starts one without asking",
+    { kind: "ask", recentChatId: "b" },
+    "R13: a different key never starts an empty thread silently; she continues her latest one and offers New about",
+  );
+  assert.deepEqual(
+    choose([thread("b", "chat:b", 60 * 24 * 9), thread("c", null, 60 * 24 * 2)], "chat:a"),
+    { kind: "ask", recentChatId: "c" },
+    "R13: however old, the most recent conversation is continued (with the offer), not a blank one",
   );
   assert.deepEqual(choose([], "general"), { kind: "new" }, "no threads at all starts one");
   assert.deepEqual(
     choose([thread("b", "chat:b", 10), thread("c", "chat:c", 20)], "chat:a"),
     { kind: "ask", recentChatId: "b" },
-    "a different key with another thread used under 30 minutes ago offers Continue here / New about",
+    "a different key with recent threads continues the newest and offers Continue here / New about",
   );
   assert.deepEqual(
     choose([thread("b", "chat:b", 10)], "chat:a", "b"),
@@ -3570,7 +3575,7 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.deepEqual(
     choose([thread("empty-b", "chat:b", null, 2)], "chat:a"),
     { kind: "new" },
-    "an empty thread was never 'in use', so it does not ask",
+    "with no conversation to continue (only an empty thread), one starts for this context",
   );
 
   const base = { surfaceResultIds: [], editorDirty: false, recentResultIds: [], setupResultIds: [] };

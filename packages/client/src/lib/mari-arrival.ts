@@ -66,26 +66,24 @@ export function readMariThread(chat: {
   };
 }
 
-/** "You were just talking with her elsewhere": a different thread with a message this recent. */
-export const MARI_RECENT_THREAD_MS = 30 * 60_000;
-
 export type MariThreadChoice =
   /** The newest thread for this context (or the one the user chose to continue for it). */
   | { kind: "continue"; chatId: string }
-  /** No thread for this context, but the user was just in another one: let them pick. */
+  /**
+   * No thread for this context: continue her most recent conversation and offer "New about <context>"
+   * there. R13: silently starting an empty thread read as "she forgot everything".
+   */
   | { kind: "ask"; recentChatId: string }
-  /** No thread for this context and nothing recent: start one, without asking. */
+  /** No conversation with her yet at all: start one. */
   | { kind: "new" };
 
 export function chooseMariThread({
   threads,
   contextKey,
-  now,
   continuedThereId = null,
 }: {
   threads: readonly MariThread[];
   contextKey: string;
-  now: number;
   /** A thread the user already chose "Continue here" in for this context, this session. */
   continuedThereId?: string | null;
 }): MariThreadChoice {
@@ -100,8 +98,7 @@ export function chooseMariThread({
   const match = newest(threads.filter((thread) => thread.contextKey === contextKey));
   if (match) return { kind: "continue", chatId: match.id };
   const recent = newest(threads.filter((thread) => thread.lastMessageAt !== null));
-  if (recent && now - recent.lastMessageAt! < MARI_RECENT_THREAD_MS) return { kind: "ask", recentChatId: recent.id };
-  return { kind: "new" };
+  return recent ? { kind: "ask", recentChatId: recent.id } : { kind: "new" };
 }
 
 /** K1/L2: the "fix this" row a lastAppError points at: the connection, or the agent for a failed run. */
