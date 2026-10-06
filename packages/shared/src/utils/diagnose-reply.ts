@@ -152,12 +152,18 @@ export function diagnoseReply({ message, connectionId, character }: ReplyCheckup
     const share = tokens / budget;
     if (share > CARD_LARGE_CONTEXT_SHARE) {
       const percent = Math.round(share * 100);
-      findings.push({
+      const cardLarge: ReplyCheckupFinding = {
         code: "card_large",
         text: `The character card is about ${tokens} tokens, ${percent}% of the ${budget}-token prompt budget.`,
         values: { tokens, percent, budget },
         link: { kind: "resource", resource: "character", id: character.id },
-      });
+      };
+      // F4: when the card crowds out the budget enough to trim history or cut the reply limit, the
+      // trim is the card's symptom, not an independent cause — lead with the card so "name one cause"
+      // (the Fix row, the panel order, chat.diagnose) points at the real fix, not the visible effect.
+      const causesTrim = findings.some((f) => f.code === "history_trimmed" || f.code === "reply_budget_cut");
+      if (causesTrim) findings.unshift(cardLarge);
+      else findings.push(cardLarge);
     }
   }
 

@@ -131,7 +131,9 @@ assert.deepEqual(
   [],
 );
 
-// A reply with several problems lists them all, reply facts first.
+// A reply with several problems lists them all. F4: card_large leads when it co-occurs with
+// history_trimmed/reply_budget_cut, since the trim is the oversized card's symptom, not an
+// independent cause — "name one cause" (the Fix row, the panel, chat.diagnose) must point at the card.
 assert.deepEqual(
   codes({
     message: {
@@ -146,7 +148,24 @@ assert.deepEqual(
     },
     character: { id: "c", data: bigCard },
   }),
-  ["cut_off", "history_trimmed", "reply_budget_cut", "lore_budget_skipped", "card_large"],
+  ["card_large", "cut_off", "history_trimmed", "reply_budget_cut", "lore_budget_skipped"],
+);
+
+// F4: large card + trim only (T20's exact shape) — card_large still leads.
+assert.deepEqual(
+  codes({
+    ...reply({ generationInfo: info({ contextFit: fit({ trimmed: true, droppedHistory: 6, inputBudget: 7000 }) }) }),
+    character: { id: "c", data: bigCard },
+  }),
+  ["card_large", "history_trimmed"],
+);
+// No trim/reply-cut alongside it: card_large still just appends at the end as before.
+assert.deepEqual(
+  codes({
+    ...reply({ generationInfo: info({ contextFit: fit({ inputBudget: 7000 }) }) }),
+    character: { id: "c", data: bigCard },
+  }),
+  ["card_large"],
 );
 
 // Only reply facts earn the quiet line; setup facts stay inside the checkup.
