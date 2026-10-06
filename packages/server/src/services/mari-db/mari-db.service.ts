@@ -3718,14 +3718,33 @@ export class MariDbService {
         let activeCharacterIds: string[] = [];
         let activeCharacterTags: string[] = [];
         let generationTriggers = ["chat"];
+        // F2: the newest reply's lorebook scan, so entries the last real generation's token budget
+        // skipped are not reported here as "activated" just because the scanner alone would fire them.
+        let lastBudgetSkippedEntries: Array<{
+          id?: unknown;
+          lorebookId?: unknown;
+          estimatedTokens?: unknown;
+          lorebookBudget?: unknown;
+          lorebookUsedTokens?: unknown;
+        }> = [];
         if (chatId) {
           const chatsStorage = createChatsStorage(this.db);
           const chat = await chatsStorage.getById(chatId);
           if (!chat) return { ok: false, mode: "read", command: context.command, error: `Chat ${chatId} not found` };
-          messages = (await chatsStorage.listMessages(chatId)).map((message) => ({
+          const rawMessages = await chatsStorage.listMessages(chatId);
+          messages = rawMessages.map((message) => ({
             role: message.role === "narrator" ? "system" : String(message.role),
             content: typeof message.content === "string" ? message.content : "",
           }));
+          for (let i = rawMessages.length - 1; i >= 0; i--) {
+            const candidate = rawMessages[i]!;
+            if (candidate.role !== "assistant" && candidate.role !== "narrator") continue;
+            const extra = parseJsonMaybe(candidate.extra) as {
+              lorebookScan?: { budgetSkippedEntries?: typeof lastBudgetSkippedEntries };
+            } | null;
+            lastBudgetSkippedEntries = extra?.lorebookScan?.budgetSkippedEntries ?? [];
+            break;
+          }
           activeCharacterIds = Array.isArray(chat.characterIds) ? chat.characterIds.map(String) : [];
           const characterRows = await createCharactersStorage(this.db).getByIds(activeCharacterIds);
           activeCharacterTags = characterRows.flatMap((row) => {
@@ -3762,6 +3781,27 @@ export class MariDbService {
           activeCharacterTags,
           generationTriggers,
         });
+        const budgetSkippedForThisBook = lastBudgetSkippedEntries.filter((entry) => entry.lorebookId === lorebookId);
+        if (budgetSkippedForThisBook.length > 0) {
+          const stillActivated: typeof result.activated = [];
+          for (const entry of result.activated) {
+            const skip = budgetSkippedForThisBook.find((skipped) => skipped.id === entry.entryId);
+            if (!skip) {
+              stillActivated.push(entry);
+              continue;
+            }
+            result.blocked.push({
+              entryId: entry.entryId,
+              name: entry.name,
+              matchedKeys: entry.matchedKeys,
+              reason: "budget",
+              estimatedTokens: typeof skip.estimatedTokens === "number" ? skip.estimatedTokens : undefined,
+              lorebookBudget: typeof skip.lorebookBudget === "number" ? skip.lorebookBudget : undefined,
+              lorebookUsedTokens: typeof skip.lorebookUsedTokens === "number" ? skip.lorebookUsedTokens : undefined,
+            });
+          }
+          result.activated = stillActivated;
+        }
         if (entryId) {
           const entryName = (entries as unknown as LorebookEntry[]).find((entry) => entry.id === entryId)?.name;
           const activated = result.activated.find((entry) => entry.entryId === entryId);
