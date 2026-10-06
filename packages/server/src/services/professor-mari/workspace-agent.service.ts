@@ -2767,8 +2767,10 @@ export class ProfessorMariWorkspaceService {
     this.active = false;
   }
 
-  async reset(options?: { clearHistory?: boolean }) {
-    await this.abort();
+  async reset(options?: { clearHistory?: boolean; keepRun?: boolean }) {
+    // F12: Dismiss uses keepRun so a stale client-side error (poll lag, another tab) clears its own
+    // state without aborting a run that may genuinely be in flight.
+    if (options?.keepRun !== true) await this.abort();
     this.lastError = null;
     if (options?.clearHistory === true) await getMariDbService(this.app.db).clearHistory();
   }

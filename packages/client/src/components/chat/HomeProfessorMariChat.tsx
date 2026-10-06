@@ -5878,8 +5878,9 @@ export function HomeProfessorMariChat({
         await loadMessages(id, { restoreFocus: false });
       }
       // The server keeps the failure for the top-bar line until a run or a reset clears it.
+      // F12: keepRun so Dismiss never aborts a run that may genuinely be in flight.
       if (workspaceStatus?.error) {
-        await api.post("/professor-mari/workspace/reset", {});
+        await api.post("/professor-mari/workspace/reset", { keepRun: true });
         setWorkspaceStatus((current) => current && { ...current, error: null });
       }
     } catch (error) {

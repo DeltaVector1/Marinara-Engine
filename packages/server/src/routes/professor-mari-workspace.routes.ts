@@ -119,6 +119,9 @@ export const professorMariPromptSchema = z.object({
 
 const resetSchema = z.object({
   clearHistory: z.boolean().optional(),
+  // F12: Dismiss only needs the last-error flag cleared; a stale client error (poll lag, another
+  // tab) must not abort a run that is genuinely in flight.
+  keepRun: z.boolean().optional(),
 });
 
 // #5073: attached workspace context (chat-history slices). content is the already-serialized JSON;
@@ -244,7 +247,10 @@ export async function professorMariWorkspaceRoutes(app: FastifyInstance) {
   app.post("/reset", async (req, reply) => {
     if (!privileged(req, reply)) return;
     const input = resetSchema.parse(req.body ?? {});
-    await getProfessorMariWorkspaceService(app).reset({ clearHistory: input.clearHistory === true });
+    await getProfessorMariWorkspaceService(app).reset({
+      clearHistory: input.clearHistory === true,
+      keepRun: input.keepRun === true,
+    });
     return { ok: true };
   });
 
