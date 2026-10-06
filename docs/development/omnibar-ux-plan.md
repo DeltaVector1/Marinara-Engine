@@ -104,7 +104,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 62a | Fix the "Mari needs your answer" / "working" row navigation (R9) | worker           | Done                 | 8bfa1f99a, e6067407e |
 | 62b | One Mari thread per context (R7)                                | designer         | Done                 | dcd18dd78 |
 | 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Done                 | 2db202dec |
-| 62d | Mari cards v5 (R10)                                             | designer         | Pending              |           |
+| 62d | Mari cards v5 (R10)                                             | designer         | Done                 | 66f51efbb, 0ab75f5db |
 | 62e | Mari composer v5 (R11)                                          | designer         | Pending              |           |
 | 63  | Connection doctor (R4)                                          | worker           | Pending              |           |
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Pending              |           |
