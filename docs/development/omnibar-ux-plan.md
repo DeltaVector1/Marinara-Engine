@@ -106,7 +106,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Done                 | 2db202dec |
 | 62d | Mari cards v5 (R10)                                             | designer         | Done                 | 66f51efbb, 0ab75f5db |
 | 62e | Mari composer v5 (R11)                                          | designer         | Done                 | ce6505267, f2227152e |
-| 62g | Mari feels smart and alive again — regressions from 36/37/62/62b (R13) | designer | Pending          |           |
+| 62g | Mari feels smart and alive again — regressions from 36/37/62/62b (R13) | designer | Done             | a84a46d34, 635e4002c, aa93c736a, f1fc49706 |
 | 62f | Golden Mari unlocks at 100 h of chat time (R12)                 | designer         | Pending              |           |
 | 63  | Connection doctor (R4)                                          | worker           | Dropped — maintainer is redesigning connection setup |  |
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Dropped — maintainer is redesigning connection setup |  |
