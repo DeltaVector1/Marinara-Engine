@@ -141,7 +141,8 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     await expect(plain.locator(".mari-work-timeline__done")).toBeVisible({ timeout: 20_000 });
     await page.screenshot({ path: ".tmp/omnibar-ux/62g/no-step-answer-done-1440.png" });
   } finally {
-    if (mariChatId) await request.delete(`/api/chats/internal/professor-mari/chats/${mariChatId}`).catch(() => undefined);
+    if (mariChatId)
+      await request.delete(`/api/chats/internal/professor-mari/chats/${mariChatId}`).catch(() => undefined);
     if (connectionId) await request.delete(`/api/connections/${connectionId}`).catch(() => undefined);
     await new Promise<void>((resolve) => provider.close(() => resolve()));
   }

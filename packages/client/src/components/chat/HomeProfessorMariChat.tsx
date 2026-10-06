@@ -1845,6 +1845,14 @@ function MariWorkTimeline({
   );
   const liveElapsedSeconds = useWorkspaceElapsedSeconds(active, resolveRunStartMs(runTimings));
   const elapsedSeconds = active ? liveElapsedSeconds : resolveRunSeconds(runTimings);
+  // R13: "Still on it" counts from her last visible change (a step, a thought), not from the run's start,
+  // so each new round first names what she just did instead of a generic waiting line.
+  const lastChangeMs = runTimings.reduce(
+    (latest, timing) => Math.max(latest, timing.updatedAt || timing.startedAt || 0),
+    0,
+  );
+  const quietSeconds =
+    active && lastChangeMs ? Math.max(0, Math.floor((Date.now() - lastChangeMs) / 1_000)) : elapsedSeconds;
   // A finished run that still holds a failed step is not a success, whatever the last step was.
   const failed = !active && toolItems.some(({ tool }) => tool.status === "error");
   // The running step is the live line itself, so it is not also a row in the list.
@@ -1878,9 +1886,9 @@ function MariWorkTimeline({
   const lastSubject = lastDoneSubject ? inferToolPresentation(lastDoneSubject.tool).detail : null;
   const phraseGroup: keyof typeof MARI_PHRASE_GROUPS = replying
     ? "replying"
-    : elapsedSeconds >= MARI_VERY_LONG_WAIT_SECONDS
+    : quietSeconds >= MARI_VERY_LONG_WAIT_SECONDS
       ? "veryLong"
-      : elapsedSeconds >= MARI_LONG_WAIT_SECONDS
+      : quietSeconds >= MARI_LONG_WAIT_SECONDS
         ? "long"
         : toolItems.length > 0
           ? lastSubject
@@ -1902,7 +1910,7 @@ function MariWorkTimeline({
       ? stepAnimation(runningTool)
       : selectMariWorkAnimation({
           // A long wait grows a seed; otherwise she thinks or edits.
-          activity: replying ? "write" : elapsedSeconds >= MARI_LONG_WAIT_SECONDS ? "wait" : "think",
+          activity: replying ? "write" : quietSeconds >= MARI_LONG_WAIT_SECONDS ? "wait" : "think",
           toolNames: [],
           packId: appearance.id,
         });

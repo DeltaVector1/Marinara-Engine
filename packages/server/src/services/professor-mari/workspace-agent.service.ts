@@ -3246,6 +3246,12 @@ export class ProfessorMariWorkspaceService {
         if (controller.signal.aborted) throw new Error("aborted");
         let result: ChatCompletionResult;
         try {
+          // ponytail: no live text for workspace rounds - the frame's \`say\` is parsed and dropped
+          // here, and only reaches the client after the round is parsed and audited (a protocol repair
+          // or a failed claim audit discards it, so streaming it raw could show words she then takes
+          // back). While a round runs the user sees her streamed thinking, the ticking timer and the
+          // phrase line, and each step row lands the moment it ends. Upgrade path: forward these deltas
+          // as a provisional "draft" event the live headline shows, cleared when the parsed text lands.
           result = await this.chatCompleteWorkspace(provider, messages, baseOptions, () => {}, debugLog);
         } catch (error) {
           controller.signal.throwIfAborted();
@@ -3600,6 +3606,7 @@ export class ProfessorMariWorkspaceService {
             content:
               "You reached the workspace command round limit. Do not issue more commands. Summarize what you learned or what remains blocked.",
           });
+          // ponytail: not streamed either; see the round call above.
           const finalResult = await this.chatCompleteWorkspace(provider, messages, baseOptions, () => {}, debugLog);
           latestUsage = finalResult.usage;
           latestFinishReason = finalResult.finishReason ?? null;
