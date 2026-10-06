@@ -107,6 +107,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 62d | Mari cards v5 (R10)                                             | designer         | Done                 | 66f51efbb, 0ab75f5db |
 | 62e | Mari composer v5 (R11)                                          | designer         | Done                 | ce6505267, f2227152e |
 | 62g | Mari feels smart and alive again — regressions from 36/37/62/62b (R13) | designer | Done             | a84a46d34, 635e4002c, aa93c736a, f1fc49706 |
+| 62h | Errors/retry, step summary, composer v5 follow-ups, sticky Mari (R14) | designer | Pending          |           |
 | 62f | Golden Mari unlocks at 100 h of chat time (R12)                 | designer         | Done                 | 5ab46a8fa |
 | 63  | Connection doctor (R4)                                          | worker           | Dropped — maintainer is redesigning connection setup |  |
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Dropped — maintainer is redesigning connection setup |  |
@@ -1425,3 +1426,36 @@ a cut-off/trimmed reply DOES get a quiet line in the chat. Lorebook batch review
   chats) and on the unlock check (99h locked, 100h unlocked, the stored-choice fallback); an e2e with a seeded
   instance below and above the threshold; screenshots of the locked and unlocked cards at 390/1440, dark and
   light. CHANGELOG. `heavy pnpm check`.
+- R14 (slice 62h, designer, priority — user report 2026-10-06 ~19:50, runs in parallel with slice 65 in the same
+  worktree) Errors/retry, step summary, composer v5 follow-ups, sticky Mari. Full brief:
+  `.tmp/omnibar-ux/round9/mari-fixes-62h.md`. Deployed prod is `f421bbb27`; reproduce each item first (a fake
+  provider returning 503/timeout is fine, no external prompts needed). Five parts:
+  (1) Errors + retry: every failed run (provider HTTP error, timeout, no answer, stream abort) must set the
+  edge/composer glow to the red error state — find every path that ends a run with an error and route them
+  through ONE place; error cards get "Retry" and "Retry with another model" actions (the latter opens the
+  existing composer connection/model picker, then retries with the picked model — reuse the picker, no new one);
+  drop or shorten the "This message stays open so you can take a screenshot." line.
+  (2) Error-state lifecycle: Retry or a new message clears the red state immediately and brings back the
+  thinking/cyan shimmer; old error cards don't persist for the whole chat — once a later run succeeds or the
+  user sends a new message, collapse earlier error cards to one quiet line ("Failed · <short reason>") or remove
+  them, keeping only the latest unresolved one as a full card; a "Worked for 1s · 1 step" line that expands to
+  nothing should render as plain text, not a toggle (fix the cause if steps are getting lost, don't just hide
+  the symptom).
+  (3) "Looked at 1 thing" phase summary: open by default when it holds ≤3 items (or always for the latest run —
+  pick whichever reads best, stay calm); when a step names a record (character, persona, lorebook, chat, agent),
+  show a tiny avatar beside the name using the existing avatar/initial helper from the v5 cards (slice 62d).
+  (4) Composer v5 follow-ups (slice 62e gaps): rename the "Aware of" chip to something clearer (designer's
+  call — e.g. "Context" or "Using"; plain, short; update the `en.json` key text, keep the key itself semantic);
+  the pre-62e context bar (showing what Mari is aware of / the current chat context) is gone with the new
+  composer — bring it back in the v5 style (compact, in or right above the composer box); the Send button's
+  arrow icon isn't optically centred in the round button on desktop (and maybe mobile) — centre it at 390 and
+  1440.
+  (5) Sticky Mari: her sprite beside the latest reply should stay visible (sticky) while that reply scrolls, the
+  same way avatars stay sticky in Conversation mode — find and reuse that existing sticky-avatar pattern/CSS
+  rather than building a new one.
+  Constraints: subtle effects throughout; do NOT touch Engine connection setup (`ConnectionEditor`, connection
+  routes, the first-run connection card — same exclusion as R4/R5); `en.json` keys sorted; CHANGELOG
+  `[Unreleased]` entry; screenshots 390/1440 dark+light before/after in `.tmp/omnibar-ux/round9/slice-62h/`;
+  keep the Paseo Progress ticket (T12) current; no deploy. Runs concurrently with slice 65 in the same worktree
+  — stage only its own changed files (`git add <paths>`, never `git add -A`), never revert anyone else's changes,
+  handle a push rejection by fetching and rebasing onto the new remote tip, never force-push.
