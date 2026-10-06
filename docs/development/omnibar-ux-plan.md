@@ -106,9 +106,9 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Done                 | 2db202dec |
 | 62d | Mari cards v5 (R10)                                             | designer         | Done                 | 66f51efbb, 0ab75f5db |
 | 62e | Mari composer v5 (R11)                                          | designer         | Pending              |           |
-| 63  | Connection doctor (R4)                                          | worker           | Pending              |           |
-| 64  | "Connect a model" card + local probe (R5)                       | designer         | Pending              |           |
-| 65  | Cut and re-measure, review (R6)                                 | reviewer, worker | Pending              |           |
+| 63  | Connection doctor (R4)                                          | worker           | Dropped — maintainer is redesigning connection setup |  |
+| 64  | "Connect a model" card + local probe (R5)                       | designer         | Dropped — maintainer is redesigning connection setup |  |
+| 65  | Cut and re-measure, review (R6) — T18-T20 + old 15 only, T16/T17 skipped | reviewer, worker | Pending      |           |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
@@ -1286,20 +1286,23 @@ a cut-off/trimmed reply DOES get a quiet line in the chat. Lorebook batch review
   call it first, name one cause with the number, offer one reviewed fix she already has (preset maxTokens,
   character.update, lorebook.updateEntry) or a deep link to the Chat Settings section. Proof: regression that the
   payload has no message content; e2e with a mocked answer.
-- R4 (slice 63) Connection doctor: test failures return `{ code, advice, detail }` for 401/403, 404, HTML body
-  (missing /v1), ECONNREFUSED/timeout, no model; TestResultCard shows the advice + one docs link, raw detail
-  behind "Details"; the no-connection send error gets an "Open Connections" action. Proof: regression table
-  status/body → code.
-- R5 (slice 64) "Connect a model" card on Home when no language connection exists: "I have an API key"
-  (chat providers only, OpenRouter first), "I run a local server" (server probes localhost 11434/1234/5001
-  `/v1/models`, short timeout, localhost only; in Docker say so and ask for a URL), "Sign in with a subscription"
-  (LOCAL_AUTH_PROVIDERS). Reuses the editor fields and the test routes; failures use the R4 doctor. On success:
-  "Start a roleplay" and "Ask Mari to make a character". The tour's Connections step points at the card. Proof: T16
-  on a fresh DATA_DIR with a mock local server, 390/1440.
+- R4 (slice 63) **DROPPED, maintainer decision 2026-10-06.** The maintainer will soon change how Engine
+  connections are set up, so round 9 must not touch connection setup at all: no changes to `ConnectionEditor`,
+  `TestResultCard`, `connections.routes`, the first-run Home card, or the tour's Connections step. Original scope
+  (not built): test failures return `{ code, advice, detail }` for 401/403, 404, HTML body (missing /v1),
+  ECONNREFUSED/timeout, no model; `TestResultCard` shows the advice + one docs link, raw detail behind "Details";
+  the no-connection send error gets an "Open Connections" action.
+- R5 (slice 64) **DROPPED, maintainer decision 2026-10-06.** Same reason as R4 — no connection-setup work this
+  round. Original scope (not built): a "Connect a model" card on Home when no language connection exists: "I
+  have an API key" (chat providers only, OpenRouter first), "I run a local server" (server probes localhost
+  11434/1234/5001 `/v1/models`, short timeout, localhost only; in Docker say so and ask for a URL), "Sign in with
+  a subscription" (LOCAL_AUTH_PROVIDERS); reuses the editor fields and the test routes; failures use the R4
+  doctor; on success "Start a roleplay" and "Ask Mari to make a character"; the tour's Connections step points at
+  the card.
 - R6 (slice 65) Cut and re-measure (reviewer, then worker). Remove the model/preset/persona duplicates from the
   EMPTY omnibar list (keep them reachable by typing); never promote Ask Mari above docs rows when no model is
-  set; re-run the 15 old tasks and T16-T20; update the value table, inventory and CHANGELOG; fix confirmed review
-  findings.
+  set; re-run the 15 old tasks plus T18-T20 only (T16/T17 were the connection-setup tasks measured by the now-
+  dropped R4/R5 — skip them); update the value table, inventory and CHANGELOG; fix confirmed review findings.
 - R9 (slice 62a, worker, after 62, priority bug) Clicking the omnibar row "Mari needs your answer" does not
   navigate. The row (`lib/omnibar-results.ts` ≈1600-1650, category `professor`, score 480, group "continue")
   carries a `choice` control (Keep/Restore) with no selected value, so a click or Enter on the row body does
