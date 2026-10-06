@@ -23,6 +23,8 @@ export interface MariReferencedResource {
   state?: "on" | "off" | "failed";
   /** One line about it from the tool output (an agent's or entry's description). */
   detail?: string;
+  /** An entry's first key, so its card can say which word fires it. */
+  key?: string;
 }
 
 interface MariToolCallLike {
@@ -106,7 +108,7 @@ export function collectMariReferencedResources(tools: readonly MariToolCallLike[
     id: unknown,
     name: string | null,
     fromList: boolean,
-    extra: Pick<MariReferencedResource, "parentId" | "state" | "detail"> = {},
+    extra: Pick<MariReferencedResource, "parentId" | "state" | "detail" | "key"> = {},
   ) => {
     if (typeof id !== "string" || !id.trim()) return;
     const key = `${kind}:${id}`;
@@ -119,6 +121,7 @@ export function collectMariReferencedResources(tools: readonly MariToolCallLike[
       fromList: fromList && (existing?.fromList ?? true),
       parentId: extra.parentId ?? existing?.parentId,
       detail: extra.detail ?? existing?.detail,
+      key: extra.key ?? existing?.key,
       // A failed run is the news about an agent, whatever an earlier read said about it.
       state: existing?.state === "failed" ? "failed" : (extra.state ?? existing?.state),
     });
@@ -159,9 +162,11 @@ export function collectMariReferencedResources(tools: readonly MariToolCallLike[
       const records = verb === "entries" ? listRecords(parsed) : [asRecord(parsed)].filter((r) => r !== null);
       for (const record of records) {
         const parentId = record.lorebookId ?? input?.lorebookId ?? input?.id;
+        const keys = record.keys ?? record.primaryKeys;
         add("lorebookEntry", record.id ?? input?.entryId, recordName(record), verb === "entries", {
           parentId: typeof parentId === "string" ? parentId : undefined,
           detail: recordDetail(record),
+          key: Array.isArray(keys) && typeof keys[0] === "string" && keys[0].trim() ? keys[0].trim() : undefined,
         });
       }
       continue;
@@ -249,5 +254,73 @@ export function mariReferenceTarget(
     }
     default:
       return { kind: "resource", resource: resource.kind, id: resource.id };
+  }
+}
+
+/** The first sentence of a description, for a one-line fact (CSS truncates the rest). */
+export function firstSentence(text: string | null | undefined): string | undefined {
+  const line = text
+    ?.split("\n")
+    .find((part) => part.trim())
+    ?.trim();
+  if (!line) return undefined;
+  const end = line.search(/[.!?](\s|$)/u);
+  return end >= 0 ? line.slice(0, end + 1) : line;
+}
+
+type FactTranslate = (key: string, options?: Record<string, unknown>) => string;
+
+/**
+ * R10: a reference row's one fact. The slot already says what the thing is, so the fact says something
+ * about THIS thing (a state, a count, where it lives) and never the type ("Chat", "Agent") or a tag.
+ * Undefined when nothing useful is known: the row then shows its name only.
+ */
+export function mariReferenceFact(
+  kind: MariReferencedResourceKind,
+  facts: {
+    description?: string;
+    /** An agent: on, off, or its last run failed; null when unknown. */
+    agentState?: "on" | "off" | "failed" | null;
+    entryCount?: number;
+    lorebookName?: string;
+    entryKey?: string;
+    /** A chat: who is in it, and when it last moved (already relative: "4 min ago"). */
+    people?: string;
+    time?: string | null;
+    section?: string;
+    value?: string;
+  },
+  t: FactTranslate,
+): string | undefined {
+  const join = (...parts: Array<string | null | undefined>) => parts.filter(Boolean).join(" · ") || undefined;
+  switch (kind) {
+    case "character":
+    case "persona":
+      return firstSentence(facts.description);
+    case "lorebook":
+      return typeof facts.entryCount === "number"
+        ? t("ui.chat.homeprofessormarichat.refFact.entries", { count: facts.entryCount })
+        : firstSentence(facts.description);
+    case "lorebookEntry":
+      return facts.entryKey
+        ? join(facts.lorebookName, t("ui.chat.homeprofessormarichat.refFact.key", { key: facts.entryKey }))
+        : facts.lorebookName;
+    case "chat":
+      return join(facts.people, facts.time);
+    case "agent":
+      return facts.agentState === "failed"
+        ? t("ui.chat.homeprofessormarichat.referenceAgentFailed")
+        : join(
+            facts.agentState
+              ? t(
+                  facts.agentState === "on"
+                    ? "ui.chat.homeprofessormarichat.refFact.on"
+                    : "ui.chat.homeprofessormarichat.refFact.off",
+                )
+              : null,
+            firstSentence(facts.description),
+          );
+    case "setting":
+      return join(facts.section, facts.value);
   }
 }

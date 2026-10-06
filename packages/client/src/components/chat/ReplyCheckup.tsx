@@ -1,10 +1,17 @@
 // R2: the quiet line under a reply that went wrong ("Cut off · Check"), modeled on N1's
-// "Failed · Retry", and the short facts list it opens. Facts come from diagnoseReply, no model call.
+// "Failed · Retry", and the findings it opens. Facts come from diagnoseReply, no model call.
 import { useId } from "react";
-import { Info } from "lucide-react";
+import { CircleAlert, Eye, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { ReplyCheckupFinding, ReplyCheckupLink } from "@marinara-engine/shared";
-import { replyCheckupFact, replyCheckupLabel, replyCheckupLinkLabel, replyLineFindings } from "../../lib/reply-checkup";
+import { REPLY_CHECKUP_LINE_CODES, type ReplyCheckupFinding, type ReplyCheckupLink } from "@marinara-engine/shared";
+import {
+  replyCheckupFact,
+  replyCheckupLabel,
+  replyCheckupLinkLabel,
+  replyCheckupRow,
+  replyLineFindings,
+} from "../../lib/reply-checkup";
+import { MariList, MariRow } from "./mari-primitives";
 
 interface ReplyCheckupProps {
   messageId: string;
@@ -36,19 +43,38 @@ export function ReplyCheckup({ messageId, findings, open, onOpenChange, onLink, 
           {t("chat.replyCheckup.check", "Check")}
         </button>
       </p>
+      {/* R10: opened, the findings are rows of one group; a row goes to the setting it names. */}
       {open && (
-        <div id={panelId} className="mari-reply-checkup__panel">
-          <ReplyCheckupFacts findings={findings} onLink={onLink} />
-          <button type="button" className="mari-link" onClick={onPeek}>
-            {t("chat.replyCheckup.peek", "Peek at the prompt")}
-          </button>
-        </div>
+        <MariList id={panelId} data-cards="checkup">
+          {findings.map((finding) => {
+            const { title, why } = replyCheckupRow(finding, t);
+            const Icon = REPLY_CHECKUP_LINE_CODES.includes(finding.code) ? CircleAlert : Info;
+            const link = finding.link;
+            return (
+              <MariRow
+                key={finding.code}
+                slot={<Icon />}
+                title={title}
+                fact={[why, link ? replyCheckupLinkLabel(link, t) : null].filter(Boolean).join(" · ")}
+                trail={link ? "open" : undefined}
+                onClick={link ? () => onLink(link) : undefined}
+              />
+            );
+          })}
+          <MariRow
+            slot={<Eye />}
+            title={t("chat.replyCheckup.peek", "Peek at the prompt")}
+            fact={t("chat.replyCheckup.peekFact", "See exactly what was sent")}
+            trail="open"
+            onClick={onPeek}
+          />
+        </MariList>
       )}
     </div>
   );
 }
 
-/** The facts list, shared with the Peek header. */
+/** The facts list, for the Peek header. */
 export function ReplyCheckupFacts({
   findings,
   onLink,

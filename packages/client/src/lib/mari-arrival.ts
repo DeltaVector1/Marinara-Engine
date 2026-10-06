@@ -521,7 +521,7 @@ export function buildMariArrival(context: OmnibarContext, data: MariArrivalData)
         "peek-prompt",
         t("mari.arrival.cards.peekPrompt", "Peek at the prompt"),
         { kind: "peek-prompt", chatId },
-        // A fact, not "Opens now": the card's corner already says that.
+        // A fact, not "Opens now": the row's › already says that.
         character
           ? t("mari.arrival.cards.peekPromptFor", "What {{name}} gets next turn", { name: character })
           : t("mari.arrival.cards.peekPromptNext", "What the next reply gets"),

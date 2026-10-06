@@ -72,6 +72,7 @@ const RECORD_FACE_TYPE_BY_TABLE = {
   agent_configs: "agent",
   personas: "persona",
   presets: "preset",
+  prompt_presets: "preset",
   chats: "chat",
   messages: "message",
   connections: "connection",

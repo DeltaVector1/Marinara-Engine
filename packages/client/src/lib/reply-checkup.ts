@@ -105,3 +105,50 @@ export function replyCheckupLinkLabel(link: ReplyCheckupLink, t: OmnibarTranslat
   if (link.resource === "lorebook") return t("chat.replyCheckup.link.lorebook", "Lorebook budget");
   return t("chat.replyCheckup.link.character", "Edit the card");
 }
+
+/**
+ * R10: a finding as a row of the opened checkup: the finding with its number as the title ("Cut off at
+ * 512 tokens"), and a short why as the fact (the caller adds the setting's name after it).
+ */
+export function replyCheckupRow(finding: ReplyCheckupFinding, t: OmnibarTranslate): { title: string; why: string } {
+  const { values } = finding;
+  switch (finding.code) {
+    case "cut_off":
+      return {
+        title: values.limit
+          ? t("chat.replyCheckup.title.cutOff", "Cut off at {{limit}} tokens", { limit: num(values.limit) })
+          : replyCheckupLabel(finding, t),
+        why: t("chat.replyCheckup.why.cutOff", "Stopped mid-sentence"),
+      };
+    case "empty_reply":
+      return {
+        title: replyCheckupLabel(finding, t),
+        why: t("chat.replyCheckup.why.emptyReply", "No visible text came back"),
+      };
+    case "history_trimmed":
+      return {
+        title: replyCheckupLabel(finding, t),
+        why: t("chat.replyCheckup.why.historyTrimmed", "Needed {{before}} tokens, budget {{budget}}", {
+          before: num(values.before),
+          budget: num(values.budget),
+        }),
+      };
+    case "reply_budget_cut":
+      return {
+        title: replyCheckupLabel(finding, t),
+        why: t("chat.replyCheckup.why.replyBudgetCut", "Was {{from}} tokens, cut to fit the prompt", {
+          from: num(values.from),
+        }),
+      };
+    case "lore_budget_skipped":
+      return { title: replyCheckupLabel(finding, t), why: String(values.names ?? "") };
+    case "card_large":
+      return {
+        title: replyCheckupLabel(finding, t),
+        why: t("chat.replyCheckup.why.cardLarge", "About {{tokens}} tokens, {{percent}}% of the budget", {
+          tokens: num(values.tokens),
+          percent: values.percent,
+        }),
+      };
+  }
+}

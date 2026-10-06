@@ -5,6 +5,7 @@ import {
   type CSSProperties,
   type ChangeEvent,
   type ReactNode,
+  type RefObject,
   lazy,
   memo,
   Fragment,
@@ -134,11 +135,13 @@ import {
   professorMariContextFacets,
   professorMariFacetSendsContentLater,
   resolveProfessorMariPresentationState,
+  reviewRecordKeys,
   shouldAppendMariArrival,
   shouldOfferProfessorMariStarterSuggestions,
   shouldShowProfessorMariConnectionHint,
   stripProfessorMariSpeakerPrefix,
   withoutProfessorMariContextFacet,
+  withoutReviewedResults,
   type ProfessorMariContextFacet,
 } from "../../lib/professor-mari-presentation";
 import {
@@ -155,9 +158,7 @@ import {
   DEFAULT_MARI_PERMISSIONS_MODE,
   MARI_PERMISSIONS_MODE_LABELS,
   MARI_PERMISSIONS_MODES,
-  type MariDependencyInstallApproval,
   type MariPermissionsMode,
-  type MariSensitiveFileApproval,
   type MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 import { showConfirmDialog } from "../../lib/app-dialogs";
@@ -212,6 +213,7 @@ import {
   collectMariReferencedResources,
   findMariSettingReferences,
   isWorkspaceTraceItem,
+  mariReferenceFact,
   mariReferenceTarget,
   selectMariReplyReferences,
   type MariReferencedResource,
@@ -224,7 +226,7 @@ import { chatResultType, resourceResultType, type ResultType } from "../../lib/c
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { MariNextStepCards, MariSuggestionChips } from "./MariSuggestionChips";
 import { requestChatPeekPrompt } from "../../lib/chat-floating-ui-events";
-import { MariNote } from "./mari-primitives";
+import { MariList, MariNote, MariRow } from "./mari-primitives";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 import {
   consumeProfessorMariOpenRequest,
@@ -2184,96 +2186,108 @@ function MariReplyActions({
   );
 }
 
-/** I3: something she made or changed, as a small tile: its face, name, one line and Open. */
+/**
+ * I3 / R10: something she made or changed, as a row of the outcome group: its face, its name (with "New"
+ * when she made it), one fact in words ("Changed description", "New lorebook · 4 entries") and › to open.
+ */
 function MariWorkspaceActionResultRow({
   result,
   onOpen,
-  onReview,
   character,
   lorebook,
 }: {
   result: MariWorkspaceActionResult;
   onOpen: (result: MariWorkspaceActionResult) => void;
-  onReview: (reviewId: string) => void;
   character?: CharacterPreviewModel | null;
   lorebook?: LorebookPreviewModel | null;
 }) {
-  const { t: localizeUi } = useUiTranslation();
+  const { t: localizeUi, i18n } = useUiTranslation();
   const characterPreview =
     result.resource.kind === "character" && character?.id === result.resource.id ? character : null;
   const lorebookPreview = result.resource.kind === "lorebook" && lorebook?.id === result.resource.id ? lorebook : null;
   const name = characterPreview?.name ?? lorebookPreview?.name ?? result.resource.label ?? result.summary;
-  const description = characterPreview?.summary ?? characterPreview?.description ?? lorebookPreview?.description;
-  const hook =
-    result.status === "updated" && result.changedFields.length > 0
-      ? localizeUi("ui.chat.homeprofessormarichat.changedFields", { fields: result.changedFields.join(", ") })
-      : (description?.split("\n").find((line) => line.trim()) ?? result.summary);
+  const created = result.status === "created";
+  const fact = created
+    ? [
+        localizeUi("ui.chat.homeprofessormarichat.resultFact.new", {
+          type: localizeUi(`omnibar.categories.${result.resource.kind}`).toLocaleLowerCase(),
+        }),
+        typeof lorebookPreview?.entryCount === "number"
+          ? localizeUi("ui.chat.homeprofessormarichat.refFact.entries", { count: lorebookPreview.entryCount })
+          : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : result.changedFields.length > 0
+      ? localizeUi("ui.chat.homeprofessormarichat.changedFields", {
+          fields: new Intl.ListFormat(i18n.resolvedLanguage ?? "en", { type: "conjunction" }).format(
+            result.changedFields.slice(0, 3),
+          ),
+        })
+      : result.summary;
   return (
-    <div className="mari-tile">
-      <ResultTypeIcon
-        type={resourceResultType(result.resource.kind)}
-        src={characterPreview?.avatarSrc ?? lorebookPreview?.imageSrc}
-        kind={characterPreview ? "avatar" : "image"}
-        avatarCropStyle={characterPreview?.avatarCropStyle}
-      />
-      <span className="mari-tile__text">
-        <span className="mari-tile__name">
-          <span>{name}</span>
-          {result.status === "created" ? (
-            <span className="mari-new-badge">{localizeUi("ui.chat.mariediteasyviewer.actionNew")}</span>
-          ) : null}
-        </span>
-        {hook ? <span className="mari-tile__hook">{hook}</span> : null}
-      </span>
-      {result.reviewId ? (
-        <button type="button" onClick={() => onReview(result.reviewId!)} className="mari-link">
-          {localizeUi("ui.chat.homeprofessormarichat.reviewResult")}
-        </button>
-      ) : null}
-      <button type="button" onClick={() => onOpen(result)} className="mari-link">
-        {localizeUi("ui.chat.homeprofessormarichat.openResult")}
-        <ChevronRight size="0.75rem" aria-hidden="true" />
-      </button>
-    </div>
+    <MariRow
+      slot={
+        <ResultTypeIcon
+          type={resourceResultType(result.resource.kind)}
+          src={characterPreview?.avatarSrc ?? lorebookPreview?.imageSrc}
+          kind={characterPreview ? "avatar" : "image"}
+          avatarCropStyle={characterPreview?.avatarCropStyle}
+        />
+      }
+      title={name}
+      badge={
+        created ? <span className="mari-new-badge">{localizeUi("ui.chat.mariediteasyviewer.actionNew")}</span> : null
+      }
+      fact={fact}
+      trail="open"
+      trailLabel={localizeUi("ui.chat.homeprofessormarichat.openResult")}
+      onClick={() => onOpen(result)}
+    />
   );
 }
 
 /**
- * What her answer is about, as a row of small cards right under her words: a face or icon on the left,
- * the name and one fact (an agent's state, a setting's section, an entry's lorebook) on the right.
- * Picking one opens a short sheet under the row with the description and Open.
+ * What her answer is about, as rows of one group right under her words (R10): a face or type icon, the
+ * name and one fact about that thing (never its type), and › to open it at once. The description is the
+ * row's tooltip. `bare` returns the rows only, for a group the caller already draws (the arrival).
  */
 function MariReferencedResources({
   resources,
   characterPreviews,
   lorebookPreviews,
   onOpen,
+  bare = false,
+  skipName,
 }: {
   resources: readonly MariReferencedResource[];
   characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
   lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
   onOpen: (resource: MariReferencedResource) => void;
+  bare?: boolean;
+  /** A name the line above already shows: its row stays only when it adds a fact. */
+  skipName?: string;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const localize = useLocalizedUiText();
   const hasAgents = resources.some((resource) => resource.kind === "agent");
   // The live config says whether an agent is on now; what she read may be older.
   const { data: agentConfigs } = useAgentConfigs(hasAgents);
-  // A chat card shows its mode (Q6); the list is usually cached already, so no refetch on mount.
+  // A chat row shows its mode badge (Q6) and when it last moved; the list is usually cached already.
   const { data: chatList } = useChats({
     enabled: resources.some((resource) => resource.kind === "chat"),
     refetchOnMount: false,
   });
   const settings = getOmnibarSettingsDestinations();
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const cards = resources.flatMap((resource) => {
-    // A card that cannot open anything (an entry without its lorebook, a renamed setting) is not shown.
+  const rows = resources.flatMap((resource) => {
+    // A row that cannot open anything (an entry without its lorebook, a renamed setting) is not shown.
     if (!mariReferenceTarget(resource, settings)) return [];
     const character = resource.kind === "character" ? characterPreviews.get(resource.id) : undefined;
     const lorebook = resource.kind === "lorebook" ? lorebookPreviews.get(resource.id) : undefined;
     const agent = resource.kind === "agent" ? agentConfigs?.find((row) => row.type === resource.id) : undefined;
     const builtInAgent = resource.kind === "agent" ? BUILT_IN_AGENTS.find((row) => row.id === resource.id) : undefined;
     const setting = resource.kind === "setting" ? settings.find((row) => row.id === resource.id) : undefined;
+    const chat = resource.kind === "chat" ? chatList?.find((row) => row.id === resource.id) : undefined;
     const name =
       character?.name ??
       lorebook?.name ??
@@ -2283,119 +2297,101 @@ function MariReferencedResources({
       builtInAgent?.name;
     // A record she read that no longer exists (or never loaded) has nothing to show.
     if (!name) return [];
-    const agentOn = agent
-      ? agent.enabled === "true"
-      : resource.state === "on"
-        ? true
-        : resource.state === "off"
-          ? false
-          : null;
-    const fact =
-      resource.kind === "agent"
-        ? resource.state === "failed"
-          ? localizeUi("ui.chat.homeprofessormarichat.referenceAgentFailed")
-          : agentOn === null
-            ? localizeUi("omnibar.categories.agent")
-            : localizeUi(agentOn ? "commandCenter.values.enabled" : "commandCenter.values.disabled")
-        : resource.kind === "setting"
-          ? localize(setting!.sectionLabel)
-          : resource.kind === "chat"
-            ? localizeUi("omnibar.categories.chat")
-            : resource.kind === "lorebookEntry"
-              ? (lorebookPreviews.get(resource.parentId ?? "")?.name ??
-                // The lorebook she read the entry from, when it is not loaded here.
-                resources.find((other) => other.kind === "lorebook" && other.id === resource.parentId)?.name ??
-                localizeUi("omnibar.categories.lorebook"))
-              : (character?.tags ?? lorebook?.tags ?? [])[0];
+    const description =
+      character?.summary ??
+      character?.description ??
+      lorebook?.description ??
+      agent?.description ??
+      (setting ? localize(setting.description) : undefined) ??
+      resource.detail ??
+      builtInAgent?.description;
+    const agentState =
+      resource.state === "failed"
+        ? "failed"
+        : agent
+          ? agent.enabled === "true"
+            ? "on"
+            : "off"
+          : (resource.state ?? null);
+    const lastMoved = chat ? (chat.lastMessageAt ?? chat.updatedAt) : null;
+    const people = (chat?.characterIds ?? []).flatMap((id) => {
+      const person = characterPreviews.get(id);
+      return person ? [{ name: person.name, src: person.avatarSrc, avatarCropStyle: person.avatarCropStyle }] : [];
+    });
+    const fact = mariReferenceFact(
+      resource.kind,
+      {
+        description,
+        agentState,
+        entryCount: lorebook?.entryCount,
+        lorebookName:
+          lorebookPreviews.get(resource.parentId ?? "")?.name ??
+          // The lorebook she read the entry from, when it is not loaded here.
+          resources.find((other) => other.kind === "lorebook" && other.id === resource.parentId)?.name ??
+          undefined,
+        entryKey: resource.key,
+        people: people
+          .slice(0, 2)
+          .map((person) => person.name)
+          .join(", "),
+        time: lastMoved ? formatRelativeContact(lastMoved) : null,
+        section: setting ? localize(setting.sectionLabel) : undefined,
+      },
+      localizeUi,
+    );
     return [
       {
         resource,
         key: `${resource.kind}:${resource.id}`,
         name,
         fact,
+        description,
         failed: resource.state === "failed",
-        src: character?.avatarSrc ?? lorebook?.imageSrc ?? agent?.imagePath,
-        description:
-          character?.description ??
-          character?.summary ??
-          lorebook?.description ??
-          agent?.description ??
-          (setting ? localize(setting.description) : undefined) ??
-          resource.detail ??
-          builtInAgent?.description,
-        tags: (character?.tags ?? lorebook?.tags ?? []).slice(0, 4),
+        // A chat shows who is in it (Q6 stacked faces), with its mode as the badge.
+        faces: people,
+        src: character?.avatarSrc ?? lorebook?.imageSrc ?? agent?.imagePath ?? people[0]?.src,
+        avatarCropStyle: character?.avatarCropStyle ?? people[0]?.avatarCropStyle,
+        type: resource.kind === "chat" ? chatResultType(chat?.mode) : resourceResultType(resource.kind),
       },
     ];
   });
-  // Two records with the same name read as a glitch in a row of cards; the first one stands for both.
+  // Two records with the same name read as a glitch in a list; the first one stands for both. The
+  // arrival does not repeat a name its line already shows unless the row adds a fact.
   const seenNames = new Set<string>();
-  const uniqueCards = cards.filter((card) => {
-    const nameKey = `${card.resource.kind}:${card.name.toLocaleLowerCase()}`;
+  const uniqueRows = rows.filter((row) => {
+    const nameKey = `${row.resource.kind}:${row.name.toLocaleLowerCase()}`;
     if (seenNames.has(nameKey)) return false;
     seenNames.add(nameKey);
-    return true;
+    return !(skipName && row.name === skipName && !row.fact);
   });
-  if (uniqueCards.length === 0) return null;
-  const selected = uniqueCards.find((card) => card.key === selectedKey) ?? null;
+  if (uniqueRows.length === 0) return null;
+  const items = uniqueRows.map((row) => (
+    <MariRow
+      key={row.key}
+      compact={!bare}
+      slot={
+        <ResultTypeIcon
+          type={row.type}
+          src={row.src}
+          kind="avatar"
+          avatarCropStyle={row.avatarCropStyle}
+          faces={row.faces}
+        />
+      }
+      title={row.name}
+      fact={row.fact}
+      hint={row.description}
+      state={row.failed ? "failed" : undefined}
+      trail="open"
+      trailLabel={localizeUi("ui.chat.marisuggestionchips.actsNow")}
+      onClick={() => onOpen(row.resource)}
+    />
+  ));
+  if (bare) return <>{items}</>;
   return (
-    <div className="mari-ref-cards">
-      <div className="mari-ref-cards__row" role="list">
-        {uniqueCards.map((card, index) => {
-          const type =
-            card.resource.kind === "chat"
-              ? chatResultType(chatList?.find((chat) => chat.id === card.resource.id)?.mode)
-              : resourceResultType(card.resource.kind);
-          return (
-            <button
-              key={card.key}
-              type="button"
-              role="listitem"
-              className="mari-ref-card"
-              style={{ "--i": index } as CSSProperties}
-              data-kind={card.resource.kind}
-              data-failed={card.failed ? "true" : undefined}
-              aria-expanded={selectedKey === card.key}
-              onClick={() => setSelectedKey((current) => (current === card.key ? null : card.key))}
-            >
-              <ResultTypeIcon type={type} src={card.src} kind="avatar" className="mari-ref-card__art" />
-              <span className="mari-ref-card__caption">
-                <span className="mari-ref-card__name">{card.name}</span>
-                {card.fact ? <span className="mari-ref-card__tag">{card.fact}</span> : null}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <AnimatePresence initial={false}>
-        {selected ? (
-          <motion.div
-            key={selected.key}
-            className="mari-ref-sheet"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <p className="mari-ref-sheet__name">{selected.name}</p>
-            {selected.description ? <p className="mari-ref-sheet__description">{selected.description}</p> : null}
-            {selected.tags.length > 0 ? (
-              <div className="mari-ref-sheet__tags">
-                {selected.tags.map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
-              </div>
-            ) : null}
-            <button
-              type="button"
-              onClick={() => onOpen(selected.resource)}
-              className="mari-chrome-control mari-chrome-control--compact"
-            >
-              {localizeUi("ui.chat.homeprofessormarichat.openResult")}
-            </button>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </div>
+    <MariList cols={items.length > 1} data-cards="refs">
+      {items}
+    </MariList>
   );
 }
 
@@ -2434,28 +2430,30 @@ function MariResourceSubject({
   return null;
 }
 
-/** The reviews a turn holds, split by whether they already changed something or wait for your answer. */
-type MariTurnReviews = { changed: ReactNode[]; needsOk: ReactNode[] };
+/**
+ * The reviews a turn holds, split by whether they already changed something or wait for your answer.
+ * `records` names what they show (`review:<id>`, `<type>:<record id>`), so a turn draws one row per record.
+ */
+type MariTurnReviews = { changed: ReactNode[]; needsOk: ReactNode[]; records: ReadonlySet<string> };
 
 /**
- * M5a: what a run changed and what it needs from you, as ONE group of hairline rows after her answer.
- * The two labels show only when both kinds are there; one kind needs no heading.
+ * M5a / R10: what a run needs from you and what it changed, as two groups after her answer. What needs
+ * you comes first. The labels show only when both kinds are there; one kind needs no heading.
  */
-function MariOutcomeGroup({ changed, needsOk }: MariTurnReviews) {
+function MariOutcomeGroup({ changed, needsOk }: Pick<MariTurnReviews, "changed" | "needsOk">) {
   const { t: localizeUi } = useUiTranslation();
   if (changed.length === 0 && needsOk.length === 0) return null;
   const labelled = changed.length > 0 && needsOk.length > 0;
   const section = (label: string, rows: ReactNode[]) =>
     rows.length > 0 ? (
-      <div className="mari-outcome__section" role="group" aria-label={label}>
-        {labelled ? <p className="mari-outcome__label">{label}</p> : null}
+      <MariList head={labelled ? label : undefined} role="group" aria-label={label}>
         {rows}
-      </div>
+      </MariList>
     ) : null;
   return (
-    <div className="mari-outcome">
-      {section(localizeUi("ui.chat.homeprofessormarichat.outcomeChanged"), changed)}
+    <div className="mari-list-stack" data-cards="outcome">
       {section(localizeUi("ui.chat.homeprofessormarichat.outcomeNeedsYou"), needsOk)}
+      {section(localizeUi("ui.chat.homeprofessormarichat.outcomeChanged"), changed)}
     </div>
   );
 }
@@ -2486,7 +2484,6 @@ function MariWorkTimelineOutcome({
   lorebookPreviews,
   onOpenResource,
   onOpenActionResult,
-  onReviewActionResult,
   onRegenerate,
   onDelete,
   reviews,
@@ -2498,7 +2495,6 @@ function MariWorkTimelineOutcome({
   lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
   onOpenResource: (resource: MariReferencedResource) => void;
   onOpenActionResult: (result: MariWorkspaceActionResult) => void;
-  onReviewActionResult: (reviewId: string) => void;
   onRegenerate?: () => void;
   onDelete?: () => void;
   reviews?: MariTurnReviews;
@@ -2523,17 +2519,17 @@ function MariWorkTimelineOutcome({
       />
       <MariOutcomeGroup
         changed={[
-          ...actionResults.map((result) => (
+          ...(reviews?.changed ?? []),
+          // R10: one row per record. A review of the same record already shows it, with its Undo.
+          ...withoutReviewedResults(actionResults, reviews?.records ?? new Set()).map((result) => (
             <MariWorkspaceActionResultRow
               key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
               result={result}
               onOpen={onOpenActionResult}
-              onReview={onReviewActionResult}
               character={characterPreviews.get(result.resource.id)}
               lorebook={lorebookPreviews.get(result.resource.id)}
             />
           )),
-          ...(reviews?.changed ?? []),
         ]}
         needsOk={reviews?.needsOk ?? []}
       />
@@ -2557,7 +2553,6 @@ const CompactMariMessage = memo(function CompactMariMessage({
   canRegenerate = false,
   onRemoveAttachment,
   onOpenActionResult,
-  onReviewActionResult,
   onOpenResource,
   characterSubject,
   lorebookSubject,
@@ -2579,7 +2574,6 @@ const CompactMariMessage = memo(function CompactMariMessage({
   canRegenerate?: boolean;
   onRemoveAttachment?: (messageId: string, attachmentIndex: number) => void;
   onOpenActionResult: (result: MariWorkspaceActionResult) => void;
-  onReviewActionResult: (reviewId: string) => void;
   onOpenResource: (resource: MariReferencedResource) => void;
   characterSubject?: CharacterPreviewModel | null;
   lorebookSubject?: LorebookPreviewModel | null;
@@ -2724,7 +2718,6 @@ const CompactMariMessage = memo(function CompactMariMessage({
             lorebookPreviews={lorebookPreviews}
             onOpenResource={onOpenResource}
             onOpenActionResult={onOpenActionResult}
-            onReviewActionResult={onReviewActionResult}
             onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
             onDelete={onDelete ? () => onDelete(message.id) : undefined}
             reviews={reviews}
@@ -2749,7 +2742,6 @@ const CompactMariMessage = memo(function CompactMariMessage({
             lorebookPreviews={lorebookPreviews}
             onOpenResource={onOpenResource}
             onOpenActionResult={onOpenActionResult}
-            onReviewActionResult={onReviewActionResult}
             onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
             onDelete={onDelete ? () => onDelete(message.id) : undefined}
             reviews={reviews}
@@ -3017,11 +3009,11 @@ export function HomeProfessorMariChat({
   const [sending, setSending] = useState(false);
   const [cancelledChatId, setCancelledChatId] = useState<string | null>(null);
   const [recovery, setRecovery] = useState<ProfessorMariRecovery | null>(null);
-  // Direction A: an answered install / sensitive-file prompt folds to one line until the next send.
+  // Direction A / R10: an answered prompt or review folds to one row ("✓ Kept") until the next send.
   const [resolvedPrompts, setResolvedPrompts] = useState<
     Array<{
       chatId: string | null;
-      approval: MariDependencyInstallApproval | MariSensitiveFileApproval;
+      approval: MariWorkspacePendingApproval;
       outcome: "applied" | "discarded";
     }>
   >([]);
@@ -5659,10 +5651,15 @@ export function HomeProfessorMariChat({
   }, [chatWindowOpen, openPendingApprovals, pendingReviewId, pendingReviewRequest]);
 
   const answerApproval = async (approval: MariWorkspacePendingApproval, keep: boolean) => {
-    const outcome = (await (keep ? keepWorkspaceChange(approval.id) : restoreWorkspaceChange(approval.id)))?.outcome;
-    if (approval.kind !== "dependency_install" && approval.kind !== "sensitive_file") return;
-    if (outcome !== "applied" && outcome !== "discarded") return;
-    setResolvedPrompts((current) => [...current, { chatId, approval, outcome }]);
+    // R10: the answered row stays where it was. It is listed before the call and shows as soon as the
+    // review leaves the pending list (the same render), so the row never blinks out; a failure drops it.
+    const entry = { chatId, approval, outcome: keep ? ("applied" as const) : ("discarded" as const) };
+    setResolvedPrompts((current) => [...current, entry]);
+    const result = await (keep ? keepWorkspaceChange(approval.id) : restoreWorkspaceChange(approval.id));
+    const done = keep
+      ? result?.outcome === "applied" || result?.history?.status === "kept"
+      : result?.outcome === "discarded" || result?.history?.status === "restored";
+    if (!done) setResolvedPrompts((current) => current.filter((item) => item !== entry));
   };
   // Slice 13: a review renders inside the turn that asked for it, not after the whole transcript, and
   // an answered install / file prompt folds to its line in the same place.
@@ -5675,7 +5672,10 @@ export function HomeProfessorMariChat({
         outcome: null,
       })),
       ...(sending || workspaceTimelineActive ? [] : resolvedPrompts)
-        .filter((prompt) => prompt.chatId === chatId)
+        .filter(
+          (prompt) =>
+            prompt.chatId === chatId && !visiblePendingChangeReviews.some(({ id }) => id === prompt.approval.id),
+        )
         .map(({ approval, outcome }) => ({ requestedAt: approval.requestedAt, approval, outcome })),
     ].sort((a, b) => Date.parse(a.requestedAt) - Date.parse(b.requestedAt)),
   );
@@ -5704,8 +5704,65 @@ export function HomeProfessorMariChat({
     return {
       changed: entries.filter(changed).map(renderTurnPrompt),
       needsOk: entries.filter((entry) => !changed(entry)).map(renderTurnPrompt),
+      records: reviewRecordKeys(entries.map(({ approval }) => approval)),
     };
   };
+  // M9 / R10: she arrives knowing the screen she was opened from: her sprite and one line with its facts,
+  // then ONE group - the things on that screen, then what to do. Nothing is sent until a row is picked
+  // or you type (R22); the composer's chips say what would go.
+  const renderArrival = (
+    data: MariArrival,
+    component: string,
+    ref?: RefObject<HTMLDivElement | null>,
+    choice?: ReactNode,
+  ) => {
+    const strongAt = data.strong ? data.line.indexOf(data.strong) : -1;
+    return (
+      <div ref={ref} className="mari-arrival" data-component={component}>
+        <MariStorySprite state="idle" />
+        <div className="mari-arrival__copy mari-arrival-content">
+          <p className="mari-arrival__line">
+            {data.strong && strongAt >= 0 ? (
+              <>
+                {data.line.slice(0, strongAt)}
+                <b>{data.strong}</b>
+                {data.line.slice(strongAt + data.strong.length)}
+              </>
+            ) : (
+              data.line
+            )}
+          </p>
+          {data.meta.length > 0 ? <p className="mari-arrival__meta">{data.meta.join(" · ")}</p> : null}
+          {choice}
+        </div>
+        <MariList className="mari-arrival__group mari-arrival-content" data-cards="arrival">
+          <MariReferencedResources
+            bare
+            resources={data.refs}
+            characterPreviews={characterPreviewById}
+            lorebookPreviews={lorebookPreviewById}
+            onOpen={openReferencedResource}
+            skipName={data.strong}
+          />
+          <MariNextStepCards
+            bare
+            chips={data.cards}
+            onSelect={(card, draft) =>
+              card.action?.kind === "find-setting" || card.action?.kind === "undo-setting"
+                ? onArrivalAction?.(card.action)
+                : handleSuggestionSelect(
+                    card as MariSuggestionChip,
+                    draft,
+                    (card.fix && arrivalFixContext) || undefined,
+                  )
+            }
+            disabled={isBusy}
+          />
+        </MariList>
+      </div>
+    );
+  };
+
   // Q5: "Chats · +" is last, so the group sits at the right of the row, under settings and Close.
   const headerDestinations = [
     {
@@ -5971,15 +6028,6 @@ export function HomeProfessorMariChat({
     [closeChatWindow, omnibarMode],
   );
 
-  const reviewActionResult = useCallback(
-    async (reviewId: string) => {
-      await refreshWorkspaceStatus().catch(() => undefined);
-      setRequestedReviewId(reviewId);
-      setWorkspaceDestination("chat");
-    },
-    [refreshWorkspaceStatus],
-  );
-
   // R9: a brief highlight so a review that was already on screen (not just-mounted, which
   // already gets the mari-review-rise entrance) still visibly answers the click. Driven by
   // state rather than a direct DOM class mutation, so a React re-render (the refresh below
@@ -6090,7 +6138,6 @@ export function HomeProfessorMariChat({
           canRegenerate={canManageMessage && !isBusy && message.id === messages[messages.length - 1]?.id}
           onRemoveAttachment={canManageMessage && !isBusy ? handleRemoveAttachment : undefined}
           onOpenActionResult={openActionResult}
-          onReviewActionResult={reviewActionResult}
           onOpenResource={openReferencedResource}
           characterSubject={messageCharacter}
           lorebookSubject={messageLorebook}
@@ -6446,50 +6493,7 @@ export function HomeProfessorMariChat({
                                 {emptyStateReady && arrival ? (
                                   // M9: she arrives knowing the screen she was opened from. Nothing is sent until
                                   // a card is picked or you type (R22); the composer's chips say what would go.
-                                  <div className="mari-arrival" data-component="HomeProfessorMariChat.Arrival">
-                                    <div className="mari-arrival__head">
-                                      <MariStorySprite state="idle" />
-                                      <div className="mari-arrival__copy mari-arrival-content">
-                                        <p className="mari-arrival__line">
-                                          {arrival.strong && arrival.line.includes(arrival.strong) ? (
-                                            <>
-                                              {arrival.line.slice(0, arrival.line.indexOf(arrival.strong))}
-                                              <b>{arrival.strong}</b>
-                                              {arrival.line.slice(
-                                                arrival.line.indexOf(arrival.strong) + arrival.strong.length,
-                                              )}
-                                            </>
-                                          ) : (
-                                            arrival.line
-                                          )}
-                                        </p>
-                                        {arrival.meta.length > 0 ? (
-                                          <p className="mari-arrival__meta">{arrival.meta.join(" · ")}</p>
-                                        ) : null}
-                                        <MariReferencedResources
-                                          resources={arrival.refs}
-                                          characterPreviews={characterPreviewById}
-                                          lorebookPreviews={lorebookPreviewById}
-                                          onOpen={openReferencedResource}
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="mari-arrival-content">
-                                      <MariNextStepCards
-                                        chips={arrival.cards}
-                                        onSelect={(card, draft) =>
-                                          card.action?.kind === "find-setting" || card.action?.kind === "undo-setting"
-                                            ? onArrivalAction?.(card.action)
-                                            : handleSuggestionSelect(
-                                                card as MariSuggestionChip,
-                                                draft,
-                                                (card.fix && arrivalFixContext) || undefined,
-                                              )
-                                        }
-                                        disabled={isBusy}
-                                      />
-                                    </div>
-                                  </div>
+                                  renderArrival(arrival, "HomeProfessorMariChat.Arrival")
                                 ) : emptyStateReady ? (
                                   <div className="mari-omnibar-empty-welcome">
                                     <span className="mari-welcome-story" aria-hidden="true">
@@ -6555,7 +6559,6 @@ export function HomeProfessorMariChat({
                                           lorebookPreviews={lorebookPreviewById}
                                           onOpenResource={openReferencedResource}
                                           onOpenActionResult={openActionResult}
-                                          onReviewActionResult={reviewActionResult}
                                           onRegenerate={
                                             !isBusy ? () => handleRegenerateMessage(latestMessage.id) : undefined
                                           }
@@ -6623,99 +6626,51 @@ export function HomeProfessorMariChat({
                                     />
                                   ) : null}
                                 </div>
-                                {appendedArrival ? (
-                                  // D1: an arrival door (⌘J, the pull, the drag, Home's "Ask Professor Mari")
-                                  // opened into a chat she already has history in. The same arrival content
-                                  // empty chats get (buildMariArrival, unchanged) appends at the bottom here
-                                  // instead, local UI only (R22): never persisted, cleared on send.
-                                  <div
-                                    ref={appendedArrivalNodeRef}
-                                    className="mari-arrival"
-                                    data-component="HomeProfessorMariChat.AppendedArrival"
-                                  >
-                                    <div className="mari-arrival__head">
-                                      <MariStorySprite state="idle" />
-                                      <div className="mari-arrival__copy mari-arrival-content">
-                                        <p className="mari-arrival__line">
-                                          {appendedArrival.strong &&
-                                          appendedArrival.line.includes(appendedArrival.strong) ? (
-                                            <>
-                                              {appendedArrival.line.slice(
-                                                0,
-                                                appendedArrival.line.indexOf(appendedArrival.strong),
-                                              )}
-                                              <b>{appendedArrival.strong}</b>
-                                              {appendedArrival.line.slice(
-                                                appendedArrival.line.indexOf(appendedArrival.strong) +
-                                                  appendedArrival.strong.length,
-                                              )}
-                                            </>
-                                          ) : (
-                                            appendedArrival.line
-                                          )}
-                                        </p>
-                                        {appendedArrival.meta.length > 0 ? (
-                                          <p className="mari-arrival__meta">{appendedArrival.meta.join(" · ")}</p>
-                                        ) : null}
-                                        {arrivalThread && chatId && arrivalChoiceChatId === chatId ? (
-                                          // R7: another thread was in use a moment ago; one quiet choice, no prompt.
-                                          <div
-                                            className="mari-arrival__choice"
-                                            role="group"
-                                            aria-label={localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.label")}
+                                {appendedArrival
+                                  ? // D1: an arrival door (⌘J, the pull, the drag, Home's "Ask Professor Mari")
+                                    // opened into a chat she already has history in. The same arrival content
+                                    // empty chats get (buildMariArrival, unchanged) appends at the bottom here
+                                    // instead, local UI only (R22): never persisted, cleared on send.
+                                    renderArrival(
+                                      appendedArrival,
+                                      "HomeProfessorMariChat.AppendedArrival",
+                                      appendedArrivalNodeRef,
+                                      arrivalThread && chatId && arrivalChoiceChatId === chatId ? (
+                                        // R7: another thread was in use a moment ago; one quiet choice, no prompt.
+                                        <div
+                                          className="mari-arrival__choice"
+                                          role="group"
+                                          aria-label={localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.label")}
+                                        >
+                                          <button
+                                            type="button"
+                                            className="mari-btn"
+                                            disabled={isBusy}
+                                            onClick={() => {
+                                              continuedThereByContext.set(arrivalThread.key, chatId);
+                                              setArrivalChoiceChatId(null);
+                                            }}
                                           >
-                                            <button
-                                              type="button"
-                                              className="mari-btn"
-                                              disabled={isBusy}
-                                              onClick={() => {
-                                                continuedThereByContext.set(arrivalThread.key, chatId);
-                                                setArrivalChoiceChatId(null);
-                                              }}
-                                            >
-                                              {localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.continueHere")}
-                                            </button>
-                                            <button
-                                              type="button"
-                                              className="mari-btn min-w-0"
-                                              disabled={isBusy}
-                                              onClick={() => void handleNewAboutContext()}
-                                            >
-                                              <span className="truncate">
-                                                {arrivalThread.label
-                                                  ? localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.newAbout", {
-                                                      context: arrivalThread.label,
-                                                    })
-                                                  : localizeUi("ui.chat.homeprofessormarichat.newChat")}
-                                              </span>
-                                            </button>
-                                          </div>
-                                        ) : null}
-                                        <MariReferencedResources
-                                          resources={appendedArrival.refs}
-                                          characterPreviews={characterPreviewById}
-                                          lorebookPreviews={lorebookPreviewById}
-                                          onOpen={openReferencedResource}
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="mari-arrival-content">
-                                      <MariNextStepCards
-                                        chips={appendedArrival.cards}
-                                        onSelect={(card, draft) =>
-                                          card.action?.kind === "find-setting" || card.action?.kind === "undo-setting"
-                                            ? onArrivalAction?.(card.action)
-                                            : handleSuggestionSelect(
-                                                card as MariSuggestionChip,
-                                                draft,
-                                                (card.fix && arrivalFixContext) || undefined,
-                                              )
-                                        }
-                                        disabled={isBusy}
-                                      />
-                                    </div>
-                                  </div>
-                                ) : null}
+                                            {localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.continueHere")}
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="mari-btn min-w-0"
+                                            disabled={isBusy}
+                                            onClick={() => void handleNewAboutContext()}
+                                          >
+                                            <span className="truncate">
+                                              {arrivalThread.label
+                                                ? localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.newAbout", {
+                                                    context: arrivalThread.label,
+                                                  })
+                                                : localizeUi("ui.chat.homeprofessormarichat.newChat")}
+                                            </span>
+                                          </button>
+                                        </div>
+                                      ) : null,
+                                    )
+                                  : null}
                               </>
                             )}
                           </div>
@@ -7061,7 +7016,6 @@ export function HomeProfessorMariChat({
                       >
                         <MariSidePanelHeader
                           title={t("home.professorMari.chats")}
-                          hint={localizeUi("ui.chat.homeprofessormarichat.newChatSavesTheCurrentChatHere")}
                           onClose={() => setWorkspaceDestination("chat")}
                           closeLabel={t("home.professorMari.closeChats")}
                           actions={
@@ -7120,10 +7074,11 @@ export function HomeProfessorMariChat({
                               {localizeUi("ui.chat.homeprofessormarichat.loadingChats")}
                             </div>
                           ) : (
-                            <div className="mari-edit mari-edit--menus">
+                            <div className="mari-list mari-edit--menus" data-cards="chats">
                               {chatHistory.length === 0 ? (
                                 <p className="px-3 py-3 text-xs text-[var(--muted-foreground)]">
-                                  {t("home.professorMari.noPreviousChats")}
+                                  {t("home.professorMari.noPreviousChats")}{" "}
+                                  {localizeUi("ui.chat.homeprofessormarichat.newChatSavesTheCurrentChatHere")}
                                 </p>
                               ) : displayedChatHistory.length === 0 ? (
                                 <p className="px-3 py-3 text-xs text-[var(--muted-foreground)]">
@@ -7141,130 +7096,135 @@ export function HomeProfessorMariChat({
                                     <div
                                       key={item.id}
                                       data-professor-mari-chat-id={item.id}
-                                      aria-current={active ? "true" : undefined}
-                                      className={cn(MARI_SIDE_ROW_CLASS, "py-1 pr-1")}
+                                      className="mari-list__item"
                                     >
-                                      {renaming ? (
-                                        <form
-                                          className="flex min-w-0 flex-1 items-center gap-1.5 py-1"
-                                          onSubmit={(event) => {
-                                            event.preventDefault();
-                                            void handleRenameProfessorChat(item.id);
-                                          }}
-                                        >
-                                          <input
-                                            value={renameDraft}
-                                            onChange={(event) => setRenameDraft(event.target.value)}
-                                            aria-label={localizeUi("ui.chat.homeprofessormarichat.renameChatInput")}
-                                            className="min-w-0 flex-1 rounded-md bg-[var(--background)] px-2 py-1.5 text-xs outline-none ring-1 ring-[var(--mari-hairline)] focus:ring-[var(--primary)]"
-                                            autoFocus
-                                          />
-                                          <button type="submit" className="mari-btn mari-btn--solid">
-                                            {localizeUi("ui.noodle.noodlehome.save")}
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => {
-                                              setRenamingChatId(null);
-                                              setRenameDraft("");
+                                      <div className="mari-row" aria-current={active ? "true" : undefined}>
+                                        {renaming ? (
+                                          <form
+                                            className="flex min-w-0 flex-1 items-center gap-1.5 py-1"
+                                            onSubmit={(event) => {
+                                              event.preventDefault();
+                                              void handleRenameProfessorChat(item.id);
                                             }}
-                                            className="mari-link"
                                           >
-                                            {localizeUi("chat.delete.dialog.cancel")}
-                                          </button>
-                                        </form>
-                                      ) : (
-                                        <>
-                                          {chatHistorySelectionMode && (
-                                            <span className="shrink-0 text-[var(--primary)]" aria-hidden="true">
-                                              {selected ? <Check size="0.875rem" /> : <Square size="0.875rem" />}
-                                            </span>
-                                          )}
-                                          {/* Q6: what the row is, as in the omnibar's Chats group and the Aware of rows.
-                                            R7: a thread about a chat or an editor shows that thing's type instead. */}
-                                          <ResultTypeIcon
-                                            type={
-                                              thread.contextLabel
-                                                ? resourceResultType(thread.contextKey.split(":")[0]!)
-                                                : "mari-chat"
-                                            }
-                                            glyph
-                                            className="size-[0.85rem] text-[var(--muted-foreground)]"
-                                          />
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              chatHistorySelectionMode
-                                                ? toggleProfessorChatSelection(item.id)
-                                                : void handleSelectProfessorChat(item.id)
-                                            }
-                                            disabled={isBusy}
-                                            aria-pressed={chatHistorySelectionMode ? selected : undefined}
-                                            className="mari-edit__text min-h-10 text-left disabled:cursor-not-allowed disabled:opacity-60"
-                                          >
-                                            <span className="mari-edit__title">{name}</span>
-                                            {/* Q5: one fact line, like the mari-v4 Chats panel: when, then how long. */}
-                                            <span className="mari-edit__meta">
-                                              {[
-                                                // R7: what the thread is about ("Zylo · 2 days ago"); general threads say nothing.
-                                                thread.contextLabel,
-                                                active
-                                                  ? localizeUi("ui.characters.lorebooktab.active")
-                                                  : formatRelativeContact(item.lastMessageAt ?? item.updatedAt),
-                                                `${item.messageCount ?? 0} ${localizeUi("ui.agents.agenteditor.messages")}`,
-                                              ]
-                                                .filter(Boolean)
-                                                .join(" · ")}
-                                            </span>
-                                          </button>
-                                          {!chatHistorySelectionMode && (
-                                            <div ref={menuOpen ? chatRowMenuRef : undefined} className="relative">
-                                              <button
-                                                type="button"
-                                                onClick={() => setChatRowMenuId(menuOpen ? null : item.id)}
-                                                className="mari-omnibar-header-menu__trigger"
-                                                aria-expanded={menuOpen}
-                                                aria-label={localizeUi("ui.chat.homeprofessormarichat.chatRowActions", {
-                                                  name,
-                                                })}
+                                            <input
+                                              value={renameDraft}
+                                              onChange={(event) => setRenameDraft(event.target.value)}
+                                              aria-label={localizeUi("ui.chat.homeprofessormarichat.renameChatInput")}
+                                              className="min-w-0 flex-1 rounded-md bg-[var(--background)] px-2 py-1.5 text-xs outline-none ring-1 ring-[var(--mari-hairline)] focus:ring-[var(--primary)]"
+                                              autoFocus
+                                            />
+                                            <button type="submit" className="mari-btn mari-btn--solid">
+                                              {localizeUi("ui.noodle.noodlehome.save")}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setRenamingChatId(null);
+                                                setRenameDraft("");
+                                              }}
+                                              className="mari-link"
+                                            >
+                                              {localizeUi("chat.delete.dialog.cancel")}
+                                            </button>
+                                          </form>
+                                        ) : (
+                                          <>
+                                            {chatHistorySelectionMode && (
+                                              <span className="shrink-0 text-[var(--primary)]" aria-hidden="true">
+                                                {selected ? <Check size="0.875rem" /> : <Square size="0.875rem" />}
+                                              </span>
+                                            )}
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                chatHistorySelectionMode
+                                                  ? toggleProfessorChatSelection(item.id)
+                                                  : void handleSelectProfessorChat(item.id)
+                                              }
+                                              disabled={isBusy}
+                                              aria-pressed={chatHistorySelectionMode ? selected : undefined}
+                                              className="mari-row__toggle disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                              {/* Q6 / R10: the slot says it is a Mari chat; the fact says what it is about. */}
+                                              <span className="mari-row__slot" aria-hidden="true">
+                                                <ResultTypeIcon type="mari-chat" glyph />
+                                              </span>
+                                              <span className="mari-row__text">
+                                                <span className="mari-row__title">
+                                                  <span>{name}</span>
+                                                </span>
+                                                <span className="mari-row__fact">
+                                                  {[
+                                                    // R7: what the thread is about ("Zylo's chat · 2 days ago · 4 messages").
+                                                    thread.contextLabel ||
+                                                      localizeUi("ui.chat.homeprofessormarichat.generalThread"),
+                                                    formatRelativeContact(item.lastMessageAt ?? item.updatedAt),
+                                                    localizeUi("ui.chat.homeprofessormarichat.messageCount", {
+                                                      count: item.messageCount ?? 0,
+                                                    }),
+                                                  ]
+                                                    .filter(Boolean)
+                                                    .join(" · ")}
+                                                </span>
+                                              </span>
+                                            </button>
+                                            {!chatHistorySelectionMode && (
+                                              <div
+                                                ref={menuOpen ? chatRowMenuRef : undefined}
+                                                className="mari-row__more relative"
+                                                data-open={menuOpen ? "true" : undefined}
                                               >
-                                                <EllipsisVertical size="0.9rem" aria-hidden="true" />
-                                              </button>
-                                              {menuOpen ? (
-                                                <div
-                                                  ref={chatRowPopoverRef}
-                                                  className="mari-omnibar-header-menu__popover"
-                                                  onKeyDown={onChatRowMenuKeyDown}
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setChatRowMenuId(menuOpen ? null : item.id)}
+                                                  className="mari-omnibar-header-menu__trigger"
+                                                  aria-expanded={menuOpen}
+                                                  aria-label={localizeUi(
+                                                    "ui.chat.homeprofessormarichat.chatRowActions",
+                                                    {
+                                                      name,
+                                                    },
+                                                  )}
                                                 >
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      setChatRowMenuId(null);
-                                                      setRenamingChatId(item.id);
-                                                      setRenameDraft(item.name || "");
-                                                    }}
+                                                  <EllipsisVertical size="0.9rem" aria-hidden="true" />
+                                                </button>
+                                                {menuOpen ? (
+                                                  <div
+                                                    ref={chatRowPopoverRef}
+                                                    className="mari-omnibar-header-menu__popover"
+                                                    onKeyDown={onChatRowMenuKeyDown}
                                                   >
-                                                    <Pencil size="0.875rem" aria-hidden="true" />
-                                                    <span>
-                                                      {localizeUi("ui.chat.homeprofessormarichat.renameChat")}
-                                                    </span>
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      setChatRowMenuId(null);
-                                                      void handleDeleteProfessorChat(item.id);
-                                                    }}
-                                                  >
-                                                    <Trash2 size="0.875rem" aria-hidden="true" />
-                                                    <span>{localizeUi("lorebook.editor.batch.delete")}</span>
-                                                  </button>
-                                                </div>
-                                              ) : null}
-                                            </div>
-                                          )}
-                                        </>
-                                      )}
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                        setChatRowMenuId(null);
+                                                        setRenamingChatId(item.id);
+                                                        setRenameDraft(item.name || "");
+                                                      }}
+                                                    >
+                                                      <Pencil size="0.875rem" aria-hidden="true" />
+                                                      <span>
+                                                        {localizeUi("ui.chat.homeprofessormarichat.renameChat")}
+                                                      </span>
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => {
+                                                        setChatRowMenuId(null);
+                                                        void handleDeleteProfessorChat(item.id);
+                                                      }}
+                                                    >
+                                                      <Trash2 size="0.875rem" aria-hidden="true" />
+                                                      <span>{localizeUi("lorebook.editor.batch.delete")}</span>
+                                                    </button>
+                                                  </div>
+                                                ) : null}
+                                              </div>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
                                     </div>
                                   );
                                 })

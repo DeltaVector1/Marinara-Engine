@@ -1,6 +1,6 @@
 import { type ReactNode, useCallback, useRef, useState } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { Check, ChevronRight, FileText, Loader2, Minus, PackagePlus, Trash2, Undo2 } from "lucide-react";
+import { Check, ChevronRight, FileText, Loader2, Minus, PackagePlus, Trash2 } from "lucide-react";
 import type {
   MariDbPendingApproval,
   MariDependencyInstallApproval,
@@ -8,12 +8,12 @@ import type {
   MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 
-import { describeTable, replyFixChat } from "../../lib/mari-edit-diff";
+import { computeFieldChanges, describeTable, replyFixChat, reviewRowFact } from "../../lib/mari-edit-diff";
 import { summarizeDeleteReview } from "../../lib/professor-mari-presentation";
 import { cn } from "../../lib/utils";
 import { useUIStore } from "../../stores/ui.store";
-import { MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
-import { MariCard, MariNote } from "./mari-primitives";
+import { MariEditEasyViewer, RecordFace, rowTitle } from "./MariEditEasyViewer";
+import { MariCard, MariRow } from "./mari-primitives";
 import { MariPromptPreviewModal, type MariPromptRenderSide } from "./MariPromptPreviewModal";
 import { TranscriptRow } from "./MariTranscriptRow";
 
@@ -237,6 +237,7 @@ function DatabaseWorkspaceApprovalCard({
                 void onRejectRows(approval.id, [{ index, table: change.table, id: change.id, action: change.action }])
             : undefined
         }
+        running={busy}
         actions={
           <>
             <button
@@ -245,7 +246,6 @@ function DatabaseWorkspaceApprovalCard({
               disabled={busy || disabled}
               className="mari-link"
             >
-              <Undo2 size="0.8rem" aria-hidden="true" />
               {localizeUi(
                 approval.diffPreview.some((change) => replyFixChat(change))
                   ? "ui.chat.mariappliededit.restoreReply"
@@ -262,9 +262,16 @@ function DatabaseWorkspaceApprovalCard({
                 {localizeUi("ui.chat.databaseworkspaceapprovalcard.keepAndEnable")}
               </button>
             ) : null}
-            <button type="button" onClick={() => onKeep(approval.id)} disabled={busy || disabled} className="mari-btn">
+            {/* R10: Keep is the one solid capsule where it is a real question; an applied change only
+                closes its undo window with it, so there it stays quiet. */}
+            <button
+              type="button"
+              onClick={() => onKeep(approval.id)}
+              disabled={busy || disabled}
+              className={cn("mari-btn", approval.kind !== "applied_review" && "mari-btn--solid")}
+            >
               {busy ? <Loader2 size="0.8rem" className="animate-spin" aria-hidden="true" /> : null}
-              {busy ? localizeUi("ui.noodle.stageprofileform.saving") : localizeUi("ui.chat.mariappliededit.keep")}
+              {localizeUi("ui.chat.mariappliededit.keep")}
             </button>
           </>
         }
@@ -467,15 +474,43 @@ function SensitiveFileWorkspaceApprovalCard({
   );
 }
 
-/** Direction A: once answered, an install or sensitive-file prompt folds to one quiet line. */
+/**
+ * Direction A / R10: once answered, a prompt folds to one row of the outcome group. A data review keeps
+ * its face, name and fact and ends in "✓ Kept" / "✓ Undone"; an install or file prompt is its line.
+ */
 export function ResolvedPromptLine({
   approval,
   outcome,
 }: {
-  approval: MariDependencyInstallApproval | MariSensitiveFileApproval;
+  approval: MariWorkspacePendingApproval;
   outcome: "applied" | "discarded";
 }) {
-  const { t: localizeUi } = useUiTranslation();
+  const { t: localizeUi, i18n } = useUiTranslation();
+  if (approval.kind !== "dependency_install" && approval.kind !== "sensitive_file") {
+    const change = approval.diffPreview[0];
+    const many = approval.diffPreview.length > 1;
+    return (
+      <MariRow
+        slot={change ? <RecordFace change={change} /> : <Check aria-hidden="true" />}
+        title={
+          change && !many
+            ? rowTitle(change, localizeUi)
+            : localizeUi("ui.chat.mariappliededit.changes", { count: approval.diffPreview.length })
+        }
+        fact={
+          change && !many
+            ? reviewRowFact(change, computeFieldChanges(change), localizeUi, i18n.resolvedLanguage ?? "en")
+            : (approval.reason ?? undefined)
+        }
+        trail={
+          <span className="mari-row__done" role="status">
+            <Check aria-hidden="true" />
+            {localizeUi(outcome === "applied" ? "ui.chat.mariappliededit.kept" : "ui.chat.mariappliededit.undone")}
+          </span>
+        }
+      />
+    );
+  }
   const install = approval.kind === "dependency_install";
   const name = install ? approval.packageName : approval.path.split(/[\\/]/u).at(-1) || approval.path;
   const title = install
@@ -488,12 +523,15 @@ export function ResolvedPromptLine({
       );
   const Icon = outcome === "discarded" ? Minus : Check;
   return (
-    <MariNote role="status" className="flex items-center gap-1.5">
-      <Icon size="0.8rem" aria-hidden="true" />
-      {outcome === "discarded"
-        ? localizeUi("ui.chat.mariresolvedprompt.skipped", { title })
-        : localizeUi(install ? "ui.chat.mariresolvedprompt.installed" : "ui.chat.mariresolvedprompt.saved", { name })}
-    </MariNote>
+    <MariRow
+      slot={<Icon aria-hidden="true" />}
+      title={
+        outcome === "discarded"
+          ? localizeUi("ui.chat.mariresolvedprompt.skipped", { title })
+          : localizeUi(install ? "ui.chat.mariresolvedprompt.installed" : "ui.chat.mariresolvedprompt.saved", { name })
+      }
+      role="status"
+    />
   );
 }
 

@@ -314,3 +314,33 @@ export function fieldChangeStyle(field: FieldChange): "list" | "toggle" | "enum"
   if (leaf !== "name" && !isProseField(field.path) && word(field.before) && word(field.after)) return "enum";
   return "text";
 }
+
+/**
+ * R10: a review row's one fact, in words: what this change does to the record ("Adds 2 keys: compass,
+ * heirloom", "Changed description and tags", "New lorebook entry"), never a table name and a field list.
+ */
+export function reviewRowFact(
+  change: MariDbRowChange,
+  fields: readonly FieldChange[],
+  t: (key: string, options?: Record<string, unknown>) => string,
+  language = "en",
+): string {
+  if (replyFixChat(change)) return t("ui.chat.mariediteasyviewer.replyMeta");
+  if (change.action === "insert") {
+    return t("ui.chat.mariappliededit.factNew", { entity: describeTable(change.table).toLocaleLowerCase() });
+  }
+  const only = fields.length === 1 ? fields[0]! : null;
+  if (only && /keys$/iu.test(only.path) && fieldChangeStyle(only) === "list") {
+    const segments = trackListChange(only.before, only.after);
+    const added = segments.filter((segment) => segment.type === "added").map((segment) => segment.value);
+    if (added.length > 0 && !segments.some((segment) => segment.type === "removed")) {
+      return t("ui.chat.mariappliededit.factAddsKeys", { count: added.length, keys: added.join(", ") });
+    }
+  }
+  if (fields.length === 0) return t("ui.chat.mariediteasyviewer.noFieldChanges");
+  if (fields.length > 3) return t("ui.chat.mariappliededit.factChangedMany", { count: fields.length });
+  const labels = fields.map((field) => field.label.toLocaleLowerCase());
+  return t("ui.chat.mariappliededit.factChanged", {
+    fields: new Intl.ListFormat(language, { type: "conjunction" }).format(labels),
+  });
+}

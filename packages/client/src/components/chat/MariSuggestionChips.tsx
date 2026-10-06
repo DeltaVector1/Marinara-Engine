@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   BookOpen,
   Dices,
   Eye,
@@ -20,7 +19,6 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type CSSProperties,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
@@ -29,6 +27,7 @@ import { useChats } from "../../hooks/use-chats";
 import { chatResultType, type ResultType } from "../../lib/command-icons";
 import { mariCardIntent } from "../../lib/mari-arrival";
 import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
+import { MariList, MariRow } from "./mari-primitives";
 import { cn } from "../../lib/utils";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
@@ -292,22 +291,28 @@ export function MariSuggestionChips({ chips, onSelect, disabled = false, compact
   );
 }
 
+/** R10: at most this many next steps; more is a menu, not a suggestion. */
+const MAX_NEXT_STEPS = 4;
+
 /**
- * M5b: what next, as cards under the finished turn (icon, label, one fact). An arrow card has an
- * `action` the caller runs at once. N4: a spark card asks Mari at once; with Shift held, or after a
- * long press on touch, `draft` is true and the caller puts its prompt in the composer instead.
+ * M5b / R10: what next, as rows of one group under the finished turn (type icon, label, one fact). The
+ * trailing glyph says what a tap does: › runs the row's `action` at once, a gold ✦ asks Mari. N4: with
+ * Shift held, or after a long press on touch, `draft` is true and the caller puts the prompt in the
+ * composer instead. `bare` returns the rows only, for a group the caller already draws (the arrival).
  */
 export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"> & { action?: { kind: string } }>({
   chips,
   onSelect,
   disabled = false,
+  bare = false,
 }: {
   chips: readonly Chip[];
   onSelect: (chip: Chip, draft: boolean) => void;
   disabled?: boolean;
+  bare?: boolean;
 }) {
   const { t: localizeUi } = useUiTranslation();
-  // An "Open <chat>" card shows the chat's mode; the list is usually cached, so no refetch on mount.
+  // An "Open <chat>" row shows the chat's mode; the list is usually cached, so no refetch on mount.
   const { data: chatList } = useChats({
     enabled: chips.some((chip) => chip.action?.kind === "chat"),
     refetchOnMount: false,
@@ -322,82 +327,73 @@ export function MariNextStepCards<Chip extends Omit<MariSuggestionChip, "action"
   };
   useEffect(() => clearLongPress, []);
   if (chips.length === 0) return null;
+  const rows = chips.slice(0, MAX_NEXT_STEPS).map((chip) => {
+    // M9's omnibar-only actions name no entity, so the shared inference reads them as none.
+    const entity = inferChipEntity(chip as MariSuggestionChip);
+    const chatId = chip.action?.kind === "chat" ? (chip.action as { chatId?: string }).chatId : undefined;
+    const type =
+      chip.action?.kind === "peek-prompt" || !entity
+        ? undefined
+        : entity === "chat"
+          ? chatResultType(chatList?.find((chat) => chat.id === chatId)?.mode)
+          : ENTITY_RESULT_TYPE[entity];
+    const Icon = chip.action?.kind === "peek-prompt" ? Eye : (chip.icon && CHIP_ICONS[chip.icon]) || Wand2;
+    const trailLabel = localizeUi(
+      chip.action ? "ui.chat.marisuggestionchips.actsNow" : "ui.chat.marisuggestionchips.asksMariHint",
+    );
+    return (
+      <MariRow
+        key={chip.id}
+        className={chip.tone === "danger" ? "mari-list__item--danger" : undefined}
+        slot={type ? <ResultTypeIcon type={type} glyph /> : <Icon />}
+        title={chip.label}
+        fact={chip.detail}
+        trail={chip.action ? "open" : "ask"}
+        trailLabel={trailLabel}
+        hint={trailLabel}
+        onPointerDown={(event) => {
+          clearLongPress();
+          longPressRef.current.fired = false;
+          if (event.pointerType !== "touch" || chip.action) return;
+          longPressRef.current.timer = setTimeout(() => {
+            longPressRef.current = { timer: null, fired: true };
+            onSelect(chip, mariCardIntent(chip, { longPress: true }) === "draft");
+          }, CARD_LONG_PRESS_MS);
+        }}
+        onPointerUp={clearLongPress}
+        onPointerCancel={clearLongPress}
+        onPointerLeave={clearLongPress}
+        // The long press already drafted: no system menu, and no trailing click that would send.
+        // A long press that ended without a click must not swallow a later keyboard activation.
+        onKeyDown={() => {
+          longPressRef.current.fired = false;
+        }}
+        onContextMenu={(event) => {
+          if (longPressRef.current.fired) event.preventDefault();
+        }}
+        onClick={(event) => {
+          if (longPressRef.current.fired) {
+            longPressRef.current.fired = false;
+            return;
+          }
+          onSelect(chip, mariCardIntent(chip, { shiftKey: event.shiftKey }) === "draft");
+        }}
+        disabled={disabled}
+      />
+    );
+  });
+  if (bare) return <>{rows}</>;
   return (
-    <div role="group" aria-label={localizeUi("ui.chat.marisuggestionchips.nextSteps")} className="mari-next-cards">
-      {chips.map((chip, index) => {
-        // M9's omnibar-only actions name no entity, so the shared inference reads them as none.
-        const entity = inferChipEntity(chip as MariSuggestionChip);
-        const chatId = chip.action?.kind === "chat" ? (chip.action as { chatId?: string }).chatId : undefined;
-        const type =
-          chip.action?.kind === "peek-prompt" || !entity
-            ? undefined
-            : entity === "chat"
-              ? chatResultType(chatList?.find((chat) => chat.id === chatId)?.mode)
-              : ENTITY_RESULT_TYPE[entity];
-        const Icon = chip.action?.kind === "peek-prompt" ? Eye : (chip.icon && CHIP_ICONS[chip.icon]) || Wand2;
-        const kindLabel = localizeUi(
-          chip.action ? "ui.chat.marisuggestionchips.actsNow" : "ui.chat.marisuggestionchips.asksMari",
-        );
-        return (
-          <button
-            key={chip.id}
-            type="button"
-            className="mari-next-card"
-            data-kind={chip.action ? "action" : "mari"}
-            data-tone={chip.tone}
-            style={{ "--i": index } as CSSProperties}
-            onPointerDown={(event) => {
-              clearLongPress();
-              longPressRef.current.fired = false;
-              if (event.pointerType !== "touch" || chip.action) return;
-              longPressRef.current.timer = setTimeout(() => {
-                longPressRef.current = { timer: null, fired: true };
-                onSelect(chip, mariCardIntent(chip, { longPress: true }) === "draft");
-              }, CARD_LONG_PRESS_MS);
-            }}
-            onPointerUp={clearLongPress}
-            onPointerCancel={clearLongPress}
-            onPointerLeave={clearLongPress}
-            // The long press already drafted: no system menu, and no trailing click that would send.
-            // A long press that ended without a click must not swallow a later keyboard activation.
-            onKeyDown={() => {
-              longPressRef.current.fired = false;
-            }}
-            onContextMenu={(event) => {
-              if (longPressRef.current.fired) event.preventDefault();
-            }}
-            onClick={(event) => {
-              if (longPressRef.current.fired) {
-                longPressRef.current.fired = false;
-                return;
-              }
-              onSelect(chip, mariCardIntent(chip, { shiftKey: event.shiftKey }) === "draft");
-            }}
-            disabled={disabled}
-            title={chip.action ? kindLabel : localizeUi("ui.chat.marisuggestionchips.asksMariHint")}
-            aria-describedby={chip.action ? undefined : `${chip.id}-hint`}
-          >
-            <span className="mari-next-card__icon" aria-hidden="true">
-              {type ? <ResultTypeIcon type={type} glyph className="size-3.5" /> : <Icon size="0.875rem" />}
-            </span>
-            <span className="mari-next-card__label">{chip.label}</span>
-            {chip.detail ? <span className="mari-next-card__detail">{chip.detail}</span> : null}
-            <span className="mari-next-card__kind">
-              {chip.action ? (
-                <ArrowRight size="0.75rem" aria-hidden="true" />
-              ) : (
-                <Sparkles size="0.75rem" aria-hidden="true" />
-              )}
-              <span className="mari-next-card__kind-text">{kindLabel}</span>
-            </span>
-            {chip.action ? null : (
-              <span id={`${chip.id}-hint`} className="sr-only">
-                {localizeUi("ui.chat.marisuggestionchips.asksMariHint")}
-              </span>
-            )}
-          </button>
-        );
-      })}
+    <div className="mari-list-stack">
+      <MariList
+        cols={rows.length > 1}
+        head={localizeUi("ui.chat.marisuggestionchips.next")}
+        role="group"
+        aria-label={localizeUi("ui.chat.marisuggestionchips.nextSteps")}
+        data-cards="next"
+      >
+        {rows}
+      </MariList>
     </div>
   );
 }

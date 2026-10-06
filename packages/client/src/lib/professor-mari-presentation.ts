@@ -1,5 +1,5 @@
 import { SETTINGS_TABS, type ProfessorMariAskContext } from "@marinara-engine/shared";
-import { chatResultType, resourceResultType, type ResultType } from "./command-icons";
+import { chatResultType, recordFaceResultType, resourceResultType, type ResultType } from "./command-icons";
 
 export type ProfessorMariPresentationState =
   "empty" | "working" | "composing" | "history" | "completed" | "waiting-approval" | "broken";
@@ -204,4 +204,34 @@ export function summarizeDeleteReview<C extends { table: string; action: string 
   const count = review.affectedRows - (review.diffPreview.length - deleted.length);
   const selected = deleted.filter((change) => change.table === parent.table);
   return { parent, selected, count, linkedCount: count - selected.length };
+}
+
+/**
+ * R10: what a turn's reviews show, as keys: `review:<id>` and `<type>:<record id>` for every record in
+ * their previews. See `withoutReviewedResults`.
+ */
+export function reviewRecordKeys(
+  approvals: ReadonlyArray<{ id: string; diffPreview?: ReadonlyArray<{ table: string; id: string }> }>,
+): Set<string> {
+  const keys = new Set<string>();
+  for (const approval of approvals) {
+    keys.add(`review:${approval.id}`);
+    for (const change of approval.diffPreview ?? []) keys.add(`${recordFaceResultType(change.table)}:${change.id}`);
+  }
+  return keys;
+}
+
+/**
+ * R10: one row per record. An action result that a review in the same turn already shows (its own
+ * review, or the same record) is dropped; the review row stands for both and carries the Undo.
+ */
+export function withoutReviewedResults<R extends { reviewId?: string; resource: { kind: string; id: string } }>(
+  results: readonly R[],
+  reviewed: ReadonlySet<string>,
+): R[] {
+  return results.filter(
+    (result) =>
+      !(result.reviewId && reviewed.has(`review:${result.reviewId}`)) &&
+      !reviewed.has(`${resourceResultType(result.resource.kind)}:${result.resource.id}`),
+  );
 }

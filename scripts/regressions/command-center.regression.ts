@@ -93,6 +93,8 @@ import {
   shouldAppendMariArrival,
   summarizeDeleteReview,
   withoutProfessorMariContextFacet,
+  reviewRecordKeys,
+  withoutReviewedResults,
 } from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
@@ -102,9 +104,11 @@ import {
   computeFieldChanges,
   fieldChangeStyle,
   replyFixChat,
+  reviewRowFact,
   trackListChange,
   trackProseChange,
 } from "../../packages/client/src/lib/mari-edit-diff.js";
+import { replyCheckupRow } from "../../packages/client/src/lib/reply-checkup.js";
 import {
   groupRunPhases,
   pastTenseStepTitle,
@@ -115,6 +119,8 @@ import {
   collectMariReferencedResources,
   findMariSettingReferences,
   isWorkspaceTraceItem,
+  firstSentence,
+  mariReferenceFact,
   mariReferenceTarget,
   selectMariReplyReferences,
 } from "../../packages/client/src/lib/mari-referenced-resources.js";
@@ -1806,10 +1812,11 @@ assert.ok(!("mariDetailId" in mariSession));
     /g\.width - cx/u,
     "the hook must not narrow the sheet towards the screen's sides",
   );
+  // R8 (slice 62c): the rim's shimmer takes the top-bar edge's state colour, not the accent.
   assert.match(
     clientSource("components/layout/OmnibarPullDrop.tsx"),
-    /stopColor: "var\(--marinara-app-accent-solid\)"/u,
-    "the rim's shimmer takes the app accent",
+    /stopColor: "var\(--mari-pull-rim-color\)"/u,
+    "the rim's shimmer takes the edge state colour",
   );
 }
 
@@ -2738,7 +2745,7 @@ assert.ok(!("mariDetailId" in mariSession));
     "chat: fix (cut off), why an entry, summarize since, peek",
   );
   assert.deepEqual(chat.cards.at(-1)?.action, { kind: "peek-prompt", chatId: "chat-1" }, "peek acts at once");
-  // Q5: its fact line says what it shows, not "Opens now" again (the card's corner says that).
+  // Q5: its fact line says what it shows, not "Opens now" again (the row's › says that).
   assert.equal(chat.cards.at(-1)?.detail, "What Zylo gets next turn");
   assert.ok(
     chat.cards.slice(0, 3).every((card) => !card.action),
@@ -3577,6 +3584,101 @@ assert.ok(!("mariDetailId" in mariSession));
     mariThreadContextFor({ ...base, surface: "settings", activeChat: { id: "c1", resultIds: [] } }, arrivalNamed),
     { key: "general" },
     "settings over a chat is not that chat",
+  );
+}
+
+// R10 (slice 62d): Mari cards v5. A card's fact says something about THIS thing, never its type; one row
+// per record; a review row's fact is in words; a checkup row puts the number in the title.
+{
+  const keyOf = (key: string, options?: Record<string, unknown>) =>
+    options ? `${key}:${JSON.stringify(options)}` : key;
+  const typeWords = /^(chat|character|agent|lorebook|persona|setting)$/iu;
+  assert.equal(firstSentence("Captain of the Meridian. Keeps her crew alive."), "Captain of the Meridian.");
+  assert.equal(firstSentence("\n  A line without an end"), "A line without an end");
+  assert.equal(firstSentence(""), undefined);
+  assert.equal(mariReferenceFact("character", { description: "A smuggler. Loyal." }, keyOf), "A smuggler.");
+  assert.equal(mariReferenceFact("character", {}, keyOf), undefined, "no description: no fact, never the type");
+  assert.equal(
+    mariReferenceFact("lorebook", { entryCount: 4 }, keyOf),
+    'ui.chat.homeprofessormarichat.refFact.entries:{"count":4}',
+  );
+  assert.equal(
+    mariReferenceFact("lorebookEntry", { lorebookName: "Meridian lore", entryKey: "silver compass" }, keyOf),
+    'Meridian lore · ui.chat.homeprofessormarichat.refFact.key:{"key":"silver compass"}',
+  );
+  assert.equal(mariReferenceFact("lorebookEntry", {}, keyOf), undefined, "an entry with no lorebook says nothing");
+  assert.equal(mariReferenceFact("chat", { people: "Elara", time: "4 min ago" }, keyOf), "Elara · 4 min ago");
+  assert.equal(mariReferenceFact("chat", {}, keyOf), undefined, "a chat never reads 'Chat'");
+  assert.equal(
+    mariReferenceFact("agent", { agentState: "on", description: "Tracks places. Not items." }, keyOf),
+    "ui.chat.homeprofessormarichat.refFact.on · Tracks places.",
+  );
+  assert.equal(
+    mariReferenceFact("agent", { agentState: "failed", description: "x" }, keyOf),
+    "ui.chat.homeprofessormarichat.referenceAgentFailed",
+  );
+  assert.equal(mariReferenceFact("setting", { section: "Chat settings" }, keyOf), "Chat settings");
+  for (const kind of ["character", "lorebook", "lorebookEntry", "chat", "agent", "setting", "persona"] as const) {
+    const fact = mariReferenceFact(kind, {}, keyOf);
+    assert.ok(!fact || !typeWords.test(fact), `${kind}: the fact never repeats the type`);
+  }
+
+  const reviewed = reviewRecordKeys([
+    { id: "r1", diffPreview: [{ table: "characters", id: "elara" }] },
+    { id: "r2", diffPreview: [{ table: "prompt_presets", id: "p1" }] },
+  ]);
+  const results = [
+    { status: "updated", resource: { kind: "character", id: "elara" } },
+    { status: "created", resource: { kind: "lorebook", id: "crew" } },
+    { status: "updated", resource: { kind: "persona", id: "nell" }, reviewId: "r1" },
+    { status: "updated", resource: { kind: "preset", id: "p1" } },
+  ];
+  assert.deepEqual(
+    withoutReviewedResults(results, reviewed).map((result) => result.resource.id),
+    ["crew"],
+    "a result a review already shows (same record, or its own review) is dropped",
+  );
+  assert.equal(withoutReviewedResults(results, new Set()).length, 4, "no reviews: every result stays");
+
+  const keysChange = {
+    table: "lorebook_entries",
+    id: "e1",
+    action: "update" as const,
+    before: { name: "Silver compass", keys: ["silver compass"] },
+    after: { name: "Silver compass", keys: ["silver compass", "compass", "heirloom"] },
+  };
+  assert.equal(
+    reviewRowFact(keysChange, computeFieldChanges(keysChange), keyOf),
+    'ui.chat.mariappliededit.factAddsKeys:{"count":2,"keys":"compass, heirloom"}',
+  );
+  const descChange = {
+    table: "characters",
+    id: "c1",
+    action: "update" as const,
+    before: { data: { name: "Elara", description: "Old." } },
+    after: { data: { name: "Elara", description: "New." } },
+  };
+  assert.equal(
+    reviewRowFact(descChange, computeFieldChanges(descChange), keyOf),
+    'ui.chat.mariappliededit.factChanged:{"fields":"description"}',
+  );
+  assert.equal(
+    reviewRowFact({ ...descChange, action: "insert", before: null }, [], keyOf),
+    'ui.chat.mariappliededit.factNew:{"entity":"character"}',
+  );
+
+  const translate = (key: string, fallback: string, options?: Record<string, unknown>) =>
+    fallback.replace(/\{\{(\w+)\}\}/gu, (_, name: string) => String(options?.[name] ?? ""));
+  assert.deepEqual(replyCheckupRow({ code: "cut_off", text: "", values: { limit: 512 }, link: null }, translate), {
+    title: "Cut off at 512 tokens",
+    why: "Stopped mid-sentence",
+  });
+  assert.equal(
+    replyCheckupRow(
+      { code: "history_trimmed", text: "", values: { count: 42, before: 30000, budget: 7000 }, link: null },
+      translate,
+    ).why,
+    `Needed ${(30000).toLocaleString()} tokens, budget ${(7000).toLocaleString()}`,
   );
 }
 

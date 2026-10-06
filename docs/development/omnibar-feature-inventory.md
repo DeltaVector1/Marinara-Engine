@@ -78,8 +78,10 @@ Rules that must survive:
   context for the page session) and "New about <context>"; otherwise a thread
   for the context starts silently. "+" always starts fresh, keyed to the screen.
   An empty, unkeyed thread (the one first opening her made) is reused rather
-  than left behind. The Chats panel row shows the context label and type icon,
-  and its search matches the label. Doors that send at once (a typed Ask Mari,
+  than left behind. The Chats panel (titled "Chats") rows show the Mari-chat icon
+  in the row slot and one fact, "<context or General> · <time> · N messages";
+  the current thread is tinted, and ⋮ shows on hover or focus (always on touch).
+  Its search matches the label. Doors that send at once (a typed Ask Mari,
   a reopened past chat, a review row) keep the thread they target.
 - **Mari arrives with context** (M9). Every door that brings no text (⌘J, the
   pull's right half and the desktop drag, Home's "Ask Professor Mari") goes
@@ -87,13 +89,13 @@ Rules that must survive:
   this screen's context (the same `buildAskContext` as every handoff; the open
   chat travels as its outlined chat chip, not also as a "Current chat"
   resource) and, while her chat is empty, shows the arrival instead of the
-  generic welcome: her sprite, one line, the facts, reference cards and 2-4
-  next-step cards (`MariNextStepCards`; a spark card sends its prompt to Mari at
-  once and is labeled "Asks Mari" — Shift-click or a touch long-press drafts it
-  into the composer instead (N4, slice 45, `mariCardIntent`) — an arrow card acts
-  at once and is labeled "Opens now"; both labels are visible text next to the
-  icon, not only `title`/screen-reader text, so the kind is clear before the
-  click (F7/b2, slice 41)). N6 (R22): the arrival never falls back to the "Fix"
+  generic welcome: her sprite, one line and its facts, then ONE group of rows
+  (R10): the things on that screen (a name the line already shows only when its
+  row adds a fact), then 2-4 next steps (`MariNextStepCards`; a ✦ row sends its
+  prompt to Mari at once — Shift-click or a touch long-press drafts it into the
+  composer instead (N4, slice 45, `mariCardIntent`) — a `›` row acts at once).
+  R10 replaced slice 41's visible "Asks Mari" / "Opens now" corner tags with the
+  trailing glyph; the words stay as its tooltip and screen-reader text. N6 (R22): the arrival never falls back to the "Fix"
   row as its focus (`mariFallbackFocus`), so a typed question after an arrival
   carries no error text; only the failed-reply "Fix the last reply" card and the
   agent's "Why did the last run fail" card (`fix: true`) send with the error,
@@ -152,19 +154,35 @@ Rules that must survive:
     the bottom; `complete` never scrolls. Scrolling up to read while she works
     holds position through completion instead of snapping back down or
     getting stuck.
-  - Reference cards (`MariReferencedResources`, `.mari-ref-card`) come right
-    after her words: characters, personas and lorebooks she read, agents (keyed
-    by type; their live Enabled / Disabled state, or "Last run failed" from
-    `agent.runs`), chats, lorebook entries (with their lorebook's name) and
-    settings she names in bold by their exact label (`findMariSettingReferences`).
-    A portrait with a small type badge, or (without one) the kind's icon on a quiet
-    tile (`ResultTypeIcon`, Q6, slice 58b); a chat shows its mode, so a row of cards
-    carries one accent, not four.
-    A list result shows only when her answer names it. A card opens a sheet with
-    the description and Open (`mariReferenceTarget` → `executeStateNavigation`;
-    an entry opens its lorebook at that entry).
-  - Next steps (M5b, slice 37) are 2-4 cards in the transcript under the newest
-    turn (`MariNextStepCards`, `.mari-next-card`), in the normal flow, not over the
+  - **Cards v5** (R10, slice 62d; mockup `docs/development/mockups/mari-v5/`):
+    every Mari card is a row — slot · title · one muted fact · one trailing thing
+    (`MariRow` in `mari-primitives.tsx`) — and rows that stack share one inset
+    group (`MariList`: one hairline, one radius, dividers inset to the text edge;
+    no box inside a box). Three radii only: the group (`--mari-card-radius`), the
+    slot (`--mari-card-slot-radius`, concentric with the group corner, a circle for
+    portraits) and capsules for buttons and badges. The fact never repeats the
+    type the slot already shows. The trailing thing says what a tap does: `›`
+    opens now, a gold `✦` asks Mari, a rotating `›` shows the change, a quiet
+    Undo, one solid Keep. Calm states: hover is a faint fill, selected is a 9%
+    primary tint, no lift and no per-card stagger (a group fades in once). On a
+    phone the groups span the transcript and only her text stays beside the
+    sprite; on desktop they start at the text edge, and references and next
+    steps go two columns from a 36rem group.
+  - Reference rows (`MariReferencedResources`) come right after her words:
+    characters, personas and lorebooks she read, agents (keyed by type), chats,
+    lorebook entries and settings she names in bold by their exact label
+    (`findMariSettingReferences`). The fact (`mariReferenceFact`): a character's
+    first sentence, a lorebook's entry count, an entry's lorebook and first key,
+    a chat's people and when it last moved, an agent's On / Off (or "Last run
+    failed") and its description, a setting's section. A portrait with a small
+    type badge, or the kind's icon on the slot tile (`ResultTypeIcon`, Q6); a chat
+    shows its participants with its mode as the badge. In a narrow group the
+    rows are one line each (the fact truncates first). A list result shows only
+    when her answer names it. A row opens the thing at once (`mariReferenceTarget`
+    → `executeStateNavigation`; an entry opens its lorebook at that entry); its
+    description is the row's tooltip.
+  - Next steps (M5b, slice 37) are at most 4 rows of one "Next" group under the
+    newest turn (`MariNextStepCards`), in the normal flow, not over the
     composer: icon, label, and one fact line from the server's `detail` (bounded to
     80 characters by `sanitizeMariSuggestionChips`; the prompt asks for a real fact
     such as "3 messages since your last summary", never a generic description). A
@@ -177,25 +195,31 @@ Rules that must survive:
     Held-change Accept / Don't apply and guided-plan answers stay as chips by the
     composer: they answer a question. The cards step aside while you type, like
     the chips did.
-  - What changed (created/updated tiles, applied reviews, answered prompts) and
-    what needs your OK (held changes, install and sensitive-file prompts) render
-    as ONE hairline group (`MariOutcomeGroup`); the "What changed" / "Needs your
-    OK" labels show only when both exist. A trailing "Why:" bullet list in her
+  - What needs your OK (held changes, install and sensitive-file prompts) and
+    what changed (applied reviews, created/updated records, answered prompts)
+    render as two groups (`MariOutcomeGroup`), what needs you first; the "Needs
+    your OK" / "Changed" labels show only when both exist. One row per record: a
+    created/updated result whose record a review in the same turn already shows
+    is dropped (`withoutReviewedResults`), the review row stands for both. A trailing "Why:" bullet list in her
     answer folds into one "Why" disclosure (`splitMariAnswerWhy`); the server
     prompt asks for a one- or two-sentence lead, bold names for referenceable
     things, and at most three "Why" bullets.
   - An applied DB edit (`MariEditEasyViewer`: updates, inserts and lorebook
-    entries alike) is one summary row per record: avatar or monogram, name,
-    "Updated character · description, tags, first message" and "N changes", or
-    "Lorebook entry · …" and "New" for a created record. It opens to tracked
+    entries alike) is one row per record, closed by default: avatar or icon,
+    name, and what the change does in words (`reviewRowFact`: "Adds 2 keys:
+    compass, heirloom", "Changed description and tags", "New lorebook entry").
+    A one-record review carries its Undo and Keep in the row (Keep is the one
+    solid capsule on a held change, quiet on an applied one, which it only
+    closes); a batch ends in one line with its links and actions. Answered, the
+    row stays in place as "✓ Kept" / "✓ Undone". It opens in place to tracked
     changes: old text struck and muted, new text underlined on a light tint,
     word by word when much of the old text survives (`trackProseChange`).
     Lists (tags, primary and secondary keys) are −/+ chips (`trackListChange`),
     one-word values (selective logic, probability) are a − old and a + new chip,
     and switches gather into one "Switches" line ("+Case sensitive",
     "−Whole words"; `fieldChangeStyle` decides). A new record's values read
-    plain, not inserted. A lorebook entry also shows its activation (Constant,
-    Selective or Normal) and vector state as two plain chips. An agent edit
+    plain, not inserted. A new lorebook entry also shows its activation
+    (Constant, Selective or Normal) and vector state as two plain chips. An agent edit
     (`agent_configs`) reads "Updated agent · …" with the agent's artwork (a
     monogram without one, like every record); its prompt
     template and description are tracked prose, and its nested `settings` JSON
@@ -203,21 +227,22 @@ Rules that must survive:
     fix (`chat.updateMessage`, a `messages` change) reads "Reply · <chat name>"
     with meta "New swipe · old reply kept", the reply as tracked prose, and its
     Undo reads "Put the old reply back"; Keep refetches that chat's messages so
-    an open chat shows the new swipe without a reload. "Show exact
-    changes" swaps every field to the line-by-line diff and back. Raw is one disclosure (`.mari-tech`: tables,
+    an open chat shows the new swipe without a reload. The detail ends
+    in one quiet links line: "Show exact changes" swaps every field to the
+    line-by-line diff and back, View as prompt, and Raw, one disclosure (`.mari-tech`: tables,
     rows, the command and every created row's snapshot); the "Edit review opens
     in" setting opens it by default. Undo, Keep (and Keep and enable for a new
-    memory) are small `.mari-link` / `.mari-btn` buttons (their hit area grows
-    to 44px on touch); View as prompt and a multi-row lorebook entry's Reject
-    stay as quiet links. No panel sits inside another. A folded row's content
+    memory) are small capsules (their hit area grows to 44px on touch); a
+    multi-row lorebook entry's Reject stays a quiet link. No panel sits inside another. A folded row's content
     is `inert`, so its hidden buttons leave the Tab order.
   - A review renders inside the turn that asked for it, in its outcome group
     before "Worked for" (`assignReviewsToTurns`: the reply between the user
     message before `requestedAt` and the next one). One whose turn has no reply
     stays after the transcript.
-  - Something she created or updated is a small tile (`MariWorkspaceActionResultRow`):
-    portrait with a type badge or the kind's icon (`ResultTypeIcon`), name, "New" for a created record, one
-    line (its description, or the changed fields), and "Open ›".
+  - Something she created or updated is a row of the "Changed" group
+    (`MariWorkspaceActionResultRow`): portrait with a type badge or the kind's
+    icon, name with "New" for a created record, one fact ("New lorebook · 4
+    entries", "Changed description") and `›` to open it.
   - Risky prompts (install, sensitive file, delete) are a `MariCard`
     (R42): one neutral hairline, a small icon tile (red-tinted only for
     danger), one primary and one quiet text secondary. No glow, no gradient
@@ -226,7 +251,7 @@ Rules that must survive:
     risk in one line, a solid Install / Apply change, a quiet Not now, and the
     exact package, integrity hash, source, full path and content preview behind
     one "Technical details" disclosure (`.mari-tech`). Once answered, it folds
-    to one quiet `MariNote` line with an icon (`ResolvedPromptLine`: "Installed
+    to one row of the "Changed" group with a check or minus (`ResolvedPromptLine`: "Installed
     nanoid", "Skipped: Change package.json") in the same place until the next
     send. A DB review that deletes is the `danger` variant: "Delete Old market
     rumor", the record type (plus "· 120 linked items" for its cascade, counted
@@ -333,7 +358,7 @@ Every builder is pure and lives in `lib/omnibar-results.ts` unless noted.
 | Slash commands                                                                 | `buildOmnibarSlashResults`                                                                    | Chat surface only. Choosing one types it into the chat input rather than running it, so arguments stay visible                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | Context rows                                                                   | `buildOmnibarContextResults`                                                                  | "What am I on?": the open editor, the current chat and everything attached to it, the last error, an unfinished creation session. A failed reply's "Fix: Generate reply failed" row now carries a `choice` control listing the chat's other language-generation connections (`languageConnections`, excluding the broken one): Enter expands it, picking one retries the failed message with it at once through a `marinara:chat-retry-with-connection-request` event (`handleRetryWithConnection` in `ChatArea.tsx`), without changing the chat's own connection (O4 item 3, slice 50) — Ctrl+K → Enter → pick is 3 steps. A failed agent run's "Fix: Run <agent name> failed" row (keyed on `agent:<type>`) is unchanged: Enter opens the agent editor. These are the only rows that hand Mari the error through the `chat-error` source door (`GlobalOmnibar.tsx`'s `buildAskContext`), and only when picked deliberately (⌘↵ on the row, or the arrival's Fix card) — an explicit `fix` flag on `buildAskContext`, never an implicit "focus id equals Fix row id" check, because a built-in agent's editor row shares its id with its Fix row. A door that picks nothing (the arrival, the "Ask Mari" row, the aside's ⌘↵) falls back through `mariFallbackFocus` (N6/A5), which keeps that row as the resource focus — so the agent/connection still reaches Mari — without ever attaching the error text; every other unasked Mari call carries no user content |
 | Failed reply retry line (chat surface)                                         | `ChatArea.tsx`'s `failedReplyMessageId`                                                       | A failed generation leaves a quiet "Failed · Retry" line under the user message that triggered it (conversation/roleplay only), derived from the same `lastAppError` the K1 Fix row reads. Hidden while a reply to a newer message in the same chat is still streaming, so a fresh send never shows a stale failed line; dismissed on editing or deleting that exact message                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Chat tool rows (chat surface)                                                  | `buildOmnibarContextResults`                                                                  | Search this chat, Active lorebook entries, Summary (roleplay only) and Regenerate reply. Slice 61 (R2) removed "Preview next prompt": it showed the previous saved prompt when the last message was a reply, and its live fallback was never trimmed. In its place, when the newest reply has a reply-checkup finding (`diagnoseReply`: cut off, empty, older messages not sent, reply limit cut), "Fix: Check the last reply" leads the group (conversation and roleplay) and opens the checkup under that reply, which links to the exact settings and to Peek; Peek's header shows the same findings. Slice 62 (R3) gives Professor Mari her own read on the same checkup: `chat.diagnose { chatId, messageId? }` returns the findings, the generation's raw numbers (context/completion tokens, finish reason, what the context fit cut), the chat's attached lorebook budgets and the active preset's name and sampler parameter names — never message text. Asking her "why did that get worse" (or ⌘↵ on the checkup row) has her call it first, name one cause with its real number, and offer one reviewed fix (`preset.update`, `character.update`, `lorebook.updateEntry`) or the finding's own Chat Settings link. Each dispatches a `chat-floating-ui-events.ts` request the chat already listens for, so the row opens or runs the existing UI — nothing new behind it. Since the #7034 chat window redesign moved those tools out of the toolbar, Search this chat, Active lorebook entries and Summary open Chat Settings at their drawer (`ChatArea` → `initialSection`); Search this chat also focuses the search field. Continue is already reachable via the idle `/continue` slash row, so it gets no new row. Game mode gets only Active lorebook entries: it has its own turn-retry reset (`GameSurface`'s `handleRetryTurn`) instead of plain Regenerate, and no listener for Search this chat                                                                                                                                                                      |
+| Chat tool rows (chat surface)                                                  | `buildOmnibarContextResults`                                                                  | Search this chat, Active lorebook entries, Summary (roleplay only) and Regenerate reply. Slice 61 (R2) removed "Preview next prompt": it showed the previous saved prompt when the last message was a reply, and its live fallback was never trimmed. In its place, when the newest reply has a reply-checkup finding (`diagnoseReply`: cut off, empty, older messages not sent, reply limit cut), "Fix: Check the last reply" leads the group (conversation and roleplay) and opens the checkup under that reply: one group of rows (R10), each finding with its number ("Cut off at 512 tokens"), why and the exact setting it opens, then Peek; Peek's header shows the same findings. Slice 62 (R3) gives Professor Mari her own read on the same checkup: `chat.diagnose { chatId, messageId? }` returns the findings, the generation's raw numbers (context/completion tokens, finish reason, what the context fit cut), the chat's attached lorebook budgets and the active preset's name and sampler parameter names — never message text. Asking her "why did that get worse" (or ⌘↵ on the checkup row) has her call it first, name one cause with its real number, and offer one reviewed fix (`preset.update`, `character.update`, `lorebook.updateEntry`) or the finding's own Chat Settings link. Each dispatches a `chat-floating-ui-events.ts` request the chat already listens for, so the row opens or runs the existing UI — nothing new behind it. Since the #7034 chat window redesign moved those tools out of the toolbar, Search this chat, Active lorebook entries and Summary open Chat Settings at their drawer (`ChatArea` → `initialSection`); Search this chat also focuses the search field. Continue is already reachable via the idle `/continue` slash row, so it gets no new row. Game mode gets only Active lorebook entries: it has its own turn-retry reset (`GameSurface`'s `handleRetryTurn`) instead of plain Regenerate, and no listener for Search this chat                                                                                                                                                                      |
 | Idle rows                                                                      | `buildOmnibarIdleResults`                                                                     | Unfinished setup first (capped at 2), then recents, then surface commands                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | Intent shortcuts                                                               | `buildOmnibarIntentShortcuts`                                                                 | "new character Bob" / "create a lorebook called Silver Court" open the create window with the typed name (casing kept); "chat with Shrek" / "new chat Dottore" / "talk to Eliza" open the start-chat window for each character whose name the text starts (up to three). Current-work group; nothing is created from the omnibar                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | New chat commands                                                              | `buildOmnibarNewChatCommands`                                                                 | "New conversation" / "New roleplay" / "New game" are doors into the same `useStartNewChatMode` flow as Home's Conversation/Roleplay/Game buttons. Returned only on a real match, never idle and never as noise beside an unrelated query: a deliberate phrase ("new chat", "new roleplay", "start game", …) scores like the other intent shortcuts; a bare word ("game", "rp", "roleplay", "conversation") scores low enough to stay behind an exact entity name with that word as its title                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |

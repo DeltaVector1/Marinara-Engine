@@ -6,7 +6,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { ChevronRight, Eye, Undo2 } from "lucide-react";
+import { ChevronRight, Undo2 } from "lucide-react";
 import type { MariDbPendingApproval, MariDbRowChange } from "@marinara-engine/shared";
 
 import { cn } from "../../lib/utils";
@@ -15,10 +15,10 @@ import { recordFaceResultType } from "../../lib/command-icons";
 import {
   changeRecordName,
   computeFieldChanges,
-  describeTable,
   fieldChangeStyle,
   replyFixChat,
   resolveLorebookVectorStatus,
+  reviewRowFact,
   trackListChange,
   trackProseChange,
   type FieldChange,
@@ -159,7 +159,7 @@ function LorebookStatus({ change }: { change: MariDbRowChange }) {
   );
 }
 
-function RecordFace({ change }: { change: MariDbRowChange }) {
+export function RecordFace({ change }: { change: MariDbRowChange }) {
   const character = change.table === "characters" ? buildCharacterPreviewModel(change.after ?? change.before) : null;
   // An agent shows its own artwork, as its omnibar row does.
   const agentImage =
@@ -175,8 +175,10 @@ function RecordFace({ change }: { change: MariDbRowChange }) {
 }
 
 /**
- * The applied-edit group: one row per record that opens to its tracked changes. `raw` (one
- * disclosure) and `actions` (Undo/Keep) close the group, inside the row when there is only one.
+ * The review group (R10): one row per record - its face, its name and what the change does in words -
+ * that opens in place to its tracked changes. Closed by default. A single-record review carries its
+ * `actions` (Undo, Keep) in the row; a batch closes with one line of links and actions for all of it.
+ * `raw` is one disclosure in the links line.
  */
 export function MariEditEasyViewer({
   approval,
@@ -185,50 +187,51 @@ export function MariEditEasyViewer({
   onRejectRow,
   onRenderRow,
   busy,
+  running,
 }: {
   approval: MariDbPendingApproval;
   raw: ReactNode;
   actions: ReactNode;
   onRejectRow?: (change: MariDbRowChange, index: number) => void;
   onRenderRow?: (change: MariDbRowChange, index: number) => void;
+  /** Any review is being answered: these buttons wait. */
   busy?: boolean;
+  /** This review's Keep or Undo is running: its row dims. */
+  running?: boolean;
 }) {
-  const { t: localizeUi } = useUiTranslation();
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const { t: localizeUi, i18n } = useUiTranslation();
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [exact, setExact] = useState(false);
   const single = approval.diffPreview.length <= 1;
   // Reject reverts one row and keeps the rest; on a single-row change that equals Undo, and the server
   // only accepts top-level lorebook entries.
   const rejectRow = approval.diffPreview.length > 1 ? onRejectRow : undefined;
-  const footer = (
-    <>
-      {raw}
-      <div className="mari-edit__actions">
-        {approval.diffPreview.length > 0 ? (
-          <button
-            type="button"
-            onClick={() => setExact((value) => !value)}
-            aria-pressed={exact}
-            className="mari-link -ml-2"
-          >
-            {localizeUi(
-              exact ? "ui.chat.mariediteasyviewer.showTrackedChanges" : "ui.chat.mariediteasyviewer.showExactChanges",
-            )}
-          </button>
-        ) : null}
-        <span className="flex-1" />
-        {actions}
-      </div>
-    </>
-  );
+  const exactToggle =
+    approval.diffPreview.length > 0 ? (
+      <button type="button" onClick={() => setExact((value) => !value)} aria-pressed={exact} className="mari-link">
+        {localizeUi(
+          exact ? "ui.chat.mariediteasyviewer.showTrackedChanges" : "ui.chat.mariediteasyviewer.showExactChanges",
+        )}
+      </button>
+    ) : null;
 
   return (
-    <section className="mari-edit mari-edit-review" aria-label={localizeUi("ui.chat.mariappliededit.label")}>
+    <section
+      className="mari-list mari-edit-review"
+      data-busy={busy ? "true" : undefined}
+      aria-label={localizeUi("ui.chat.mariappliededit.label")}
+    >
       {approval.diffPreview.length === 0 ? (
-        <div className="mari-edit__body pt-3">
-          {approval.reason ? <p className="mari-edit__reason">{approval.reason}</p> : null}
-          <p className="mari-edit__reason">{localizeUi("ui.chat.mariediteasyviewer.noPreview")}</p>
-          {footer}
+        <div className="mari-list__item">
+          <div className="mari-row">
+            <span className="mari-row__text">
+              <span className="mari-row__title">
+                <span>{approval.reason || localizeUi("ui.chat.mariediteasyviewer.change")}</span>
+              </span>
+              <span className="mari-row__fact">{localizeUi("ui.chat.mariediteasyviewer.noPreview")}</span>
+            </span>
+            <span className="mari-row__trail">{actions}</span>
+          </div>
         </div>
       ) : null}
       {approval.diffPreview.map((change, index) => {
@@ -237,50 +240,46 @@ export function MariEditEasyViewer({
         const switches = exact ? [] : fields.filter((field) => fieldChangeStyle(field) === "toggle");
         const name = rowTitle(change, localizeUi);
         const open = openIndex === index;
-        const fieldList = fields
-          .slice(0, 3)
-          .map((field) => field.label.toLocaleLowerCase())
-          .join(", ");
         return (
-          <div key={`${index}:${change.table}:${change.id}`} className="mari-edit__row" data-open={open}>
-            <button
-              type="button"
-              className="mari-edit__head"
-              aria-expanded={open}
-              onClick={() => setOpenIndex(open ? null : index)}
-            >
-              <RecordFace change={change} />
-              <span className="mari-edit__text">
-                <span className="mari-edit__title">{name}</span>
-                <span className="mari-edit__meta">
-                  {replyFixChat(change)
-                    ? localizeUi("ui.chat.mariediteasyviewer.replyMeta")
-                    : fresh
-                      ? localizeUi("ui.chat.mariappliededit.metaNew", {
-                          entity: describeTable(change.table),
-                          fields: fieldList,
-                        })
-                      : localizeUi("ui.chat.mariappliededit.meta", {
-                          entity: describeTable(change.table).toLocaleLowerCase(),
-                          fields: fieldList,
-                        })}
+          <div
+            key={`${index}:${change.table}:${change.id}`}
+            className="mari-list__item mari-edit__row"
+            data-open={open}
+            data-state={running && single ? "busy" : undefined}
+          >
+            <div className="mari-row">
+              <button
+                type="button"
+                className="mari-row__toggle"
+                aria-expanded={open}
+                title={approval.reason ?? undefined}
+                onClick={() => setOpenIndex(open ? null : index)}
+              >
+                <span className="mari-row__slot">
+                  <RecordFace change={change} />
                 </span>
-              </span>
-              <span className="mari-edit__end">
-                {fresh ? (
-                  <span className="mari-new-badge">{localizeUi("ui.chat.mariediteasyviewer.actionNew")}</span>
-                ) : (
-                  localizeUi("ui.chat.mariappliededit.changes", { count: fields.length })
-                )}
-                <ChevronRight size="0.75rem" aria-hidden="true" />
-              </span>
-            </button>
-            {/* Collapsed rows keep their content for the height animation; inert keeps it out of Tab. */}
+                <span className="mari-row__text">
+                  <span className="mari-row__title">
+                    <span>{name}</span>
+                    {fresh ? (
+                      <span className="mari-new-badge">{localizeUi("ui.chat.mariediteasyviewer.actionNew")}</span>
+                    ) : null}
+                  </span>
+                  <span className="mari-row__fact">
+                    {reviewRowFact(change, fields, localizeUi, i18n.resolvedLanguage ?? "en")}
+                  </span>
+                </span>
+                <span className="mari-row__trail">
+                  <ChevronRight className="mari-row__disclose" aria-hidden="true" />
+                </span>
+              </button>
+              {single ? <span className="mari-row__trail">{actions}</span> : null}
+            </div>
+            {/* Closed rows keep their content for the height animation; inert keeps it out of Tab. */}
             <div className="mari-edit__expand" inert={!open}>
               <div>
-                <div className="mari-edit__body">
-                  {index === 0 && approval.reason ? <p className="mari-edit__reason">{approval.reason}</p> : null}
-                  {change.table === "lorebook_entries" ? <LorebookStatus change={change} /> : null}
+                <div className="mari-row__detail">
+                  {fresh && change.table === "lorebook_entries" ? <LorebookStatus change={change} /> : null}
                   {fields.length === 0 ? (
                     <p className="mari-edit__reason">{localizeUi("ui.chat.mariediteasyviewer.noFieldChanges")}</p>
                   ) : null}
@@ -297,45 +296,53 @@ export function MariEditEasyViewer({
                       </div>
                     ))}
                   <SwitchChips fields={switches} fresh={fresh} />
-                  {(onRenderRow && canRenderPrompt(change)) || (rejectRow && change.table === "lorebook_entries") ? (
-                    <div className="flex flex-wrap gap-1">
-                      {onRenderRow && canRenderPrompt(change) ? (
-                        <button
-                          type="button"
-                          onClick={() => onRenderRow(change, index)}
-                          disabled={busy}
-                          title={localizeUi("ui.chat.mariediteasyviewer.viewAsPromptHint")}
-                          className="mari-link -ml-2"
-                        >
-                          <Eye size="0.8rem" aria-hidden="true" />
-                          {localizeUi("ui.chat.mariediteasyviewer.viewAsPrompt")}
-                        </button>
-                      ) : null}
-                      {rejectRow && change.table === "lorebook_entries" ? (
-                        <button
-                          type="button"
-                          onClick={() => rejectRow(change, index)}
-                          disabled={busy}
-                          title={localizeUi("ui.chat.mariediteasyviewer.rejectHint")}
-                          aria-label={localizeUi("ui.chat.mariediteasyviewer.rejectNamed", { name })}
-                          className="mari-link -ml-2"
-                        >
-                          <Undo2 size="0.8rem" aria-hidden="true" />
-                          {localizeUi("ui.chat.mariediteasyviewer.reject")}
-                        </button>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {single ? footer : null}
+                  <div className="mari-row__links">
+                    {single ? exactToggle : null}
+                    {onRenderRow && canRenderPrompt(change) ? (
+                      <button
+                        type="button"
+                        onClick={() => onRenderRow(change, index)}
+                        disabled={busy}
+                        title={localizeUi("ui.chat.mariediteasyviewer.viewAsPromptHint")}
+                        className="mari-link"
+                      >
+                        {localizeUi("ui.chat.mariediteasyviewer.viewAsPrompt")}
+                      </button>
+                    ) : null}
+                    {rejectRow && change.table === "lorebook_entries" ? (
+                      <button
+                        type="button"
+                        onClick={() => rejectRow(change, index)}
+                        disabled={busy}
+                        title={localizeUi("ui.chat.mariediteasyviewer.rejectHint")}
+                        aria-label={localizeUi("ui.chat.mariediteasyviewer.rejectNamed", { name })}
+                        className="mari-link"
+                      >
+                        <Undo2 size="0.8rem" aria-hidden="true" />
+                        {localizeUi("ui.chat.mariediteasyviewer.reject")}
+                      </button>
+                    ) : null}
+                    {single ? raw : null}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         );
       })}
-      {single ? null : <div className="mari-edit__footer">{footer}</div>}
+      {single ? null : (
+        <div className="mari-list__item mari-edit__footer">
+          <div className="mari-row">
+            <div className="mari-row__links">
+              {exactToggle}
+              {raw}
+            </div>
+            <span className="mari-row__trail">{actions}</span>
+          </div>
+        </div>
+      )}
       {approval.diffTruncated ? (
-        <p className="mari-edit__reason border-t border-[var(--mari-divider)] px-[0.9rem] py-2">
+        <p className="mari-list__item mari-edit__reason px-[var(--mari-card-pad-inline)] py-2">
           {localizeUi("ui.chat.databaseworkspaceapprovalcard.thisPreviewMayNotShowEveryAffectedRow")}
         </p>
       ) : null}
