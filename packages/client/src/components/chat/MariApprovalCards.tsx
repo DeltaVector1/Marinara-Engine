@@ -10,6 +10,7 @@ import type {
 
 import { describeTable, replyFixChat } from "../../lib/mari-edit-diff";
 import { summarizeDeleteReview } from "../../lib/professor-mari-presentation";
+import { cn } from "../../lib/utils";
 import { useUIStore } from "../../stores/ui.store";
 import { MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
 import { MariCard, MariNote } from "./mari-primitives";
@@ -500,6 +501,7 @@ export function WorkspaceApprovalCard({
   approval,
   busy,
   disabled,
+  highlighted = false,
   onKeep,
   onKeepEnable,
   onRestore,
@@ -509,6 +511,8 @@ export function WorkspaceApprovalCard({
   approval: MariWorkspacePendingApproval;
   busy: boolean;
   disabled: boolean;
+  /** R9: a brief highlight when the omnibar jumped straight to this review. */
+  highlighted?: boolean;
   onKeep: (id: string) => void;
   onKeepEnable?: (id: string) => void;
   onRestore: (id: string) => void;
@@ -561,7 +565,7 @@ export function WorkspaceApprovalCard({
     <div
       id={`mari-workspace-review-${approval.id}`}
       data-review-id={approval.id}
-      className="mari-inline-review"
+      className={cn("mari-inline-review", highlighted && "mari-inline-review--jump")}
       aria-label={localizeUi("commandCenter.completion.review")}
     >
       {card}

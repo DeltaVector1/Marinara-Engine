@@ -2532,6 +2532,25 @@ html[data-mari-pull-landing] .mari-arrival-content * {
   }
 }
 
+/* R9: a review the omnibar jumped to gets a brief highlight when it was already on
+   screen (the rise-in entrance above only plays for a newly mounted review). */
+.mari-inline-review--jump {
+  border-radius: 0.75rem;
+  animation: mari-review-jump-highlight 1.1s ease-out;
+}
+
+@keyframes mari-review-jump-highlight {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--marinara-app-accent-solid) 0%, transparent);
+  }
+  12% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--marinara-app-accent-solid) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--marinara-app-accent-solid) 0%, transparent);
+  }
+}
+
 .mari-workspace-transcript[data-mari-state="broken"] .mari-suggestion-turn,
 .mari-workspace-transcript[data-mari-state="waiting-approval"] .mari-suggestion-turn,
 .mari-workspace-transcript[data-mari-state="composing"] .mari-suggestion-turn {

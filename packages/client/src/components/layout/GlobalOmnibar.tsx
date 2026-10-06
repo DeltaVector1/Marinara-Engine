@@ -22,7 +22,7 @@ import type {
   ProfessorMariAskContext,
   ProfessorMariEntryPoint,
 } from "@marinara-engine/shared";
-import { matchOmnibarCapabilityAgentPackageIds } from "@marinara-engine/shared";
+import { chatIdForMariSession, matchOmnibarCapabilityAgentPackageIds } from "@marinara-engine/shared";
 import {
   ArrowRight,
   ChevronLeft,
@@ -129,7 +129,6 @@ import {
   isApplePlatform,
   isAskMariShortcut,
   recordCommandUse,
-  setCommandPinned,
   writeCommandRankingState,
   writeCommandCenterSessionState,
   type CommandCenterCategoryFilter,
@@ -290,6 +289,11 @@ const isNavigationOmnibarResult = (result: Pick<OmnibarResult, "control" | "acti
  */
 let lastSettingFlip: { label: string; undo: () => void } | null = null;
 const MARI_EDITABLE_CATEGORIES = new Set<OmnibarCategory>(["chat", "character", "persona", "lorebook", "preset"]);
+const MARI_APPROVAL_PREFIX = "mari-approval:";
+// R9: this row carries a choice control (Keep/Restore) for quick action, but the row body
+// itself must still navigate to that specific review on click/Enter instead of expanding a
+// choice accordion like an ordinary settings picker does.
+const isMariApprovalRow = (result: Pick<OmnibarResult, "id">) => result.id.startsWith(MARI_APPROVAL_PREFIX);
 
 /**
  * Categories that can be attached to (or detached from) the open chat, mapped to
@@ -491,6 +495,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // Matches mariPendingReviewRequest, which solved the same problem.
   const [mariSubmitDraftRequest, setMariSubmitDraftRequest] = useState(0);
   const [mariPendingReviewRequest, setMariPendingReviewRequest] = useState(0);
+  // R9: which review the last request targeted, or null for "any" (the generic continue
+  // row and the completion action's "Review changes" button, which have no one review in mind).
+  const [mariPendingReviewId, setMariPendingReviewId] = useState<string | null>(null);
   // D1: every arrival-door open (⌘J, the pull, the drag, Home's "Ask Professor Mari") bumps this,
   // so the chat can show the arrival at the bottom of her existing transcript when she already has
   // history — the door's whole promise ("ask Mari about this") otherwise goes unmet on return visits.
@@ -714,7 +721,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       context: t("commandCenter.groups.context", "On this screen"),
       "current-work": t("commandCenter.groups.currentWork", "Current work"),
       continue: t("commandCenter.groups.continue", "Continue"),
-      pinned: t("commandCenter.groups.pinned", "Pinned"),
       frecent: t("commandCenter.groups.frecent", "Frequently used here"),
       recent: t("commandCenter.groups.recent", "Recent"),
       "quick-controls": t("commandCenter.groups.quickControls", "Quick controls"),
@@ -1090,7 +1096,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         ? { tab: settingsTab, controlId: settingsTargetControlId ?? undefined, resultId: settingsResultId }
         : undefined,
       editorDirty,
-      pinnedResultIds: ranking.pinnedIds,
       recentResultIds: ranking.recent.map((entry) => entry.id),
       setupResultIds,
       error: failedSources ? { resultIds: ["diagnostics"], message: t("omnibar.error") } : undefined,
@@ -1119,7 +1124,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     openPresetId,
     personas,
     presets,
-    ranking.pinnedIds,
     ranking.recent,
     rightPanel,
     rightPanelOpen,
@@ -1137,7 +1141,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       dirty: t("commandCenter.context.unsaved", "Open with unsaved changes"),
       setup: t("commandCenter.context.setup", "Setup available"),
       error: t("commandCenter.context.error", "Related to a current error"),
-      pinned: t("commandCenter.context.pinned", "Pinned"),
       recent: t("commandCenter.context.recent", "Recently used"),
     }),
     [t],
@@ -1724,7 +1727,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       if (!sourceById.has(result.id)) sourceById.set(result.id, result);
     }
     const uniqueRawResults = [...sourceById.values()];
-    const searchRanking = deferredQuery.trim() ? { ...ranking, pinnedIds: [] } : ranking;
     return rankCommandResults(
       uniqueRawResults.map((result) => ({
         command: {
@@ -1750,9 +1752,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         },
         score: result.score,
       })),
-      searchRanking,
+      ranking,
     ).map(({ result }) => ({ ...sourceById.get(result.command.id)!, command: result.command }));
-  }, [deferredQuery, ranking, relevanceFilteredResults]);
+  }, [ranking, relevanceFilteredResults]);
   const presentation = useMemo(
     () =>
       presentCommandCenterResults(rankedResults, {
@@ -2097,11 +2099,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // O2: a no-op for Mari's row, enforced inside recordOmnibarFrecencyUse.
     setFrecencyEntries(recordOmnibarFrecencyUse(id, omnibarContext.surface));
   };
-  const togglePinned = (id: string) => {
-    const next = setCommandPinned(ranking, id, !ranking.pinnedIds.includes(id));
-    setRanking(next);
-    writeCommandRankingState(next);
-  };
   const runSystemAction = (result: OmnibarResult) => {
     const definition = createSystemCommandDefinitions((key, fallback) =>
       t(`commandCenter.system.${key}`, fallback),
@@ -2373,7 +2370,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       }
       return;
     }
-    if (result.control) return;
+    // R9: the choice control (Keep/Restore) on an approval row is a quick action, not the
+    // row's whole purpose — the row body below still navigates to that specific review.
+    if (result.control && !isMariApprovalRow(result)) return;
     if (runDirectChatAction(result)) return;
     if (runSystemAction(result)) {
       recordUse(result.id);
@@ -2381,9 +2380,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       return;
     }
     // A dependency install or a sensitive file write executes on approval, so the
-    // row opens the card that shows what will run instead of deciding in place.
-    if (result.id.startsWith("mari-approval:")) {
-      openProfessorMari(null, { reviewPending: true });
+    // row opens the card that shows what will run instead of deciding in place; a
+    // db-change review's inline Keep/Restore stays available too. Either way the
+    // row targets THIS approval, in the Mari chat that made it if different from
+    // whatever is currently open (R9).
+    if (isMariApprovalRow(result)) {
+      const approvalId = result.id.slice(MARI_APPROVAL_PREFIX.length);
+      const approval = mariWorkspaceStatus.data?.pendingApprovals.find((item) => item.id === approvalId);
+      const ownerChatId = approval ? chatIdForMariSession(approval.sessionId) : null;
+      if (ownerChatId) setMariOpenChatId(ownerChatId);
+      openProfessorMari(null, { reviewPending: approvalId });
       return;
     }
     if (result.id === "suggestion:edit-focused-field") {
@@ -2528,7 +2534,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }
     autoSelectionRef.current = false;
     setActiveResultId(result.id);
-    if (result.control?.type === "toggle" && !isLorebookEnableToggleRow(result))
+    // R9: the row body navigates to the review, not the generic expand/collapse a
+    // settings-picker choice control gets — Keep/Restore stay reachable inline.
+    if (isMariApprovalRow(result)) choose(result);
+    else if (result.control?.type === "toggle" && !isLorebookEnableToggleRow(result))
       flipToggleControl(result, result.control.value !== true);
     else if (result.control?.type === "choice")
       setExpandedChoiceId((current) => (current === result.id ? null : result.id));
@@ -2579,13 +2588,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       // Accept the ghost completion instead of leaving the field.
       event.preventDefault();
       setQuery(query + inlineSuffix);
-      return;
-    }
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "p" && activeResult) {
-      // A pin only reorders the empty-query deck (search strips pinnedIds), so it
-      // curates what the bar opens on rather than overriding relevance.
-      event.preventDefault();
-      togglePinned(activeResult.id);
       return;
     }
     if (event.key === "Escape") {
@@ -2649,7 +2651,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     } else if (pane === "results" && event.key === "Enter" && activeResult) {
       event.preventDefault();
       if (chooseChoiceOption(activeResult)) return;
-      if (activeResult.control?.type === "toggle" && !isLorebookEnableToggleRow(activeResult))
+      if (isMariApprovalRow(activeResult)) choose(activeResult);
+      else if (activeResult.control?.type === "toggle" && !isLorebookEnableToggleRow(activeResult))
         flipToggleControl(activeResult, activeResult.control.value !== true);
       else if (activeResult.control?.type === "choice")
         setExpandedChoiceId((current) => (current === activeResult.id ? null : activeResult.id));
@@ -2846,7 +2849,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   };
   const openProfessorMari = (
     selectedResult: OmnibarAskFocus = null,
-    options: { reviewPending?: boolean; submitDraft?: boolean; arrival?: boolean } = {},
+    // R9: `reviewPending: true` opens on any pending review (the generic continue row, the
+    // completion action); a string targets that one review specifically (the per-approval row).
+    options: { reviewPending?: boolean | string; submitDraft?: boolean; arrival?: boolean } = {},
   ) => {
     // A scope prefix like "faq:" is omnibar search syntax, not part of the
     // message text — strip it before it lands in Mari's composer. M9: an arrival
@@ -2866,7 +2871,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         ? (contextResults.find((row) => row.id === omnibarContext.openResource?.resultId) ?? focusResult)
         : focusResult;
     enterMariPane(buildAskContext(draft, askFocus, undefined, { fix }), options.submitDraft);
-    if (options.reviewPending) setMariPendingReviewRequest((current) => current + 1);
+    if (options.reviewPending) {
+      setMariPendingReviewId(typeof options.reviewPending === "string" ? options.reviewPending : null);
+      setMariPendingReviewRequest((current) => current + 1);
+    }
     if (options.arrival) setMariArrivalAppendRequest((current) => current + 1);
   };
   /**
@@ -3521,6 +3529,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               submitDraftRequest={mariSubmitDraftRequest}
               mariOpenChatId={mariOpenChatId}
               mariPendingReviewRequest={mariPendingReviewRequest}
+              mariPendingReviewId={mariPendingReviewId}
               mariChatOpen={mariChatOpen}
               onChatWindowOpenChange={(open) => {
                 setMariChatOpen(open);
@@ -3597,9 +3606,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                           ? Clock3
                           : group.id === "quick-controls"
                             ? SlidersHorizontal
-                            : group.id === "pinned"
-                              ? Sparkles
-                              : LayoutGrid;
+                            : LayoutGrid;
                 return (
                   <section key={group.id} aria-labelledby={`omnibar-group-${group.id}`}>
                     <div className="flex items-center gap-1.5 px-3 pb-1 pt-3">
@@ -3777,9 +3784,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                     : t("commandCenter.keyboard.preview", "→ Preview")}
                 </span>
               ) : null}
-              {pane === "results" && activeResult ? (
-                <span>{t("commandCenter.keyboard.pin", "Cmd/Ctrl+P pin")}</span>
-              ) : null}
             </span>
             <span className="flex min-w-0 items-center gap-3">
               {mariEnabled ? (
@@ -3804,8 +3808,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               setFrecencyEntries([]);
               // F7 (O5): the older ranking store (recency/frequency boost + the
               // "Recent" group) is separate from the frecency store above - both
-              // record the same uses, so "forgets it all" must clear both. Pins
-              // are a deliberate curation the user kept, not usage history.
+              // record the same uses, so "forgets it all" must clear both.
               const clearedRanking = { ...ranking, recent: [] };
               setRanking(clearedRanking);
               writeCommandRankingState(clearedRanking);

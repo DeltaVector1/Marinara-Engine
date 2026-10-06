@@ -911,6 +911,10 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 - Professor Mari can now diagnose a bad reply when asked ("why did that get worse?", "it got cut off", "she forgets things", "my character doesn't act like the card"). She reads the same checkup facts as the chat's own "Cut off · Check" line, plus the generation's raw numbers, the chat's lorebook budgets and the active preset's name, names one real cause with its exact number, and offers one fix: a reviewed change she can already make, or a link to the exact Chat Settings section. She never sees the chat's own text to do this.
 
+- Clicking "Mari needs your answer" or "Mari is working" in search now actually takes you to her: it opens her pane, switches to the Mari chat that review belongs to if it is a different one, and scrolls to and briefly highlights that exact review (or her live run). It used to do nothing when the row had its own Keep/Restore buttons, which stayed clickable on their own but left the row itself a dead click; a generic click or Enter now always lands you on the right review instead of just "some" pending one.
+
+- Fixed Professor Mari's Memories panel expanding the first memory entry automatically; opening it now shows every entry collapsed, as the rest of her panels do.
+
 ## [2.4.6]
 
 - Shutdown regression checks use persisted cleanup results after terminal exit, avoiding false failures when a closed terminal discards its final log output (#6245).

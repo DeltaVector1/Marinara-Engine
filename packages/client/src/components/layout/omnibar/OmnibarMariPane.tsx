@@ -21,6 +21,8 @@ export interface OmnibarMariPaneProps {
   submitDraftRequest: number;
   mariOpenChatId: string | null;
   mariPendingReviewRequest: number;
+  /** The specific review `mariPendingReviewRequest` should jump to, or null for "any" (R9). */
+  mariPendingReviewId: string | null;
   mariChatOpen: boolean;
   onChatWindowOpenChange: (open: boolean) => void;
   completionActions: readonly OmnibarCompletionAction[];
@@ -41,6 +43,7 @@ export function OmnibarMariPane({
   submitDraftRequest,
   mariOpenChatId,
   mariPendingReviewRequest,
+  mariPendingReviewId,
   mariChatOpen,
   onChatWindowOpenChange,
   completionActions,
@@ -87,6 +90,7 @@ export function OmnibarMariPane({
           submitDraftRequest={submitDraftRequest}
           openChatId={mariOpenChatId}
           pendingReviewRequest={mariPendingReviewRequest}
+          pendingReviewId={mariPendingReviewId}
           chatWindowOpen={mariChatOpen}
           omnibarHeaderSlot={omnibarHeaderSlot}
           omnibarStatusSlot={omnibarStatusSlot}

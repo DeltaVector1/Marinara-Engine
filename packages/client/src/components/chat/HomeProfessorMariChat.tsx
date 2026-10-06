@@ -2845,6 +2845,8 @@ type HomeProfessorMariChatProps = {
   /** A past Mari conversation to open, handed in from the omnibar. */
   openChatId?: string | null;
   pendingReviewRequest?: number;
+  /** The specific review `pendingReviewRequest` should jump to, or null for the first one (R9). */
+  pendingReviewId?: string | null;
   omnibarHeaderSlot?: HTMLElement | null;
   /** Her status line under "Professor Mari" in the omnibar header's first row. */
   omnibarStatusSlot?: HTMLElement | null;
@@ -2875,6 +2877,7 @@ export function HomeProfessorMariChat({
   submitDraftRequest = 0,
   openChatId = null,
   pendingReviewRequest = 0,
+  pendingReviewId = null,
   omnibarHeaderSlot = null,
   omnibarStatusSlot = null,
   arrival = null,
@@ -5524,18 +5527,23 @@ export function HomeProfessorMariChat({
   };
 
   const [requestedReviewId, setRequestedReviewId] = useState<string | null>(null);
-  const openPendingApprovals = useCallback(() => {
-    setRequestedReviewId(visiblePendingChangeReviews[0]?.id ?? null);
-    setWorkspaceDestination("chat");
-    void refreshWorkspaceStatus();
-  }, [refreshWorkspaceStatus, visiblePendingChangeReviews]);
+  // R9: a specific target (the per-approval omnibar row) wins; otherwise fall back to the
+  // first visible review, as every other door into this pane already did.
+  const openPendingApprovals = useCallback(
+    (reviewId?: string | null) => {
+      setRequestedReviewId(reviewId ?? visiblePendingChangeReviews[0]?.id ?? null);
+      setWorkspaceDestination("chat");
+      void refreshWorkspaceStatus();
+    },
+    [refreshWorkspaceStatus, visiblePendingChangeReviews],
+  );
 
   const handledPendingReviewRequestRef = useRef(0);
   useEffect(() => {
     if (!chatWindowOpen || pendingReviewRequest <= handledPendingReviewRequestRef.current) return;
     handledPendingReviewRequestRef.current = pendingReviewRequest;
-    openPendingApprovals();
-  }, [chatWindowOpen, openPendingApprovals, pendingReviewRequest]);
+    openPendingApprovals(pendingReviewId);
+  }, [chatWindowOpen, openPendingApprovals, pendingReviewId, pendingReviewRequest]);
 
   const answerApproval = async (approval: MariWorkspacePendingApproval, keep: boolean) => {
     const outcome = (await (keep ? keepWorkspaceChange(approval.id) : restoreWorkspaceChange(approval.id)))?.outcome;
@@ -5567,6 +5575,7 @@ export function HomeProfessorMariChat({
         approval={approval}
         busy={approvalBusyId === approval.id}
         disabled={approvalBusyId !== null}
+        highlighted={highlightedReviewId === approval.id}
         onKeep={() => void answerApproval(approval, true)}
         onKeepEnable={(id) => void keepWorkspaceChange(id, { enable: true })}
         onRestore={() => void answerApproval(approval, false)}
@@ -5858,16 +5867,42 @@ export function HomeProfessorMariChat({
     [refreshWorkspaceStatus],
   );
 
+  // R9: a brief highlight so a review that was already on screen (not just-mounted, which
+  // already gets the mari-review-rise entrance) still visibly answers the click. Driven by
+  // state rather than a direct DOM class mutation, so a React re-render (the refresh below
+  // triggers one) cannot silently wipe it before the user sees it.
+  const [highlightedReviewId, setHighlightedReviewId] = useState<string | null>(null);
   useEffect(() => {
     if (workspaceDestination !== "chat" || !requestedReviewId) return;
-    window.requestAnimationFrame(() => {
-      const review = document.getElementById(`mari-workspace-review-${requestedReviewId}`);
-      if (!review) return;
+    const targetId = requestedReviewId;
+    // A cold open (the omnibar jumping here before this pane's own transcript has ever
+    // rendered) can still be mounting the review's card a few frames after `chatWindowOpen`
+    // and `workspaceDestination` already settled; retry on a wall-clock budget instead of a
+    // single frame, same pattern as the chat's own /goto message jump (ChatArea.tsx).
+    let cancelled = false;
+    let rafId = 0;
+    const deadline = Date.now() + 3000;
+    const tryFocus = () => {
+      if (cancelled) return;
+      const review = document.getElementById(`mari-workspace-review-${targetId}`);
+      if (!review) {
+        if (Date.now() < deadline) rafId = window.requestAnimationFrame(tryFocus);
+        return;
+      }
       setRequestedReviewId(null);
       review.scrollIntoView({ block: "start" });
       review.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
-    });
-  }, [requestedReviewId, visiblePendingChangeReviewKey, workspaceDestination]);
+      if (!reduceMotion) {
+        setHighlightedReviewId(targetId);
+        window.setTimeout(() => setHighlightedReviewId((current) => (current === targetId ? null : current)), 1200);
+      }
+    };
+    rafId = window.requestAnimationFrame(tryFocus);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+    };
+  }, [reduceMotion, requestedReviewId, visiblePendingChangeReviewKey, workspaceDestination]);
 
   // #5740 / M5a: on the turn the latest mutating round produced, its first line is the goal Mari
   // reported acting on - user-visible by default so people can self-correct ("that wasn't a request!")
@@ -6221,7 +6256,7 @@ export function HomeProfessorMariChat({
                           {visiblePendingChangeReviews.length > 0 ? (
                             <button
                               type="button"
-                              onClick={openPendingApprovals}
+                              onClick={() => openPendingApprovals()}
                               className="mari-chrome-control mari-chrome-control--compact font-semibold"
                             >
                               <ShieldAlert size="0.75rem" />
