@@ -5682,6 +5682,10 @@ export function HomeProfessorMariChat({
     setRecovery(null);
     // D1: the appended arrival is local UI only — it never lingers once the user is really sending.
     setAppendedArrival(null);
+    // F1: in a brand-new thread the arrival shows as the empty-state block, so the append effect never
+    // ran yet and the request stayed unhandled. Mark it handled here too, or the effect appends it again
+    // under her answer once the thread has a message.
+    handledArrivalAppendRequestRef.current = arrivalAppendRequestRef.current;
     let localMessageId: string | undefined;
     try {
       const chat = await ensureProfessorMariChat(effectiveConnectionId);
@@ -5694,7 +5698,14 @@ export function HomeProfessorMariChat({
       setHandoffContext(persistentResourceContext(submittedContext));
       let existingUserMessageId: string | undefined;
       if (overrideRecovery?.reuseSavedMessage) {
-        const saved = (await loadMessages(chat.id, { restoreFocus: false }).catch(() => undefined))?.at(-1);
+        const loaded = await loadMessages(chat.id, { restoreFocus: false }).catch(() => undefined);
+        // F3: when a later round failed, the newest message is her partial reply (mariRunError set), not
+        // your question — look past it for the user message it answers, or Retry sends a duplicate.
+        const newest = loaded?.at(-1);
+        const saved =
+          newest && getMessageRunError(newest, { includeDismissed: true })
+            ? loaded?.findLast((message) => message.role === "user")
+            : newest;
         if (saved?.role === "user" && saved.content === messageText) existingUserMessageId = saved.id;
       }
       if (existingUserMessageId) {
