@@ -280,8 +280,12 @@ interface ChatState {
   activeConversationCall: ActiveConversationCallSnapshot | null;
   /** When true, show the active Conversation call as the full call surface instead of the micro panel. */
   conversationCallExpanded: boolean;
+  /** F10: a Mari run failed before the server ever saw it (404/network error), so the server's
+   * in-memory workspace status has nothing to show — the top-bar edge needs its own signal. */
+  mariClientRunFailed: boolean;
 
   // Actions
+  setMariClientRunFailed: (failed: boolean) => void;
   setActiveChat: (chat: Chat | null) => void;
   setActiveChatId: (id: string | null) => void;
   setStreaming: (streaming: boolean, chatId?: string) => void;
@@ -407,7 +411,9 @@ export const useChatStore = create<ChatState>()(
     gotoRequest: null,
     activeConversationCall: null,
     conversationCallExpanded: false,
+    mariClientRunFailed: false,
 
+    setMariClientRunFailed: (failed) => set({ mariClientRunFailed: failed }),
     setActiveChat: (chat) => set({ activeChat: chat }),
     setActiveChatId: (id) => {
       const prev = get().activeChatId;

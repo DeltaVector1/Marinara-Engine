@@ -7,6 +7,7 @@ import {
   type MariEdgeGlow,
   type MariEdgeInput,
 } from "../lib/mari-presence-seen";
+import { useChatStore } from "../stores/chat.store";
 import { useUIStore } from "../stores/ui.store";
 import { useProfessorMariWorkspaceStatus } from "./use-professor-mari-workspace-status";
 
@@ -39,6 +40,8 @@ export interface MariPresence {
 export function useMariPresence(): MariPresence {
   const status = useProfessorMariWorkspaceStatus({ intervalMs: PRESENCE_INTERVAL_MS });
   const pendingCount = status.data?.pendingApprovals.length ?? 0;
+  // F10: a failure before the server ever saw the run (404/network) has no server-side error to read.
+  const clientRunFailed = useChatStore((state) => state.mariClientRunFailed);
   return {
     working: status.data?.active === true,
     needsAttention: pendingCount > 0,
@@ -47,7 +50,7 @@ export function useMariPresence(): MariPresence {
     // getHistory() reverses after slicing, so the newest entry is first.
     latestHistoryId: status.data?.history[0]?.id ?? null,
     latestHistoryFailed: status.data?.history[0]?.status === "failed",
-    runFailed: Boolean(status.data?.error),
+    runFailed: Boolean(status.data?.error) || clientRunFailed,
   };
 }
 

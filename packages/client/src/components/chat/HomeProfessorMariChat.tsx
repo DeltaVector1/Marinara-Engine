@@ -3121,7 +3121,13 @@ export function HomeProfessorMariChat({
   const [loadedMessagesChatId, setLoadedMessagesChatId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [cancelledChatId, setCancelledChatId] = useState<string | null>(null);
-  const [recovery, setRecovery] = useState<ProfessorMariRecovery | null>(null);
+  const [recovery, setRecoveryState] = useState<ProfessorMariRecovery | null>(null);
+  // F10: the top-bar edge reads this too, so a client-side failure (404/network before the server
+  // ever saw the run) turns it red the same as a server-recorded one.
+  const setRecovery = useCallback((value: ProfessorMariRecovery | null) => {
+    setRecoveryState(value);
+    useChatStore.getState().setMariClientRunFailed(value !== null);
+  }, []);
   // Direction A / R10: an answered prompt or review folds to one row ("✓ Kept") until the next send.
   const [resolvedPrompts, setResolvedPrompts] = useState<
     Array<{
@@ -3454,7 +3460,7 @@ export function HomeProfessorMariChat({
       setChatWindowOpen(true);
       focusComposer();
     },
-    [focusComposer, setChatWindowOpen, setDraft],
+    [focusComposer, setChatWindowOpen, setDraft, setRecovery],
   );
 
   useEffect(() => {
