@@ -104,6 +104,8 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 62a | Fix the "Mari needs your answer" / "working" row navigation (R9) | worker           | Done                 | 8bfa1f99a, e6067407e |
 | 62b | One Mari thread per context (R7)                                | designer         | Pending              |           |
 | 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Pending              |           |
+| 62d | Mari cards v5 (R10)                                             | designer         | Pending              |           |
+| 62e | Mari composer v5 (R11)                                          | designer         | Pending              |           |
 | 63  | Connection doctor (R4)                                          | worker           | Pending              |           |
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Pending              |           |
 | 65  | Cut and re-measure, review (R6)                                 | reviewer, worker | Pending              |           |
@@ -1346,3 +1348,30 @@ a cut-off/trimmed reply DOES get a quiet line in the chat. Lorebook batch review
   and must not block text selection anywhere when no drag is active. Proof: e2e on desktop-chromium — drag the
   top bar 200px and assert `window.getSelection().toString() === ""` during and after the drag; a bar-button
   click still works; selecting text in a chat message still works after the drag.
+- R10 (slice 62d, designer) Mari cards v5 — maintainer-approved card system, 2026-10-06. Mockup:
+  `.tmp/omnibar-ux/cards-v5/index.html`; exact tokens, anatomy, states and code locations:
+  `.tmp/omnibar-ux/cards-v5/spec.md` (sections 1-8). Implement exactly: one card anatomy (icon/portrait · title ·
+  one fact · one trailing item); grouped inset lists instead of nested boxes; three radii; the fact line never
+  repeats the card's own type; trailing-glyph rules (› opens, a gold ✦ means Mari acts, a quiet Undo, a small
+  filled Keep button); "Needs your OK" always listed first; reviews closed by default; one row per record (no
+  duplicate rows for the same thing); calm states throughout (`mari-ui-subtle-effects`); correct at phone and
+  desktop widths. Covers: reference cards, the outcome group, review cards, next-step cards, arrival cards, the
+  reply-checkup panel (R2/slice 61), and the Chats panel rows. First copy the mockup's needed assets into
+  `docs/development/mockups/mari-v5/` so the reference survives after `.tmp/` is cleared — reuse assets already
+  present from mari-v3/v4's mockup folders where they already match, don't duplicate. Proof: before/after
+  screenshots matching the mockup at 390/1440, dark and light; the outcome group's height measured (target ≈280px
+  on desktop for 2 changes + 1 question); `heavy pnpm check`.
+- R11 (slice 62e, designer, after 62d) Mari composer v5 — maintainer-approved, 2026-10-06. Mockup/spec same
+  source, `.tmp/omnibar-ux/cards-v5/spec.md` §9. Scope: the Mari composer ONLY — the omnibar's Mari pane and her
+  workspace. The normal chat composer (for characters/roleplay) is unchanged. Implement: neutral at rest, a pink
+  focus ring only (no pink fill/border at rest); quiet borderless controls (34px targets, 44px touch target);
+  one shared radius family; smooth growth up to 8 lines (6 on a phone), then scrolls internally with a top fade;
+  attachments and the "Aware of" chips share one row inside the top edge of the composer; Send button is NEUTRAL
+  — grey when empty, solid neutral (not pink) once there is something to send (maintainer decision: pink stays
+  reserved for the focus ring only); menu options each get a one-line description (the mode menu is ≈300px
+  wide); the Stop pill is unchanged from its current design. Also: while the phone's on-screen keyboard is open,
+  Mari's header compacts to ONE line (name + status only, with the Skills/Memories/Aware of/Chats tabs tucked
+  behind a menu) and expands back to the normal two-line header when the keyboard closes (maintainer-approved
+  behavior). Proof: every composer state screenshotted before/after against the mockup at 390/1440, dark and
+  light; a simulated on-screen-keyboard viewport (reduced visual viewport height) proving the header compaction;
+  `heavy pnpm check`.
