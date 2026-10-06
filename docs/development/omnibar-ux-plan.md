@@ -111,7 +111,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 62f | Golden Mari unlocks at 100 h of chat time (R12)                 | designer         | Done                 | 5ab46a8fa |
 | 63  | Connection doctor (R4)                                          | worker           | Dropped — maintainer is redesigning connection setup |  |
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Dropped — maintainer is redesigning connection setup |  |
-| 65  | Cut and re-measure, review (R6) — T18-T20 + old 15 only, T16/T17 skipped | reviewer, worker | Done                 | bf5510256, c4e535878 |
+| 65  | Cut and re-measure, review (R6) — T18-T20 + old 15 only, T16/T17 skipped | reviewer, worker | In progress — cuts + measurement done (`bf5510256`, `c4e535878`), review + fix-worker phases still pending |  |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
