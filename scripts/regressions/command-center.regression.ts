@@ -144,11 +144,14 @@ import {
 } from "../../packages/client/src/lib/command-icons.js";
 import {
   buildMariArrival,
+  chooseMariThread,
   isMariReplyFailure,
   mariCardIntent,
   mariFallbackFocus,
   mariFixRowId,
   mariPullAbout,
+  mariThreadContextFor,
+  readMariThread,
   type MariArrivalData,
 } from "../../packages/client/src/lib/mari-arrival.js";
 import {
@@ -3497,6 +3500,83 @@ assert.ok(!("mariDetailId" in mariSession));
     step({ ...base, needsAttention: true, pendingApprovalIds: ["a3", "a4"] }),
     "approval",
     "a4 arrives while a3 is still pending and already seen - must re-glow",
+  );
+}
+
+{
+  // R7: one Mari thread per context; arrivals continue it, start one, or ask.
+  const now = Date.parse("2026-10-06T12:00:00Z");
+  const ago = (minutes: number) => new Date(now - minutes * 60_000).toISOString();
+  const thread = (id: string, key: string | null, lastMinutesAgo: number | null, createdMinutesAgo = 600) =>
+    readMariThread({
+      id,
+      metadata: key ? JSON.stringify({ mariContextKey: key, mariContextLabel: `${id} label` }) : { tags: ["internal"] },
+      lastMessageAt: lastMinutesAgo === null ? null : ago(lastMinutesAgo),
+      createdAt: ago(createdMinutesAgo),
+    });
+  const choose = (threads: ReturnType<typeof thread>[], contextKey: string, continuedThereId?: string) =>
+    chooseMariThread({ threads, contextKey, now, continuedThereId });
+
+  assert.deepEqual(
+    choose([thread("a-old", "chat:a", 900), thread("a-new", "chat:a", 120), thread("b", "chat:b", 5)], "chat:a"),
+    { kind: "continue", chatId: "a-new" },
+    "same context key continues its newest thread, even with another thread used a moment ago",
+  );
+  assert.deepEqual(
+    choose([thread("b", "chat:b", 45)], "chat:a"),
+    { kind: "new" },
+    "a different key and no other thread used in the last 30 minutes starts one without asking",
+  );
+  assert.deepEqual(choose([], "general"), { kind: "new" }, "no threads at all starts one");
+  assert.deepEqual(
+    choose([thread("b", "chat:b", 10), thread("c", "chat:c", 20)], "chat:a"),
+    { kind: "ask", recentChatId: "b" },
+    "a different key with another thread used under 30 minutes ago offers Continue here / New about",
+  );
+  assert.deepEqual(
+    choose([thread("b", "chat:b", 10)], "chat:a", "b"),
+    { kind: "continue", chatId: "b" },
+    "after Continue here, the same door goes there without asking again",
+  );
+  assert.deepEqual(
+    choose([thread("b", "chat:b", 10)], "chat:a", "deleted"),
+    { kind: "ask", recentChatId: "b" },
+    "a remembered thread that no longer exists is ignored",
+  );
+  const legacy = thread("legacy", null, 300);
+  assert.equal(legacy.contextKey, "general", "a thread from before R7 has no key and counts as general");
+  assert.equal(legacy.contextLabel, undefined, "a general thread shows no context label");
+  assert.deepEqual(choose([legacy, thread("b", "chat:b", 5)], "general"), { kind: "continue", chatId: "legacy" });
+  assert.deepEqual(
+    choose([thread("empty-a", "chat:a", null, 2)], "chat:a"),
+    { kind: "continue", chatId: "empty-a" },
+    "a thread with no messages yet still belongs to its context",
+  );
+  assert.deepEqual(
+    choose([thread("empty-b", "chat:b", null, 2)], "chat:a"),
+    { kind: "new" },
+    "an empty thread was never 'in use', so it does not ask",
+  );
+
+  const base = { surfaceResultIds: [], editorDirty: false, recentResultIds: [], setupResultIds: [] };
+  const arrivalNamed = { line: "x", strong: "Zylo", meta: [], refs: [], cards: [] };
+  assert.deepEqual(
+    mariThreadContextFor({ ...base, surface: "chat", activeChat: { id: "c1", resultIds: [] } }, arrivalNamed),
+    { key: "chat:c1", label: "Zylo" },
+  );
+  assert.deepEqual(
+    mariThreadContextFor(
+      { ...base, surface: "editor", openResource: { kind: "agent", id: "illustrator", resultId: "agent:illustrator" } },
+      arrivalNamed,
+    ),
+    { key: "agent:illustrator", label: "Zylo" },
+    "an editor's context is its open resource",
+  );
+  assert.deepEqual(mariThreadContextFor({ ...base, surface: "home" }, null), { key: "general" });
+  assert.deepEqual(
+    mariThreadContextFor({ ...base, surface: "settings", activeChat: { id: "c1", resultIds: [] } }, arrivalNamed),
+    { key: "general" },
+    "settings over a chat is not that chat",
   );
 }
 

@@ -4,6 +4,7 @@
 // input types carry names, counts and times only, never message text, so
 // nothing here can show (or later send) what a chat says.
 import type { MariSuggestionAction, MariSuggestionChip } from "@marinara-engine/shared";
+import { parseChatMetadata } from "./chat-display";
 import type { MariReferencedResource } from "./mari-referenced-resources";
 import type { OmnibarTranslate } from "./omnibar-entity-rows";
 import type { OmnibarContext } from "./omnibar-search";
@@ -16,6 +17,92 @@ export type MariArrivalCard = Omit<MariSuggestionChip, "action"> & {
   /** N6 (R22): picking this card is the deliberate "fix" act, so only its send carries the live error text. */
   fix?: true;
 };
+
+/**
+ * R7: the context a Mari thread belongs to. The key is `chat:<id>` from inside a chat, the open
+ * editor's own result id (`character:<id>`, `lorebook:<id>`, `agent:<type>`, ...) from an editor, or
+ * "general" for Home and every other screen. The label is the name the arrival already shows.
+ */
+export const MARI_GENERAL_CONTEXT = "general";
+export interface MariThreadContext {
+  key: string;
+  label?: string;
+}
+
+export function mariThreadContextFor(context: OmnibarContext, arrival: MariArrival | null): MariThreadContext {
+  if (context.surface === "editor" && context.openResource)
+    return { key: context.openResource.resultId, label: arrival?.strong };
+  if (context.surface === "chat" && context.activeChat)
+    return { key: `chat:${context.activeChat.id}`, label: arrival?.strong };
+  return { key: MARI_GENERAL_CONTEXT };
+}
+
+/** A Mari thread as the routing reads it: its stored context, if any, and when it was last used. */
+export interface MariThread {
+  id: string;
+  contextKey: string;
+  contextLabel?: string;
+  lastMessageAt: number | null;
+  createdAt: number;
+}
+
+export function readMariThread(chat: {
+  id: string;
+  metadata?: unknown;
+  lastMessageAt?: string | null;
+  createdAt?: string | null;
+}): MariThread {
+  const metadata = parseChatMetadata(chat.metadata);
+  const key = typeof metadata.mariContextKey === "string" && metadata.mariContextKey ? metadata.mariContextKey : null;
+  const label =
+    typeof metadata.mariContextLabel === "string" && metadata.mariContextLabel ? metadata.mariContextLabel : undefined;
+  // Threads from before R7 carry no key: they are general.
+  return {
+    id: chat.id,
+    contextKey: key ?? MARI_GENERAL_CONTEXT,
+    contextLabel: key ? label : undefined,
+    lastMessageAt: Date.parse(chat.lastMessageAt ?? "") || null,
+    createdAt: Date.parse(chat.createdAt ?? "") || 0,
+  };
+}
+
+/** "You were just talking with her elsewhere": a different thread with a message this recent. */
+export const MARI_RECENT_THREAD_MS = 30 * 60_000;
+
+export type MariThreadChoice =
+  /** The newest thread for this context (or the one the user chose to continue for it). */
+  | { kind: "continue"; chatId: string }
+  /** No thread for this context, but the user was just in another one: let them pick. */
+  | { kind: "ask"; recentChatId: string }
+  /** No thread for this context and nothing recent: start one, without asking. */
+  | { kind: "new" };
+
+export function chooseMariThread({
+  threads,
+  contextKey,
+  now,
+  continuedThereId = null,
+}: {
+  threads: readonly MariThread[];
+  contextKey: string;
+  now: number;
+  /** A thread the user already chose "Continue here" in for this context, this session. */
+  continuedThereId?: string | null;
+}): MariThreadChoice {
+  if (continuedThereId && threads.some((thread) => thread.id === continuedThereId))
+    return { kind: "continue", chatId: continuedThereId };
+  const newest = (list: readonly MariThread[]) =>
+    list.reduce<MariThread | null>(
+      (best, thread) =>
+        !best || (thread.lastMessageAt ?? thread.createdAt) > (best.lastMessageAt ?? best.createdAt) ? thread : best,
+      null,
+    );
+  const match = newest(threads.filter((thread) => thread.contextKey === contextKey));
+  if (match) return { kind: "continue", chatId: match.id };
+  const recent = newest(threads.filter((thread) => thread.lastMessageAt !== null));
+  if (recent && now - recent.lastMessageAt! < MARI_RECENT_THREAD_MS) return { kind: "ask", recentChatId: recent.id };
+  return { kind: "new" };
+}
 
 /** K1/L2: the "fix this" row a lastAppError points at: the connection, or the agent for a failed run. */
 export function mariFixRowId(

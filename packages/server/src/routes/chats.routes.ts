@@ -936,9 +936,13 @@ export async function chatsRoutes(app: FastifyInstance) {
     return normalizeChatForResponse(updated ?? created);
   });
 
-  app.post<{ Querystring: { connectionId?: string; personaId?: string } }>(
+  app.post<{ Querystring: { connectionId?: string; personaId?: string; contextKey?: string; contextLabel?: string } }>(
     "/internal/professor-mari/restart",
     async (req) => {
+      // R7: the screen the new thread is about, so the next door from there continues it.
+      const contextKey = typeof req.query.contextKey === "string" ? req.query.contextKey.trim().slice(0, 300) : "";
+      const contextLabel =
+        typeof req.query.contextLabel === "string" ? req.query.contextLabel.trim().slice(0, 120) : "";
       const professorChats = sortProfessorMariChats((await storage.list()).filter(isHomeProfessorMariChat));
       const active = professorChats.find(isActiveHomeProfessorMariChat) ?? professorChats[0] ?? null;
       const connectionId =
@@ -950,7 +954,21 @@ export async function chatsRoutes(app: FastifyInstance) {
           ? req.query.personaId
           : (active?.personaId ?? null);
 
-      if (active && (await storage.countMessages(active.id)) > 0) {
+      const activeMessageCount = active ? await storage.countMessages(active.id) : 0;
+      // R7: an empty thread about nothing yet (the one opening her made) becomes the new one,
+      // instead of leaving an empty "general" thread behind in her Chats list.
+      if (active && activeMessageCount === 0 && !parseChatMetadata(active.metadata).mariContextKey) {
+        await storage.update(active.id, { connectionId, personaId });
+        const reused = await storage.patchMetadata(active.id, {
+          internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
+          professorMariActive: true,
+          professorMariArchived: false,
+          mariContextKey: contextKey || null,
+          mariContextLabel: contextKey ? contextLabel || null : null,
+        });
+        return normalizeChatForResponse(reused ?? active);
+      }
+      if (active && activeMessageCount > 0) {
         const metadata = parseChatMetadata(active.metadata);
         const currentName = typeof active.name === "string" && active.name.trim() ? active.name.trim() : "";
         const shouldRename = currentName === "Professor Mari";
@@ -997,6 +1015,8 @@ export async function chatsRoutes(app: FastifyInstance) {
         autonomousMessages: false,
         characterExchanges: false,
         tags: ["internal"],
+        mariContextKey: contextKey || null,
+        mariContextLabel: contextKey ? contextLabel || null : null,
       });
       return normalizeChatForResponse(updated ?? created);
     },

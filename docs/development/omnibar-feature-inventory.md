@@ -64,6 +64,23 @@ Rules that must survive:
   lorebook's first entry), and at most three `--small` action chips (`--danger`
   for remove). It opens with a 180 ms `grid-template-rows` + opacity animation,
   none under reduced motion or Reduce ambient effects.
+- **One Mari thread per context** (R7, slice 62b). Each Mari chat stores a
+  context key in its metadata (`mariContextKey`, plus `mariContextLabel` for
+  display): `chat:<id>` from a chat, the open editor's result id
+  (`character:<id>`, `lorebook:<id>`, `agent:<type>`, ...) from an editor, or
+  "general" for Home and every other screen; threads from before R7 count as
+  general (`mariThreadContextFor` / `readMariThread` in `lib/mari-arrival.ts`).
+  An arrival door (⌘J, the pull, the drag, Home's "Ask", ⌘K's empty Ask Mari, a
+  Fix-row pick that sends nothing) routes before the thread loads, through the
+  pure `chooseMariThread`: the newest thread with the same key continues; with
+  none, if another thread had a message in the last 30 minutes, she stays there
+  and the arrival shows two quiet buttons, "Continue here" (remembered for this
+  context for the page session) and "New about <context>"; otherwise a thread
+  for the context starts silently. "+" always starts fresh, keyed to the screen.
+  An empty, unkeyed thread (the one first opening her made) is reused rather
+  than left behind. The Chats panel row shows the context label and type icon,
+  and its search matches the label. Doors that send at once (a typed Ask Mari,
+  a reopened past chat, a review row) keep the thread they target.
 - **Mari arrives with context** (M9). Every door that brings no text (⌘J, the
   pull's right half and the desktop drag, Home's "Ask Professor Mari") goes
   through one path, `openProfessorMari(null, { arrival: true })`: it attaches

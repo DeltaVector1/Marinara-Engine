@@ -2491,6 +2491,14 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   font-size: 0.75rem;
 }
 
+/* R7: "Continue here / New about ..." when another thread was just in use: two quiet buttons, no banner. */
+.mari-arrival__choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+}
+
 .mari-arrival__copy > .mari-ref-cards {
   margin-top: 0.3rem;
 }

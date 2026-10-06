@@ -201,7 +201,13 @@ import { rafThrottle } from "../../lib/raf-throttle";
 import { prepareImageAttachment } from "../../lib/chat-attachment-images";
 import { cn, copyToClipboard } from "../../lib/utils";
 import { executeStateNavigation } from "../../lib/state-navigation";
-import type { MariArrival, MariArrivalAction } from "../../lib/mari-arrival";
+import {
+  chooseMariThread,
+  readMariThread,
+  type MariArrival,
+  type MariArrivalAction,
+  type MariThreadContext,
+} from "../../lib/mari-arrival";
 import {
   collectMariReferencedResources,
   findMariSettingReferences,
@@ -359,6 +365,10 @@ type ProfessorMariConnectionOption = {
 type ProfessorMariChatSummary = Chat & {
   messageCount?: number;
 };
+
+// R7: "Continue here" picks per context, so the same door does not ask again.
+// ponytail: page-session memory only; a reload asks once more. Persist it on the thread if that annoys.
+const continuedThereByContext = new Map<string, string>();
 
 function readStoredConnectionId() {
   try {
@@ -2858,6 +2868,11 @@ type HomeProfessorMariChatProps = {
    * bottom of the transcript instead of only showing it on an empty chat.
    */
   arrivalAppendRequest?: number;
+  /**
+   * R7: the context of the screen an arrival door opened her from. With it, each arrival continues
+   * the newest thread for that context, starts one, or asks when another thread was just in use.
+   */
+  arrivalThread?: MariThreadContext | null;
   /** Runs the arrival cards only the omnibar can (back to its settings search, K5's Undo). */
   onArrivalAction?: (action: MariArrivalAction) => void;
   /** N6 (R22): the handoff an arrival Fix card sends with; the only arrival path that carries the error text. */
@@ -2882,6 +2897,7 @@ export function HomeProfessorMariChat({
   omnibarStatusSlot = null,
   arrival = null,
   arrivalAppendRequest = 0,
+  arrivalThread = null,
   onArrivalAction,
   arrivalFixContext = null,
   onChatWindowOpenChange,
@@ -3287,7 +3303,10 @@ export function HomeProfessorMariChat({
   const displayedChatHistory = useMemo(() => {
     const normalizedQuery = chatHistoryQuery.trim().toLowerCase();
     const filtered = normalizedQuery
-      ? chatHistory.filter((item) => (item.name ?? "").toLowerCase().includes(normalizedQuery))
+      ? chatHistory.filter((item) =>
+          // R7: a thread is also found by what it is about.
+          `${item.name ?? ""} ${readMariThread(item).contextLabel ?? ""}`.toLowerCase().includes(normalizedQuery),
+        )
       : chatHistory;
     return [...filtered].sort((left, right) =>
       compareMariPanelItems(
@@ -3455,6 +3474,64 @@ export function HomeProfessorMariChat({
     [qc, setActiveChatId],
   );
 
+  /** A fresh thread about `context` ("+", or an arrival with no thread for its screen yet). The open one is kept. */
+  const startMariThread = useCallback(
+    async (context: MariThreadContext | null) => {
+      const params = new URLSearchParams();
+      if (effectiveConnectionId) params.set("connectionId", effectiveConnectionId);
+      if (context) params.set("contextKey", context.key);
+      if (context?.label) params.set("contextLabel", context.label);
+      const chat = await api.post<Chat>(`/chats/internal/professor-mari/restart?${params.toString()}`);
+      setActiveChatId(chat.id);
+      qc.setQueryData(chatKeys.detail(chat.id), chat);
+      return chat;
+    },
+    [effectiveConnectionId, qc, setActiveChatId],
+  );
+
+  // R7: route an arrival to its context's thread before that thread's messages load, so the old one never flashes.
+  const arrivalThreadRef = useRef(arrivalThread);
+  arrivalThreadRef.current = arrivalThread;
+  const arrivalAppendRequestRef = useRef(arrivalAppendRequest);
+  arrivalAppendRequestRef.current = arrivalAppendRequest;
+  const handledArrivalRouteRef = useRef(0);
+  const [routedArrivalRequest, setRoutedArrivalRequest] = useState(0);
+  /** The thread an arrival offered "Continue here / New about ..." in, while that choice is open. */
+  const [arrivalChoiceChatId, setArrivalChoiceChatId] = useState<string | null>(null);
+  const routeArrivalThread = useCallback(
+    async (currentId: string): Promise<string> => {
+      const request = arrivalAppendRequestRef.current;
+      const context = arrivalThreadRef.current;
+      if (!context || request <= handledArrivalRouteRef.current) return currentId;
+      handledArrivalRouteRef.current = request;
+      try {
+        const threads = await api.get<ProfessorMariChatSummary[]>("/chats/internal/professor-mari/chats");
+        const choice = chooseMariThread({
+          threads: threads.map(readMariThread),
+          contextKey: context.key,
+          now: Date.now(),
+          continuedThereId: continuedThereByContext.get(context.key),
+        });
+        if (choice.kind === "new") return (await startMariThread(context)).id;
+        const targetId = choice.kind === "continue" ? choice.chatId : choice.recentChatId;
+        setArrivalChoiceChatId(choice.kind === "ask" ? targetId : null);
+        if (targetId !== currentId) {
+          const chat = await api.post<Chat>(`/chats/internal/professor-mari/chats/${targetId}/activate`);
+          setActiveChatId(chat.id);
+          qc.setQueryData(chatKeys.detail(chat.id), chat);
+        }
+        return targetId;
+      } catch (error) {
+        // The open thread is still a fine place to land.
+        console.error("[Professor Mari] Failed to pick the thread for this screen", error);
+        return currentId;
+      } finally {
+        setRoutedArrivalRequest(request);
+      }
+    },
+    [qc, setActiveChatId, startMariThread],
+  );
+
   // #5073: attaching chat history needs a Mari workspace chat to attach TO; create one if the user
   // hasn't sent a message yet, then open the picker (the picker itself is gated on a live chatId).
   const handleOpenHistoryPicker = useCallback(async () => {
@@ -3603,14 +3680,15 @@ export function HomeProfessorMariChat({
     const storedConnectionExists =
       !!selectedConnectionId && connectionOptions.some((connection) => connection.id === selectedConnectionId);
     ensureProfessorMariChat(storedConnectionExists ? selectedConnectionId : null)
-      .then((chat) => {
+      .then(async (chat) => {
         const restoredConnectionId =
           typeof chat.connectionId === "string" && chat.connectionId ? chat.connectionId : null;
         if (restoredConnectionId) {
           setSelectedConnectionId(restoredConnectionId);
           rememberConnectionId(restoredConnectionId);
         }
-        return loadMessages(chat.id, { restoreFocus: () => !initialAskContextRef.current });
+        const targetId = await routeArrivalThread(chat.id);
+        return loadMessages(targetId, { restoreFocus: () => !initialAskContextRef.current });
       })
       .catch((error) => {
         console.error("[Professor Mari] Failed to load home assistant", error);
@@ -3620,7 +3698,15 @@ export function HomeProfessorMariChat({
         });
       })
       .finally(() => setLoadingHistory(false));
-  }, [connectionOptions, connectionsLoading, ensureProfessorMariChat, loadMessages, selectedConnectionId, localizeUi]);
+  }, [
+    connectionOptions,
+    connectionsLoading,
+    ensureProfessorMariChat,
+    loadMessages,
+    routeArrivalThread,
+    selectedConnectionId,
+    localizeUi,
+  ]);
 
   // Missing workspace tools (often just no admin secret) are a calm note in the transcript, not a toast
   // that covers her header every time she opens. Status, skills and memories all report here once.
@@ -3812,12 +3898,52 @@ export function HomeProfessorMariChat({
   });
   const [appendedArrival, setAppendedArrival] = useState<MariArrival | null>(null);
   const handledArrivalAppendRequestRef = useRef(0);
+  // R7: an arrival after the first load (the pane was already open) routes here.
+  useEffect(() => {
+    if (!arrivalThread || arrivalAppendRequest <= handledArrivalRouteRef.current) return;
+    if (loadingHistory || isBusy || !chatId || loadedMessagesChatId !== chatId) return;
+    void routeArrivalThread(chatId).then((targetId) => {
+      if (targetId === chatId) return;
+      setWorkspaceTimeline([]);
+      return loadMessages(targetId);
+    });
+  }, [
+    arrivalAppendRequest,
+    arrivalThread,
+    chatId,
+    isBusy,
+    loadMessages,
+    loadedMessagesChatId,
+    loadingHistory,
+    routeArrivalThread,
+  ]);
   useEffect(() => {
     if (arrivalAppendRequest <= handledArrivalAppendRequestRef.current) return;
+    // R7: wait for the arrival's thread, so it is not appended to the one being left.
+    if (arrivalThread && routedArrivalRequest < arrivalAppendRequest) return;
     if (!appendedArrivalReady || !arrival) return;
     handledArrivalAppendRequestRef.current = arrivalAppendRequest;
     setAppendedArrival(arrival);
-  }, [arrivalAppendRequest, appendedArrivalReady, arrival]);
+  }, [arrivalAppendRequest, appendedArrivalReady, arrival, arrivalThread, routedArrivalRequest]);
+  // R7: "New about <context>" from the arrival's choice: a fresh thread for this screen, the open one kept.
+  const handleNewAboutContext = useCallback(async () => {
+    const context = arrivalThreadRef.current;
+    if (!context || isBusy) return;
+    try {
+      const chat = await startMariThread(context);
+      setArrivalChoiceChatId(null);
+      setAppendedArrival(null);
+      setMessages([]);
+      setLoadedMessagesChatId(chat.id);
+      setWorkspaceTimeline([]);
+      if (chatHistoryOpen) await loadChatHistory();
+    } catch (error) {
+      console.error("[Professor Mari] Failed to start a thread for this screen", error);
+      toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariCouldNotOpenThatChat"), {
+        description: describeProfessorMariError(error),
+      });
+    }
+  }, [chatHistoryOpen, isBusy, loadChatHistory, localizeUi, startMariThread]);
   const appendedArrivalNodeRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (appendedArrival) appendedArrivalNodeRef.current?.scrollIntoView({ block: "nearest" });
@@ -4229,13 +4355,9 @@ export function HomeProfessorMariChat({
   // handleSelectProfessorChat so it can call it directly.
   const requestedChatIdRef = useRef<string | null>(null);
 
+  // R7: "+" always starts fresh, about the screen she was opened from.
   const handleRestart = useCallback(async () => {
-    const params = new URLSearchParams();
-    if (effectiveConnectionId) params.set("connectionId", effectiveConnectionId);
-    const query = params.toString();
-    const chat = await api.post<Chat>(`/chats/internal/professor-mari/restart${query ? `?${query}` : ""}`);
-    setActiveChatId(chat.id);
-    qc.setQueryData(chatKeys.detail(chat.id), chat);
+    const chat = await startMariThread(arrivalThreadRef.current ?? null);
     await api.post("/professor-mari/workspace/reset", { clearHistory: true });
     setMessages([]);
     setLoadedMessagesChatId(chat.id);
@@ -4250,16 +4372,7 @@ export function HomeProfessorMariChat({
     if (chatHistoryOpen) await loadChatHistory();
     await qc.invalidateQueries({ queryKey: chatKeys.messages(chat.id) });
     toast.success(localizeUi("ui.chat.homeprofessormarichat.professorMariSPreviousChatWasSaved"));
-  }, [
-    chatHistoryOpen,
-    clearMariChips,
-    effectiveConnectionId,
-    loadChatHistory,
-    qc,
-    setActiveChatId,
-    setDraft,
-    localizeUi,
-  ]);
+  }, [chatHistoryOpen, clearMariChips, loadChatHistory, qc, setDraft, startMariThread, localizeUi]);
 
   const guidedPlan = professorMariSuggestionsEnabled && mariPlanChatId === chatId ? mariPlan : null;
   const guidedPlanStep = guidedPlan ? (guidedPlan[mariPlanCursor] ?? null) : null;
@@ -6544,6 +6657,40 @@ export function HomeProfessorMariChat({
                                         {appendedArrival.meta.length > 0 ? (
                                           <p className="mari-arrival__meta">{appendedArrival.meta.join(" · ")}</p>
                                         ) : null}
+                                        {arrivalThread && chatId && arrivalChoiceChatId === chatId ? (
+                                          // R7: another thread was in use a moment ago; one quiet choice, no prompt.
+                                          <div
+                                            className="mari-arrival__choice"
+                                            role="group"
+                                            aria-label={localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.label")}
+                                          >
+                                            <button
+                                              type="button"
+                                              className="mari-btn"
+                                              disabled={isBusy}
+                                              onClick={() => {
+                                                continuedThereByContext.set(arrivalThread.key, chatId);
+                                                setArrivalChoiceChatId(null);
+                                              }}
+                                            >
+                                              {localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.continueHere")}
+                                            </button>
+                                            <button
+                                              type="button"
+                                              className="mari-btn min-w-0"
+                                              disabled={isBusy}
+                                              onClick={() => void handleNewAboutContext()}
+                                            >
+                                              <span className="truncate">
+                                                {arrivalThread.label
+                                                  ? localizeUi("ui.chat.homeprofessormarichat.arrivalChoice.newAbout", {
+                                                      context: arrivalThread.label,
+                                                    })
+                                                  : localizeUi("ui.chat.homeprofessormarichat.newChat")}
+                                              </span>
+                                            </button>
+                                          </div>
+                                        ) : null}
                                         <MariReferencedResources
                                           resources={appendedArrival.refs}
                                           characterPreviews={characterPreviewById}
@@ -6989,6 +7136,7 @@ export function HomeProfessorMariChat({
                                   const selected = selectedChatHistoryIds.has(item.id);
                                   const menuOpen = chatRowMenuId === item.id;
                                   const name = item.name || localizeUi("ui.chat.homeprofessormarichat.unnamedChat");
+                                  const thread = readMariThread(item);
                                   return (
                                     <div
                                       key={item.id}
@@ -7032,9 +7180,14 @@ export function HomeProfessorMariChat({
                                               {selected ? <Check size="0.875rem" /> : <Square size="0.875rem" />}
                                             </span>
                                           )}
-                                          {/* Q6: what the row is, as in the omnibar's Chats group and the Aware of rows. */}
+                                          {/* Q6: what the row is, as in the omnibar's Chats group and the Aware of rows.
+                                            R7: a thread about a chat or an editor shows that thing's type instead. */}
                                           <ResultTypeIcon
-                                            type="mari-chat"
+                                            type={
+                                              thread.contextLabel
+                                                ? resourceResultType(thread.contextKey.split(":")[0]!)
+                                                : "mari-chat"
+                                            }
                                             glyph
                                             className="size-[0.85rem] text-[var(--muted-foreground)]"
                                           />
@@ -7053,6 +7206,8 @@ export function HomeProfessorMariChat({
                                             {/* Q5: one fact line, like the mari-v4 Chats panel: when, then how long. */}
                                             <span className="mari-edit__meta">
                                               {[
+                                                // R7: what the thread is about ("Zylo · 2 days ago"); general threads say nothing.
+                                                thread.contextLabel,
                                                 active
                                                   ? localizeUi("ui.characters.lorebooktab.active")
                                                   : formatRelativeContact(item.lastMessageAt ?? item.updatedAt),

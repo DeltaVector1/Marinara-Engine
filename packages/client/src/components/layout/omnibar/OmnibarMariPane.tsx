@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import type { ProfessorMariAskContext } from "@marinara-engine/shared";
 
-import type { MariArrival, MariArrivalAction } from "../../../lib/mari-arrival";
+import type { MariArrival, MariArrivalAction, MariThreadContext } from "../../../lib/mari-arrival";
 import type { OmnibarCompletionAction } from "../../../lib/omnibar-completion-actions";
 import { useUIStore } from "../../../stores/ui.store";
 
@@ -32,6 +32,8 @@ export interface OmnibarMariPaneProps {
   arrival: MariArrival | null;
   /** Increments on every arrival-door open (⌘J, the pull, the drag, Home's "Ask Professor Mari"). */
   arrivalAppendRequest: number;
+  /** R7: the context of the screen she opens over; arrivals go to its thread. */
+  arrivalThread: MariThreadContext;
   onArrivalAction: (action: MariArrivalAction) => void;
   arrivalFixContext: ProfessorMariAskContext | null;
 }
@@ -52,6 +54,7 @@ export function OmnibarMariPane({
   omnibarStatusSlot,
   arrival,
   arrivalAppendRequest,
+  arrivalThread,
   onArrivalAction,
   arrivalFixContext,
 }: OmnibarMariPaneProps) {
@@ -96,6 +99,7 @@ export function OmnibarMariPane({
           omnibarStatusSlot={omnibarStatusSlot}
           arrival={arrival}
           arrivalAppendRequest={arrivalAppendRequest}
+          arrivalThread={arrivalThread}
           onArrivalAction={onArrivalAction}
           arrivalFixContext={arrivalFixContext}
           onChatWindowOpenChange={onChatWindowOpenChange}

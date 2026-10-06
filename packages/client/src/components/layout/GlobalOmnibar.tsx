@@ -82,6 +82,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import {
   buildMariArrival,
+  mariThreadContextFor,
   isMariReplyFailure,
   mariFallbackFocus,
   mariFixRowId,
@@ -1507,6 +1508,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     settingsTargetControlId,
     t,
   ]);
+  // R7: which Mari thread this screen's arrivals go to.
+  const mariThreadContext = useMemo(
+    () => mariThreadContextFor(omnibarContext, mariArrival),
+    [mariArrival, omnibarContext],
+  );
   const attachedResultIds = useMemo(
     () => new Set(omnibarContext.activeChat?.resultIds ?? []),
     [omnibarContext.activeChat?.resultIds],
@@ -2875,7 +2881,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       setMariPendingReviewId(typeof options.reviewPending === "string" ? options.reviewPending : null);
       setMariPendingReviewRequest((current) => current + 1);
     }
-    if (options.arrival) setMariArrivalAppendRequest((current) => current + 1);
+    // R7: a Fix pick that sends nothing is a door too, so it lands in this screen's thread like ⌘J.
+    if (options.arrival || (fix && !options.submitDraft)) setMariArrivalAppendRequest((current) => current + 1);
   };
   /**
    * One rule for every "take this to Mari" door: typed text that asks for something is sent.
@@ -3546,6 +3553,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               omnibarStatusSlot={mariStatusSlot}
               arrival={mariArrival}
               arrivalAppendRequest={mariArrivalAppendRequest}
+              arrivalThread={mariThreadContext}
               onArrivalAction={runArrivalAction}
               // N6: what an arrival Fix card sends with: the same handoff as a deliberate pick of the Fix row.
               arrivalFixContext={buildAskContext(
