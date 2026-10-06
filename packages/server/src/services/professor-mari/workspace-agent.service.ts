@@ -3097,6 +3097,8 @@ export class ProfessorMariWorkspaceService {
     const userMessageExtra = {
       ...(attachments.length > 0 ? { attachments } : {}),
       professorMariContext: args.context ?? null,
+      // A retry reuses this message: its earlier failure is answered now.
+      mariRunError: null,
     };
     await chatStorage.updateMessageExtra(userMessage.id, userMessageExtra);
     await chatStorage.updateSwipeExtra(userMessage.id, 0, userMessageExtra);
@@ -3108,6 +3110,8 @@ export class ProfessorMariWorkspaceService {
     this.lastError = null;
 
     const workspaceTrace: MariWorkspaceTraceItem[] = [];
+    /** R14: set when the run fails, so the saved turn says so instead of reading as a quiet stop. */
+    let runError: { message: string } | null = null;
     let assistantText = "";
     let thinkingText = "";
     let totalUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
@@ -3160,6 +3164,7 @@ export class ProfessorMariWorkspaceService {
       if (thinkingText.trim()) extraUpdate.thinking = thinkingText;
       if (storedTrace.length > 0) extraUpdate.mariWorkspaceTimeline = storedTrace;
       if (workspaceActionResults.length > 0) extraUpdate.mariWorkspaceActionResults = workspaceActionResults;
+      if (runError) extraUpdate.mariRunError = runError;
       extraUpdate.professorMariContext = args.context ?? null;
       const continuity = buildWorkspaceContinuitySnapshot({
         userText: promptText,
@@ -3699,6 +3704,7 @@ export class ProfessorMariWorkspaceService {
         }
       } else {
         this.lastError = err instanceof Error ? err.message : String(err);
+        runError = { message: compactTraceText(this.lastError, 600) };
         // Persist whatever completed rounds produced before this failure — e.g. a proxy rate limit
         // that outlasted the retries — so the user does not lose the work and can ask Mari to
         // continue from the saved trace instead of re-running the whole request.
@@ -3722,6 +3728,11 @@ export class ProfessorMariWorkspaceService {
               "[Professor Mari] Failed to persist partial workspace response after error",
             );
           }
+        } else {
+          // Nothing of hers to save: the failure goes on your message, so a reload still shows it.
+          await chatStorage
+            .updateMessageExtra(userMessage.id, { mariRunError: runError })
+            .catch((saveErr) => logger.error(saveErr, "[Professor Mari] Failed to save the run error"));
         }
         throw err;
       }

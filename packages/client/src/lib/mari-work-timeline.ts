@@ -60,6 +60,9 @@ export function stepVerbClass(title: string): StepVerbClass | null {
 
 export type RunPhaseKind = "look" | "change" | "other";
 
+/** R14: a finished phase with at most this many steps stays open. */
+export const MAX_OPEN_PHASE_STEPS = 3;
+
 const PHASE_KIND: Record<StepVerbClass, RunPhaseKind> = {
   search: "look",
   read: "look",
@@ -75,7 +78,8 @@ export interface RunPhase<Tool> {
   items: WorkTimelineItem<Tool>[];
   steps: number;
   failed: number;
-  /** R13: every phase stays open while she runs, so each step's done mark is seen; a finished run folds them. */
+  /** R13: every phase stays open while she runs, so each step's done mark is seen. R14: a finished run folds
+   * only phases of more than three steps; a short one stays open, so "Looked at 1 thing" shows that thing. */
   open: boolean;
   /** The phase she is still in: its label reads "Looking", not "Looked at 4 things", and it has no done mark yet. */
   live: boolean;
@@ -115,6 +119,7 @@ export function groupRunPhases<Tool>(
     phase.steps += 1;
     if (step.failed) phase.failed += 1;
   }
+  for (const phase of phases) phase.open = active || phase.steps <= MAX_OPEN_PHASE_STEPS;
   const last = phases.at(-1);
   const answering = pending.some((item) => item.type === "text" && item.content.trim());
   if (last && active && !answering) last.live = true;

@@ -810,9 +810,10 @@
   animation: mari-glow-settle 3.5s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
-/* Failed: red, smaller and quieter, lingers, then fades out slowly too. */
+/* Failed (R14): red, smaller and quieter, and it stays - low and faint - until the failure is answered
+   (Retry, another model, a new message, Dismiss). No fade-out timer. */
 .mari-workspace-glow-band[data-glow="broken"]:not([data-working])::before {
-  animation: mari-glow-alert 8s cubic-bezier(0.45, 0, 0.55, 1) forwards;
+  animation: mari-glow-alert 1.6s cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
 /* Waiting for your approval: a small, quiet gold band that stays until you answer. */
@@ -889,13 +890,9 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
     opacity: 0.5;
     scale: 1 0.7;
   }
-  35% {
-    opacity: 0.4;
-    scale: 1 0.6;
-  }
   100% {
-    opacity: 0;
-    scale: 1 0.25;
+    opacity: 0.3;
+    scale: 1 0.45;
   }
 }
 
@@ -1518,6 +1515,9 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   --mari-stop-width: 6rem;
   position: relative;
   display: grid;
+  /* R14: one track as wide as the button. The hidden Stop label is wider; without this the track grew to
+     its width and centred the arrow 7px right of the button's centre. */
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
   place-items: center;
   border: 1px solid transparent;
@@ -2170,6 +2170,82 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   color: var(--marinara-chat-chrome-text);
 }
 
+/* R14: the newest unresolved failure. No box: a red label, the provider's words muted, then the actions. */
+.mari-run-error {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.mari-run-error__text {
+  display: flex;
+  min-width: 0;
+  gap: 0.4rem;
+  overflow-wrap: anywhere;
+}
+
+.mari-run-error__text > svg {
+  flex: none;
+  margin-top: 0.2rem;
+  color: color-mix(in srgb, oklch(0.72 0.17 25) 80%, var(--foreground));
+}
+
+.mari-run-error__text > span {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.mari-run-error__label {
+  color: color-mix(in srgb, oklch(0.72 0.17 25) 80%, var(--foreground));
+}
+
+.mari-run-error__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.9rem;
+  padding-inline-start: 1.2rem;
+}
+
+.mari-run-error__actions .mari-link {
+  min-height: 1.75rem;
+  color: var(--foreground);
+  text-decoration: underline 1px var(--mari-hairline);
+  text-underline-offset: 3px;
+}
+
+.mari-run-error__actions .mari-run-error__dismiss {
+  color: var(--muted-foreground);
+  text-decoration: none;
+}
+
+@media (pointer: coarse) {
+  .mari-run-error__actions .mari-link {
+    min-height: 2.75rem;
+  }
+}
+
+/* An answered failure (a later run, or dismissed): one quiet line where its card was. */
+.mari-run-failed-line {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+}
+
+.mari-run-failed-line > svg {
+  flex: none;
+  opacity: 0.8;
+}
+
 /* R2: the reply checkup line uses the Failed line's shape, but muted and under a reply (left). */
 .mari-reply-checkup {
   color: var(--muted-foreground);
@@ -2446,6 +2522,11 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   to {
     background-position: -150% 0;
   }
+}
+
+/* R14: her header line says a failure is waiting for an answer, in a quiet red. */
+.mari-status-shimmer[data-state="error"] {
+  color: color-mix(in srgb, oklch(0.72 0.17 25) 80%, var(--foreground));
 }
 
 html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true"] {
@@ -3129,6 +3210,12 @@ html[data-mari-pull-landing] .mari-arrival-content * {
   display: none;
 }
 
+/* R14: with nothing more to fold, "Worked for" is plain text, not a button. */
+.mari-work-timeline__header[data-static] {
+  cursor: default;
+  background: none !important;
+}
+
 .mari-work-timeline__header {
   display: flex;
   width: fit-content;
@@ -3280,8 +3367,11 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 
 .mari-answer__sprite {
   position: absolute;
-  inset-block-start: -0.6rem;
+  /* The whole height of her reply, so the sprite inside can stick while the reply scrolls. */
+  inset-block: -0.6rem 0;
   inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Under her answer: reference rows, the outcome groups, "Why", then the reply actions. */
@@ -3522,6 +3612,23 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   margin-inline-start: 0.4rem;
   color: var(--foreground);
   font-weight: 550;
+}
+
+/* R14: a tiny face of the record a step names, before its name (the v5 cards' face, shrunk; no badge). */
+.mari-live-work__step-subject .mari-step-face {
+  width: 1rem;
+  height: 1rem;
+  margin-inline-end: 0.3rem;
+  vertical-align: -0.2rem;
+}
+
+.mari-step-face > * {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.mari-step-face > :not(:first-child) {
+  display: none;
 }
 
 .mari-live-work__step-duration {
@@ -10393,7 +10500,9 @@ html[data-marinara-reduced-effects="true"] .omnibar-row-expansion {
   width: min(100%, var(--mari-roleplay-message-column-width));
 }
 
-[data-chat-mode="roleplay"] .mari-scrollable-roleplay-avatar {
+/* R14: Mari beside her newest reply stays on screen while it scrolls, like the scrollable avatars. */
+[data-chat-mode="roleplay"] .mari-scrollable-roleplay-avatar,
+.mari-answer__sprite > * {
   position: sticky;
   top: var(--mari-roleplay-scrollable-avatar-top, max(0.75rem, env(safe-area-inset-top)));
   align-self: flex-start;

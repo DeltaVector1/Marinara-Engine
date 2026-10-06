@@ -21,13 +21,34 @@ export function resolveRunStartMs(steps: readonly RunStepTiming[]): number | nul
 }
 
 /**
- * Wall-clock span of a finished run: earliest step start to latest step end. Summing step durations
- * instead would drop every gap between them (thinking, streaming), so a run the user watched for
- * three minutes would report a few seconds the moment it finished.
+ * R14 (item 7): when the run's clock starts - when you sent the message (or the run began) - so the live
+ * timer and "Worked for" share one anchor that never moves when a step, a round or a remount arrives.
+ * The earliest step only counts when it is earlier (a replayed trace), or when there is no send time.
  */
-export function resolveRunSeconds(steps: readonly RunStepTiming[]): number {
-  const start = resolveRunStartMs(steps);
-  const end = steps.reduce((latest, step) => Math.max(latest, step.updatedAt || 0), 0);
+export function resolveRunAnchorMs(
+  sentAtMs: number | null | undefined,
+  steps: readonly RunStepTiming[],
+): number | null {
+  const firstStep = resolveRunStartMs(steps);
+  if (!sentAtMs || !Number.isFinite(sentAtMs)) return firstStep;
+  return firstStep === null ? sentAtMs : Math.min(sentAtMs, firstStep);
+}
+
+/**
+ * Wall-clock span of a finished run: its anchor (`startMs`, else the earliest step start) to its end
+ * (`endMs`, else the latest step end). Summing step durations instead would drop every gap between them
+ * (thinking, streaming), so a run the user watched for three minutes would report a few seconds the
+ * moment it finished.
+ */
+export function resolveRunSeconds(
+  steps: readonly RunStepTiming[],
+  { startMs, endMs }: { startMs?: number | null; endMs?: number | null } = {},
+): number {
+  const start = startMs || resolveRunStartMs(steps);
+  const end = Math.max(
+    endMs || 0,
+    steps.reduce((latest, step) => Math.max(latest, step.updatedAt || 0), 0),
+  );
   // Steps never show under 1s, so a real run never totals less than one of its own steps.
   return start && end > start ? Math.max(1, Math.round((end - start) / 1_000)) : 0;
 }

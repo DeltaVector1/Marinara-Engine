@@ -922,6 +922,11 @@ export interface MessageExtra {
   professorMariContext?: ProfessorMariAskContext | null;
   /** True when this Mari turn deferred mutating commands behind an Accept action (#5725 Manual mode). */
   mariDeferredMutations?: boolean | null;
+  /**
+   * R14: why this Mari turn failed, on the turn's last saved message (her partial reply, or your message
+   * when she saved nothing), so a reload still shows it failed. `dismissed` once you close its card.
+   */
+  mariRunError?: { message: string; dismissed?: boolean } | null;
   /** Per-swipe sprite expressions from the Expression Engine agent */
   spriteExpressions?: Record<string, string> | null;
   /** Presentation-only ID-macro card references for merged Roleplay narrator avatars; never chat members. */

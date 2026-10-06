@@ -23,7 +23,8 @@ export function resolveProfessorMariPresentationState({
   hasActionResult: boolean;
   messageCount: number;
 }): ProfessorMariPresentationState {
-  if (hasRecovery || hasWorkspaceError) return "broken";
+  // R14: a new run or a retry answers the failure, so a stale error never reads as "broken" while she works.
+  if (!working && (hasRecovery || hasWorkspaceError)) return "broken";
   if (pendingReviewCount > 0) return "waiting-approval";
   if (working) return "working";
   if (hasDraft || attachmentCount > 0) return "composing";

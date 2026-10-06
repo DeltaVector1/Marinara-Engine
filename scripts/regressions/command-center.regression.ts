@@ -34,6 +34,7 @@ import {
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { resolveChatResourceDropAction } from "../../packages/client/src/lib/chat-resource-drop-capabilities.js";
 import { extractDocsSearchQuery } from "../../packages/client/src/lib/docs-command-search.js";
+import { resolveRunAnchorMs, resolveRunSeconds } from "../../packages/client/src/lib/mari-work-card-timing.js";
 import {
   nextMariEdgeSeen,
   resolveMariEdgeGlow,
@@ -96,6 +97,7 @@ import {
   withoutProfessorMariContextFacet,
   reviewRecordKeys,
   withoutReviewedResults,
+  resolveProfessorMariPresentationState,
 } from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
@@ -1683,8 +1685,14 @@ assert.ok(!("mariDetailId" in mariSession));
     "her answer is the tail",
   );
   assert.ok(
-    groupRunPhases(run, { active: false, describe }).phases.every((phase) => !phase.open && !phase.live),
-    "a finished run folds every phase",
+    groupRunPhases(run, { active: false, describe }).phases.every((phase) => phase.open && !phase.live),
+    "R14: a finished run keeps short phases (up to three steps) open, none live",
+  );
+  const longLook = Array.from({ length: 4 }, (_, index) => step(`l${index}`, "Reading character"));
+  assert.equal(
+    groupRunPhases(longLook, { active: false, describe }).phases[0]!.open,
+    false,
+    "R14: a finished phase of more than three steps folds",
   );
   const noSteps = groupRunPhases<Step>(
     [
@@ -3801,6 +3809,48 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(resolveMariAppearancePack("golden", [], 100).id, "golden", "stored Golden at 100 h renders Golden");
   assert.equal(resolveMariAppearancePack("golden", ["golden"]).id, "golden", "a recorded unlock renders Golden");
   assert.equal(resolveMariAppearancePack("dottore", []).id, "dottore");
+}
+
+{
+  // R14 (item 7): the run's clock is anchored on the send, never on a later step.
+  const steps = [{ startedAt: 4_000, updatedAt: 6_000 }];
+  assert.equal(resolveRunAnchorMs(1_000, steps), 1_000, "the send anchors the run, not the first step");
+  assert.equal(resolveRunAnchorMs(1_000, []), 1_000, "before any step the send still anchors it");
+  assert.equal(resolveRunAnchorMs(null, steps), 4_000, "without a send time the earliest step anchors it");
+  assert.equal(
+    resolveRunSeconds(steps, { startMs: 1_000, endMs: 9_000 }),
+    8,
+    "Worked for counts from the send to the reply, the same anchor as the live timer",
+  );
+  // R14: an unresolved failure stays red on the top-bar line, seen or not; working wins over it.
+  const seen: MariEdgeSeenState = { wasWorking: false, unseenRun: false, seenApprovalIds: [], seenHistoryId: null };
+  const failedInput: MariEdgeInput = {
+    working: false,
+    needsAttention: false,
+    pendingApprovalIds: [],
+    latestHistoryId: null,
+    latestHistoryFailed: false,
+    runFailed: true,
+    viewing: true,
+  };
+  assert.equal(resolveMariEdgeGlow(nextMariEdgeSeen(seen, failedInput), failedInput), "error", "red while viewed");
+  assert.equal(resolveMariEdgeGlow(seen, { ...failedInput, working: true }), "working", "a retry runs, not red");
+  const presentation = {
+    hasRecovery: true,
+    hasWorkspaceError: false,
+    pendingReviewCount: 0,
+    working: false,
+    hasDraft: false,
+    attachmentCount: 0,
+    hasActionResult: false,
+    messageCount: 1,
+  };
+  assert.equal(resolveProfessorMariPresentationState(presentation), "broken");
+  assert.equal(
+    resolveProfessorMariPresentationState({ ...presentation, hasWorkspaceError: true, working: true }),
+    "working",
+    "R14: a stale error never reads as broken while she works",
+  );
 }
 
 console.info("Command Center regression checks passed.");

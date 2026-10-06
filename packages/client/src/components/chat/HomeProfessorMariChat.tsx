@@ -88,7 +88,7 @@ import { chatKeys, useChats } from "../../hooks/use-chats";
 import { characterKeys, useCharacters, usePersonas } from "../../hooks/use-characters";
 import { getCharacterDisplayIdentity } from "../../lib/character-display";
 import { buildCharacterPreviewModel, type CharacterPreviewModel } from "../../lib/character-preview";
-import { resolveRunSeconds, resolveRunStartMs, type RunStepTiming } from "../../lib/mari-work-card-timing";
+import { resolveRunAnchorMs, resolveRunSeconds, type RunStepTiming } from "../../lib/mari-work-card-timing";
 import { buildLorebookPreviewModel, type LorebookPreviewModel } from "../../lib/lorebook-preview";
 import { completeInline } from "../../lib/inline-completion";
 import {
@@ -708,6 +708,17 @@ function getMessageWorkspaceTrace(message: Message): MariWorkspaceTraceItem[] | 
   if (!Array.isArray(trace)) return null;
   const items = trace.filter(isWorkspaceTraceItem);
   return items.length > 0 ? items : null;
+}
+
+/** R14: why this turn failed (`mariRunError`); null when it did not, or once you dismissed it. */
+function getMessageRunError(
+  message: Message,
+  { includeDismissed = false }: { includeDismissed?: boolean } = {},
+): { message: string; dismissed: boolean } | null {
+  const value = asRecord(toMessageExtra(message)?.mariRunError);
+  if (typeof value?.message !== "string") return null;
+  const dismissed = value.dismissed === true;
+  return dismissed && !includeDismissed ? null : { message: value.message, dismissed };
 }
 
 function isMariWorkspaceActionResult(value: unknown): value is MariWorkspaceActionResult {
@@ -1811,6 +1822,23 @@ function MariDoneMark({ className }: { className?: string }) {
   );
 }
 
+/** R14 (item 3): the face of the record a step read directly (a character, a lorebook, an entry's lorebook…). */
+function stepRecordFace(
+  tool: WorkspaceToolCall,
+  characterPreviews?: ReadonlyMap<string, CharacterPreviewModel>,
+  lorebookPreviews?: ReadonlyMap<string, LorebookPreviewModel>,
+) {
+  const record = collectMariReferencedResources([tool]).find((resource) => !resource.fromList);
+  if (!record || record.kind === "setting") return null;
+  const character = record.kind === "character" ? characterPreviews?.get(record.id) : undefined;
+  const lorebook = lorebookPreviews?.get(record.kind === "lorebookEntry" ? (record.parentId ?? "") : record.id);
+  return {
+    type: resourceResultType(record.kind),
+    src: character?.avatarSrc ?? (record.kind === "lorebook" ? lorebook?.imageSrc : undefined),
+    avatarCropStyle: character?.avatarCropStyle,
+  };
+}
+
 function MariWorkTimeline({
   items,
   character,
@@ -1819,12 +1847,26 @@ function MariWorkTimeline({
   restStory = null,
   goal = null,
   pullTarget = true,
+  runFailed = false,
+  startedAtMs = null,
+  endedAtMs = null,
+  characterPreviews,
+  lorebookPreviews,
   children,
 }: {
   items: WorkspaceTimelineItem[];
   character?: CharacterPreviewModel | null;
   lorebook?: LorebookPreviewModel | null;
   active?: boolean;
+  /** R14: the run itself failed (a provider error, no answer), whatever its steps did. */
+  runFailed?: boolean;
+  /** R14 (item 7): when you sent the message, so the timer and "Worked for" never restart on a step. */
+  startedAtMs?: number | null;
+  /** When the run ended (her saved reply), for "Worked for". */
+  endedAtMs?: number | null;
+  /** Faces for the records a step names (R14 item 3). */
+  characterPreviews?: ReadonlyMap<string, CharacterPreviewModel>;
+  lorebookPreviews?: ReadonlyMap<string, LorebookPreviewModel>;
   /** D1: suppressed while an appended arrival at the bottom of the transcript owns the marker instead. */
   pullTarget?: boolean;
   /** M5a: the request she reported acting on, as one muted line above the run. */
@@ -1843,8 +1885,11 @@ function MariWorkTimeline({
   const runTimings = items.flatMap((item): RunStepTiming[] =>
     item.type === "tool" ? [item.tool] : item.type === "thinking" ? [item] : [],
   );
-  const liveElapsedSeconds = useWorkspaceElapsedSeconds(active, resolveRunStartMs(runTimings));
-  const elapsedSeconds = active ? liveElapsedSeconds : resolveRunSeconds(runTimings);
+  const runAnchorMs = resolveRunAnchorMs(startedAtMs, runTimings);
+  const liveElapsedSeconds = useWorkspaceElapsedSeconds(active, runAnchorMs);
+  const elapsedSeconds = active
+    ? liveElapsedSeconds
+    : resolveRunSeconds(runTimings, { startMs: runAnchorMs, endMs: endedAtMs });
   // R13: "Still on it" counts from her last visible change (a step, a thought), not from the run's start,
   // so each new round first names what she just did instead of a generic waiting line.
   const lastChangeMs = runTimings.reduce(
@@ -1853,8 +1898,8 @@ function MariWorkTimeline({
   );
   const quietSeconds =
     active && lastChangeMs ? Math.max(0, Math.floor((Date.now() - lastChangeMs) / 1_000)) : elapsedSeconds;
-  // A finished run that still holds a failed step is not a success, whatever the last step was.
-  const failed = !active && toolItems.some(({ tool }) => tool.status === "error");
+  // A finished run that failed, or still holds a failed step, is not a success, whatever the last step was.
+  const failed = !active && (runFailed || toolItems.some(({ tool }) => tool.status === "error"));
   // The running step is the live line itself, so it is not also a row in the list.
   const shownItems = active ? items.filter((item) => item.type !== "tool" || item.tool.status !== "running") : items;
   // M5a: what came before her first step, her steps as phases (all open while she runs, R13), then
@@ -1948,6 +1993,7 @@ function MariWorkTimeline({
               now: Date.now(),
             });
             const StepIcon = stepFailed ? AlertTriangle : stepIcon(presentation.title);
+            const face = stepRecordFace(tool, characterPreviews, lorebookPreviews);
             return (
               // M3: append-only - no layout animation (it fought MariSmoothGrow's height transition and
               // produced a frame of overlapping/ghost rows). Still true here: no `layout` prop, no height
@@ -1967,7 +2013,18 @@ function MariWorkTimeline({
                     <span className="mari-live-work__step-label">
                       {pastTenseStepTitle(presentation.title)}
                       {presentation.detail ? (
-                        <span className="mari-live-work__step-subject">{presentation.detail}</span>
+                        <span className="mari-live-work__step-subject">
+                          {face ? (
+                            <ResultTypeIcon
+                              type={face.type}
+                              src={face.src}
+                              kind="avatar"
+                              avatarCropStyle={face.avatarCropStyle}
+                              className="mari-step-face"
+                            />
+                          ) : null}
+                          {presentation.detail}
+                        </span>
                       ) : null}
                     </span>
                     <span className="mari-live-work__step-duration">
@@ -2018,6 +2075,18 @@ function MariWorkTimeline({
     return out;
   };
   const workedFor = t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length });
+  // R14: "Worked for" folds the work only when there is more than one group to fold; one phase already
+  // opens and closes on its own line, so a toggle there would reveal nothing new.
+  const foldableGroups =
+    phases.length +
+    [...introBlocks, ...tailBlocks.slice(0, answerStart < 0 ? undefined : answerStart)].filter(
+      (block) => block.kind !== "text",
+    ).length;
+  const workedForMark = failed ? (
+    <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
+  ) : (
+    <MariDoneMark />
+  );
   const restStoryText =
     restStory && restStory !== "idle" && restStory !== "success" ? t(`mari.stories.${restStory}`) : null;
 
@@ -2117,21 +2186,22 @@ function MariWorkTimeline({
                   {t("mari.workCard.done")}
                 </span>
               ) : null
-            ) : (
+            ) : foldableGroups > 1 ? (
               <button
                 type="button"
                 className="mari-work-timeline__header"
                 aria-expanded={!folded}
                 onClick={() => setFolded((current) => !current)}
               >
-                {failed ? (
-                  <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
-                ) : (
-                  <MariDoneMark />
-                )}
+                {workedForMark}
                 <span className="mari-work-timeline__status">{workedFor}</span>
                 <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />
               </button>
+            ) : (
+              <span className="mari-work-timeline__header" data-static="true">
+                {workedForMark}
+                <span className="mari-work-timeline__status">{workedFor}</span>
+              </span>
             )}
           </div>
         ) : null}
@@ -2583,6 +2653,7 @@ const CompactMariMessage = memo(function CompactMariMessage({
   pullTarget = true,
   reviews,
   goal = null,
+  runStartedAtMs = null,
 }: {
   message: Message;
   thinking?: string | null;
@@ -2609,6 +2680,8 @@ const CompactMariMessage = memo(function CompactMariMessage({
   reviews?: MariTurnReviews;
   /** M5a: the request she reported acting on, as the turn's first line. */
   goal?: ReactNode;
+  /** R14 (item 7): when you sent the message this reply answers, so "Worked for" counts from there. */
+  runStartedAtMs?: number | null;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const content = message.content ?? "";
@@ -2729,6 +2802,13 @@ const CompactMariMessage = memo(function CompactMariMessage({
           restStory={restStory}
           pullTarget={pullTarget}
           goal={goal}
+          runFailed={Boolean(getMessageRunError(message, { includeDismissed: true }))}
+          // ponytail: a retry that reused your saved message counts from your first send; a per-attempt
+          // start would need the server to stamp each run. Add it if long retries make this misleading.
+          startedAtMs={runStartedAtMs}
+          endedAtMs={Date.parse(message.createdAt) || null}
+          characterPreviews={characterPreviews}
+          lorebookPreviews={lorebookPreviews}
         >
           <MariWorkTimelineOutcome
             content={content}
@@ -2995,6 +3075,10 @@ export function HomeProfessorMariChat({
   const [isReadingAttachments, setIsReadingAttachments] = useState(false);
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(() => readStoredConnectionId());
   const [workspaceStatus, setWorkspaceStatus] = useState<MariWorkspaceStatus | null>(null);
+  /** R14 (item 7): when this client's newest run started and ended; the live timer and "Worked for" read it. */
+  const [workspaceRunClock, setWorkspaceRunClock] = useState<{ startedAt: number; endedAt: number | null } | null>(
+    null,
+  );
   const [workspaceActive, setWorkspaceActive] = useState(false);
   const [workspaceTimeline, setWorkspaceTimeline] = useState<WorkspaceTimelineItem[]>([]);
   const [workspaceReviewActionId, setWorkspaceReviewActionId] = useState<string | null>(null);
@@ -3272,6 +3356,9 @@ export function HomeProfessorMariChat({
   const persistentContextCount = professorMariContextCount(attachedContext?.length ?? 0, handoffContext);
   const oneShotContext = handoffContext && !isPersistentProfessorMariContext(handoffContext) ? handoffContext : null;
   const oneShotContextFacets = useMemo(() => professorMariContextFacets(oneShotContext), [oneShotContext]);
+  // R14: the composer's context row shows everything she is using - the one-shot facets and her lasting
+  // focus (a character or lorebook) - so it stays after the first send instead of vanishing.
+  const composerContextFacets = useMemo(() => professorMariContextFacets(handoffContext), [handoffContext]);
   const removeOneShotFacet = useCallback(
     (facet: ProfessorMariContextFacet) =>
       setHandoffContext((current) => withoutProfessorMariContextFacet(current, facet.kind)),
@@ -3423,6 +3510,7 @@ export function HomeProfessorMariChat({
           typeof options.restoreFocus === "function" ? options.restoreFocus() : options.restoreFocus !== false;
         if (restoreFocus) setHandoffContext(persistentResourceContext(restoredContext));
         setLoadedMessagesChatId(id);
+        return normalizedMessages;
       } catch (error) {
         if (controller.signal.aborted) return;
         throw error;
@@ -3952,6 +4040,7 @@ export function HomeProfessorMariChat({
     void routeArrivalThread(chatId).then((targetId) => {
       if (targetId === chatId) return;
       setWorkspaceTimeline([]);
+      setWorkspaceRunClock(null);
       return loadMessages(targetId);
     });
   }, [
@@ -3984,6 +4073,7 @@ export function HomeProfessorMariChat({
       setMessages([]);
       setLoadedMessagesChatId(chat.id);
       setWorkspaceTimeline([]);
+      setWorkspaceRunClock(null);
       if (chatHistoryOpen) await loadChatHistory();
     } catch (error) {
       console.error("[Professor Mari] Failed to start a thread for this screen", error);
@@ -4006,12 +4096,24 @@ export function HomeProfessorMariChat({
   );
   const visiblePendingChangeReviewKey = visiblePendingChangeReviews.map((approval) => approval.id).join("|");
   const latestMessage = messages[messages.length - 1];
+  const lastUserMessage = messages.findLast((message) => message.role === "user");
+  // R14: the one unresolved failure - this session's, or the one saved on the newest turn (after a reload,
+  // or when the stream died before it could say so). She stays red until Retry, another model, a new
+  // message or Dismiss; there is no timer.
+  const savedRunError = latestMessage ? getMessageRunError(latestMessage) : null;
+  const activeRunError = isBusy
+    ? null
+    : recovery
+      ? { kind: recovery.kind, detail: recovery.detail }
+      : savedRunError
+        ? { kind: classifyProfessorMariFailure(new Error(savedRunError.message)), detail: savedRunError.message }
+        : null;
   const latestActionResults = useMemo(
     () => (latestMessage ? getMessageWorkspaceActionResults(latestMessage) : []),
     [latestMessage],
   );
   const mariPresentationState = resolveProfessorMariPresentationState({
-    hasRecovery: Boolean(recovery),
+    hasRecovery: Boolean(activeRunError),
     hasWorkspaceError: Boolean(workspaceStatus?.error),
     pendingReviewCount: visiblePendingChangeReviews.length,
     working: workspaceTimelineActive,
@@ -4030,7 +4132,7 @@ export function HomeProfessorMariChat({
   const latestTurnHasTrace = Boolean(latestMessage && getMessageWorkspaceTrace(latestMessage));
   const restingStory = resolveMariRestStory({
     working: workspaceTimelineActive,
-    failed: Boolean(recovery || workspaceStatus?.error) || latestTraceFailed,
+    failed: Boolean(activeRunError || workspaceStatus?.error) || latestTraceFailed,
     cancelled: Boolean(chatId && cancelledChatId === chatId),
     needsApproval: visiblePendingChangeReviews.length > 0 || Boolean(pendingDeferredMutations),
     hasAppliedChanges: latestActionResults.length > 0,
@@ -4070,7 +4172,7 @@ export function HomeProfessorMariChat({
       following: transcriptFollowOutputRef.current,
     });
     if (decision.scrollTo === "bottom") scrollProfessorMariTranscriptToBottom(node);
-  }, [messages, workspaceTimeline, visiblePendingChangeReviewKey, workspaceStatus?.error, recovery]);
+  }, [messages, workspaceTimeline, visiblePendingChangeReviewKey, workspaceStatus?.error, activeRunError?.detail]);
 
   const transcriptGlideCleanupRef = useRef<(() => void) | null>(null);
   const setTranscriptStackNode = useCallback((node: HTMLDivElement | null) => {
@@ -4415,6 +4517,7 @@ export function HomeProfessorMariChat({
     useChatStore.getState().setAbortController(chat.id, null);
     useChatStore.getState().setMariPhase(chat.id, "idle");
     setWorkspaceTimeline([]);
+    setWorkspaceRunClock(null);
     if (chatHistoryOpen) await loadChatHistory();
     await qc.invalidateQueries({ queryKey: chatKeys.messages(chat.id) });
     toast.success(localizeUi("ui.chat.homeprofessormarichat.professorMariSPreviousChatWasSaved"));
@@ -4823,6 +4926,7 @@ export function HomeProfessorMariChat({
         qc.setQueryData(chatKeys.detail(chat.id), chat);
         setWorkspaceDestination("chat");
         setWorkspaceTimeline([]);
+        setWorkspaceRunClock(null);
         useChatStore.getState().clearStreamBuffer(chat.id);
         useChatStore.getState().clearThinkingBuffer(chat.id);
         await loadMessages(chat.id);
@@ -5065,6 +5169,23 @@ export function HomeProfessorMariChat({
     [localizeUi],
   );
 
+  // R14: every way a run can fail (an HTTP error from the provider, a timeout, no answer, a dropped
+  // stream, a failed regenerate or edited resend) ends here, so each one turns her red with the same
+  // card, Retry and "Retry with another model". Your own Stop is not a failure.
+  const failRun = useCallback(
+    (error: unknown, retry: Pick<ProfessorMariRecovery, "text" | "attachments" | "context" | "localMessageId">) => {
+      if (isProfessorMariAbortError(error)) return;
+      console.error("[Professor Mari] Run failed", error);
+      setRecovery({ ...retry, kind: classifyProfessorMariFailure(error), detail: describeProfessorMariError(error) });
+    },
+    [],
+  );
+  const retryOf = (message: Message | undefined) => ({
+    text: message?.content ?? "",
+    attachments: message ? getProfessorMariAttachments(message) : [],
+    context: (message && getProfessorMariMessageContext(message)) ?? null,
+  });
+
   const sendWorkspaceMessage = useCallback(
     async (
       chat: Pick<Chat, "id">,
@@ -5084,6 +5205,8 @@ export function HomeProfessorMariChat({
       workspaceTextThrottle.cancel();
       pendingWorkspaceTextRef.current = "";
       setWorkspaceActive(true);
+      // R14 (item 7): the run's clock starts here, once, so steps, rounds and re-renders never restart it.
+      setWorkspaceRunClock({ startedAt: Date.now(), endedAt: null });
       // The shared status query only refreshes on its own poll or on the
       // end-of-run invalidation below - closing the omnibar within that
       // window left the top-bar line with no "active" signal to start from.
@@ -5097,6 +5220,7 @@ export function HomeProfessorMariChat({
       useChatStore.getState().clearThinkingBuffer(chat.id);
       useChatStore.getState().setMariPhase(chat.id, "thinking");
       let received = false;
+      let sawDone = false;
       // Mirror use-generate's backgrounding bookkeeping: Android browsers tear
       // down a hidden tab's connection with a plain TypeError, and the shared
       // classifier needs to know the page was hidden to call that passive.
@@ -5216,6 +5340,7 @@ export function HomeProfessorMariChat({
             }
           } else if (event.type === "done") {
             received = true;
+            sawDone = true;
           } else if (event.type === "error") {
             // The SERVER reported this over a live stream — the run itself
             // failed. It must never be mistaken for a transport death below.
@@ -5224,13 +5349,15 @@ export function HomeProfessorMariChat({
             );
           }
         }
-        if (!received && !controller.signal.aborted) {
-          // The stream closed CLEANLY before any reply event — mobile browsers
-          // can shut a backgrounded socket down without an error while the
-          // server keeps running (#5719). If the status endpoint confirms a
-          // live run, this was a passive disconnect: wait it out and let the
-          // caller reload the persisted reply instead of toasting "no reply".
-          received = await waitForWorkspaceRunToSettle(effectiveConnectionId, controller.signal);
+        if (!sawDone && !controller.signal.aborted) {
+          // The stream closed CLEANLY without her "done" — mobile browsers and
+          // proxies can shut a socket down without an error while the server
+          // keeps running (#5719), also after her first round already spoke.
+          // If the status endpoint confirms a live run, this was a passive
+          // disconnect: wait it out and let the caller reload what the server
+          // saved (her reply, or the failure it recorded - R14) instead of
+          // ending the turn as if she had simply stopped.
+          received = (await waitForWorkspaceRunToSettle(effectiveConnectionId, controller.signal)) || received;
         }
       } catch (error) {
         if (error instanceof MariWorkspaceRunError) throw error;
@@ -5250,6 +5377,7 @@ export function HomeProfessorMariChat({
         workspaceTextThrottle.flush();
         workspaceAbortRef.current = null;
         setWorkspaceActive(false);
+        setWorkspaceRunClock((clock) => clock && { ...clock, endedAt: Date.now() });
         useChatStore.getState().setAbortController(chat.id, null);
         useChatStore.getState().setMariPhase(chat.id, "idle");
         // The omnibar's working rings read the status poll; refresh it now so they stop with her.
@@ -5397,17 +5525,23 @@ export function HomeProfessorMariChat({
         if (!received && !hiddenDuringStream) throw new Error("Professor Mari did not return a regenerated response");
         void refreshAfterWorkspaceRun(chatId, runId);
       } catch (error) {
-        console.error("[Professor Mari] Failed to regenerate response", error);
         void loadMessages(chatId).catch(() => undefined);
-        toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariCouldNotRegenerateThatResponse"), {
-          description: describeProfessorMariError(error),
-        });
+        failRun(error, retryOf(initialMessages[initialIndex - 1]));
       } finally {
         regenerationInFlightRef.current = false;
         setSending(false);
       }
     },
-    [chatId, effectiveConnectionId, isBusy, loadMessages, localizeUi, refreshAfterWorkspaceRun, sendWorkspaceMessage],
+    [
+      chatId,
+      effectiveConnectionId,
+      failRun,
+      isBusy,
+      loadMessages,
+      localizeUi,
+      refreshAfterWorkspaceRun,
+      sendWorkspaceMessage,
+    ],
   );
 
   const handleEditAndResend = useCallback(
@@ -5455,17 +5589,23 @@ export function HomeProfessorMariChat({
         if (!received && !hiddenDuringStream) throw new Error("Professor Mari did not answer the edited message");
         void refreshAfterWorkspaceRun(chatId, runId);
       } catch (error) {
-        console.error("[Professor Mari] Failed to resend an edited message", error);
         void loadMessages(chatId).catch(() => undefined);
-        toast.error(localizeUi("ui.chat.homeprofessormarichat.couldNotResendEdit"), {
-          description: describeProfessorMariError(error),
-        });
+        failRun(error, { ...retryOf(userMessage), text: content });
       } finally {
         regenerationInFlightRef.current = false;
         setSending(false);
       }
     },
-    [chatId, effectiveConnectionId, isBusy, loadMessages, localizeUi, refreshAfterWorkspaceRun, sendWorkspaceMessage],
+    [
+      chatId,
+      effectiveConnectionId,
+      failRun,
+      isBusy,
+      loadMessages,
+      localizeUi,
+      refreshAfterWorkspaceRun,
+      sendWorkspaceMessage,
+    ],
   );
 
   const handleRemoveAttachment = useCallback(
@@ -5509,7 +5649,10 @@ export function HomeProfessorMariChat({
 
   const handleSubmit = async (
     overrideText?: string,
-    overrideRecovery?: Pick<ProfessorMariRecovery, "attachments" | "context" | "localMessageId">,
+    overrideRecovery?: Pick<ProfessorMariRecovery, "attachments" | "context" | "localMessageId"> & {
+      /** A retry: reuse your message when the server already saved it, instead of sending it twice. */
+      reuseSavedMessage?: boolean;
+    },
     overrideContext?: ProfessorMariAskContext | null,
   ) => {
     const text = (overrideText ?? draft).trim();
@@ -5535,6 +5678,8 @@ export function HomeProfessorMariChat({
     }
 
     setSending(true);
+    // R14: a new message or a retry answers the failure at once: no red while she starts again.
+    setRecovery(null);
     // D1: the appended arrival is local UI only — it never lingers once the user is really sending.
     setAppendedArrival(null);
     let localMessageId: string | undefined;
@@ -5547,14 +5692,23 @@ export function HomeProfessorMariChat({
       clearMariPlan();
       if (!overrideRecovery) setAttachments([]);
       setHandoffContext(persistentResourceContext(submittedContext));
-      const localMessage = createLocalUserMessage(chat.id, messageText, submittedAttachments, submittedContext);
-      localMessageId = localMessage.id;
-      setMessages((current) => [
-        ...current.filter((message) => message.id !== overrideRecovery?.localMessageId),
-        localMessage,
-      ]);
-      // M4: place the question at the top once, in the same commit the message lands in.
-      setTurnStartMessageId(localMessage.id);
+      let existingUserMessageId: string | undefined;
+      if (overrideRecovery?.reuseSavedMessage) {
+        const saved = (await loadMessages(chat.id, { restoreFocus: false }).catch(() => undefined))?.at(-1);
+        if (saved?.role === "user" && saved.content === messageText) existingUserMessageId = saved.id;
+      }
+      if (existingUserMessageId) {
+        setTurnStartMessageId(existingUserMessageId);
+      } else {
+        const localMessage = createLocalUserMessage(chat.id, messageText, submittedAttachments, submittedContext);
+        localMessageId = localMessage.id;
+        setMessages((current) => [
+          ...current.filter((message) => message.id !== overrideRecovery?.localMessageId),
+          localMessage,
+        ]);
+        // M4: place the question at the top once, in the same commit the message lands in.
+        setTurnStartMessageId(localMessage.id);
+      }
       if (messagesRef.current.length === 0 && (chat.name ?? "") === PROFESSOR_MARI_DEFAULT_CHAT_NAME) {
         const autoTitle = buildProfessorMariAutoTitle(messageText);
         if (autoTitle) {
@@ -5570,31 +5724,23 @@ export function HomeProfessorMariChat({
         chat,
         messageText,
         submittedAttachments,
-        undefined,
+        existingUserMessageId,
         submittedContext,
       );
-      setRecovery(null);
+      // No answer at all is a failure like any other: the same red state and card, not a toast that leaves.
+      if (!received && !hiddenDuringStream)
+        throw new Error(localizeUi("ui.chat.homeprofessormarichat.professorMariDidNotReceiveAReplyFromThe"));
       void refreshAfterWorkspaceRun(chat.id, runId);
-      if (!received && !hiddenDuringStream) {
-        toast.error(localizeUi("ui.chat.homeprofessormarichat.professorMariDidNotReceiveAReplyFromThe"), {
-          description: localizeUi("ui.chat.homeprofessormarichat.theModelOrServerMayStillBeBusyThis"),
-          duration: PROFESSOR_MARI_ERROR_TOAST_DURATION_MS,
-        });
-      }
     } catch (error) {
-      if (isProfessorMariAbortError(error)) return;
-      // Like Claude: your message stays where you sent it and one error Note with Retry sits under it.
+      // Like Claude: your message stays where you sent it and one error card with Retry sits under the turn.
       // No toast over her header, and the text is not pushed back into the composer as a duplicate.
-      setHandoffContext(submittedContext);
-      setRecovery({
+      if (!isProfessorMariAbortError(error)) setHandoffContext(submittedContext);
+      failRun(error, {
         text: messageText,
         attachments: submittedAttachments,
         context: submittedContext,
-        kind: classifyProfessorMariFailure(error),
-        detail: describeProfessorMariError(error),
         localMessageId,
       });
-      console.error("[Professor Mari] Failed to send", error);
     } finally {
       setSending(false);
     }
@@ -5679,10 +5825,51 @@ export function HomeProfessorMariChat({
     focusComposer();
   };
 
-  const retryRecovery = () => {
-    if (!recovery) return;
-    setHandoffContext(recovery.context);
-    void handleSubmit(recovery.text, recovery);
+  // R14: Retry sends the failed turn's message again - from this session, or from the saved turn after a
+  // reload - reusing your message when the server already saved it.
+  const retryRun = () => {
+    const target = recovery ?? (savedRunError ? retryOf(lastUserMessage) : null);
+    if (!target?.text) return;
+    setHandoffContext(target.context);
+    void handleSubmit(target.text, { ...target, reuseSavedMessage: true });
+  };
+  const retryRunEvent = useEffectEvent(retryRun);
+  // "Retry with another model" opens the composer's own connection menu; picking a different one retries.
+  const [retryAfterPickFrom, setRetryAfterPickFrom] = useState<string | null>(null);
+  const retryWithAnotherModel = () => {
+    setRetryAfterPickFrom(effectiveConnectionId ?? "");
+    setPermissionsMenuOpen(false);
+    setConnectionMenuOpen(true);
+  };
+  useEffect(() => {
+    if (retryAfterPickFrom === null) return;
+    if (effectiveConnectionId && effectiveConnectionId !== retryAfterPickFrom) {
+      setRetryAfterPickFrom(null);
+      retryRunEvent();
+    } else if (!connectionMenuOpen) setRetryAfterPickFrom(null);
+  }, [connectionMenuOpen, effectiveConnectionId, retryAfterPickFrom]);
+  // Dismiss answers the failure without a retry: the card folds to its quiet line and the red goes.
+  const dismissRunError = async () => {
+    setRecovery(null);
+    const id = chatId;
+    if (!id) return;
+    try {
+      const saved = (await loadMessages(id, { restoreFocus: false }))?.at(-1);
+      const error = saved ? getMessageRunError(saved) : null;
+      if (saved && error) {
+        await api.patch(`/chats/${id}/messages/${saved.id}/extra`, { mariRunError: { ...error, dismissed: true } });
+        await loadMessages(id, { restoreFocus: false });
+      }
+      // The server keeps the failure for the top-bar line until a run or a reset clears it.
+      if (workspaceStatus?.error) {
+        await api.post("/professor-mari/workspace/reset", {});
+        setWorkspaceStatus((current) => current && { ...current, error: null });
+      }
+    } catch (error) {
+      console.error("[Professor Mari] Failed to dismiss the error", error);
+    } finally {
+      void qc.invalidateQueries({ queryKey: professorMariWorkspaceStatusKeys.all });
+    }
   };
 
   const [requestedReviewId, setRequestedReviewId] = useState<string | null>(null);
@@ -5837,7 +6024,7 @@ export function HomeProfessorMariChat({
       id: "context",
       Icon: Eye,
       label: localizeUi("ui.chat.homeprofessormarichat.awareOf"),
-      shortLabel: localizeUi("ui.chat.homeprofessormarichat.awareOfChipsLabel"),
+      shortLabel: localizeUi("ui.chat.homeprofessormarichat.awareOf"),
       count: persistentContextCount + oneShotContextFacets.length,
     },
     {
@@ -6029,12 +6216,18 @@ export function HomeProfessorMariChat({
   const omnibarStatusChrome =
     omnibarMode && omnibarStatusSlot
       ? createPortal(
-          <span className="mari-status-shimmer" data-active={isBusy ? "true" : undefined}>
+          <span
+            className="mari-status-shimmer"
+            data-active={isBusy ? "true" : undefined}
+            data-state={mariPresentationState === "broken" ? "error" : undefined}
+          >
             {isBusy
               ? localizeUi("ui.chat.homeprofessormarichat.workingOnIt")
-              : visiblePendingChangeReviews.length > 0
-                ? localizeUi("mari.presence.needsYouShort")
-                : localizeUi("ui.chat.homeprofessormarichat.readyToHelp")}
+              : mariPresentationState === "broken"
+                ? localizeUi("ui.chat.homeprofessormarichat.statusFailed")
+                : visiblePendingChangeReviews.length > 0
+                  ? localizeUi("mari.presence.needsYouShort")
+                  : localizeUi("ui.chat.homeprofessormarichat.readyToHelp")}
           </span>,
           omnibarStatusSlot,
         )
@@ -6087,19 +6280,51 @@ export function HomeProfessorMariChat({
     </div>
   );
 
-  // I5: a failed send is one red line right under your message, with Retry - not a status line of hers.
-  const sendFailedLine = recovery ? (
-    <p className="mari-send-failed" role="alert">
-      <AlertTriangle size="0.8rem" aria-hidden="true" />
-      <span className="mari-send-failed__text">
-        {localizeUi(`ui.chat.homeprofessormarichat.recovery.${recovery.kind}`)}
-        {recovery.detail ? <span className="mari-note__detail"> {recovery.detail}</span> : null}
-      </span>
-      <button type="button" onClick={retryRecovery} disabled={isBusy} className="mari-link">
-        {localizeUi("ui.chat.homeprofessormarichat.retry")}
-      </button>
-    </p>
-  ) : null;
+  // R14: the newest unresolved failure is one card at the end of the turn: what broke, Retry, Retry with
+  // another model, and Dismiss. Older failures are one quiet "Failed · reason" line (runFailedLine).
+  const renderRunErrorCard = (error: { kind?: ProfessorMariRecovery["kind"]; detail?: string }, retry: boolean) => (
+    <div className="mari-run-error" role="alert" data-component="HomeProfessorMariChat.RunError">
+      <p className="mari-run-error__text">
+        <AlertTriangle size="0.8rem" aria-hidden="true" />
+        <span>
+          {error.kind ? (
+            <span className="mari-run-error__label">
+              {localizeUi(`ui.chat.homeprofessormarichat.recovery.${error.kind}`)}
+            </span>
+          ) : null}
+          {error.detail ? <span className="mari-note__detail"> {error.detail}</span> : null}
+        </span>
+      </p>
+      <div className="mari-run-error__actions">
+        {retry ? (
+          <>
+            <button type="button" onClick={retryRun} className="mari-link">
+              {localizeUi("ui.chat.homeprofessormarichat.retry")}
+            </button>
+            <button type="button" onClick={retryWithAnotherModel} className="mari-link">
+              {localizeUi("ui.chat.homeprofessormarichat.retryWithAnotherModel")}
+            </button>
+          </>
+        ) : null}
+        <button type="button" onClick={() => void dismissRunError()} className="mari-link mari-run-error__dismiss">
+          {localizeUi("ui.chat.homeprofessormarichat.dismissError")}
+        </button>
+      </div>
+    </div>
+  );
+  const runFailedLine = (message: Message) => {
+    const error = getMessageRunError(message, { includeDismissed: true });
+    // The newest turn's failure is the card while it is unresolved, and nothing while she retries it.
+    if (!error || (message.id === latestMessage?.id && (activeRunError || isBusy))) return null;
+    return (
+      <p className="mari-run-failed-line" title={error.message}>
+        <AlertTriangle size="0.75rem" aria-hidden="true" />
+        <span className="min-w-0 truncate">
+          {localizeUi("ui.chat.homeprofessormarichat.runFailedLine", { reason: error.message })}
+        </span>
+      </p>
+    );
+  };
 
   const openActionResult = useCallback(
     async (result: MariWorkspaceActionResult) => {
@@ -6221,6 +6446,13 @@ export function HomeProfessorMariChat({
     );
   };
 
+  // R14 (item 7): a reply's run counts from your message before it.
+  const sentAtBefore = (message: Message) => {
+    const index = messages.findIndex((item) => item.id === message.id);
+    const sent = messages.slice(0, Math.max(0, index)).findLast((item) => item.role === "user");
+    return sent ? Date.parse(sent.createdAt) || null : null;
+  };
+
   const renderDisplayMessage = (message: Message) => {
     const canManageMessage = true;
     const messageContext = getProfessorMariMessageContext(message);
@@ -6250,8 +6482,9 @@ export function HomeProfessorMariChat({
           pullTarget={!appendedArrival}
           reviews={renderTurnReviews(message.id)}
           goal={renderGoal(message)}
+          runStartedAtMs={sentAtBefore(message)}
         />
-        {recovery?.localMessageId === message.id ? sendFailedLine : null}
+        {runFailedLine(message)}
       </div>
     );
   };
@@ -6649,6 +6882,20 @@ export function HomeProfessorMariChat({
                                       active={workspaceTimelineActive}
                                       restStory={latestTurnRestStory}
                                       pullTarget={!appendedArrival}
+                                      runFailed={
+                                        Boolean(activeRunError) ||
+                                        Boolean(
+                                          latestMessage &&
+                                          getMessageRunError(latestMessage, { includeDismissed: true }),
+                                        )
+                                      }
+                                      startedAtMs={
+                                        workspaceRunClock?.startedAt ??
+                                        (lastUserMessage ? Date.parse(lastUserMessage.createdAt) || null : null)
+                                      }
+                                      endedAtMs={workspaceRunClock?.endedAt ?? null}
+                                      characterPreviews={characterPreviewById}
+                                      lorebookPreviews={lorebookPreviewById}
                                       goal={
                                         !workspaceTimelineActive && latestMessage ? renderGoal(latestMessage) : null
                                       }
@@ -6675,7 +6922,10 @@ export function HomeProfessorMariChat({
                                     A failed send is its red line under your message, not also a line of hers.
                                     Held back while the live timeline is still mounted (M4): the reload that
                                     clears it also brings the trace whose timeline then shows her. */}
-                                  {restingStory && !latestTurnHasTrace && !recovery && !workspaceTimelineVisible ? (
+                                  {restingStory &&
+                                  !latestTurnHasTrace &&
+                                  !activeRunError &&
+                                  !workspaceTimelineVisible ? (
                                     <div
                                       className="mari-work-timeline__live"
                                       data-past={latestMessage?.role === "assistant" ? "true" : undefined}
@@ -6695,15 +6945,11 @@ export function HomeProfessorMariChat({
                                       ) : null}
                                     </div>
                                   ) : null}
-                                  {recovery &&
-                                  !displayMessages.some((message) => message.id === recovery.localMessageId)
-                                    ? sendFailedLine
-                                    : null}
-                                  {workspaceStatus?.error ? (
-                                    <MariNote tone="danger" role="alert">
-                                      {workspaceStatus.error}
-                                    </MariNote>
-                                  ) : null}
+                                  {activeRunError
+                                    ? renderRunErrorCard(activeRunError, true)
+                                    : workspaceStatus?.error && !isBusy
+                                      ? renderRunErrorCard({ detail: workspaceStatus.error }, false)
+                                      : null}
                                   {reviewsByTurn.unassigned.length > 0 ? (
                                     <div className="space-y-3">{reviewsByTurn.unassigned.map(renderTurnPrompt)}</div>
                                   ) : null}
@@ -6852,7 +7098,7 @@ export function HomeProfessorMariChat({
                           >
                             {attachments.length > 0 ||
                             isReadingAttachments ||
-                            oneShotContextFacets.length > 0 ||
+                            composerContextFacets.length > 0 ||
                             oneShotContext?.query ? (
                               <div className="mari-workspace-composer__context">
                                 <ProfessorMariAttachmentPreviews
@@ -6862,9 +7108,9 @@ export function HomeProfessorMariChat({
                                     setAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index))
                                   }
                                 />
-                                {oneShotContextFacets.length > 0 ? (
+                                {composerContextFacets.length > 0 ? (
                                   <MariContextFacetChips
-                                    facets={oneShotContextFacets}
+                                    facets={composerContextFacets}
                                     onRemove={removeOneShotFacet}
                                     className="contents"
                                   />

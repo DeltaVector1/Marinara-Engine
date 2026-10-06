@@ -47,6 +47,8 @@ export interface MariEdgeInput {
   pendingApprovalIds: readonly string[];
   latestHistoryId: string | null;
   latestHistoryFailed: boolean;
+  /** R14: an unresolved failure. It stays red, seen or not, until a run, a retry or Dismiss clears it. */
+  runFailed?: boolean;
   /** Her window (the omnibar Mari pane) is open and showing the result. */
   viewing: boolean;
 }
@@ -80,6 +82,7 @@ export function resolveMariEdgeGlow(seen: MariEdgeSeenState, input: MariEdgeInpu
   const hasUnseenApproval = input.pendingApprovalIds.some((id) => !seen.seenApprovalIds.includes(id));
   if (input.needsAttention && hasUnseenApproval) return "approval";
   if (input.working) return "working";
+  if (input.runFailed) return "error";
   const historyUnseen = input.latestHistoryId !== null && input.latestHistoryId !== seen.seenHistoryId;
   if (historyUnseen && input.latestHistoryFailed) return "error";
   return historyUnseen || seen.unseenRun ? "finished" : null;

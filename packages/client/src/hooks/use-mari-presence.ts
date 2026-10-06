@@ -32,6 +32,8 @@ export interface MariPresence {
   latestHistoryId: string | null;
   /** The newest history entry failed. */
   latestHistoryFailed: boolean;
+  /** R14: her last run failed and nothing has answered it yet (a run, a retry, or Dismiss). */
+  runFailed: boolean;
 }
 
 export function useMariPresence(): MariPresence {
@@ -45,6 +47,7 @@ export function useMariPresence(): MariPresence {
     // getHistory() reverses after slicing, so the newest entry is first.
     latestHistoryId: status.data?.history[0]?.id ?? null,
     latestHistoryFailed: status.data?.history[0]?.status === "failed",
+    runFailed: Boolean(status.data?.error),
   };
 }
 
@@ -72,6 +75,7 @@ export function useMariEdgeGlow(): MariEdgeGlow {
     pendingApprovalIdsKey,
     presence.latestHistoryId,
     presence.latestHistoryFailed,
+    presence.runFailed,
     viewing,
   ]);
 
