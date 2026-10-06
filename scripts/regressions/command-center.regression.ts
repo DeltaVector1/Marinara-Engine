@@ -51,6 +51,7 @@ import {
   buildOmnibarSearchResults,
   buildOmnibarVerbSuggestions,
   findMentionedResults,
+  idleOmnibarContextResults,
   matchesAtWordStart,
 } from "../../packages/client/src/lib/omnibar-results.js";
 import {
@@ -1429,6 +1430,81 @@ assert.ok(!("mariDetailId" in mariSession));
     "professor-suggested",
     "a direct hit elsewhere (the message row) keeps Mari out of the suggested group",
   );
+}
+
+// Slice 65 (R6): with no model, a question no longer lifts "Ask Mari" above docs/FAQ rows; a dead end still does.
+{
+  const identity = (text: string) => text;
+  const input = {
+    chatControls: [],
+    contextLabels: {},
+    controls: [],
+    data: { commands: [], chats: [], resources: [], connections: [], askProfessorTitle: "Ask" },
+    deferredQuery: "how do lorebooks work?",
+    docsResults: [],
+    faqItems: [],
+    getFaqSearchText: () => "",
+    localize: identity,
+    mariEnabled: true,
+    omnibarContext: {
+      surface: "home",
+      surfaceResultIds: [],
+      editorDirty: false,
+      recentResultIds: [],
+      setupResultIds: [],
+    } as never,
+    t: ((_key: string, fallback?: string) => fallback ?? _key) as never,
+  };
+  const mariGroup = (results: OmnibarResult[]) => results.find((result) => result.id === "ask-professor-mari")?.group;
+  const doc = { id: "doc:lorebooks", title: "Lorebooks Overview", source: "Guides", snippet: "How lorebooks work" };
+  assert.equal(
+    mariGroup(buildOmnibarSearchResults({ ...input, docsResults: [doc as never], directHitCount: 1 })),
+    "professor-suggested",
+    "with a model, a question still promotes Mari",
+  );
+  assert.notEqual(
+    mariGroup(
+      buildOmnibarSearchResults({ ...input, docsResults: [doc as never], directHitCount: 1, mariHasModel: false }),
+    ),
+    "professor-suggested",
+    "with no model, docs rows lead and Mari is not promoted",
+  );
+  assert.notEqual(
+    mariGroup(
+      buildOmnibarSearchResults({
+        ...input,
+        mariHasModel: false,
+        faqItems: [{ id: "lb", category: "data", question: "How do lorebooks work?", answer: "Entries." }],
+        getFaqSearchText: (item) => item.question,
+      }),
+    ),
+    "professor-suggested",
+    "with no model, an FAQ hit leads too",
+  );
+  assert.equal(
+    mariGroup(buildOmnibarSearchResults({ ...input, mariHasModel: false })),
+    "professor-suggested",
+    "with no model and nothing else, the dead end still offers her row (and its Choose a model hint)",
+  );
+}
+
+// Slice 65 (R6): the empty list drops the chat's own model, preset and persona rows, but keeps a Fix row.
+{
+  const row = (id: string) => ({ id, title: id, category: "chat", score: 0 }) as OmnibarResult;
+  const rows = ["chat:c1", "character:a", "persona:p1", "preset:s1", "connection:k1", "chat-tool:search:c1"].map(row);
+  const chat = { connectionId: "k1", promptPresetId: "s1", personaId: "p1" };
+  assert.deepEqual(
+    idleOmnibarContextResults(rows, chat, null).map((result) => result.id),
+    ["chat:c1", "character:a", "chat-tool:search:c1"],
+    "composer duplicates are gone from the empty list",
+  );
+  assert.ok(
+    idleOmnibarContextResults([row("connection:k1"), ...rows], chat, "connection:k1").some(
+      (result) => result.id === "connection:k1",
+    ),
+    "a Fix row on the chat's connection stays",
+  );
+  assert.equal(idleOmnibarContextResults(rows, null, null).length, rows.length, "no active chat, nothing dropped");
 }
 
 // Slice 41 (F2): "import" lists import rows, not create rows; "new" stays create-only.

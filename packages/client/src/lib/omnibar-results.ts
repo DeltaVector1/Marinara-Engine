@@ -60,7 +60,7 @@ const MAX_GLOBAL_MESSAGE_SEARCH_RESULTS = 6;
  * rather than the builder, because "remove" reads the same rows and must see
  * every attached thing, not the first eight.
  */
-export const CHAT_CONTEXT_MAX_RESULTS = 8;
+const CHAT_CONTEXT_MAX_RESULTS = 8;
 const MAX_SLASH_RESULTS = 8;
 /**
  * Slash commands worth offering before anything is typed while a chat is open.
@@ -187,6 +187,11 @@ export type OmnibarSearchResultsInput = {
   getFaqSearchText: (item: HomeFaqItem, localize: (englishText: string) => string) => string;
   localize: (englishText: string) => string;
   mariEnabled: boolean;
+  /**
+   * R6 (slice 65): false when no language connection and no local model exist (a fresh install).
+   * Mari cannot answer then, so her row is only promoted on a dead end, never above docs or FAQ rows.
+   */
+  mariHasModel?: boolean;
   /** Clock for the frecency boost's recency decay; defaults to Date.now(). */
   now?: number;
   omnibarContext: OmnibarContext;
@@ -541,6 +546,30 @@ export function buildOmnibarChatControlResults({
   return rows;
 }
 
+/**
+ * R6 (slice 65): the empty list without the chat's own model, preset and persona rows. They only
+ * repeated the composer's switchers, which win (value table tasks 3 and 11). Typing still finds them,
+ * and "remove …" still reads them from the full context rows. A Fix row on that connection stays.
+ */
+export function idleOmnibarContextResults(
+  contextResults: readonly OmnibarResult[],
+  activeChat: Pick<Chat, "connectionId" | "promptPresetId" | "personaId"> | null,
+  fixRowId: string | null,
+): OmnibarResult[] {
+  const composerRowIds = new Set(
+    activeChat
+      ? [
+          `connection:${activeChat.connectionId}`,
+          `preset:${activeChat.promptPresetId}`,
+          `persona:${activeChat.personaId}`,
+        ]
+      : [],
+  );
+  return contextResults
+    .filter((result) => result.id === fixRowId || !composerRowIds.has(result.id))
+    .slice(0, CHAT_CONTEXT_MAX_RESULTS);
+}
+
 export function buildOmnibarSearchResults({
   chatControls,
   contextLabels,
@@ -554,6 +583,7 @@ export function buildOmnibarSearchResults({
   getFaqSearchText,
   localize,
   mariEnabled,
+  mariHasModel = true,
   now = Date.now(),
   omnibarContext,
   t,
@@ -654,15 +684,18 @@ export function buildOmnibarSearchResults({
     typeof directResult.availability === "object" &&
     directResult.availability.setupTarget;
   const clearDirect = Boolean(directResult && directResult.score >= 250 && (directIntent || directSetup));
+  const deadEnd = bestMatchScore < 150 && !directHitCount;
   const promoteMari =
     !clearDirect &&
+    // Without a model the docs and FAQ rows are the answer (R6): a question alone no longer promotes her.
+    (mariHasModel || (deadEnd && faqResults.length === 0)) &&
     (intent?.kind === "explain" ||
       intent?.kind === "recommend" ||
       intent?.kind === "repair" ||
       /\?\s*$|^\s*(?:who|what|where|which|when|can|could|should|would|is|are|do|does|did|help|tell)\b/i.test(
         trimmedQuery,
       ) ||
-      (bestMatchScore < 150 && !directHitCount));
+      deadEnd);
   const askResults = baseResults.map((result) =>
     result.id === "ask-professor-mari"
       ? {

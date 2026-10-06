@@ -155,6 +155,7 @@ import {
   MIN_MESSAGE_SEARCH_LENGTH,
   buildOmnibarChatControlResults,
   buildOmnibarContextResults,
+  idleOmnibarContextResults,
   buildOmnibarApprovalResults,
   buildOmnibarContinueResult,
   buildOmnibarControlResults,
@@ -167,7 +168,6 @@ import {
   buildOmnibarVerbSuggestions,
   buildOmnibarIntentShortcuts,
   buildOmnibarNewChatCommands,
-  CHAT_CONTEXT_MAX_RESULTS,
   buildOmnibarRemovalSuggestions,
   buildOmnibarSearchResults,
   buildOmnibarSlashResults,
@@ -1223,6 +1223,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // kind of late-arriving direct answer (search results that land after their
   // own debounce), so they count too — "Ask Mari" must not outrank a direct
   // hit from any of these late sources (O4 item 2b / tasks 6 and 13).
+  // R6: a fresh install (no language connection, no local model) gets docs first, not "Ask Mari".
+  // While connections load, keep the old behavior rather than reorder the list when they land.
+  const localModelDownloaded = useSidecarStore((state) => state.modelDownloaded);
+  const mariHasModel = !connections.data || languageConnections.length > 0 || localModelDownloaded;
   const directHitCount =
     messageResults.length + globalMessageResults.length + lorebookEntryResults.length + docs.results.length;
   const searchResults = useMemo<OmnibarResult[]>(
@@ -1240,6 +1244,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         getFaqSearchText,
         localize,
         mariEnabled,
+        mariHasModel,
         omnibarContext,
         t,
       }),
@@ -1254,6 +1259,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       frecencyEntries,
       localize,
       mariEnabled,
+      mariHasModel,
       omnibarContext,
       t,
     ],
@@ -1692,7 +1698,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 : searchResults),
             ]
           : [
-              ...contextResults.slice(0, CHAT_CONTEXT_MAX_RESULTS),
+              ...idleOmnibarContextResults(
+                contextResults,
+                activeChat?.id === activeChatId ? (activeChat ?? null) : null,
+                lastAppError?.retry?.kind === "open-connection" ? `connection:${lastAppError.retry.id}` : null,
+              ),
               ...frecentIdleResults,
               ...recentChatResults,
               ...slashResults,
@@ -1705,9 +1715,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       addSuggestions,
       addedResultIds,
       removedResultIds,
+      activeChat,
+      activeChatId,
       contextResults,
       frecentIdleResults,
       intentShortcuts,
+      lastAppError,
       newChatCommands,
       recentChatResults,
       approvalResults,
