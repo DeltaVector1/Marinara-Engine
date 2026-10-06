@@ -389,7 +389,7 @@ function CollapsibleBlock({
     <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)]/50 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-[var(--accent)]/50"
+        className="mari-chat-style-control flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-[var(--accent)]/50"
       >
         {open ? (
           <ChevronDown size="0.75rem" className="shrink-0 text-[var(--muted-foreground)]" />
@@ -406,7 +406,7 @@ function CollapsibleBlock({
       </button>
       {open && (
         <div className="border-t border-[var(--border)]/50 px-3 py-2">
-          <pre className="whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--foreground)]/80">
+          <pre className="mari-chat-style-text whitespace-pre-wrap break-words text-xs leading-relaxed text-[var(--foreground)]/80">
             {content}
           </pre>
         </div>
@@ -437,7 +437,7 @@ function ChatHistorySection({
     <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)]/50 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-[var(--accent)]/50"
+        className="mari-chat-style-control flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-[var(--accent)]/50"
       >
         {open ? (
           <ChevronDown size="0.75rem" className="shrink-0 text-[var(--muted-foreground)]" />
@@ -486,7 +486,7 @@ function ChatHistoryMessage({ entry, roleColor }: { entry: ChatHistoryEntry; rol
     <div className="rounded-md border border-[var(--border)]/30 bg-[var(--background)]/50 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left transition-colors hover:bg-[var(--accent)]/30"
+        className="mari-chat-style-control flex w-full items-center gap-2 px-2.5 py-1.5 text-left transition-colors hover:bg-[var(--accent)]/30"
       >
         {open ? (
           <ChevronDown size="0.625rem" className="shrink-0 text-[var(--muted-foreground)]" />
@@ -503,7 +503,7 @@ function ChatHistoryMessage({ entry, roleColor }: { entry: ChatHistoryEntry; rol
       </button>
       {open && (
         <div className="border-t border-[var(--border)]/30 px-2.5 py-1.5">
-          <pre className="whitespace-pre-wrap break-words text-[0.6875rem] leading-relaxed text-[var(--foreground)]/80">
+          <pre className="mari-chat-style-text whitespace-pre-wrap break-words text-[0.6875rem] leading-relaxed text-[var(--foreground)]/80">
             {entry.content}
           </pre>
         </div>
@@ -585,7 +585,10 @@ export function PeekPromptModal({ data: originalData, onClose }: PeekPromptModal
       {...backdropDismiss}
     >
       <div
-        className={cn(NEUTRAL_PANEL_SHELL, "mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden")}
+        className={cn(
+          NEUTRAL_PANEL_SHELL,
+          "mari-chat-style-surface mari-chat-action-panel mx-4 flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden",
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={cn(NEUTRAL_PANEL_HEADER, "shrink-0 flex items-center justify-between gap-3 px-5 py-3")}>
@@ -610,7 +613,7 @@ export function PeekPromptModal({ data: originalData, onClose }: PeekPromptModal
           </div>
           <button
             onClick={onClose}
-            className="mari-chrome-control mari-chrome-control--small p-1.5"
+            className="mari-chat-style-control mari-chrome-control mari-chrome-control--small p-1.5"
             aria-label={localizeUi("ui.chat.peekpromptmodal.closeAssembledPrompt")}
           >
             <X size="1rem" />
@@ -642,7 +645,7 @@ export function PeekPromptModal({ data: originalData, onClose }: PeekPromptModal
               </p>
               <button
                 type="button"
-                className="mari-chrome-control min-h-10 px-3"
+                className="mari-chat-style-control mari-chrome-control min-h-10 px-3"
                 onClick={() => setShowTest(!showTest)}
               >
                 {localizeUi(showTest ? "decisionDebug.showOriginal" : "decisionDebug.showTest")}

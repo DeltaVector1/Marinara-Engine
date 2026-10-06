@@ -2204,6 +2204,7 @@ const LocalChatArea = memo(function LocalChatArea({
           title: localizeUi("ui.chat.chatarea.regenerateMessage"),
           message: localizeUi("ui.chat.chatarea.regenerateThisMessageAsANewSwipe"),
           confirmLabel: localizeUi("ui.agents.secretplotpanel.regenerate"),
+          chatStyle: true,
         }))
       ) {
         return;
@@ -2370,6 +2371,7 @@ const LocalChatArea = memo(function LocalChatArea({
         title: localizeUi("ui.chat.chatarea.createANewBranch"),
         message: localizeUi("ui.chat.chatarea.thisWillCopyTheChatThroughThisMessageAnd"),
         confirmLabel: localizeUi("ui.chat.chatarea.createBranch"),
+        chatStyle: true,
       });
       if (!confirmed || useChatStore.getState().activeChatId !== chatId) {
         branchPendingRef.current = false;
@@ -3323,7 +3325,8 @@ const LocalChatArea = memo(function LocalChatArea({
     : undefined;
   const activeSceneMeta = parseChatMetadata(activeSceneChat?.metadata);
   const hasActiveLinkedScene = activeSceneChat && activeSceneMeta.sceneStatus === "active";
-  const isSceneChat = chatMeta.sceneStatus === "active" || Boolean(chatMeta.sceneOriginChatId);
+  const isSceneChat =
+    chatMeta.sceneStatus === "active" || Boolean(chatMeta.sceneOriginChatId) || Boolean(chatMeta.scenePackageOrigin);
   const conversationSceneInfo =
     chatMeta.activeSceneChatId && hasActiveLinkedScene
       ? {
@@ -3336,6 +3339,7 @@ const LocalChatArea = memo(function LocalChatArea({
             variant: "scene" as const,
             sceneChatId: activeChatId,
             originChatId: chatMeta.sceneOriginChatId,
+            packageOrigin: chatMeta.scenePackageOrigin,
             description: chatMeta.sceneDescription,
           }
         : undefined;

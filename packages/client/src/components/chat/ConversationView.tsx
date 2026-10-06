@@ -51,6 +51,7 @@ import {
   stripLeadingMessageTimestamps,
   type InstalledCapabilityPackage,
   type Message,
+  type ScenePackageOrigin,
 } from "@marinara-engine/shared";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { CapabilityElement } from "../capabilities/CapabilityElement";
@@ -108,6 +109,7 @@ interface ConversationViewProps {
     sceneChatId?: string;
     sceneChatName?: string;
     originChatId?: string;
+    packageOrigin?: ScenePackageOrigin | null;
     description?: string;
   };
   onConcludeScene?: (sceneChatId: string) => void;
@@ -1582,6 +1584,7 @@ export function ConversationView({
         <EndSceneBar
           sceneChatId={sceneInfo.sceneChatId}
           originChatId={sceneInfo.originChatId}
+          packageOrigin={sceneInfo.packageOrigin}
           onConclude={onConcludeScene}
           onAbandon={onAbandonScene}
         />

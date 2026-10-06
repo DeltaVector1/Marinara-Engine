@@ -186,6 +186,7 @@ import {
 import { useUpdateGameWidgets } from "../../hooks/use-game";
 import { useRegexScripts, useUpdateRegexScript, type RegexScriptRow } from "../../hooks/use-regex-scripts";
 import { api } from "../../lib/api-client";
+import { EXPORT_FAILED_TOAST_ID } from "../../lib/file-download";
 import { readCharacterGreetings, type CharacterGreeting } from "../../lib/character-greetings";
 import { trackChatMetadataSave, waitForPendingChatMetadataSaves } from "../../lib/chat-metadata-save-barrier";
 import { createSerializedMutationQueue } from "../../lib/serialized-mutation-queue";
@@ -1058,7 +1059,6 @@ export function ChatSettingsDrawer({
   const toggleTrackerPanel = () => {
     if (trackerPanelShown) {
       setTrackerPanelOpen(false, chat.id);
-      setTrackerPanelEnabled(false);
       return;
     }
     // Open needs the panel enabled first.
@@ -10437,13 +10437,14 @@ function MemoryRecallMemoriesModal({
     }
 
     try {
-      await exportMemories.mutateAsync();
-      toast.success(localizeUi("ui.chat.memoryrecallmemoriesmodal.memoryRecallExported"));
+      const saveStatus = await exportMemories.mutateAsync();
+      if (saveStatus === "saved") toast.success(localizeUi("ui.chat.memoryrecallmemoriesmodal.memoryRecallExported"));
     } catch (err) {
       toast.error(
         err instanceof Error
           ? localizeUi("ui.chat.memoryrecallmemoriesmodal.exportFailedValue1", { value1: err.message })
           : localizeUi("ui.chat.memoryrecallmemoriesmodal.exportFailed"),
+        { id: EXPORT_FAILED_TOAST_ID },
       );
     }
   };

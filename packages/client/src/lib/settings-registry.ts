@@ -700,6 +700,15 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     kind: "Picker",
   },
   {
+    id: "chat-widget-button-size",
+    sectionId: "app-style",
+    label: "Button size (px)",
+    description:
+      "Resize movable chat buttons and their icons independently of Display Size. Reset to keep the current default.",
+    aliases: ["widget", "icon", "scale", "pixels", "size", "movable", "tracker", "map"],
+    kind: "Input",
+  },
+  {
     id: "chat-widget-font",
     sectionId: "app-style",
     label: "Chat widget font",
@@ -723,6 +732,30 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     aliases: ["typography", "typeface"],
     keywords: ["typeface", "font style"],
     kind: "Select",
+  },
+  {
+    id: "chat-widget-apply-font",
+    sectionId: "app-style",
+    label: "Apply preset font",
+    description: "Use the selected widget font for chat messages, input boxes and controls.",
+    aliases: ["widget", "message", "composer", "typography", "dottore", "mari"],
+    kind: "Toggle",
+  },
+  {
+    id: "chat-widget-apply-shape",
+    sectionId: "app-style",
+    label: "Apply preset shape",
+    description: "Use widget shapes for chat boxes and controls. Conversation messages keep their own shape.",
+    aliases: ["widget", "message", "composer", "rounded", "cut corner", "arched"],
+    kind: "Toggle",
+  },
+  {
+    id: "chat-widget-apply-colors",
+    sectionId: "app-style",
+    label: "Apply preset colors",
+    description: "Use widget colors and custom gradients for chat messages, input boxes and controls.",
+    aliases: ["widget", "message", "composer", "gradient", "dottore", "mari"],
+    kind: "Toggle",
   },
   {
     id: "display-size",
@@ -931,6 +964,14 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     description: "Adjust Roleplay Visual Novel full-body sprites.",
     aliases: ["roleplay", "vn", "sprite", "scale"],
     kind: "Slider",
+  },
+  {
+    id: "roleplay-chat-position",
+    sectionId: "roleplay-messages",
+    label: "Chat position",
+    description: "Where the chat sits on wide screens. Has no effect on phones.",
+    aliases: ["roleplay", "layout", "left", "right", "center", "centre", "align", "side", "column", "desktop"],
+    kind: "Button group",
   },
   {
     id: "roleplay-message-opacity",
