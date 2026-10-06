@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, MessageSquareText, Paperclip, Layers } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useInDialogFocusScope } from "../../hooks/use-in-dialog-focus-scope";
-import { cn } from "../../lib/utils";
 
 interface Props {
   onAttachFiles: () => void;
@@ -59,19 +58,19 @@ export function MariAttachButton({
         type="button"
         onClick={() => setOpen((current) => !current)}
         disabled={disabled}
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all active:scale-90 sm:h-8 sm:w-8",
-          open || attachedFileCount > 0 || attachedContextCount > 0
-            ? "bg-foreground/10 text-foreground/75"
-            : "text-foreground/40 hover:bg-foreground/10 hover:text-foreground/70",
-          disabled && "cursor-not-allowed opacity-40",
-        )}
+        // R11: a quiet 34px circle (44px hit area on touch, globals.css); filled while open or in use.
+        className="mari-composer-icon"
+        data-active={attachedFileCount > 0 || attachedContextCount > 0 ? "true" : undefined}
         title={localizeUi("ui.chat.homeprofessormarichat.attachMenuLabel")}
         aria-label={localizeUi("ui.chat.homeprofessormarichat.attachMenuLabel")}
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        {isReading ? <Loader2 size="1rem" className="animate-spin" /> : <Paperclip size="1rem" />}
+        {isReading ? (
+          <Loader2 className="animate-spin" aria-hidden="true" />
+        ) : (
+          <Paperclip strokeWidth={1.75} aria-hidden="true" />
+        )}
       </button>
 
       {open && (

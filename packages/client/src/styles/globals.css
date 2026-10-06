@@ -1482,7 +1482,8 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
    she is done. Nothing changes size in the layout: the bar's frame and contents fade, and the Send button
    slides to the center (container units) and widens into the pill. Every step is a transition, so it
    runs just as smoothly both ways. */
-.mari-professor-composer {
+.mari-professor-composer,
+.mari-workspace-composer {
   container-type: inline-size;
   transition:
     background-color 0.35s ease,
@@ -1490,29 +1491,30 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
     box-shadow 0.35s ease;
 }
 
-.mari-professor-composer > * {
+.mari-professor-composer > *,
+.mari-workspace-composer > * {
   transition: opacity 0.3s ease 0.15s;
 }
 
-.mari-professor-composer[data-collapsed="true"] {
+.mari-workspace-composer[data-collapsed="true"] {
   border-color: transparent !important;
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
 }
 
-.mari-professor-composer[data-collapsed="true"] > :not(.mari-workspace-composer__send) {
+.mari-workspace-composer[data-collapsed="true"] > :not(.mari-workspace-composer__send) {
   opacity: 0;
   pointer-events: none;
   transition-delay: 0s;
 }
 
 /* While she is busy but before Stop exists, the bar only steps back. */
-.mari-professor-composer[data-busy="true"]:not([data-collapsed]) > :not(.mari-workspace-composer__send) {
+.mari-workspace-composer[data-busy="true"]:not([data-collapsed]) > :not(.mari-workspace-composer__send) {
   opacity: 0.4;
 }
 
-.marinara-chat-input-shell .mari-workspace-composer__send {
+.mari-workspace-composer__send {
   --mari-stop-width: 6rem;
   position: relative;
   display: grid;
@@ -1525,10 +1527,11 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
     border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1),
     background-color 0.3s ease,
     border-color 0.3s ease,
-    color 0.3s ease;
+    color 0.3s ease,
+    scale 0.12s ease-out;
 }
 
-.marinara-chat-input-shell .mari-workspace-composer__send[data-mode="stop"] {
+.mari-workspace-composer__send[data-mode="stop"] {
   width: var(--mari-stop-width);
   border-color: color-mix(in srgb, var(--foreground) 16%, transparent);
   border-radius: 999px;
@@ -1538,7 +1541,7 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   transform: translateX(calc(-50cqw + var(--mari-stop-width) / 2));
 }
 
-.marinara-chat-input-shell .mari-workspace-composer__send[data-mode="stop"]:hover {
+.mari-workspace-composer__send[data-mode="stop"]:hover {
   background: color-mix(in srgb, var(--foreground) 10%, var(--card));
 }
 
@@ -1567,7 +1570,9 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
 @media (prefers-reduced-motion: reduce) {
   .mari-professor-composer,
   .mari-professor-composer > *,
-  .marinara-chat-input-shell .mari-workspace-composer__send,
+  .mari-workspace-composer,
+  .mari-workspace-composer > *,
+  .mari-workspace-composer__send,
   .mari-workspace-composer__send > [data-icon] {
     transition: none;
   }
@@ -1752,6 +1757,21 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   --mari-card-fact: 0.75rem;
   --mari-card-slot-fill: color-mix(in srgb, var(--foreground) 7%, transparent);
   --mari-card-selected: color-mix(in srgb, var(--primary) 9%, transparent);
+  /* R11 (composer v5): the composer shell and everything inside it. */
+  --mari-composer-radius: 1.125rem;
+  --mari-composer-pad: 0.5rem;
+  --mari-composer-inner-radius: calc(var(--mari-composer-radius) - var(--mari-composer-pad));
+  --mari-composer-control: 2rem;
+  --mari-composer-text: 0.875rem;
+  --mari-composer-lines: 8;
+}
+
+/* Touch: 17px text so iOS does not zoom into the field, and a 6-line cap. */
+@media (pointer: coarse) {
+  :root {
+    --mari-composer-text: 1rem;
+    --mari-composer-lines: 6;
+  }
 }
 
 [data-theme="light"] {
@@ -2388,6 +2408,28 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   min-height: 2.75rem;
 }
 
+/* R11: while a phone keyboard is open (or its menu is open) the header is one line: her name and status,
+   with the destinations in a menu in the first row. Wider screens keep both rows. */
+.mari-omnibar-header-compact-menu {
+  position: relative;
+  display: none;
+}
+
+/* --card is translucent in some themes; this menu opens over the transcript. */
+.mari-omnibar-header-compact-menu .mari-omnibar-header-menu__popover {
+  background: linear-gradient(var(--card), var(--card)) var(--background);
+}
+
+@media (max-width: 39.99rem) {
+  .mari-omnibar-header-compact-menu:not(:empty) {
+    display: inline-flex;
+  }
+
+  .mari-omnibar-header-row:has(> .mari-omnibar-header-controls[data-compact="true"]) {
+    display: none;
+  }
+}
+
 /* Her status under her name shimmers while she works, like Claude's thinking text. */
 .mari-status-shimmer[data-active="true"] {
   background: linear-gradient(100deg, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%) 0
@@ -2599,21 +2641,6 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   background: var(--card);
   padding: 0.25rem;
   box-shadow: 0 1rem 2rem color-mix(in srgb, black 24%, transparent);
-}
-
-.mari-permissions-mode-row__icon {
-  background: color-mix(in srgb, var(--foreground) 7%, transparent);
-  color: var(--muted-foreground);
-}
-
-.mari-permissions-mode-row[aria-pressed="true"] .mari-permissions-mode-row__icon {
-  background: color-mix(in srgb, var(--primary) 18%, transparent);
-  color: var(--primary);
-}
-
-.mari-permissions-mode-row[data-mode="bypass"] .mari-permissions-mode-row__icon {
-  background: color-mix(in srgb, var(--destructive) 16%, transparent);
-  color: var(--destructive);
 }
 
 .mari-omnibar-header-menu__popover button {
@@ -3778,15 +3805,172 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   margin-bottom: 0;
 }
 
-.mari-workspace-composer__attach {
+/* R11 (composer v5, docs/development/mockups/mari-v5 § Composer): Mari's composer is her own shell, not the
+   regular chat input. Text first; the controls are quiet borderless 34px capsules (a 44px hit area on touch
+   via ::after); one radius family: the shell, the shell minus its padding for anything square inside, and
+   capsules. Neutral at rest; the primary colour is only the focus ring (and the semantic Plan mode/Fix chip).
+   Send is neutral: grey while empty, solid foreground once there is something to send. */
+.mari-workspace-composer {
+  --mari-composer-fill: color-mix(in srgb, var(--foreground) 4%, var(--background));
+  position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 0.125rem;
+  padding: var(--mari-composer-pad);
+  border: 1px solid var(--mari-hairline);
+  border-radius: var(--mari-composer-radius);
+  background: var(--mari-composer-fill);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.12),
+    0 0.75rem 1.5rem -1rem rgb(0 0 0 / 0.5);
+  color: var(--foreground);
 }
 
-/* The textarea takes the whole first row; attach, the connection and the Permissions Mode sit under it
-   like Claude's, with Send on the right. */
-.mari-workspace-composer {
+[data-theme="light"] .mari-workspace-composer {
+  --mari-composer-fill: color-mix(in srgb, #fff 80%, var(--background));
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 0.75rem 1.5rem -1rem rgb(0 0 0 / 0.18);
+}
+
+.mari-workspace-composer:focus-within {
+  border-color: color-mix(in srgb, var(--primary) 50%, var(--mari-hairline));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent),
+    0 0.75rem 1.5rem -1rem rgb(0 0 0 / 0.5);
+}
+
+[data-theme="light"] .mari-workspace-composer:focus-within {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent),
+    0 0.75rem 1.5rem -1rem rgb(0 0 0 / 0.18);
+}
+
+/* Attachments first, then "Aware of" and its facets: one wrapping row inside the top edge. */
+.mari-workspace-composer__context {
+  display: flex;
+  min-width: 0;
+  flex: 1 0 100%;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem;
+  font-size: 0.6875rem;
+}
+
+.mari-workspace-composer .mari-context-facets__label {
+  margin-inline: 0.25rem 0.125rem;
+  font-weight: 500;
+}
+
+.mari-composer-chip,
+.mari-workspace-composer .mari-workspace-context-chip {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 13rem;
+  height: 1.5rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding-block: 0;
+  padding-inline: 0.5rem 0.125rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
+  color: var(--foreground);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.mari-composer-chip:not(:has(> button)) {
+  padding-inline-end: 0.5rem;
+}
+
+.mari-composer-chip > svg,
+.mari-workspace-composer .mari-workspace-context-chip > svg,
+.mari-workspace-composer .mari-workspace-context-chip > .result-type-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: none;
+  color: var(--muted-foreground);
+}
+
+.mari-composer-chip__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mari-composer-chip:has(> .mari-composer-chip__thumb) {
+  padding-inline-start: 0.1875rem;
+}
+
+.mari-composer-chip__thumb {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  border-radius: 999px;
+  object-fit: cover;
+  outline: 1px solid oklch(1 0 0 / 0.1);
+  outline-offset: -1px;
+}
+
+[data-theme="light"] .mari-composer-chip__thumb {
+  outline-color: oklch(0 0 0 / 0.1);
+}
+
+/* A facet whose content is already in the message (the reply-check Fix) keeps the primary tint; one that
+   only leaves on Send stays dashed. */
+.mari-workspace-composer .mari-workspace-context-chip:not([data-later]) {
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.mari-workspace-composer .mari-workspace-context-chip:not([data-later]) > :is(svg, .result-type-icon) {
+  color: var(--primary);
+}
+
+.mari-workspace-composer .mari-workspace-context-chip[data-later] {
+  border: 1px dashed color-mix(in srgb, var(--muted-foreground) 45%, transparent);
+  background: transparent;
+}
+
+.mari-workspace-composer .mari-workspace-context-chip__remove {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+}
+
+.mari-workspace-composer__text {
+  padding: 0.25rem 0.375rem;
+  font-size: var(--mari-composer-text);
+  line-height: 1.5;
+}
+
+.mari-workspace-composer__input {
+  display: block;
+  width: 100%;
+  min-height: calc(var(--mari-composer-text) * 1.5 + 0.5rem);
+  max-height: calc(var(--mari-composer-text) * 1.5 * var(--mari-composer-lines) + 0.5rem);
+  overflow-y: auto;
+  resize: none;
+  background: transparent;
+  color: var(--foreground);
+  outline: none;
+  scrollbar-width: thin;
+  transition: height 0.12s ease-out;
+}
+
+.mari-workspace-composer__input::placeholder {
+  color: color-mix(in srgb, var(--muted-foreground) 85%, transparent);
+}
+
+.mari-workspace-composer__input:disabled {
+  cursor: not-allowed;
+}
+
+/* Lines above the visible ones fade out at the top edge once the field scrolls. */
+.mari-workspace-composer__input[data-scrolled] {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 1.25rem);
 }
 
 .mari-composer-toolbar {
@@ -3794,7 +3978,13 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   min-width: 0;
   flex: 1 1 0;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.125rem;
+}
+
+.mari-workspace-composer__attach {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .mari-composer-menu {
@@ -3802,32 +3992,92 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   min-width: 0;
 }
 
-.mari-composer-menu__trigger {
-  max-width: 14rem;
-}
-
-.mari-composer-menu__trigger svg {
+.mari-composer-icon,
+.mari-composer-menu__trigger,
+.mari-workspace-composer__send {
+  position: relative;
+  height: var(--mari-composer-control);
   flex: none;
+  border-radius: 999px;
 }
 
-.mari-chrome-control.mari-composer-menu__trigger[data-mode="bypass"] {
-  border-color: color-mix(in srgb, var(--destructive) 45%, transparent);
-  color: var(--destructive);
+.mari-composer-icon,
+.mari-composer-menu__trigger {
+  color: var(--muted-foreground);
+  transition:
+    background-color 0.12s ease-out,
+    color 0.12s ease-out;
 }
 
-.mari-chrome-control.mari-composer-menu__trigger[data-mode="plan"] {
+.mari-composer-icon {
+  display: grid;
+  width: var(--mari-composer-control);
+  place-items: center;
+}
+
+.mari-composer-icon > svg {
+  width: 1.0625rem;
+  height: 1.0625rem;
+}
+
+.mari-composer-menu__trigger {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 11rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding-inline: 0.5rem 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.mari-composer-menu__trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mari-composer-menu__trigger > svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+  stroke-width: 1.75;
+}
+
+.mari-composer-menu__trigger > svg:last-child {
+  width: 0.75rem;
+  height: 0.75rem;
+  opacity: 0.7;
+}
+
+.mari-composer-icon:hover:not(:disabled),
+.mari-composer-icon[aria-expanded="true"],
+.mari-composer-icon[data-active="true"],
+.mari-composer-menu__trigger:hover:not(:disabled),
+.mari-composer-menu__trigger[aria-expanded="true"] {
+  background: var(--mari-hover);
+  color: var(--foreground);
+}
+
+.mari-composer-icon:disabled,
+.mari-composer-menu__trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.mari-composer-menu__trigger[data-mode="plan"] {
   color: var(--primary);
 }
 
-/* No connection: a small red dot on the chip, so it asks for you. */
-.mari-workspace-composer__connection {
-  position: relative;
+.mari-composer-menu__trigger[data-mode="bypass"] {
+  color: var(--destructive);
 }
 
-.mari-workspace-composer__connection--missing::after {
+/* No connection: a small red dot on the trigger, so it asks for you. */
+.mari-workspace-composer__connection--missing::before {
   position: absolute;
-  top: -0.15rem;
-  right: -0.15rem;
+  top: 0.2rem;
+  right: 0.2rem;
   width: 0.42rem;
   height: 0.42rem;
   border: 1px solid var(--card);
@@ -3836,34 +4086,112 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   background: var(--destructive);
 }
 
+.mari-workspace-composer__send[data-mode="send"] {
+  width: var(--mari-composer-control);
+  margin-inline-start: auto;
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.mari-workspace-composer__send[data-mode="send"]:disabled {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+  color: color-mix(in srgb, var(--muted-foreground) 70%, transparent);
+  cursor: default;
+}
+
+.mari-workspace-composer__send:not(:disabled):active {
+  scale: 0.96;
+}
+
+.mari-composer-icon:focus-visible,
+.mari-composer-menu__trigger:focus-visible,
+.mari-workspace-composer__send:focus-visible,
+.mari-workspace-composer .mari-workspace-context-chip__remove:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Menus: the v5 row anatomy in one floating group above the trigger. */
 .mari-composer-menu__popover {
+  --mari-card-slot: 1.5rem;
   position: absolute;
   z-index: 100;
   bottom: calc(100% + 0.5rem);
   left: 0;
   display: flex;
-  width: min(19rem, calc(100vw - 1.5rem));
+  width: min(18rem, calc(100vw - 1.5rem));
   max-height: min(28rem, calc(100dvh - 8rem));
   flex-direction: column;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  padding: 0.25rem;
+  border: 1px solid var(--mari-hairline);
+  border-radius: var(--mari-card-radius);
   /* --card is translucent in some themes; keep the page from showing through. */
-  background: linear-gradient(var(--card), var(--card)) var(--background);
-  text-align: left;
-  box-shadow: 0 1rem 2rem color-mix(in srgb, black 24%, transparent);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 5%, var(--background)),
+      color-mix(in srgb, var(--foreground) 5%, var(--background))
+    )
+    var(--background);
+  text-align: start;
+  box-shadow: 0 1rem 2rem -0.5rem rgb(0 0 0 / 0.45);
 }
 
-/* Phones: the menu spans the composer instead of hanging off its chip, which would run off the edge. */
+[data-theme="light"] .mari-composer-menu__popover {
+  background: #fff;
+  box-shadow: 0 1rem 2rem -0.75rem rgb(0 0 0 / 0.25);
+}
+
+.mari-composer-menu__head {
+  margin: 0;
+  padding: 0.4rem 0.625rem 0.3rem;
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.mari-composer-menu__popover .mari-list__item::before {
+  display: none;
+}
+
+.mari-composer-menu__popover .mari-row {
+  min-height: 2.625rem;
+  padding-block: 0.375rem;
+  padding-inline: 0.5rem;
+  border-radius: var(--mari-composer-inner-radius);
+}
+
+.mari-composer-menu__popover .mari-row__slot > svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.mari-composer-menu__popover .mari-row__trail svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--primary);
+}
+
+.mari-composer-menu__popover .mari-row[data-mode="bypass"] .mari-row__slot {
+  background: color-mix(in srgb, var(--destructive) 12%, transparent);
+  color: var(--destructive);
+}
+
+.mari-composer-menu__divider {
+  margin: 0.25rem 0.5rem;
+  border: 0;
+  border-top: 1px solid var(--mari-divider);
+}
+
+/* Phones: the menu spans the composer instead of hanging off its trigger, which would run off the edge. */
 @media (max-width: 39.99rem) {
   .mari-composer-menu {
     position: static;
   }
 
   .mari-composer-menu__popover {
-    right: 0.25rem;
-    left: 0.25rem;
+    right: 0;
+    left: 0;
     width: auto;
   }
 }
@@ -3901,17 +4229,6 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   }
 }
 
-/* The context she gets rides above the text, on its own row. */
-.mari-omnibar-context-attachment {
-  width: 100%;
-  flex: 1 0 100%;
-  margin-bottom: 0.125rem;
-}
-
-.mari-omnibar-context-attachment .mari-workspace-context-chip {
-  max-width: 100%;
-}
-
 /* M7: one X per facet. On touch the hit area grows past the drawn chip, like .mari-btn. */
 .mari-workspace-context-chip__remove {
   position: relative;
@@ -3937,14 +4254,22 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
     inset: -0.875rem -0.125rem -0.875rem -1.625rem;
     content: "";
   }
-}
 
-@media (pointer: coarse) {
-  .mari-composer-toolbar .mari-chrome-control,
-  .mari-composer-menu__popover button,
-  .mari-workspace-composer__send,
-  .mari-workspace-composer__attach button {
-    min-width: 2.75rem;
+  /* Drawn at 34px, hit at 44px: the controls grow past their edge, not in size. */
+  .mari-composer-icon::after,
+  .mari-composer-menu__trigger::after,
+  .mari-workspace-composer__send::after {
+    position: absolute;
+    inset: -0.3125rem -0.125rem;
+    content: "";
+  }
+
+  .mari-composer-menu__popover .mari-row {
+    min-height: 2.75rem;
+  }
+
+  /* The Stop pill keeps its size from before v5. */
+  .mari-workspace-composer__send[data-mode="stop"] {
     min-height: 2.75rem;
   }
 }

@@ -547,6 +547,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   } | null>(null);
   const [mariHeaderSlot, setMariHeaderSlot] = useState<HTMLDivElement | null>(null);
   const [mariStatusSlot, setMariStatusSlot] = useState<HTMLSpanElement | null>(null);
+  const [mariMenuSlot, setMariMenuSlot] = useState<HTMLSpanElement | null>(null);
   const mariReturnResultIdRef = useRef<string | null>(mariReturnResultId);
   const [ranking, setRanking] = useState<CommandRankingState>(() => readCommandRankingState());
   // O2: local frecency, read once and kept in sync with every recorded use (see recordUse below).
@@ -3455,6 +3456,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 </span>
               </button>
             ) : null}
+            {/* R11: while a phone keyboard is open her destinations fold into a menu here (one-line header). */}
+            {mariSurface ? <span ref={setMariMenuSlot} className="mari-omnibar-header-compact-menu" /> : null}
             {mariSurface ? <OmnibarSettingsButton open={settingsOpen} onOpen={() => openSettings()} /> : null}
             <button
               type="button"
@@ -3551,6 +3554,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               onCompletionAction={runCompletionAction}
               omnibarHeaderSlot={mariHeaderSlot}
               omnibarStatusSlot={mariStatusSlot}
+              omnibarMenuSlot={mariMenuSlot}
               arrival={mariArrival}
               arrivalAppendRequest={mariArrivalAppendRequest}
               arrivalThread={mariThreadContext}

@@ -53,7 +53,7 @@ export function MariContextFacetChips({
   return (
     <div className={cn("flex flex-wrap items-center gap-1", className)}>
       {onRemove ? (
-        <span className="mr-0.5 text-[0.6875rem] text-[var(--muted-foreground)]">
+        <span className="mari-context-facets__label mr-0.5 text-[0.6875rem] text-[var(--muted-foreground)]">
           {t("ui.chat.homeprofessormarichat.awareOfChipsLabel")}
         </span>
       ) : null}
