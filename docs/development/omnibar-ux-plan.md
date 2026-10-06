@@ -106,6 +106,8 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 62c | Pull-drop rim shares top-bar state colour; fix drag text-select (R8) | designer     | Done                 | 2db202dec |
 | 62d | Mari cards v5 (R10)                                             | designer         | Done                 | 66f51efbb, 0ab75f5db |
 | 62e | Mari composer v5 (R11)                                          | designer         | Done                 | ce6505267, f2227152e |
+| 62g | Mari feels smart and alive again — regressions from 36/37/62/62b (R13) | designer | Pending          |           |
+| 62f | Golden Mari unlocks at 100 h of chat time (R12)                 | designer         | Pending              |           |
 | 63  | Connection doctor (R4)                                          | worker           | Dropped — maintainer is redesigning connection setup |  |
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Dropped — maintainer is redesigning connection setup |  |
 | 65  | Cut and re-measure, review (R6) — T18-T20 + old 15 only, T16/T17 skipped | reviewer, worker | Pending      |           |
@@ -1378,3 +1380,48 @@ a cut-off/trimmed reply DOES get a quiet line in the chat. Lorebook batch review
   behavior). Proof: every composer state screenshotted before/after against the mockup at 390/1440, dark and
   light; a simulated on-screen-keyboard viewport (reduced visual viewport height) proving the header compaction;
   `heavy pnpm check`.
+- R13 (slice 62g, designer, after 62e, priority — user report 2026-10-06) "Mari is getting dumber… long silent
+  thinking, no visual feedback… no cool (I'm doing / I've done this) checkmarks." Full investigation (verify each
+  before fixing) in `.tmp/omnibar-ux/round9/mari-regressions.md`. Four confirmed regressions plus one side check:
+  (1) Done marks hidden (slice 36, `7f65de826`): `groupRunPhases`
+  (`packages/client/src/lib/mari-work-timeline.ts:88-120`) folds done steps into closed `<details>`, the newest
+  phase closes when answering, the plop runs inside closed details, the green check only shows on "Worked for"
+  and only when `toolItems.length > 0`. Fix: keep phases open while the run is active, fold only after it ends;
+  show a green done mark on each done step row (and on a phase summary once every step in it is done); keep the
+  plop visible; an answer with no tool calls still gets a small done check.
+  (2) The prompt adds silent rounds and thin answers (`workspace-agent.service.ts`): ≈line 796 (slice 36) reads
+  every named record via `app_data` "so its card can show" plus "one or two plain sentences, do not repeat card
+  details" — fix: bold the exact name instead, read a record only if its id isn't already known, allow a longer
+  paragraph when the question actually needs one. ≈lines 865-866 (slice 37) adds a detail-plus-action read to
+  every suggestion, "only ids you read in this run" — fix: only read when not already known, no extra reads.
+  ≈line 903 (slice 62) calls `chat.diagnose` FIRST for any broad phrase — fix: restrict to actual cut-off/empty/
+  worse-reply complaints, not every vague question.
+  (3) Silent thinking: workspace rounds aren't streamed (`chatCompleteWorkspace(..., () => {})` at ≈3249, ≈3603);
+  reasoning is off for non-custom providers. Fix, after (2) is done: stream a partial frame (reply text or
+  planned command names) into the live headline if it's small; otherwise leave a `ponytail:` note rather than
+  building full streaming infrastructure for this round.
+  (4) Slice 62b's thread routing (`dcd18dd78`): opening Mari fresh from a chat/editor with no matching thread
+  starts an EMPTY thread — reads as "she forgot everything". Arrival mid-run reroutes once `isBusy` clears and
+  wipes the "Worked for" check (`HomeProfessorMariChat.tsx` ≈3893-3901). Fix: when no thread shares the context
+  key, continue the most recent thread instead (offer "New about X" there, don't silently start fresh); never
+  reroute before a finished run's timeline has actually been shown.
+  Side check (low confidence, verify first): the staging merge (`2c754ae5c`) brought #7131's Anthropic
+  thinking-budget/replay changes — confirm Mari on Opus 5.5 (`supportsAnthropicThinkingDisable: false`) doesn't
+  silently think for a long time with zero feedback. Proof: e2e showing live step rows with done checks during a
+  real run; a regression on the thread-routing fix. CHANGELOG. No deploy.
+- R12 (slice 62f, designer, after 62g) "Golden Mari only unlocks after the Engine's own statistics show more
+  than 100h of chat time." (1) Find the statistic: `chat-insights.routes.ts` (`/activity`, `/chats/:id/stats`).
+  Reuse an existing total-time-chatted value if one exists; if none exists, add a deterministic estimate from
+  message timestamps (sum the gaps between consecutive messages per chat, treat a gap over ≈15 minutes as a new
+  session so it contributes a fixed small allowance instead of the raw gap). Compute server-side using the
+  existing activity cache; show the number in the Activity overview so the user can see what the unlock is
+  measuring. Keep the session rule and its constant in one place, with a `ponytail:` note on the heuristic.
+  (2) Gate the pack: `MARI_APPEARANCE_PACKS` gets an optional `unlock` rule; Golden gets `{ chatHours: 100 }`. In
+  the omnibar-settings pack grid (slice 57), a locked Golden card shows a lock, the requirement, and progress
+  ("64h of 100h chatted"); it cannot be selected. The preview may stay visible, dimmed. Locked packs never load
+  their sprites (38c tiers). (3) Existing users who already picked Golden while it was locked fall back to Basic
+  in rendering; their stored choice is kept and returns automatically at 100h. Crossing the threshold shows a
+  one-time quiet toast: "Golden Mari unlocked". Proof: a regression on the time estimate (sessions, gaps, empty
+  chats) and on the unlock check (99h locked, 100h unlocked, the stored-choice fallback); an e2e with a seeded
+  instance below and above the threshold; screenshots of the locked and unlocked cards at 390/1440, dark and
+  light. CHANGELOG. `heavy pnpm check`.
