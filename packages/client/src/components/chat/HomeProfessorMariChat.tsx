@@ -3425,14 +3425,11 @@ export function HomeProfessorMariChat({
       // so an older list can't overwrite the newer one or reset the selection.
       if (seq !== memoriesLoadSeqRef.current) return;
       setMemories(response.instructions);
-      const isInitialMemoriesLoad = !hasLoadedMemoriesRef.current;
       hasLoadedMemoriesRef.current = true;
-      setSelectedMemoryId((current) => {
-        if (current && response.instructions.some((memory) => memory.id === current)) return current;
-        // Only auto-expand the first row on the very first load; a later refresh preserves a null
-        // (collapsed) selection and falls back to null (not the first row) if the selection was removed.
-        return isInitialMemoriesLoad ? (response.instructions[0]?.id ?? null) : null;
-      });
+      // Memories open collapsed; only a row the user opened stays open across refreshes.
+      setSelectedMemoryId((current) =>
+        current && response.instructions.some((memory) => memory.id === current) ? current : null,
+      );
     } finally {
       if (seq === memoriesLoadSeqRef.current) setMemoriesLoading(false);
     }
