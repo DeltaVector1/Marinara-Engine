@@ -205,6 +205,69 @@ try {
   assert.equal(fullScan.ok, true);
   assert.ok(Array.isArray((fullScan.output as any).activated));
   assert.ok(Array.isArray((fullScan.output as any).blocked));
+
+  // F2: an entry the real scanner would activate, but the last real generation's token budget
+  // actually left out, must be reported as blocked (reason "budget"), not activated — otherwise
+  // Mari tells the user an entry fired when it never reached the prompt.
+  const nightBell = await entry("Night bell", { keys: ["bell"], content: "A bell that tolls at midnight." });
+  const saltmarsh = await entry("Saltmarsh Pact", { keys: ["pact"], content: "An old treaty." });
+  const budgetChat = await chats.create({ name: "Harbor intrigue", mode: "roleplay", characterIds: [] } as never);
+  await chats.createMessage({
+    chatId: budgetChat!.id,
+    role: "user",
+    characterId: null,
+    content: "The bell tolled as she read the pact aloud.",
+  });
+  // The real generation's saved scan: "Night bell" matched but was skipped for budget; "Saltmarsh
+  // Pact" was never skipped, so it should stay a normal activation.
+  await chats.createMessage({
+    chatId: budgetChat!.id,
+    role: "assistant",
+    characterId: null,
+    content: "Understood.",
+    extra: {
+      lorebookScan: {
+        budgetSkippedEntries: [
+          {
+            id: nightBell.id,
+            lorebookId: book.id,
+            name: "Night bell",
+            estimatedTokens: 420,
+            lorebookBudget: 300,
+            lorebookUsedTokens: 300,
+            blockedBy: "lorebook",
+          },
+        ],
+      },
+    },
+  } as never);
+  const budgetScan = await mariDb.executeAction({
+    action: "lorebook.testScan",
+    lorebookId: book.id,
+    chatId: budgetChat!.id,
+    sessionId: "test",
+  } as never);
+  assert.equal(budgetScan.ok, true);
+  const budgetOutput = budgetScan.output as { activated: Array<{ entryId: string }>; blocked: Array<any> };
+  assert.ok(
+    !budgetOutput.activated.some((item) => item.entryId === nightBell.id),
+    "a budget-skipped entry must not be reported as activated",
+  );
+  const blockedBell = budgetOutput.blocked.find((item) => item.entryId === nightBell.id);
+  assert.ok(blockedBell, "the budget-skipped entry must appear in blocked");
+  assert.equal(blockedBell.reason, "budget");
+  assert.equal(blockedBell.estimatedTokens, 420);
+  assert.equal(blockedBell.lorebookBudget, 300);
+  assert.equal(blockedBell.lorebookUsedTokens, 300);
+  // Negative case: an entry that matched with no budget conflict stays activated as before.
+  assert.ok(
+    budgetOutput.activated.some((item) => item.entryId === saltmarsh.id),
+    "an entry with no budget conflict stays activated",
+  );
+  assert.ok(
+    !budgetOutput.blocked.some((item) => item.entryId === saltmarsh.id),
+    "an entry with no budget conflict is not reported as blocked",
+  );
 } finally {
   await app?.close();
   await db?._fileStore.close();
