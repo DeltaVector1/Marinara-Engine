@@ -123,7 +123,7 @@ test("Ctrl+Enter carries the selected Command Center result to Mari", async ({ p
   await page.keyboard.press("Control+Enter");
 
   await expect(omnibar.locator('[data-component="GlobalOmnibar.Mari"]')).toBeVisible();
-  await expect(omnibar.locator(".mari-omnibar-context-attachment")).toContainText("Appearance");
+  await expect(omnibar.locator(".mari-workspace-composer__context")).toContainText("Appearance");
 });
 
 test("mobile keeps the command palette button and panel inside the top-bar layout", async ({ page }, testInfo) => {

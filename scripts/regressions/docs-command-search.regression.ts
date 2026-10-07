@@ -35,6 +35,7 @@ assert.deepEqual(searchDocsCommandTitles(" provider ", index), [
   },
 ]);
 
+// One row per doc with its best snippet, not one per matching line (51d4c4541).
 assert.deepEqual(
   toDocsCommandPassages({
     query: "provider",
@@ -52,29 +53,14 @@ assert.deepEqual(
   }),
   [
     {
-      id: "docs:configuration/providers.md:12",
+      id: "docs:configuration/providers.md",
       title: "Provider configuration",
       source: "configuration/providers.md",
       snippet: "Select a provider for this connection.",
       path: "configuration/providers.md",
       line: 12,
       command: {
-        id: "docs:configuration/providers.md:12",
-        title: "Provider configuration",
-        kind: "resource",
-        icon: "documentation",
-      },
-      score: 102,
-    },
-    {
-      id: "docs:configuration/providers.md:24",
-      title: "Provider configuration",
-      source: "configuration/providers.md",
-      snippet: "Each provider has its own model settings.",
-      path: "configuration/providers.md",
-      line: 24,
-      command: {
-        id: "docs:configuration/providers.md:24",
+        id: "docs:configuration/providers.md",
         title: "Provider configuration",
         kind: "resource",
         icon: "documentation",
