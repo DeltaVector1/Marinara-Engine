@@ -5701,15 +5701,12 @@ for (const [name, source] of [
   assert.match(source, /<ContextBudgetIndicator budget=\{contextBudget\}/u, `${name} must show usage in its popup`);
   assert.match(source, /relative flex h-\[1\.875rem\] w-\[1\.875rem\]/u, `${name} must use the larger context gauge`);
 }
-assert.equal(
-  professorMariHomeSource.match(/<ContextBudgetIndicator budget=\{contextBudget\} \/>/gu)?.length,
-  2,
-  "Both Professor Mari connection popups must show context usage",
-);
-assert.equal(
-  professorMariHomeSource.match(/relative flex h-\[1\.875rem\] w-\[1\.875rem\]/gu)?.length,
-  2,
-  "Both Professor Mari connection buttons must use the larger context gauge",
+// Mari's context use moved out of the connection popups (69be7be17: it duplicated the status strip) into the
+// "how she works" connection row, behind the Show context usage setting.
+assert.match(
+  professorMariHomeSource,
+  /showContextUsage && contextBudget\s*\?\s*localizeUi\("ui\.chat\.homeprofessormarichat\.awareOfContextUse"/u,
+  "Professor Mari's connection row must show context usage when the setting is on",
 );
 assert.match(professorMariHomeSource, /chatHistorySelectionMode/u);
 assert.match(
@@ -5717,12 +5714,13 @@ assert.match(
   /enterToSendProfessorMari/u,
   "Professor Mari must read her persisted Send on Enter preference",
 );
+// One composer since the floating-mode branch was removed (f27ce165b).
 assert.equal(
   professorMariHomeSource.match(
     /event\.key === "Enter" &&\s*!event\.shiftKey &&\s*\(enterToSend \|\| event\.metaKey \|\| event\.ctrlKey\)/gu,
   )?.length,
-  2,
-  "Both Professor Mari composers must preserve Shift+Enter and require the configured send shortcut",
+  1,
+  "Professor Mari's composer must preserve Shift+Enter and require the configured send shortcut",
 );
 assert.match(professorMariHomeSource, /toggleProfessorChatSelection/u);
 assert.match(professorMariHomeSource, /handleBulkDeleteProfessorChats/u);
@@ -5731,10 +5729,17 @@ assert.match(
   /const handleEditMessage = useCallback\([\s\S]{0,180}if \(!chatId \|\| isBusy\) return;/u,
   "Professor Mari's first edit after generation must not be rejected by a stale busy ref",
 );
+// A failed send now keeps the message in the transcript with one Retry card (failRun) and never refills the
+// composer; Stop is not a failure, so failRun returns before it shows anything.
 assert.match(
   professorMariHomeSource,
-  /catch \(error\) \{\s*if \(isProfessorMariAbortError\(error\)\) return;\s*setDraft\(text\)/u,
-  "Stopping Professor Mari must not restore an already-submitted prompt to the composer",
+  /const failRun = useCallback\(\s*\([^)]*\) => \{\s*if \(isProfessorMariAbortError\(error\)\) return;/u,
+  "Stopping Professor Mari must not show a failure",
+);
+assert.doesNotMatch(
+  professorMariHomeSource,
+  /catch \(error\) \{[^}]*setDraft\(/u,
+  "A failed or stopped Professor Mari send must not restore the submitted prompt to the composer",
 );
 assert.match(
   lorebookHooksSource,
@@ -5746,9 +5751,10 @@ assert.match(
   /handleDeleteProfessorChat[\s\S]{0,500}showConfirmDialog/u,
   "Deleting one Professor Mari chat must use the app confirmation dialog",
 );
+// Every step row (failed ones get the warning icon) opens to technical details with the tool's output.
 assert.match(
   professorMariHomeSource,
-  /isError && tool\.output\?\.trim\(\)[\s\S]{0,200}<pre/u,
+  /const StepIcon = stepFailed \? AlertTriangle[\s\S]{0,4000}tool\.output !== null && tool\.output !== undefined \? \(\s*<pre>/u,
   "Failed workspace tools must reveal their provider output in the transcript",
 );
 const professorMariTranscript = { clientHeight: 240, scrollHeight: 720, scrollTop: 0 };
@@ -5797,10 +5803,16 @@ assert.match(
   /refreshWorkspaceStatus\([\s\S]{0,140}workspaceRunIdRef\.current === runId[\s\S]{0,100}activeChatIdRef\.current === completedChatId/u,
   "Professor Mari post-run status refreshes must not overwrite state after a newer operation starts",
 );
+// The work-stage layout (1a61247d1) replaced the user-message separators with a right-aligned bubble.
 assert.match(
   professorMariHomeSource,
-  /message\.role === "user"[\s\S]{0,180}<TranscriptRow[\s\S]{0,100}border-y border-\[var\(--border\)\]\/60/u,
-  "Professor Mari user messages must retain their theme-aware horizontal separators",
+  /message\.role === "user"[\s\S]{0,180}<TranscriptRow[^>]*className="mari-user-request/u,
+  "Professor Mari user messages must render as the user-request row",
+);
+assert.match(
+  readFileSync(new URL("../../packages/client/src/styles/globals.css", import.meta.url), "utf8"),
+  /\.mari-user-request__bubble \{[^}]*background: color-mix\(in srgb, var\(--foreground\) \d+%, var\(--card\)\)/u,
+  "Professor Mari user bubbles must take their colour from the theme",
 );
 assert.match(
   professorMariHomeSource,
@@ -5938,7 +5950,8 @@ assert.match(
 // Chat Summary is a Chat Settings drawer, so a request opens Chat Settings there (desktop window or phone sheet).
 assert.match(
   assignedSweepChatAreaSource,
-  /chatId !== useChatStore\.getState\(\)\.activeChatId\) return;\s*handleOpenSettingsPanel\(undefined, \{ initialSection: "summary" \}\)[\s\S]{0,120}CHAT_SUMMARY_OPEN_REQUEST_EVENT/u,
+  // One listener table now serves the summary, lorebook-entries and search drawers (omnibar chat tool rows).
+  /\[CHAT_SUMMARY_OPEN_REQUEST_EVENT, "summary"\][\s\S]{0,400}chatId !== useChatStore\.getState\(\)\.activeChatId\) return;\s*handleOpenSettingsPanel\(undefined, \{ initialSection \}\)/u,
   "Summary requests must open Chat Settings at the Chat Summary drawer for the active chat only",
 );
 assert.match(
@@ -6220,7 +6233,12 @@ assert.match(
   /resolveIllustratorImageSize\(\s*requestChatMode === "game" \? imageSettings\.game : imageSettings\.illustration,\s*illData\.aspectRatio/u,
   "automatic Illustrator generation should use the Game scene canvas in Game mode and preserve the shared orientation resolver",
 );
-assert.match(professorMariHomeSource, /Math\.min\(textarea\.scrollHeight, 128\)/u);
+// R11: the composer cap is its CSS max-height now (8 lines, 6 on touch), not a hard-coded 128 px.
+assert.match(
+  professorMariHomeSource,
+  /const cap = Number\.parseFloat\(getComputedStyle\(textarea\)\.maxHeight\);\s*const to = Number\.isFinite\(cap\) \? Math\.min\(textarea\.scrollHeight, cap\)/u,
+  "Professor Mari's composer must stop growing at its max-height",
+);
 assert.equal(
   themesRouteSource.match(/requirePrivilegedAccess\(req, reply, \{ feature: "Theme install\/update\/delete" \}\)/gu)
     ?.length,
@@ -6292,7 +6310,14 @@ assert.equal(
   "Home effect pausing must keep one central visibility listener",
 );
 assert.match(appSource, /dispatchEvent\(new CustomEvent\("marinara:effects-paused"/u);
-assert.match(homeBrowserHubSource, /window\.removeEventListener\(MARINARA_EFFECTS_PAUSED_EVENT, sync\)/u);
+// The Home Mari sprite moved into the omnibar navigator (9b2aabf18); it still listens for the pause event.
+assert.match(
+  readFileSync(
+    new URL("../../packages/client/src/components/chat/ProfessorMariNavigator.tsx", import.meta.url),
+    "utf8",
+  ),
+  /window\.removeEventListener\(MARINARA_EFFECTS_PAUSED_EVENT, sync\)/u,
+);
 assert.match(
   globalStylesSource,
   /data-marinara-effects-paused="true"[^}]+mari-home-professor-popup__sprite[\s\S]+animation-play-state: paused !important;/u,
@@ -6543,10 +6568,14 @@ const illustratorReferencesSource = readFileSync(
   "utf8",
 );
 assert.match(appSource, /--marinara-app-accent-static-gradient/u);
-assert.match(appSource, /position=\{notificationPosition === "bottom" \? "bottom-center" : "top-center"\}/u);
+// While the omnibar is open, toasts move to the edge it does not cover; otherwise the user's position applies.
 assert.match(
   appSource,
-  /swipeDirections=\{\["left", "right", notificationPosition === "bottom" \? "bottom" : "top"\]\}/u,
+  /position=\{\s*omnibarOpen\s*\?[^:]+:[^:]+:\s*notificationPosition === "bottom"\s*\? "bottom-center"\s*: "top-center"\s*\}/u,
+);
+assert.match(
+  appSource,
+  /swipeDirections=\{\[\s*"left",\s*"right",\s*omnibarOpen \? \(isMobileShell \? "top" : "bottom"\) : notificationPosition === "bottom" \? "bottom" : "top",\s*\]\}/u,
 );
 assert.doesNotMatch(agentEditorSource, /fetch\(["']\/api\/game-assets\/pick-local-music-folder/u);
 assert.match(agentEditorSource, /api\.post<[^>]+>\(["']\/game-assets\/pick-local-music-folder["']\)/u);
@@ -7013,7 +7042,10 @@ const markdownBlockquoteStyles =
   globalStyles.match(/\.mari-message-content \.mari-md-blockquote \{[\s\S]*?\}/u)?.[0] ?? "";
 assert.match(markdownBlockquoteStyles, /color:\s*inherit;/u);
 assert.doesNotMatch(markdownBlockquoteStyles, /color:\s*var\(--muted-foreground\);/u);
-const markdownMessageStyles = globalStyles.match(/\.mari-message-content \{[\s\S]*?\}/u)?.[0] ?? "";
+// The workspace transcript adds its own earlier `.mari-message-content` rule (padding only); check every rule.
+const markdownMessageStyles = [...globalStyles.matchAll(/^\.mari-message-content \{[\s\S]*?\}/gmu)]
+  .map((match) => match[0])
+  .join("\n");
 const markdownMessageContainerStyles =
   globalStyles.match(/\.mari-message-body,\s*\.mari-message-bubble \{[\s\S]*?\}/u)?.[0] ?? "";
 const markdownCodeBlockStyles =
