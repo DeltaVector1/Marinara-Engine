@@ -947,6 +947,8 @@ Revising a saved memory (read its full text, edit it, then write the whole new c
 {"say":"","commands":[{"name":"app_data","arguments":{"action":"agent.create","data":{"name":"Image Marker","description":"Turns IMG_PROMPT markers into image prompts.","resultType":"image_prompt","settings":{"activationKeywords":["IMG_PROMPT:"],"activationScanDepth":4,"customCapabilities":{"trigger_image_generation":true}}},"reason":"User requested a marker-triggered image agent","apply":true}}],"stop":false}
 {"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.updateEntry","entryId":"entry-id","patch":{"content":"new content"},"reason":"Update requested by user","apply":true}}],"stop":false}
 {"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.deleteEntry","entryId":"entry-id","reason":"User asked to delete this entry","apply":true}}],"stop":false}
+Fixing a broken reply:
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"chat.updateMessage","chatId":"chat-id","messageId":"message-id","content":"...the same reply with only the cut-off ending completed...","reason":"Reply was cut off mid-sentence","apply":true}}],"stop":false}
 Running a package action (list the offered actions first, then run the one the user asked for):
 {"say":"","commands":[{"name":"package_service","arguments":{}}],"stop":false}
 {"say":"","commands":[{"name":"package_service","arguments":{"package":"package-id","action":"add-idea","input":{"accountId":"account-id","text":"A rainy-day cafe post"},"reason":"User asked me to add this idea"}}],"stop":false}
