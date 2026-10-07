@@ -98,9 +98,15 @@ export function AgentUpdatePrompter({
 
   const handleNotNow = useCallback(async () => {
     if (!prompted || busy) return;
-    setBusy(true);
+    // Close first, then decline: each decline waits for a capability refetch, so declining a couple dozen
+    // updates kept the dialog open and locked for over a minute. One at a time on purpose: the server
+    // read-modify-writes one decisions file per decline. A failed decline only means the notice can return
+    // next session (this one already treats them as handled).
+    const updates = prompted;
+    updates.forEach((update) => handledUpdates.current.add(`${update.id}@${update.version}`));
+    setPrompted(null);
     const failures: unknown[] = [];
-    for (const update of prompted) {
+    for (const update of updates) {
       try {
         await decline.mutateAsync({ id: update.id, version: update.version });
       } catch (error) {
@@ -115,7 +121,7 @@ export function AgentUpdatePrompter({
         ),
       );
     }
-    await finish(prompted);
+    await finish(updates);
   }, [busy, decline, finish, localizeUi, prompted]);
 
   if (!prompted) return null;
