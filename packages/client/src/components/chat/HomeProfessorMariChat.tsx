@@ -3358,7 +3358,11 @@ export function HomeProfessorMariChat({
     [connectionOptions, selectedConnectionId],
   );
   const effectiveConnection =
-    selectedConnection ?? connectionOptions.find((connection) => connection.isDefault) ?? connectionOptions[0] ?? null;
+    selectedConnection ??
+    // `/connections` sends isDefault as "true"/"false"; a bare truthy check took "false" too.
+    connectionOptions.find((connection) => String(connection.isDefault) === "true") ??
+    connectionOptions[0] ??
+    null;
   const effectiveConnectionId = effectiveConnection?.id ?? null;
   const persistentContextCount = professorMariContextCount(attachedContext?.length ?? 0, handoffContext);
   const oneShotContext = handoffContext && !isPersistentProfessorMariContext(handoffContext) ? handoffContext : null;
@@ -3604,7 +3608,13 @@ export function HomeProfessorMariChat({
   const startMariThread = useCallback(
     async (context: MariThreadContext | null) => {
       const params = new URLSearchParams();
-      if (effectiveConnectionId) params.set("connectionId", effectiveConnectionId);
+      // The ref, not the render's effectiveConnectionId: the first-load arrival starts a thread right
+      // after restoring her connection, before a re-render, and the stale fallback (the default
+      // connection, often a chat's small one) would move her thread onto it.
+      const latest = latestConnectionSelectionRef.current;
+      const connectionId =
+        latest && connectionOptions.some((connection) => connection.id === latest) ? latest : effectiveConnectionId;
+      if (connectionId) params.set("connectionId", connectionId);
       if (context) params.set("contextKey", context.key);
       if (context?.label) params.set("contextLabel", context.label);
       const chat = await api.post<Chat>(`/chats/internal/professor-mari/restart?${params.toString()}`);
@@ -3612,7 +3622,7 @@ export function HomeProfessorMariChat({
       qc.setQueryData(chatKeys.detail(chat.id), chat);
       return chat;
     },
-    [effectiveConnectionId, qc, setActiveChatId],
+    [connectionOptions, effectiveConnectionId, qc, setActiveChatId],
   );
 
   // R7: route an arrival to its context's thread before that thread's messages load, so the old one never flashes.
@@ -3810,6 +3820,7 @@ export function HomeProfessorMariChat({
           typeof chat.connectionId === "string" && chat.connectionId ? chat.connectionId : null;
         if (restoredConnectionId) {
           setSelectedConnectionId(restoredConnectionId);
+          latestConnectionSelectionRef.current = restoredConnectionId;
           rememberConnectionId(restoredConnectionId);
         }
         const targetId = await routeArrivalThread(chat.id);

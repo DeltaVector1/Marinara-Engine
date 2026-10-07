@@ -3834,7 +3834,10 @@ export class MariDbService {
           result.activated = stillActivated;
         }
         // Each reason carries its fix, so Mari's every-round prompt does not have to list them.
-        const blockedWithFix = result.blocked.map((entry) => ({ ...entry, fix: LOREBOOK_TEST_SCAN_FIXES[entry.reason] }));
+        const blockedWithFix = result.blocked.map((entry) => ({
+          ...entry,
+          fix: LOREBOOK_TEST_SCAN_FIXES[entry.reason],
+        }));
         if (entryId) {
           const entryName = (entries as unknown as LorebookEntry[]).find((entry) => entry.id === entryId)?.name;
           const activated = result.activated.find((entry) => entry.entryId === entryId);
@@ -7575,7 +7578,10 @@ export class MariDbService {
       output: {
         chatId,
         messageId: message.id,
-        findings: findings.map((finding) => ({ ...finding, fix: REPLY_CHECKUP_FIXES[finding.code] ?? DEFAULT_CHECKUP_FIX })),
+        findings: findings.map((finding) => ({
+          ...finding,
+          fix: REPLY_CHECKUP_FIXES[finding.code] ?? DEFAULT_CHECKUP_FIX,
+        })),
         generationInfo: {
           tokensContext: info?.tokensContext ?? null,
           maxContext: info?.maxContext ?? null,
