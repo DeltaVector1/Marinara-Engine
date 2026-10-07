@@ -4,6 +4,15 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Opening Professor Mari is faster. Each time the panel opened, it reloaded data for the whole app (about 35 extra requests), because it treated every change you had approved in the past as new. Only changes approved while the panel is open refresh the app now. Mari threads also load about 30 % fewer bytes: her hidden notes for the next prompt no longer go to the browser.
+- When Professor Mari ends an answer with a question ("apply all five, or pick some?", "what direction do you want?"), she now gives you quick-reply chips to answer it. The chips also come back after a reload.
+- A vague edit request to Professor Mari, such as "overhaul Jennifer a bit", now gets a few concrete directions as chips, not a list of every card field and "give me the vibe".
+- Professor Mari keeps the card she just read for your next message, so "make her more real" no longer reads the same card again first.
+- A finished Professor Mari answer now shows her steps and her final words only. Her in-between lines ("Let me pull up her card…", "One sec —") still show while she works, but no longer stack up in the answer.
+- Professor Mari's answers no longer name internal tools such as `chat.diagnose` or `docs_search`; you see plain words such as "the chat checkup" or "the docs".
+- "Not now" in the **Agent updates available** dialog now declines all listed updates in one step. Before, a reload within a minute or two could show the updates again.
+- "Go ahead" or "just do it" after Professor Mari proposes a card change applies it again. Since her instructions were shortened, some models held the change behind an extra **Accept** instead.
+
 - "Not now" in the **Agent updates available** dialog now closes it at once. With many updates waiting (about 25 on an older install), it declined them one by one first, about 2–5 seconds each, so the dialog stayed open and locked for over a minute and looked broken. The declines now finish in the background.
 - Asking Professor Mari "why does he forget things?" or "my last reply got cut off" from a chat now always runs the chat checkup first. Before, some models skipped it and listed guesses instead of the real cause.
 - After a chat checkup, Professor Mari names settings by the label you see on screen, such as **Max Output Tokens**, instead of internal names such as `maxTokens`.
