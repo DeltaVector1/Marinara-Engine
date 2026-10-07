@@ -55,10 +55,12 @@ assert.match(
 );
 
 // ── Clean close without a reply settles before it toasts ────────────────────
-assert.match(mariChat, /if \(!received && !controller\.signal\.aborted\) \{/u);
+// R14 (slice 62h): keyed on the missing "done", not on "no reply yet" - a socket can also close
+// after her first round spoke, and the settle then reloads what the server saved.
+assert.match(mariChat, /if \(!sawDone && !controller\.signal\.aborted\) \{/u);
 assert.match(
   mariChat,
-  /received = await waitForWorkspaceRunToSettle\(effectiveConnectionId, controller\.signal\);/u,
+  /received = \(await waitForWorkspaceRunToSettle\(effectiveConnectionId, controller\.signal\)\) \|\| received;/u,
   "a cleanly closed no-reply stream must confirm against the status endpoint",
 );
 assert.match(
