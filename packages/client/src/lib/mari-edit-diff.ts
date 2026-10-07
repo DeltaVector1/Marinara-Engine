@@ -222,6 +222,17 @@ const FIELD_ORDER: Record<string, number> = {
   "Example messages": 8,
 };
 
+/** Slice 71: a saved field key ("first_mes") as its label ("First message"), cards first, then the plain key. */
+export function fieldLabel(key: string): string {
+  return LABEL_OVERRIDES[`data.${key}`] ?? humanizeLabel(key);
+}
+
+/** "Lorebook entry" -> "lorebook entries": the table's thing, plural and lower case, for a count. */
+export function describeTablePlural(table: string): string {
+  const thing = describeTable(table).toLowerCase();
+  return /[^aeiou]y$/u.test(thing) ? `${thing.slice(0, -1)}ies` : `${thing}s`;
+}
+
 function humanizeLabel(path: string): string {
   if (LABEL_OVERRIDES[path]) return LABEL_OVERRIDES[path];
   const leaf = path.split(".").pop() ?? path;

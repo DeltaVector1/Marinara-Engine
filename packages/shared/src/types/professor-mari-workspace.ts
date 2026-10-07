@@ -295,6 +295,18 @@ export interface MariSuggestionChip {
 }
 
 /**
+ * Slice 71: one mutating command Mari held behind Accept, saved on her turn (`mariHeldChanges`) so the
+ * "Needs you" card can say what Accept would do: the app-data action or command name, the record it
+ * targets, its name when the command carries one, and the fields it sets (values cut short).
+ */
+export interface MariHeldChange {
+  action: string;
+  id?: string;
+  name?: string;
+  fields?: Array<{ key: string; value: string }>;
+}
+
+/**
  * #5748: the Accept action for a deferred (held) mutation. Shared so the
  * server's deferral event and the client's persisted-deferral re-derivation
  * (from the mariDeferredMutations message extra) can never drift.

@@ -68,6 +68,7 @@ import {
   sanitizeMariSuggestionChips,
   type APIConnection,
   type Chat,
+  type MariDbPendingApproval,
   type MariGuidedPlanStep,
   type MariSuggestionAction,
   type MariSuggestionChip,
@@ -132,6 +133,7 @@ import { describeProfessorMariError } from "../../lib/professor-mari-errors";
 import {
   assignReviewsToTurns,
   countBlockingReviews,
+  isMariReviewWaiting,
   isPersistentProfessorMariContext,
   professorMariContextCount,
   professorMariContextFacets,
@@ -168,7 +170,7 @@ import { useChatStore } from "../../stores/chat.store";
 import { useAgentStore } from "../../stores/agent.store";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
-import { ResolvedPromptLine, WorkspaceApprovalCard } from "./MariApprovalCards";
+import { DeleteReviewCard, MariHeldChangeCard, ResolvedPromptLine, WorkspaceApprovalCard } from "./MariApprovalCards";
 import {
   MARI_SIDE_ROW_CLASS,
   MariPanelSortSelect,
@@ -2090,7 +2092,10 @@ function MariWorkTimeline({
     <MariDoneMark />
   );
   const restStoryText =
-    restStory && restStory !== "idle" && restStory !== "success" ? t(`mari.stories.${restStory}`) : null;
+    // Slice 71 (N7): waiting on you has no words here; the "Needs you" card says what she waits for.
+    restStory && restStory !== "idle" && restStory !== "success" && restStory !== "approval"
+      ? t(`mari.stories.${restStory}`)
+      : null;
 
   return (
     <TranscriptRow layout="document" marker={null}>
@@ -2236,7 +2241,8 @@ function MariReplyActions({
   }, [copied]);
   const copyLabel = localizeUi(copied ? "markdown.copied" : "markdown.copy");
   return (
-    <div className={MARI_MESSAGE_ACTIONS_CLASS}>
+    // Slice 71 (G7): -ml-1 cancels the buttons' padding, so the first icon sits on L0 under her words.
+    <div className={cn(MARI_MESSAGE_ACTIONS_CLASS, "-ml-1")}>
       {content.trim() ? (
         <button
           type="button"
@@ -2532,20 +2538,20 @@ type MariTurnReviews = { changed: ReactNode[]; needsOk: ReactNode[]; records: Re
  * M5a / R10: what a run needs from you and what it changed, as two groups after her answer. What needs
  * you comes first. The labels show only when both kinds are there; one kind needs no heading.
  */
+/** Slice 71 (N7): what needs you comes first, each card on its own with its accent edge; what changed
+ * follows as one quiet group, headed only when a card stands above it. */
 function MariOutcomeGroup({ changed, needsOk }: Pick<MariTurnReviews, "changed" | "needsOk">) {
   const { t: localizeUi } = useUiTranslation();
   if (changed.length === 0 && needsOk.length === 0) return null;
-  const labelled = changed.length > 0 && needsOk.length > 0;
-  const section = (label: string, rows: ReactNode[]) =>
-    rows.length > 0 ? (
-      <MariList head={labelled ? label : undefined} role="group" aria-label={label}>
-        {rows}
-      </MariList>
-    ) : null;
+  const label = localizeUi("ui.chat.homeprofessormarichat.outcomeChanged");
   return (
     <div className="mari-list-stack" data-cards="outcome">
-      {section(localizeUi("ui.chat.homeprofessormarichat.outcomeNeedsYou"), needsOk)}
-      {section(localizeUi("ui.chat.homeprofessormarichat.outcomeChanged"), changed)}
+      {needsOk}
+      {changed.length > 0 ? (
+        <MariList head={needsOk.length > 0 ? label : undefined} role="group" aria-label={label}>
+          {changed}
+        </MariList>
+      ) : null}
     </div>
   );
 }
@@ -4573,21 +4579,21 @@ export function HomeProfessorMariChat({
   // silently done nothing - the visible half of the defer-and-approve
   // mechanism read as a failure of it.
   const chipRowAwaitsApproval = chipRowChips.some(isMariHeldChangeApprovalChip);
+  // Slice 71 (N7): a held change is a "Needs you" card under her answer that says what Accept does and
+  // carries Accept / Don't apply itself, so its chip row, hint line and status words go.
+  const heldChangeCard = chipRowAwaitsApproval && !guidedPlanStep;
   const suggestionQuestion = guidedPlanStep
     ? guidedPlanStep.question
-    : chipRowAwaitsApproval
-      ? localizeUi("ui.chat.homeprofessormarichat.awaitingApprovalHint")
-      : chipRowChips.length > 0
-        ? messages.length === 0
-          ? localizeUi("ui.chat.homeprofessormarichat.suggestions.start")
-          : latestActionResults.length > 0
-            ? localizeUi("ui.chat.homeprofessormarichat.suggestions.afterChange")
-            : localizeUi("ui.chat.homeprofessormarichat.suggestions.next")
-        : null;
-  // Held changes stay answerable while the user types; ordinary suggestions step aside.
-  const suggestionsSuppressed =
-    !chipRowAwaitsApproval && !["empty", "history", "completed"].includes(mariPresentationState);
-  const showSuggestionPrompt = !suggestionsSuppressed && Boolean(suggestionQuestion) && chipRowChips.length > 0;
+    : chipRowChips.length > 0
+      ? messages.length === 0
+        ? localizeUi("ui.chat.homeprofessormarichat.suggestions.start")
+        : latestActionResults.length > 0
+          ? localizeUi("ui.chat.homeprofessormarichat.suggestions.afterChange")
+          : localizeUi("ui.chat.homeprofessormarichat.suggestions.next")
+      : null;
+  const suggestionsSuppressed = !["empty", "history", "completed"].includes(mariPresentationState);
+  const showSuggestionPrompt =
+    !heldChangeCard && !suggestionsSuppressed && Boolean(suggestionQuestion) && chipRowChips.length > 0;
   // M5b: plain next steps are cards under the turn; a plan step or a held change keeps its answer chips by the composer.
   const showNextStepCards = showSuggestionPrompt && messages.length > 0 && !guidedPlanStep && !chipRowAwaitsApproval;
 
@@ -5994,14 +6000,53 @@ export function HomeProfessorMariChat({
         onRenderPrompt={renderWorkspacePrompt}
       />
     );
-  // M5a: applied changes and answered prompts are "what changed"; everything still waiting is "needs your OK".
+  const lastAssistantId = displayMessages.findLast((message) => message.role === "assistant")?.id ?? null;
+  const heldCardNode = heldChangeCard ? (
+    <MariHeldChangeCard
+      key="held-change"
+      held={lastLoadedMessage?.role === "assistant" ? lastLoadedMessageExtra?.mariHeldChanges : null}
+      nameOf={(id) => characterPreviewById.get(id)?.name ?? lorebookPreviewById.get(id)?.name}
+      disabled={isBusy}
+      onAccept={() => handleSuggestionSelect(MARI_AUTHORIZATION_ACCEPT_CHIP)}
+      onDecline={() => handleSuggestionSelect(MARI_AUTHORIZATION_DECLINE_CHIP)}
+    />
+  ) : null;
+  const answerAll = async (entries: ReadonlyArray<{ approval: MariWorkspacePendingApproval }>, keep: boolean) => {
+    for (const { approval } of entries) await answerApproval(approval, keep);
+  };
+  // M5a / slice 71 (F1): applied changes and answered prompts are "what changed"; everything still waiting
+  // - a delete too, whose rows stay hidden until you choose - needs you. The deletes of one turn are one card.
   const renderTurnReviews = (messageId: string): MariTurnReviews => {
     const entries = reviewsByTurn.byMessageId.get(messageId) ?? [];
-    const changed = ({ approval, outcome }: (typeof entries)[number]) =>
-      Boolean(outcome) || approval.kind === "applied_review";
+    const waiting = entries.filter(({ approval, outcome }) => !outcome && isMariReviewWaiting(approval));
+    const deletes = waiting.filter(
+      (entry): entry is typeof entry & { approval: MariDbPendingApproval } => entry.approval.kind === "applied_review",
+    );
+    const first = deletes[0]?.approval;
+    const deleteGroup =
+      first && deletes.length > 1 ? (
+        <div
+          key={`delete-group:${first.id}`}
+          id={`mari-workspace-review-${first.id}`}
+          data-review-id={first.id}
+          className={cn("mari-inline-review", highlightedReviewId === first.id && "mari-inline-review--jump")}
+        >
+          <DeleteReviewCard
+            approvals={deletes.map(({ approval }) => approval)}
+            busy={deletes.some(({ approval }) => approvalBusyId === approval.id)}
+            disabled={approvalBusyId !== null}
+            onDelete={() => void answerAll(deletes, true)}
+            onPutBack={() => void answerAll(deletes, false)}
+          />
+        </div>
+      ) : null;
     return {
-      changed: entries.filter(changed).map(renderTurnPrompt),
-      needsOk: entries.filter((entry) => !changed(entry)).map(renderTurnPrompt),
+      changed: entries.filter((entry) => !waiting.includes(entry)).map(renderTurnPrompt),
+      needsOk: [
+        ...(messageId === lastAssistantId && heldCardNode ? [heldCardNode] : []),
+        ...(deleteGroup ? [deleteGroup] : []),
+        ...waiting.filter((entry) => !deleteGroup || !deletes.includes(entry as never)).map(renderTurnPrompt),
+      ],
       records: reviewRecordKeys(entries.map(({ approval }) => approval)),
     };
   };
@@ -6270,6 +6315,20 @@ export function HomeProfessorMariChat({
           omnibarMenuSlot,
         )
       : null;
+  // One per "Needs you" card: a turn's deletes are one card, a held change is one more.
+  const needsYouCount =
+    [...reviewsByTurn.byMessageId.values()].reduce((count, entries) => {
+      const waiting = entries.filter(({ approval, outcome }) => !outcome && isMariReviewWaiting(approval));
+      const deletes = waiting.filter(({ approval }) => approval.kind === "applied_review").length;
+      return count + waiting.length - Math.max(0, deletes - 1);
+    }, 0) +
+    countBlockingReviews(reviewsByTurn.unassigned.filter(({ outcome }) => !outcome).map(({ approval }) => approval)) +
+    (heldChangeCard ? 1 : 0);
+  const scrollToNeedsYou = () =>
+    document.querySelector<HTMLElement>('[data-needs-you="true"]')?.scrollIntoView({
+      block: "center",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
   const omnibarStatusChrome =
     omnibarMode && omnibarStatusSlot
       ? createPortal(
@@ -6278,13 +6337,18 @@ export function HomeProfessorMariChat({
             data-active={isBusy ? "true" : undefined}
             data-state={mariPresentationState === "broken" ? "error" : undefined}
           >
-            {isBusy
-              ? localizeUi("ui.chat.homeprofessormarichat.workingOnIt")
-              : mariPresentationState === "broken"
-                ? localizeUi("ui.chat.homeprofessormarichat.statusFailed")
-                : mariPresentationState === "waiting-approval" || chipRowAwaitsApproval
-                  ? localizeUi("mari.presence.needsYouShort")
-                  : localizeUi("ui.chat.homeprofessormarichat.readyToHelp")}
+            {isBusy ? (
+              localizeUi("ui.chat.homeprofessormarichat.workingOnIt")
+            ) : mariPresentationState === "broken" ? (
+              localizeUi("ui.chat.homeprofessormarichat.statusFailed")
+            ) : needsYouCount > 0 ? (
+              // Slice 71 (N7): names the open choices; a tap brings the first card into view.
+              <button type="button" className="mari-status-needs-you" onClick={scrollToNeedsYou}>
+                {localizeUi("mari.needsYou.headerStatus", { count: needsYouCount })}
+              </button>
+            ) : (
+              localizeUi("ui.chat.homeprofessormarichat.readyToHelp")
+            )}
           </span>,
           omnibarStatusSlot,
         )
@@ -6995,7 +7059,7 @@ export function HomeProfessorMariChat({
                                           pullTarget={!appendedArrival}
                                         />
                                       )}
-                                      {restingStory ? (
+                                      {restingStory && restingStory !== "approval" ? (
                                         <span className="text-xs text-[var(--muted-foreground)]">
                                           {t(`mari.stories.${restingStory}`)}
                                         </span>
@@ -7007,8 +7071,11 @@ export function HomeProfessorMariChat({
                                     : workspaceStatus?.error && !isBusy
                                       ? renderRunErrorCard({ detail: workspaceStatus.error }, false)
                                       : null}
-                                  {reviewsByTurn.unassigned.length > 0 ? (
-                                    <div className="space-y-3">{reviewsByTurn.unassigned.map(renderTurnPrompt)}</div>
+                                  {reviewsByTurn.unassigned.length > 0 || (heldCardNode && !lastAssistantId) ? (
+                                    <div className="space-y-3">
+                                      {lastAssistantId ? null : heldCardNode}
+                                      {reviewsByTurn.unassigned.map(renderTurnPrompt)}
+                                    </div>
                                   ) : null}
                                   {/* Only a real question gets a line (a guided plan step, or held changes); generic
                                     "what next?" prompts are left to the chips, as in Claude and Gemini. */}
@@ -7016,7 +7083,7 @@ export function HomeProfessorMariChat({
                                   messages.length > 0 &&
                                   showSuggestionPrompt &&
                                   suggestionQuestion &&
-                                  (guidedPlanStep || chipRowAwaitsApproval) ? (
+                                  guidedPlanStep ? (
                                     <TranscriptRow layout="document" marker={null} className="mari-suggestion-turn">
                                       <div className="mari-suggestion-question-turn">
                                         <Sparkles size="0.8rem" aria-hidden="true" />

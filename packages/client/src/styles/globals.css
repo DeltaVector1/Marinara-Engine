@@ -1044,7 +1044,6 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
 
 .mari-list__head {
   margin-top: 0.375rem;
-  padding-inline: var(--mari-card-pad-inline);
   color: var(--muted-foreground);
   font-size: var(--mari-card-fact);
   font-weight: 500;
@@ -1910,6 +1909,113 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   gap: 0.5rem;
 }
 
+/* Slice 71 (N1-N2, N5, N8): a card where nothing happens until you choose. One accent edge and a
+   "Needs you" kicker, the same for every kind (danger stays on the slot tint and the red button), then
+   one line that says what each button does beside them. Theme tokens only, so user themes recolour it. */
+.mari-card[data-needs-you="true"] {
+  gap: 0.55rem;
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--mari-hairline));
+  background: color-mix(in srgb, var(--primary) 4%, var(--mari-group-bg));
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.mari-card[data-needs-you="true"] .mari-card__title {
+  font-size: 0.875rem;
+}
+
+/* The words take the accent mixed toward the foreground so they keep 4.5:1 on light themes; the edge
+   and the dot stay pure accent. */
+.mari-card__kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: color-mix(in srgb, var(--primary) 62%, var(--foreground));
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.mari-card__dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  flex: none;
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.mari-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--mari-divider);
+}
+
+.mari-card__then {
+  flex: 1 1 15rem;
+  min-width: 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.mari-card__then b {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* One soft ring when the card arrives and two pulses of the dot, then still. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-marinara-reduced-effects="true"], [data-marinara-effects-paused="true"])
+    .mari-card[data-needs-you="true"] {
+    animation: mari-needs-you-arrive 1.4s ease-out 0.15s 1 both;
+  }
+
+  html:not([data-marinara-reduced-effects="true"], [data-marinara-effects-paused="true"])
+    .mari-card[data-needs-you="true"]
+    .mari-card__dot {
+    animation: mari-needs-you-dot 2.2s ease-out 0.4s 2;
+  }
+}
+
+@keyframes mari-needs-you-arrive {
+  0% {
+    box-shadow:
+      inset 3px 0 0 var(--primary),
+      0 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+
+  35% {
+    box-shadow:
+      inset 3px 0 0 var(--primary),
+      0 0 0 4px color-mix(in srgb, var(--primary) 14%, transparent);
+  }
+
+  100% {
+    box-shadow:
+      inset 3px 0 0 var(--primary),
+      0 0 0 8px color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+@keyframes mari-needs-you-dot {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 0%, transparent);
+  }
+}
+
+/* The header status names the open choice; a tap scrolls to the card. */
+.mari-status-needs-you {
+  color: color-mix(in srgb, var(--primary) 62%, var(--foreground));
+  cursor: pointer;
+}
+
 /* R42: a risky prompt's exact package, hash, path or contents, behind one disclosure. */
 .mari-tech > summary {
   width: fit-content;
@@ -2209,7 +2315,8 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem 0.9rem;
-  padding-inline-start: 1.2rem;
+  /* G6: the first button's words start where the error's words start (L0 + 1.3rem). */
+  padding-inline-start: calc(1.3rem - 0.7rem);
 }
 
 /* F14: v5's established quiet capsule (`.mari-row .mari-btn`'s own shape), not bold underlined links. */
@@ -2431,7 +2538,10 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
 .mari-workspace-transcript {
   position: relative;
   z-index: 1;
-  scrollbar-gutter: stable;
+  /* Slice 71 (G1): both edges, so the column keeps the composer's centre (one side put it 5px left). */
+  scrollbar-gutter: stable both-edges;
+  /* G3: whether there is margin for her sprite to hang in, beside the 44rem column. */
+  container: mari-scroll / inline-size;
   width: 100%;
   padding-bottom: var(--mari-dock-h, 0px);
   mask-image: linear-gradient(
@@ -2904,15 +3014,6 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
     grid-column: 1 / -1;
   }
 
-  .mari-answer .mari-list,
-  .mari-answer .mari-list-stack {
-    margin-inline-start: -3.5rem;
-  }
-
-  .mari-answer .mari-list .mari-list,
-  .mari-answer .mari-list-stack .mari-list {
-    margin-inline-start: 0;
-  }
 }
 
 /* M17: the line and cards wait (at their first frame) until the pull's circle has become her sprite. */
@@ -3215,6 +3316,30 @@ html[data-mari-pull-landing] .mari-arrival-content * {
    keep only the words, without her sprite. */
 .mari-work-timeline__live[data-past="true"] {
   min-height: 2rem;
+  /* G4: "Worked for" / "Done" put their icon on L0, like every other status line. */
+  padding-inline: 0;
+}
+
+/* G4: every status line (thought, phase, "Worked for", her question, an error) has one 0.85rem icon box on
+   L0 and its words at L0 + 1.3rem, the edge the step rows nest under. */
+.mari-reasoning-panel > summary > svg:first-child,
+.mari-phase > summary > svg:first-child,
+.mari-work-timeline__header > svg:first-child,
+.mari-work-timeline__done > svg:first-child,
+.mari-suggestion-question-turn > svg,
+.mari-run-error__text > svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: none;
+}
+
+.mari-reasoning-panel > summary,
+.mari-phase > summary,
+.mari-work-timeline__header,
+.mari-work-timeline__done,
+.mari-suggestion-question-turn,
+.mari-run-error__text {
+  gap: 0.45rem;
 }
 
 .mari-work-timeline[data-folded="true"] .mari-work-timeline__rail {
@@ -3362,14 +3487,14 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   text-transform: uppercase;
 }
 
-/* Her reply column: an avatar gutter that is always there, so nothing reflows when she arrives in it.
-   On her newest finished reply she rests there beside the first line, like an avatar beside a bubble. */
+/* Slice 71 (G2): her words, cards, "Why" and the reply actions start on the column edge (L0), like her
+   steps. On her newest finished reply she rests beside the first line: in the margin left of the column
+   when there is room, floating at L0 with her first lines beside her when there is not (G3). */
 .mari-answer {
   position: relative;
   display: grid;
   min-width: 0;
   gap: 0.5rem;
-  padding-inline-start: 3.5rem;
 }
 
 .mari-answer[data-sprite="true"] {
@@ -3380,9 +3505,36 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   position: absolute;
   /* The whole height of her reply, so the sprite inside can stick while the reply scrolls. */
   inset-block: -0.6rem 0;
-  inset-inline-start: 0;
+  inset-inline-start: -3.75rem;
   display: flex;
   flex-direction: column;
+}
+
+/* G3: no margin beside the column (a phone, a narrow panel): 44rem + 2 x 3.75rem + the scrollbar gutters. */
+@container mari-scroll (width < 52rem) {
+  .mari-answer {
+    display: flow-root;
+  }
+
+  .mari-answer > * + * {
+    margin-top: 0.5rem;
+  }
+
+  .mari-answer[data-sprite="true"] {
+    min-height: 0;
+  }
+
+  .mari-answer__sprite {
+    position: relative;
+    inset: auto;
+    display: block;
+    float: inline-start;
+    margin: -0.3rem 0.6rem 0.15rem 0;
+  }
+
+  .mari-answer .mari-run-outcome {
+    clear: both;
+  }
 }
 
 /* Under her answer: reference rows, the outcome groups, "Why", then the reply actions. */
@@ -3416,7 +3568,6 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 }
 
 .mari-why > .mari-message-content {
-  padding-inline-start: 0.25rem;
   color: var(--muted-foreground);
 }
 
@@ -5439,7 +5590,7 @@ html[data-marinara-effects-paused="true"] .mari-workspace-portrait img {
   font-size: 0.6875rem;
 }
 
-.mari-suggestion-turn > :last-child {
+.mari-suggestion-turn > :last-child:not(.mari-suggestion-question-turn) {
   display: grid;
   gap: 0.5rem;
 }
@@ -5452,6 +5603,8 @@ html[data-marinara-effects-paused="true"] .mari-workspace-portrait img {
   .mari-suggestion-chips {
     flex-wrap: nowrap;
     overflow-x: auto;
+    /* G8: room for the focus ring, pulled back so the first chip starts on L0. */
+    margin-inline-start: -0.125rem;
     padding-inline: 0.125rem 0.75rem;
     scroll-padding-inline: 0.125rem;
     scrollbar-width: none;

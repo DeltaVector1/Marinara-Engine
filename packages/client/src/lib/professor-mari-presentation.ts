@@ -1,12 +1,63 @@
-import { SETTINGS_TABS, type ProfessorMariAskContext } from "@marinara-engine/shared";
+import { SETTINGS_TABS, type MariHeldChange, type ProfessorMariAskContext } from "@marinara-engine/shared";
 import { chatResultType, recordFaceResultType, resourceResultType, type ResultType } from "./command-icons";
 
 export type ProfessorMariPresentationState =
   "empty" | "working" | "composing" | "history" | "completed" | "waiting-approval" | "broken";
 
 /** Slice 67: an already-applied change's optional Keep/Undo is not a question; only real approvals wait on you. */
-export function countBlockingReviews(reviews: readonly { kind?: string }[]): number {
-  return reviews.filter((review) => review.kind !== "applied_review").length;
+/**
+ * Slice 71 (F1): whether a review still waits on you. An applied change only offers Undo, so it does
+ * not; a delete is applied too, but its rows stay hidden until you choose Delete or Put back, so it does.
+ * Install, file and legacy approvals always wait.
+ */
+export function isMariReviewWaiting(review: {
+  kind?: string;
+  affectedRows?: number;
+  diffPreview?: ReadonlyArray<{ table: string; action: string }>;
+}): boolean {
+  if (review.kind !== "applied_review") return true;
+  return Boolean(
+    review.diffPreview &&
+    summarizeDeleteReview({ affectedRows: review.affectedRows ?? 0, diffPreview: review.diffPreview }),
+  );
+}
+
+export function countBlockingReviews(reviews: readonly Parameters<typeof isMariReviewWaiting>[0][]): number {
+  return reviews.filter(isMariReviewWaiting).length;
+}
+
+/**
+ * Slice 71 (N3): what Accept on a held change would do, from the saved commands (never her prose). One
+ * command: update (with the fields it sets), create, delete, or a plain change; several: how many and
+ * their names. `nameOf` resolves a record id the command named only by id.
+ */
+export function describeMariHeldChanges(
+  held: readonly MariHeldChange[] | null | undefined,
+  nameOf: (id: string) => string | undefined,
+): {
+  kind: "update" | "create" | "delete" | "change" | "many";
+  name: string;
+  count: number;
+  fields: NonNullable<MariHeldChange["fields"]>;
+} {
+  const list = held ?? [];
+  const nameFor = (change: MariHeldChange) => change.name || (change.id ? nameOf(change.id) : undefined) || "";
+  if (list.length > 1) {
+    const names = [...new Set(list.map(nameFor).filter(Boolean))];
+    return { kind: "many", name: names.join(", "), count: list.length, fields: [] };
+  }
+  const change = list[0];
+  if (!change) return { kind: "change", name: "", count: 0, fields: [] };
+  const action = change.action.toLowerCase();
+  const fields = change.fields ?? [];
+  const kind = /delete|remove/u.test(action)
+    ? "delete"
+    : /create|\badd/u.test(action)
+      ? "create"
+      : fields.length > 0
+        ? "update"
+        : "change";
+  return { kind, name: nameFor(change), count: fields.length, fields };
 }
 
 export function resolveProfessorMariPresentationState({

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronRight, Sparkles } from "lucide-react";
 
 import { cn } from "../../lib/utils";
@@ -31,12 +32,15 @@ export function MariNote({
 }
 
 /**
- * R42: a risky prompt (delete, install, sensitive file). One neutral hairline,
- * never the accent; `media` is a small icon tile, red-tinted only for `danger`.
- * `actions` is a quiet `.mari-link` secondary, then one `.mari-btn` primary.
+ * R42: a risky prompt (delete, install, sensitive file). One neutral hairline; `media` is a small icon
+ * tile, red-tinted only for `danger`. `actions` is a quiet `.mari-link` secondary, then one `.mari-btn`
+ * primary. Slice 71: `needsYou` marks a card where nothing happens until you choose - an accent edge and
+ * a "Needs you" kicker - and `then` says what each button does, beside them.
  */
 export function MariCard({
   variant = "default",
+  needsYou = false,
+  then,
   media,
   title,
   meta,
@@ -46,6 +50,8 @@ export function MariCard({
   ...rest
 }: {
   variant?: "default" | "danger";
+  needsYou?: boolean;
+  then?: ReactNode;
   media?: ReactNode;
   title: ReactNode;
   meta?: ReactNode;
@@ -53,8 +59,21 @@ export function MariCard({
   children?: ReactNode;
   className?: string;
 } & Omit<React.HTMLAttributes<HTMLElement>, "title">) {
+  const { t } = useTranslation();
+  const actionRow = actions ? <div className="mari-card__actions">{actions}</div> : null;
   return (
-    <section className={cn("mari-card", className)} data-variant={variant} {...rest}>
+    <section
+      className={cn("mari-card", className)}
+      data-variant={variant}
+      data-needs-you={needsYou ? "true" : undefined}
+      {...rest}
+    >
+      {needsYou ? (
+        <p className="mari-card__kicker">
+          <span className="mari-card__dot" aria-hidden="true" />
+          {t("mari.needsYou.kicker")}
+        </p>
+      ) : null}
       <div className="mari-card__head">
         {media ? <span className="mari-card__media">{media}</span> : null}
         <div className="min-w-0">
@@ -63,7 +82,14 @@ export function MariCard({
         </div>
       </div>
       {children ? <div className="mari-card__body">{children}</div> : null}
-      {actions ? <div className="mari-card__actions">{actions}</div> : null}
+      {then && actionRow ? (
+        <div className="mari-card__foot">
+          <p className="mari-card__then">{then}</p>
+          {actionRow}
+        </div>
+      ) : (
+        actionRow
+      )}
     </section>
   );
 }

@@ -3,6 +3,7 @@
 // ──────────────────────────────────────────────
 
 import type {
+  MariHeldChange,
   MariWorkspaceActionResult,
   MariWorkspaceTraceItem,
   ProfessorMariAskContext,
@@ -922,6 +923,8 @@ export interface MessageExtra {
   professorMariContext?: ProfessorMariAskContext | null;
   /** True when this Mari turn deferred mutating commands behind an Accept action (#5725 Manual mode). */
   mariDeferredMutations?: boolean | null;
+  /** Slice 71: what those held commands would change, for the "Needs you" card. */
+  mariHeldChanges?: MariHeldChange[] | null;
   /** Slice 70: the quick-reply chips this Mari turn offered (raw; the client sanitizes), so a reload keeps them. */
   mariSuggestions?: unknown;
   /**

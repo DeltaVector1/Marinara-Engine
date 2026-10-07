@@ -94,6 +94,7 @@ import type {
   MariDbReadTruncation,
   MariDependencyTarget,
   MariGuidedPlanStep,
+  MariHeldChange,
   MariSuggestionChip,
   MariWorkspaceConnectionSummary,
   MariWorkspacePromptEvent,
@@ -108,7 +109,7 @@ import type {
   ProfessorMariQuickEditProposal,
 } from "@marinara-engine/shared";
 import { getMariDbService, normalizeAppDataActionName } from "../mari-db/mari-db.service.js";
-import { isMariReviewVisibleInChat, MARI_WORKSPACE_SESSION_ID, mariWorkspaceSessionId } from "./mari-session.js";
+import { isMariReviewVisibleInChat, mariWorkspaceSessionId } from "./mari-session.js";
 import {
   elideDataUrls,
   listCapabilityMariActions,
@@ -289,9 +290,8 @@ const WORKSPACE_TOOLS: MariWorkspaceToolName[] = [
   "package_service",
 ];
 const RUNTIME_API_KEY = "local-marinara-runtime";
-// Security reviews (sensitive files, dependency installs) are workspace-wide gates. Database
-// reviews are per chat: see runSessionId().
-const SESSION_ID = MARI_WORKSPACE_SESSION_ID;
+// Every review belongs to the Mari chat that made it (runSessionId()); slice 71 (F3) moved sensitive file
+// and install reviews there too. The status without a chat id (the omnibar's pending list) still lists all.
 const MAX_COMMAND_ROUNDS = 12;
 const MAX_PROTOCOL_REPAIR_ROUNDS = 2;
 // Local sidecar / small models fumble the JSON command protocol more often, so they get a larger
@@ -2094,6 +2094,42 @@ export function isMutatingWorkspaceCommand(command: WorkspaceCommandCall): boole
   return typeof rawCommand === "string" && bashLooksMutating(rawCommand);
 }
 
+const HELD_ID_ARGS = ["characterId", "lorebookId", "entryId", "personaId", "presetId", "id"] as const;
+
+/**
+ * Slice 71: what held commands would change, for the "Needs you" card: the action, the record, its name
+ * when the command carries one, and the fields it sets (values cut to 400 characters). Never secrets:
+ * only the arguments Mari already showed in her turn.
+ */
+export function describeHeldCommands(commands: WorkspaceCommandCall[]): MariHeldChange[] {
+  return commands.slice(0, 8).map((command) => {
+    const args = command.arguments;
+    if (command.name !== "app_data") {
+      const target = stringArg(args, "path") || stringArg(args, "packageName") || stringArg(args, "package");
+      const name = target.split(/[\\/]/u).at(-1);
+      return { action: command.name, ...(name ? { name } : {}) };
+    }
+    const values = isRecord(args.patch) ? args.patch : isRecord(args.data) ? args.data : null;
+    const id = HELD_ID_ARGS.map((key) => stringArg(args, key)).find(Boolean);
+    // A new record is named by its data; an edit names its target by id (a renaming patch is a field).
+    const name = (!id && values && typeof values.name === "string" ? values.name : "") || stringArg(args, "name");
+    const fields = values
+      ? Object.entries(values)
+          .slice(0, 12)
+          .map(([key, value]) => ({
+            key,
+            value: (typeof value === "string" ? value : (JSON.stringify(value) ?? "")).slice(0, 400),
+          }))
+      : [];
+    return {
+      action: stringArg(args, "action"),
+      ...(id ? { id } : {}),
+      ...(name ? { name } : {}),
+      ...(fields.length > 0 ? { fields } : {}),
+    };
+  });
+}
+
 /**
  * #5725 Permissions Mode: read the stored mode, tolerating junk and absence.
  * Read fresh per use - never latch it into a service field at construction.
@@ -2851,13 +2887,12 @@ export class ProfessorMariWorkspaceService {
           latestUnderstoodRequest: this.latestUnderstoodRequest,
         };
       })()),
+      // #6842 / slice 71 (F3): a chat shows its own review cards, plus ones no chat owns - file and
+      // install reviews too, which used to show in every chat.
       pendingApprovals: [
-        // #6842: a chat shows its own review cards, plus ones no chat owns.
-        ...getMariDbService(this.app.db)
-          .getPendingApprovals()
-          .filter((approval) => isMariReviewVisibleInChat(approval.sessionId, chatId)),
+        ...getMariDbService(this.app.db).getPendingApprovals(),
         ...this.workspaceChangeReviews.getPendingApprovals(),
-      ],
+      ].filter((approval) => isMariReviewVisibleInChat(approval.sessionId, chatId)),
       history: await getMariDbService(this.app.db).getHistory(),
       error: this.lastError,
     };
@@ -3230,6 +3265,8 @@ export class ProfessorMariWorkspaceService {
     // the NEXT run can arm silent command frames - the persisted content is
     // only the visible say text, so a content scan can never see the deferral.
     let runEndedWithDeferral = false;
+    // Slice 71: what the deferred commands would change, saved beside the flag for the "Needs you" card.
+    let runHeldChanges: MariHeldChange[] = [];
     // #5748: latched true on any round that asks the user for apply-approval
     // (awaitingAuthorization or ask-shaped visible text). Once set, later
     // rounds of THIS run defer their mutating commands behind the Accept
@@ -3269,6 +3306,7 @@ export class ProfessorMariWorkspaceService {
 
       const extraUpdate: Record<string, unknown> = {};
       if (runEndedWithDeferral) extraUpdate.mariDeferredMutations = true;
+      if (runEndedWithDeferral && runHeldChanges.length > 0) extraUpdate.mariHeldChanges = runHeldChanges;
       const storedTrace = sanitizeTraceForStorage(workspaceTrace);
       if (thinkingText.trim()) extraUpdate.thinking = thinkingText;
       if (storedTrace.length > 0) extraUpdate.mariWorkspaceTimeline = storedTrace;
@@ -3519,6 +3557,7 @@ export class ProfessorMariWorkspaceService {
         }
         if (shouldDeferMutations) {
           runEndedWithDeferral = true;
+          runHeldChanges = describeHeldCommands(parsedAction.commands.filter(isMutatingWorkspaceCommand));
           // #5748: the chip is the shared constant so the client's persisted-
           // deferral re-derivation (from mariDeferredMutations) can never
           // drift from what this event sends.
@@ -4629,8 +4668,8 @@ export class ProfessorMariWorkspaceService {
       const approval = await this.workspaceChangeReviews.stageSensitiveFileChange({
         absolutePath: sensitiveTarget,
         afterContent: content,
-        reason: stringArg(args, "reason") || "Professor Mari proposed a supply-chain-sensitive file change",
-        sessionId: SESSION_ID,
+        reason: stringArg(args, "reason") || null,
+        sessionId: this.runSessionId(),
       });
       return [
         `${STAGED_SENSITIVE_CHANGE_PREFIX} ${approval.path}`,
@@ -4745,8 +4784,8 @@ export class ProfessorMariWorkspaceService {
       const approval = await this.workspaceChangeReviews.stageSensitiveFileChange({
         absolutePath: sensitiveTarget,
         afterContent: next,
-        reason: stringArg(args, "reason") || "Professor Mari proposed a supply-chain-sensitive file change",
-        sessionId: SESSION_ID,
+        reason: stringArg(args, "reason") || null,
+        sessionId: this.runSessionId(),
       });
       return [
         `${STAGED_SENSITIVE_CHANGE_PREFIX} ${approval.path}`,
@@ -5015,7 +5054,7 @@ export class ProfessorMariWorkspaceService {
           // in this window; the staged card restores either way.
           reason:
             "Changed during a sandboxed shell command without review; reverted and staged by the post-execution scan.",
-          sessionId: SESSION_ID,
+          sessionId: this.runSessionId(),
         });
         stagedCount += 1;
         lines.push(`${STAGED_SENSITIVE_CHANGE_PREFIX} ${engineLineText(approval.path)}`);
@@ -5039,7 +5078,7 @@ export class ProfessorMariWorkspaceService {
       target: stringArg(args, "target") as MariDependencyTarget,
       dev: booleanArg(args, "dev"),
       reason: stringArg(args, "reason") || null,
-      sessionId: SESSION_ID,
+      sessionId: this.runSessionId(),
     });
     return [
       `Dependency request staged for user approval: ${approval.packageName}@${approval.version}`,

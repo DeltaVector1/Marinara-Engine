@@ -1,15 +1,23 @@
 import { type ReactNode, useCallback, useRef, useState } from "react";
-import { useTranslation as useUiTranslation } from "react-i18next";
-import { Check, ChevronRight, FileText, Loader2, Minus, PackagePlus, Trash2 } from "lucide-react";
+import { Trans, useTranslation as useUiTranslation } from "react-i18next";
+import { Check, ChevronRight, FileText, Loader2, Minus, PackagePlus, Pencil, Plus, Trash2 } from "lucide-react";
 import type {
   MariDbPendingApproval,
   MariDependencyInstallApproval,
+  MariHeldChange,
   MariSensitiveFileApproval,
   MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 
-import { computeFieldChanges, describeTable, replyFixChat, reviewRowFact } from "../../lib/mari-edit-diff";
-import { summarizeDeleteReview } from "../../lib/professor-mari-presentation";
+import {
+  computeFieldChanges,
+  describeTable,
+  describeTablePlural,
+  fieldLabel,
+  replyFixChat,
+  reviewRowFact,
+} from "../../lib/mari-edit-diff";
+import { describeMariHeldChanges, summarizeDeleteReview } from "../../lib/professor-mari-presentation";
 import { cn } from "../../lib/utils";
 import { useUIStore } from "../../stores/ui.store";
 import { MariEditEasyViewer, RecordFace, rowTitle } from "./MariEditEasyViewer";
@@ -166,60 +174,17 @@ function DatabaseWorkspaceApprovalCard({
   ) : null;
 
   // R42: a delete is a risky prompt. Mari already removed the rows; Delete keeps them gone.
-  // ponytail: a preset section or group delete also edits the preset (and orphans the group's
-  // sections); those automatic side-effect updates show only in Raw's command and table counts, not
-  // as rows here. Split the card if Mari ever mixes deletes with edits the user should judge.
   if (deleteReview) {
-    const { parent, selected, count, linkedCount } = deleteReview;
-    const names = selected.map((change) => rowTitle(change, localizeUi));
     return (
       <TranscriptRow layout="document" marker={null}>
-        <MariCard
-          variant="danger"
-          media={<Trash2 size="1rem" aria-hidden="true" />}
-          title={
-            selected.length === 1
-              ? localizeUi("ui.chat.marideleteprompt.title", { name: names[0] })
-              : localizeUi("ui.chat.marideleteprompt.titleMany", { count })
-          }
-          meta={
-            selected.length === 1
-              ? linkedCount > 0
-                ? localizeUi("ui.chat.marideleteprompt.metaLinked", {
-                    type: describeTable(parent.table),
-                    count: linkedCount,
-                  })
-                : describeTable(parent.table)
-              : `${names.slice(0, 3).join(", ")}${selected.length > 3 ? ", …" : ""}`
-          }
-          actions={
-            <>
-              <button
-                type="button"
-                onClick={() => onRestore(approval.id)}
-                disabled={busy || disabled}
-                className="mari-link"
-              >
-                {localizeUi("ui.chat.marideleteprompt.restore", { count })}
-              </button>
-              <button
-                type="button"
-                onClick={() => onKeep(approval.id)}
-                disabled={busy || disabled}
-                className="mari-btn mari-btn--danger"
-              >
-                {busy ? <Loader2 size="0.8rem" className="animate-spin" aria-hidden="true" /> : null}
-                {busy ? localizeUi("ui.chat.marideleteprompt.deleting") : localizeUi("ui.chat.marideleteprompt.delete")}
-              </button>
-            </>
-          }
-        >
-          <p>{[approval.reason, localizeUi("ui.chat.marideleteprompt.risk", { count })].filter(Boolean).join(" ")}</p>
-          {approval.diffTruncated ? (
-            <p>{localizeUi("ui.chat.databaseworkspaceapprovalcard.thisPreviewMayNotShowEveryAffectedRow")}</p>
-          ) : null}
-          {raw}
-        </MariCard>
+        <DeleteReviewCard
+          approvals={[approval]}
+          raw={raw}
+          busy={busy}
+          disabled={disabled}
+          onDelete={() => onKeep(approval.id)}
+          onPutBack={() => onRestore(approval.id)}
+        />
       </TranscriptRow>
     );
   }
@@ -282,6 +247,157 @@ function DatabaseWorkspaceApprovalCard({
 }
 
 /**
+ * Slice 71 (N3, N7): the deletes of one turn as ONE "Needs you" card - "Delete 2 lorebook entries", their
+ * names, what each button does. Mari already hid the rows; Delete keeps them gone, Put back restores
+ * them, for every review in the group at once.
+ * ponytail: a preset section or group delete also edits the preset (and orphans the group's sections);
+ * those automatic side-effect updates show only in Raw's command and table counts, not as rows here.
+ * Split the card if Mari ever mixes deletes with edits the user should judge.
+ */
+export function DeleteReviewCard({
+  approvals,
+  raw,
+  busy,
+  disabled,
+  onDelete,
+  onPutBack,
+}: {
+  approvals: MariDbPendingApproval[];
+  /** The single review's Raw disclosure; a group has none (each review's command differs). */
+  raw?: ReactNode;
+  busy: boolean;
+  disabled: boolean;
+  onDelete: () => void;
+  onPutBack: () => void;
+}) {
+  const { t: localizeUi } = useUiTranslation();
+  const reviews = approvals.flatMap((approval) => {
+    const summary = summarizeDeleteReview(approval);
+    return summary ? [summary] : [];
+  });
+  const first = reviews[0];
+  if (!first) return null;
+  const names = reviews.flatMap(({ selected }) => selected.map((change) => rowTitle(change, localizeUi)));
+  const count = reviews.reduce((total, review) => total + review.count, 0);
+  const oneTable = reviews.every(({ parent }) => parent.table === first.parent.table);
+  const reasons = [...new Set(approvals.map((approval) => approval.reason?.trim()).filter(Boolean))];
+  const title =
+    names.length === 1
+      ? localizeUi("ui.chat.marideleteprompt.title", { name: names[0] })
+      : oneTable
+        ? localizeUi("mari.needsYou.deleteMany", { count, things: describeTablePlural(first.parent.table) })
+        : localizeUi("ui.chat.marideleteprompt.titleMany", { count });
+  const meta =
+    names.length === 1
+      ? first.linkedCount > 0
+        ? localizeUi("ui.chat.marideleteprompt.metaLinked", {
+            type: describeTable(first.parent.table),
+            count: first.linkedCount,
+          })
+        : describeTable(first.parent.table)
+      : `${names.slice(0, 3).join(", ")}${names.length > 3 ? ", …" : ""}`;
+  return (
+    <MariCard
+      needsYou
+      variant="danger"
+      media={<Trash2 size="1rem" aria-hidden="true" />}
+      title={title}
+      meta={meta}
+      then={<Trans i18nKey="mari.needsYou.then.delete" count={count} components={{ b: <b /> }} />}
+      actions={
+        <>
+          <button type="button" onClick={onPutBack} disabled={busy || disabled} className="mari-link">
+            {localizeUi("ui.chat.marideleteprompt.restore", { count })}
+          </button>
+          <button type="button" onClick={onDelete} disabled={busy || disabled} className="mari-btn mari-btn--danger">
+            {busy ? <Loader2 size="0.8rem" className="animate-spin" aria-hidden="true" /> : null}
+            {busy
+              ? localizeUi("ui.chat.marideleteprompt.deleting")
+              : names.length === 1
+                ? localizeUi("ui.chat.marideleteprompt.delete")
+                : localizeUi("mari.needsYou.deleteCount", { count })}
+          </button>
+        </>
+      }
+    >
+      {reasons.length > 0 ? (
+        <TechnicalDetails label={localizeUi("ui.chat.homeprofessormarichat.why")} rows={[]}>
+          {reasons.map((reason) => (
+            <p key={reason}>{reason}</p>
+          ))}
+        </TechnicalDetails>
+      ) : null}
+      {approvals.some((approval) => approval.diffTruncated) ? (
+        <p>{localizeUi("ui.chat.databaseworkspaceapprovalcard.thisPreviewMayNotShowEveryAffectedRow")}</p>
+      ) : null}
+      {raw}
+    </MariCard>
+  );
+}
+
+/**
+ * Slice 71 (N3): a change Mari held behind Accept, as a "Needs you" card. Its words come from the saved
+ * commands (`mariHeldChanges`), never from her prose; an old turn without them still gets the card,
+ * named generically. Accept and Don't apply send the same replies the chips did.
+ */
+export function MariHeldChangeCard({
+  held,
+  nameOf,
+  disabled,
+  onAccept,
+  onDecline,
+}: {
+  held: readonly MariHeldChange[] | null | undefined;
+  nameOf: (id: string) => string | undefined;
+  disabled: boolean;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  const { t: localizeUi } = useUiTranslation();
+  const { kind, name, count, fields } = describeMariHeldChanges(held, nameOf);
+  const named = name || localizeUi("mari.needsYou.held.thisRecord");
+  const title =
+    kind === "update"
+      ? localizeUi("mari.needsYou.held.update", { count, name: named })
+      : kind === "many"
+        ? localizeUi("mari.needsYou.held.many", { count })
+        : name
+          ? localizeUi(`mari.needsYou.held.${kind}`, { name })
+          : localizeUi("mari.needsYou.held.generic");
+  const labels = fields.map(({ key }) => fieldLabel(key));
+  const fact =
+    kind === "many" ? name : labels.map((label, index) => (index === 0 ? label : label.toLowerCase())).join(", ");
+  const Icon = kind === "delete" ? Trash2 : kind === "create" ? Plus : Pencil;
+  return (
+    <MariCard
+      needsYou
+      variant={kind === "delete" ? "danger" : "default"}
+      media={<Icon size="1rem" aria-hidden="true" />}
+      title={title}
+      meta={fact || undefined}
+      then={<Trans i18nKey="mari.needsYou.then.held" components={{ b: <b /> }} />}
+      actions={
+        <>
+          <button type="button" onClick={onDecline} disabled={disabled} className="mari-link">
+            {localizeUi("mari.needsYou.decline")}
+          </button>
+          <button type="button" onClick={onAccept} disabled={disabled} className="mari-btn mari-btn--solid">
+            {localizeUi("mari.needsYou.accept")}
+          </button>
+        </>
+      }
+    >
+      {fields.length > 0 ? (
+        <TechnicalDetails
+          label={localizeUi("mari.needsYou.held.showNewText")}
+          rows={fields.map(({ value }, index) => [labels[index]!, value])}
+        />
+      ) : null}
+    </MariCard>
+  );
+}
+
+/**
  * R42 (direction A): the prompt names what happens and why; the exact package, hash and file
  * contents sit behind one "Technical details" disclosure.
  */
@@ -309,14 +425,16 @@ function TechnicalDetails({
         <ChevronRight size="0.8rem" aria-hidden="true" />
         {label ?? localizeUi("ui.chat.mariapprovalcard.technicalDetails")}
       </summary>
-      <dl>
-        {rows.map(([label, value]) => (
-          <div key={label} className="contents">
-            <dt>{label}</dt>
-            <dd>{value}</dd>
-          </div>
-        ))}
-      </dl>
+      {rows.length > 0 ? (
+        <dl>
+          {rows.map(([label, value]) => (
+            <div key={label} className="contents">
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
       {children}
     </details>
   );
@@ -339,9 +457,11 @@ function DependencyWorkspaceApprovalCard({
   const dependencies = approval.directDependencies;
   return (
     <MariCard
+      needsYou
       media={<PackagePlus size="1rem" aria-hidden="true" />}
       title={localizeUi("ui.chat.dependencyworkspaceapprovalcard.title", { name: approval.packageName })}
       meta={localizeUi("ui.chat.dependencyworkspaceapprovalcard.meta", { version: approval.version })}
+      then={<Trans i18nKey="mari.needsYou.then.install" components={{ b: <b /> }} />}
       actions={
         <>
           <button
@@ -366,7 +486,7 @@ function DependencyWorkspaceApprovalCard({
         </>
       }
     >
-      <p>{[approval.reason, localizeUi("ui.chat.dependencyworkspaceapprovalcard.risk")].filter(Boolean).join(" ")}</p>
+      {approval.reason ? <p>{approval.reason}</p> : null}
       <TechnicalDetails
         rows={[
           [
@@ -411,6 +531,7 @@ function SensitiveFileWorkspaceApprovalCard({
   const created = approval.changeType === "create";
   return (
     <MariCard
+      needsYou
       media={<FileText size="1rem" aria-hidden="true" />}
       title={localizeUi(
         created
@@ -418,11 +539,8 @@ function SensitiveFileWorkspaceApprovalCard({
           : "ui.chat.sensitivefileworkspaceapprovalcard.titleUpdate",
         { file },
       )}
-      meta={localizeUi(
-        created
-          ? "ui.chat.sensitivefileworkspaceapprovalcard.metaCreate"
-          : "ui.chat.sensitivefileworkspaceapprovalcard.metaUpdate",
-      )}
+      meta={localizeUi("mari.needsYou.fileFact")}
+      then={<Trans i18nKey="mari.needsYou.then.file" components={{ b: <b /> }} />}
       actions={
         <>
           <button
@@ -447,16 +565,7 @@ function SensitiveFileWorkspaceApprovalCard({
         </>
       }
     >
-      <p>
-        {[
-          approval.reason,
-          localizeUi(
-            "ui.chat.sensitivefileworkspaceapprovalcard.thisFileCanAffectDependenciesStartupInstallationOrAutomation",
-          ),
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      </p>
+      {approval.reason ? <p>{approval.reason}</p> : null}
       <TechnicalDetails
         rows={[
           [localizeUi("ui.chat.sensitivefileworkspaceapprovalcard.path"), <code>{approval.path}</code>],

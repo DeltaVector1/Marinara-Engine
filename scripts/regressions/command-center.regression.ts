@@ -3927,9 +3927,10 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(countBlockingReviews([{ kind: "applied_review" }, { kind: "approval" }, { kind: "sensitive_file" }, {}]), 3);
   const mariSource = readFileSync(new URL("../../packages/client/src/components/chat/HomeProfessorMariChat.tsx", import.meta.url), "utf8");
   assert.match(mariSource, /pendingReviewCount: countBlockingReviews\(visiblePendingChangeReviews\)/u);
+  // Slice 71: the header counts the "Needs you" cards (waiting reviews, a turn's deletes as one, a held change).
   assert.match(
     mariSource,
-    /mariPresentationState === "waiting-approval" \|\| chipRowAwaitsApproval\s*\? localizeUi\("mari\.presence\.needsYouShort"\)/u,
+    /const needsYouCount =[\s\S]*?isMariReviewWaiting\(approval\)[\s\S]*?\(heldChangeCard \? 1 : 0\);/u,
     "the omnibar header asks for an answer only for a real approval or a held change",
   );
 }

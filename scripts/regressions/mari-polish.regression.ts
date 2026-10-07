@@ -173,17 +173,21 @@ assert.ok("home.browser.bookmarksCompact" in enJson);
 // suggestion. Users read "Suggestions only. Pick one, or type your own." and
 // concluded Mari had silently done nothing, so the safety mechanism's only
 // visible surface read as a failure of it.
+// Slice 71: the held change is now a "Needs you" card (no chip row, no caption) whose words say
+// plainly that nothing is applied yet, and whose buttons send the same Accept / decline replies.
 assert.ok(
-  mariChatFlat.includes(
-    '? localizeUi("ui.chat.homeprofessormarichat.awaitingApprovalHint") : chipRowChips.length > 0 ? messages.length === 0 ? localizeUi("ui.chat.homeprofessormarichat.suggestions.start")',
-  ),
-  "an awaiting-approval row gets its own caption, ahead of the suggestions wording",
+  mariChatFlat.includes("const heldChangeCard = chipRowAwaitsApproval && !guidedPlanStep;"),
+  "a held change renders as its card, not as a suggestions row",
 );
-assert.ok("ui.chat.homeprofessormarichat.awaitingApprovalHint" in enJson);
+assert.ok(
+  mariChatFlat.includes("onAccept={() => handleSuggestionSelect(MARI_AUTHORIZATION_ACCEPT_CHIP)}") &&
+    mariChatFlat.includes("onDecline={() => handleSuggestionSelect(MARI_AUTHORIZATION_DECLINE_CHIP)}"),
+  "the card's buttons are the Accept and decline replies",
+);
 assert.match(
-  String(enJson["ui.chat.homeprofessormarichat.awaitingApprovalHint"]),
+  String(enJson["mari.needsYou.then.held"]),
   /nothing has changed yet/iu,
-  "the caption states plainly that nothing is applied yet",
+  "the card states plainly that nothing is applied yet",
 );
 // Declining is a click, not a composed sentence (the reporter asked for
 // "apply or revert" and only apply existed). Both the reload-derived path and
