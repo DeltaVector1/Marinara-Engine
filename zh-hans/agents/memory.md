@@ -203,6 +203,8 @@ Advanced 模式启用期间会接管检索，因此 Standard Recall 开关不会
 
 勾选条目即可选中；在电脑上，按住 Shift 点击另一个条目，可以选中两者之间可见范围内的所有条目。然后用 **Enable selected**(启用所选) 或 **Disable selected**(禁用所选)，只更改选中的条目。
 
+在合并回复的群聊里，一条回复可以替所有角色发言。条目中为特定角色撰写的部分，例如 `{{#if char == "Kaito"}}…{{/if}}`，会为聊天中所有适用的角色保留，并标明哪些角色知道，例如“known only to Kaito”。只有 Advanced Memory 的 **Narrator** 才能看到的部分仍会排除在外。在角色逐个回复的群聊和单角色聊天里，每个角色照常读取这些条目。
+
 ### Automatic Summaries
 
 **Automatic Summaries** 面板会在你继续聊的过程中不断更新摘要。它只出现在 Roleplay 聊天里。

@@ -203,6 +203,8 @@ Chaque entrée de la liste affiche un titre, une plage source ou un nombre de me
 
 Coche des entrées pour les sélectionner ; sur ordinateur, clique sur une autre entrée en maintenant Shift pour sélectionner toute la plage visible entre les deux, puis utilise **Enable selected** (activer la sélection) ou **Disable selected** (désactiver la sélection) pour ne modifier que les entrées sélectionnées.
 
+Dans un chat de groupe en mode fusionné, une seule réponse peut parler pour tous les personnages. Une partie d'une entrée rédigée pour certains personnages, comme `{{#if char == "Kaito"}}…{{/if}}`, est conservée pour chaque personnage du chat qu'elle concerne et indique qui la connaît, par exemple "known only to Kaito". Les parties que seul le **Narrator** d'Advanced Memory reçoit restent exclues. Dans les chats de groupe où les personnages répondent l'un après l'autre, et dans les chats à un seul personnage, chaque personnage lit les entrées comme avant.
+
 ### Automatic Summaries
 
 Le panneau **Automatic Summaries** maintient les résumés à jour au fil du chat. Il n'apparaît que dans les chats Roleplay.

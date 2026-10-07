@@ -203,6 +203,8 @@ Cada entrada de la lista muestra un título, un rango de origen o un recuento de
 
 Marca las entradas para seleccionarlas; en una computadora, mantén Shift y haz clic en otra entrada para seleccionar el rango visible entre ambas, y luego usa **Enable selected** (Activar seleccionadas) o **Disable selected** (Desactivar seleccionadas) para cambiar solo las entradas seleccionadas.
 
+En un chat grupal combinado, una sola respuesta puede hablar por todos los personajes. Una parte de una entrada escrita para ciertos personajes, como `{{#if char == "Kaito"}}…{{/if}}`, se conserva para todos los personajes del chat a los que se aplica y se marca con quiénes la conocen, como "known only to Kaito". Las partes que solo recibe el **Narrator** de Advanced Memory quedan fuera. En los chats grupales en los que los personajes responden de uno en uno, y en los chats de un solo personaje, cada personaje lee las entradas como antes.
+
 ### Automatic Summaries
 
 El panel **Automatic Summaries** mantiene los resúmenes actualizados a medida que sigues chateando. Aparece solo en los chats de Roleplay.
