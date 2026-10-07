@@ -4,6 +4,12 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari's cards that wait for you now stand out. A change she asked about first, a delete, a sensitive file change and a package install each get one card with a thin accent edge and a "Needs you" label. The card says the action in plain words ("Rewrite 5 fields of Shrek", "Delete 2 lorebook entries") and what each button does. Her header says how many choices are waiting, and a tap on it shows the first card. Changes she already made, with an optional Undo, stay quiet.
+- A change Professor Mari asks about first is now a card with **Accept** and **Don't apply** under her answer. Before, it showed only as two chips above the composer and a hint line.
+- Professor Mari's chat lines up on one left edge. Her words, steps, cards, "Why", the "Worked for" line, the chips and the composer start at the same place on a phone and on a desktop. Before, her words sat about 60 px to the right of her steps, and the composer sat 5 px off the column. On a wide panel her sprite stands in the margin; on a phone her first lines wrap beside her.
+- Fixed Professor Mari's question line (a plan step) showing its sparkle alone on one line and the question below it.
+- Fixed delete reviews showing under "Changed" in Professor Mari's chat and the header saying "Ready to help" while the deleted items still waited for **Delete** or **Put it back**. They now count as waiting for you, and the deletes of one answer share one card.
+- Fixed an open sensitive-file or install review from one Professor Mari thread showing in every new thread. It now stays in the thread that asked for it.
 - Opening Professor Mari is faster. Each time the panel opened, it reloaded data for the whole app (about 35 extra requests), because it treated every change you had approved in the past as new. Only changes approved while the panel is open refresh the app now. Mari threads also load about 30 % fewer bytes: her hidden notes for the next prompt no longer go to the browser.
 - When Professor Mari ends an answer with a question ("apply all five, or pick some?", "what direction do you want?"), she now gives you quick-reply chips to answer it. The chips also come back after a reload.
 - A vague edit request to Professor Mari, such as "overhaul Jennifer a bit", now gets a few concrete directions as chips, not a list of every card field and "give me the vibe".
