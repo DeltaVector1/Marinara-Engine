@@ -107,7 +107,7 @@ try {
   assert.match(fixes.history_trimmed, /Advanced Parameters/u, "a finding without its own write points to Chat Settings");
   assert.equal(output.generationInfo.tokensContext, 9300);
   assert.equal(output.generationInfo.maxContext, 8192);
-  assert.equal(output.generationInfo.ended, "cut off at the output limit", "the end state is plain words");
+  assert.equal(output.generationInfo.ended, "It was cut off at the output limit.", "the end state is plain words");
   assert.ok(!("finishReason" in output.generationInfo), "the raw provider finishReason must not reach Mari");
   assert.equal(output.generationInfo.tokensCompletion, 300);
   assert.equal(output.generationInfo.contextFit.droppedHistory, 7);
@@ -137,6 +137,13 @@ try {
 
   // A chat with no assistant/narrator reply yet returns an empty, well-shaped result.
   const freshChat = await chats.create({ name: "Fresh", mode: "roleplay", characterIds: [] } as never);
+  const latest = (await mariDb.executeAction({
+    action: "chat.diagnose",
+    chatId: chat!.id,
+    messageId: "last",
+    sessionId: "test",
+  } as never)) as any;
+  assert.equal(latest.output?.messageId, assistantMsg!.id, '"last" means the newest reply, not an unknown id');
   const empty = await mariDb.executeAction({ action: "chat.diagnose", chatId: freshChat!.id, sessionId: "test" } as never);
   assert.equal(empty.ok, true);
   assert.deepEqual((empty.output as any).findings, []);

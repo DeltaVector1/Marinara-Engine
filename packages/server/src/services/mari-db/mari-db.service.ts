@@ -302,8 +302,8 @@ const DEFAULT_CHECKUP_FIX = "Point to Chat Settings -> Advanced Parameters.";
 function describeReplyEnd(finishReason: string | null | undefined): string | null {
   const reason = String(finishReason ?? "").toLowerCase();
   if (!reason) return null;
-  if (["length", "max_tokens", "max_output_tokens"].includes(reason)) return "cut off at the output limit";
-  if (["stop", "end_turn", "stop_sequence"].includes(reason)) return "on its own";
+  if (["length", "max_tokens", "max_output_tokens"].includes(reason)) return "It was cut off at the output limit.";
+  if (["stop", "end_turn", "stop_sequence"].includes(reason)) return "It ended on its own; nothing cut it.";
   return reason;
 }
 
@@ -7501,7 +7501,9 @@ export class MariDbService {
     const chat = await chatsStorage.getById(chatId);
     if (!chat) return { ok: false, mode: "read", command: context.command, error: `Chat ${chatId} not found` };
 
-    const requestedMessageId = firstString(args, ["messageId", "message_id"]);
+    const messageArg = firstString(args, ["messageId", "message_id"]);
+    // Models write "last" for "the newest reply"; that is the default anyway.
+    const requestedMessageId = messageArg && !/^(last|latest|newest)$/iu.test(messageArg) ? messageArg : undefined;
     let message = requestedMessageId ? await chatsStorage.getMessage(requestedMessageId) : null;
     if (requestedMessageId && (!message || message.chatId !== chatId)) {
       return {
