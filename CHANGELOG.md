@@ -4,6 +4,10 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- "Not now" in the **Agent updates available** dialog now closes it at once. With many updates waiting (about 25 on an older install), it declined them one by one first, about 2–5 seconds each, so the dialog stayed open and locked for over a minute and looked broken. The declines now finish in the background.
+- Asking Professor Mari "why does he forget things?" or "my last reply got cut off" from a chat now always runs the chat checkup first. Before, some models skipped it and listed guesses instead of the real cause.
+- After a chat checkup, Professor Mari names settings by the label you see on screen, such as **Max Output Tokens**, instead of internal names such as `maxTokens`.
+- Professor Mari's instructions are about 1,150 characters shorter on every step. Older rules (approval wording, skills, agent catalog, reply repair) say the same in fewer words.
 - Fixed Professor Mari's words from two steps running together into one sentence ("…your Dice chat.It wasn't…") when she spoke again right after a step: her next words now start a new paragraph, live and in the saved conversation.
 - Professor Mari no longer replaces a correct answer from the docs with "No workspace change was requested…". A sentence that only describes a feature, such as "before it's created" or "enabled by default", no longer counts as her claiming she changed something.
 - Opening Professor Mari from a chat (Ctrl+J) no longer moves her new thread onto that chat's connection. On a first load, the new thread could take the default connection (often a small one used by the chat) instead of the connection Mari was set to. Mari's fallback when no connection is chosen is now really the default connection, not the first one in the list.
