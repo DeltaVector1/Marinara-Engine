@@ -101,15 +101,19 @@ Zapisany fragment można obejrzeć, edytować i uruchomić ponownie. Edycja zmie
 
 Nad polem czatu Narrative Director ma przycisk **Push Story**. Uzbraja on tego agenta wyłącznie na następną odpowiedź. Narrative Director może też prowadzić ukryty, długofalowy wątek o nazwie **Secret Plot**. Oba opisuje przewodnik [Narrative Director i Secret Plot](narrative-director.md).
 
+<a id="whispers-and-secrets"></a>
+
 ## Szepty i sekrety
 
 W **Chat Settings → Agents → Roleplay Commands** (ustawienia czatu → agenci → komendy Roleplay) włącz **Whisper** (szept), aby pozwolić na prywatne uwagi, sekrety lub wizje w odpowiedzi. Domyślnie jest wyłączone. Wybierz, czy mogą używać go **All** (wszystkie) postacie, czy tylko wyznaczony **Narrator** (narrator). Jak Personal Notes wymaga czatu solo lub generowania grupowego **Individual**.
 
 Komenda to `[whisper: character="name" text="the secret"]`. Wskaż dokładnie jedną postać czatu lub wybraną personę. Tylko odbiorca i wyznaczony narrator otrzymują tekst w promptach. Nieznane lub niejednoznaczne imię jest ignorowane bez ujawniania sekretu. Współdzieleni agenci nie dostają szeptów.
 
-Szept pozostaje w swoim miejscu wiadomości. Szepty do twojej persony widać od razu; inne odczytasz przez **Reveal a secret** (ujawnij sekret). Ujawnienie zmienia tylko ekran, nie wiedzę postaci. Sekrety podążają za wiadomością i aktywnym swipe'em oraz znikają z promptu po ukryciu wiadomości lub wyjściu poza wybraną historię.
+Szept pozostaje w swoim miejscu wiadomości. Szepty do twojej persony widać od razu; inne odczytasz przez **Reveal a secret** (ujawnij sekret). Ujawnienie zmienia tylko ekran, nie wiedzę postaci. Sekrety podążają za wiadomością i aktywnym swipe'em oraz znikają z promptu po ukryciu wiadomości przed wszystkimi lub wyjściu poza wybraną historię.
 
-Gdy szept jest już widoczny, wybierz **Edit whisper** (edytuj szept), zmień tekst, a następnie **Save** (zapisz). Poprawka pozostaje przy swipe'ie tej wiadomości i jest używana w kolejnych promptach dla pierwotnego odbiorcy oraz narratora. **Cancel** (anuluj) pozostawia tekst bez zmian.
+Szept zawsze dociera do odbiorcy. Jeśli za pomocą **Hide from AI** (ukrycie przed AI) ukryjesz wiadomość tylko przed niektórymi postaciami, odbiorca nadal dostaje jej szept w tym miejscu fabuły, ale nic z reszty wiadomości. Inne postacie, które nie widzą wiadomości, nie dostają z niej niczego.
+
+Gdy szept jest już widoczny, wybierz **Edit whisper** (edytuj szept), zmień tekst, a następnie **Save** (zapisz). Poprawka pozostaje przy swipe'ie tej wiadomości i jest używana w kolejnych promptach dla pierwotnego odbiorcy oraz narratora. Aby wycofać szept, wyczyść jego tekst i wybierz **Save**: szept zostanie usunięty z wiadomości. **Cancel** (anuluj) pozostawia tekst bez zmian.
 
 Możesz też wpisać `[whisper: character="name" text="the secret"]` we własnej wiadomości Roleplay, aby wyszeptać coś jednej postaci w czacie. Własne szepty widzisz od razu. Działa to w zwykłych czatach, bez włączania trybu wieloosobowego.
 

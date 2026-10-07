@@ -85,7 +85,11 @@ El contexto de la IA es el conjunto de mensajes que la app envía a la IA en cad
 
 En un chat grupal de Roleplay con más de un personaje, **Hide from AI** abre un selector de avatares compacto. Selecciona el avatar del grupo para ocultar el mensaje a todos, o selecciona uno o más avatares de personaje para ocultarlo solo a esos personajes. Seleccionar a todos borra las selecciones individuales, mientras que seleccionar un personaje individual desactiva la opción de todos. La marca de ojo tachado en el mensaje muestra los avatares de los personajes que no pueden verlo. En un chat de un solo personaje, el botón sigue ocultando o mostrando el mensaje directamente.
 
+Un susurro dentro de un mensaje sigue llegando a su destinatario cuando ocultas el mensaje solo a ese personaje. Recibe el susurro, pero nada del resto del mensaje. Ocultar el mensaje a todos también quita sus susurros. Consulta [Susurros y secretos](../roleplay/getting-started.md#whispers-and-secrets).
+
 También puedes ocultar mensajes con `/hide [range] [name (optional)]`, por ejemplo `/hide 3-8`. En Roleplay, `/hide 3-8 Maukie` los oculta solo para Maukie; si omites el nombre, se ocultan para todos. `/unhide [range]` restaura los mensajes ocultos globalmente. Para deshacer la ocultación por personaje, usa el selector de avatares en un chat grupal de Roleplay, o la acción **Unhide from AI** del mensaje en un chat de Roleplay con un solo personaje. Los números de mensaje empiezan en 1, contando desde el primer mensaje del chat. Consulta la [Referencia de comandos slash](slash-commands.md) para ver formatos y ejemplos.
+
+Cuando **Decide who sees new messages** (Decidir quién ve los mensajes nuevos) de Advanced Memory está activado, los mensajes nuevos de un chat grupal en el que los personajes responden de uno en uno se ocultan automáticamente a los personajes ausentes, con la misma marca. Si cambias tú la elección de un mensaje, tu cambio siempre tiene prioridad; consulta [Decidir quién ve los mensajes nuevos](../agents/memory.md#deciding-who-sees-new-messages).
 
 ## Interruptores de visualización de mensajes
 

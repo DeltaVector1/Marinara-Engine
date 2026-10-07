@@ -101,15 +101,19 @@ Gespeicherte Schnipsel lassen sich ansehen, bearbeiten und erneut ausführen. Ei
 
 Der Narrative Director bringt die Schaltfläche **Push Story** über dem Chatfeld mit. Sie aktiviert den Director nur für die nächste Antwort. Der Narrative Director kann außerdem einen verborgenen Langzeit-Handlungsbogen führen, den **Secret Plot**. Beides beschreibt [Narrative Director und Secret Plot](narrative-director.md).
 
+<a id="whispers-and-secrets"></a>
+
 ## Flüstern und Geheimnisse
 
 Aktiviere unter **Chat Settings → Agents → Roleplay Commands** die Option **Whisper** (flüstern), um private Bemerkungen, Geheimnisse oder Visionen innerhalb einer Antwort zu erlauben. Sie ist anfangs aus. Wähle, ob **All** (alle) Charaktere oder nur der ernannte **Narrator** (Erzähler) sie verwenden dürfen. Wie Personal Notes benötigt sie einen Einzelchat oder Gruppengenerierung mit **Individual**.
 
 Der Befehl lautet `[whisper: character="name" text="the secret"]`. Nenne genau einen Charakter im Chat oder deine ausgewählte Persona. Nur dieser Empfänger und der ernannte Erzähler erhalten den Text in ihren Prompts. Ein unbekannter oder mehrdeutiger Name wird ignoriert, ohne das Geheimnis offenzulegen. Gemeinsame Agenten erhalten keine Flüsternachrichten.
 
-Eine Flüsternachricht bleibt an ihrer Stelle in der Nachricht. An deine Persona gerichtete Geheimnisse sind sofort sichtbar; andernfalls wähle **Reveal a secret** (Geheimnis aufdecken), um eines zu lesen. Das Aufdecken ändert nur deine Anzeige, nicht das Wissen eines Charakters. Geheimnisse folgen ihrer Nachricht und deren aktivem Swipe; sie verlassen den Prompt, wenn die Nachricht ausgeblendet wird oder außerhalb des ausgewählten Verlaufs liegt.
+Eine Flüsternachricht bleibt an ihrer Stelle in der Nachricht. An deine Persona gerichtete Geheimnisse sind sofort sichtbar; andernfalls wähle **Reveal a secret** (Geheimnis aufdecken), um eines zu lesen. Das Aufdecken ändert nur deine Anzeige, nicht das Wissen eines Charakters. Geheimnisse folgen ihrer Nachricht und deren aktivem Swipe; sie verlassen den Prompt, wenn die Nachricht vor allen verborgen wird oder außerhalb des ausgewählten Verlaufs liegt.
 
-Sobald eine Flüsternachricht sichtbar ist, wähle **Edit whisper** (Flüsternachricht bearbeiten), ändere den Text und wähle **Save** (speichern). Die Korrektur bleibt beim Swipe dieser Nachricht und wird in späteren Prompts für den ursprünglichen Empfänger und den Erzähler verwendet. **Cancel** (abbrechen) lässt den Text unverändert.
+Eine Flüsternachricht erreicht ihren Empfänger immer. Verbirgst du eine Nachricht mit **Hide from AI** (vor der KI verbergen) nur vor einigen Charakteren, erhält der Empfänger ihre Flüsternachricht trotzdem an dieser Stelle der Geschichte, aber nichts vom Rest der Nachricht. Andere Charaktere, die die Nachricht nicht sehen können, erhalten nichts davon.
+
+Sobald eine Flüsternachricht sichtbar ist, wähle **Edit whisper** (Flüsternachricht bearbeiten), ändere den Text und wähle **Save** (speichern). Die Korrektur bleibt beim Swipe dieser Nachricht und wird in späteren Prompts für den ursprünglichen Empfänger und den Erzähler verwendet. Um eine Flüsternachricht zurückzunehmen, leere ihren Text und wähle **Save**: Die Flüsternachricht wird aus der Nachricht entfernt. **Cancel** (abbrechen) lässt den Text unverändert.
 
 Du kannst auch `[whisper: character="name" text="the secret"]` in deine eigene Roleplay-Nachricht schreiben, um einem Charakter im Chat etwas zuzuflüstern. Deine eigenen Flüsternachrichten siehst du sofort. Das funktioniert in gewöhnlichen Chats ohne aktivierten Mehrspielermodus.
 

@@ -85,7 +85,11 @@ Kontekst AI to zestaw wiadomości, które aplikacja wysyła do AI w każdej turz
 
 W czacie grupowym w trybie Roleplay, w którym jest więcej niż jedna postać, przycisk **Hide from AI** otwiera niewielki wybór awatarów. Wybierz awatar grupy, żeby ukryć wiadomość przed wszystkimi, albo wskaż jeden lub kilka awatarów postaci, żeby ukryć ją tylko przed nimi. Wybór wszystkich czyści pojedyncze zaznaczenia, a wskazanie pojedynczej postaci wyłącza opcję obejmującą wszystkich. Znacznik z przekreślonym okiem na wiadomości pokazuje awatary postaci, które jej nie widzą. W czacie z jedną postacią przycisk po prostu ukrywa wiadomość albo ją odkrywa.
 
+Szept w wiadomości nadal dociera do odbiorcy, gdy ukryjesz wiadomość tylko przed tą postacią. Odbiorca dostaje szept, ale nic z reszty wiadomości. Ukrycie wiadomości przed wszystkimi ukrywa również jej szepty. Zobacz [Szepty i sekrety](../roleplay/getting-started.md#whispers-and-secrets).
+
 Wiadomości można też ukrywać komendą `/hide [range] [name (optional)]`, na przykład `/hide 3-8`. W trybie Roleplay `/hide 3-8 Maukie` ukrywa je tylko przed Maukie; bez imienia zostają ukryte przed wszystkimi. `/unhide [range]` przywraca wiadomości ukryte globalnie. Żeby cofnąć ukrycie przed konkretną postacią, użyj wyboru awatarów w grupowym czacie Roleplay albo przycisku **Unhide from AI** na wiadomości w czacie Roleplay z jedną postacią. Numery wiadomości zaczynają się od 1, licząc od pierwszej wiadomości w czacie. Formaty i przykłady opisuje przewodnik [Lista komend slash](slash-commands.md).
+
+Gdy w Advanced Memory włączona jest opcja **Decide who sees new messages** (decydowanie, kto widzi nowe wiadomości), nowe wiadomości w czacie grupowym, w którym postacie odpowiadają po kolei, są automatycznie ukrywane przed nieobecnymi postaciami, z tym samym znacznikiem. Samodzielna zmiana wyboru dla wiadomości zawsze ma pierwszeństwo; zobacz [Decydowanie, kto widzi nowe wiadomości](../agents/memory.md#deciding-who-sees-new-messages).
 
 ## Przełączniki wyświetlania wiadomości
 

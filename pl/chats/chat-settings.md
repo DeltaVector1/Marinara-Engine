@@ -9,7 +9,7 @@ Przy pierwszym wejściu do czatu po tej aktualizacji krótki film pokazuje, jak 
 ## Otwieranie Chat Settings
 
 1. Otwórz czat.
-2. Kliknij lub dotknij przycisku **Chat Settings** z ikoną suwaków. Domyślnie znajduje się w prawym górnym rogu czatu, pod górnym paskiem aplikacji.
+2. Kliknij lub dotknij przycisku **Chat Settings** z ikoną suwaków. Domyślnie znajduje się w prawym górnym rogu czatu, pod górnym paskiem aplikacji. Na komputerze, gdy po prawej stronie widać Tracker Panel, jego domyślne miejsce jest natomiast tuż na lewo od panelu.
 3. Kliknij tytuł sekcji, aby ją rozwinąć. Te sekcje są też nazywane **drawers**. Ponowne kliknięcie tytułu zwija sekcję.
 
 Przy tworzeniu nowego czatu **Chat Settings** otwiera się automatycznie. Aby je zamknąć, kliknij **X** lub ponownie naciśnij przycisk z suwakami.

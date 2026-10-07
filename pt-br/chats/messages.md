@@ -85,7 +85,11 @@ O contexto da IA é o conjunto de mensagens que o aplicativo envia para a IA a c
 
 Em um chat em grupo de Roleplay com mais de um personagem, **Hide from AI** abre um seletor compacto de avatares. Selecione o avatar do grupo para ocultar a mensagem de todo mundo, ou selecione um ou mais avatares de personagem para ocultá-la só desses personagens. Selecionar todos limpa as seleções individuais; selecionar um personagem específico desativa a opção de todos. O marcador de olho riscado na mensagem mostra os avatares dos personagens que não conseguem vê-la. Em um chat com um só personagem, o botão continua ocultando ou mostrando a mensagem diretamente.
 
+Um sussurro dentro de uma mensagem ainda chega ao destinatário quando você oculta a mensagem só desse personagem. Ele recebe o sussurro, mas nada do restante da mensagem. Ocultar a mensagem de todo mundo também remove os sussurros dela. Veja [Sussurros e segredos](../roleplay/getting-started.md#whispers-and-secrets).
+
 Você também pode ocultar mensagens com `/hide [range] [name (optional)]`, por exemplo `/hide 3-8`. No Roleplay, `/hide 3-8 Maukie` as oculta apenas de Maukie; sem o nome, elas ficam ocultas para todos. `/unhide [range]` restaura as mensagens ocultas globalmente. Para desfazer a ocultação por personagem, use o seletor de avatares em um chat de grupo Roleplay ou a ação **Unhide from AI** da mensagem em um chat Roleplay com apenas um personagem. A numeração começa em 1, a partir da primeira mensagem do chat. Consulte a [Referência de comandos de barra](slash-commands.md) para ver formatos e exemplos.
+
+Quando a opção **Decide who sees new messages** (decidir quem vê as novas mensagens) do Advanced Memory está ativada, as novas mensagens de um chat em grupo em que os personagens respondem um de cada vez ficam ocultas automaticamente para os personagens ausentes, com o mesmo marcador. Se você mesmo mudar a escolha de uma mensagem, a sua escolha sempre prevalece; veja [Decidir quem vê as novas mensagens](../agents/memory.md#deciding-who-sees-new-messages).
 
 ## Botões de exibição das mensagens
 

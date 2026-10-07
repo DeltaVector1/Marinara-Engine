@@ -1,6 +1,6 @@
 {
   "language": "pt-br",
-  "sourceCommit": "73bb8d7b6dd4a9ea9f9a78858f245ab82a2899f1",
+  "sourceCommit": "b5b46c786cd71ef66d3d369e56a55907e6ae05b0",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -64,8 +64,8 @@
     },
     {
       "path": "agents/memory.md",
-      "sha256": "afe6d28d7f72c585757fe5362b17e9d32f617a007911f54537c3ead6659367e8",
-      "bytes": 36204
+      "sha256": "b018d9cc70d98c4c5134383584cd916aa14139a3533710767d804953ac39f070",
+      "bytes": 40399
     },
     {
       "path": "appearance/appearance-settings.md",
@@ -144,8 +144,8 @@
     },
     {
       "path": "chats/chat-settings.md",
-      "sha256": "1a1f0b738db913ed9c1e845534d6144cac696af696463349645733d143c3dcb5",
-      "bytes": 23334
+      "sha256": "b3523d04a77cc896dba79adedf0b1fe28e1d6f661c6fa07a864b4e3f2f2f4d25",
+      "bytes": 23434
     },
     {
       "path": "chats/connected-chats.md",
@@ -174,8 +174,8 @@
     },
     {
       "path": "chats/messages.md",
-      "sha256": "04f9a91a6bcd55040004bf86bc40ef7837c71c417fdb51772892bd1e034e4261",
-      "bytes": 11047
+      "sha256": "a38318f15e35e39c664ba25091f86df183cb5281b89d949ca878b9ad56da4194",
+      "bytes": 11838
     },
     {
       "path": "chats/peek-prompt.md",
@@ -659,13 +659,13 @@
     },
     {
       "path": "roleplay/getting-started.md",
-      "sha256": "14dc265767c573b7221d516657a8264803d049dcbfa541a03deb141380ae1daa",
-      "bytes": 19165
+      "sha256": "dc605c5fb9a24a5d2061e638283fe56d384c7e994d168c3abd4ccf0c79e43838",
+      "bytes": 19633
     },
     {
       "path": "roleplay/hud-and-trackers.md",
-      "sha256": "04aa89e80e01168f7176f25f29836ee812cd45e05a17ebf06d5ee776a4a8fdd9",
-      "bytes": 14939
+      "sha256": "190beeb03fe6a7e60737d322052bf8900dc4876de374d508c7d72f4aa6046bfe",
+      "bytes": 15303
     },
     {
       "path": "roleplay/narrative-director.md",

@@ -9,7 +9,7 @@ Na primeira vez que você entrar em um chat após esta atualização, um vídeo 
 ## Como abrir Chat Settings
 
 1. Abra um chat.
-2. Clique ou toque no botão **Chat Settings** (o ícone de controles deslizantes). Ele começa no canto superior direito do chat, abaixo da barra superior do aplicativo.
+2. Clique ou toque no botão **Chat Settings** (o ícone de controles deslizantes). Ele começa no canto superior direito do chat, abaixo da barra superior do aplicativo. No computador, com o Tracker Panel exibido à direita, o botão começa logo à esquerda do painel.
 3. Clique no título de uma seção para abri-la. Essas seções também são chamadas de **drawers** (gavetas): clique no título novamente para recolhê-las.
 
 Chat Settings abre automaticamente ao criar um chat. Para fechar, clique no **X** ou no botão de controles deslizantes novamente.

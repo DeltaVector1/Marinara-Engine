@@ -85,7 +85,11 @@ AI 上下文就是应用每一轮发给 AI 的那批消息。点击 **Hide from 
 
 在有多个角色的 Roleplay 群聊里，**Hide from AI** 会打开一个紧凑的头像选择器。选群组头像表示对所有人隐藏，选一个或多个角色头像则只对这些角色隐藏。选了所有人会清空单选，选了单个角色则会关掉所有人这一项。消息上那个划掉的眼睛图标会显示看不到它的角色头像。在单角色聊天里，这个按钮还是直接隐藏或恢复消息。
 
+如果只对某个角色隐藏消息，而消息里有发给这个角色的耳语，耳语仍会送达：该角色能收到耳语，但收不到消息的其余部分。对所有人隐藏消息时，其中的耳语也会一并移除。见[耳语与秘密](../roleplay/getting-started.md#whispers-and-secrets)。
+
 也可以用 `/hide [range] [name (optional)]` 隐藏消息，例如 `/hide 3-8`。在 Roleplay 中，`/hide 3-8 Maukie` 只对 Maukie 隐藏这些消息；省略名字则对所有角色隐藏。`/unhide [range]` 会恢复全局隐藏的消息。要取消针对特定角色的隐藏，在 Roleplay 群聊中使用头像选择器，在只有一个角色的 Roleplay 聊天中使用消息上的 **Unhide from AI** 操作。消息编号从 1 开始，从聊天里的第一条消息数起。格式和示例见[斜杠命令参考](slash-commands.md)。
+
+开启 Advanced Memory 的 **Decide who sees new messages**(决定谁能看到新消息) 后，在角色逐个回复的群聊里，新消息会自动对不在场的角色隐藏，并带上同样的标记。你自己更改某条消息的隐藏设置时，始终以你的选择为准；见[决定谁能看到新消息](../agents/memory.md#deciding-who-sees-new-messages)。
 
 ## 消息显示开关
 
