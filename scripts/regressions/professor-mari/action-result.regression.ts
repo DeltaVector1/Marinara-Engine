@@ -4,6 +4,7 @@ import type { MariDbCommandResult } from "@marinara-engine/shared";
 import {
   buildMariWorkspaceActionResult,
   parseAssistantWorkspaceAction,
+  scrubInternalNames,
 } from "../../../packages/server/src/services/professor-mari/workspace-agent.service.js";
 import { normalizeCommandCenterSessionState } from "../../../packages/client/src/lib/command-center.js";
 
@@ -76,6 +77,30 @@ assert.equal(parsedAction.commands[0]?.name, "app_data", "app-data action calls 
 const malformedAction = parseAssistantWorkspaceAction('<delete_everything>{"action":"delete"}</delete_everything>');
 assert.equal(malformedAction.protocolValid, false, "unknown action tools are rejected");
 assert.equal(malformedAction.commands.length, 0, "rejected action tools cannot reach execution");
+
+// Slice 70: her visible words never carry internal tool, action or apply-flag names; commands stay raw.
+const toolNamesAction = parseAssistantWorkspaceAction(
+  JSON.stringify({
+    say: "I check replies with `chat.diagnose`, search the docs (docs_search / docs_read), and never run an apply:false preview.",
+    commands: [{ name: "app_data", arguments: { action: "chat.diagnose", chatId: "c1" } }],
+    suggestions: [{ label: "Run lorebook.testScan", prompt: "Run lorebook.testScan", detail: "via app_data" }],
+    stop: false,
+  }),
+);
+assert.equal(
+  toolNamesAction.visibleText,
+  "I check replies with the chat checkup, search the docs, and never run a dry-run preview.",
+  "visible text names no tool, action or flag",
+);
+assert.equal(toolNamesAction.suggestions[0]?.label, "Run lorebook test scan", "chip labels name no action");
+assert.equal(toolNamesAction.suggestions[0]?.detail, "via app data", "chip details name no tool");
+assert.equal(toolNamesAction.suggestions[0]?.prompt, "Run lorebook.testScan", "the chip prompt to Mari stays raw");
+assert.equal(toolNamesAction.commands[0]?.arguments.action, "chat.diagnose", "command arguments stay raw");
+assert.equal(
+  scrubInternalNames("Open character.json; marinara.ui.registerContribution stays."),
+  "Open character.json; marinara.ui.registerContribution stays.",
+  "file names and extension APIs are not action names",
+);
 
 const session = normalizeCommandCenterSessionState({
   query: "find Luna",

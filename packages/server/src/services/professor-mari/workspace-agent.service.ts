@@ -1475,6 +1475,52 @@ function parseTextualWorkspaceCommandCalls(content: string): WorkspaceCommandCal
   });
 }
 
+// Slice 70: her visible words never name an internal tool, app_data action or apply flag (the prompt rule
+// alone did not hold: "what can you do?" listed `chat.diagnose`, `docs_search`). Every round's `say` and chip
+// text passes through here in parseAssistantWorkspaceAction; command arguments and debug logs stay raw.
+const INTERNAL_NAME_WORDS: Record<string, string> = {
+  "chat.diagnose": "the chat checkup",
+  "chat.updatemessage": "a reply repair",
+  docs_search: "the docs",
+  docs_read: "the docs",
+  app_data: "app data",
+  package_service: "agent actions",
+};
+const INTERNAL_NAME = `(?:${[...PROFESSOR_MARI_APP_DATA_ACTIONS, ...Object.keys(INTERNAL_NAME_WORDS)]
+  .sort((a, b) => b.length - a.length)
+  .map((name) => name.replace(/\./g, "\\."))
+  .join("|")})`;
+const INTERNAL_NAME_RUN_RE = new RegExp(
+  `([ \\t]*\\(\\s*)?\`?\\b${INTERNAL_NAME}\\b\`?(?:\\s*(?:/|,|\\bor\\b|\\band\\b)\\s*\`?\\b${INTERNAL_NAME}\\b\`?)*(\\s*\\))?`,
+  "gi",
+);
+const INTERNAL_NAME_RE = new RegExp(`\\b${INTERNAL_NAME}\\b`, "gi");
+
+export function scrubInternalNames(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/(\ban?\s+)?`?\bapply\s*:\s*(true|false)\b`?/gi, (_m, article: string | undefined, flag: string) =>
+      flag.toLowerCase() === "false" ? `${article ? "a " : ""}dry-run` : `${article ?? ""}apply`,
+    )
+    .replace(INTERNAL_NAME_RUN_RE, (run: string, open: string | undefined, close: string | undefined) => {
+      // A parenthesis holding only tool names ("the docs (docs_search / docs_read)") adds nothing: drop it.
+      if (open && close) return "";
+      const words = [
+        ...new Set(
+          (run.match(INTERNAL_NAME_RE) ?? []).map(
+            (name) =>
+              INTERNAL_NAME_WORDS[name.toLowerCase()] ??
+              name
+                .replace(/[._]/g, " ")
+                .replace(/([a-z])([A-Z])/g, "$1 $2")
+                .toLowerCase(),
+          ),
+        ),
+      ];
+      return `${open ?? ""}${words.join(" / ")}${close ?? ""}`;
+    });
+}
+
 function jsonPayloadVisibleText(payload: Record<string, unknown>): string {
   for (const key of ["say", "message", "response", "final", "answer"]) {
     const value = payload[key];
@@ -1613,8 +1659,14 @@ export function parseAssistantWorkspaceAction(content: string): AssistantWorkspa
     .map((match) => jsonPayloadVisibleText(match.payload))
     .filter(Boolean)
     .join("\n\n");
-  const visibleText = [inlineVisibleText, frameVisibleText].filter(Boolean).join("\n\n").trim();
-  const suggestions = matches.flatMap((match) => sanitizeSuggestionChips(match.payload.suggestions));
+  const visibleText = scrubInternalNames([inlineVisibleText, frameVisibleText].filter(Boolean).join("\n\n").trim());
+  const suggestions = matches
+    .flatMap((match) => sanitizeSuggestionChips(match.payload.suggestions))
+    .map((chip) => ({
+      ...chip,
+      label: scrubInternalNames(chip.label),
+      ...(chip.detail ? { detail: scrubInternalNames(chip.detail) } : {}),
+    }));
   const plan = matches.flatMap((match) => sanitizePlanSteps(match.payload.plan));
   const awaitingAuthorization = matches.some((match) => match.payload.awaitingAuthorization === true);
   // #5740: diagnostic only - stored and displayed, never validated or gated.
