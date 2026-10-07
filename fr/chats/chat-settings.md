@@ -9,7 +9,7 @@ La première fois que tu entres dans un chat après cette mise à jour, une cour
 ## Ouvrir Chat Settings
 
 1. Ouvre un chat.
-2. Clique ou appuie sur **Chat Settings** (l'icône de curseurs). Au départ, ce bouton se trouve en haut à droite du chat, sous la barre supérieure de l'application.
+2. Clique ou appuie sur **Chat Settings** (l'icône de curseurs). Au départ, ce bouton se trouve en haut à droite du chat, sous la barre supérieure de l'application. Sur ordinateur, si le Tracker Panel est affiché à droite, ce bouton se trouve plutôt au départ juste à gauche du panneau.
 3. Clique sur le titre d'une section pour l'ouvrir. Ces sections sont aussi appelées **drawers** (tiroirs) : clique à nouveau sur le titre pour les replier.
 
 Chat Settings s'ouvre automatiquement à la création d'un chat. Pour le fermer, clique sur son **X** ou à nouveau sur le bouton de curseurs.

@@ -105,6 +105,8 @@ W panelu **Chat Settings → Agents** przełącznik **Manual Trackers** przestaw
 
 Żeby włączyć panel w czacie Roleplay, otwórz **Chat Settings** i kliknij przycisk **Tracker Panel** (kostka) na pasku tytułu, obok przypięcia i kłódki. Przycisk pozostaje wyróżniony, gdy panel jest włączony, a panel pojawia się obok czatu. Kliknij ponownie, żeby go wyłączyć i ukryć. Na komputerze trackery pojawią się wtedy w oknie Trackers.
 
+Na komputerze panel mieści się w miejscu obok wiadomości, maksymalnie do szerokości wybranej w ustawieniu **Desktop size** (rozmiar na komputerze). Gdy okno jest za wąskie na jedno i drugie, na przykład przy otwartym pasku bocznym czatów, wiadomości i pole wiadomości nieco się zwężają, żeby panel zachował miejsce na własne przyciski.
+
 Na telefonie lub tablecie włączenie panelu dodaje do czatu przycisk Tracker Panel, który można dowolnie przeciągać. Dotknij go, żeby otworzyć panel, i dotknij ponownie, żeby go zamknąć. Gdy panel lub inny ekran zasłania czat, przesuwane przyciski czatu są ukryte i po powrocie do czatu wracają na te same miejsca. Przy wyłączonym panelu korzystaj z osobnych przycisków **World State** i **Player & Tracker**.
 
 Dzięki kontrolkom w nagłówku panelu można też zmienić strukturę trackerów:

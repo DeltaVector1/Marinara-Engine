@@ -105,6 +105,8 @@ Le **Tracker Panel** est un panneau latéral plus grand, qui affiche les mêmes 
 
 Pour l'activer dans un chat Roleplay, ouvre **Chat Settings** et clique sur **Tracker Panel** (le dé) dans la barre de titre, près de l'épinglage et du verrouillage. Il reste mis en évidence quand le panneau est actif, et le panneau apparaît à côté du chat. Clique à nouveau pour le désactiver et le masquer. Sur ordinateur, les trackers passent alors dans la fenêtre Trackers.
 
+Sur ordinateur, le panneau occupe l'espace à côté de tes messages, jusqu'à la largeur choisie dans **Desktop size** (taille sur ordinateur). Quand la fenêtre est trop étroite pour les deux, par exemple quand la barre latérale des chats est ouverte, tes messages et la zone de saisie se rétrécissent un peu pour que le panneau garde de la place pour ses propres boutons.
+
 Sur téléphone ou tablette, l'activer ajoute au chat un bouton Tracker Panel que tu peux déplacer librement. Appuie dessus pour ouvrir le panneau, puis appuie de nouveau dessus pour le fermer. Tant que le panneau ou un autre écran recouvre le chat, les boutons déplaçables du chat sont masqués ; ils réapparaissent aux mêmes endroits quand tu reviens au chat. Quand le panneau est désactivé, utilise les boutons séparés **World State** et **Player & Tracker**.
 
 Les contrôles de l'en-tête du panneau permettent aussi de personnaliser la structure des trackers :

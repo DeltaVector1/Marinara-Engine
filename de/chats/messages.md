@@ -85,7 +85,11 @@ Der KI-Kontext ist die Menge an Nachrichten, die die App in jedem Zug an die KI 
 
 In einem Roleplay-Gruppenchat mit mehreren Charakteren öffnet **Hide from AI** eine kompakte Avatar-Auswahl. Wähl den Gruppen-Avatar, um die Nachricht vor allen zu verbergen, oder einen oder mehrere Charakter-Avatare, um sie nur vor diesen Charakteren zu verbergen. Die Auswahl „alle“ hebt einzelne Markierungen auf; wählst du einen einzelnen Charakter, schaltet sich „alle“ ab. Die durchgestrichene Augenmarkierung an der Nachricht zeigt die Avatare der Charaktere, die sie nicht sehen. In einem Chat mit nur einem Charakter verbirgt die Schaltfläche die Nachricht weiterhin direkt oder macht sie wieder sichtbar.
 
+Enthält eine Nachricht eine Flüsternachricht, erreicht diese ihren Empfänger auch dann, wenn du die Nachricht nur vor diesem Charakter verbirgst. Er erhält die Flüsternachricht, aber nichts vom Rest der Nachricht. Verbirgst du die Nachricht vor allen, entfallen auch ihre Flüsternachrichten. Mehr dazu unter [Flüstern und Geheimnisse](../roleplay/getting-started.md#whispers-and-secrets).
+
 Du kannst Nachrichten auch mit `/hide [range] [name (optional)]` verbergen, zum Beispiel `/hide 3-8`. In Roleplay verbirgt `/hide 3-8 Maukie` sie nur vor Maukie; ohne Namen werden sie vor allen verborgen. `/unhide [range]` stellt global verborgene Nachrichten wieder her. Um das Verbergen vor einzelnen Charakteren aufzuheben, verwende die Avatar-Auswahl in einem Roleplay-Gruppenchat oder **Unhide from AI** an der Nachricht in einem Roleplay-Chat mit nur einem Charakter. Die Nummerierung beginnt bei 1, gezählt ab der ersten Nachricht im Chat. Formate und Beispiele findest du in der [Referenz der Slash-Befehle](slash-commands.md).
+
+Ist in Advanced Memory **Decide who sees new messages** (entscheiden, wer neue Nachrichten sieht) eingeschaltet, werden neue Nachrichten in einem Gruppenchat, in dem die Charaktere einzeln nacheinander antworten, automatisch vor abwesenden Charakteren verborgen, mit derselben Markierung. Änderst du die Auswahl einer Nachricht selbst, hat das immer Vorrang; siehe [Entscheiden, wer neue Nachrichten sieht](../agents/memory.md#deciding-who-sees-new-messages).
 
 ## Anzeigeschalter für Nachrichten
 

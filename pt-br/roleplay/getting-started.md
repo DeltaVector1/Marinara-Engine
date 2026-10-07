@@ -99,15 +99,19 @@ Você pode ver, editar e rodar de novo um trecho salvo. A edição muda só o qu
 
 O Narrative Director tem um botão **Push Story** acima da caixa de mensagem. Ele prepara o Director para a próxima resposta, e só para ela. O Narrative Director também pode guardar um arco de longo prazo escondido, chamado **Secret Plot**. Veja [Narrative Director e Secret Plot](narrative-director.md) para conhecer os dois.
 
+<a id="whispers-and-secrets"></a>
+
 ## Sussurros e segredos
 
 Em **Chat Settings → Agents → Roleplay Commands**, ative **Whisper** (sussurro) para permitir comentários privados, segredos ou visões dentro de uma resposta. Começa desativado. Escolha se **All** (todos) os personagens ou somente o **Narrator** (narrador) designado podem usar. Como Personal Notes, exige chat solo ou geração de grupo **Individual**.
 
 O comando é `[whisper: character="name" text="the secret"]`. Nomeie exatamente um personagem do chat ou sua persona selecionada. Apenas esse destinatário e o narrador designado recebem o texto nos prompts. Um nome desconhecido ou ambíguo é ignorado sem expor o segredo. Agentes compartilhados não recebem sussurros.
 
-O sussurro permanece no seu lugar na mensagem. Os dirigidos à persona ficam visíveis imediatamente; nos demais, escolha **Reveal a secret** (revelar um segredo) para ler. Revelar muda apenas sua tela, não o conhecimento dos personagens. Segredos acompanham a mensagem e o swipe ativo e saem do prompt quando a mensagem é ocultada ou fica fora do histórico selecionado.
+O sussurro permanece no seu lugar na mensagem. Os dirigidos à persona ficam visíveis imediatamente; nos demais, escolha **Reveal a secret** (revelar um segredo) para ler. Revelar muda apenas sua tela, não o conhecimento dos personagens. Segredos acompanham a mensagem e o swipe ativo e saem do prompt quando a mensagem é ocultada de todo mundo ou fica fora do histórico selecionado.
 
-Depois que um sussurro estiver visível, escolha **Edit whisper** (editar sussurro), altere o texto e pressione **Save** (salvar). A correção fica no swipe daquela mensagem e é usada nos próximos prompts para o destinatário original e o narrador. **Cancel** (cancelar) mantém o texto inalterado.
+Um sussurro sempre chega ao destinatário. Se você usar **Hide from AI** (ocultar da IA) para ocultar uma mensagem só de alguns personagens, o destinatário ainda recebe o sussurro naquele ponto da história, mas nada do restante da mensagem. Os outros personagens que não podem ver a mensagem não recebem nada dela.
+
+Depois que um sussurro estiver visível, escolha **Edit whisper** (editar sussurro), altere o texto e pressione **Save** (salvar). A correção fica no swipe daquela mensagem e é usada nos próximos prompts para o destinatário original e o narrador. Para retirar um sussurro, apague o texto e escolha **Save**: o sussurro é removido da mensagem. **Cancel** (cancelar) mantém o texto inalterado.
 
 Você também pode escrever `[whisper: character="name" text="the secret"]` na própria mensagem de Roleplay para sussurrar a um personagem do chat. Seus próprios sussurros ficam visíveis para você imediatamente. Isso funciona em chats comuns sem ativar o modo multijogador.
 

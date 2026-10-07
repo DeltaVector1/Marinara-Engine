@@ -9,7 +9,7 @@ Beim ersten Öffnen eines Chats nach diesem Update erklärt ein kurzes Video, wi
 ## Chat Settings öffnen
 
 1. Öffne einen Chat.
-2. Klick oder tippe auf **Chat Settings**, die Schaltfläche mit den Schiebereglern. Sie liegt anfangs oben rechts im Chat, unter der oberen App-Leiste.
+2. Klick oder tippe auf **Chat Settings**, die Schaltfläche mit den Schiebereglern. Sie liegt anfangs oben rechts im Chat, unter der oberen App-Leiste. Ist am Computer rechts das Tracker Panel eingeblendet, liegt sie anfangs stattdessen direkt links neben dem Panel.
 3. Klick auf die Überschrift eines Abschnitts, um ihn aufzuklappen. Diese Abschnitte heißen auch **drawers**. Ein weiterer Klick klappt den Abschnitt wieder zu.
 
 Bei einem neuen Chat öffnet sich **Chat Settings** von selbst. Mit **X** oder einem weiteren Klick auf die Schieberegler-Schaltfläche schließt du es.

@@ -85,7 +85,11 @@ Le contexte de l'IA, c'est l'ensemble des messages que l'application envoie à l
 
 Dans un chat de groupe en mode Roleplay comptant plusieurs personnages, **Hide from AI** ouvre un sélecteur d'avatars compact. Sélectionne l'avatar du groupe pour masquer le message à tout le monde, ou sélectionne un ou plusieurs avatars de personnages pour ne le masquer qu'à ces personnages. Sélectionner tout le monde efface les sélections individuelles, et sélectionner un personnage précis désactive l'option "tout le monde". Le marqueur en forme d'œil barré sur le message montre les avatars des personnages qui ne peuvent pas le voir. Dans un chat à un seul personnage, le bouton masque ou réaffiche le message directement.
 
+Un murmure contenu dans un message parvient quand même à son destinataire si tu masques le message uniquement à ce personnage. Il reçoit le murmure, mais rien du reste du message. Masquer le message à tout le monde retire aussi ses murmures. Consulte [Murmures et secrets](../roleplay/getting-started.md#whispers-and-secrets).
+
 Tu peux aussi masquer des messages avec `/hide [range] [name (optional)]`, par exemple `/hide 3-8`. Dans Roleplay, `/hide 3-8 Maukie` les masque uniquement pour Maukie ; sans nom, ils sont masqués pour tout le monde. `/unhide [range]` rétablit les messages masqués globalement. Pour annuler le masquage par personnage, utilise le sélecteur d'avatars dans un chat Roleplay de groupe, ou l'action **Unhide from AI** du message dans un chat Roleplay avec un seul personnage. La numérotation des messages commence à 1, à partir du premier message du chat. Consulte la [Référence des commandes slash](slash-commands.md) pour les formats et les exemples.
+
+Quand l'option **Decide who sees new messages** (décider qui voit les nouveaux messages) d'Advanced Memory est activée, les nouveaux messages d'un chat de groupe où les personnages répondent l'un après l'autre sont automatiquement masqués aux personnages absents, avec le même marqueur. Si tu modifies toi-même le choix pour un message, c'est toujours ton choix qui l'emporte ; consulte [Décider qui voit les nouveaux messages](../agents/memory.md#deciding-who-sees-new-messages).
 
 ## Interrupteurs d'affichage des messages
 
