@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { CapabilityPackageUpdate } from "@marinara-engine/shared";
 import {
-  useDeclineCapabilityPackageUpdate,
+  useDeclineCapabilityPackageUpdates,
   useInstallCapabilityPackage,
   usePendingCapabilityPackageUpdates,
 } from "../../hooks/use-capability-packages";
@@ -22,7 +22,7 @@ export function AgentUpdatePrompter({
   const { t: localizeUi } = useUiTranslation();
   const { data: pendingUpdateData, isFetched, refetch: refetchPendingUpdates } = usePendingCapabilityPackageUpdates();
   const install = useInstallCapabilityPackage();
-  const decline = useDeclineCapabilityPackageUpdate();
+  const decline = useDeclineCapabilityPackageUpdates();
   // Kept as a ref, not state: a dismissed update must not re-prompt this session,
   // and marking it must not schedule another render of the queue effect.
   const handledUpdates = useRef(new Set<string>());
@@ -98,25 +98,18 @@ export function AgentUpdatePrompter({
 
   const handleNotNow = useCallback(async () => {
     if (!prompted || busy) return;
-    // Close first, then decline: each decline waits for a capability refetch, so declining a couple dozen
-    // updates kept the dialog open and locked for over a minute. One at a time on purpose: the server
-    // read-modify-writes one decisions file per decline. A failed decline only means the notice can return
-    // next session (this one already treats them as handled).
+    // Close first, then decline them all in one request: a reload right after "Not now" must not bring back
+    // updates a one-by-one loop had not reached yet. A failed decline only means the notice can return next
+    // session (this one already treats them as handled).
     const updates = prompted;
     updates.forEach((update) => handledUpdates.current.add(`${update.id}@${update.version}`));
     setPrompted(null);
-    const failures: unknown[] = [];
-    for (const update of updates) {
-      try {
-        await decline.mutateAsync({ id: update.id, version: update.version });
-      } catch (error) {
-        failures.push(error);
-      }
-    }
-    if (failures.length > 0) {
+    try {
+      await decline.mutateAsync(updates);
+    } catch (error) {
       toast.error(
         getPrivilegedActionErrorMessage(
-          failures[0],
+          error,
           localizeUi("ui.agents.agentupdateprompter.someUpdateNoticesCouldNotBeDismissed"),
         ),
       );

@@ -74,6 +74,12 @@ const packageVersion = z
 const packageUpdateParams = packageParams.extend({ version: packageVersion });
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
 const installBody = z.object({ expectedVersion: packageVersion, expectedArtifactSha256: sha256 });
+const declineUpdatesBody = z.object({
+  updates: z
+    .array(packageParams.extend({ version: packageVersion }))
+    .min(1)
+    .max(500),
+});
 
 function removeAgentMapEntries(value: unknown, agentIds: ReadonlySet<string>): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -200,6 +206,11 @@ export async function capabilityPackagesRoutes(app: FastifyInstance) {
   app.get<{ Params: { id: string } }>("/:id/release-notes", async (request) => {
     const { id } = packageParams.parse(request.params);
     return capabilityPackageManager.releaseNotes(id);
+  });
+  app.post("/updates/decline", async (request, reply) => {
+    if (!requirePrivilegedAccess(request, reply, { feature: "Agent update decline" })) return;
+    const { updates } = declineUpdatesBody.parse(request.body);
+    return { declined: await capabilityPackageManager.declineUpdates(updates) };
   });
   app.post<{ Params: { id: string; version: string } }>("/:id/updates/:version/decline", async (request, reply) => {
     if (!requirePrivilegedAccess(request, reply, { feature: "Agent update decline" })) return;
