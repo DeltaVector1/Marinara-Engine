@@ -4,7 +4,13 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
-- Fixed the "Worked for 12s · 3 steps" line under a Professor Mari answer looking like it opens something. It sat under her steps and hid them on a click, often off-screen, so it seemed to open nothing. It is now a plain summary, and her steps stay open above it with their own folds.
+- Professor Mari's step list is calmer and easier to scan. "Worked for 13s · 6 steps" now sits on top of her work and folds it: open on her newest answer, folded on older ones. Steps are grouped by what she did ("Looked at 4 things" with the faces of what she read, "Updated Shrek · scenario"), each row starts with its green check, and rows name the record with a tiny face ("Read Swamp Lore · 3 entries", "Searched help for lorebook keys"). Per-step seconds are gone; the time is on the "Worked for" line.
+- Names in Professor Mari's answer are now links that open the record, with a tiny face. The cards under her answer that repeated those names are gone; cards stay for what she changed and what needs you. A plain word such as "swamp" no longer turns into a card for a lorebook entry with that name.
+- The "Using" button and label in Professor Mari's panel and composer are now called "Context".
+- Fixed Professor Mari's words for a step landing under the steps they introduce while she works. They now show as the caption of that group of steps.
+- Fixed one read that Professor Mari could not do and worked around (a record that does not exist) turning her whole finished answer red and her sprite into the retry pose. That step is amber ("Couldn't find …", "1 not found") and the answer stays green.
+- Fixed Professor Mari's answer showing "GOAL · No request phrase reported". The goal line now shows only when she reported the request in her own words.
+- Fixed the "Worked for 12s · 3 steps" line under a Professor Mari answer looking like it opens something. It sat under her steps and hid them on a click, often off-screen, so it seemed to open nothing.
 - Fixed the bottom of Professor Mari's "Next" list fading out above the composer. At the end of the chat the last row is now fully visible; the fade comes back only while newer lines are below.
 - A change you kept or undid in Professor Mari's chat still opens to what changed, field by field. Before, it became a box that showed "Kept" and did nothing on a click.
 - Professor Mari's cards that wait for you now stand out. A change she asked about first, a delete, a sensitive file change and a package install each get one card with a thin accent edge and a "Needs you" label. The card says the action in plain words ("Rewrite 5 fields of Shrek", "Delete 2 lorebook entries") and what each button does. Her header says how many choices are waiting, and a tap on it shows the first card. Changes she already made, with an optional Undo, stay quiet.

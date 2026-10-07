@@ -35,8 +35,6 @@ interface MariToolCallLike {
 }
 
 const READ_ACTION = /^(character|lorebook|persona|agent|chat)\.(get|list|search|runs|entries|getEntry)$/u;
-/** A list of 200 characters is not an answer; the cards are for what she picked out. */
-const MAX_REFERENCES = 4;
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
@@ -101,6 +99,21 @@ function agentState(record: Record<string, unknown>): MariReferencedResource["st
   return record.enabled === true || record.enabled === "true" ? "on" : "off";
 }
 
+/** Slice 72: how many records a list step returned ("3 entries"); null when the output is not a JSON list. */
+export function countMariListOutput(output: string | null): number | null {
+  const parsed = parseOutput(stdoutOf(output));
+  if (parsed === null) return null;
+  return Array.isArray(parsed) || Object.values(asRecord(parsed) ?? {}).some(Array.isArray)
+    ? listRecords(parsed).length
+    : null;
+}
+
+/** Slice 72: a read that found nothing (its stdout is `null`, or it says so). */
+export function isMariNotFoundOutput(output: string | null): boolean {
+  const stdout = stdoutOf(output).trim();
+  return stdout === "null" || /not found|no such|does not exist/iu.test(output ?? "");
+}
+
 export function collectMariReferencedResources(tools: readonly MariToolCallLike[]): MariReferencedResource[] {
   const seen = new Map<string, MariReferencedResource>();
   const add = (
@@ -159,6 +172,8 @@ export function collectMariReferencedResources(tools: readonly MariToolCallLike[
       continue;
     }
     if (resource === "lorebook" && (verb === "entries" || verb === "getEntry")) {
+      // Slice 72: reading a lorebook's entries is reading that lorebook (its face, a link to it in her answer).
+      if (verb === "entries") add("lorebook", input?.lorebookId ?? input?.id, null, false);
       const records = verb === "entries" ? listRecords(parsed) : [asRecord(parsed)].filter((r) => r !== null);
       for (const record of records) {
         const parentId = record.lorebookId ?? input?.lorebookId ?? input?.id;
@@ -209,29 +224,50 @@ export function findMariSettingReferences(
   return [...found.values()];
 }
 
+/** Slice 72: a name shorter than this never links on its own (it is likely an ordinary word). */
+const MIN_LINK_TERM = 4;
+
+export function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+}
+
 /**
- * The cards worth showing for one reply, in the order her answer brings them up ("Thunder is the
- * coolest" puts Thunder first): what she read directly, plus the list results her answer names. Names
- * she set in bold count first, so a passing mention does not crowd out the ones she is answering with.
+ * Slice 72: which names in her answer become links that open the record (no cards under the answer). A name
+ * links when it is in bold; a record she read directly (not from a list or search) also links by its whole
+ * name, or a character's or persona's first name ("Gandalf" for "Gandalf the Confused"), as whole words.
+ * Never a substring: "the swamp" in her words is not the entry "The swamp" she only listed.
  */
-export function selectMariReplyReferences(
+export function selectMariReplyLinks(
   resources: readonly MariReferencedResource[],
   replyText: string,
-): MariReferencedResource[] {
-  const text = replyText.toLocaleLowerCase();
-  const bold = [...text.matchAll(/\*\*(.+?)\*\*/gu)].map((match) => match[1].trim());
-  const position = (resource: MariReferencedResource) => {
-    const name = resource.name?.toLocaleLowerCase();
-    if (!name) return -1;
-    const boldIndex = bold.indexOf(name);
-    return boldIndex >= 0 ? boldIndex : text.includes(name) ? bold.length + text.indexOf(name) : -1;
-  };
-  return resources
-    .map((resource) => ({ resource, at: position(resource) }))
-    .filter(({ resource, at }) => at >= 0 || !resource.fromList)
-    .sort((a, b) => (a.at < 0 ? Infinity : a.at) - (b.at < 0 ? Infinity : b.at))
-    .slice(0, MAX_REFERENCES)
-    .map(({ resource }) => resource);
+): { resource: MariReferencedResource; term: string }[] {
+  const bold = new Set([...replyText.matchAll(/\*\*(.+?)\*\*/gu)].map((match) => match[1]!.trim().toLocaleLowerCase()));
+  const says = (term: string) =>
+    new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(term)}(?![\\p{L}\\p{N}])`, "iu").test(replyText);
+  const seen = new Set<string>();
+  const links: { resource: MariReferencedResource; term: string }[] = [];
+  for (const resource of resources) {
+    const name = resource.name?.trim();
+    const key = `${resource.kind}:${resource.id}`;
+    if (!name || seen.has(key)) continue;
+    const first = name.split(/\s+/u)[0]!;
+    const term = bold.has(name.toLocaleLowerCase())
+      ? name
+      : resource.fromList
+        ? null
+        : name.length >= MIN_LINK_TERM && says(name)
+          ? name
+          : (resource.kind === "character" || resource.kind === "persona") &&
+              first !== name &&
+              first.length >= MIN_LINK_TERM &&
+              says(first)
+            ? first
+            : null;
+    if (!term) continue;
+    seen.add(key);
+    links.push({ resource, term });
+  }
+  return links;
 }
 
 /** Where a card goes when you open it; null when it cannot go anywhere (an entry without its lorebook). */

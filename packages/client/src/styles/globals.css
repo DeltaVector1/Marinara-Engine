@@ -3347,18 +3347,49 @@ html[data-mari-pull-landing] .mari-arrival-content * {
   gap: 0.45rem;
 }
 
-/* "Worked for Ns · N steps": a summary line, not a toggle (slice 72). */
+/* "Worked for Ns · N steps". Slice 72: on a finished run it sits on top and folds the work below it. */
 .mari-work-timeline__header {
   display: flex;
   width: fit-content;
+  max-width: 100%;
   min-width: 0;
   min-height: 2rem;
   align-items: center;
   gap: 0.5rem;
   margin-inline-start: -0.5rem;
   padding-inline: 0.5rem 0.6rem;
+  border-radius: 999px;
   color: var(--muted-foreground);
   font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.mari-run > summary {
+  cursor: pointer;
+  list-style: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.mari-run > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mari-run > summary:hover {
+  background: var(--mari-hover);
+  color: var(--foreground);
+}
+
+.mari-run[open] > summary .mari-disclosure__chevron {
+  transform: rotate(90deg);
+}
+
+/* A read she could not do and worked around: amber, never the run's red. */
+.mari-run__missed,
+.mari-phase__missed {
+  color: var(--warning);
+  font-size: 0.6875rem;
   font-weight: 600;
 }
 
@@ -3425,9 +3456,30 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 .mari-phase__body {
   display: grid;
   min-width: 0;
-  margin: 0.1rem 0 0.2rem 0.4rem;
-  padding-inline-start: 0.85rem;
-  border-inline-start: 1px solid var(--mari-hairline);
+  margin: 0 0 0.2rem;
+  padding-inline-start: 1.375rem;
+}
+
+/* Slice 72: her words for the round that opened the phase, as its caption above its steps. */
+.mari-phase__caption {
+  margin: -0.15rem 0 0.1rem calc(-1.375rem + 1.3rem);
+  color: color-mix(in srgb, var(--muted-foreground) 88%, transparent);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+/* The faces of what a look phase read, overlapping on its line. */
+.mari-face-stack {
+  display: inline-flex;
+  flex: none;
+}
+
+.mari-face-stack > * + * {
+  margin-inline-start: -0.2rem;
+}
+
+.mari-face-stack > * {
+  box-shadow: 0 0 0 1.5px var(--card);
 }
 
 /* The goal she reported acting on: one muted line above the run. */
@@ -3721,16 +3773,31 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   font-size: 0.8125rem;
 }
 
-/* A step that just finished flashes green once, then goes quiet. */
-.mari-live-work__step-icon {
-  animation: mari-step-done 1.4s ease both;
+/* Slice 72: each row leads with its state - the green check, an amber or red warning - and a hairline rail
+   joins the rows of a phase. */
+.mari-step__glyph {
+  width: 0.85rem;
+  height: 0.85rem;
+  flex: none;
 }
 
-@keyframes mari-step-done {
-  0%,
-  35% {
-    color: var(--mari-ok);
-  }
+.mari-live-work__steps li:not(:last-child)::before {
+  position: absolute;
+  top: 1.4rem;
+  bottom: -0.45rem;
+  left: calc(0.425rem - 0.5px);
+  width: 1px;
+  background: var(--mari-hairline);
+  content: "";
+}
+
+.mari-live-work__steps li[data-status="missed"] .mari-step__glyph,
+.mari-live-work__steps li[data-status="missed"] .mari-step__verb {
+  color: var(--warning);
+}
+
+.mari-step__fact {
+  margin-inline-start: 0.35rem;
 }
 
 /* "Read character  Shrek": the verb stays quiet, the subject is what you scan for. */
@@ -3747,28 +3814,81 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   font-weight: 550;
 }
 
-/* R14: a tiny face of the record a step names, before its name (the v5 cards' face, shrunk; no badge). */
-.mari-live-work__step-subject .mari-step-face {
+/* Slice 72: a record's face - its avatar, else its initial on a tinted disc, or its type on a small tile. */
+.mari-face {
+  display: inline-grid;
   width: 1rem;
   height: 1rem;
+  flex: none;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
   margin-inline-end: 0.3rem;
-  vertical-align: -0.2rem;
+  vertical-align: middle;
+  font-size: 0.55rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.mari-step-face > * {
+.mari-face[data-initial] {
+  background: color-mix(in oklch, oklch(0.72 0.11 calc(var(--mari-face-hue) * 1deg)) 34%, var(--muted));
+  color: var(--foreground);
+}
+
+.mari-face[data-type] {
+  border-radius: 0.3rem;
+  background: color-mix(in srgb, var(--primary) 16%, var(--muted));
+  color: var(--foreground);
+}
+
+.mari-face[data-type] > svg {
+  width: 0.65rem;
+  height: 0.65rem;
+}
+
+.mari-face:not([data-type]) > * {
   width: 100% !important;
   height: 100% !important;
 }
 
-.mari-step-face > :not(:first-child) {
+.mari-face > :not(:first-child) {
   display: none;
 }
 
-.mari-live-work__step-duration {
-  flex: 0 0 auto;
-  color: color-mix(in srgb, var(--muted-foreground) 78%, transparent);
-  font-size: 0.6875rem;
-  font-variant-numeric: tabular-nums;
+/* Slice 72: a name in her answer that opens its record - a tiny face and a quiet underline, no card. */
+.mari-ref {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0.25rem;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--primary) 45%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.mari-ref:hover {
+  text-decoration-color: var(--primary);
+}
+
+.mari-ref:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 1px;
+}
+
+.mari-ref > .mari-face {
+  margin-inline-end: 0.22rem;
+}
+
+.mari-face-stack .mari-face {
+  margin-inline-end: 0;
 }
 
 .mari-live-work__steps li[data-status="error"] {
@@ -3878,7 +3998,6 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mari-live-work__step-icon,
   .mari-live-work__sprite > span,
   .mari-work-timeline__line,
   .mari-work-timeline__char,

@@ -132,7 +132,7 @@ import {
   firstSentence,
   mariReferenceFact,
   mariReferenceTarget,
-  selectMariReplyReferences,
+  selectMariReplyLinks,
 } from "../../packages/client/src/lib/mari-referenced-resources.js";
 import {
   createPullRecognizer,
@@ -1764,6 +1764,33 @@ assert.ok(!("mariDetailId" in mariSession));
     ["r1", "n1", "r2"],
     "slice 70: a run that ended without an answer keeps her last words",
   );
+  // Slice 72: the server sends a round's words after its steps and marks them; they caption that phase.
+  const marked: WorkTimelineItem<Step>[] = [
+    step("m1", "Reading character"),
+    step("m2", "Reading character", "error"),
+    { id: "say", type: "text", content: "Let me look at both of them first.", narration: true },
+    step("m3", "Updating character"),
+  ];
+  const markedLive = groupRunPhases(marked, { active: true, describe });
+  assert.deepEqual(
+    markedLive.phases.map((phase) => [phase.kind, phase.caption ?? null, phase.failed, phase.missed]),
+    [
+      ["look", "Let me look at both of them first.", 0, 1],
+      ["change", null, 0, 0],
+    ],
+    "slice 72: marked words caption the phase whose steps came before them; a failed read is missed, not failed",
+  );
+  assert.equal(
+    markedLive.phases[1]!.items.some((item) => item.type === "text"),
+    false,
+    "slice 72: marked words never land in the next phase",
+  );
+  assert.equal(
+    groupRunPhases([...marked, { id: "a", type: "text", content: "Done." }], { active: false, describe }).phases[0]!
+      .caption,
+    undefined,
+    "slice 72: a finished answered run drops the captions (slice 70)",
+  );
 }
 
 // Slice 36 (M5a): a trailing "Why" list folds into one line; anything else stays in the answer.
@@ -1823,9 +1850,37 @@ assert.ok(!("mariDetailId" in mariSession));
     { kind: "chat", chatId: "c1" },
   );
   assert.deepEqual(
-    selectMariReplyReferences(refs, "Turn on **Music DJ**; **Illustrator** failed.").map((ref) => ref.id),
-    ["music-dj", "illustrator", "e1", "c1"],
-    "a listed agent shows only when named; named ones lead in answer order",
+    selectMariReplyLinks(refs, "Turn on **Music DJ**; **Illustrator** failed. Night at the docks is quiet.").map(
+      (link) => [link.resource.id, link.term],
+    ),
+    [
+      ["illustrator", "Illustrator"],
+      ["music-dj", "Music DJ"],
+      ["c1", "Night at the docks"],
+    ],
+    "slice 72: bold names link (a listed one only when bold); a direct read links by its whole name",
+  );
+  // Slice 72: the swamp-lore run - plain words never link a listed entry, a first name links a direct read.
+  const swamp = [
+    { kind: "character", id: "g", name: "Gandalf the Confused", fromList: false },
+    { kind: "lorebookEntry", id: "e-swamp", name: "Swamp", fromList: true, parentId: "lb" },
+    { kind: "lorebookEntry", id: "e-the", name: "The swamp", fromList: true, parentId: "lb" },
+    { kind: "character", id: "x", name: "Ox", fromList: false },
+  ] as const;
+  assert.deepEqual(
+    selectMariReplyLinks(swamp, "Gandalf does not touch the swamp. Ox stays.").map((link) => [
+      link.resource.id,
+      link.term,
+    ]),
+    [["g", "Gandalf"]],
+    "slice 72: 'the swamp' in her words is not a link; a name under 4 letters never links alone",
+  );
+  assert.deepEqual(
+    selectMariReplyLinks(swamp, "I left **Gandalf the Confused** alone; Gandalfish is a word.").map(
+      (link) => link.term,
+    ),
+    ["Gandalf the Confused"],
+    "slice 72: whole words only",
   );
   const settings = getOmnibarSettingsDestinations();
   const hideHelp = settings.find((setting) => setting.controlId === "hide-chat-help-button")!;
@@ -3924,8 +3979,14 @@ assert.ok(!("mariDetailId" in mariSession));
 {
   // Slice 67: an optional Keep/Undo on an already-applied change reads "Ready to help", not "Needs your answer".
   assert.equal(countBlockingReviews([{ kind: "applied_review" }, { kind: "applied_review" }]), 0);
-  assert.equal(countBlockingReviews([{ kind: "applied_review" }, { kind: "approval" }, { kind: "sensitive_file" }, {}]), 3);
-  const mariSource = readFileSync(new URL("../../packages/client/src/components/chat/HomeProfessorMariChat.tsx", import.meta.url), "utf8");
+  assert.equal(
+    countBlockingReviews([{ kind: "applied_review" }, { kind: "approval" }, { kind: "sensitive_file" }, {}]),
+    3,
+  );
+  const mariSource = readFileSync(
+    new URL("../../packages/client/src/components/chat/HomeProfessorMariChat.tsx", import.meta.url),
+    "utf8",
+  );
   assert.match(mariSource, /pendingReviewCount: countBlockingReviews\(visiblePendingChangeReviews\)/u);
   // Slice 71: the header counts the "Needs you" cards (waiting reviews, a turn's deletes as one, a held change).
   assert.match(
@@ -3949,14 +4010,23 @@ assert.ok(!("mariDetailId" in mariSession));
   const scroller = { clientHeight: 500, scrollHeight: 769, scrollTop: 1 } as unknown as HTMLElement;
   const reports: boolean[] = [];
   let following = false;
-  const stop = followTranscriptGrowth(scroller, {} as HTMLElement, () => following, (below) => reports.push(below));
+  const stop = followTranscriptGrowth(
+    scroller,
+    {} as HTMLElement,
+    () => following,
+    (below) => reports.push(below),
+  );
   grow();
   following = true;
   (scroller as { scrollTop: number }).scrollTop = 230;
   grow();
   stop();
   globalThis.ResizeObserver = realResizeObserver;
-  assert.deepEqual(reports, [true, false], "the arrow shows for unfollowed output below the fold, never while following");
+  assert.deepEqual(
+    reports,
+    [true, false],
+    "the arrow shows for unfollowed output below the fold, never while following",
+  );
   assert.equal(scroller.scrollTop, 769, "following still pins to the bottom");
 }
 

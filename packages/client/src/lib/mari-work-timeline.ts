@@ -3,7 +3,16 @@
 import { stripProfessorMariSpeakerPrefix } from "./professor-mari-presentation";
 
 export type WorkTimelineItem<Tool> =
-  | { id: string; type: "text" | "thinking" | "status"; content: string; startedAt?: number; updatedAt?: number }
+  | {
+      id: string;
+      type: "text" | "thinking" | "status";
+      content: string;
+      startedAt?: number;
+      updatedAt?: number;
+      /** Slice 72: the words of a round that ran steps. The server sends them after those steps; they are the
+       * caption of the phase the steps landed in, not a line below them. */
+      narration?: boolean;
+    }
   | { id: string; type: "tool"; tool: Tool };
 
 export type WorkTimelineBlock<Tool> =
@@ -60,6 +69,12 @@ export function stepVerbClass(title: string): StepVerbClass | null {
 
 export type RunPhaseKind = "look" | "change" | "other";
 
+/** Slice 72: a read or search she could not do is worked around (amber); any other failed step is a failure. */
+export function isLookStep(title: string): boolean {
+  const verb = stepVerbClass(title);
+  return verb === "read" || verb === "search";
+}
+
 /** R14: a finished phase with at most this many steps stays open. */
 export const MAX_OPEN_PHASE_STEPS = 3;
 
@@ -77,7 +92,12 @@ export interface RunPhase<Tool> {
   /** Its steps, with the thoughts and words that led up to each, in order. */
   items: WorkTimelineItem<Tool>[];
   steps: number;
+  /** Failed steps that are not reads or searches: the phase (and the run) failed. */
   failed: number;
+  /** Slice 72: reads/searches that failed and she went on without: amber, the run stays green. */
+  missed: number;
+  /** Slice 72: her words for the round that started this phase (live only once she answers). */
+  caption?: string;
   /** R13: every phase stays open while she runs, so each step's done mark is seen. R14: a finished run folds
    * only phases of more than three steps; a short one stays open, so "Looked at 1 thing" shows that thing. */
   open: boolean;
@@ -101,6 +121,13 @@ export function groupRunPhases<Tool>(
   let pending: WorkTimelineItem<Tool>[] = [];
   for (const item of items) {
     if (item.type === "status") continue;
+    const current = phases.at(-1);
+    if (item.type === "text" && item.narration && current) {
+      // ponytail: one caption per phase (the round that opened it); later rounds' words stay unshown. Join
+      // them if a phase ever needs every round's words.
+      if (item.content.trim()) current.caption ??= item.content.trim();
+      continue;
+    }
     if (item.type !== "tool") {
       pending.push(item);
       continue;
@@ -111,13 +138,14 @@ export function groupRunPhases<Tool>(
     if (phases.length === 0) intro.push(...pending.splice(0));
     let phase = phases.at(-1);
     if (phase?.kind !== kind) {
-      phase = { id: item.id, kind, items: [], steps: 0, failed: 0, open: active, live: false };
+      phase = { id: item.id, kind, items: [], steps: 0, failed: 0, missed: 0, open: active, live: false };
       phases.push(phase);
     }
     phase.items.push(...pending, item);
     pending = [];
     phase.steps += 1;
-    if (step.failed) phase.failed += 1;
+    if (step.failed && isLookStep(step.title)) phase.missed += 1;
+    else if (step.failed) phase.failed += 1;
   }
   for (const phase of phases) phase.open = active || phase.steps <= MAX_OPEN_PHASE_STEPS;
   const last = phases.at(-1);
@@ -128,7 +156,10 @@ export function groupRunPhases<Tool>(
   if (!active && answering) {
     const notText = (item: WorkTimelineItem<Tool>) => item.type !== "text";
     const answer = pending.findLastIndex((item) => item.type === "text" && item.content.trim());
-    for (const phase of phases) phase.items = phase.items.filter(notText);
+    for (const phase of phases) {
+      phase.items = phase.items.filter(notText);
+      delete phase.caption;
+    }
     return { intro: intro.filter(notText), phases, tail: pending.filter((item, i) => notText(item) || i === answer) };
   }
   return { intro, phases, tail: pending };

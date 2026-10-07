@@ -123,7 +123,7 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     await expect(doneSteps).toHaveCount(2);
     await expect(timeline.locator("details.mari-phase").first()).toHaveAttribute("open", "");
     for (const row of await doneSteps.all()) {
-      await expect(row.locator(".mari-done-mark--step")).toBeVisible();
+      await expect(row.locator(".mari-work-timeline__done-mark")).toBeVisible();
     }
     await page.screenshot({ path: "test-results/mari-live-done-marks-proof/live-done-marks-round1-1440.png" });
 
@@ -131,7 +131,7 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     await expect(doneSteps).toHaveCount(3);
     await expect(timeline).toHaveAttribute("data-active", "true");
     for (const row of await doneSteps.all()) {
-      await expect(row.locator(".mari-done-mark--step")).toBeVisible();
+      await expect(row.locator(".mari-work-timeline__done-mark")).toBeVisible();
     }
     await page.screenshot({ path: "test-results/mari-live-done-marks-proof/live-done-marks-round2-1440.png" });
 

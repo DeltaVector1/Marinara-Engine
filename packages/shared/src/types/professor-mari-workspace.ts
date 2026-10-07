@@ -939,7 +939,8 @@ export type MariWorkspacePromptEvent =
   | { type: "approval_pending"; data: MariWorkspacePendingApproval }
   | {
       type: "metadata";
-      data: Record<string, unknown> & { actionResult?: MariWorkspaceActionResult };
+      /** `narration`: the text just sent belongs to the round whose steps came before it (slice 72). */
+      data: Record<string, unknown> & { actionResult?: MariWorkspaceActionResult; narration?: boolean };
     }
   | { type: "suggestions"; data: MariSuggestionChip[] }
   | { type: "plan"; data: MariGuidedPlanStep[] }

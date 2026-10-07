@@ -6,6 +6,8 @@ import {
   type ChangeEvent,
   type ReactNode,
   type RefObject,
+  Children,
+  isValidElement,
   lazy,
   memo,
   Fragment,
@@ -105,13 +107,11 @@ import {
 import {
   buildWorkTimelineBlocks,
   groupRunPhases,
+  isLookStep,
   pastTenseStepTitle,
   splitMariAnswerWhy,
-  stepVerbClass,
   type RunPhaseKind,
-  type StepVerbClass,
 } from "../../lib/mari-work-timeline";
-import { resolveStepSeconds } from "../../lib/mari-step-duration";
 import { InlineGhostText } from "../ui/InlineGhostText";
 import { lorebookKeys, useLorebooks } from "../../hooks/use-lorebooks";
 import { presetKeys, usePresets } from "../../hooks/use-presets";
@@ -215,14 +215,18 @@ import {
 } from "../../lib/mari-arrival";
 import {
   collectMariReferencedResources,
+  countMariListOutput,
+  escapeRegExp,
   findMariSettingReferences,
+  isMariNotFoundOutput,
   isWorkspaceTraceItem,
   mariReferenceFact,
   mariReferenceTarget,
-  selectMariReplyReferences,
+  selectMariReplyLinks,
   type MariReferencedResource,
 } from "../../lib/mari-referenced-resources";
 import { formatRelativeContact } from "../../lib/relative-time";
+import { fieldLabel } from "../../lib/mari-edit-diff";
 import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
 import { useAgentConfigs } from "../../hooks/use-agents";
 import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
@@ -747,7 +751,7 @@ function getMessageWorkspaceActionResults(message: Message): MariWorkspaceAction
 }
 
 type WorkspaceTimelineItem =
-  | { id: string; type: "text"; content: string }
+  | { id: string; type: "text"; content: string; narration?: boolean }
   | { id: string; type: "thinking"; content: string; startedAt?: number; updatedAt?: number }
   | { id: string; type: "tool"; tool: WorkspaceToolCall }
   | { id: string; type: "status"; content: string };
@@ -802,8 +806,17 @@ function timelineItemsFromTrace(trace: MariWorkspaceTraceItem[], message: Messag
 function appendTextTimeline(current: WorkspaceTimelineItem[], delta: string): WorkspaceTimelineItem[] {
   if (!delta) return current;
   const last = current[current.length - 1];
-  if (last?.type === "text") return [...current.slice(0, -1), { ...last, content: `${last.content}${delta}` }];
+  // A round's narration is closed when the server marks it (slice 72); her next words are a new item.
+  if (last?.type === "text" && !last.narration) {
+    return [...current.slice(0, -1), { ...last, content: `${last.content}${delta}` }];
+  }
   return [...current, { id: timelineId("text"), type: "text", content: delta }];
+}
+
+/** Slice 72: the words just sent belong to the round whose steps came before them. */
+function markNarrationTimeline(current: WorkspaceTimelineItem[]): WorkspaceTimelineItem[] {
+  const last = current.at(-1);
+  return last?.type === "text" ? [...current.slice(0, -1), { ...last, narration: true }] : current;
 }
 
 function appendThinkingTimeline(current: WorkspaceTimelineItem[], delta: string): WorkspaceTimelineItem[] {
@@ -1419,6 +1432,9 @@ function inferToolPresentation(tool: WorkspaceToolCall): ToolPresentation {
     input?.path ?? input?.pattern ?? input?.query ?? input?.url ?? input?.command ?? tool.detail,
     90,
   );
+  // Slice 72: her help docs are not "files" to the user.
+  if (name === "docs search") return { eyebrow: "Help", title: "Searching help for", detail, tone: "search" };
+  if (name === "docs read") return { eyebrow: "Help", title: "Reading help page", detail, tone: "file" };
   if (/grep|find|search/i.test(name)) {
     return { eyebrow: "Search", title: name === "grep" ? "Searching text" : "Finding files", detail, tone: "search" };
   }
@@ -1456,22 +1472,165 @@ function renderStreamingInline(text: string, keyPrefix: string): ReactNode[] {
   );
 }
 
+/** Slice 72: a name in her answer that opens its record (it replaces the reference cards under the answer). */
+type MariReplyLink = {
+  resource: MariReferencedResource;
+  term: string;
+  face: { type: ResultType; src?: string | null; avatarCropStyle?: CSSProperties };
+};
+
+/** The names her answer uses for records she read, changed or named (a bold setting), as links. */
+function buildMariReplyLinks(
+  content: string,
+  tools: readonly WorkspaceToolCall[],
+  actionResults: readonly MariWorkspaceActionResult[],
+  characterPreviews: ReadonlyMap<string, CharacterPreviewModel>,
+  lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>,
+): MariReplyLink[] {
+  const settings = getOmnibarSettingsDestinations();
+  const resources = [
+    ...actionResults.flatMap((result): MariReferencedResource[] =>
+      result.resource.kind === "preset"
+        ? []
+        : [
+            {
+              kind: result.resource.kind,
+              id: result.resource.id,
+              name: result.resource.label ?? null,
+              fromList: false,
+            },
+          ],
+    ),
+    ...collectMariReferencedResources(tools),
+    ...findMariSettingReferences(content, settings),
+  ]
+    .map((resource) => ({
+      ...resource,
+      name:
+        (resource.kind === "character"
+          ? characterPreviews.get(resource.id)?.name
+          : resource.kind === "lorebook"
+            ? lorebookPreviews.get(resource.id)?.name
+            : null) ?? resource.name,
+    }))
+    .filter((resource) => mariReferenceTarget(resource, settings));
+  return selectMariReplyLinks(resources, content).map(({ resource, term }) => {
+    const character = resource.kind === "character" ? characterPreviews.get(resource.id) : undefined;
+    const lorebook = resource.kind === "lorebook" ? lorebookPreviews.get(resource.id) : undefined;
+    return {
+      resource,
+      term,
+      face: {
+        type: resourceResultType(resource.kind),
+        src: character?.avatarSrc ?? lorebook?.imageSrc,
+        avatarCropStyle: character?.avatarCropStyle,
+      },
+    };
+  });
+}
+
+/** The first mention of each linked name (a bold one or a whole word) becomes its link; the rest stay text. */
+function linkReplyNodes(
+  nodes: ReactNode[],
+  links: readonly MariReplyLink[],
+  used: Set<MariReplyLink>,
+  renderLink: (link: MariReplyLink, content: ReactNode, key: string) => ReactNode,
+  keyPrefix: string,
+): ReactNode[] {
+  return nodes.flatMap((node, index): ReactNode[] => {
+    const open = links.filter((link) => !used.has(link));
+    if (open.length === 0) return [node];
+    const same = (link: MariReplyLink, text: string) => link.term.toLocaleLowerCase() === text.toLocaleLowerCase();
+    if (typeof node === "string") {
+      const pattern = new RegExp(
+        `(?<![\\p{L}\\p{N}])(?:${open.map((link) => escapeRegExp(link.term)).join("|")})(?![\\p{L}\\p{N}])`,
+        "giu",
+      );
+      const out: ReactNode[] = [];
+      let last = 0;
+      for (const match of node.matchAll(pattern)) {
+        const link = links.find((candidate) => !used.has(candidate) && same(candidate, match[0]));
+        if (!link) continue;
+        used.add(link);
+        out.push(node.slice(last, match.index), renderLink(link, match[0], `${keyPrefix}-${index}-${match.index}`));
+        last = match.index + match[0].length;
+      }
+      out.push(node.slice(last));
+      return out;
+    }
+    if (isValidElement<{ children?: ReactNode }>(node) && node.type === "strong") {
+      const parts = Children.toArray(node.props.children);
+      const text = parts.every((part) => typeof part === "string") ? parts.join("").trim() : "";
+      const link = text ? open.find((candidate) => same(candidate, text)) : undefined;
+      if (link) {
+        used.add(link);
+        return [renderLink(link, node, `${keyPrefix}-${index}`)];
+      }
+    }
+    return [node];
+  });
+}
+
+function MariReplyLinkButton({
+  link,
+  onOpen,
+  children,
+}: {
+  link: MariReplyLink;
+  onOpen: (resource: MariReferencedResource) => void;
+  children: ReactNode;
+}) {
+  const { t } = useUiTranslation();
+  const name = link.resource.name ?? link.term;
+  return (
+    <button
+      type="button"
+      className="mari-ref"
+      title={t("mari.reply.openLink", { name })}
+      onClick={() => onOpen(link.resource)}
+    >
+      <MariFace type={link.face.type} name={name} src={link.face.src} avatarCropStyle={link.face.avatarCropStyle} />
+      {children}
+    </button>
+  );
+}
+
 const CompactMarkdown = memo(function CompactMarkdown({
   content,
   streaming,
+  links,
+  onOpenLink,
 }: {
   content: string;
   streaming?: boolean;
+  /** Slice 72: names to turn into links (a finished answer only). */
+  links?: readonly MariReplyLink[];
+  onOpenLink?: (resource: MariReferencedResource) => void;
 }) {
   const trimmed = content.trim();
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
-  const rendered = useMemo(
-    () =>
-      trimmed
-        ? renderMarkdownBlocks(trimmed, streaming ? renderStreamingInline : renderCompactInline, "home-mari")
-        : null,
-    [trimmed, streaming],
-  );
+  const rendered = useMemo(() => {
+    if (!trimmed) return null;
+    if (streaming) return renderMarkdownBlocks(trimmed, renderStreamingInline, "home-mari");
+    if (!links?.length || !onOpenLink) return renderMarkdownBlocks(trimmed, renderCompactInline, "home-mari");
+    const used = new Set<MariReplyLink>();
+    return renderMarkdownBlocks(
+      trimmed,
+      (text, keyPrefix) =>
+        linkReplyNodes(
+          renderCompactInline(text, keyPrefix),
+          links,
+          used,
+          (link, linkContent, key) => (
+            <MariReplyLinkButton key={key} link={link} onOpen={onOpenLink}>
+              {linkContent}
+            </MariReplyLinkButton>
+          ),
+          keyPrefix,
+        ),
+      "home-mari",
+    );
+  }, [trimmed, streaming, links, onOpenLink]);
   useCodeBlockCopy(container, rendered);
   if (!trimmed) return null;
   return (
@@ -1769,21 +1928,7 @@ function MariLiveHeadline({ text, subject }: { text: string; subject?: string | 
   );
 }
 
-/** A finished step's icon comes from its verb: read, search, create, delete, edit, or a command. */
-const STEP_ICONS: Record<StepVerbClass, LucideIcon> = {
-  search: Search,
-  create: Plus,
-  delete: Trash2,
-  edit: Pencil,
-  read: FileText,
-};
-
-function stepIcon(title: string): LucideIcon {
-  const verb = stepVerbClass(title);
-  return verb ? STEP_ICONS[verb] : Terminal;
-}
-
-const PHASE_ICONS: Record<RunPhaseKind, LucideIcon> = { look: FileText, change: Pencil, other: Terminal };
+const PHASE_ICONS: Record<RunPhaseKind, LucideIcon> = { look: Search, change: Pencil, other: Terminal };
 
 /**
  * Her reply column: the words and what they made, indented by an avatar gutter that is always there (so
@@ -1843,6 +1988,115 @@ function stepRecordFace(
   };
 }
 
+/** Slice 72: a record's face beside its name (a step, a phase, a reply link): its avatar, else its initial. */
+function MariFace({
+  type,
+  name,
+  src,
+  avatarCropStyle,
+}: {
+  type: ResultType;
+  name: string;
+  src?: string | null;
+  avatarCropStyle?: CSSProperties;
+}) {
+  if (src) {
+    return (
+      <ResultTypeIcon type={type} src={src} kind="avatar" avatarCropStyle={avatarCropStyle} className="mari-face" />
+    );
+  }
+  if (type === "character" || type === "persona") {
+    const hue = [...name].reduce((sum, char) => sum + char.charCodeAt(0), 0) % 360;
+    return (
+      <span
+        className="mari-face"
+        data-initial="true"
+        style={{ "--mari-face-hue": hue } as CSSProperties}
+        aria-hidden="true"
+      >
+        {[...name.trim()][0]?.toLocaleUpperCase()}
+      </span>
+    );
+  }
+  return (
+    <span className="mari-face" data-type={type} aria-hidden="true">
+      <ResultTypeIcon type={type} glyph />
+    </span>
+  );
+}
+
+const STEP_RECORD_SUFFIX = /\s+(?:character|persona|lorebook entries|lorebook entry|lorebook|chat|agent|preset)$/iu;
+
+/**
+ * Slice 72: one step in words - "Read · [face] Shrek", "Read · [face] Swamp Lore · 3 entries", "Updated · Shrek ·
+ * scenario", or a read she could not do ("Couldn't find · missing-donkey"), which she worked around.
+ */
+function describeStep(
+  tool: WorkspaceToolCall,
+  t: (key: string, options?: Record<string, unknown>) => string,
+  characterPreviews?: ReadonlyMap<string, CharacterPreviewModel>,
+  lorebookPreviews?: ReadonlyMap<string, LorebookPreviewModel>,
+) {
+  const presentation = inferToolPresentation(tool);
+  const input = asRecord(tool.input);
+  const missed = tool.status === "error" && isLookStep(presentation.title);
+  // The record the step is about, by its id (a write names no record in its output).
+  const kind = typeof input?.action === "string" ? input.action.split(".")[0] : null;
+  const recordId = String(input?.[`${kind}Id`] ?? input?.id ?? "");
+  const character = kind === "character" ? characterPreviews?.get(recordId) : undefined;
+  const lorebook = kind === "lorebook" ? lorebookPreviews?.get(String(input?.lorebookId ?? recordId)) : undefined;
+  const entries = input?.action === "lorebook.entries" ? lorebook : undefined;
+  const face =
+    stepRecordFace(tool, characterPreviews, lorebookPreviews) ??
+    (character
+      ? { type: resourceResultType("character"), src: character.avatarSrc, avatarCropStyle: character.avatarCropStyle }
+      : lorebook
+        ? { type: resourceResultType("lorebook"), src: lorebook.imageSrc, avatarCropStyle: undefined }
+        : null);
+  const name =
+    entries?.name ??
+    presentation.detail ??
+    character?.name ??
+    lorebook?.name ??
+    (missed
+      ? (Object.entries(input ?? {}).find(
+          ([key, value]) => /id$|query/iu.test(key) && typeof value === "string",
+        )?.[1] as string | undefined)
+      : undefined) ??
+    null;
+  const count = entries ? countMariListOutput(tool.output) : null;
+  const patch = asRecord(input?.patch);
+  const fields = patch ? Object.keys(patch).map((key) => fieldLabel(key).toLocaleLowerCase()) : [];
+  const fact =
+    count !== null
+      ? t("ui.chat.homeprofessormarichat.refFact.entries", { count })
+      : fields.length > 0
+        ? fields.length > 2
+          ? `${fields.slice(0, 2).join(", ")} +${fields.length - 2}`
+          : fields.join(", ")
+        : null;
+  const title = pastTenseStepTitle(presentation.title);
+  const verb = missed
+    ? t(isMariNotFoundOutput(tool.output) ? "mari.workCard.couldNotFind" : "mari.workCard.couldNotRead")
+    : face && name
+      ? title.replace(STEP_RECORD_SUFFIX, "")
+      : title;
+  return {
+    verb,
+    name,
+    fact,
+    face: missed || !name ? null : face,
+    missed,
+    notFound: missed && isMariNotFoundOutput(tool.output),
+    failed: tool.status === "error" && !missed,
+  };
+}
+
+/** Slice 72: a failed step she did not work around (a write, a command) fails the run; a missed read does not. */
+function isHardStepFailure(tool: WorkspaceToolCall) {
+  return tool.status === "error" && !isLookStep(inferToolPresentation(tool).title);
+}
+
 function MariWorkTimeline({
   items,
   character,
@@ -1856,6 +2110,8 @@ function MariWorkTimeline({
   endedAtMs = null,
   characterPreviews,
   lorebookPreviews,
+  actionResults = [],
+  onOpenResource,
   children,
 }: {
   items: WorkspaceTimelineItem[];
@@ -1871,6 +2127,10 @@ function MariWorkTimeline({
   /** Faces for the records a step names (R14 item 3). */
   characterPreviews?: ReadonlyMap<string, CharacterPreviewModel>;
   lorebookPreviews?: ReadonlyMap<string, LorebookPreviewModel>;
+  /** Slice 72: what she changed, so its name in her answer links too. */
+  actionResults?: readonly MariWorkspaceActionResult[];
+  /** Slice 72: names in her finished answer open their record. */
+  onOpenResource?: (resource: MariReferencedResource) => void;
   /** D1: suppressed while an appended arrival at the bottom of the transcript owns the marker instead. */
   pullTarget?: boolean;
   /** M5a: the request she reported acting on, as one muted line above the run. */
@@ -1902,7 +2162,9 @@ function MariWorkTimeline({
   const quietSeconds =
     active && lastChangeMs ? Math.max(0, Math.floor((Date.now() - lastChangeMs) / 1_000)) : elapsedSeconds;
   // A finished run that failed, or still holds a failed step, is not a success, whatever the last step was.
-  const failed = !active && (runFailed || toolItems.some(({ tool }) => tool.status === "error"));
+  // Slice 72: a read she could not do and worked around is amber on its step; it does not fail the run.
+  const failed = !active && (runFailed || toolItems.some(({ tool }) => isHardStepFailure(tool)));
+  const missedTools = toolItems.filter(({ tool }) => tool.status === "error" && !isHardStepFailure(tool));
   // The running step is the live line itself, so it is not also a row in the list.
   const shownItems = active ? items.filter((item) => item.type !== "tool" || item.tool.status !== "running") : items;
   // M5a: what came before her first step, her steps as phases (all open while she runs, R13), then
@@ -1920,6 +2182,16 @@ function MariWorkTimeline({
   const answerBlocks = answerStart < 0 ? [] : tailBlocks.slice(answerStart);
   // On the newest finished turn she rests beside her reply, like an avatar beside a bubble.
   const spriteBesideAnswer = !active && Boolean(restStory) && answerBlocks.length > 0;
+  const replyLinks =
+    !active && onOpenResource && answerBlocks.length > 0
+      ? buildMariReplyLinks(
+          answerBlocks.map((block) => (block.kind === "text" ? block.content : "")).join("\n\n"),
+          toolItems.map(({ tool }) => tool),
+          actionResults,
+          characterPreviews ?? new Map(),
+          lorebookPreviews ?? new Map(),
+        )
+      : undefined;
   const runningTool = active ? [...toolItems].reverse().find(({ tool }) => tool.status === "running") : undefined;
   // One scene per step, so the Mari who worked a step is the one left beside it when it is done.
   const stepAnimation = ({ tool }: WorkspaceToolItem) =>
@@ -1970,6 +2242,8 @@ function MariWorkTimeline({
           // A finished answer's trailing "Why" list folds into one line under the outcome.
           content={!active && block === lastBlock ? splitMariAnswerWhy(block.content).answer : block.content}
           streaming={active && block === lastBlock}
+          links={answerBlocks.includes(block) ? replyLinks : undefined}
+          onOpenLink={onOpenResource}
         />
       ) : (
         <MariReasoningPanel
@@ -1985,18 +2259,7 @@ function MariWorkTimeline({
         <AnimatePresence initial={false}>
           {block.steps.map((step) => {
             const { id, tool } = step;
-            const presentation = inferToolPresentation(tool);
-            const running = tool.status === "running";
-            const stepFailed = tool.status === "error";
-            const stepSeconds = resolveStepSeconds({
-              running,
-              startedAt: tool.startedAt,
-              durationMs: tool.durationMs,
-              updatedAt: tool.updatedAt,
-              now: Date.now(),
-            });
-            const StepIcon = stepFailed ? AlertTriangle : stepIcon(presentation.title);
-            const face = stepRecordFace(tool, characterPreviews, lorebookPreviews);
+            const described = describeStep(tool, t, characterPreviews, lorebookPreviews);
             return (
               // M3: append-only - no layout animation (it fought MariSmoothGrow's height transition and
               // produced a frame of overlapping/ghost rows). Still true here: no `layout` prop, no height
@@ -2005,48 +2268,23 @@ function MariWorkTimeline({
               // ticking, sibling update) keeps the same key and replays nothing.
               <motion.li
                 key={`${id}:${tool.status}`}
-                data-status={tool.status}
+                data-status={described.missed ? "missed" : tool.status}
                 initial={reduceMotion ? false : { opacity: 0, scale: 0.96, y: 4 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={reduceMotion ? { duration: 0 } : { type: "spring", visualDuration: 0.22, bounce: 0.25 }}
               >
                 <details className="mari-live-work__step-details group">
                   <summary>
-                    <StepIcon size="0.9rem" className="mari-live-work__step-icon shrink-0" aria-hidden="true" />
-                    <span className="mari-live-work__step-label">
-                      {pastTenseStepTitle(presentation.title)}
-                      {presentation.detail ? (
-                        <span className="mari-live-work__step-subject">
-                          {face ? (
-                            <ResultTypeIcon
-                              type={face.type}
-                              src={face.src}
-                              kind="avatar"
-                              avatarCropStyle={face.avatarCropStyle}
-                              className="mari-step-face"
-                            />
-                          ) : null}
-                          {presentation.detail}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="mari-live-work__step-duration">
-                      {stepSeconds === null ? "—" : t("mari.workCard.stepSeconds", { seconds: stepSeconds })}
-                    </span>
-                    {tool.status === "done" ? <MariDoneMark className="mari-done-mark--step" /> : null}
+                    {/* Slice 72: the row's state leads it - the green check, an amber or red warning. */}
+                    {tool.status === "error" ? (
+                      <AlertTriangle className="mari-step__glyph" aria-hidden="true" />
+                    ) : (
+                      <MariDoneMark className="mari-step__glyph" />
+                    )}
+                    {stepText(described)}
                     <ChevronRight size="0.7rem" className="mari-live-work__step-chevron shrink-0" aria-hidden="true" />
                   </summary>
-                  <div className="mari-live-work__step-details-body">
-                    <div className="mari-live-work__step-details-label">
-                      <Terminal size="0.7rem" aria-hidden="true" />
-                      {t("mari.workCard.technicalDetails")}
-                    </div>
-                    <code>{formatToolName(tool.name)}</code>
-                    {tool.input !== undefined ? <pre>{previewValue(tool.input, 240)}</pre> : null}
-                    {tool.output !== null && tool.output !== undefined ? (
-                      <pre>{previewValue(tool.output, 320)}</pre>
-                    ) : null}
-                  </div>
+                  {technicalDetails(tool)}
                 </details>
               </motion.li>
             );
@@ -2078,6 +2316,11 @@ function MariWorkTimeline({
     return out;
   };
   const workedFor = t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length });
+  const missedLabel = (tools: readonly WorkspaceToolItem[]) =>
+    t(
+      tools.every(({ tool }) => isMariNotFoundOutput(tool.output)) ? "mari.workCard.notFound" : "mari.workCard.skipped",
+      { count: tools.length },
+    );
   const workedForMark = failed ? (
     <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
   ) : (
@@ -2088,6 +2331,126 @@ function MariWorkTimeline({
     restStory && restStory !== "idle" && restStory !== "success" && restStory !== "approval"
       ? t(`mari.stories.${restStory}`)
       : null;
+  const technicalDetails = (tool: WorkspaceToolCall) => (
+    <div className="mari-live-work__step-details-body">
+      <div className="mari-live-work__step-details-label">
+        <Terminal size="0.7rem" aria-hidden="true" />
+        {t("mari.workCard.technicalDetails")}
+      </div>
+      <code>{formatToolName(tool.name)}</code>
+      {tool.input !== undefined ? <pre>{previewValue(tool.input, 240)}</pre> : null}
+      {tool.output !== null && tool.output !== undefined ? <pre>{previewValue(tool.output, 320)}</pre> : null}
+    </div>
+  );
+  const stepText = (described: ReturnType<typeof describeStep>) => (
+    <span className="mari-live-work__step-label">
+      <span className="mari-step__verb">{described.verb}</span>
+      {described.name ? (
+        <span className="mari-live-work__step-subject">
+          {described.face ? (
+            <MariFace
+              type={described.face.type}
+              name={described.name}
+              src={described.face.src}
+              avatarCropStyle={described.face.avatarCropStyle}
+            />
+          ) : null}
+          {described.name}
+        </span>
+      ) : null}
+      {described.fact ? <span className="mari-step__fact">· {described.fact}</span> : null}
+    </span>
+  );
+  const renderPhase = (phase: (typeof phases)[number]) => {
+    const PhaseIcon = PHASE_ICONS[phase.kind];
+    const phaseTools = phase.items.filter((item): item is WorkspaceToolItem => item.type === "tool");
+    const phaseMissed = phaseTools.filter(({ tool }) => tool.status === "error" && !isHardStepFailure(tool));
+    const status = (
+      <>
+        {phaseMissed.length > 0 ? <span className="mari-phase__missed">{missedLabel(phaseMissed)}</span> : null}
+        {phase.failed > 0 ? (
+          <span className="mari-phase__failed">{t("mari.workCard.phase.failed", { count: phase.failed })}</span>
+        ) : null}
+        {!phase.live && phase.failed === 0 ? <MariDoneMark className="mari-done-mark--step" /> : null}
+      </>
+    );
+    const only = phaseTools.length === 1 && !phase.live ? phaseTools[0]!.tool : null;
+    if (only) {
+      // Slice 72: a phase of one step is that step on the phase line, not "Changed 1 thing" over one row.
+      const rest = buildWorkTimelineBlocks<WorkspaceToolCall>(phase.items.filter((item) => item.type !== "tool"));
+      return (
+        <details key={phase.id} className="mari-phase" data-single="true" data-state="done">
+          <summary className="mari-disclosure">
+            <PhaseIcon size="0.85rem" className="shrink-0" aria-hidden="true" />
+            {stepText(describeStep(only, t, characterPreviews, lorebookPreviews))}
+            {status}
+            <ChevronRight size="0.7rem" className="mari-disclosure__chevron shrink-0" aria-hidden="true" />
+          </summary>
+          <div className="mari-phase__body">
+            {phase.caption ? <p className="mari-phase__caption">{phase.caption}</p> : null}
+            {rest.map(renderBlock)}
+            {technicalDetails(only)}
+          </div>
+        </details>
+      );
+    }
+    // The faces of what a look phase read, stacked on its line, so a folded phase still says what it read.
+    const faces =
+      phase.kind === "look"
+        ? [
+            ...new Map(
+              phaseTools.flatMap(({ tool }) => {
+                const described = describeStep(tool, t, characterPreviews, lorebookPreviews);
+                return described.face && described.name
+                  ? [[described.name, { ...described.face, name: described.name }] as const]
+                  : [];
+              }),
+            ).values(),
+          ].slice(0, 3)
+        : [];
+    return (
+      <details key={phase.id} className="mari-phase" open={phase.open} data-state={phase.live ? "live" : "done"}>
+        <summary className="mari-disclosure">
+          <PhaseIcon size="0.85rem" className="shrink-0" aria-hidden="true" />
+          <span>
+            {phase.live
+              ? t(`mari.workCard.phase.${phase.kind}Live`)
+              : t(`mari.workCard.phase.${phase.kind}`, { count: phase.steps - phaseMissed.length })}
+          </span>
+          {faces.length > 0 ? (
+            <span className="mari-face-stack">
+              {faces.map((face) => (
+                <MariFace
+                  key={face.name}
+                  type={face.type}
+                  name={face.name}
+                  src={face.src}
+                  avatarCropStyle={face.avatarCropStyle}
+                />
+              ))}
+            </span>
+          ) : null}
+          {phase.live ? <span className="mari-phase__count">{phase.steps}</span> : null}
+          {status}
+          <ChevronRight size="0.7rem" className="mari-disclosure__chevron shrink-0" aria-hidden="true" />
+        </summary>
+        <div className="mari-phase__body">
+          {phase.caption ? <p className="mari-phase__caption">{phase.caption}</p> : null}
+          {buildWorkTimelineBlocks(phase.items).map(renderBlock)}
+        </div>
+      </details>
+    );
+  };
+  const work = (
+    <>
+      {renderSegments(introBlocks)}
+      {phases.length > 0 ? <div className="mari-work-timeline__rail">{phases.map(renderPhase)}</div> : null}
+      {renderSegments(answerStart < 0 ? tailBlocks : tailBlocks.slice(0, answerStart))}
+    </>
+  );
+  // Slice 72: on a finished run "Worked for" sits on top and folds the work below it - open on the newest
+  // turn (its green checks stay in view), folded on older ones.
+  const restLine = Boolean(restStory && (!spriteBesideAnswer || restStoryText));
 
   return (
     <TranscriptRow layout="document" marker={null}>
@@ -2101,41 +2464,19 @@ function MariWorkTimeline({
         <MariResourceSubject character={character} lorebook={lorebook} className="mari-work-timeline__subject" />
 
         {goal}
-        {renderSegments(introBlocks)}
-        {phases.length > 0 ? (
-          <div className="mari-work-timeline__rail">
-            {phases.map((phase) => {
-              const PhaseIcon = PHASE_ICONS[phase.kind];
-              return (
-                <details
-                  key={phase.id}
-                  className="mari-phase"
-                  open={phase.open}
-                  data-state={phase.live ? "live" : "done"}
-                >
-                  <summary className="mari-disclosure">
-                    <PhaseIcon size="0.85rem" className="shrink-0" aria-hidden="true" />
-                    <span>
-                      {phase.live
-                        ? t(`mari.workCard.phase.${phase.kind}Live`)
-                        : t(`mari.workCard.phase.${phase.kind}`, { count: phase.steps })}
-                    </span>
-                    {phase.live ? <span className="mari-phase__count">{phase.steps}</span> : null}
-                    {!phase.live && phase.failed === 0 ? <MariDoneMark className="mari-done-mark--step" /> : null}
-                    {phase.failed > 0 ? (
-                      <span className="mari-phase__failed">
-                        {t("mari.workCard.phase.failed", { count: phase.failed })}
-                      </span>
-                    ) : null}
-                    <ChevronRight size="0.7rem" className="mari-disclosure__chevron shrink-0" aria-hidden="true" />
-                  </summary>
-                  <div className="mari-phase__body">{buildWorkTimelineBlocks(phase.items).map(renderBlock)}</div>
-                </details>
-              );
-            })}
-          </div>
-        ) : null}
-        {renderSegments(answerStart < 0 ? tailBlocks : tailBlocks.slice(0, answerStart))}
+        {active || toolItems.length === 0 ? (
+          work
+        ) : (
+          <details className="mari-run" open={restStory !== null}>
+            <summary className="mari-work-timeline__header">
+              {workedForMark}
+              <span className="mari-work-timeline__status">{workedFor}</span>
+              {missedTools.length > 0 ? <span className="mari-run__missed">· {missedLabel(missedTools)}</span> : null}
+              <ChevronRight size="0.7rem" className="mari-disclosure__chevron shrink-0" aria-hidden="true" />
+            </summary>
+            {work}
+          </details>
+        )}
         {answerBlocks.length > 0 || children ? (
           <MariAnswer restStory={spriteBesideAnswer ? restStory : null} pullTarget={pullTarget}>
             {renderSegments(answerBlocks)}
@@ -2161,10 +2502,9 @@ function MariWorkTimeline({
               ))}
             </span>
           </div>
-        ) : toolItems.length > 0 || answerBlocks.length > 0 || (restStory && (!spriteBesideAnswer || restStoryText)) ? (
-          // Done: where the live line was, one line says how long she worked. On the
-          // newest turn she rests beside her reply; only a turn without words keeps her on this line. Older
-          // turns keep only the words.
+        ) : restLine || (toolItems.length === 0 && answerBlocks.length > 0) ? (
+          // Done: on the newest turn she rests beside her reply; only a turn without words keeps her on this
+          // line, with her story. An answer without steps ends on a small done check (R13).
           <div className="mari-work-timeline__live" data-past={restStory && !spriteBesideAnswer ? undefined : "true"}>
             {restStory && !spriteBesideAnswer ? (
               <MariStorySprite
@@ -2174,24 +2514,14 @@ function MariWorkTimeline({
                 pullTarget={pullTarget}
               />
             ) : null}
-            {toolItems.length === 0 ? (
-              restStoryText ? (
-                <span className="text-xs text-[var(--muted-foreground)]">{restStoryText}</span>
-              ) : answerBlocks.length > 0 ? (
-                // R13: an answer without steps still ends on a small done check.
-                <span className="mari-work-timeline__done">
-                  <MariDoneMark />
-                  {t("mari.workCard.done")}
-                </span>
-              ) : null
-            ) : (
-              // Slice 72: a summary, not a toggle. It sat under the work it folded, so a click hid steps
-              // above it (often scrolled away) and looked like it opened nothing; each phase folds itself.
-              <span className="mari-work-timeline__header">
-                {workedForMark}
-                <span className="mari-work-timeline__status">{workedFor}</span>
+            {restStoryText ? (
+              <span className="text-xs text-[var(--muted-foreground)]">{restStoryText}</span>
+            ) : toolItems.length === 0 && answerBlocks.length > 0 ? (
+              <span className="mari-work-timeline__done">
+                <MariDoneMark />
+                {t("mari.workCard.done")}
               </span>
-            )}
+            ) : null}
           </div>
         ) : null}
       </section>
@@ -2558,45 +2888,27 @@ function MariWhyDisclosure({ points }: { points: string[] }) {
  * never diverge. */
 function MariWorkTimelineOutcome({
   content,
-  items,
   actionResults,
   characterPreviews,
   lorebookPreviews,
-  onOpenResource,
   onOpenActionResult,
   onRegenerate,
   onDelete,
   reviews,
 }: {
   content: string;
-  items: WorkspaceTimelineItem[];
   actionResults: MariWorkspaceActionResult[];
   characterPreviews: ReadonlyMap<string, CharacterPreviewModel>;
   lorebookPreviews: ReadonlyMap<string, LorebookPreviewModel>;
-  onOpenResource: (resource: MariReferencedResource) => void;
   onOpenActionResult: (result: MariWorkspaceActionResult) => void;
   onRegenerate?: () => void;
   onDelete?: () => void;
   reviews?: MariTurnReviews;
 }) {
-  const references = selectMariReplyReferences(
-    [
-      ...collectMariReferencedResources(items.flatMap((item) => (item.type === "tool" ? [item.tool] : []))),
-      ...findMariSettingReferences(content, getOmnibarSettingsDestinations()),
-    ],
-    content,
-  ).filter(
-    (resource) =>
-      !actionResults.some((result) => result.resource.kind === resource.kind && result.resource.id === resource.id),
-  );
+  // Slice 72: no reference cards here - the names in her answer are the links; cards are for what changed
+  // and what needs you.
   return (
     <div className="mari-run-outcome">
-      <MariReferencedResources
-        resources={references}
-        characterPreviews={characterPreviews}
-        lorebookPreviews={lorebookPreviews}
-        onOpen={onOpenResource}
-      />
       <MariOutcomeGroup
         changed={[
           ...(reviews?.changed ?? []),
@@ -2799,14 +3111,14 @@ const CompactMariMessage = memo(function CompactMariMessage({
           endedAtMs={Date.parse(message.createdAt) || null}
           characterPreviews={characterPreviews}
           lorebookPreviews={lorebookPreviews}
+          actionResults={actionResults}
+          onOpenResource={onOpenResource}
         >
           <MariWorkTimelineOutcome
             content={content}
-            items={traceItems}
             actionResults={actionResults}
             characterPreviews={characterPreviews}
             lorebookPreviews={lorebookPreviews}
-            onOpenResource={onOpenResource}
             onOpenActionResult={onOpenActionResult}
             onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
             onDelete={onDelete ? () => onDelete(message.id) : undefined}
@@ -2823,14 +3135,16 @@ const CompactMariMessage = memo(function CompactMariMessage({
         <MariResourceSubject character={characterSubject} lorebook={lorebookSubject} className="mb-2" />
         {goal}
         <MariAnswer restStory={restStory} pullTarget={pullTarget}>
-          <CompactMarkdown content={splitMariAnswerWhy(stripProfessorMariSpeakerPrefix(content)).answer} />
+          <CompactMarkdown
+            content={splitMariAnswerWhy(stripProfessorMariSpeakerPrefix(content)).answer}
+            links={buildMariReplyLinks(content, [], actionResults, characterPreviews, lorebookPreviews)}
+            onOpenLink={onOpenResource}
+          />
           <MariWorkTimelineOutcome
             content={content}
-            items={[]}
             actionResults={actionResults}
             characterPreviews={characterPreviews}
             lorebookPreviews={lorebookPreviews}
-            onOpenResource={onOpenResource}
             onOpenActionResult={onOpenActionResult}
             onRegenerate={onRegenerate && canRegenerate ? () => onRegenerate(message.id) : undefined}
             onDelete={onDelete ? () => onDelete(message.id) : undefined}
@@ -4145,11 +4459,14 @@ export function HomeProfessorMariChat({
     messageCount: messages.length,
   });
   // Outcomes come from runtime state, never from words in the assistant's reply.
-  const latestTraceFailed = latestMessage
-    ? (getMessageWorkspaceTrace(latestMessage) ?? []).some(
-        (item) => item.type === "tool" && item.tool.status === "error",
-      )
-    : false;
+  // Slice 72: a read she worked around is not a failure (no retry pose for a missing record she skipped).
+  const latestTrace = latestMessage ? getMessageWorkspaceTrace(latestMessage) : null;
+  const latestTraceFailed =
+    latestMessage && latestTrace
+      ? timelineItemsFromTrace(latestTrace, latestMessage).some(
+          (item) => item.type === "tool" && isHardStepFailure(item.tool),
+        )
+      : false;
   // A reply with a stored run shows Mari on its own timeline line; one without needs her line below it.
   const latestTurnHasTrace = Boolean(latestMessage && getMessageWorkspaceTrace(latestMessage));
   const restingStory = resolveMariRestStory({
@@ -5366,6 +5683,7 @@ export function HomeProfessorMariChat({
             }
           } else if (event.type === "metadata") {
             const data = asRecord(event.data);
+            if (data?.narration === true) setWorkspaceTimeline(markNarrationTimeline);
             if (isMariWorkspaceActionResult(data?.actionResult)) {
               void invalidateActionResult(data.actionResult).catch((error) => {
                 console.error("[Professor Mari] Failed to refresh action result", error);
@@ -6505,7 +6823,8 @@ export function HomeProfessorMariChat({
       message.role === "assistant" && workspaceStatus?.latestUnderstoodRequest?.messageId === message.id
         ? workspaceStatus.latestUnderstoodRequest
         : null;
-    if (!understoodRequest) return null;
+    // Slice 72: a goal line without her words ("No request phrase reported") told you nothing; no line then.
+    if (!understoodRequest?.text?.trim()) return null;
     const expanded = expandedUnderstoodRequestMessageId === message.id;
     const outcomeLabel = localizeUi(
       understoodRequest.outcome === "held"
@@ -6530,9 +6849,7 @@ export function HomeProfessorMariChat({
         {/* break-words: the phrase is model-authored and routinely carries unbreakable tokens (paths, URLs)
             that would otherwise force a horizontal scrollbar onto the whole transcript. */}
         <span className={expanded ? "min-w-0 whitespace-pre-wrap break-words" : "min-w-0 truncate"}>
-          {understoodRequest.text
-            ? localizeUi("ui.chat.homeprofessormarichat.goalQuote", { text: understoodRequest.text })
-            : localizeUi("ui.chat.homeprofessormarichat.goalNothingReported")}
+          {localizeUi("ui.chat.homeprofessormarichat.goalQuote", { text: understoodRequest.text })}
           {expanded && (
             <span className="mt-0.5 block text-[0.625rem] opacity-80">
               {understoodRequest.commands.join(", ")}
@@ -7000,6 +7317,8 @@ export function HomeProfessorMariChat({
                                       endedAtMs={workspaceRunClock?.endedAt ?? null}
                                       characterPreviews={characterPreviewById}
                                       lorebookPreviews={lorebookPreviewById}
+                                      actionResults={latestActionResults}
+                                      onOpenResource={openReferencedResource}
                                       goal={
                                         !workspaceTimelineActive && latestMessage ? renderGoal(latestMessage) : null
                                       }
@@ -7007,11 +7326,9 @@ export function HomeProfessorMariChat({
                                       {!workspaceTimelineActive && latestMessage?.role === "assistant" ? (
                                         <MariWorkTimelineOutcome
                                           content={latestMessage.content ?? ""}
-                                          items={workspaceTimeline}
                                           actionResults={latestActionResults}
                                           characterPreviews={characterPreviewById}
                                           lorebookPreviews={lorebookPreviewById}
-                                          onOpenResource={openReferencedResource}
                                           onOpenActionResult={openActionResult}
                                           onRegenerate={
                                             !isBusy ? () => handleRegenerateMessage(latestMessage.id) : undefined

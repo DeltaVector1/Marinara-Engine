@@ -3756,6 +3756,10 @@ export class ProfessorMariWorkspaceService {
           // his card…") stays in the timeline only. Server notes are appended after this and end the run.
           assistantText = action.visibleText.trim();
           emitRoundText(workspaceTrace, action.visibleText, args.onEvent);
+          // Slice 72: this round's steps ran before its words were judged and sent, so its words arrive after
+          // them. Mark them (unless they end the run: then they are her answer), so the client shows them as that
+          // phase's caption instead of a line below it.
+          if (commandResults.length > 0 && !action.stop) args.onEvent({ type: "metadata", data: { narration: true } });
         }
         if (action.suggestions.length > 0) {
           runSuggestions = action.suggestions;
