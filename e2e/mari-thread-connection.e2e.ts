@@ -31,6 +31,7 @@ test.afterEach(() => {
 test("a new Mari thread from a chat keeps Mari's connection", async ({ page, request }, testInfo) => {
   test.skip(!testInfo.project.name.includes("desktop"), "The keyboard shortcut is covered on desktop.");
   const created: string[] = [];
+  let chatId: string | null = null;
   const connection = async (name: string, maxContext: number, isDefault: boolean) => {
     const response = await request.post("/api/connections", {
       data: {
@@ -58,7 +59,7 @@ test("a new Mari thread from a chat keeps Mari's connection", async ({ page, req
       data: { name: "Thread connection chat", mode: "conversation", characterIds: [], connectionId: chatConnection },
     });
     expect(chat.ok(), await chat.text()).toBeTruthy();
-    const chatId = ((await chat.json()) as { id: string }).id;
+    chatId = ((await chat.json()) as { id: string }).id;
 
     await page.addInitScript((v) => localStorage.setItem("marinara:whats-new:seen-version", v), APP_VERSION);
     await seedUIState(page, {
@@ -88,6 +89,7 @@ test("a new Mari thread from a chat keeps Mari's connection", async ({ page, req
       })
       .toEqual([mariConnection]);
   } finally {
+    if (chatId) await request.delete(`/api/chats/${chatId}`).catch(() => undefined);
     for (const id of created) await request.delete(`/api/connections/${id}`).catch(() => undefined);
   }
 });
