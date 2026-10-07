@@ -131,6 +131,18 @@ try {
     assert.equal(missingApplyRun.mode, "dry-run", "a missing apply must default to dry-run, like every other app_data write");
     assert.equal((await chats.getSwipes(thirdMessageId)).length, 1, "a missing apply must not add a new swipe either");
 
+    // Slice 68: a message-search row id `message:<chatId>:<n>` (post number) resolves to that post.
+    const postNumber = (await chats.listMessages(chat.id)).findIndex((m) => m.id === thirdMessageId) + 1;
+    const byPost = await mari.executeAction({
+      action: "chat.updateMessage",
+      chatId: chat.id,
+      messageId: `message:${chat.id}:${postNumber}`,
+      content: "The lantern flickered once and died.",
+      apply: false,
+    });
+    assert.equal(byPost.ok, true, "a post-number row id must resolve to its message");
+    assert.equal(byPost.mode, "dry-run");
+
     // #L7 review finding #2: `mari db transform all <script>` expands "all" to every
     // FILE_BACKED_TABLES entry, including messages/message_swipes - parseMutation's guard only
     // checked the literal positional ("all" itself), so the guard must also run after expansion,

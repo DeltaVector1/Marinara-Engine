@@ -179,6 +179,7 @@ try {
   assert.equal(blockedScan.ok, true);
   assert.equal((blockedScan.output as any).status, "blocked");
   assert.equal((blockedScan.output as any).reason, "secondary_keys");
+  assert.match((blockedScan.output as any).fix, /secondaryKeys/u, "a blocked entry carries its fix for Mari");
   assert.deepEqual((blockedScan.output as any).matchedKeys, ["harbor"]);
   assert.ok(
     !JSON.stringify(blockedScan.output).includes("We rode to Valdenmoor"),
@@ -256,6 +257,7 @@ try {
   const blockedBell = budgetOutput.blocked.find((item) => item.entryId === nightBell.id);
   assert.ok(blockedBell, "the budget-skipped entry must appear in blocked");
   assert.equal(blockedBell.reason, "budget");
+  assert.match(blockedBell.fix, /Token Budget/u, "the budget fix names the setting");
   assert.equal(blockedBell.estimatedTokens, 420);
   assert.equal(blockedBell.lorebookBudget, 300);
   assert.equal(blockedBell.lorebookUsedTokens, 300);

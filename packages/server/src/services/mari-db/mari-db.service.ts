@@ -25,7 +25,7 @@ import { createChatsStorage } from "../storage/chats.storage.js";
 import { createConnectionsStorage } from "../storage/connections.storage.js";
 import { createPromptsStorage } from "../storage/prompts.storage.js";
 import { createLorebooksStorage } from "../storage/lorebooks.storage.js";
-import { runLorebookTestScan } from "../lorebook/test-scan.js";
+import { runLorebookTestScan, type LorebookTestBlockReason } from "../lorebook/test-scan.js";
 import { loadLorebookIncludes } from "../lorebook/index.js";
 import { buildGenerationPromptPresetCandidates } from "../../routes/generate/prompt-preset-selection.js";
 import { createAgentsStorage } from "../storage/agents.storage.js";
@@ -81,6 +81,7 @@ import {
   diagnoseReply,
   GENERATION_PARAMETER_SEND_KEYS,
   type CharacterData,
+  type ReplyCheckupCode,
   type ReplyCheckupInput,
 } from "@marinara-engine/shared";
 import { guardMariDecisionWrites, MARI_DECISION_STATE_KEY } from "../professor-mari/decision-authoring.js";
@@ -275,6 +276,27 @@ const BOOLEAN_FLAGS = new Set([
 ]);
 const DB_VALUE_FLAGS = new Set(["table", "limit", "offset", "where", "json", "json-file", "file", "reason"]);
 const DB_BOOLEAN_FLAGS = new Set(["apply", "cascade", "dry-run", "help", "parsed"]);
+
+/** `lorebook.testScan`: why a matched entry was held back, and the setting that changes it. */
+const LOREBOOK_TEST_SCAN_FIXES: Record<LorebookTestBlockReason, string> = {
+  secondary_keys: "Its secondary keys did not match: loosen `secondaryKeys`/`selectiveLogic` or turn off `selective`.",
+  filters: "Its character, tag, or trigger filters exclude this chat.",
+  conditions: "One of its activation conditions failed: say which.",
+  group: "Another entry in its `group` won.",
+  probability: "Its `probability` is 0, so it never fires.",
+  recursion_only: "`delayUntilRecursion` is on and nothing recursive matched.",
+  folder_disabled: "Its folder is turned off.",
+  budget:
+    "It matched, but the last reply's token budget left it out: raise the lorebook's Token Budget or move the entry earlier in `order`.",
+};
+
+/** `chat.diagnose`: the one fix Mari offers for a finding, so her every-round prompt need not map them. */
+const REPLY_CHECKUP_FIXES: Partial<Record<ReplyCheckupCode, string>> = {
+  cut_off: "Offer to raise Max Tokens: a reviewed `preset.update` of `parameters.maxTokens`.",
+  card_large: "Offer to shorten the card: a reviewed `character.update`.",
+  lore_budget_skipped: "Offer to move the entry earlier: a reviewed `lorebook.updateEntry` of its `order`.",
+};
+const DEFAULT_CHECKUP_FIX = "Point to Chat Settings -> Advanced Parameters.";
 
 /** `chat.diagnose`: how a reply ended, in words Mari can repeat. Unknown provider values pass through. */
 function describeReplyEnd(finishReason: string | null | undefined): string | null {
@@ -3811,6 +3833,8 @@ export class MariDbService {
           }
           result.activated = stillActivated;
         }
+        // Each reason carries its fix, so Mari's every-round prompt does not have to list them.
+        const blockedWithFix = result.blocked.map((entry) => ({ ...entry, fix: LOREBOOK_TEST_SCAN_FIXES[entry.reason] }));
         if (entryId) {
           const entryName = (entries as unknown as LorebookEntry[]).find((entry) => entry.id === entryId)?.name;
           const activated = result.activated.find((entry) => entry.entryId === entryId);
@@ -3822,7 +3846,7 @@ export class MariDbService {
               output: { status: "activated", ...activated },
             };
           }
-          const blocked = result.blocked.find((entry) => entry.entryId === entryId);
+          const blocked = blockedWithFix.find((entry) => entry.entryId === entryId);
           if (blocked) {
             return {
               ok: true,
@@ -3850,7 +3874,7 @@ export class MariDbService {
           command: context.command,
           output: {
             activated: result.activated,
-            blocked: result.blocked,
+            blocked: blockedWithFix,
             recursive: result.recursive,
             scannedMessages: result.scannedMessages,
           },
@@ -7345,7 +7369,7 @@ export class MariDbService {
     context: { command: string; sessionId: string; cwd?: string },
   ): Promise<MariDbCommandResult> {
     const chatId = requiredString(args, ["chatId", "chat_id"], "chat id");
-    const messageId = requiredString(args, ["messageId", "message_id", "id"], "message id");
+    const requestedMessageId = requiredString(args, ["messageId", "message_id", "id"], "message id");
     // Validate against the trimmed form, but store the reply as given — unlike requiredString's
     // trim-before-return, a fixed reply's own leading/trailing whitespace is content, not noise.
     const rawContent = typeof args.content === "string" ? args.content : "";
@@ -7360,9 +7384,19 @@ export class MariDbService {
     if (chat.mode === "game") {
       throw new Error("chat.updateMessage only fixes replies in non-game chats; a game chat's turns are out of scope.");
     }
+    // A message-search row id `message:<chatId>:<n>` holds a post number (the `chats messages`
+    // numbering), not a message id; resolve it here instead of teaching Mari a lookup.
+    let messageId = requestedMessageId;
+    const post = /^message:(.+):(\d+)$/u.exec(requestedMessageId);
+    if (post && post[1] === chatId) {
+      const rows = (await this.rawRows("messages")).filter((m) => m.chatId === chatId);
+      rows.sort((a, b) => String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? "")));
+      const row = rows[Number(post[2]) - 1];
+      if (row?.id) messageId = String(row.id);
+    }
     const message = await chatsStorage.getMessage(messageId);
     if (!message || message.chatId !== chatId) {
-      throw new Error(`Message ${messageId} was not found in chat ${chatId}.`);
+      throw new Error(`Message ${requestedMessageId} was not found in chat ${chatId}.`);
     }
     if (message.role !== "assistant" && message.role !== "narrator") {
       throw new Error("chat.updateMessage can only fix an assistant or narrator reply, not a user message.");
@@ -7541,7 +7575,7 @@ export class MariDbService {
       output: {
         chatId,
         messageId: message.id,
-        findings,
+        findings: findings.map((finding) => ({ ...finding, fix: REPLY_CHECKUP_FIXES[finding.code] ?? DEFAULT_CHECKUP_FIX })),
         generationInfo: {
           tokensContext: info?.tokensContext ?? null,
           maxContext: info?.maxContext ?? null,

@@ -102,6 +102,9 @@ try {
   const codes = output.findings.map((f: { code: string }) => f.code);
   assert.ok(codes.includes("cut_off"), "finishReason length must surface the cut_off finding");
   assert.ok(codes.includes("history_trimmed"), "the saved contextFit drop must surface history_trimmed");
+  const fixes = Object.fromEntries(output.findings.map((f: { code: string; fix: string }) => [f.code, f.fix]));
+  assert.match(fixes.cut_off, /preset\.update/u, "a cut-off reply's one fix is the Max Tokens write");
+  assert.match(fixes.history_trimmed, /Advanced Parameters/u, "a finding without its own write points to Chat Settings");
   assert.equal(output.generationInfo.tokensContext, 9300);
   assert.equal(output.generationInfo.maxContext, 8192);
   assert.equal(output.generationInfo.ended, "cut off at the output limit", "the end state is plain words");
