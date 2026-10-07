@@ -113,6 +113,7 @@ slice makes the flow less clear, it is wrong even when its checks pass. (Maintai
 | 64  | "Connect a model" card + local probe (R5)                       | designer         | Dropped — maintainer is redesigning connection setup |  |
 | 65  | Cut and re-measure, review (R6) — T18-T20 + old 15 only, T16/T17 skipped | reviewer, worker | Done | bf5510256, c4e535878, d204582ff, e9beff99d, 0c22971f4, b2ef23500, 0090a9742, 7d7913a93, cdd49c0ac, 3d7178468, 88bea2059, be243fb71, 33748f166, 032e65771, 4eda97c1d, a4f04693d |
 | 66  | A/B: staging Mari vs our Mari, then fix where ours is worse (`.tmp/omnibar-ux/round9/mari-ab-66.md`) — scripted-model A/B on production builds (real-model run blocked: no key access); report `.tmp/omnibar-ux/round9/mari-ab/report.md` | designer | Done — real-model rerun pending user OK | 59d0bc4b1 |
+| 67  | Real-model Mari A/B + quick bugfix round (`.tmp/omnibar-ux/round9/slice-67.md`) — real run blocked (no saved connection answers: OpenAI key missing, Bifrost refuses the saved model); fixes: header "Ready to help" for an optional Keep/Undo, prompt −2.5k chars (+13.1 % → +9.3 % vs staging), jump-to-latest arrow when her answer grows below the fold; report `.tmp/omnibar-ux/round9/mari-ab/report-real.md` | designer | Done — real-model run still pending a working connection | 0b64e5996, bd4ad2da6, 1c8236b26 |
 
 Slice 10 finished 2026-10-01 (commit 3a04b5342: fluid-drop pull-to-open,
 revised from the original pill design per maintainer feedback). Slices 1-9
