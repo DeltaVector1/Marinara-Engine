@@ -181,7 +181,10 @@ import {
   guardRawMessageTableWrite,
 } from "../../packages/server/src/services/mari-db/mari-db.service.js";
 import { appDataActionLooksReadOnly } from "../../packages/server/src/services/professor-mari/workspace-agent.service.js";
-import { transcriptScrollAction } from "../../packages/client/src/lib/professor-mari-transcript-scroll.js";
+import {
+  followTranscriptGrowth,
+  transcriptScrollAction,
+} from "../../packages/client/src/lib/professor-mari-transcript-scroll.js";
 import { sanitizeMariSuggestionChips } from "../../packages/shared/src/types/professor-mari-workspace.js";
 import type { BuiltInAgentManifest } from "@marinara-engine/shared";
 
@@ -3881,6 +3884,31 @@ assert.ok(!("mariDetailId" in mariSession));
     /mariPresentationState === "waiting-approval" \|\| chipRowAwaitsApproval\s*\? localizeUi\("mari\.presence\.needsYouShort"\)/u,
     "the omnibar header asks for an answer only for a real approval or a held change",
   );
+}
+
+{
+  // Slice 67: output that grows past the fold while the reader is not following shows the jump arrow.
+  let grow = () => {};
+  const realResizeObserver = globalThis.ResizeObserver;
+  globalThis.ResizeObserver = class {
+    constructor(callback: () => void) {
+      grow = callback;
+    }
+    observe() {}
+    disconnect() {}
+  } as unknown as typeof ResizeObserver;
+  const scroller = { clientHeight: 500, scrollHeight: 769, scrollTop: 1 } as unknown as HTMLElement;
+  const reports: boolean[] = [];
+  let following = false;
+  const stop = followTranscriptGrowth(scroller, {} as HTMLElement, () => following, (below) => reports.push(below));
+  grow();
+  following = true;
+  (scroller as { scrollTop: number }).scrollTop = 230;
+  grow();
+  stop();
+  globalThis.ResizeObserver = realResizeObserver;
+  assert.deepEqual(reports, [true, false], "the arrow shows for unfollowed output below the fold, never while following");
+  assert.equal(scroller.scrollTop, 769, "following still pins to the bottom");
 }
 
 console.info("Command Center regression checks passed.");

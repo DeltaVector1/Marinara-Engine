@@ -4,6 +4,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari's instructions are about 2,500 characters (roughly 640 tokens) shorter on every step: the newer rules for diagnosing a bad reply, checking why a lorebook entry fired, repairing a broken reply, reply style, suggestion details and plain wording in approvals now say the same thing in fewer words, so each step costs less and starts sooner.
+- When Professor Mari's answer grows past the bottom of her window while you are not scrolled down, the round "jump to latest" arrow now appears above the composer. Before, it only appeared after you scrolled by hand, so a long answer could end hidden under the composer with no hint that there was more.
 - Professor Mari's header now says "Ready to help" when the only open item is the optional Keep/Undo on a change she already made, instead of "Needs your answer", which read as if she were stuck. "Needs your answer" (and her gold "waiting for you" glow) now appear only for a real approval or a held change waiting for Accept.
 - Fixed sending your first message in a brand-new Professor Mari conversation re-showing the arrival block under her answer and scrolling her reply out of view; the arrival now clears for good the moment you send.
 - Fixed Professor Mari's "Retry" sending your question a second time when the failure happened on a later step of a multi-step turn (the first step had already succeeded); Retry now reuses the question it answered instead of asking it again.

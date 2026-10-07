@@ -18,20 +18,26 @@ export function scrollProfessorMariTranscriptToBottom(container: ProfessorMariTr
  * While the reader follows the newest output, keep the transcript pinned to the bottom on every size
  * change of its content, not only when state changes. Content that grows smoothly (Mari's live reply
  * animates its height) then pushes the older lines up smoothly too, instead of sliding out of view.
+ * `onGrown` reports whether newer output now sits below the fold of a reader who is not following.
  * Returns the cleanup.
  */
 export function followTranscriptGrowth(
   scroller: HTMLElement,
   stack: HTMLElement,
   isFollowing: () => boolean,
+  onGrown?: (newerBelow: boolean) => void,
 ): () => void {
   const observer = new ResizeObserver(() => {
+    const following = isFollowing();
     const { scrollTo } = transcriptScrollAction({
       event: "grow",
       nearBottom: isProfessorMariTranscriptNearBottom(scroller),
-      following: isFollowing(),
+      following,
     });
     if (scrollTo === "bottom") scrollProfessorMariTranscriptToBottom(scroller);
+    // Slice 67: output that grew past the fold while the reader is not following gets the jump arrow,
+    // not only after they scroll by hand - otherwise her answer can end hidden under the composer.
+    onGrown?.(!following && !isProfessorMariTranscriptNearBottom(scroller));
   });
   observer.observe(stack);
   return () => observer.disconnect();

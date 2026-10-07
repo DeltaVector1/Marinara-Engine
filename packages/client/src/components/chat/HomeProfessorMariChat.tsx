@@ -4181,17 +4181,24 @@ export function HomeProfessorMariChat({
     if (decision.scrollTo === "bottom") scrollProfessorMariTranscriptToBottom(node);
   }, [messages, workspaceTimeline, visiblePendingChangeReviewKey, workspaceStatus?.error, activeRunError?.detail]);
 
+  // Scrolled up to read: a small round arrow above the composer brings you back to the newest line.
+  // Same-value state updates bail out, so this re-renders only when the pill appears or leaves.
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const transcriptGlideCleanupRef = useRef<(() => void) | null>(null);
   const setTranscriptStackNode = useCallback((node: HTMLDivElement | null) => {
     transcriptGlideCleanupRef.current?.();
     transcriptGlideCleanupRef.current = node?.parentElement
-      ? followTranscriptGrowth(node.parentElement, node, () => transcriptFollowOutputRef.current)
+      ? followTranscriptGrowth(
+          node.parentElement,
+          node,
+          () => transcriptFollowOutputRef.current,
+          (newerBelow) => {
+            if (newerBelow) setShowJumpToLatest(true);
+          },
+        )
       : null;
   }, []);
 
-  // Scrolled up to read: a small round arrow above the composer brings you back to the newest line.
-  // Same-value state updates bail out, so this re-renders only when the pill appears or leaves.
-  const [showJumpToLatest, setShowJumpToLatest] = useState(false);
   const handleTranscriptScroll = useCallback(() => {
     const node = scrollRef.current;
     if (!node) return;
