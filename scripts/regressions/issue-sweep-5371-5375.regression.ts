@@ -99,7 +99,7 @@ assert.match(
 );
 assert.match(
   professorMariHomeSource,
-  /className="mari-workspace-context-chip inline-flex/u,
+  /className="mari-workspace-context-chip"/u,
   "One-shot context must appear as a compact composer chip",
 );
 assert.doesNotMatch(
@@ -114,12 +114,18 @@ assert.match(
 );
 assert.match(
   professorMariHomeSource,
-  /reviews=\{reviewsByTurn\.byMessageId\.get\(message\.id\)\?\.map\(renderTurnPrompt\)\}/u,
+  /reviews=\{renderTurnReviews\(message\.id\)\}/u,
   "A pending review must render inside the turn that asked for it",
+);
+// M5a (slice 36): a turn's reviews split into its outcome group - "what changed" and "needs your OK".
+assert.match(
+  professorMariHomeSource,
+  /const entries = reviewsByTurn\.byMessageId\.get\(messageId\) \?\? \[\];[\s\S]*?needsOk: entries\.filter\([\s\S]*?\.map\(renderTurnPrompt\)/u,
+  "A turn's assigned reviews must reach its renderer",
 );
 assert.match(
   professorMariHomeSource,
-  /\{reviews \? <div className="mt-3 space-y-3">\{reviews\}<\/div> : null\}/u,
+  /<MariOutcomeGroup\s+changed=\{\[\s*\.\.\.\(reviews\?\.changed \?\? \[\]\)[\s\S]*?needsOk=\{reviews\?\.needsOk \?\? \[\]\}/u,
   "A Mari turn must render the reviews assigned to it",
 );
 assert.match(
@@ -167,10 +173,14 @@ assert.equal(
     ...presentationDefaults,
     hasRecovery: true,
     pendingReviewCount: 1,
-    working: true,
   }),
   "broken",
   "Recovery and workspace errors must win over every lower-priority presentation state",
+);
+// R14: a new run or a retry answers the failure, so a stale error never reads as "broken" while she works.
+assert.notEqual(
+  presentation.resolveProfessorMariPresentationState({ ...presentationDefaults, hasRecovery: true, working: true }),
+  "broken",
 );
 assert.equal(
   presentation.shouldShowProfessorMariConnectionHint({

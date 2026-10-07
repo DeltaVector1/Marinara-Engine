@@ -312,19 +312,15 @@ assert.match(
   mariChat,
   /activeChatIdRef\.current === chatIdForMode && permissionsModeWriteSeqRef\.current === writeSeq/u,
 );
-const settingControlsSeq = readSource("packages/client/src/components/panels/settings/SettingControls.tsx");
+// Slice 57 moved the Settings select into the omnibar settings view (PermissionsModeRow). That view
+// mounts fresh on every open, so one read on mount replaces the old visibilitychange refetch.
+const settingControlsSeq = readSource("packages/client/src/components/layout/omnibar/OmnibarSettingsMenu.tsx");
 assert.match(settingControlsSeq, /await enqueueMariPermissionsModeWrite\(\(\) =>/u);
 assert.match(settingControlsSeq, /const writeSeq = \+\+writeSeqRef\.current;/u);
 assert.match(settingControlsSeq, /writeSeqRef\.current === seqAtStart/u);
 assert.match(settingControlsSeq, /<label htmlFor=\{selectId\}/u);
-const settingControls = readSource("packages/client/src/components/panels/settings/SettingControls.tsx");
-assert.match(settingControls, /export function MariPermissionsModeSetting/u);
-assert.match(settingControls, /localize\(MARI_PERMISSIONS_MODE_LABELS\[value\]\.label\)/u);
-assert.match(
-  settingControls,
-  /addEventListener\("visibilitychange", reload\)/u,
-  "the Settings select must refetch on focus to track header changes",
-);
+assert.match(settingControlsSeq, /function PermissionsModeRow\(/u);
+assert.match(settingControlsSeq, /localize\(MARI_PERMISSIONS_MODE_LABELS\[value\]\.label\)/u);
 
 // An editing-tooling incident once wrote a literal U+0008 into a regex in
 // these sources (valid JS, silently broken behavior) - ban the class.
