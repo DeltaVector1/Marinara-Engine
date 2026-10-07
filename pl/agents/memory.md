@@ -205,6 +205,8 @@ Każdy wpis na liście pokazuje tytuł, zakres źródłowy lub liczbę wiadomoś
 
 Zaznacz wpisy, klikając ich pola wyboru; na komputerze kliknij inny wpis z wciśniętym klawiszem Shift, aby zaznaczyć widoczny zakres między nimi, a potem użyj **Enable selected** (włącz zaznaczone) lub **Disable selected** (wyłącz zaznaczone), aby zmienić tylko zaznaczone wpisy.
 
+W scalonym czacie grupowym jedna odpowiedź może przemawiać w imieniu wszystkich postaci. Część wpisu napisana dla określonych postaci, na przykład `{{#if char == "Kaito"}}…{{/if}}`, jest zachowywana dla każdej postaci w czacie, której dotyczy, i oznaczana informacją, kto ją zna, na przykład "known only to Kaito". Części, które dostaje tylko **Narrator** wybrany w Advanced Memory, pozostają pominięte. W czatach grupowych, w których postacie odpowiadają po kolei, oraz w czatach z jedną postacią każda postać czyta wpisy tak jak dotychczas.
+
 ### Automatic Summaries
 
 Panel **Automatic Summaries** (automatyczne podsumowania) dba o aktualność podsumowań w trakcie dalszej rozmowy. Pojawia się wyłącznie w czatach Roleplay.

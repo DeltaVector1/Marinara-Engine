@@ -205,6 +205,8 @@ Jeder Eintrag in der Liste zeigt einen Titel, den Quellbereich oder die Anzahl d
 
 Hak Einträge an, um sie auszuwählen. Am Computer wählst du mit Shift-Klick auf einen weiteren Eintrag den sichtbaren Bereich dazwischen aus. Mit **Enable selected** oder **Disable selected** änderst du dann nur die ausgewählten Einträge.
 
+In einem Gruppenchat mit zusammengeführten Antworten kann eine einzige Antwort für alle Charaktere sprechen. Teile eines Eintrags, die für bestimmte Charaktere geschrieben sind, etwa `{{#if char == "Kaito"}}…{{/if}}`, bleiben für jeden Charakter im Chat erhalten, für den sie gelten, und werden mit den Charakteren gekennzeichnet, die sie kennen, etwa „known only to Kaito“ (nur Kaito bekannt). Teile, die nur der **Narrator** von Advanced Memory erhält, bleiben außen vor. In Gruppenchats, in denen die Charaktere einzeln nacheinander antworten, und in Chats mit nur einem Charakter liest jeder Charakter die Einträge wie bisher.
+
 ### Automatic Summaries
 
 Das Panel **Automatic Summaries** hält die Zusammenfassungen aktuell, während du weiterchattest. Es erscheint nur in Roleplay-Chats.
