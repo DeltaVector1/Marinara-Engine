@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari's header now says "Ready to help" when the only open item is the optional Keep/Undo on a change she already made, instead of "Needs your answer", which read as if she were stuck. "Needs your answer" (and her gold "waiting for you" glow) now appear only for a real approval or a held change waiting for Accept.
 - Fixed sending your first message in a brand-new Professor Mari conversation re-showing the arrival block under her answer and scrolling her reply out of view; the arrival now clears for good the moment you send.
 - Fixed Professor Mari's "Retry" sending your question a second time when the failure happened on a later step of a multi-step turn (the first step had already succeeded); Retry now reuses the question it answered instead of asking it again.
 - Professor Mari's lorebook check (`lorebook.testScan`, and her "why didn't this fire" answers) no longer reports an entry as active when the last real reply's token budget actually left it out; it now reports it as blocked for budget, with the numbers, and she can name "the token budget" as a cause when you ask why your character forgot something or stopped acting like its card.

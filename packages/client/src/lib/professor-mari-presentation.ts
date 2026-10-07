@@ -4,6 +4,11 @@ import { chatResultType, recordFaceResultType, resourceResultType, type ResultTy
 export type ProfessorMariPresentationState =
   "empty" | "working" | "composing" | "history" | "completed" | "waiting-approval" | "broken";
 
+/** Slice 67: an already-applied change's optional Keep/Undo is not a question; only real approvals wait on you. */
+export function countBlockingReviews(reviews: readonly { kind?: string }[]): number {
+  return reviews.filter((review) => review.kind !== "applied_review").length;
+}
+
 export function resolveProfessorMariPresentationState({
   hasRecovery,
   hasWorkspaceError,

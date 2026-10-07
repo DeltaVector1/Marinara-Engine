@@ -130,6 +130,7 @@ import { api, ApiError, getPrivilegedActionErrorMessage, isPassiveStreamDisconne
 import { describeProfessorMariError } from "../../lib/professor-mari-errors";
 import {
   assignReviewsToTurns,
+  countBlockingReviews,
   isPersistentProfessorMariContext,
   professorMariContextCount,
   professorMariContextFacets,
@@ -4121,7 +4122,7 @@ export function HomeProfessorMariChat({
   const mariPresentationState = resolveProfessorMariPresentationState({
     hasRecovery: Boolean(activeRunError),
     hasWorkspaceError: Boolean(workspaceStatus?.error),
-    pendingReviewCount: visiblePendingChangeReviews.length,
+    pendingReviewCount: countBlockingReviews(visiblePendingChangeReviews),
     working: workspaceTimelineActive,
     hasDraft: Boolean(draft.trim()),
     attachmentCount: attachments.length,
@@ -6247,7 +6248,7 @@ export function HomeProfessorMariChat({
               ? localizeUi("ui.chat.homeprofessormarichat.workingOnIt")
               : mariPresentationState === "broken"
                 ? localizeUi("ui.chat.homeprofessormarichat.statusFailed")
-                : visiblePendingChangeReviews.length > 0
+                : mariPresentationState === "waiting-approval" || chipRowAwaitsApproval
                   ? localizeUi("mari.presence.needsYouShort")
                   : localizeUi("ui.chat.homeprofessormarichat.readyToHelp")}
           </span>,

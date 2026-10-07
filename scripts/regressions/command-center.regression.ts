@@ -98,6 +98,7 @@ import {
   reviewRecordKeys,
   withoutReviewedResults,
   resolveProfessorMariPresentationState,
+  countBlockingReviews,
 } from "../../packages/client/src/lib/professor-mari-presentation.js";
 import {
   formatDocumentationGroundingExcerpts,
@@ -3866,6 +3867,19 @@ assert.ok(!("mariDetailId" in mariSession));
     resolveProfessorMariPresentationState({ ...presentation, hasWorkspaceError: true, working: true }),
     "working",
     "R14: a stale error never reads as broken while she works",
+  );
+}
+
+{
+  // Slice 67: an optional Keep/Undo on an already-applied change reads "Ready to help", not "Needs your answer".
+  assert.equal(countBlockingReviews([{ kind: "applied_review" }, { kind: "applied_review" }]), 0);
+  assert.equal(countBlockingReviews([{ kind: "applied_review" }, { kind: "approval" }, { kind: "sensitive_file" }, {}]), 3);
+  const mariSource = readFileSync(new URL("../../packages/client/src/components/chat/HomeProfessorMariChat.tsx", import.meta.url), "utf8");
+  assert.match(mariSource, /pendingReviewCount: countBlockingReviews\(visiblePendingChangeReviews\)/u);
+  assert.match(
+    mariSource,
+    /mariPresentationState === "waiting-approval" \|\| chipRowAwaitsApproval\s*\? localizeUi\("mari\.presence\.needsYouShort"\)/u,
+    "the omnibar header asks for an answer only for a real approval or a held change",
   );
 }
 
