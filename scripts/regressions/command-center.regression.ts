@@ -461,6 +461,26 @@ assert.equal(
   "a fuzzy match remains when no literal result exists",
 );
 
+// Slice 68: every typed word starting a word of the title is a literal hit, so a late literal
+// hit elsewhere (docs) cannot drop "Reduced ambient effects" for "reduced effects" as fuzzy noise.
+const wordStartResults = searchOmnibar("reduced effects", {
+  commands: [],
+  chats: [
+    { id: "reduced", name: "Reduced ambient effects" },
+    { id: "effects", name: "Effects reduced" },
+    { id: "noise", name: "Red user ideas effect" },
+  ],
+  resources: [],
+  connections: [],
+});
+assert.deepEqual(
+  filterOmnibarFuzzyFallback(wordStartResults)
+    .map((result) => result.id)
+    .filter((id) => id !== "ask-professor-mari")
+    .sort(),
+  ["chat:effects", "chat:reduced"],
+);
+
 const summaryMatchResults = searchOmnibar("sarcastic vampire", {
   commands: [],
   chats: [],

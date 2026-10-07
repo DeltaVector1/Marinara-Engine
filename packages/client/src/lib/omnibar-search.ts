@@ -404,6 +404,13 @@ function scoreText(query: string, values: readonly string[]) {
       return Math.max(best, 150 + query.length);
     }
     if (normalized.includes(query)) return Math.max(best, 100 + query.length);
+    // Every typed word starts a word of the title, so "reduced effects" still finds "Reduced
+    // ambient effects". Just under a contiguous substring; still literal, so a late docs hit
+    // cannot drop it as fuzzy noise.
+    const words = query.split(" ");
+    if (words.length > 1 && words.every((word) => word.length >= 2 && ` ${normalized}`.includes(` ${word}`))) {
+      return Math.max(best, 100 + query.length - words.length);
+    }
     return Math.max(best, scoreSubsequence(query, normalized));
   }, -1);
 }

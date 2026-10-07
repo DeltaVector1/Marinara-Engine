@@ -5,6 +5,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 ## [Unreleased]
 
 - Fixed Professor Mari's words from two steps running together into one sentence ("…your Dice chat.It wasn't…") when she spoke again right after a step: her next words now start a new paragraph, live and in the saved conversation.
+- Search finds a setting when every word you type starts a word of its name, in any order: "reduced effects" finds **Reduced ambient effects** again. Before, such a row showed for a moment and then disappeared when a docs result arrived.
 - The Manual and Plan descriptions of Professor Mari's Permissions Mode now show the shorter wording everywhere. Before, the shared text still used the old wording, so those descriptions could not be translated and showed the old English text.
 - After a chat checkup, Professor Mari's answer is shorter: she leads with the one cause and its number, adds at most three short bullets, and ends with the one fix, instead of a long list of possible causes.
 - Professor Mari no longer writes provider protocol text such as "(finish reason: stop)" into her answer after a chat checkup. The checkup now tells her in plain words whether the reply ended on its own or was cut off at the output limit; the raw value stays in the message's generation details.
