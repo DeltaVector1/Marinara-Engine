@@ -203,7 +203,7 @@ Los personajes pueden usar los mismos comandos ocultos entre corchetes en una ll
 - **Haptics**: un personaje controla un dispositivo háptico conectado durante momentos íntimos, si hay un dispositivo conectado.
 - **Reactions**: un personaje reacciona a tu último mensaje escrito en la llamada con un emoji.
 - **Cross-Post**: un personaje mueve el tema actual a un chat de Conversation compartido distinto.
-- **Schedule Updates**: un personaje cambia su propio estado en línea, ausente, no molestar o desconectado y su actividad durante el resto de un bloque programado. Esto solo aplica a personajes que tienen un horario. Mira [Horarios de personajes y mensajería autónoma](schedules.md).
+- **Schedule Updates**: un personaje cambia durante un tiempo su propio estado en línea, ausente, no molestar o desconectado y su actividad, y luego vuelve a su horario. Mira [Horarios de personajes y mensajería autónoma](schedules.md#characters-can-change-their-own-status).
 - **Notes** e **Influence**: estos guardan una nota duradera o un empujón puntual, y aparecen solo cuando el chat tiene un chat conectado configurado.
 - **Soundboard**: un personaje reproduce uno de los sonidos del soundboard de la llamada.
 - Salir y terminar: un personaje puede salir de la llamada por su cuenta, o terminar la llamada para todos.

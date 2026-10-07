@@ -16,7 +16,7 @@ Bei einem neuen Chat öffnet sich **Chat Settings** von selbst. Mit **X** oder e
 
 Chats aus älteren Versionen behalten ihre vertrauten Tools außerhalb von Chat Settings: am Computer als verschiebbare Schaltflächen, am Telefon im Drei-Punkte-Menü **Chat tools** (Chat-Tools). Beim Update einer bestehenden Installation wird diese Anordnung auch zum Favoriten für neue Chats in jedem Modus, sofern du nicht bereits einen anderen Favoriten gewählt hast. Öffne ein Tool und wähle **Put back in Chat Settings** (zurück in die Chat-Einstellungen), wenn du es lieber dort haben möchtest. Am Computer werden Roleplay-Tracker im Fenster **Trackers** zusammengefasst. Bereits gespeicherte Fenster- und Schaltflächenpositionen bleiben erhalten.
 
-Zieh die Schieberegler-Schaltfläche an eine passende Stelle. Beim Ziehen richtet sie sich an benachbarten Chat-Schaltflächen aus. Am Computer hältst du Alt gedrückt, um sie frei zu platzieren. Jeder Chat merkt sich die Position. Ein kleiner Punkt zeigt an, dass Agenten arbeiten.
+Zieh die Schieberegler-Schaltfläche an eine passende Stelle. Beim Ziehen richtet sie sich an benachbarten Chat-Schaltflächen aus. Am Computer hältst du Alt gedrückt, um sie frei zu platzieren. Jeder Chat merkt sich die Position. Ein kleiner Punkt zeigt an, dass Agenten arbeiten. In einem Roleplay-Chat mit Advanced Memory Recall zeigt ein ruhig leuchtender Punkt in der anderen Ecke der Schaltfläche, dass die Erinnerungen an einige Szenen Aufmerksamkeit brauchen; siehe [Gedächtnisprobleme beheben](../agents/memory.md#fixing-memory-problems).
 
 Den kleinen Hinweis neben der Schieberegler-Schaltfläche in Roleplay musst du nur einmal schließen. Sein **X** blendet ihn auch in anderen Chats und nach dem Neuladen aus.
 

@@ -214,6 +214,18 @@ O **Memory Recall** procura mensagens anteriores e insere as mais relevantes de 
 
 Uma lembrança só é criada depois de pelo menos 5 mensagens novas. A recuperação também mostra apenas as lembranças que combinam bem com a mensagem nova, então ela pode não retornar nada mesmo havendo lembranças salvas.
 
+<a id="advanced-memory-says-scenes-need-attention"></a>
+
+### O Advanced Memory avisa que há cenas precisando de atenção
+
+Um pontinho que não pisca no botão **Chat Settings**, ou um aviso de que o Advanced Memory encontrou problemas, indica que algumas memórias de cena estão pouco claras, desatualizadas ou faltando.
+
+1. Abra **Chat Settings** > **Memory Recall**, ou pressione **Fix** (corrigir) no aviso.
+2. Pressione **Fix**. Ele conserta todas as cenas que puder com o Helper model (modelo auxiliar) e nunca altera resumos que você editou.
+3. Selecione o número de cada cena listada em **need your review** (precisam da sua revisão) para abri-la em **Access memories for this chat**. Depois confira o texto e os personagens dela e pressione **Save correction** (salvar correção).
+
+Se o Fix parar com um erro, confira a conexão do Helper model e pressione **Resume processing** (retomar o processamento) ou **Fix** de novo. Veja [Corrigir problemas de memória](agents/memory.md#fixing-memory-problems).
+
 ### Os resumos não estão sendo gerados
 
 Os resumos do chat precisam de uma conexão de texto funcionando para serem escritos.

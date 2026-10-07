@@ -690,7 +690,7 @@ GMは受理文脈から遭遇を生成し、Engineが最終地形を検証しま
 
 公開時レビューの扱い:
 
-- `.agents/skills`は意図した正常な`.claude/skills`別名です。全実行参照の書換えは不要で、Impeccableガード/基準検証も別名経由で成功します。
+- Impeccableスキルは`.agents/skills/impeccable`にあります。`.claude/skills`のコピーとその`.agents/skills`別名は2026-10-07に削除済みで、Impeccableプロジェクトガードは`.agents/skills`からスキルを読み込みます。
 - Impeccable例文/表現/同梱元/既存ライブツール内部の指摘は内容を変えず移動したファイルに関するもので、本PRの回帰ではありません。導入済みスキルを保持し、別の上流保守作業を混ぜません。
 - Tacticalのアイテム対象`any`は`CombatItemEffect`、ルート、director対象検証で明示対応します。self/enemy以外をすべて`ally`にすると壊れます。既定値は未指定だけです。
 - 先行追跡計算は有限で、勝つ合法行動を変えません。遅延化は任意性能改善です。記録した混合移動フェーズ測定が現在の証拠で、追加最適化不能の主張ではありません。

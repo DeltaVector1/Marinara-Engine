@@ -203,7 +203,7 @@ Les personnages peuvent utiliser en appel les mêmes commandes cachées entre cr
 - **Haptics** : un personnage pilote un appareil haptique connecté pendant les moments intimes, si un appareil est connecté.
 - **Reactions** : un personnage réagit avec un émoji à ton dernier message écrit dans l'appel.
 - **Cross-Post** : un personnage déplace le sujet en cours vers un autre chat Conversation partagé.
-- **Schedule Updates** : un personnage change son propre statut (en ligne, inactif, ne pas déranger ou hors ligne) et son activité pour le reste d'une plage planifiée. Cela ne vaut que pour les personnages qui ont un emploi du temps. Voir [Emplois du temps des personnages et messages autonomes](schedules.md).
+- **Schedule Updates** : un personnage change son propre statut (en ligne, inactif, ne pas déranger ou hors ligne) et son activité pendant un moment, puis revient à son emploi du temps. Voir [Emplois du temps des personnages et messages autonomes](schedules.md#characters-can-change-their-own-status).
 - **Notes** et **Influence** : ces commandes enregistrent une note durable ou un coup de pouce ponctuel, et n'apparaissent que si le chat dispose d'un chat connecté.
 - **Soundboard** : un personnage joue l'un des sons du soundboard de l'appel.
 - Quitter et terminer : un personnage peut quitter l'appel de son côté, ou terminer l'appel pour tout le monde.

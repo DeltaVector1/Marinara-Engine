@@ -1,6 +1,6 @@
 {
   "language": "ko",
-  "sourceCommit": "b5b46c786cd71ef66d3d369e56a55907e6ae05b0",
+  "sourceCommit": "a30859047e510ceb8556b46b465a3556d56cab80",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -24,8 +24,8 @@
     },
     {
       "path": "TROUBLESHOOTING.md",
-      "sha256": "5582abdbf464da8730bb35315492f05d09f20f293c0a96f4bc62258b4d8fe5d2",
-      "bytes": 56277
+      "sha256": "4bd7caaa4168de428485221dc14ec10546945586d6cc1e8977ca30157bcee72a",
+      "bytes": 57388
     },
     {
       "path": "UPGRADING.md",
@@ -64,8 +64,8 @@
     },
     {
       "path": "agents/memory.md",
-      "sha256": "ac9434824bd585810f5e501d24f74ddbd4888113d24b35e8e4b84ba15dccbeb1",
-      "bytes": 44540
+      "sha256": "1dbb8b83039563b9b4144a1302c802cd06bbffd2f158cc597db026f1e65ce164",
+      "bytes": 48209
     },
     {
       "path": "appearance/appearance-settings.md",
@@ -144,8 +144,8 @@
     },
     {
       "path": "chats/chat-settings.md",
-      "sha256": "fdb41640fbdb761cb5059c166db061106a21b213a35f1c1af6d413c4fa8c617e",
-      "bytes": 26512
+      "sha256": "8384bb490bcedb151b499035a58ff626429a1951ff79e17d68cfcf5a7a9cbe4d",
+      "bytes": 26798
     },
     {
       "path": "chats/connected-chats.md",
@@ -244,8 +244,8 @@
     },
     {
       "path": "conversation/calls.md",
-      "sha256": "fd1e67650b520e916b0dd212638d46698bef7e2d74e24324c2f2b1f0a894ed25",
-      "bytes": 25915
+      "sha256": "6091c599c8e2bf13797eb44e1717c998b441ff75128534b798f4665294b18950",
+      "bytes": 25908
     },
     {
       "path": "conversation/emoji-stickers-gifs.md",
@@ -264,8 +264,8 @@
     },
     {
       "path": "conversation/schedules.md",
-      "sha256": "00e63de1b21e08a96d1287171000708decdc58ab43bebff477d0941027ccd53c",
-      "bytes": 15424
+      "sha256": "db9fc88abb5902d944907d36e874601d10dcf8aeb7aa144d423420e18858b645",
+      "bytes": 16327
     },
     {
       "path": "conversation/selfies.md",
@@ -324,8 +324,8 @@
     },
     {
       "path": "development/game-combat-ai-design.md",
-      "sha256": "2ba4ecdadbc42bad3fc002d853d9f93417dbc1f2ff237a1f4f6773b0948b1794",
-      "bytes": 121300
+      "sha256": "3d785aedb558fedf4ef6a879fdefd710b5534a8fddc215624cca2267890e24ec",
+      "bytes": 121285
     },
     {
       "path": "development/game-combat-difficulty-weather.md",

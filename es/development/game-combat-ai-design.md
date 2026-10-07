@@ -690,7 +690,7 @@ Propiedad y alcance están en [#6299](https://github.com/Pasta-Devs/Marinara-Eng
 
 Decisiones de la ronda de publicación:
 
-- `.agents/skills` es alias intencional funcional de `.claude/skills`. No hace falta reescribir cada referencia ejecutable. El guardián Impeccable y comprobaciones completas pasan por él.
+- La skill Impeccable está en `.agents/skills/impeccable`. La copia de `.claude/skills` y su alias `.agents/skills` se eliminaron el 2026-10-07; el guardián Impeccable lee la skill desde `.agents/skills`.
 - Ejemplos, redacción, procedencia del paquete Impeccable e interiores de herramientas vivas son archivos trasladados sin cambios. No son regresiones. Se preserva la skill instalada, sin incorporar mantenimiento upstream separado.
 - Ámbito de objeto Tactical `any` está admitido por `CombatItemEffect`, ruta y objetivos del director. Cambiar todo ámbito no self/enemy a `ally` lo rompería. El predeterminado solo cubre ausencia.
 - Calcular persecución anticipadamente está acotado y no cambia la acción ganadora. Hacerlo perezoso es rendimiento opcional; la medición mixta registrada sigue siendo evidencia actual, no afirmación de que no pueda optimizarse.

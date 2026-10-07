@@ -148,6 +148,17 @@ Und so hebst du das wieder auf, sodass für Mira wieder ihr Zeitplan gilt:
 
 Gibt es im Chat nur einen Charakter, kannst du den Namen weglassen. **/status** ohne weitere Angaben zeigt die Liste der Charaktere und eine kurze Hilfe.
 
+<a id="characters-can-change-their-own-status"></a>
+
+## Charaktere können ihren Status selbst ändern
+
+Ist der Befehl **Schedule Updates** unter **Chat Settings → Agents** eingeschaltet, kann ein Charakter selbst einen vorübergehenden Status samt Aktivität setzen. Bittest du ihn zum Beispiel, sich eine Stunde lang zu konzentrieren, kann er mit der Aktivität „Lernen“ auf **Busy** wechseln.
+
+- Die Änderung gilt so lange, wie der Charakter angibt, oder eine Stunde, wenn er nichts dazu sagt. Höchstens sind sieben Tage möglich.
+- Ist die Zeit um, kehrt der Charakter zu seinem Zeitplan zurück oder, wenn er keinen hat, zu **Online**.
+- Den gespeicherten Zeitplan ändert er dabei nie.
+- Ein Status, den du selbst mit **/status** setzt, bleibt, bis du ihn aufhebst. Ein Charakter kann ihn nicht ersetzen.
+
 ## Wie autonome Nachrichten getaktet werden
 
 Marinara taktet autonome Nachrichten so, dass dich kein Charakter zuspammt. Grundlage der folgenden Regeln ist der jeweils eigene Zeitplan.

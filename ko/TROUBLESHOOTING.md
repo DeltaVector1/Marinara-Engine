@@ -214,6 +214,18 @@ GitHub가 생성하는 소스 아카이브는 커밋 내용이 그대로여도 �
 
 기억은 새 메시지가 5개 이상 쌓여야 만들어집니다. 또한 회상은 새로 보낸 메시지와 많이 비슷한 기억만 보여 주므로, 기억이 있어도 아무것도 나오지 않을 수 있습니다.
 
+<a id="advanced-memory-says-scenes-need-attention"></a>
+
+### Advanced Memory가 장면을 확인해야 한다고 알릴 때
+
+**Chat Settings** 버튼에 깜박이지 않는 점이 계속 표시되거나 Advanced Memory가 문제를 찾았다는 알림이 나타나면, 일부 장면 기억이 불분명하거나 오래되었거나 빠져 있다는 뜻입니다.
+
+1. **Chat Settings** > **Memory Recall**을 열거나 알림에서 **Fix**(복구)를 누르세요.
+2. **Fix**를 누르세요. Helper model(보조 모델)로 고칠 수 있는 장면을 모두 고치며, 직접 편집한 요약은 절대 바꾸지 않습니다.
+3. **need your review**(검토 필요) 아래의 장면 번호를 하나씩 선택해 **Access memories for this chat**에서 여세요. 그런 다음 텍스트와 캐릭터를 확인하고 **Save correction**(수정사항 저장)을 누르세요.
+
+Fix가 오류로 멈추면 Helper model의 연결을 확인한 다음 **Resume processing**(처리 재개)이나 **Fix**를 다시 누르세요. [기억 문제 해결하기](agents/memory.md#fixing-memory-problems)를 참고하세요.
+
 ### 요약이 생성되지 않을 때
 
 채팅 요약을 만들려면 동작하는 텍스트 연결이 필요합니다.

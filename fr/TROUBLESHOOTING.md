@@ -214,6 +214,18 @@ Pour la configuration complète, voir [Configurer le Local Model](connections/lo
 
 Un souvenir a besoin d'au moins 5 nouveaux messages pour être créé. Le rappel n'affiche par ailleurs que les souvenirs qui correspondent étroitement à ton nouveau message : il peut donc ne rien renvoyer alors même que des souvenirs existent.
 
+<a id="advanced-memory-says-scenes-need-attention"></a>
+
+### Advanced Memory signale des scènes à vérifier
+
+Un point fixe sur le bouton **Chat Settings**, ou une notification indiquant qu'Advanced Memory a trouvé des problèmes, signifie que certains souvenirs de scène sont flous, obsolètes ou manquants.
+
+1. Ouvre **Chat Settings** > **Memory Recall**, ou appuie sur **Fix** (corriger) dans la notification.
+2. Appuie sur **Fix**. Le bouton répare toutes les scènes qu'il peut avec le Helper model (le modèle auxiliaire) et ne touche jamais aux résumés que tu as modifiés toi-même.
+3. Sélectionne chaque numéro de scène sous **need your review** (à vérifier) pour l'ouvrir dans **Access memories for this chat**, puis vérifie son texte et ses personnages et appuie sur **Save correction** (enregistrer la correction).
+
+Si Fix s'arrête sur une erreur, vérifie la connexion du Helper model, puis appuie sur **Resume processing** (reprendre le traitement) ou de nouveau sur **Fix**. Voir [Corriger les problèmes de mémoire](agents/memory.md#fixing-memory-problems).
+
 ### Les résumés ne se génèrent pas
 
 Les résumés de chat ont besoin d'une connexion texte fonctionnelle pour être rédigés.

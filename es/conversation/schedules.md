@@ -148,6 +148,17 @@ Para borrar esa anulación y devolver a Mira a su horario:
 
 Si el chat tiene un solo personaje, puedes omitir el nombre. Ejecuta **/status** sin opciones para ver la lista de personajes y la ayuda de uso.
 
+<a id="characters-can-change-their-own-status"></a>
+
+## Los personajes pueden cambiar su propio estado
+
+Con el comando **Schedule Updates** (Actualizaciones del horario) activado en **Chat Settings → Agents** (Ajustes del chat → Agentes), un personaje puede fijar su propio estado y su actividad de forma temporal. Por ejemplo, si le pides que se concentre durante una hora, puede cambiar a **Busy** con la actividad "Studying".
+
+- El cambio dura lo que diga el personaje, o una hora si no lo indica. Lo máximo son siete días.
+- Cuando se acaba el tiempo, el personaje vuelve a su horario, o a **Online** si no tiene uno.
+- Nunca edita el horario guardado.
+- Un estado que fijas tú con **/status** se mantiene hasta que lo borres. Un personaje no puede reemplazarlo.
+
 ## Cómo se dosifican los mensajes autónomos
 
 Marinara dosifica los mensajes autónomos para que un personaje nunca te sature. Las reglas de abajo usan el horario propio de cada personaje.

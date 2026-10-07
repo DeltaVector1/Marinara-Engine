@@ -214,6 +214,18 @@ GitHub 自动生成的源码压缩包并不保证逐字节稳定，哪怕提交�
 
 一条记忆需要积累至少 5 条新消息才会生成。而且召回只会给出和新消息高度相关的记忆，所以即使记忆存在，也可能什么都不返回。
 
+<a id="advanced-memory-says-scenes-need-attention"></a>
+
+### Advanced Memory 提示有场景需要处理
+
+**Chat Settings** 按钮上出现一个常亮的小圆点，或者弹出通知说 Advanced Memory 发现了问题，就表示有些场景记忆不清楚、已经过时或者缺失。
+
+1. 打开 **Chat Settings** > **Memory Recall**，或者直接点通知里的 **Fix**(修复)。
+2. 点 **Fix**。它会用 Helper model(辅助模型) 修复所有能修的场景，而且绝不会改动你编辑过的摘要。
+3. 点 **need your review**(需要你检查) 下面的每个场景编号，在 **Access memories for this chat** 里打开它，核对文本和角色，然后点 **Save correction**(保存修正)。
+
+如果 Fix 出错停下了，先检查辅助模型的连接，再点 **Resume processing**(继续处理) 或者重新点 **Fix**。见[修复记忆问题](agents/memory.md#fixing-memory-problems)。
+
 ### 摘要生成不出来
 
 写聊天摘要需要一个能正常工作的文本连接。

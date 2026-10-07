@@ -148,6 +148,17 @@ Pour annuler ce forçage et rendre Mira à son emploi du temps :
 
 Si le chat ne compte qu'un seul personnage, le nom devient facultatif. Lance **/status** sans option pour afficher la liste des personnages et l'aide d'utilisation.
 
+<a id="characters-can-change-their-own-status"></a>
+
+## Les personnages peuvent changer leur propre statut
+
+Quand la commande **Schedule Updates** (mises à jour de l'emploi du temps) est activée dans **Chat Settings → Agents**, un personnage peut définir lui-même un statut et une activité temporaires. Par exemple, si tu lui demandes de se concentrer pendant une heure, il peut passer en **Busy** avec l'activité "Studying".
+
+- Le changement dure aussi longtemps que le personnage l'indique, ou une heure s'il ne précise rien. La durée maximale est de sept jours.
+- Une fois le délai écoulé, le personnage revient à son emploi du temps, ou à **Online** s'il n'en a pas.
+- Il ne modifie jamais l'emploi du temps enregistré.
+- Un statut que tu définis toi-même avec **/status** reste en place jusqu'à ce que tu l'effaces. Un personnage ne peut pas le remplacer.
+
 ## Comment les messages autonomes sont cadencés
 
 Marinara cadence les messages autonomes pour qu'un personnage ne t'inonde jamais. Les règles ci-dessous s'appuient sur l'emploi du temps propre à chaque personnage.

@@ -690,7 +690,7 @@ Responsabilidade e escopo da implementação estão em [#6299](https://github.co
 
 Disposições da rodada de publicação:
 
-- `.agents/skills` continua alias intencional e funcional de `.claude/skills`. Reescrever toda referência executável é desnecessário. A proteção de projeto Impeccable e validação completa passam pelo alias.
+- A skill Impeccable fica em `.agents/skills/impeccable`. A cópia em `.claude/skills` e o alias `.agents/skills` que apontava para ela foram removidos em 2026-10-07; a proteção de projeto Impeccable lê a skill em `.agents/skills`.
 - Achados sobre exemplos/redação Impeccable, origem do pacote incorporado e funcionamento existente de ferramentas ao vivo tratam de arquivos movidos sem alteração. Não são regressões desta PR. A migração preserva skill instalada, sem incorporar projeto separado de manutenção upstream.
 - Escopo de item Tactical `any` tem suporte explícito em `CombatItemEffect`, validação de rota e alvos do diretor. Trocar todo escopo que não seja self/enemy por `ally` quebraria comportamento com suporte. Padrão existente aplica-se só a escopo ausente.
 - Cálculo antecipado de perseguição é limitado e não muda ação legal vencedora. Torná-lo sob demanda é refinamento opcional de desempenho; medição registrada da fase com movimentos mistos continua evidência atual, não alegação de impossibilidade de melhorar.
