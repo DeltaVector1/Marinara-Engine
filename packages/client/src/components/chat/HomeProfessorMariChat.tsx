@@ -3187,7 +3187,7 @@ export function HomeProfessorMariChat({
   const workspaceAbortRef = useRef<AbortController | null>(null);
   const workspaceRunIdRef = useRef(0);
   const pendingWorkspaceTextRef = useRef("");
-  const handledWorkspaceRefreshIdsRef = useRef<Set<string>>(new Set());
+  const handledWorkspaceRefreshIdsRef = useRef<Set<string> | null>(null);
   const latestConnectionSelectionRef = useRef<string | null>(selectedConnectionId);
   const pendingConnectionPersistRef = useRef<string | null>(null);
   const connectionPersistInFlightRef = useRef(false);
@@ -3787,19 +3787,29 @@ export function HomeProfessorMariChat({
   }, [fetchSidecarStatus]);
 
   useEffect(() => {
-    const workspaceHistory = workspaceStatus?.history ?? [];
+    if (!workspaceStatus) return;
+    const workspaceHistory = workspaceStatus.history ?? [];
+    // Slice 70: changes approved before the panel opened were refreshed when they were approved. Treating them
+    // as new on every open re-fetched every app query (~35 requests) in front of the thread's messages.
+    if (!handledWorkspaceRefreshIdsRef.current) {
+      handledWorkspaceRefreshIdsRef.current = new Set(
+        workspaceHistory.filter((entry) => entry.status === "approved").map((entry) => entry.id),
+      );
+      return;
+    }
+    const handled = handledWorkspaceRefreshIdsRef.current;
     const visibleHistoryIds = new Set(workspaceHistory.map((entry) => entry.id));
-    for (const id of handledWorkspaceRefreshIdsRef.current) {
-      if (!visibleHistoryIds.has(id)) handledWorkspaceRefreshIdsRef.current.delete(id);
+    for (const id of handled) {
+      if (!visibleHistoryIds.has(id)) handled.delete(id);
     }
 
     const appliedChanges = workspaceHistory.filter((entry) => {
       if (entry.status !== "approved") return false;
-      return !handledWorkspaceRefreshIdsRef.current.has(entry.id);
+      return !handled.has(entry.id);
     });
     if (appliedChanges.length === 0) return;
     for (const entry of appliedChanges) {
-      handledWorkspaceRefreshIdsRef.current.add(entry.id);
+      handled.add(entry.id);
     }
     void invalidateWorkspaceData().catch((error) => {
       console.error("[Professor Mari] Failed to refresh app data after workspace change", error);
@@ -3808,7 +3818,7 @@ export function HomeProfessorMariChat({
         duration: 12_000,
       });
     });
-  }, [invalidateWorkspaceData, workspaceStatus?.history, localizeUi]);
+  }, [invalidateWorkspaceData, workspaceStatus, localizeUi]);
 
   useEffect(() => {
     latestConnectionSelectionRef.current = selectedConnectionId;

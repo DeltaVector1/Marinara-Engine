@@ -718,6 +718,26 @@ function resolveEntryStateOverrides(value: unknown): EntryStateOverrides | undef
   return overrides;
 }
 
+/** Slice 70: Mari's continuity snapshot is prompt-only (her run reads it from storage; the client never does). It was
+ *  ~30 % of a long Mari thread's bytes on every load, so the message list leaves it out. Storage is unchanged. */
+export function withoutPromptOnlyExtra<T extends { extra?: unknown }>(rows: T[]): T[] {
+  return rows.map((row) => {
+    const raw = row.extra;
+    if (typeof raw === "string" && !raw.includes('"mariWorkspaceContinuity"')) return row;
+    let extra: unknown = raw;
+    if (typeof raw === "string") {
+      try {
+        extra = JSON.parse(raw);
+      } catch {
+        return row;
+      }
+    }
+    if (!extra || typeof extra !== "object" || !("mariWorkspaceContinuity" in extra)) return row;
+    const { mariWorkspaceContinuity: _promptOnly, ...rest } = extra as Record<string, unknown>;
+    return { ...row, extra: typeof raw === "string" ? JSON.stringify(rest) : rest };
+  });
+}
+
 export async function chatsRoutes(app: FastifyInstance) {
   const storage = createChatsStorage(app.db);
   const messageTrashStore = createMessageTrashStorage(app.db);
@@ -2155,7 +2175,9 @@ export async function chatsRoutes(app: FastifyInstance) {
           return reply.status(400).send({ error: "Invalid message cursor" });
         }
         try {
-          return await storage.listMessagesPaginated(req.params.id, limit, req.query.before || undefined);
+          return withoutPromptOnlyExtra(
+            await storage.listMessagesPaginated(req.params.id, limit, req.query.before || undefined),
+          );
         } catch (error) {
           if (error instanceof InvalidMessageCursorError) {
             return reply.status(400).send({ error: error.message });
@@ -2163,7 +2185,7 @@ export async function chatsRoutes(app: FastifyInstance) {
           throw error;
         }
       }
-      return storage.listMessages(req.params.id);
+      return withoutPromptOnlyExtra(await storage.listMessages(req.params.id));
     },
   );
 
