@@ -9,18 +9,11 @@ import type {
   MariWorkspacePendingApproval,
 } from "@marinara-engine/shared";
 
-import {
-  computeFieldChanges,
-  describeTable,
-  describeTablePlural,
-  fieldLabel,
-  replyFixChat,
-  reviewRowFact,
-} from "../../lib/mari-edit-diff";
+import { describeTable, describeTablePlural, fieldLabel, replyFixChat } from "../../lib/mari-edit-diff";
 import { describeMariHeldChanges, summarizeDeleteReview } from "../../lib/professor-mari-presentation";
 import { cn } from "../../lib/utils";
 import { useUIStore } from "../../stores/ui.store";
-import { MariEditEasyViewer, RecordFace, rowTitle } from "./MariEditEasyViewer";
+import { MariEditEasyViewer, rowTitle } from "./MariEditEasyViewer";
 import { MariCard, MariRow } from "./mari-primitives";
 import { MariPromptPreviewModal, type MariPromptRenderSide } from "./MariPromptPreviewModal";
 import { TranscriptRow } from "./MariTranscriptRow";
@@ -594,24 +587,15 @@ export function ResolvedPromptLine({
   approval: MariWorkspacePendingApproval;
   outcome: "applied" | "discarded";
 }) {
-  const { t: localizeUi, i18n } = useUiTranslation();
+  const { t: localizeUi } = useUiTranslation();
   if (approval.kind !== "dependency_install" && approval.kind !== "sensitive_file") {
-    const change = approval.diffPreview[0];
-    const many = approval.diffPreview.length > 1;
+    // Slice 72: the answered change still opens to what changed, as it did while it waited; only its
+    // buttons become "✓ Kept" / "✓ Undone".
     return (
-      <MariRow
-        slot={change ? <RecordFace change={change} /> : <Check aria-hidden="true" />}
-        title={
-          change && !many
-            ? rowTitle(change, localizeUi)
-            : localizeUi("ui.chat.mariappliededit.changes", { count: approval.diffPreview.length })
-        }
-        fact={
-          change && !many
-            ? reviewRowFact(change, computeFieldChanges(change), localizeUi, i18n.resolvedLanguage ?? "en")
-            : (approval.reason ?? undefined)
-        }
-        trail={
+      <MariEditEasyViewer
+        approval={approval}
+        raw={null}
+        actions={
           <span className="mari-row__done" role="status">
             <Check aria-hidden="true" />
             {localizeUi(outcome === "applied" ? "ui.chat.mariappliededit.kept" : "ui.chat.mariappliededit.undone")}

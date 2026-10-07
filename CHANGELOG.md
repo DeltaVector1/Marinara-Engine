@@ -4,6 +4,9 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Fixed the "Worked for 12s · 3 steps" line under a Professor Mari answer looking like it opens something. It sat under her steps and hid them on a click, often off-screen, so it seemed to open nothing. It is now a plain summary, and her steps stay open above it with their own folds.
+- Fixed the bottom of Professor Mari's "Next" list fading out above the composer. At the end of the chat the last row is now fully visible; the fade comes back only while newer lines are below.
+- A change you kept or undid in Professor Mari's chat still opens to what changed, field by field. Before, it became a box that showed "Kept" and did nothing on a click.
 - Professor Mari's cards that wait for you now stand out. A change she asked about first, a delete, a sensitive file change and a package install each get one card with a thin accent edge and a "Needs you" label. The card says the action in plain words ("Rewrite 5 fields of Shrek", "Delete 2 lorebook entries") and what each button does. Her header says how many choices are waiting, and a tap on it shows the first card. Changes she already made, with an optional Undo, stay quiet.
 - A change Professor Mari asks about first is now a card with **Accept** and **Don't apply** under her answer. Before, it showed only as two chips above the composer and a hint line.
 - Professor Mari's chat lines up on one left edge. Her words, steps, cards, "Why", the "Worked for" line, the chips and the composer start at the same place on a phone and on a desktop. Before, her words sat about 60 px to the right of her steps, and the composer sat 5 px off the column. On a wide panel her sprite stands in the margin; on a phone her first lines wrap beside her.

@@ -1881,7 +1881,6 @@ function MariWorkTimeline({
   children?: ReactNode;
 }) {
   const { t } = useUiTranslation();
-  const [folded, setFolded] = useState(false);
   const reduceMotion = useReducedMotion();
   const appearance = useMariAppearancePack();
   const toolItems = items.filter((item): item is WorkspaceToolItem => item.type === "tool");
@@ -2079,13 +2078,6 @@ function MariWorkTimeline({
     return out;
   };
   const workedFor = t("mari.workCard.workedFor", { seconds: elapsedSeconds, count: toolItems.length });
-  // R14: "Worked for" folds the work only when there is more than one group to fold; one phase already
-  // opens and closes on its own line, so a toggle there would reveal nothing new.
-  const foldableGroups =
-    phases.length +
-    [...introBlocks, ...tailBlocks.slice(0, answerStart < 0 ? undefined : answerStart)].filter(
-      (block) => block.kind !== "text",
-    ).length;
   const workedForMark = failed ? (
     <AlertTriangle size="0.8rem" className="mari-live-work__failed-icon" aria-hidden="true" />
   ) : (
@@ -2103,7 +2095,6 @@ function MariWorkTimeline({
         className="mari-work-timeline"
         data-active={active ? "true" : "false"}
         data-outcome={failed ? "failed" : undefined}
-        data-folded={folded ? "true" : undefined}
         aria-label={t("mari.workCard.label")}
         aria-busy={active}
       >
@@ -2171,7 +2162,7 @@ function MariWorkTimeline({
             </span>
           </div>
         ) : toolItems.length > 0 || answerBlocks.length > 0 || (restStory && (!spriteBesideAnswer || restStoryText)) ? (
-          // Done: where the live line was, one line says how long she worked and folds the work away. On the
+          // Done: where the live line was, one line says how long she worked. On the
           // newest turn she rests beside her reply; only a turn without words keeps her on this line. Older
           // turns keep only the words.
           <div className="mari-work-timeline__live" data-past={restStory && !spriteBesideAnswer ? undefined : "true"}>
@@ -2193,19 +2184,10 @@ function MariWorkTimeline({
                   {t("mari.workCard.done")}
                 </span>
               ) : null
-            ) : foldableGroups > 1 ? (
-              <button
-                type="button"
-                className="mari-work-timeline__header"
-                aria-expanded={!folded}
-                onClick={() => setFolded((current) => !current)}
-              >
-                {workedForMark}
-                <span className="mari-work-timeline__status">{workedFor}</span>
-                <ChevronRight size="0.75rem" className="mari-work-timeline__chevron" aria-hidden="true" />
-              </button>
             ) : (
-              <span className="mari-work-timeline__header" data-static="true">
+              // Slice 72: a summary, not a toggle. It sat under the work it folded, so a click hid steps
+              // above it (often scrolled away) and looked like it opened nothing; each phase folds itself.
+              <span className="mari-work-timeline__header">
                 {workedForMark}
                 <span className="mari-work-timeline__status">{workedFor}</span>
               </span>
@@ -6923,6 +6905,7 @@ export function HomeProfessorMariChat({
                           onScroll={handleTranscriptScroll}
                           data-component="HomeProfessorMariChat.Transcript"
                           data-anchor={messages.length === 0 ? "bottom" : undefined}
+                          data-more-below={showJumpToLatest ? "true" : undefined}
                           data-mari-state={mariPresentationState}
                           className={cn(
                             "min-h-0 flex-1 overflow-y-auto px-3 py-4 pb-5 text-left sm:px-7",

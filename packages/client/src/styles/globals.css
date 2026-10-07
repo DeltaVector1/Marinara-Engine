@@ -939,8 +939,8 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 }
 
 .mari-topbar-edge-glow[data-state="working"] {
-  background: linear-gradient(90deg, var(--mari-edge), var(--mari-edge-mid), var(--mari-edge-end), var(--mari-edge))
-    0 0 / 200% 100%;
+  background: linear-gradient(90deg, var(--mari-edge), var(--mari-edge-mid), var(--mari-edge-end), var(--mari-edge)) 0
+    0 / 200% 100%;
   animation: mari-edge-waver 6s ease-in-out infinite alternate;
 }
 
@@ -2532,9 +2532,10 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   background: var(--mari-hover);
 }
 
-/* M1/M2: one always-on fade, top and bottom, instead of a toggle keyed to scroll position - the edges
-   never go hard and never flicker. Both the bottom fade stop and the bottom padding track the dock's
-   live height, so text clears into the composer instead of stopping at a line. */
+/* M1/M2: one always-on fade, top and bottom - the edges never go hard. Both the bottom fade stop and the
+   bottom padding track the dock's live height, so text clears into the composer instead of stopping at a
+   line. Slice 72: at the end the bottom fade starts at the dock, so the last row (her "Next" list) is
+   whole; the longer fade above the dock returns only while newer lines wait below (the jump arrow). */
 .mari-workspace-transcript {
   position: relative;
   z-index: 1;
@@ -2544,13 +2545,18 @@ html[data-marinara-effects-paused="true"] .mari-pull-overlay[data-mari-edge] .ma
   container: mari-scroll / inline-size;
   width: 100%;
   padding-bottom: var(--mari-dock-h, 0px);
+  --mari-fade-above-dock: 0px;
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
     #000 2rem,
-    #000 calc(100% - var(--mari-dock-h, 0px) - 2.5rem),
+    #000 calc(100% - var(--mari-dock-h, 0px) - var(--mari-fade-above-dock)),
     transparent calc(100% - var(--mari-dock-h, 0px) + 1.25rem)
   );
+}
+
+.mari-workspace-transcript[data-more-below] {
+  --mari-fade-above-dock: 2.5rem;
 }
 
 /* R10: the column's width decides whether card groups sit at the text edge or span it (phone). */
@@ -3013,7 +3019,6 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   .mari-arrival__group {
     grid-column: 1 / -1;
   }
-
 }
 
 /* M17: the line and cards wait (at their first frame) until the pull's circle has become her sprite. */
@@ -3342,16 +3347,7 @@ html[data-mari-pull-landing] .mari-arrival-content * {
   gap: 0.45rem;
 }
 
-.mari-work-timeline[data-folded="true"] .mari-work-timeline__rail {
-  display: none;
-}
-
-/* R14: with nothing more to fold, "Worked for" is plain text, not a button. */
-.mari-work-timeline__header[data-static] {
-  cursor: default;
-  background: none !important;
-}
-
+/* "Worked for Ns · N steps": a summary line, not a toggle (slice 72). */
 .mari-work-timeline__header {
   display: flex;
   width: fit-content;
@@ -3361,34 +3357,9 @@ html[data-mari-pull-landing] .mari-arrival-content * {
   gap: 0.5rem;
   margin-inline-start: -0.5rem;
   padding-inline: 0.5rem 0.6rem;
-  border-radius: 999px;
   color: var(--muted-foreground);
-  cursor: pointer;
   font-size: 0.75rem;
   font-weight: 600;
-  list-style: none;
-  transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.mari-work-timeline__header::-webkit-details-marker {
-  display: none;
-}
-
-.mari-work-timeline__header:hover {
-  background: color-mix(in srgb, var(--foreground) 6%, transparent);
-  color: var(--foreground);
-}
-
-.mari-work-timeline__chevron {
-  flex: none;
-  opacity: 0.7;
-  transition: transform 0.16s ease;
-}
-
-.mari-work-timeline__header[aria-expanded="true"] .mari-work-timeline__chevron {
-  transform: rotate(90deg);
 }
 
 /* Thoughts and steps between her words: quiet one-line disclosures, no frame. */
@@ -10771,9 +10742,7 @@ html[data-marinara-reduced-effects="true"] .omnibar-row-expansion {
 
   /* 100cqw is the chat pane (CenterContent is a size container), so the right edge ignores the
      transcript's scrollbar, as the composer does. */
-  [data-chat-mode="roleplay"][data-roleplay-presentation="classic"][data-chat-position="right"]
-    [data-chat-scroll]
-    > * {
+  [data-chat-mode="roleplay"][data-roleplay-presentation="classic"][data-chat-position="right"] [data-chat-scroll] > * {
     margin-left: max(
       0px,
       100cqw - 2 * var(--mari-roleplay-transcript-gutter) - var(--mari-chat-position-clearance, 0px) -
