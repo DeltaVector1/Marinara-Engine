@@ -1,6 +1,6 @@
 {
   "language": "ko",
-  "sourceCommit": "a30859047e510ceb8556b46b465a3556d56cab80",
+  "sourceCommit": "10bdad166ea3cf25585d341cce42c775a4a8fbac",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -64,8 +64,8 @@
     },
     {
       "path": "agents/memory.md",
-      "sha256": "1dbb8b83039563b9b4144a1302c802cd06bbffd2f158cc597db026f1e65ce164",
-      "bytes": 48209
+      "sha256": "09c2dcc72ec5465c69c27319568fdd5b81a074e6b19abf6ed475da5403b12249",
+      "bytes": 49722
     },
     {
       "path": "appearance/appearance-settings.md",
@@ -324,8 +324,8 @@
     },
     {
       "path": "development/game-combat-ai-design.md",
-      "sha256": "3d785aedb558fedf4ef6a879fdefd710b5534a8fddc215624cca2267890e24ec",
-      "bytes": 121285
+      "sha256": "bea0d0a83e5ac96970530a15db063263cb54b0e931b6a1aac915adc54f597e69",
+      "bytes": 121284
     },
     {
       "path": "development/game-combat-difficulty-weather.md",
