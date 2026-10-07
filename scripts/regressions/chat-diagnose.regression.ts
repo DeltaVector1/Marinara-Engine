@@ -104,7 +104,8 @@ try {
   assert.ok(codes.includes("history_trimmed"), "the saved contextFit drop must surface history_trimmed");
   assert.equal(output.generationInfo.tokensContext, 9300);
   assert.equal(output.generationInfo.maxContext, 8192);
-  assert.equal(output.generationInfo.finishReason, "length");
+  assert.equal(output.generationInfo.ended, "cut off at the output limit", "the end state is plain words");
+  assert.ok(!("finishReason" in output.generationInfo), "the raw provider finishReason must not reach Mari");
   assert.equal(output.generationInfo.tokensCompletion, 300);
   assert.equal(output.generationInfo.contextFit.droppedHistory, 7);
   assert.deepEqual(output.lorebooks, [{ name: "Haunted Archive", tokenBudget: 777 }]);

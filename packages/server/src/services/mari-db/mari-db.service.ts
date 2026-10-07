@@ -276,6 +276,15 @@ const BOOLEAN_FLAGS = new Set([
 const DB_VALUE_FLAGS = new Set(["table", "limit", "offset", "where", "json", "json-file", "file", "reason"]);
 const DB_BOOLEAN_FLAGS = new Set(["apply", "cascade", "dry-run", "help", "parsed"]);
 
+/** `chat.diagnose`: how a reply ended, in words Mari can repeat. Unknown provider values pass through. */
+function describeReplyEnd(finishReason: string | null | undefined): string | null {
+  const reason = String(finishReason ?? "").toLowerCase();
+  if (!reason) return null;
+  if (["length", "max_tokens", "max_output_tokens"].includes(reason)) return "cut off at the output limit";
+  if (["stop", "end_turn", "stop_sequence"].includes(reason)) return "on its own";
+  return reason;
+}
+
 function truncateOutput(value: string, limit = COMMAND_OUTPUT_LIMIT): { text: string; truncated: boolean } {
   if (value.length <= limit) return { text: value, truncated: false };
   return { text: `${value.slice(0, limit)}\n… output truncated at ${limit} characters …`, truncated: true };
@@ -7536,7 +7545,8 @@ export class MariDbService {
         generationInfo: {
           tokensContext: info?.tokensContext ?? null,
           maxContext: info?.maxContext ?? null,
-          finishReason: info?.finishReason ?? null,
+          // Plain words, not the provider's protocol value: Mari repeated a raw `finishReason` to users.
+          ended: describeReplyEnd(info?.finishReason),
           tokensCompletion: info?.tokensCompletion ?? null,
           contextFit: info?.contextFit ?? null,
         },
