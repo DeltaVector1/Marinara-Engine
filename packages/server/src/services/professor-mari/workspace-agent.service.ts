@@ -1182,6 +1182,22 @@ function appendTraceText(trace: MariWorkspaceTraceItem[], delta: string) {
   trace.push({ type: "text", content: delta });
 }
 
+/**
+ * One round's `say`, to the trace and the live stream. Commands run before their round's text lands,
+ * so two rounds' words can meet in one text item (no step between): start the later one on a new
+ * paragraph, or "...your Dice chat.It wasn't..." reads as one sentence.
+ */
+export function emitRoundText(
+  trace: MariWorkspaceTraceItem[],
+  text: string,
+  onEvent: (event: { type: "token"; data: string }) => void,
+) {
+  const last = trace[trace.length - 1];
+  const delta = last?.type === "text" && last.content.trim() ? `\n\n${text.trim()}` : text;
+  appendTraceText(trace, delta);
+  for (const chunk of chunkText(delta)) onEvent({ type: "token", data: chunk });
+}
+
 function appendTraceThinking(trace: MariWorkspaceTraceItem[], delta: string) {
   if (!delta) return;
   const now = Date.now();
@@ -3556,8 +3572,7 @@ export class ProfessorMariWorkspaceService {
             runAskedForApproval = true;
           }
           assistantText = appendVisibleText(assistantText, action.visibleText);
-          appendTraceText(workspaceTrace, `${action.visibleText}\n`);
-          for (const chunk of chunkText(action.visibleText)) args.onEvent({ type: "token", data: chunk });
+          emitRoundText(workspaceTrace, action.visibleText, args.onEvent);
         }
         if (action.suggestions.length > 0) args.onEvent({ type: "suggestions", data: action.suggestions });
         if (action.plan.length > 0) args.onEvent({ type: "plan", data: action.plan });
@@ -3642,8 +3657,7 @@ export class ProfessorMariWorkspaceService {
             for (const chunk of chunkText(content)) args.onEvent({ type: "token", data: chunk });
           } else if (finalAction.visibleText) {
             assistantText = appendVisibleText(assistantText, finalAction.visibleText);
-            appendTraceText(workspaceTrace, finalAction.visibleText);
-            for (const chunk of chunkText(finalAction.visibleText)) args.onEvent({ type: "token", data: chunk });
+            emitRoundText(workspaceTrace, finalAction.visibleText, args.onEvent);
             if (finalAction.suggestions.length > 0)
               args.onEvent({ type: "suggestions", data: finalAction.suggestions });
             if (finalAction.plan.length > 0) args.onEvent({ type: "plan", data: finalAction.plan });

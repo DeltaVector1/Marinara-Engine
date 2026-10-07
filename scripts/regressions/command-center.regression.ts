@@ -180,7 +180,10 @@ import {
   summarizeMergedAgentRow,
   guardRawMessageTableWrite,
 } from "../../packages/server/src/services/mari-db/mari-db.service.js";
-import { appDataActionLooksReadOnly } from "../../packages/server/src/services/professor-mari/workspace-agent.service.js";
+import {
+  appDataActionLooksReadOnly,
+  emitRoundText,
+} from "../../packages/server/src/services/professor-mari/workspace-agent.service.js";
 import {
   followTranscriptGrowth,
   transcriptScrollAction,
@@ -3909,6 +3912,22 @@ assert.ok(!("mariDetailId" in mariSession));
   globalThis.ResizeObserver = realResizeObserver;
   assert.deepEqual(reports, [true, false], "the arrow shows for unfollowed output below the fold, never while following");
   assert.equal(scroller.scrollTop, 769, "following still pins to the bottom");
+}
+
+{
+  // Slice 67b: two rounds' words with no step between start a new paragraph, live and in the saved trace.
+  const trace: Parameters<typeof emitRoundText>[0] = [];
+  const live: string[] = [];
+  const onEvent = (event: { data: string }) => live.push(event.data);
+  emitRoundText(trace, "I'll check your Dice chat.", onEvent);
+  trace.push({ type: "tool", tool: { id: "t1", name: "app_data", status: "done" } } as (typeof trace)[number]);
+  emitRoundText(trace, "Checked.", onEvent);
+  emitRoundText(trace, "It wasn't cut off.", onEvent);
+  assert.equal(live.join(""), "I'll check your Dice chat.Checked.\n\nIt wasn't cut off.");
+  assert.deepEqual(
+    trace.filter((item) => item.type === "text").map((item) => (item as { content: string }).content),
+    ["I'll check your Dice chat.", "Checked.\n\nIt wasn't cut off."],
+  );
 }
 
 console.info("Command Center regression checks passed.");
