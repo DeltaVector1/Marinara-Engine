@@ -65,6 +65,7 @@ import {
   isMariHeldChangeApprovalChip,
   withHeldChangeDeclineChip,
   MARI_STARTER_CHIPS,
+  sanitizeMariSuggestionChips,
   type APIConnection,
   type Chat,
   type MariGuidedPlanStep,
@@ -3401,7 +3402,12 @@ export function HomeProfessorMariChat({
     !isBusy &&
     lastLoadedMessage?.role === "assistant" &&
     lastLoadedMessageExtra?.mariDeferredMutations === true;
-  const storeChipsForChat = mariChipsChatId === chatId ? mariChips : [];
+  // Slice 70: the chips her last answer offered are saved on it, so a reload keeps them.
+  const savedChips =
+    chatId !== null && loadedMessagesChatId === chatId && !isBusy && lastLoadedMessage?.role === "assistant"
+      ? sanitizeMariSuggestionChips(lastLoadedMessageExtra?.mariSuggestions, { maxChips: 6 })
+      : [];
+  const storeChipsForChat = mariChipsChatId === chatId && mariChips.length > 0 ? mariChips : savedChips;
   const visibleSuggestionChips =
     pendingDeferredMutations && !storeChipsForChat.some((chip) => chip.id === MARI_AUTHORIZATION_ACCEPT_CHIP.id)
       ? withHeldChangeDeclineChip([

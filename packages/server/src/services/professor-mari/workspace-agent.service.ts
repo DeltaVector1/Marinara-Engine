@@ -861,7 +861,7 @@ Field rules:
 - \`suggestions\` is optional. Include at most 5 quick-reply chips when useful; omit it when no chips are needed.
 - Give a suggestion a \`detail\` (under 80 characters, no full stop) only for a real fact from this run ("3 messages since your last summary", not the label again).
 - Optional \`action\` acts at once: \`{"kind":"resource","resource":"character|persona|preset|lorebook|agent","id":"..."}\` opens it, \`{"kind":"chat","chatId":"..."}\`, \`{"kind":"start-chat","characterId":"..."}\`, \`{"kind":"panel","panel":"characters|personas|lorebooks|presets|connections|agents"}\` (a list; "connections" to pick one), \`{"kind":"peek-prompt","chatId":"..."}\`. Only ids you already know; never read just to fill \`detail\` or \`action\`. Keep \`prompt\` filled; no \`action\` when it needs your help.
-- \`plan\` is optional and mutually exclusive with a multi-turn interrogation: use it ONLY when the user's create/edit request is vague (e.g. "make me a character" with no details). Return the WHOLE plan in this ONE turn - an ordered list of the natural fields for what they're creating (e.g. name, vibe, scenario, greeting for a character), each with 3-5 illustrative example-answer chips. The client walks the plan locally with no further calls from you, then sends you one summary message with all the answers so you can actually create it with your normal commands. If the request already has enough detail, skip \`plan\` entirely and just create it now - don't force the user through fields they already answered.
+- \`plan\` is optional and mutually exclusive with a multi-turn interrogation: use it ONLY when the user's create/edit request is vague (e.g. "make me a character" with no details); a vague edit ("overhaul X a bit"): read it, then offer 2-4 concrete directions as suggestions, not a field list. Return the WHOLE plan in this ONE turn - an ordered list of the natural fields for what they're creating (e.g. name, vibe, scenario, greeting for a character), each with 3-5 illustrative example-answer chips. The client walks the plan locally with no further calls from you, then sends you one summary message with all the answers so you can actually create it with your normal commands. If the request already has enough detail, skip \`plan\` entirely and just create it now - don't force the user through fields they already answered.
 - \`stop\` is \`false\` while you need command results or another model turn. Set \`stop\` to \`true\` only when the response is complete.
 - If \`commands\` is not empty, \`stop\` should usually be \`false\`.
 - If you say you will do workspace/app-data work, include the command in the same JSON object.
@@ -1172,20 +1172,11 @@ function compactTraceValue(value: unknown, limit = 2000, depth = 0): unknown {
   return out;
 }
 
-function appendTraceText(trace: MariWorkspaceTraceItem[], delta: string) {
-  if (!delta) return;
-  const last = trace[trace.length - 1];
-  if (last?.type === "text") {
-    last.content += delta;
-    return;
-  }
-  trace.push({ type: "text", content: delta });
-}
-
 /**
  * One round's `say`, to the trace and the live stream. Commands run before their round's text lands,
- * so two rounds' words can meet in one text item (no step between): start the later one on a new
- * paragraph, or "...your Dice chat.It wasn't..." reads as one sentence.
+ * so two rounds' words can meet with no step between: live, start the later one on a new paragraph, or
+ * "...your Dice chat.It wasn't..." reads as one sentence. Slice 70: in the trace each round is its own
+ * text item, so a finished turn can show only her last round (the answer) and not the narration before it.
  */
 export function emitRoundText(
   trace: MariWorkspaceTraceItem[],
@@ -1194,7 +1185,7 @@ export function emitRoundText(
 ) {
   const last = trace[trace.length - 1];
   const delta = last?.type === "text" && last.content.trim() ? `\n\n${text.trim()}` : text;
-  appendTraceText(trace, delta);
+  if (text.trim()) trace.push({ type: "text", content: text.trim() });
   for (const chunk of chunkText(delta)) onEvent({ type: "token", data: chunk });
 }
 
@@ -1521,6 +1512,17 @@ export function scrubInternalNames(text: string): string {
     });
 }
 
+/** Slice 70: the end of her answer (last three lines) asks the user something ("…or pick specific ones?",
+ *  "What's the vibe? Tell me what you want changed.", options then "your call"). Exported for the regression. */
+export function answerEndsWithQuestion(text: string): boolean {
+  const end = text
+    .split("\n")
+    .filter((line) => line.trim())
+    .slice(-3)
+    .join("\n");
+  return end.includes("?") || /\b(say|tell me|let me know|pick|choose|your call)\b/i.test(end);
+}
+
 function jsonPayloadVisibleText(payload: Record<string, unknown>): string {
   for (const key of ["say", "message", "response", "final", "answer"]) {
     const value = payload[key];
@@ -1767,9 +1769,15 @@ ${output}
   return `Marinara executed Professor Mari's hidden workspace command${results.length === 1 ? "" : "s"}. Use these results to decide the next command or final answer.\n\n${blocks.join("\n\n")}`;
 }
 
+// Slice 70: a record she read whole (a card, an entry, a section) is kept whole enough to work from next turn;
+// at 1,000 chars a card was cut mid-description, so "make her more real" read the same card again.
+const CONTINUITY_RECORD_READ_RE = /\.(get|getentry|getsection|getgroup|getchoiceblock)$/i;
+
 function formatContinuityResult(result: WorkspaceCommandResult, index: number): string {
   const input = JSON.stringify(compactTraceValue(result.input, 600));
-  const output = compactTraceText(result.output, 1000);
+  const action = result.name === "app_data" && isRecord(result.input) ? result.input.action : null;
+  const recordRead = result.success && typeof action === "string" && CONTINUITY_RECORD_READ_RE.test(action);
+  const output = compactTraceText(result.output, recordRead ? 8000 : 1000);
   return `${index + 1}. ${result.name} ${result.success ? "succeeded" : "failed"} input=${input}\n${output}`;
 }
 
@@ -1812,9 +1820,10 @@ function summarizeStoredTimeline(timeline: unknown): string | null {
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
-function workspaceContinuityFromExtra(extra: Record<string, unknown>): string | null {
+function workspaceContinuityFromExtra(extra: Record<string, unknown>, latest = false): string | null {
   if (typeof extra.mariWorkspaceContinuity === "string" && extra.mariWorkspaceContinuity.trim()) {
-    return compactTraceText(extra.mariWorkspaceContinuity, 5000);
+    // Only the latest turn carries its records whole; older turns stay short.
+    return compactTraceText(extra.mariWorkspaceContinuity, latest ? 16000 : 5000);
   }
   return summarizeStoredTimeline(extra.mariWorkspaceTimeline);
 }
@@ -1822,11 +1831,11 @@ function workspaceContinuityFromExtra(extra: Record<string, unknown>): string | 
 function buildRecentWorkspaceContinuityPrompt(
   rows: Array<{ role: string; content: string; extra?: unknown }>,
 ): string | null {
-  const entries = rows
-    .filter((row) => row.role === "assistant")
-    .map((row) => {
+  const assistantRows = rows.filter((row) => row.role === "assistant");
+  const entries = assistantRows
+    .map((row, index) => {
       const extra = parseExtra(row.extra);
-      const continuity = workspaceContinuityFromExtra(extra);
+      const continuity = workspaceContinuityFromExtra(extra, index === assistantRows.length - 1);
       if (!continuity) return null;
       return `<previous_workspace_turn>\n${continuity}\n</previous_workspace_turn>`;
     })
@@ -1834,7 +1843,7 @@ function buildRecentWorkspaceContinuityPrompt(
     .slice(-RECENT_WORKSPACE_CONTINUITY_LIMIT);
   if (entries.length === 0) return null;
   return `<workspace_continuity>
-Recent hidden workspace evidence and plans are below. Use this to continue fluidly across short confirmations such as "go ahead" or "yes". Do not repeat completed discovery unless needed.
+Recent hidden workspace evidence and plans are below. Use this to continue fluidly across short confirmations such as "go ahead" or "yes". Do not repeat completed discovery unless needed: a record shown in full below is current, so work from it instead of reading it again.
 
 ${entries.join("\n\n")}
 </workspace_continuity>`;
@@ -3233,6 +3242,11 @@ export class ProfessorMariWorkspaceService {
     // update below checks identity against this reference first - a run may
     // only ever stamp or restate its own record, never another run's.
     let runUnderstoodRequest: MariUnderstoodRequest | null = null;
+    // Slice 70: the chips her last answer offered, saved on the message so they survive a reload; and the one
+    // chips-only round a question-shaped answer without chips may get (see askedWithoutChips below).
+    let runSuggestions: MariSuggestionChip[] = [];
+    let chipRepairPending = false;
+    let chipRepairUsed = false;
 
     const persistAssistantMessage = async () => {
       const persistedText = assistantText.trim();
@@ -3260,6 +3274,8 @@ export class ProfessorMariWorkspaceService {
       if (storedTrace.length > 0) extraUpdate.mariWorkspaceTimeline = storedTrace;
       if (workspaceActionResults.length > 0) extraUpdate.mariWorkspaceActionResults = workspaceActionResults;
       if (runError) extraUpdate.mariRunError = runError;
+      const savedChips = runSuggestions.filter((chip) => chip.id !== MARI_AUTHORIZATION_ACCEPT_CHIP.id);
+      if (savedChips.length > 0) extraUpdate.mariSuggestions = savedChips;
       extraUpdate.professorMariContext = args.context ?? null;
       const continuity = buildWorkspaceContinuitySnapshot({
         userText: promptText,
@@ -3411,7 +3427,28 @@ export class ProfessorMariWorkspaceService {
 
         const rawContent = result.content ?? "";
         debugLog?.("[debug/professor-mari] Raw response:\n%s", rawContent);
-        const parsedAction = parseAssistantWorkspaceAction(rawContent);
+        const parsedFrame = parseAssistantWorkspaceAction(rawContent);
+        // Slice 70: a chips-only round adds chips to the answer already shown - never new words or commands;
+        // without chips the answer simply stands.
+        const chipRound = chipRepairPending;
+        chipRepairPending = false;
+        if (chipRound && parsedFrame.suggestions.length === 0) break;
+        const parsedAction = chipRound
+          ? {
+              ...parsedFrame,
+              visibleText: "",
+              commands: [],
+              plan: [],
+              awaitingAuthorization: false,
+              stop: true,
+              assistantHistoryContent: assistantHistoryContentForAction({
+                visibleText: "",
+                commands: [],
+                suggestions: parsedFrame.suggestions,
+                stop: true,
+              }),
+            }
+          : parsedFrame;
         // #5725: Manual defers EVERY described mutation (empty-say command
         // frames - the post-approval pattern - still execute); Bypass never
         // defers; Auto/others keep the self-declared ask-first behavior.
@@ -3676,10 +3713,15 @@ export class ProfessorMariWorkspaceService {
           if (parsedAction.awaitingAuthorization || visibleTextAsksApplyPermission(action.visibleText)) {
             runAskedForApproval = true;
           }
-          assistantText = appendVisibleText(assistantText, action.visibleText);
+          // Slice 70: the saved answer is her latest round's words; earlier rounds' narration ("Let me pull up
+          // his card…") stays in the timeline only. Server notes are appended after this and end the run.
+          assistantText = action.visibleText.trim();
           emitRoundText(workspaceTrace, action.visibleText, args.onEvent);
         }
-        if (action.suggestions.length > 0) args.onEvent({ type: "suggestions", data: action.suggestions });
+        if (action.suggestions.length > 0) {
+          runSuggestions = action.suggestions;
+          args.onEvent({ type: "suggestions", data: action.suggestions });
+        }
         if (action.plan.length > 0) args.onEvent({ type: "plan", data: action.plan });
 
         messages.push({ role: "assistant", content: action.assistantHistoryContent });
@@ -3703,6 +3745,28 @@ export class ProfessorMariWorkspaceService {
           appendTraceStatus(workspaceTrace, content);
           args.onEvent({ type: "status", data: { content, kind: "output_limit", level: "warning" } });
           break;
+        }
+
+        // Slice 70: an answer that ends on a question ("apply all five, or pick some?") with no chips and no
+        // plan makes the user type the answer; ask once for chips only (the visible answer stays as it is).
+        if (
+          action.commands.length === 0 &&
+          !chipRepairUsed &&
+          !shouldDeferMutations &&
+          action.suggestions.length === 0 &&
+          action.plan.length === 0 &&
+          answerEndsWithQuestion(action.visibleText)
+        ) {
+          chipRepairUsed = true;
+          chipRepairPending = true;
+          messages.push({
+            role: "user",
+            content:
+              'Your answer ends with a question but offers no suggestions. Return only {"say":"","suggestions":[...],"stop":true}: 2-4 chips, each one a possible answer to that question (for a list of proposals: apply all, then the main single ones), label under 40 characters. No other text.',
+            contextKind: "history",
+          });
+          round -= 1;
+          continue;
         }
 
         if (action.commands.length === 0) {
@@ -3761,10 +3825,12 @@ export class ProfessorMariWorkspaceService {
             args.onEvent({ type: "status", data: { content, kind: "retry", level: "warning" } });
             for (const chunk of chunkText(content)) args.onEvent({ type: "token", data: chunk });
           } else if (finalAction.visibleText) {
-            assistantText = appendVisibleText(assistantText, finalAction.visibleText);
+            assistantText = finalAction.visibleText.trim();
             emitRoundText(workspaceTrace, finalAction.visibleText, args.onEvent);
-            if (finalAction.suggestions.length > 0)
+            if (finalAction.suggestions.length > 0) {
+              runSuggestions = finalAction.suggestions;
               args.onEvent({ type: "suggestions", data: finalAction.suggestions });
+            }
             if (finalAction.plan.length > 0) args.onEvent({ type: "plan", data: finalAction.plan });
           } else if (finalAction.commands.length > 0) {
             const content =

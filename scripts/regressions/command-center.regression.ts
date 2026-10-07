@@ -1739,6 +1739,31 @@ assert.ok(!("mariDetailId" in mariSession));
     1,
     "back-to-back steps of one kind share one phase",
   );
+  // Slice 70: a finished, answered run shows steps and the answer, not each round's narration.
+  const narrated: WorkTimelineItem<Step>[] = [
+    { id: "n0", type: "text", content: "Let me pull up her card." },
+    step("r1", "Reading character"),
+    { id: "n1", type: "text", content: "One sec - reading the rest." },
+    step("r2", "Reading character"),
+    { id: "n2", type: "text", content: "Got the full card." },
+    { id: "a", type: "text", content: "Here is what I would change." },
+  ];
+  const finished = groupRunPhases(narrated, { active: false, describe });
+  assert.deepEqual(
+    [finished.intro.length, finished.phases[0]!.items.map((item) => item.id), finished.tail.map((item) => item.id)],
+    [0, ["r1", "r2"], ["a"]],
+    "slice 70: a finished answered run drops interim narration",
+  );
+  assert.deepEqual(
+    groupRunPhases(narrated, { active: true, describe }).intro.map((item) => item.id),
+    ["n0"],
+    "slice 70: while she runs, her narration stays as live status",
+  );
+  assert.deepEqual(
+    groupRunPhases(narrated.slice(0, 4), { active: false, describe }).phases[0]!.items.map((item) => item.id),
+    ["r1", "n1", "r2"],
+    "slice 70: a run that ended without an answer keeps her last words",
+  );
 }
 
 // Slice 36 (M5a): a trailing "Why" list folds into one line; anything else stays in the answer.
@@ -3946,7 +3971,8 @@ assert.ok(!("mariDetailId" in mariSession));
   assert.equal(live.join(""), "I'll check your Dice chat.Checked.\n\nIt wasn't cut off.");
   assert.deepEqual(
     trace.filter((item) => item.type === "text").map((item) => (item as { content: string }).content),
-    ["I'll check your Dice chat.", "Checked.\n\nIt wasn't cut off."],
+    ["I'll check your Dice chat.", "Checked.", "It wasn't cut off."],
+    "slice 70: each round is its own text item in the saved trace",
   );
 }
 

@@ -922,6 +922,8 @@ export interface MessageExtra {
   professorMariContext?: ProfessorMariAskContext | null;
   /** True when this Mari turn deferred mutating commands behind an Accept action (#5725 Manual mode). */
   mariDeferredMutations?: boolean | null;
+  /** Slice 70: the quick-reply chips this Mari turn offered (raw; the client sanitizes), so a reload keeps them. */
+  mariSuggestions?: unknown;
   /**
    * R14: why this Mari turn failed, on the turn's last saved message (her partial reply, or your message
    * when she saved nothing), so a reload still shows it failed. `dismissed` once you close its card.

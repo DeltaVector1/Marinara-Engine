@@ -123,6 +123,14 @@ export function groupRunPhases<Tool>(
   const last = phases.at(-1);
   const answering = pending.some((item) => item.type === "text" && item.content.trim());
   if (last && active && !answering) last.live = true;
+  // Slice 70: once she has answered, her narration between steps ("Let me pull up his card…") was live status
+  // only; the finished turn shows the steps and her last round's words (each round is its own text item).
+  if (!active && answering) {
+    const notText = (item: WorkTimelineItem<Tool>) => item.type !== "text";
+    const answer = pending.findLastIndex((item) => item.type === "text" && item.content.trim());
+    for (const phase of phases) phase.items = phase.items.filter(notText);
+    return { intro: intro.filter(notText), phases, tail: pending.filter((item, i) => notText(item) || i === answer) };
+  }
   return { intro, phases, tail: pending };
 }
 

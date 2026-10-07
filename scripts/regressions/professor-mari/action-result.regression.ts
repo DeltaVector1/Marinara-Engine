@@ -4,6 +4,7 @@ import type { MariDbCommandResult } from "@marinara-engine/shared";
 import {
   buildMariWorkspaceActionResult,
   parseAssistantWorkspaceAction,
+  answerEndsWithQuestion,
   scrubInternalNames,
 } from "../../../packages/server/src/services/professor-mari/workspace-agent.service.js";
 import { normalizeCommandCenterSessionState } from "../../../packages/client/src/lib/command-center.js";
@@ -101,6 +102,19 @@ assert.equal(
   "Open character.json; marinara.ui.registerContribution stays.",
   "file names and extension APIs are not action names",
 );
+
+// Slice 70: an answer that ends on a question gets one chips-only round when it carries no chips.
+assert.equal(answerEndsWithQuestion("1. Tone\n2. Backstory\n\nWant me to apply all five, or pick specific ones?"), true);
+assert.equal(answerEndsWithQuestion('What direction do you want? **Give me the vibe?**'), true, "markdown after the ?");
+assert.equal(answerEndsWithQuestion("What's the vibe? Tell me what you want changed."), true, "an ask before the end");
+assert.equal(
+  answerEndsWithQuestion("Why does he forget?\n\n42 messages were not sent.\n- Budget: 8,000\n- Needed: 9,800"),
+  false,
+  "only the end counts",
+);
+assert.equal(answerEndsWithQuestion("- Darker\n- Funnier\n\nYour swamp, your call."), true, "options, then your call");
+assert.equal(answerEndsWithQuestion("Done."), false);
+assert.equal(answerEndsWithQuestion('Or say "all of it" and I\'ll give him the full treatment.'), true, "an offer to answer");
 
 const session = normalizeCommandCenterSessionState({
   query: "find Luna",
