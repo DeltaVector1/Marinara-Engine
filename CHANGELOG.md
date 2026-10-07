@@ -5,6 +5,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 ## [Unreleased]
 
 - Fixed Professor Mari's words from two steps running together into one sentence ("…your Dice chat.It wasn't…") when she spoke again right after a step: her next words now start a new paragraph, live and in the saved conversation.
+- Professor Mari no longer replaces a correct answer from the docs with "No workspace change was requested…". A sentence that only describes a feature, such as "before it's created" or "enabled by default", no longer counts as her claiming she changed something.
 - Opening Professor Mari from a chat (Ctrl+J) no longer moves her new thread onto that chat's connection. On a first load, the new thread could take the default connection (often a small one used by the chat) instead of the connection Mari was set to. Mari's fallback when no connection is chosen is now really the default connection, not the first one in the list.
 - Professor Mari's instructions are about 1,800 characters shorter on every step again. The lorebook-scan and chat-checkup results now carry their own fix, and a message from search can be repaired by its search id directly, so her standing rules no longer have to spell these out.
 - Search finds a setting when every word you type starts a word of its name, in any order: "reduced effects" finds **Reduced ambient effects** again. Before, such a row showed for a moment and then disappeared when a docs result arrived.

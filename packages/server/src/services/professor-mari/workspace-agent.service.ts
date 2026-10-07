@@ -2258,14 +2258,21 @@ export function workspaceTextClaimsMutationCompletion(text: string): boolean {
     // is the exact word the guard's own coaching asks the model to produce.
     "created|updated|changed|deleted|removed|renamed|wrote|written|fixed|implemented|built|installed|imported|exported|saved|enabled|disabled|assigned|linked|unlinked|generated|moved|copied|replaced|added|applied|edited|modified|set|inserted|completed";
   const adverbs = "(?:(?:successfully|now|just|already)\\s+)*";
+  // Slice 68: a docs answer's "a chunk waits before it's created" or "it is enabled by default"
+  // describes how a feature works, not work she did; the audit then replaced a correct answer.
+  const describesFeature = (match: RegExpMatchArray) =>
+    /\b(?:before|until|when|whenever|after|once|if|unless|whether)\s+(?:[^\s.,;:!?]+\s+){0,3}$/iu.test(
+      normalized.slice(0, match.index),
+    ) || /^\s*by default\b/iu.test(normalized.slice((match.index ?? 0) + match[0].length));
+  const claims = (pattern: RegExp) => [...normalized.matchAll(pattern)].some((match) => !describesFeature(match));
   return (
-    new RegExp(
-      `\\b(?:i(?:'ve| have)?|we(?:'ve| have)?|it(?:'s| is)?|that(?:'s| is)?)\\s+${adverbs}(?:${completedMutation})\\b`,
-      "iu",
-    ).test(normalized) ||
-    new RegExp(`\\b(?:is|are|was|were|has been|have been)\\s+${adverbs}(?:${completedMutation})\\b`, "iu").test(
-      normalized,
+    claims(
+      new RegExp(
+        `\\b(?:i(?:'ve| have)?|we(?:'ve| have)?|it(?:'s| is)?|that(?:'s| is)?)\\s+${adverbs}(?:${completedMutation})\\b`,
+        "giu",
+      ),
     ) ||
+    claims(new RegExp(`\\b(?:is|are|was|were|has been|have been)\\s+${adverbs}(?:${completedMutation})\\b`, "giu")) ||
     new RegExp(`^(?:(?:the )?(?:edit|change|update)s?\\s+)${adverbs}(?:${completedMutation})\\b[^?]*[.!]?$`, "iu").test(
       normalized,
     ) ||
