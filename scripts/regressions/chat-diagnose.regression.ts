@@ -166,6 +166,30 @@ try {
   assert.equal(empty.ok, true);
   assert.deepEqual((empty.output as any).findings, []);
   assert.equal((empty.output as any).messageId, null);
+
+  // Slice 69: a problem report from a chat runs this checkup before Mari's first round, deterministically.
+  const { replyCheckupChatId } =
+    await import("../../packages/server/src/services/professor-mari/workspace-agent.service.js");
+  const inChat = { source: "command-center", activeChat: { id: "chat-1", label: "Dice" } } as never;
+  for (const text of [
+    "why does Gandalf forget things in my chat?",
+    "my last reply got cut off, why?",
+    "he keeps forgetting what happened yesterday",
+    "the reply came back empty",
+    "how come she forgot my name?",
+    "can you check why the replies got worse?",
+  ]) {
+    assert.equal(replyCheckupChatId(text, inChat), "chat-1", `checkup must run for: ${text}`);
+  }
+  for (const text of [
+    "why do you forget things?",
+    "how do I make him remember more?",
+    "what does Memory Recall do?",
+    "hi mari",
+  ]) {
+    assert.equal(replyCheckupChatId(text, inChat), null, `no checkup for: ${text}`);
+  }
+  assert.equal(replyCheckupChatId("why does he forget things?", undefined), null, "no chat in view, no checkup");
 } finally {
   await db?._fileStore.close();
   for (const [key, value] of Object.entries(previous)) {

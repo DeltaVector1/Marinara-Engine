@@ -1894,6 +1894,28 @@ function packageServiceInput(args: Record<string, unknown>): Record<string, unkn
   return isRecord(input) ? input : null;
 }
 
+/**
+ * The chat to run the reply checkup on before Mari's first round, or null. Only a problem report about the
+ * chat in view ("why does Gandalf forget things?", "my last reply got cut off"), never a question about Mari
+ * herself ("why do you forget?") or a how-to ("how do I make him remember?").
+ */
+export function replyCheckupChatId(text: string, context: ProfessorMariAskContext | undefined): string | null {
+  const chatId =
+    context?.activeChat?.id ?? (context?.resource?.kind === "chat" ? context.resource.id : undefined) ?? null;
+  if (!chatId) return null;
+  if (
+    /\b(?:(?:do|did|are|were|have)\s+you|you\s+(?:forget|forgot|keep))\b|^\s*how\s+(?:do|can|could|should|to)\b/iu.test(
+      text,
+    )
+  )
+    return null;
+  return /\b(?:forg[eo]t\w*|cut[\s-]*off|cuts\s+off|truncated|(?:is|was|came\s+back|got)\s+(?:empty|blank)|empty\s+(?:reply|response|message)|(?:got|gets|getting)\s+worse|ignor\w+\s+(?:his|her|their|its|the)\s+(?:card|personality|description))\b/iu.test(
+    text,
+  )
+    ? chatId
+    : null;
+}
+
 // Exported for the regression lane (L1: `agent.runs` must classify as read-only;
 // L4: `lorebook.testScan` must classify as read-only too; R3: `chat.diagnose` too).
 export function appDataActionLooksReadOnly(action: unknown): boolean {
@@ -3276,6 +3298,30 @@ export class ProfessorMariWorkspaceService {
       const debugLog = debugOverrideEnabled
         ? (message: string, ...values: unknown[]) => logDebugOverride(true, message, ...values)
         : undefined;
+
+      // Slice 69: "why does he forget things?" from a chat runs the reply checkup before her first round. The
+      // prompt rule alone left it to the model (MiniMax skipped it half the time and guessed causes instead).
+      const checkupChatId = replyCheckupChatId(promptText, args.context);
+      if (checkupChatId) {
+        const checkup: WorkspaceCommandCall = {
+          id: `reply-checkup-${randomUUID()}`,
+          name: "app_data",
+          arguments: { action: "chat.diagnose", chatId: checkupChatId },
+        };
+        const checkupResults = await this.executeWorkspaceCommandBatch(
+          [checkup],
+          controller.signal,
+          workspaceTrace,
+          args.onEvent,
+          workspaceActionResults,
+        );
+        commandResultsForContinuity.push(...checkupResults);
+        messages.push({
+          role: "assistant",
+          content: assistantHistoryContentForAction({ visibleText: "", commands: [checkup], stop: false }),
+        });
+        messages.push({ role: "user", content: formatCommandResultForPrompt(checkupResults), contextKind: "history" });
+      }
 
       for (let round = 0; round < MAX_COMMAND_ROUNDS; round += 1) {
         if (controller.signal.aborted) throw new Error("aborted");
