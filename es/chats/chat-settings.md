@@ -16,7 +16,7 @@ Chat Settings se abre automáticamente al crear un chat. Para cerrarlo, haz clic
 
 Los chats anteriores a esta actualización conservan sus herramientas habituales fuera de Chat Settings: como botones que puedes mover en una computadora o en el menú de tres puntos **Chat tools** (Herramientas del chat) en un teléfono. Al actualizar una instalación existente, esa disposición conocida también pasa a ser el diseño favorito para los chats nuevos de cada modo, salvo que ya hayas elegido uno. Abre una herramienta y elige **Put back in Chat Settings** si prefieres guardarla dentro de Chat Settings. Los trackers de Roleplay en computadora se agrupan en la ventana **Trackers**. Se conservan las posiciones de ventanas y botones que ya tenías guardadas.
 
-Puedes arrastrar el botón de controles deslizantes a un lugar cómodo. Se alinea con los botones cercanos mientras lo arrastras; en una computadora, mantén Alt para colocarlo libremente. Cada chat recuerda su posición. Un punto pequeño en el botón indica que los agentes están trabajando.
+Puedes arrastrar el botón de controles deslizantes a un lugar cómodo. Se alinea con los botones cercanos mientras lo arrastras; en una computadora, mantén Alt para colocarlo libremente. Cada chat recuerda su posición. Un punto pequeño en el botón indica que los agentes están trabajando. En un chat de Roleplay con Advanced Memory Recall, un punto fijo en la otra esquina del botón indica que algunas memorias de escenas necesitan atención; consulta [Reparar problemas de memoria](../agents/memory.md#fixing-memory-problems).
 
 Solo tienes que descartar una vez el recordatorio junto al botón de controles deslizantes en Roleplay. Su **X** lo mantiene oculto en otros chats y tras actualizar la página.
 

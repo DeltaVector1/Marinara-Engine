@@ -690,7 +690,7 @@ GM 接收已接受上下文并继续生成遭遇，引擎校验最终地形。�
 
 发布阶段审查决定：
 
-- `.agents/skills` 是 `.claude/skills` 有意保留的有效别名，无须改写全部可执行引用。Impeccable 项目保护和完整基线均可经别名通过。
+- Impeccable skill 位于 `.agents/skills/impeccable`。`.claude/skills` 副本及其 `.agents/skills` 别名已于 2026-10-07 移除；Impeccable 项目保护从 `.agents/skills` 读取该 skill。
 - Impeccable 示例、措辞、随仓库提供的上游包来源和现有实时工具内部实现相关发现，涉及仅移动而未改内容的文件，不是本 PR 引入的回归。此迁移保留已装 skill，不夹带另一项上游 skill 维护工程。
 - Tactical 物品作用域 `any` 受 `CombatItemEffect`、路由验证和战斗调度器目标检查明确支持。用 `ally` 替换每个非自身/非敌人范围将破坏该支持的行为。现有默认值仅适用于缺失的范围。
 - 提前计算追击有明确边界，也不改变胜出的合法动作。按需计算是可选性能优化；已记录混合移动阶段测量仍是现有证据，不表示以后无法优化。

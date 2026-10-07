@@ -203,7 +203,7 @@ Postacie mogą używać w rozmowie tych samych ukrytych komend w nawiasach kwadr
 - **Haptics**: postać steruje podłączonym urządzeniem haptycznym w intymnych momentach, o ile takie urządzenie jest podłączone.
 - **Reactions**: postać reaguje emoji na twoją ostatnią pisaną wiadomość w rozmowie.
 - **Cross-Post**: postać przenosi bieżący temat do innego wspólnego czatu w trybie Conversation.
-- **Schedule Updates**: postać zmienia swój status na dostępny, bezczynny, nie przeszkadzać albo niedostępny i podaje zajęcie na resztę zaplanowanego bloku. Dotyczy to wyłącznie postaci, które mają harmonogram. Patrz [Harmonogramy postaci i wiadomości autonomiczne](schedules.md).
+- **Schedule Updates**: postać na jakiś czas zmienia swój status na dostępny, bezczynny, nie przeszkadzać albo niedostępny oraz swoje zajęcie, a potem wraca do harmonogramu. Patrz [Harmonogramy postaci i wiadomości autonomiczne](schedules.md#characters-can-change-their-own-status).
 - **Notes** i **Influence**: zapisują trwałą notatkę albo jednorazową podpowiedź i pojawiają się tylko wtedy, gdy czat ma skonfigurowany czat powiązany.
 - **Soundboard**: postać odtwarza jeden z dźwięków tablicy dźwięków rozmowy.
 - Wyjście i zakończenie: postać może sama wyjść z rozmowy albo zakończyć ją dla wszystkich.

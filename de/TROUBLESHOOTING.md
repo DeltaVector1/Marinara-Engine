@@ -214,6 +214,18 @@ Die vollständige Einrichtung beschreibt [Local Model einrichten](connections/lo
 
 Für eine Erinnerung braucht es mindestens 5 neue Nachrichten. Außerdem zeigt **Memory Recall** nur Erinnerungen, die eng zur neuen Nachricht passen – er kann also leer ausgehen, obwohl Erinnerungen vorhanden sind.
 
+<a id="advanced-memory-says-scenes-need-attention"></a>
+
+### Advanced Memory meldet Szenen mit Handlungsbedarf
+
+Ein ruhig leuchtender Punkt auf der Schaltfläche **Chat Settings** oder ein Hinweis, dass Advanced Memory Probleme gefunden hat, bedeutet: Die Erinnerungen an einige Szenen sind unklar, veraltet oder fehlen.
+
+1. Öffne **Chat Settings** > **Memory Recall** oder klick im Hinweis auf **Fix** (Beheben).
+2. Klick auf **Fix**. Fix repariert mit dem Hilfsmodell jede Szene, die sich reparieren lässt, und ändert nie Zusammenfassungen, die du selbst bearbeitet hast.
+3. Wähl jede Szenennummer unter **need your review** aus, um die Szene in **Access memories for this chat** zu öffnen. Prüf dort ihren Text und ihre Charaktere und klick auf **Save correction** (Korrektur speichern).
+
+Bricht Fix mit einem Fehler ab, prüf die Verbindung des Hilfsmodells und klick dann auf **Resume processing** (Verarbeitung fortsetzen) oder erneut auf **Fix**. Mehr dazu unter [Gedächtnisprobleme beheben](agents/memory.md#fixing-memory-problems).
+
 ### Es entstehen keine Zusammenfassungen
 
 Chat-Zusammenfassungen brauchen eine funktionierende Textverbindung, die sie schreibt.

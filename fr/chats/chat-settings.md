@@ -16,7 +16,7 @@ Chat Settings s'ouvre automatiquement à la création d'un chat. Pour le fermer,
 
 Les chats créés avant cette mise à jour gardent leurs outils habituels hors de Chat Settings : sous forme de boutons déplaçables sur ordinateur, ou dans le menu à trois points **Chat tools** (outils du chat) sur téléphone. Quand tu mets à jour une installation existante, cette disposition familière devient aussi la disposition favorite des nouveaux chats de chaque mode, sauf si tu en as déjà choisi une. Ouvre un outil, puis choisis **Put back in Chat Settings** si tu préfères le garder dans Chat Settings. Sur ordinateur, les trackers de Roleplay sont regroupés dans la fenêtre **Trackers**. Les positions des fenêtres et des boutons déjà enregistrées sont conservées.
 
-Tu peux déplacer le bouton de curseurs à un endroit pratique. Il s'aligne sur les boutons voisins pendant le déplacement ; sur ordinateur, maintiens Alt pour le placer librement. Chaque chat mémorise sa position. Un petit point sur le bouton indique que les agents travaillent.
+Tu peux déplacer le bouton de curseurs à un endroit pratique. Il s'aligne sur les boutons voisins pendant le déplacement ; sur ordinateur, maintiens Alt pour le placer librement. Chaque chat mémorise sa position. Un petit point sur le bouton indique que les agents travaillent. Dans un chat Roleplay avec Advanced Memory Recall, un point fixe dans l'autre coin du bouton signale que certains souvenirs de scène demandent ton attention ; voir [Corriger les problèmes de mémoire](../agents/memory.md#fixing-memory-problems).
 
 Il suffit de fermer une fois le petit rappel à côté du bouton de curseurs en Roleplay. Son **X** le masque dans tous les chats, même après un rechargement de la page.
 

@@ -214,6 +214,18 @@ Para la configuración completa, revisa [Configuración del Local Model](connect
 
 Una memoria necesita al menos 5 mensajes nuevos antes de crearse. Recall también solo muestra memorias que coinciden de cerca con tu nuevo mensaje, así que puede no devolver nada incluso cuando existen memorias.
 
+<a id="advanced-memory-says-scenes-need-attention"></a>
+
+### Advanced Memory indica que hay escenas que necesitan atención
+
+Un punto fijo en el botón **Chat Settings**, o un aviso de que Advanced Memory encontró problemas, significa que algunas memorias de escenas no están claras, están desactualizadas o faltan.
+
+1. Abre **Chat Settings** > **Memory Recall**, o pulsa **Fix** (Reparar) en el aviso.
+2. Pulsa **Fix**. Repara todas las escenas que puede con el Helper model (modelo auxiliar) y nunca cambia los resúmenes que editaste.
+3. Selecciona cada número de escena que aparece bajo **need your review** (necesitan tu revisión) para abrirla en **Access memories for this chat**; luego revisa su texto y sus personajes y pulsa **Save correction** (Guardar corrección).
+
+Si Fix se detiene con un error, revisa la conexión del Helper model y luego pulsa **Resume processing** (Reanudar el procesamiento) o vuelve a pulsar **Fix**. Consulta [Reparar problemas de memoria](agents/memory.md#fixing-memory-problems).
+
 ### Los resúmenes no se generan
 
 Los resúmenes de chat necesitan una conexión de texto que funcione para escribirlos.

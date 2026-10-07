@@ -148,6 +148,17 @@ Wpisz `idle` dla statusu **Away** i `dnd` dla statusu **Busy**. To te same czter
 
 Jeśli w czacie jest tylko jedna postać, nazwę można pominąć. Komenda **/status** bez żadnych opcji pokazuje listę postaci i pomoc do użycia.
 
+<a id="characters-can-change-their-own-status"></a>
+
+## Postacie mogą same zmieniać swój status
+
+Gdy w **Chat Settings → Agents** komenda **Schedule Updates** jest włączona, postać może sama ustawić sobie tymczasowy status i zajęcie. Jeśli na przykład poprosisz ją, żeby przez godzinę się skupiła, może przełączyć się na **Busy** z zajęciem "Studying".
+
+- Zmiana trwa tak długo, jak poda postać, a jeśli nie poda, przez godzinę. Najdłużej może trwać siedem dni.
+- Gdy czas minie, postać wraca do swojego harmonogramu albo do statusu **Online**, jeśli harmonogramu nie ma.
+- Postać nigdy nie zmienia zapisanego harmonogramu.
+- Status ustawiony przez ciebie komendą **/status** pozostaje, dopóki go nie wyczyścisz. Postać nie może go zastąpić.
+
 ## Jak rozkładane są wiadomości autonomiczne
 
 Marinara rozkłada wiadomości autonomiczne w czasie, żeby żadna postać nie zasypywała cię wiadomościami. Poniższe zasady korzystają z harmonogramu każdej postaci.

@@ -690,7 +690,7 @@ Implementierungszuständigkeit und Umfang werden in [#6299](https://github.com/P
 
 Entscheidungen der Veröffentlichungsreviewrunde:
 
-- `.agents/skills` bleibt ein bewusster funktionierender Alias für `.claude/skills`. Alle ausführbaren Referenzen umzuschreiben ist unnötig. Die Impeccable-Projektprüfung und vollständigen Basisprüfungen bestehen über den Alias.
+- Der Impeccable-Skill liegt in `.agents/skills/impeccable`. Die Kopie unter `.claude/skills` und ihr Alias `.agents/skills` wurden am 2026-10-07 entfernt; die Impeccable-Projektprüfung liest den Skill aus `.agents/skills`.
 - Befunde zu Impeccable-Beispielen, Wortwahl, Herkunft des übernommenen Bundles und bestehenden Live-Werkzeuginterna betreffen ohne Inhaltsänderung verschobene Dateien. Sie sind keine Regressionen dieses PR. Die Migration bewahrt den installierten Skill, statt ein getrenntes vorgelagertes Skill-Wartungsprojekt einzubeziehen.
 - Tactical-Gegenstandsumfang `any` wird von `CombatItemEffect`, Routenvalidierung und Zielprüfungen der Kampfsteuerung ausdrücklich unterstützt. Jeden Nicht-selbst-/Nicht-gegnerisch-Umfang durch `ally` zu ersetzen würde unterstütztes Verhalten brechen. Der bestehende Standard gilt nur bei fehlendem Umfang.
 - Vorzeitige Verfolgungsberechnung ist begrenzt und verändert nicht, welche zulässige Aktion gewinnt. Sie erst bei Bedarf auszuführen ist optionale Leistungsoptimierung; die protokollierte Phasenmessung mit gemischter Bewegung bleibt aktueller Nachweis, keine Behauptung, weitere Optimierung sei unmöglich.

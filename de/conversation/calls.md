@@ -203,7 +203,7 @@ Charaktere nutzen im Anruf dieselben versteckten Befehle in eckigen Klammern wie
 - **Haptics**: Ein Charakter steuert in intimen Momenten ein verbundenes haptisches Gerät an, sofern eines angeschlossen ist.
 - **Reactions**: Ein Charakter reagiert mit einem Emoji auf deine letzte getippte Nachricht im Anruf.
 - **Cross-Post**: Ein Charakter trägt das aktuelle Thema in eine andere gemeinsame Conversation.
-- **Schedule Updates**: Ein Charakter ändert für den Rest eines geplanten Zeitblocks seinen eigenen Status – online, inaktiv, bitte nicht stören oder offline – samt Tätigkeit. Das gilt nur für Charaktere mit Zeitplan. Siehe [Charakter-Zeitpläne und autonome Nachrichten](schedules.md).
+- **Schedule Updates**: Ein Charakter ändert eine Zeit lang seinen eigenen Status – online, inaktiv, bitte nicht stören oder offline – samt Tätigkeit und kehrt danach zu seinem Zeitplan zurück. Siehe [Charakter-Zeitpläne und autonome Nachrichten](schedules.md#characters-can-change-their-own-status).
 - **Notes** und **Influence**: Diese speichern eine dauerhafte Notiz oder einen einmaligen Anstoß und erscheinen nur, wenn für den Chat ein verbundener Chat eingerichtet ist.
 - **Soundboard**: Ein Charakter spielt einen der Soundboard-Klänge des Anrufs ab.
 - Verlassen und Beenden: Ein Charakter kann den Anruf allein verlassen oder ihn für alle beenden.

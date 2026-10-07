@@ -203,7 +203,7 @@ Na chamada, os personagens usam os mesmos comandos ocultos entre colchetes que u
 - **Haptics**: o personagem controla um dispositivo háptico conectado durante momentos íntimos, se houver um dispositivo conectado.
 - **Reactions**: o personagem reage com um emoji à sua última mensagem digitada na chamada.
 - **Cross-Post**: o personagem leva o assunto atual para outro chat de Conversation compartilhado.
-- **Schedule Updates**: o personagem muda o próprio status – online, ausente, não perturbe ou offline – e a atividade pelo resto de um bloco agendado. Isso vale apenas para personagens que têm uma agenda. Veja [Agendas de Personagem e Mensagens Autônomas](schedules.md).
+- **Schedule Updates**: o personagem muda o próprio status – online, ausente, não perturbe ou offline – e a atividade por um tempo, depois volta à agenda. Veja [Agendas de Personagem e Mensagens Autônomas](schedules.md#characters-can-change-their-own-status).
 - **Notes** e **Influence**: salvam uma nota duradoura ou um empurrãozinho único, e só aparecem quando o chat tem um chat conectado configurado.
 - **Soundboard**: o personagem toca um dos sons do soundboard da chamada.
 - Sair e encerrar: o personagem pode sair sozinho da chamada ou encerrar a chamada para todo mundo.

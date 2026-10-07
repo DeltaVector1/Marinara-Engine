@@ -690,7 +690,7 @@ Własność implementacji i zakres śledzi [#6299](https://github.com/Pasta-Devs
 
 Rozstrzygnięcia rundy publikacyjnej:
 
-- `.agents/skills` pozostaje celowym działającym aliasem `.claude/skills`. Przepisywanie wszystkich odwołań wykonywalnych jest zbędne. Zabezpieczenie projektu Impeccable i pełne kontrole bazowe przechodzą przez alias.
+- Umiejętność Impeccable znajduje się w `.agents/skills/impeccable`. Kopię w `.claude/skills` i jej alias `.agents/skills` usunięto 2026-10-07; zabezpieczenie projektu Impeccable odczytuje umiejętność z `.agents/skills`.
 - Uwagi o przykładach Impeccable, sformułowaniach, pochodzeniu dołączonego pakietu i istniejących wnętrzach narzędzi dotyczą plików przeniesionych bez zmiany zawartości. Nie są regresjami PR. Migracja zachowuje zainstalowaną umiejętność, nie włącza osobnego projektu utrzymania umiejętności upstream.
 - Zakres przedmiotu Tactical `any` jest jawnie obsługiwany przez `CombatItemEffect`, walidację trasy i sprawdzanie celów reżysera. Zastąpienie każdego zakresu poza self/enemy przez `ally` zepsułoby to zachowanie. Istniejąca wartość domyślna dotyczy tylko braku zakresu.
 - Wyprzedzające obliczanie pościgu jest ograniczone i nie zmienia zwycięskiej legalnej akcji. Leniwe obliczanie to opcjonalne usprawnienie wydajności; zapisany pomiar fazy mieszanego ruchu pozostaje obecnym dowodem, nie twierdzeniem, że dalsza optymalizacja jest niemożliwa.

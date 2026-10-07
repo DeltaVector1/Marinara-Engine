@@ -148,6 +148,17 @@ Para limpar essa substituição e devolver Mira à agenda dela:
 
 Se o chat tem só um personagem, o nome pode ser omitido. Execute **/status** sem nenhuma opção para ver a lista de personagens e a ajuda de uso.
 
+<a id="characters-can-change-their-own-status"></a>
+
+## Os personagens podem mudar o próprio status
+
+Com o comando **Schedule Updates** ativado em **Chat Settings → Agents**, um personagem pode definir um status e uma atividade temporários para si. Por exemplo, se você pedir que ele se concentre por uma hora, ele pode mudar para **Busy** com a atividade "Studying".
+
+- A mudança dura o tempo que o personagem disser, ou uma hora, se ele não disser. O máximo é de sete dias.
+- Quando o tempo acaba, o personagem volta à agenda dele, ou a **Online**, se não tiver agenda.
+- Ele nunca altera a agenda salva.
+- Um status que você mesmo define com **/status** continua valendo até você limpá-lo. O personagem não pode substituí-lo.
+
 ## Como as mensagens autônomas são ritmadas
 
 Marinara controla o ritmo das mensagens autônomas para nenhum personagem encher você de mensagens. As regras abaixo usam a agenda de cada personagem.

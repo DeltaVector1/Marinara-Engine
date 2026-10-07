@@ -214,6 +214,18 @@ Pełną konfigurację opisuje przewodnik [Konfiguracja modelu Local Model](conne
 
 Wspomnienie powstaje dopiero po co najmniej 5 nowych wiadomościach. Funkcja pokazuje ponadto tylko te wspomnienia, które mocno pasują do nowej wiadomości, więc może nie zwrócić nic nawet wtedy, gdy wspomnienia istnieją.
 
+<a id="advanced-memory-says-scenes-need-attention"></a>
+
+### Advanced Memory zgłasza sceny wymagające uwagi
+
+Stale świecąca kropka na przycisku **Chat Settings** albo powiadomienie o problemach wykrytych przez Advanced Memory oznacza, że niektóre wspomnienia scen są niejasne, nieaktualne lub ich brakuje.
+
+1. Otwórz **Chat Settings** > **Memory Recall** albo naciśnij **Fix** (napraw) w powiadomieniu.
+2. Naciśnij **Fix**. Naprawia każdą scenę, którą da się naprawić modelem pomocniczym (Helper model), i nigdy nie zmienia podsumowań edytowanych przez ciebie.
+3. Wybierz numer każdej sceny pod **need your review** (do twojego sprawdzenia), aby otworzyć ją w **Access memories for this chat**, a następnie sprawdź jej tekst i postacie i naciśnij **Save correction** (zapisz poprawkę).
+
+Jeśli Fix zatrzyma się z błędem, sprawdź połączenie modelu pomocniczego, a potem naciśnij **Resume processing** (wznów przetwarzanie) albo ponownie **Fix**. Zobacz [Naprawianie problemów z pamięcią](agents/memory.md#fixing-memory-problems).
+
 ### Podsumowania nie powstają
 
 Podsumowania czatu wymagają działającego połączenia tekstowego.

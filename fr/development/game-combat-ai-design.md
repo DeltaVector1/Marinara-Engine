@@ -690,7 +690,7 @@ La responsabilité et le périmètre d'implémentation sont suivis dans [#6299](
 
 Décisions de la revue de publication :
 
-- `.agents/skills` reste un alias intentionnel fonctionnel de `.claude/skills`. Réécrire chaque référence exécutable n'est pas nécessaire. La garde de projet Impeccable et toutes les vérifications de base passent via cet alias.
+- Le skill Impeccable se trouve dans `.agents/skills/impeccable`. La copie `.claude/skills` et son alias `.agents/skills` ont été supprimés le 07/10/2026 ; la garde de projet Impeccable lit le skill depuis `.agents/skills`.
 - Les constats sur les exemples Impeccable, la formulation, la provenance du bundle intégré et les internes existants des outils actifs concernent des fichiers déplacés sans modification de contenu. Ce ne sont pas des régressions de cette PR. La migration préserve le skill installé au lieu d'intégrer un projet distinct de maintenance du skill amont.
 - La portée d'objet Tactical `any` est explicitement prise en charge par `CombatItemEffect`, la validation de route et les vérifications de cible du directeur. Remplacer toute portée autre que soi/ennemi par `ally` casserait ce comportement pris en charge. La valeur par défaut existante ne s'applique qu'à la portée absente.
 - Le calcul anticipé de poursuite est borné et ne change pas l'action légale gagnante. Le rendre paresseux est une optimisation facultative ; la mesure consignée de phase avec déplacements mixtes reste la preuve actuelle, pas l'affirmation qu'aucune optimisation n'est possible.

@@ -16,7 +16,7 @@ Przy tworzeniu nowego czatu **Chat Settings** otwiera się automatycznie. Aby je
 
 Czaty utworzone przed aktualizacją zachowują znane narzędzia poza Chat Settings: jako przesuwane przyciski na komputerze albo w menu **Chat tools** (narzędzia czatu) z trzema kropkami na telefonie. Przy aktualizacji istniejącej instalacji taki układ staje się też ulubionym dla nowych czatów w każdym trybie, chyba że masz już wybrany inny ulubiony układ. Otwórz narzędzie i wybierz **Put back in Chat Settings** (przeniesienie do Chat Settings), jeśli chcesz mieć je wewnątrz ustawień. Na komputerze trackery Roleplay są zebrane w oknie **Trackers**. Zapisane wcześniej układy pozostają bez zmian.
 
-Przeciągnij przycisk z suwakami w wygodne miejsce. Podczas przeciągania wyrównuje się z pobliskimi przyciskami czatu. Na komputerze przytrzymaj Alt, aby ustawić go swobodnie. Każdy czat zapamiętuje jego położenie. Mała kropka na przycisku oznacza, że agenci pracują.
+Przeciągnij przycisk z suwakami w wygodne miejsce. Podczas przeciągania wyrównuje się z pobliskimi przyciskami czatu. Na komputerze przytrzymaj Alt, aby ustawić go swobodnie. Każdy czat zapamiętuje jego położenie. Mała kropka na przycisku oznacza, że agenci pracują. W czacie Roleplay z włączoną funkcją Advanced Memory Recall stale świecąca kropka w drugim rogu przycisku oznacza, że niektóre wspomnienia scen wymagają uwagi; zobacz [Naprawianie problemów z pamięcią](../agents/memory.md#fixing-memory-problems).
 
 Małe przypomnienie obok przycisku z suwakami w trybie Roleplay wystarczy zamknąć raz. Jego **X** ukrywa je także w innych czatach i po odświeżeniu strony.
 

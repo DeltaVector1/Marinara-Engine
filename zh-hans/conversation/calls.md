@@ -203,7 +203,7 @@ Local Whisper 属于 Calls 包。对于语音支持较弱的浏览器（包括 F
 - **Haptics**：连接了触觉设备时，角色可以在亲密场景中驱动设备。
 - **Reactions**：角色用 emoji 对你最新发出的通话文字消息做出反应。
 - **Cross-Post**：角色把当前话题搬到另一个共享的 Conversation 聊天里。
-- **Schedule Updates**：角色在剩下的日程时段里修改自己的在线、空闲、免打扰或离线状态以及活动内容。只对设置了日程的角色有效。见[角色日程与自主消息](schedules.md)。
+- **Schedule Updates**：角色修改自己的在线、空闲、免打扰或离线状态以及活动内容，持续一段时间后再回到自己的日程。见[角色日程与自主消息](schedules.md#characters-can-change-their-own-status)。
 - **Notes** 和 **Influence**：保存一条长期笔记或一次性的引导，只有聊天设置了关联聊天时才会出现。
 - **Soundboard**：角色播放通话音效板里的某个音效。
 - 离开和结束：角色可以自己离开通话，也可以为所有人结束通话。
