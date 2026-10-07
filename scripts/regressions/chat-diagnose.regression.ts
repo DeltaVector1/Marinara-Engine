@@ -103,21 +103,35 @@ try {
   assert.ok(codes.includes("cut_off"), "finishReason length must surface the cut_off finding");
   assert.ok(codes.includes("history_trimmed"), "the saved contextFit drop must surface history_trimmed");
   const fixes = Object.fromEntries(output.findings.map((f: { code: string; fix: string }) => [f.code, f.fix]));
-  assert.match(fixes.cut_off, /preset\.update/u, "a cut-off reply's one fix is the Max Tokens write");
-  assert.match(fixes.history_trimmed, /Advanced Parameters/u, "a finding without its own write points to Chat Settings");
-  assert.equal(output.generationInfo.tokensContext, 9300);
-  assert.equal(output.generationInfo.maxContext, 8192);
-  assert.equal(output.generationInfo.ended, "It was cut off at the output limit.", "the end state is plain words");
-  assert.ok(!("finishReason" in output.generationInfo), "the raw provider finishReason must not reach Mari");
-  assert.equal(output.generationInfo.tokensCompletion, 300);
-  assert.equal(output.generationInfo.contextFit.droppedHistory, 7);
-  assert.deepEqual(output.lorebooks, [{ name: "Haunted Archive", tokenBudget: 777 }]);
+  assert.match(
+    fixes.cut_off,
+    /Max Output Tokens.*preset\.update/u,
+    "a cut-off reply's one fix names the on-screen setting, then the write",
+  );
+  assert.match(
+    fixes.history_trimmed,
+    /Advanced Parameters/u,
+    "a finding without its own write points to Chat Settings",
+  );
+  // Item 3 (slice 69): on-screen words only, so Mari has no internal key to repeat.
+  assert.equal(output.reply["Prompt tokens"], 9300);
+  assert.equal(output.reply["Max Context Window"], 8192);
+  assert.equal(output.reply.ended, "It was cut off at the output limit.", "the end state is plain words");
+  assert.equal(output.reply["Reply tokens"], 300);
+  assert.equal(output.reply["Older messages not sent"], 7);
+  assert.equal(output.reply["Max Output Tokens"], 300);
+  assert.equal(output.reply["Max Output Tokens before the cut"], 1024);
+  assert.deepEqual(output.lorebooks, [{ name: "Haunted Archive", "Token Budget": 777 }]);
   assert.equal(output.preset.name, "Vivid Preset");
   assert.deepEqual(
-    output.preset.samplerKeys.sort(),
-    ["temperature", "maxTokens", "topK", "frequencyPenalty", "presencePenalty", "reasoningEffort", "verbosity"].sort(),
+    output.preset.sends.sort(),
+    ["Temperature", "Max Output Tokens", "Top K", "Frequency", "Presence", "Reasoning Effort", "Verbosity"].sort(),
   );
-  assert.ok(!output.preset.samplerKeys.includes("topP"), "a sampler key disabled on the preset must be excluded");
+  assert.ok(!output.preset.sends.includes("Top P"), "a sampler disabled on the preset must be excluded");
+  const rawKeys = JSON.stringify(output).match(
+    /"(?:maxTokens|maxContext|tokensContext|tokensCompletion|finishReason|contextFit|samplerKeys|tokenBudget|droppedHistory|inputBudget|replyBudget\w*|advanced-parameters)"/gu,
+  );
+  assert.equal(rawKeys, null, `no internal field name may reach Mari as a key or value: ${rawKeys}`);
 
   // ── R22: not one byte of either seeded message's own text may leave this action ──
   const serialized = JSON.stringify(output);
@@ -144,7 +158,11 @@ try {
     sessionId: "test",
   } as never)) as any;
   assert.equal(latest.output?.messageId, assistantMsg!.id, '"last" means the newest reply, not an unknown id');
-  const empty = await mariDb.executeAction({ action: "chat.diagnose", chatId: freshChat!.id, sessionId: "test" } as never);
+  const empty = await mariDb.executeAction({
+    action: "chat.diagnose",
+    chatId: freshChat!.id,
+    sessionId: "test",
+  } as never);
   assert.equal(empty.ok, true);
   assert.deepEqual((empty.output as any).findings, []);
   assert.equal((empty.output as any).messageId, null);

@@ -292,11 +292,25 @@ const LOREBOOK_TEST_SCAN_FIXES: Record<LorebookTestBlockReason, string> = {
 
 /** `chat.diagnose`: the one fix Mari offers for a finding, so her every-round prompt need not map them. */
 const REPLY_CHECKUP_FIXES: Partial<Record<ReplyCheckupCode, string>> = {
-  cut_off: "Offer to raise Max Tokens: a reviewed `preset.update` of `parameters.maxTokens`.",
+  cut_off: "Offer to raise Max Output Tokens: a reviewed `preset.update` of `parameters.maxTokens`.",
   card_large: "Offer to shorten the card: a reviewed `character.update`.",
   lore_budget_skipped: "Offer to move the entry earlier: a reviewed `lorebook.updateEntry` of its `order`.",
 };
 const DEFAULT_CHECKUP_FIX = "Point to Chat Settings -> Advanced Parameters.";
+/**
+ * `chat.diagnose`: each sampler's on-screen label (GenerationParametersEditor), so Mari names the setting the
+ * user sees; she repeated raw keys such as `maxTokens` when the result carried them.
+ */
+const GENERATION_PARAMETER_LABELS: Record<(typeof GENERATION_PARAMETER_SEND_KEYS)[number], string> = {
+  temperature: "Temperature",
+  maxTokens: "Max Output Tokens",
+  topP: "Top P",
+  topK: "Top K",
+  frequencyPenalty: "Frequency",
+  presencePenalty: "Presence",
+  reasoningEffort: "Reasoning Effort",
+  verbosity: "Verbosity",
+};
 
 /** `chat.diagnose`: how a reply ended, in words Mari can repeat. Unknown provider values pass through. */
 function describeReplyEnd(finishReason: string | null | undefined): string | null {
@@ -7541,6 +7555,7 @@ export class MariDbService {
     });
 
     const info = extra?.generationInfo ?? null;
+    const fit = info?.contextFit ?? null;
 
     const { currentBookIds } = await loadLorebookIncludes(this.db, chatId);
     const lorebooksStorage = createLorebooksStorage(this.db);
@@ -7549,7 +7564,7 @@ export class MariDbService {
       .filter((row): row is NonNullable<typeof row> => Boolean(row))
       .map((row) => ({
         name: (row as unknown as Lorebook).name,
-        tokenBudget: (row as unknown as Lorebook).tokenBudget,
+        "Token Budget": (row as unknown as Lorebook).tokenBudget,
       }));
 
     const connection = chat.connectionId ? await createConnectionsStorage(this.db).getById(chat.connectionId) : null;
@@ -7559,7 +7574,7 @@ export class MariDbService {
       connectionPromptPresetId: connection?.promptPresetId ?? null,
     });
     const promptsStorage = createPromptsStorage(this.db);
-    let preset: { name: string; samplerKeys: string[] } | null = null;
+    let preset: { name: string; sends: string[] } | null = null;
     for (const candidate of presetCandidates) {
       const row = await promptsStorage.getById(candidate.id);
       if (!row) continue;
@@ -7568,8 +7583,10 @@ export class MariDbService {
         parameters && typeof parameters === "object" && !Array.isArray(parameters)
           ? ((parameters as Row).enabledParameters as Record<string, boolean> | undefined)
           : undefined;
-      const samplerKeys = GENERATION_PARAMETER_SEND_KEYS.filter((key) => enabledParameters?.[key] !== false);
-      preset = { name: row.name, samplerKeys };
+      const sends = GENERATION_PARAMETER_SEND_KEYS.filter((key) => enabledParameters?.[key] !== false).map(
+        (key) => GENERATION_PARAMETER_LABELS[key],
+      );
+      preset = { name: row.name, sends };
       break;
     }
 
@@ -7580,17 +7597,29 @@ export class MariDbService {
       output: {
         chatId,
         messageId: message.id,
+        // No `values`/`link`: their numbers are in `text`, and their keys and section ids are not words to repeat.
         findings: findings.map((finding) => ({
-          ...finding,
+          code: finding.code,
+          text: finding.text,
           fix: REPLY_CHECKUP_FIXES[finding.code] ?? DEFAULT_CHECKUP_FIX,
         })),
-        generationInfo: {
-          tokensContext: info?.tokensContext ?? null,
-          maxContext: info?.maxContext ?? null,
-          // Plain words, not the provider's protocol value: Mari repeated a raw `finishReason` to users.
+        // Keys are the on-screen words (labels where a setting exists), never internal field names: Mari repeats
+        // what she reads, and users saw `maxTokens`/`finishReason` in her answers.
+        reply: {
+          "Prompt tokens": info?.tokensContext ?? null,
+          "Max Context Window": info?.maxContext ?? null,
           ended: describeReplyEnd(info?.finishReason),
-          tokensCompletion: info?.tokensCompletion ?? null,
-          contextFit: info?.contextFit ?? null,
+          "Reply tokens": info?.tokensCompletion ?? null,
+          ...(fit
+            ? {
+                "Older messages not sent": fit.droppedHistory,
+                "Prompt budget": fit.inputBudget,
+                "Max Output Tokens": fit.replyBudgetTo,
+                ...(fit.replyBudgetTo < fit.replyBudgetFrom
+                  ? { "Max Output Tokens before the cut": fit.replyBudgetFrom }
+                  : {}),
+              }
+            : {}),
         },
         lorebooks,
         preset,
