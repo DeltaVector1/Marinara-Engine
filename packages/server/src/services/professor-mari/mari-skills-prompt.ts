@@ -62,9 +62,7 @@ export function renderMariSkillsPrompt(
 
   const sections: string[] = [];
   if (indexLines.length > 0) {
-    sections.push(
-      `Available skills (index). Call \`app_data\` with \`action: "skill.get"\` and the id to read a skill's full instructions before you rely on it.\n${indexLines.join("\n")}`,
-    );
+    sections.push(`Index (\`skill.get\` an id for its full text):\n${indexLines.join("\n")}`);
     const trimmed = enabled.length - indexLines.length;
     if (trimmed > 0) sections.push(`(${trimmed} more skill(s) omitted from the index; use skill.list to page them.)`);
   }
