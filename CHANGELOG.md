@@ -4,7 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
-- Fixed two of Professor Mari's steps running together into one sentence ("…your Dice chat.It wasn't…") when she spoke again right after a step: her next words now start a new paragraph, live and in the saved conversation.
+- Fixed Professor Mari's words from two steps running together into one sentence ("…your Dice chat.It wasn't…") when she spoke again right after a step: her next words now start a new paragraph, live and in the saved conversation.
 - Professor Mari looks things up again before she answers: a short reply no longer means skipping the docs or the chat checkup, so "what does Memory Recall do?" gets the documented answer instead of a guess, and "why does my character forget?" runs the chat checkup first. She also keeps tool names, internal fields and raw ids out of her words, and when the checkup finds nothing she says the reply ended on its own instead of inventing a cause.
 - Professor Mari's instructions are about 2,500 characters (roughly 640 tokens) shorter on every step: the newer rules for diagnosing a bad reply, checking why a lorebook entry fired, repairing a broken reply, reply style, suggestion details and plain wording in approvals now say the same thing in fewer words, so each step costs less and starts sooner.
 - When Professor Mari's answer grows past the bottom of her window while you are not scrolled down, the round "jump to latest" arrow now appears above the composer. Before, it only appeared after you scrolled by hand, so a long answer could end hidden under the composer with no hint that there was more.
