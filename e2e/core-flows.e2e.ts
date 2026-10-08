@@ -17984,13 +17984,14 @@ test("character editor hands an editable resource context to floating Professor 
 
     await page.getByRole("button", { name: "Ask Professor Mari" }).click();
     const composer = page.getByPlaceholder("Ask Professor Mari");
-    const context = page.locator('[data-component="HomeProfessorMariChat.HandoffContext"]');
+    // The handoff is a context chip in the composer's context row (floating window removed in 5bb03f918).
+    const context = page.locator(".mari-workspace-composer__context");
     await expect(composer).toHaveValue("Explain this resource and suggest useful improvements.");
     await expect(context).toContainText(name);
 
     await composer.fill("Explain only the character's scenario.");
     await expect(composer).toHaveValue("Explain only the character's scenario.");
-    await context.getByRole("button", { name: "Remove context" }).click();
+    await context.getByRole("button", { name: /^Remove / }).first().click();
     await expect(context).toHaveCount(0);
   } finally {
     await request.delete(`/api/characters/${character.id}`);
@@ -20199,6 +20200,10 @@ test("home browser hub scales cleanly and opens FAQ as a bookmark window", async
   await expect(page.locator('textarea[placeholder="Ask Professor Mari"]:visible')).toContainText(
     "How do I connect Marinara to a model?",
   );
+  // Mari's omnibar pane covers the bookmark bar, so close it first.
+  const omnibar = page.locator('[data-component="GlobalOmnibar"]');
+  await omnibar.getByRole("button", { name: /^Close/ }).first().click();
+  await expect(omnibar).toBeHidden();
   await openHomeBookmark(page, "FAQ");
   await expect(faqWindow).toBeVisible();
   await page.keyboard.press("Escape");
@@ -20436,8 +20441,11 @@ test("home browser hub scales cleanly and opens FAQ as a bookmark window", async
     }).toPass({ timeout: 10_000 });
     await expect(feed.locator("[data-home-empty-slot]")).toHaveCount(0);
 
+    // The Professor tab opens Mari's omnibar pane; it does not move the Home address.
     await page.getByRole("tab", { name: "Professor", exact: true }).click();
-    await expect(page.locator('[data-component="HomeBrowserHub.Address"]')).toContainText("marinara/professor");
+    await expect(page.locator('[data-component="GlobalOmnibar"]')).toBeVisible();
+    await page.locator('[data-component="GlobalOmnibar"]').getByRole("button", { name: /^Close/ }).first().click();
+    await expect(page.locator('[data-component="GlobalOmnibar"]')).toBeHidden();
     await page.getByRole("tab", { name: "Home", exact: true }).click();
     await expect(feed).toHaveAttribute("data-home-grid-columns", "4");
     expect(await content.evaluate((element) => element.scrollHeight <= element.clientHeight + 2)).toBeTruthy();

@@ -2713,7 +2713,7 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
         title={t("home.browser.faqWindowTitle")}
         width="max-w-5xl"
       >
-        <HomeFaq headerless faqOnly expanded className="max-w-none" />
+        <HomeFaq headerless faqOnly expanded className="max-w-none" onAskMari={() => setFaqOpen(false)} />
       </Modal>
       <Modal
         open={widgetManagerOpen}

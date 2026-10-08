@@ -131,18 +131,11 @@ test("Ctrl+Enter carries the selected Command Center result to Mari", async ({ p
 test("mobile keeps the command palette button and panel inside the top-bar layout", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.includes("mobile"), "The mobile top-bar layout is covered on mobile.");
 
+  // The phone has no Search button in the top bar: the omnibar opens from the shortcut or the pull-down.
   const topBar = page.locator('[data-component="TopBar"]');
-  const searchButton = topBar.getByRole("button", { name: "Search", exact: true });
   await expect(topBar).toBeVisible();
-  await expect(searchButton).toBeVisible();
 
-  const [topBarBox, searchBox] = await Promise.all([topBar.boundingBox(), searchButton.boundingBox()]);
-  expect(topBarBox).not.toBeNull();
-  expect(searchBox).not.toBeNull();
-  expect(searchBox!.x).toBeGreaterThanOrEqual(topBarBox!.x);
-  expect(searchBox!.x + searchBox!.width).toBeLessThanOrEqual(topBarBox!.x + topBarBox!.width + 1);
-
-  await searchButton.click();
+  await openOmnibar(page);
   const panel = page.locator('[data-component="GlobalOmnibar.Panel"]');
   const omnibar = page.locator('[data-component="GlobalOmnibar"]');
   await expect(panel).toBeVisible();
@@ -256,11 +249,9 @@ test("Command Center can add a character to the active chat", async ({ page, req
     const omnibar = page.locator('[data-component="GlobalOmnibar"]');
     await omnibar.getByRole("searchbox", { name: "Search Marinara" }).fill(name);
     const row = omnibar.locator(RESULT_ROWS).filter({ hasText: name });
-    if (testInfo.project.name.includes("mobile")) await row.getByRole("button", { name: new RegExp(name) }).click();
-    else {
-      await row.hover();
-      await page.keyboard.press("ArrowRight");
-    }
+    // A tap on a phone row opens the record itself, so the row action is reached from the keyboard on both projects.
+    await row.hover();
+    await page.keyboard.press("ArrowRight");
     await expect(omnibar.getByRole("button", { name: "Add to this chat", exact: true })).toBeVisible();
     await omnibar.getByRole("button", { name: "Add to this chat", exact: true }).click();
 
@@ -390,7 +381,7 @@ test("mobile preserves search and composer space when handing context to Mari", 
   const character = (await response.json()) as { id: string };
   try {
     await page.reload();
-    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await openOmnibar(page);
     const omnibar = page.locator('[data-component="GlobalOmnibar"]');
     const input = omnibar.getByRole("searchbox", { name: "Search Marinara" });
     const mariButton = omnibar.locator('[data-component="GlobalOmnibar.ProfessorMariButton"]');
@@ -403,10 +394,11 @@ test("mobile preserves search and composer space when handing context to Mari", 
     await input.fill(name);
     const row = omnibar.locator("[data-command-center-result-row]").filter({ hasText: name }).first();
     await expect(row).toBeVisible();
-    await row.getByRole("button", { name: "Continue with Mari", exact: true }).click();
+    // A character row opens its record on tap, so Ctrl+Enter ("Continue with Mari") is the handoff on both projects.
+    await page.keyboard.press("Control+Enter");
 
     const textarea = omnibar.locator(".mari-workspace-composer textarea");
-    const context = omnibar.locator(".mari-omnibar-context-attachment");
+    const context = omnibar.locator(".mari-workspace-composer__context");
     const attach = omnibar.locator(".mari-workspace-composer__attach");
     await expect(textarea).toBeVisible();
     await expect(context).toBeVisible();

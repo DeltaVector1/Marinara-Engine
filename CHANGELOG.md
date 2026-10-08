@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Fixed the FAQ window staying open after you chose "Ask Mari about this" from the Home bookmarks. It now closes, and Professor Mari opens with the question.
 - Fixed Tab leaving a dialog (such as **Model Thoughts**) for the page behind it. Tab now stays inside the open dialog again.
 - Fixed Professor Mari's empty chat sliding under her message box after you went from her to Search and back (with Escape, her head in the search bar or Ctrl/⌘+J). Her greeting and suggestions now stay above the message box.
 - The Search and Professor Mari settings are easier to scan. Labels say what each switch does ("Offer to improve a field", "Answer when Search finds nothing", "Reply chips", "Change cards open in"), each with one short line, and the Home navigator and Mini Mari visits have their own **Around the app** group. Search finds every setting by its new name and by its old one.
