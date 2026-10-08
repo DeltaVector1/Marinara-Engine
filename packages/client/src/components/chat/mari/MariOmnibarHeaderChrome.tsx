@@ -109,7 +109,9 @@ export function MariOmnibarHeaderChrome({
   // selected tab would open its panel, and that panel takes focus on mount, so focus must not move with it.
   const tabRefs = useRef<Partial<Record<string, HTMLButtonElement | null>>>({});
   const [focusedTabId, setFocusedTabId] = useState<string | null>(null);
-  const tabStop = focusedTabId ?? (workspaceDestination === "chat" ? "skills" : workspaceDestination);
+  const preferredTabStop = focusedTabId ?? (workspaceDestination === "chat" ? "skills" : workspaceDestination);
+  // A disabled tab cannot take focus, so it never holds the one tab stop (Chats while she works).
+  const tabStop = preferredTabStop === "chats" && isBusy ? "skills" : preferredTabStop;
   const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const enabledTabs = headerDestinations.filter(({ id }) => !(id === "chats" && isBusy));
     const currentId = (event.target as HTMLElement).closest<HTMLElement>("[data-destination]")?.dataset.destination;
