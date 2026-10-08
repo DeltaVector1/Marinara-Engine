@@ -179,7 +179,11 @@ export function MariTranscript({
           : "bg-[radial-gradient(circle_at_12%_8%,oklch(0.79_0.16_205/0.06),transparent_26%),radial-gradient(circle_at_88%_12%,oklch(0.73_0.21_345/0.07),transparent_28%)]",
       )}
     >
-      <div ref={setTranscriptStackNode} className="mari-transcript-stack space-y-3">
+      <div
+        ref={setTranscriptStackNode}
+        className="mari-transcript-stack space-y-3"
+        data-history={loadingHistory ? "loading" : "loaded"}
+      >
         {loadingHistory ? (
           <LoadingHistoryState />
         ) : (

@@ -1,18 +1,23 @@
+import { useTranslation } from "react-i18next";
 import { useMariAppearancePack } from "../../../hooks/use-mari-appearance-pack";
 import { MARI_ASSET_TIER, mariImgLoading } from "../../../lib/mari-work-animations";
 
-import { TranscriptRow } from "../MariTranscriptRow";
+import { MariStorySprite } from "../MariStorySprite";
 
+/** Her chat is loading: her sprite at the top and soft placeholder rows. CSS holds it back ~150 ms (no flash on fast loads). */
 export function LoadingHistoryState() {
+  const { t } = useTranslation();
   return (
-    <div className="flex h-full flex-col justify-end gap-2 px-1 pb-2" aria-live="polite">
-      <TranscriptRow layout="document" marker={null}>
-        <div className="space-y-1.5 py-1">
-          <div className="h-2 w-24 rounded-full bg-[var(--muted)]/45 animate-pulse" />
-          <div className="h-2 w-full rounded-full bg-[var(--muted)]/35 animate-pulse" />
-          <div className="h-2 w-3/4 rounded-full bg-[var(--muted)]/30 animate-pulse" />
-        </div>
-      </TranscriptRow>
+    <div className="mari-loading" role="status" aria-live="polite">
+      <span className="sr-only">{t("ui.chat.homeprofessormarichat.loadingChat")}</span>
+      <div className="mari-loading__head" aria-hidden="true">
+        <MariStorySprite state="idle" />
+      </div>
+      <div className="mari-loading__rows" aria-hidden="true">
+        <span className="mari-loading__row mari-loading__row--short" />
+        <span className="mari-loading__row" />
+        <span className="mari-loading__row mari-loading__row--mid" />
+      </div>
     </div>
   );
 }

@@ -6606,6 +6606,7 @@
   "ui.chat.homeprofessormarichat.installedValue1Value2": "Installed {{value1}}@{{value2}}.",
   "ui.chat.homeprofessormarichat.jumpToLatest": "Jump to the latest message",
   "ui.chat.homeprofessormarichat.keptMariSWorkspaceChange": "Kept Mari's change.",
+  "ui.chat.homeprofessormarichat.loadingChat": "Loading Professor Mari's chat",
   "ui.chat.homeprofessormarichat.loadingChats": "Loading chats...",
   "ui.chat.homeprofessormarichat.memories": "Memories",
   "ui.chat.homeprofessormarichat.messageCount_one": "{{count}} message",

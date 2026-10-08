@@ -3029,7 +3029,8 @@ export function HomeProfessorMariChat({
                           latestMessage={latestMessage}
                           latestTurnHasTrace={latestTurnHasTrace}
                           latestTurnRestStory={latestTurnRestStory}
-                          loadingHistory={loadingHistory}
+                          // Also while her chat is not known yet (connections still loading), so the skeleton, not a blank.
+                          loadingHistory={loadingHistory || loadedMessagesChatId !== chatId}
                           lorebookPreviewById={lorebookPreviewById}
                           mariPresentationState={mariPresentationState}
                           messages={messages}
