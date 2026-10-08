@@ -269,6 +269,15 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 - Fixed a Professor Mari failure staying in the top bar after the chat store resets.
 - Fixed the lorebook test scan ignoring a chat's characters, which gave Mari a wrong diagnosis for character filters.
 - Fixed the docs viewer serving non-curated `docs/development` notes when their path is requested directly.
+- Fixed Professor Mari's raw `mari db transform all` always failing; it now runs over every table except chat messages, which stay protected.
+- Fixed a Professor Mari Quick Edit of a long description or greeting being cut off before the change could be proposed.
+- Fixed arrow keys on an omnibar approval row (Keep or Restore) or a "Retry with" row running that choice at once; arrows now only move between the options, and Enter or Space picks one.
+- Fixed Home and End in the omnibar search field jumping the result list instead of moving the cursor when the field has text.
+- Fixed a failed connection test or test message not being offered as a fix in the omnibar, and clearing the previous error.
+- Fixed the omnibar's quick answer staying on "thinking" (and remembering an empty answer) when the model sent no text.
+- Fixed a run finishing while Professor Mari's chat sat behind the search list being marked as seen, so its **Done** pill never showed.
+- Fixed a search crash bringing back its broken saved state on the next open.
+- Fixed the docs: the Personal Extension command example now targets the panel it registers, and the memory card button is named **Keep and enable**.
 
 ## [2.5.0]
 
