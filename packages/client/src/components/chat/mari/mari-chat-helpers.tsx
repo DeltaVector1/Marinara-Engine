@@ -61,15 +61,16 @@ export async function waitForWorkspaceRunToSettle(connectionId: string | null, s
     }
     if (signal.aborted) return sawActiveRun;
     await new Promise<void>((resolve) => {
-      const timer = window.setTimeout(resolve, WORKSPACE_SETTLE_POLL_MS);
-      signal.addEventListener(
-        "abort",
-        () => {
-          window.clearTimeout(timer);
-          resolve();
-        },
-        { once: true },
-      );
+      // Drop the abort listener on a normal wake-up too, or each poll leaves one behind on the run's signal.
+      const onAbort = () => {
+        window.clearTimeout(timer);
+        resolve();
+      };
+      const timer = window.setTimeout(() => {
+        signal.removeEventListener("abort", onAbort);
+        resolve();
+      }, WORKSPACE_SETTLE_POLL_MS);
+      signal.addEventListener("abort", onAbort, { once: true });
     });
   }
   return sawActiveRun;
