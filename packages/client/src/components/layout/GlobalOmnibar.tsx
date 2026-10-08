@@ -9,87 +9,28 @@ import {
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent,
   type MouseEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import type {
-  Character,
-  Chat,
-  ChatMode,
-  Message,
-  ProfessorMariAskContext,
-  ProfessorMariEntryPoint,
-} from "@marinara-engine/shared";
+import type { ChatMode, Message, ProfessorMariAskContext, ProfessorMariEntryPoint } from "@marinara-engine/shared";
 import { chatIdForMariSession, matchOmnibarCapabilityAgentPackageIds } from "@marinara-engine/shared";
-import {
-  ArrowRight,
-  ChevronLeft,
-  Clock3,
-  Compass,
-  Edit3,
-  LayoutGrid,
-  Lightbulb,
-  Loader2,
-  MessageCircle,
-  Play,
-  Search,
-  SlidersHorizontal,
-  Sparkles,
-  UserMinus,
-  X,
-} from "lucide-react";
+import { ChevronLeft, Search, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { checkReply } from "../../lib/reply-checkup";
 import { useAgentConfigs } from "../../hooks/use-agents";
-import { useCharacter, useCharacters, usePersonas } from "../../hooks/use-characters";
-import {
-  chatKeys,
-  useChats,
-  useChatMessageCount,
-  useChatMessagePeek,
-  useChatMessageSearchSource,
-  useProfessorMariChats,
-  useUpdateChat,
-  useUpdateChatMetadata,
-} from "../../hooks/use-chats";
-import { useGlobalChatSearch } from "../../hooks/use-chat-insights";
-import { openGlobalSearch } from "../../lib/chat-insights";
-import {
-  requestChatLorebookEntriesOpen,
-  requestChatReplyCheckup,
-  requestChatRegenerate,
-  requestChatRetryWithConnection,
-  requestChatSearchOpen,
-  requestChatSummaryOpen,
-} from "../../lib/chat-floating-ui-events";
-import { useDebouncedValue } from "../../hooks/use-debounced-value";
+import { useCharacters, usePersonas } from "../../hooks/use-characters";
+import { chatKeys, useChats, useProfessorMariChats, useUpdateChat, useUpdateChatMetadata } from "../../hooks/use-chats";
+import { requestChatRetryWithConnection } from "../../lib/chat-floating-ui-events";
 import { useConnections } from "../../hooks/use-connections";
 import { useStartNewChatMode } from "../../hooks/use-start-new-chat-mode";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
-import { dispatchCardAssetInsert } from "../../lib/card-asset-links";
 import { HOME_FAQ_ITEMS, getFaqSearchText } from "../chat/HomeFaq";
 import { useDocsCommandSearchProvider } from "../../hooks/use-docs-command-search";
-import {
-  lorebookKeys,
-  useLorebookEntrySearch,
-  useLorebooks,
-  useLorebookEntries,
-  useUpdateLorebook,
-  type ActiveLorebookScan,
-} from "../../hooks/use-lorebooks";
+import { useLorebooks, useUpdateLorebook } from "../../hooks/use-lorebooks";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  buildMariArrival,
-  mariThreadContextFor,
-  isMariReplyFailure,
-  mariFallbackFocus,
-  mariFixRowId,
-  type MariArrivalAction,
-} from "../../lib/mari-arrival";
-import { getOmnibarSettingsDestinations } from "../../lib/omnibar-settings";
+import { mariFallbackFocus, mariFixRowId, type MariArrivalAction } from "../../lib/mari-arrival";
 import { isOmnibarSettingsTarget } from "../../lib/settings-registry";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
@@ -100,39 +41,12 @@ import {
   clearOmnibarFrecencyHistory,
   readOmnibarFrecencyEntries,
   recordOmnibarFrecencyUse,
-  topFrecentResultIds,
   type OmnibarFrecencyEntry,
 } from "../../lib/omnibar-frecency";
-import {
-  buildOmnibarTryResults,
-  countOmnibarTryOpen,
-  isOmnibarCommandPick,
-  lastEditedRecordId,
-  markOmnibarTryUsed,
-  pickOmnibarNowResult,
-  readOmnibarTryState,
-  visibleOmnibarTryKinds,
-  type OmnibarTryKind,
-} from "../../lib/omnibar-empty-state";
+import { isOmnibarCommandPick } from "../../lib/omnibar-empty-state";
 import { useMariApprovals } from "../../hooks/use-mari-approvals";
-import { getCharacterDisplayIdentity } from "../../lib/character-display";
 import { completeInline } from "../../lib/inline-completion";
-import { parseChatMetadata } from "../../lib/chat-display";
 import { isLanguageGenerationConnection } from "../../lib/connection-filters";
-import { resolveChatResourceDropAction } from "../../lib/chat-resource-drop-capabilities";
-import { chatResourceBlockedKey } from "../chat/ChatResourceDropOverlay";
-import {
-  deriveActiveLorebookViews,
-  getChatActiveLorebookIds,
-  getChatExcludedLorebookIds,
-} from "../../lib/chat-lorebooks";
-import { getChatCharacterIds } from "../../lib/chat-macros";
-import {
-  requestChatResourceAssignment,
-  requestChatResourceAssignmentFor,
-  type ChatResourceDragKind,
-  type ChatResourceDragPayload,
-} from "../../lib/chat-resource-drag";
 import {
   COMMAND_CENTER_CATEGORY_FILTERS,
   presentCommandCenterResults,
@@ -147,39 +61,26 @@ import {
   writeCommandCenterSessionState,
   type CommandCenterCategoryFilter,
   type CommandCenterSessionState,
-  type CommandCenterResultGroupId,
   type CommandRankingState,
 } from "../../lib/command-center";
 import { createSystemCommandDefinitions } from "../../lib/command-center-system-commands";
-import { resolveOmnibarRowVisual, type OmnibarRowVisualContext } from "../../lib/omnibar-row-visual";
+import { type OmnibarRowVisualContext } from "../../lib/omnibar-row-visual";
 import { OmnibarUnderstoodLine } from "./omnibar/OmnibarUnderstoodLine";
 import {
-  createOmnibarContext,
-  resolveOmnibarScreen,
   filterOmnibarFuzzyFallback,
-  getOmnibarActiveChatContextResultIds,
   isDirectActiveChatAction,
   resultOpensDirectlyOnTap,
   omnibarMatchQueries,
-  parseOmnibarIntent,
-  type OmnibarAction,
-  type OmnibarCategory,
   type OmnibarResult,
 } from "../../lib/omnibar-search";
 import {
-  MIN_MESSAGE_SEARCH_LENGTH,
-  buildOmnibarChatControlResults,
   buildOmnibarContextResults,
   idleOmnibarContextResults,
   resolveOmnibarUnderstoodLine,
   buildOmnibarApprovalResults,
   buildOmnibarContinueResult,
-  buildOmnibarControlResults,
-  buildOmnibarGlobalMessageResults,
-  buildOmnibarLorebookEntryResults,
   findMentionedResults,
   buildOmnibarMariChatResults,
-  buildOmnibarMessageResults,
   buildOmnibarAddSuggestions,
   buildOmnibarVerbSuggestions,
   buildOmnibarIntentShortcuts,
@@ -189,20 +90,7 @@ import {
   buildOmnibarSlashResults,
 } from "../../lib/omnibar-results";
 import { isMariInstruction, matchesOmnibarScope, omnibarScopePrefix, parseOmnibarScope } from "../../lib/omnibar-scope";
-import {
-  buildOmnibarAgentRows,
-  buildOmnibarCharacterRows,
-  buildOmnibarChatRows,
-  buildOmnibarConnectionRows,
-  buildOmnibarLorebookRows,
-  buildOmnibarPersonaRows,
-  buildOmnibarPresetRows,
-} from "../../lib/omnibar-entity-rows";
-import { reconcileActiveResultId, resolveOmnibarRowState } from "../../lib/omnibar-row-state";
-import {
-  activatePersonalExtensionCommand,
-  usePersonalExtensionCommands,
-} from "../../lib/personal-extension-contributions";
+import { reconcileActiveResultId } from "../../lib/omnibar-row-state";
 import { omnibarCompletionActions, type OmnibarCompletionAction } from "../../lib/omnibar-completion-actions";
 import { buildProfessorMariCommandCenterContext } from "../../lib/professor-mari-command-center-context";
 import {
@@ -219,37 +107,49 @@ import { hasEditorLeaveHandler } from "../../lib/editor-leave";
 import { cn } from "../../lib/utils";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import { useChatStore } from "../../stores/chat.store";
-import { isMessageHiddenFromUser } from "../../lib/chat-message-visibility";
-import { normalizeTextForMatch } from "@marinara-engine/shared";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
-import { useShallow } from "zustand/react/shallow";
-import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "../../lib/omnibar-settings-toggle-bindings";
-import { CommandCenterActionValue } from "../command-center/CommandCenterActionValue";
 import { InlineGhostText } from "../ui/InlineGhostText";
-import { CommandCenterResultRow } from "../command-center/CommandCenterResultRow";
-import { useHomeFeed } from "../../hooks/use-home-feed";
-import { ResultTypeIcon } from "../command-center/ResultTypeIcon";
-import { CommandCenterSegmentedChoice } from "../command-center/CommandCenterSegmentedChoice";
-import { CommandCenterToggle } from "../command-center/CommandCenterToggle";
 import {
   getCommandCenterCategoryVisual,
   getCommandCenterChatModeVisual,
-  type CommandCenterCategoryLabels,
-  type CommandCenterChatModeLabels,
 } from "../command-center/command-center-visuals";
-import type { CommandCenterPreviewFact } from "../command-center/command-result-preview.types";
 import { OmnibarSettingsButton, OmnibarSettingsSheet } from "./omnibar/OmnibarSettingsMenu";
 import {
   getOmnibarResourceId,
   isRichResult,
-  FILTER_CATEGORY,
-  OMNIBAR_SCOPE_CHIP_FILTERS,
   readNamedRow,
-  resultMetadata,
   type OmnibarPane,
   type RankedOmnibarResult,
 } from "./omnibar/omnibar-result-view";
+import {
+  CHAT_RESOURCE_KIND,
+  createModalPrefillName,
+  isMariApprovalRow,
+  MARI_APPROVAL_PREFIX,
+  CHAT_SCOPED_CHOICE_CONTROL_IDS,
+  EDITOR_CATEGORIES,
+  isLorebookEnableToggleRow,
+} from "./omnibar/omnibar-dialog-rules";
+import { usePreviewDetail } from "./omnibar/use-preview-detail";
+import { useOmnibarLabels } from "./omnibar/use-omnibar-labels";
+import { useOmnibarEmptyState } from "./omnibar/use-omnibar-empty-state";
+import { useOmnibarMariArrival } from "./omnibar/use-omnibar-mari-arrival";
+import { OmnibarResultList } from "./omnibar/OmnibarResultList";
+import {
+  OmnibarMariDoor,
+  OmnibarScopeChips,
+  OmnibarFilterStrip,
+  OmnibarEmpty,
+  OmnibarFooter,
+} from "./omnibar/OmnibarChrome";
+import { buildOmnibarPreviewActions } from "./omnibar/omnibar-preview-actions";
+import { createOmnibarKeyHandlers } from "./omnibar/omnibar-keyboard";
+import { useOmnibarEntityRows } from "./omnibar/use-omnibar-entity-rows";
+import { useOmnibarMessageSearch } from "./omnibar/use-omnibar-message-search";
+import { useOmnibarScreenContext } from "./omnibar/use-omnibar-screen-context";
+import { createOmnibarResultActions } from "./omnibar/omnibar-result-actions";
+import { useOmnibarLocalResults } from "./omnibar/use-omnibar-local-results";
 // Each pane only renders once the user opens it, so they stay out of the
 // initial AppShell chunk.
 const OmnibarDetailPane = lazy(() =>
@@ -260,173 +160,12 @@ const OmnibarAside = lazy(() => import("./omnibar/OmnibarAside").then((m) => ({ 
 
 const PROFESSOR_MARI_DRAFT_KEY = "__home_professor_mari__";
 
-/** Categories whose result rows open an editor rather than the thing itself. */
-const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
-  "character",
-  "persona",
-  "lorebook",
-  "preset",
-  "connection",
-  "agent",
-]);
-/** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
-/** Chats the empty omnibar offers to switch back to. */
-const IDLE_RECENT_CHATS = 4;
-// F3 (O5): the idle frecent group only offers rows that *navigate* somewhere
-// (open a chat/entity, or run a navigation command) - never a row that writes
-// on Enter, like a settings toggle or a lorebook attach. An empty Ctrl+K must
-// never let a reflexive Enter silently flip something just because it was used
-// recently; "controls"/"chatControls" rows (settings toggles) all set `control`.
-const NAVIGATION_OMNIBAR_ACTION_KINDS = new Set<OmnibarAction["kind"]>([
-  "open-mari-chat",
-  "goto-message",
-  "open-docs",
-  "open-faq",
-  "open-global-search",
-  "open-lorebook-entry",
-  "start-character-chat",
-  "start-chat",
-]);
-const isNavigationOmnibarResult = (result: Pick<OmnibarResult, "control" | "action">) =>
-  !result.control && (!result.action || NAVIGATION_OMNIBAR_ACTION_KINDS.has(result.action.kind));
 /**
  * K5's last flip, kept past the dialog's unmount so Mari's arrival in Settings can offer the same Undo
  * as the toast. ponytail: one slot, cleared by either Undo; a flip made in the Settings panel itself
  * is not tracked here.
  */
 let lastSettingFlip: { label: string; undo: () => void } | null = null;
-const MARI_EDITABLE_CATEGORIES = new Set<OmnibarCategory>(["chat", "character", "persona", "lorebook", "preset"]);
-const MARI_APPROVAL_PREFIX = "mari-approval:";
-// R9: this row carries a choice control (Keep/Restore) for quick action, but the row body
-// itself must still navigate to that specific review on click/Enter instead of expanding a
-// choice accordion like an ordinary settings picker does.
-const isMariApprovalRow = (result: Pick<OmnibarResult, "id">) => result.id.startsWith(MARI_APPROVAL_PREFIX);
-
-/**
- * Categories that can be attached to (or detached from) the open chat, mapped to
- * the drag payload kind that carries them. One table: every attach path — a row,
- * a preview action, a drop — has to agree on what is attachable.
- */
-const CHAT_RESOURCE_KIND: Partial<Record<OmnibarCategory, ChatResourceDragKind>> = {
-  character: "character",
-  persona: "persona",
-  lorebook: "lorebook",
-  preset: "preset",
-  connection: "connection",
-  agent: "agent",
-};
-/**
- * Choosing one of these picks it for the active chat and is a complete
- * action, not a step in browsing, so it closes the omnibar like any other row
- * (O4 item 4) instead of leaving the user to press Esc.
- */
-const CHAT_SCOPED_CHOICE_CONTROL_IDS = new Set([
-  "control:chat-connection",
-  "control:chat-preset",
-  "control:chat-persona",
-]);
-
-// Leading resource-kind words to strip from a "create <kind> <name>" query so the
-// create modal opens with just the typed name pre-filled.
-const CREATE_MODAL_KIND_WORDS: Record<string, readonly string[]> = {
-  "create-character": ["character", "card"],
-  "create-persona": ["persona", "profile"],
-  "create-lorebook": ["lorebook", "world book", "world info", "worldbook"],
-  "create-preset": ["preset", "prompt preset"],
-};
-
-function createModalPrefillName(modal: string, query: string): string | undefined {
-  const words = CREATE_MODAL_KIND_WORDS[modal];
-  if (!words) return undefined;
-  const intent = parseOmnibarIntent(query);
-  if (intent?.kind !== "create") return undefined;
-  let name = intent.targetQuery.trim();
-  for (const word of words) {
-    const stripped = name.replace(new RegExp(`^${word}\\b\\s*`, "i"), "").trim();
-    if (stripped !== name) {
-      name = stripped;
-      break;
-    }
-  }
-  return name || undefined;
-}
-
-/**
- * Tier-2 preview data: fetched lazily only for the one focused result, gated by
- * a short focus dwell so arrow-key scrubbing does not fire a request per row.
- * React Query caches by id, so re-focusing a result is instant.
- */
-function usePreviewDetail(previewResult: RankedOmnibarResult | null): {
-  extraFacts: CommandCenterPreviewFact[];
-  note: string | null;
-  detailLoading: boolean;
-} {
-  const { t } = useTranslation();
-  const category = previewResult?.category;
-  const resourceId = previewResult ? previewResult.id.slice(previewResult.id.indexOf(":") + 1) : "";
-
-  const [settledId, setSettledId] = useState<string | null>(null);
-  useEffect(() => {
-    if (!previewResult) {
-      setSettledId(null);
-      return;
-    }
-    const id = previewResult.id;
-    const timer = window.setTimeout(() => setSettledId(id), 160);
-    return () => window.clearTimeout(timer);
-  }, [previewResult]);
-  const settled = !!previewResult && settledId === previewResult.id;
-
-  const chatId = category === "chat" && settled ? resourceId : null;
-  const lorebookId = category === "lorebook" && settled ? resourceId : null;
-  // Characters are the most-used kind and had no lazy detail at all.
-  const characterId = category === "character" && settled ? resourceId : null;
-
-  const peek = useChatMessagePeek(chatId, 1, !!chatId);
-  const messageCount = useChatMessageCount(chatId);
-  const entries = useLorebookEntries(lorebookId);
-  const character = useCharacter(characterId);
-
-  if (chatId) {
-    const extraFacts: CommandCenterPreviewFact[] =
-      typeof messageCount.data?.count === "number"
-        ? [{ label: t("commandCenter.preview.messages", "Messages"), value: messageCount.data.count }]
-        : [];
-    return { extraFacts, note: peek.data?.at(-1)?.content?.trim() || null, detailLoading: peek.isLoading };
-  }
-
-  if (characterId) {
-    // The route sends the card as a JSON string, so reading `.first_mes` off it directly found nothing.
-    const raw = (character.data as { data?: unknown } | undefined)?.data;
-    let data: Character["data"] | undefined;
-    try {
-      data = typeof raw === "string" ? JSON.parse(raw) : (raw as Character["data"] | undefined);
-    } catch {
-      data = undefined;
-    }
-    const extraFacts: CommandCenterPreviewFact[] = data?.alternate_greetings?.length
-      ? [{ label: t("commandCenter.preview.greetings", "Greetings"), value: data.alternate_greetings.length + 1 }]
-      : [];
-    // The greeting is what the character actually opens with, so it says more
-    // about them than the description does.
-    return { extraFacts, note: data?.first_mes?.trim() || null, detailLoading: character.isLoading };
-  }
-
-  if (lorebookId) {
-    const first = entries.data?.[0];
-    const note = entries.isLoading
-      ? null
-      : first
-        ? t("commandCenter.preview.entryNote", "{{name}}: {{content}}", {
-            name: first.name?.trim() || t("commandCenter.preview.untitledEntry", "Untitled entry"),
-            content: first.content?.trim() ?? "",
-          })
-        : t("commandCenter.preview.noLorebookEntries", "No entries yet");
-    return { extraFacts: [], note, detailLoading: entries.isLoading };
-  }
-
-  return { extraFacts: [], note: null, detailLoading: false };
-}
 
 export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const appearance = useMariAppearancePack();
@@ -561,17 +300,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     readOmnibarFrecencyEntries(),
   );
   const chats = useChats();
-  // Q6: the Home feed's last message per recent chat (bounded, cached), for the chat rows' second line.
-  const homeFeed = useHomeFeed();
-  const latestMessageByChatId = useMemo(
-    () =>
-      new Map(
-        (homeFeed.data?.recentChats ?? []).flatMap(({ chat, latestMessage }) =>
-          latestMessage ? [[chat.id, latestMessage] as const] : [],
-        ),
-      ),
-    [homeFeed.data?.recentChats],
-  );
   const characters = useCharacters();
   const personas = usePersonas();
   const lorebooks = useLorebooks(undefined, { includeHidden: true });
@@ -606,12 +334,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const setDefaultPresetMutate = setDefaultPreset.mutate;
   const updateChat = useUpdateChat();
   const updateChatMetadata = useUpdateChatMetadata();
-  const extensionCommands = usePersonalExtensionCommands();
   const docs = useDocsCommandSearchProvider(query, { enabled: true });
   const theme = useUIStore((state) => state.theme);
   const reduceMotion = useReducedMotion();
-  const reduceAmbientEffects = useUIStore((state) => state.reduceAmbientEffects);
-  const musicPlayerEnabled = useUIStore((state) => state.musicPlayerEnabled);
   const omnibarSuggestionsEnabled = useUIStore((state) => state.omnibarSuggestionsEnabled);
   const mariWorkspaceStatus = useProfessorMariWorkspaceStatus();
   // Her run keeps going on the server when her pane is closed; the status poll is how the omnibar knows.
@@ -622,21 +347,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const setAsideEnabled = useUIStore((state) => state.setOmnibarAsideEnabled);
   const openRightPanel = useUIStore((state) => state.openRightPanel);
   const openAgentCatalog = useUIStore((state) => state.openAgentCatalog);
-  const speechToTextEnabled = useUIStore((state) => state.speechToTextEnabled);
-  const notificationSoundsOnlyWhenUnfocused = useUIStore((state) => state.notificationSoundsOnlyWhenUnfocused);
-  const showTimestamps = useUIStore((state) => state.showTimestamps);
-  const showModelName = useUIStore((state) => state.showModelName);
-  const showTokenUsage = useUIStore((state) => state.showTokenUsage);
-  // One shallow-compared subscription for every settings-registry toggle the
-  // omnibar can flip in place, so adding a binding never means adding a hook.
-  const settingsToggleValues = useUIStore(
-    useShallow((state) => {
-      const values: Record<string, boolean> = {};
-      for (const id in OMNIBAR_SETTINGS_TOGGLE_BINDINGS) values[id] = OMNIBAR_SETTINGS_TOGGLE_BINDINGS[id].get(state);
-      return values;
-    }),
-  );
-  const userStatus = useUIStore((state) => state.userStatus);
   const activeChat = useChatStore((state) => state.activeChat);
   const activeChatId = useChatStore((state) => state.activeChatId);
   const openCharacterId = useUIStore((state) => state.characterDetailId);
@@ -650,582 +360,47 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const settingsTab = useUIStore((state) => state.settingsTab);
   const settingsTargetControlId = useUIStore((state) => state.settingsTargetControlId);
   const settingsPanelVisible = useUIStore((state) => state.rightPanelOpen && state.rightPanel === "settings");
-  const rightPanelOpen = useUIStore((state) => state.rightPanelOpen);
-  const rightPanel = useUIStore((state) => state.rightPanel);
-  const botBrowserOpen = useUIStore((state) => state.botBrowserOpen);
-  const gameAssetsBrowserOpen = useUIStore((state) => state.gameAssetsBrowserOpen);
-  const characterLibraryOpen = useUIStore((state) => state.characterLibraryOpen);
-  const cardLibraryKind = useUIStore((state) => state.cardLibraryKind);
   const agentCatalogOpen = useUIStore((state) => state.agentCatalogOpen);
-  const editorDirty = useUIStore((state) => state.editorDirty);
 
-  const idleGreeting = useMemo(() => {
-    if (!activeChat) return t("omnibar.hello", "Hi, I'm Mari. Type to search, or ask me anything.");
-
-    const greetings =
-      activeChat.mode === "roleplay"
-        ? [
-            t("omnibar.greetings.roleplay.one", "What should we look into in this roleplay?"),
-            t("omnibar.greetings.roleplay.two", "Your roleplay is open. What do you need?"),
-            t("omnibar.greetings.roleplay.three", "This roleplay is open. What would you like to find?"),
-          ]
-        : activeChat.mode === "conversation"
-          ? [
-              t("omnibar.greetings.conversation.one", "What should we look into in this conversation?"),
-              t("omnibar.greetings.conversation.two", "Your conversation is open. What do you need?"),
-              t("omnibar.greetings.conversation.three", "This chat is open. What would you like to find?"),
-            ]
-          : [
-              t("omnibar.greetings.chat.one", "What should we look into in this chat?"),
-              t("omnibar.greetings.chat.two", "Your chat is open. What do you need?"),
-              t("omnibar.greetings.chat.three", "A chat is open. What would you like to find?"),
-            ];
-
-    const seed = activeChatId ? [...activeChatId].reduce((sum, character) => sum + character.charCodeAt(0), 0) : 0;
-    return greetings[seed % greetings.length];
-  }, [activeChat, activeChatId, t]);
-
-  const categoryLabels = useMemo<CommandCenterCategoryLabels>(
-    () => ({
-      navigation: t("omnibar.categories.navigation", "Navigation"),
-      chat: t("omnibar.categories.chat", "Chats"),
-      character: t("omnibar.categories.character", "Characters"),
-      persona: t("omnibar.categories.persona", "Personas"),
-      lorebook: t("omnibar.categories.lorebook", "Lorebooks"),
-      preset: t("omnibar.categories.preset", "Presets"),
-      connection: t("omnibar.categories.connection", "Connections"),
-      agent: t("omnibar.categories.agent", "Agents"),
-      settings: t("omnibar.categories.settings", "Settings"),
-      professor: t("omnibar.categories.professor", "Professor Mari"),
-      docs: t("omnibar.categories.docs", "Docs"),
-    }),
-    [t],
+  const { idleGreeting, categoryLabels, chatModeLabels, filterLabels, groupLabels, contextLabels } = useOmnibarLabels(
+    activeChat,
+    activeChatId,
   );
-  const chatModeLabels = useMemo<CommandCenterChatModeLabels>(
-    () => ({
-      conversation: t("home.recentChats.mode.conversation", "Conversation"),
-      roleplay: t("home.recentChats.mode.roleplay", "Roleplay"),
-      game: t("home.recentChats.mode.game", "Game"),
-    }),
-    [t],
-  );
-  const filterLabels = useMemo<Record<CommandCenterCategoryFilter, string>>(
-    () => ({
-      all: t("commandCenter.filters.all", "All"),
-      chats: t("commandCenter.filters.chats", "Chats"),
-      characters: t("commandCenter.filters.characters", "Characters"),
-      personas: t("commandCenter.filters.personas", "Personas"),
-      lorebooks: t("commandCenter.filters.lorebooks", "Lorebooks"),
-      presets: t("commandCenter.filters.presets", "Presets"),
-      connections: t("commandCenter.filters.connections", "Connections"),
-      agents: t("commandCenter.filters.agents", "Agents"),
-      settings: t("commandCenter.filters.settings", "Settings"),
-      docs: t("commandCenter.filters.docs", "Docs"),
-    }),
-    [t],
-  );
-  const groupLabels = useMemo<Record<CommandCenterResultGroupId, string>>(
-    () => ({
-      now: t("commandCenter.groups.now", "Needs you now"),
-      try: t("commandCenter.groups.try", "Try"),
-      context: t("commandCenter.groups.context", "On this screen"),
-      "current-work": t("commandCenter.groups.currentWork", "Current work"),
-      continue: t("commandCenter.groups.continue", "Continue"),
-      frecent: t("commandCenter.groups.frecent", "Frequently used here"),
-      recent: t("commandCenter.groups.recent", "Recent"),
-      "quick-controls": t("commandCenter.groups.quickControls", "Quick controls"),
-      "create-navigation": t("commandCenter.groups.suggested", "Suggested"),
-      navigation: t("commandCenter.groups.navigation", "Navigation"),
-      messages: t("commandCenter.groups.messages", "Messages"),
-      "lorebook-entries": t("commandCenter.groups.lorebookEntries", "Lorebook entries"),
-      chats: filterLabels.chats,
-      characters: filterLabels.characters,
-      personas: filterLabels.personas,
-      lorebooks: filterLabels.lorebooks,
-      presets: filterLabels.presets,
-      connections: filterLabels.connections,
-      agents: filterLabels.agents,
-      settings: filterLabels.settings,
-      docs: filterLabels.docs,
-      "professor-suggested": t("commandCenter.groups.mariSuggested", "Professor Mari"),
-      "top-hit": t("commandCenter.groups.topHit", "Top hit"),
-      "professor-fallback": t("commandCenter.groups.askMari", "Ask Professor Mari"),
-    }),
-    [filterLabels, t],
-  );
-
-  const characterById = useMemo(
-    () =>
-      new Map(
-        (characters.data ?? []).flatMap((item) => {
-          const row = readNamedRow(item);
-          return row ? [[row.id, item] as const] : [];
-        }),
-      ),
-    [characters.data],
-  );
-  const characterNameById = useMemo(
-    () =>
-      new Map(
-        (characters.data ?? []).flatMap((item) => {
-          const row = readNamedRow(item);
-          if (!row) return [];
-          const record = item as Record<string, unknown>;
-          return [
-            [
-              row.id,
-              getCharacterDisplayIdentity({ data: record.data, comment: record.comment as string | null | undefined }),
-            ] as const,
-          ];
-        }),
-      ),
-    [characters.data],
-  );
-  const personaById = useMemo(() => new Map((personas.data ?? []).map((item) => [item.id, item])), [personas.data]);
-  const connectionById = useMemo(
-    () =>
-      new Map(
-        (connections.data ?? []).flatMap((item) => {
-          const row = readNamedRow(item);
-          return row ? [[row.id, row] as const] : [];
-        }),
-      ),
-    [connections.data],
-  );
-
-  // Reverse index: which lorebooks are attached to a given character / persona.
-  // Lets resource previews surface their real relationships, not just their own row.
-  const lorebookLinks = useMemo(() => {
-    const byCharacter = new Map<string, string[]>();
-    const byPersona = new Map<string, string[]>();
-    for (const book of lorebooks.data ?? []) {
-      for (const cid of book.characterIds ?? []) {
-        byCharacter.set(cid, [...(byCharacter.get(cid) ?? []), book.name]);
-      }
-      for (const pid of book.personaIds ?? []) {
-        byPersona.set(pid, [...(byPersona.get(pid) ?? []), book.name]);
-      }
-    }
-    return { byCharacter, byPersona };
-  }, [lorebooks.data]);
-
-  const data = useMemo(() => {
-    const commands = [
-      {
-        id: "home",
-        title: t("home.title", "Home"),
-        kind: "navigation" as const,
-        icon: "home" as const,
-        target: { kind: "home" } as const,
-        aliases: ["start"],
-      },
-      {
-        id: "chats",
-        title: t("ui.layout.chats", "Chats"),
-        kind: "navigation" as const,
-        icon: "chats" as const,
-        target: { kind: "chats" } as const,
-      },
-      ...createSystemCommandDefinitions((key, fallback) => t(`commandCenter.system.${key}`, fallback)).map(
-        (command) => ({
-          id: command.id,
-          title: command.title,
-          kind: command.kind,
-          icon: command.icon,
-          aliases: command.aliases,
-          keywords: command.keywords,
-          target: command.target,
-          availability: command.availability,
-        }),
-      ),
-      ...extensionCommands.map((command) => ({
-        ...command,
-        action: { kind: "personal-extension", commandId: command.id } as const,
-        target: { kind: "home" } as const,
-      })),
-    ];
-    const chatRows = buildOmnibarChatRows({
-      chats: chats.data ?? [],
-      characterById,
-      connectionById,
-      personaById,
-      chatModeLabels,
-      latestMessageByChatId,
-      t,
-    });
-    const resources = [
-      ...buildOmnibarCharacterRows({
-        characters: characters.data ?? [],
-        lorebookNamesByCharacter: lorebookLinks.byCharacter,
-        categoryLabels,
-        t,
-      }),
-      ...buildOmnibarPersonaRows({
-        personas: personas.data ?? [],
-        lorebookNamesByPersona: lorebookLinks.byPersona,
-        categoryLabels,
-        t,
-      }),
-      ...buildOmnibarLorebookRows({
-        lorebooks: lorebooks.data ?? [],
-        characterNameById,
-        personaById,
-        categoryLabels,
-        t,
-        onSetLorebookEnabled: (id, enabled) => updateLorebookMutate({ id, enabled }),
-      }),
-      ...buildOmnibarPresetRows({
-        presets: presets.data ?? [],
-        categoryLabels,
-        t,
-        onSetDefaultPreset: (id) => setDefaultPresetMutate(id),
-      }),
-      ...buildOmnibarAgentRows({ agents: agents.data ?? [], connectionById, categoryLabels, t }),
-    ];
-    const connectionRows = buildOmnibarConnectionRows({ connections: connections.data ?? [], categoryLabels, t });
-    return {
-      commands,
-      chats: chatRows,
-      resources,
-      connections: connectionRows,
-      askProfessorTitle: t("omnibar.askProfessorMari"),
-    };
-  }, [
-    agents.data,
+  const { characterNameById, personaById, connectionById, data } = useOmnibarEntityRows({
+    chats: chats.data,
+    characters: characters.data,
+    personas: personas.data,
+    lorebooks: lorebooks.data,
+    presets: presets.data,
+    connections: connections.data,
+    agents: agents.data,
     categoryLabels,
-    characterById,
-    characterNameById,
-    characters.data,
     chatModeLabels,
-    chats.data,
-    connections.data,
-    connectionById,
-    extensionCommands,
-    latestMessageByChatId,
-    lorebooks.data,
-    lorebookLinks,
-    personaById,
-    personas.data,
-    presets.data,
-    setDefaultPresetMutate,
-    t,
     updateLorebookMutate,
-  ]);
+    setDefaultPresetMutate,
+  });
 
-  const controls = useMemo<OmnibarResult[]>(
-    () =>
-      buildOmnibarControlResults({
-        localize,
-        musicPlayerEnabled,
-        notificationSoundsOnlyWhenUnfocused,
-        reduceAmbientEffects,
-        settingsToggleValues,
-        setters: useUIStore.getState(),
-        showModelName,
-        showTimestamps,
-        showTokenUsage,
-        speechToTextEnabled,
-        t,
-        theme,
-        userStatus,
-      }),
-    [
-      localize,
-      musicPlayerEnabled,
-      notificationSoundsOnlyWhenUnfocused,
-      reduceAmbientEffects,
-      settingsToggleValues,
-      showModelName,
-      showTimestamps,
-      showTokenUsage,
-      speechToTextEnabled,
-      t,
-      theme,
-      userStatus,
-    ],
-  );
-
-  // Chat state as inline controls: the changes a user makes most often are to
-  // the chat they are already in — model, preset, persona, agents. These edit
-  // the chat in the row, so nothing navigates away from the scene.
-  // useMutation returns a fresh object every render, so the memo depends on the
-  // stable mutateAsync functions. Depending on the mutation objects would give
-  // this list a new identity each render and churn every list derived from it.
-  const patchChat = updateChat.mutateAsync;
-  const patchChatMetadata = updateChatMetadata.mutateAsync;
-  const chatControls = useMemo<OmnibarResult[]>(
-    () =>
-      buildOmnibarChatControlResults({
-        activeChat,
-        activeChatId,
-        connections: data.connections,
-        patchChat,
-        patchChatMetadata,
-        resources: data.resources,
-        t,
-      }),
-    [activeChat, activeChatId, data.connections, data.resources, patchChat, patchChatMetadata, t],
-  );
-
-  const searchableEntityResults = useMemo<OmnibarResult[]>(
-    () => [
-      ...data.chats.map((item) => ({
-        id: `chat:${item.id}`,
-        title: item.name,
-        category: "chat" as const,
-        target: { kind: "chat", chatId: item.id } as const,
-        score: 1,
-        preview: item.preview,
-        kind: "chat" as const,
-        icon: "chats" as const,
-      })),
-      ...data.resources.map((item) => ({
-        ...item,
-        id: `${item.kind}:${item.id}`,
-        title: item.name,
-        category: item.kind,
-        target: { kind: "resource", resource: item.kind, id: item.id } as const,
-        score: 1,
-        description: item.description,
-        preview: item.preview,
-        kind: "resource" as const,
-        icon: item.kind,
-        control: "control" in item ? item.control : undefined,
-      })),
-      ...data.connections.map((item) => ({
-        id: `connection:${item.id}`,
-        title: item.name,
-        category: "connection" as const,
-        target: { kind: "panel", panel: "connections" } as const,
-        score: 1,
-        preview: item.preview,
-        kind: "settings" as const,
-        icon: "connection" as const,
-      })),
-    ],
-    [data.chats, data.connections, data.resources],
-  );
-  const searchableCommandResults = useMemo<OmnibarResult[]>(
-    () =>
-      data.commands.map((command) => ({
-        ...command,
-        category: command.kind === "settings" ? ("settings" as const) : ("navigation" as const),
-        score: 160,
-      })),
-    [data.commands],
-  );
-  const allLocalResults = useMemo(
-    () => [...controls, ...chatControls, ...searchableCommandResults, ...searchableEntityResults],
-    [chatControls, controls, searchableCommandResults, searchableEntityResults],
-  );
-  const omnibarContext = useMemo(() => {
-    const chatMetadata = activeChat ? parseChatMetadata(activeChat.metadata) : null;
-    const activeLorebookIds = activeChat
-      ? deriveActiveLorebookViews({
-          activeLorebookIds: getChatActiveLorebookIds(activeChat),
-          excludedLorebookIds: getChatExcludedLorebookIds(activeChat),
-          dropExcluded: true,
-          chat: activeChat,
-          lorebooks: lorebooks.data ?? [],
-        }).map((lorebook) => lorebook.id)
-      : [];
-    const activeAgentIds = Array.isArray(chatMetadata?.activeAgentIds)
-      ? chatMetadata.activeAgentIds.filter((id): id is string => typeof id === "string")
-      : [];
-    const activeAgentResultIds = activeAgentIds.map(
-      (id) => agents.data?.find((agent) => agent.id === id || agent.type === id)?.type ?? id,
-    );
-    const activeChatResultIds = [
-      ...getOmnibarActiveChatContextResultIds(
-        activeChatId,
-        activeChat
-          ? {
-              ...activeChat,
-              characterIds: getChatCharacterIds(activeChat),
-              lorebookIds: activeLorebookIds,
-              enableAgents: chatMetadata?.enableAgents === true,
-              activeAgentIds: activeAgentResultIds,
-            }
-          : null,
-      ),
-    ];
-    const { surface, openResource } = resolveOmnibarScreen({
-      characterDetailId: openCharacterId,
-      personaDetailId: openPersonaId,
-      lorebookDetailId: openLorebookId,
-      presetDetailId: openPresetId,
-      connectionDetailId: openConnectionId,
-      agentDetailId: openAgentId,
-      settingsPanelVisible,
-      gameAssetsBrowserOpen,
-      botBrowserOpen,
-      characterLibraryOpen,
-      agentCatalogOpen,
-      activeChatId,
-    });
-    const settingsResultId = settingsPanelVisible
-      ? settingsTargetControlId
-        ? `settings-control:${settingsTargetControlId}`
-        : settingsTab
-          ? `settings-section:${settingsTab}`
-          : "settings"
-      : null;
-    const surfaceResultIds = rightPanelOpen
-      ? [rightPanel === "connections" ? "integrations" : rightPanel === "settings" ? "settings" : rightPanel]
-      : botBrowserOpen
-        ? ["card-browser"]
-        : gameAssetsBrowserOpen
-          ? ["game-assets"]
-          : characterLibraryOpen
-            ? [cardLibraryKind === "personas" ? "persona-library" : "character-library"]
-            : agentCatalogOpen
-              ? ["agent-library", "packages"]
-              : activeChatId
-                ? ["chats", `chat:${activeChatId}`]
-                : ["home"];
-    const setupResultIds = data.commands
-      .filter(
-        (command) =>
-          "availability" in command &&
-          command.availability?.status === "requires-capability" &&
-          command.availability.setupTarget,
-      )
-      .map((command) => command.id);
-    const failedSources = [chats, characters, personas, lorebooks, presets, connections, agents, docs].some(
-      (source) => source.isError,
-    );
-    return createOmnibarContext({
-      surface,
-      surfaceResultIds,
-      activeChat:
-        activeChat && activeChat.id === activeChatId
-          ? { id: activeChat.id, mode: activeChat.mode, resultIds: activeChatResultIds }
-          : undefined,
-      openResource,
-      settingsTarget: settingsResultId
-        ? { tab: settingsTab, controlId: settingsTargetControlId ?? undefined, resultId: settingsResultId }
-        : undefined,
-      editorDirty,
-      recentResultIds: ranking.recent.map((entry) => entry.id),
-      setupResultIds,
-      error: failedSources ? { resultIds: ["diagnostics"], message: t("omnibar.error") } : undefined,
-    });
-  }, [
+  const { controls, chatControls, searchableEntityResults, allLocalResults, patchChat, patchChatMetadata } =
+    useOmnibarLocalResults({ activeChat, activeChatId, data, theme, updateChat, updateChatMetadata });
+  const omnibarContext = useOmnibarScreenContext({
     activeChat,
     activeChatId,
     agentCatalogOpen,
-    agents,
-    botBrowserOpen,
-    cardLibraryKind,
-    characterLibraryOpen,
-    characters,
-    chats,
-    connections,
-    data.commands,
-    docs,
-    editorDirty,
-    gameAssetsBrowserOpen,
-    lorebooks,
     openAgentId,
     openCharacterId,
     openConnectionId,
     openLorebookId,
     openPersonaId,
     openPresetId,
-    personas,
-    presets,
-    ranking.recent,
-    rightPanel,
-    rightPanelOpen,
+    settingsPanelVisible,
     settingsTab,
     settingsTargetControlId,
-    settingsPanelVisible,
-    t,
-  ]);
-  const contextLabels = useMemo(
-    () => ({
-      surface: t("commandCenter.context.currentSurface", "On this screen"),
-      "open-resource": t("commandCenter.context.openResource", "Open now"),
-      "active-chat": t("commandCenter.context.activeChat", "Used by this chat"),
-      "settings-target": t("commandCenter.context.settingsTarget", "Current setting"),
-      dirty: t("commandCenter.context.unsaved", "Open with unsaved changes"),
-      setup: t("commandCenter.context.setup", "Setup available"),
-      error: t("commandCenter.context.error", "Related to a current error"),
-      recent: t("commandCenter.context.recent", "Recently used"),
-    }),
-    [t],
-  );
-  // Chat search: the engine only stores messages per chat, so this searches the
-  // chat you are in rather than pretending to search all of them. The message
-  // list is shared with the in-chat search panel's cache.
-  const messageSearchQuery = deferredQuery.trim();
-  const messageSearch = useChatMessageSearchSource(
-    activeChatId ?? null,
-    !!activeChatId && messageSearchQuery.length >= MIN_MESSAGE_SEARCH_LENGTH,
-  );
-  // Normalizing every message body is NFKC + regex work over the whole chat, so
-  // it is cached against the message list instead of redone on each keystroke.
-  const messageSearchIndex = useMemo(
-    () =>
-      (messageSearch.data ?? []).map((message) => ({
-        message,
-        haystack: isMessageHiddenFromUser(message) ? null : normalizeTextForMatch(message.content),
-      })),
-    [messageSearch.data],
-  );
-  const messageResults = useMemo<OmnibarResult[]>(
-    () => buildOmnibarMessageResults({ activeChatId, messageSearchIndex, messageSearchQuery, t }),
-    [activeChatId, messageSearchIndex, messageSearchQuery, t],
-  );
-  // The other chats' transcripts are not on the client, so searching them is a
-  // server read. Only asked for once the query is long enough to be selective.
-  const globalMessageScoped = !queryScope || queryScope === "messages";
-  // Each request scans every chat on the server, so wait for a typing pause,
-  // with the same delay as the Search All Chats modal.
-  const globalMessageQuery = useDebouncedValue(messageSearchQuery, 300);
-  const globalMessageSearch = useGlobalChatSearch(
-    { query: globalMessageQuery },
-    globalMessageQuery.length >= MIN_MESSAGE_SEARCH_LENGTH && globalMessageScoped,
-  );
-  const globalMessageResults = useMemo<OmnibarResult[]>(
-    () =>
-      buildOmnibarGlobalMessageResults({
-        activeChatId,
-        // The query keeps the previous page while the next one loads; hits for
-        // an older query are not answers to this one.
-        hits:
-          globalMessageSearch.data?.pages[0]?.query === messageSearchQuery
-            ? globalMessageSearch.data.pages[0].results
-            : [],
-        hasMore: globalMessageSearch.data?.pages[0]?.hasMore ?? false,
-        messageSearchQuery,
-        t,
-      }),
-    [activeChatId, globalMessageSearch.data, messageSearchQuery, t],
-  );
-  // Lorebook entries: the same typing pause as message search, with no scope or `lore:`.
-  const entrySearchScoped = !queryScope || queryScope === "lorebook";
-  const lorebookEntrySearch = useLorebookEntrySearch(
-    globalMessageQuery,
-    globalMessageQuery.length >= MIN_MESSAGE_SEARCH_LENGTH && entrySearchScoped,
-  );
-  const lorebookNameById = useMemo(
-    () => new Map((lorebooks.data ?? []).map((book) => [book.id, book.name] as const)),
-    [lorebooks.data],
-  );
-  const lorebookEntryResults = useMemo<OmnibarResult[]>(
-    () =>
-      // Only while the typed query still matches the one that was searched.
-      globalMessageQuery === messageSearchQuery
-        ? buildOmnibarLorebookEntryResults({
-            entries: lorebookEntrySearch.data ?? [],
-            lorebookNameById,
-            query: messageSearchQuery,
-            t,
-          })
-        : [],
-    [globalMessageQuery, lorebookEntrySearch.data, lorebookNameById, messageSearchQuery, t],
-  );
+    ranking,
+    commands: data.commands,
+    sources: { chats, characters, personas, lorebooks, presets, connections, agents, docs },
+  });
+  const { messageResults, globalMessageScoped, globalMessageSearch, globalMessageResults, lorebookEntryResults } =
+    useOmnibarMessageSearch({ activeChatId, deferredQuery, queryScope, lorebooks: lorebooks.data });
   // F1: an exact message/entry hit should win over the Mari fallback promotion
   // even when nothing else scored well (slice 41). Docs hits are the same
   // kind of late-arriving direct answer (search results that land after their
@@ -1387,147 +562,28 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     omnibarContext.surface,
     t,
   ]);
-  // M9: what Mari says when she opens on this screen. Built here, where the omnibar context already is,
-  // so every door (⌘J, the pull, Home, ⌘K) shows the same thing. Names, counts and times only (R22).
-  const arrivalChat = activeChat && activeChat.id === activeChatId ? activeChat : null;
-  const arrivalMessageCount = useChatMessageCount(
-    mariEnabled && omnibarContext.surface === "chat" ? (arrivalChat?.id ?? null) : null,
-  );
   const [settingUndoVersion, setSettingUndoVersion] = useState(0);
-  const mariArrival = useMemo(() => {
-    const metadata = arrivalChat ? parseChatMetadata(arrivalChat.metadata) : null;
-    // ponytail: the newest reply and the active-entries count come from what is already cached; the
-    // arrival never fetches messages or runs a scan of its own. A chat not loaded yet shows fewer facts.
-    const newestPage = arrivalChat
-      ? queryClient.getQueryData<{ pages: Message[][] }>(chatKeys.messages(arrivalChat.id))?.pages[0]
-      : undefined;
-    const lastReply = newestPage?.findLast((message) => message.role === "assistant" || message.role === "narrator");
-    const count = arrivalMessageCount.data?.count ?? null;
-    const summaryEnds = Array.isArray(metadata?.summaryEntries)
-      ? (metadata.summaryEntries as { rangeEndIndex?: unknown }[]).flatMap((entry) =>
-          typeof entry?.rangeEndIndex === "number" ? [entry.rangeEndIndex] : [],
-        )
-      : [];
-    const agentRow = openAgentId
-      ? agents.data?.find((agent) => agent.id === openAgentId || agent.type === openAgentId)
-      : undefined;
-    let agentSettingsCount = 0;
-    try {
-      agentSettingsCount = Object.keys(JSON.parse(agentRow?.settings || "{}") ?? {}).length;
-    } catch {
-      // A malformed settings blob only hides the "what do its settings do" card.
-    }
-    const activeAgentIds: unknown[] = Array.isArray(metadata?.activeAgentIds) ? metadata.activeAgentIds : [];
-    const resource = omnibarContext.openResource;
-    const listName = (list: readonly unknown[] | undefined, id: string) =>
-      readNamedRow((list ?? []).find((item) => readNamedRow(item)?.id === id))?.name;
-    const editorName = !resource
-      ? undefined
-      : resource.kind === "character"
-        ? characterNameById.get(resource.id)
-        : resource.kind === "persona"
-          ? listName(personas.data, resource.id)
-          : resource.kind === "lorebook"
-            ? listName(lorebooks.data, resource.id)
-            : resource.kind === "preset"
-              ? listName(presets.data, resource.id)
-              : resource.kind === "connection"
-                ? connectionById.get(resource.id)?.name
-                : undefined;
-    const destinations = getOmnibarSettingsDestinations();
-    const destinationTitle = (id: string) => {
-      const title = destinations.find((destination) => destination.id === id)?.title;
-      return title ? localize(title) : null;
-    };
-    return buildMariArrival(omnibarContext, {
-      t,
-      now: Date.now(),
-      gameSetupStep,
-      chat: arrivalChat
-        ? {
-            name: arrivalChat.name,
-            mode: arrivalChat.mode,
-            characters: getChatCharacterIds(arrivalChat).flatMap((id) => {
-              const name = characterNameById.get(id);
-              return name ? [{ id, name }] : [];
-            }),
-            lorebooks: deriveActiveLorebookViews({
-              activeLorebookIds: getChatActiveLorebookIds(arrivalChat),
-              excludedLorebookIds: getChatExcludedLorebookIds(arrivalChat),
-              dropExcluded: true,
-              chat: arrivalChat,
-              lorebooks: lorebooks.data ?? [],
-            }).map((lorebook) => ({ id: lorebook.id, name: lorebook.name })),
-            messageCount: count,
-            lastReply: lastReply
-              ? { createdAt: lastReply.createdAt, finishReason: lastReply.extra?.generationInfo?.finishReason }
-              : null,
-            messagesSinceSummary:
-              count != null && summaryEnds.length > 0 ? Math.max(0, count - 1 - Math.max(...summaryEnds)) : null,
-            activeEntries:
-              queryClient.getQueryData<ActiveLorebookScan>(lorebookKeys.active(arrivalChat.id))?.entries.length ?? null,
-          }
-        : null,
-      replyFailed: isMariReplyFailure(lastAppError, arrivalChat?.id),
-      agent: agentRow
-        ? {
-            type: agentRow.type,
-            name: agentRow.name,
-            enabled: String(agentRow.enabled) === "true",
-            promptLength: agentRow.promptTemplate?.length ?? 0,
-            settingsCount: agentSettingsCount,
-            onForChat:
-              arrivalChat &&
-              metadata?.enableAgents === true &&
-              (activeAgentIds.includes(agentRow.id) || activeAgentIds.includes(agentRow.type))
-                ? arrivalChat.name
-                : null,
-            lastError:
-              lastAppError?.retry?.kind === "open-agent" && lastAppError.retry.id === agentRow.type
-                ? lastAppError.message
-                : null,
-          }
-        : null,
-      editor: editorName ? { name: editorName, field: activeEditorField?.label } : null,
-      settings: settingsPanelVisible
-        ? {
-            section:
-              (settingsTab ? destinationTitle(`settings-section:${settingsTab}`) : null) ??
-              t("omnibar.categories.settings", "Settings"),
-            control: settingsTargetControlId ? destinationTitle(`settings-control:${settingsTargetControlId}`) : null,
-          }
-        : null,
-      undoLabel: lastSettingFlip?.label ?? null,
-    });
-    // settingUndoVersion: lastSettingFlip is module state; the version re-reads it after an Undo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    activeEditorField?.label,
-    agents.data,
-    arrivalChat,
-    arrivalMessageCount.data?.count,
+  const { mariArrival, mariThreadContext } = useOmnibarMariArrival({
+    activeChat,
+    activeChatId,
+    activeEditorField,
+    agents: agents.data,
     characterNameById,
     connectionById,
     gameSetupStep,
     lastAppError,
-    localize,
-    lorebooks.data,
+    lorebooks: lorebooks.data,
+    mariEnabled,
     omnibarContext,
     openAgentId,
-    personas.data,
-    presets.data,
-    queryClient,
-    settingUndoVersion,
+    personas: personas.data,
+    presets: presets.data,
     settingsPanelVisible,
     settingsTab,
     settingsTargetControlId,
-    t,
-  ]);
-  // R7: which Mari thread this screen's arrivals go to.
-  const mariThreadContext = useMemo(
-    () => mariThreadContextFor(omnibarContext, mariArrival),
-    [mariArrival, omnibarContext],
-  );
+    settingUndoVersion,
+    undoLabel: lastSettingFlip?.label ?? null,
+  });
   const attachedResultIds = useMemo(
     () => new Set(omnibarContext.activeChat?.resultIds ?? []),
     [omnibarContext.activeChat?.resultIds],
@@ -1645,9 +701,32 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () => buildOmnibarContinueResult({ mariEnabled, t, workspaceStatus: mariWorkspaceStatus.data, mariFinished }),
     [mariEnabled, mariWorkspaceStatus.data, t, mariFinished],
   );
-  // The empty omnibar also offers the chats you were in last, other than the open
-  // one: switching chats is the most common trip here, and the "Recent" group
-  // otherwise only knows what was chosen through the omnibar before.
+  const { recentChatResults, frecentIdleResults, tryResults, nowResult, continueResults, markTry } =
+    useOmnibarEmptyState({
+      activeChat,
+      activeChatId,
+      allLocalResults,
+      characterNameById,
+      characters: characters.data,
+      chats: chats.data,
+      contextResults,
+      continueResult,
+      deferredQuery,
+      frecencyEntries,
+      lastAppError,
+      lorebooks: lorebooks.data,
+      mariChats: mariChats.data,
+      mariEnabled,
+      mariFinished,
+      mariHasModel,
+      mariWorkspaceStatus: mariWorkspaceStatus.data,
+      omnibarContext,
+      omnibarSuggestionsEnabled,
+      personas: personas.data,
+      queryScope,
+      searchableEntityResults,
+      theme,
+    });
   // "new character Bob", "chat with Shrek": sentences the name search cannot answer.
   const intentShortcuts = useMemo<OmnibarResult[]>(
     () =>
@@ -1666,172 +745,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () => (deferredQuery.trim() ? buildOmnibarNewChatCommands({ query: deferredQuery, t }) : []),
     [deferredQuery, t],
   );
-  const recentChatResults = useMemo<OmnibarResult[]>(() => {
-    const rowById = new Map(searchableEntityResults.map((row) => [row.id, row] as const));
-    const lastActive = (chat: Chat) => chat.lastMessageAt ?? chat.updatedAt;
-    return (
-      [...(chats.data ?? [])]
-        .filter((chat) => chat.id !== activeChatId)
-        .sort((a, b) => lastActive(b).localeCompare(lastActive(a)))
-        .flatMap((chat) => {
-          const row = rowById.get(`chat:${chat.id}`);
-          return row ? [{ ...row, group: "recent" as const }] : [];
-        })
-        // One more than shown: the newest leads the Continue strip and is dropped here as a duplicate.
-        .slice(0, IDLE_RECENT_CHATS + 1)
-    );
-  }, [activeChatId, chats.data, searchableEntityResults]);
-  // O2: on an empty query, the top 3-5 rows this surface's user actually runs
-  // most, ahead of the plain "last used anywhere" recents group below.
-  const frecentIdleResults = useMemo<OmnibarResult[]>(() => {
-    if (deferredQuery.trim()) return [];
-    const ids = topFrecentResultIds(frecencyEntries, omnibarContext.surface);
-    if (!ids.length) return [];
-    const rowById = new Map(allLocalResults.map((row) => [row.id, row] as const));
-    return ids.flatMap((id) => {
-      // Already the thing you're on — showing "open it" again would be noise.
-      if (id === `chat:${activeChatId}` || id === omnibarContext.openResource?.resultId) return [];
-      const row = rowById.get(id);
-      // Slice 78: chats already lead Continue and Recent, so this group keeps the buried things.
-      return row && isNavigationOmnibarResult(row) && row.category !== "chat"
-        ? [{ ...row, group: "frecent" as const }]
-        : [];
-    });
-  }, [
-    activeChatId,
-    allLocalResults,
-    deferredQuery,
-    frecencyEntries,
-    omnibarContext.openResource,
-    omnibarContext.surface,
-  ]);
-  // Slice 78: Try examples until each kind was used once. Read once per open, so a row never
-  // vanishes under the pointer; the open itself counts toward the stop rule.
-  const [tryState, setTryState] = useState(() => readOmnibarTryState());
-  const tryKinds = useMemo(
-    () => visibleOmnibarTryKinds(tryState, { enabled: omnibarSuggestionsEnabled, mariEnabled }),
-    [mariEnabled, omnibarSuggestionsEnabled, tryState],
-  );
-  const tryShownOnOpenRef = useRef(tryKinds.length > 0);
-  useEffect(() => {
-    if (tryShownOnOpenRef.current) countOmnibarTryOpen();
-  }, []);
-  const markTry = (kind: OmnibarTryKind) => {
-    if (tryState.used[kind] === undefined) setTryState(markOmnibarTryUsed(kind));
-  };
-  const tryResults = useMemo<OmnibarResult[]>(() => {
-    if (deferredQuery.trim() || queryScope || !tryKinds.length) return [];
-    const chatCharacterId = activeChat?.id === activeChatId && activeChat ? getChatCharacterIds(activeChat)[0] : null;
-    const chatCharacterName = chatCharacterId ? characterNameById.get(chatCharacterId) : undefined;
-    return buildOmnibarTryResults(
-      tryKinds,
-      {
-        // Real names from this install, so the example finds something; a fresh one searches the docs.
-        search: readNamedRow(lorebooks.data?.[0])?.name ?? characterNameById.values().next().value ?? "openrouter",
-        command:
-          theme === "light"
-            ? t("commandCenter.try.commandDark", "dark mode")
-            : t("commandCenter.try.commandLight", "light mode"),
-        mari: !mariHasModel
-          ? t("commandCenter.try.mariSetup", "How do I connect a model?")
-          : chatCharacterName
-            ? t("commandCenter.try.mariChat", "Why is {{name}} acting out of character?", { name: chatCharacterName })
-            : t("commandCenter.try.mariHome", "Why are my replies so short?"),
-      },
-      t,
-    );
-  }, [
-    activeChat,
-    activeChatId,
-    characterNameById,
-    deferredQuery,
-    lorebooks.data,
-    mariHasModel,
-    queryScope,
-    t,
-    theme,
-    tryKinds,
-  ]);
-  // Slice 78: the one row that needs you now, from rows the omnibar already builds.
-  const nowResult = useMemo<OmnibarResult | null>(() => {
-    if (deferredQuery.trim() || queryScope) return null;
-    const lastFixRowId = mariFixRowId(lastAppError);
-    return pickOmnibarNowResult({
-      mariRow: continueResult,
-      pendingApprovals: mariEnabled ? (mariWorkspaceStatus.data?.pendingApprovals.length ?? 0) : 0,
-      mariActive: mariWorkspaceStatus.data?.active === true,
-      mariFinished,
-      fixRow: (lastFixRowId && contextResults.find((row) => row.id === lastFixRowId)) || null,
-      checkupRow: contextResults.find((row) => row.id.startsWith("chat-tool:reply-checkup:")) ?? null,
-      setupRow: mariHasModel
-        ? null
-        : {
-            id: "now:setup-connection",
-            title: t("commandCenter.now.setupTitle", "No model connected yet"),
-            description: t("commandCenter.now.setupDescription", "Replies need a model connection. Add one to start."),
-            category: "navigation",
-            target: { kind: "panel", panel: "connections" },
-            score: 0,
-            kind: "navigation",
-            icon: "connection",
-          },
-    });
-  }, [
-    contextResults,
-    continueResult,
-    deferredQuery,
-    lastAppError,
-    mariEnabled,
-    mariFinished,
-    mariHasModel,
-    mariWorkspaceStatus.data,
-    queryScope,
-    t,
-  ]);
-  // Slice 78: where you left off - the last chat, Mari's last conversation, the record edited last.
-  const continueResults = useMemo<OmnibarResult[]>(() => {
-    if (deferredQuery.trim() || queryScope) return [];
-    const rows: OmnibarResult[] = [];
-    if (recentChatResults[0]) rows.push({ ...recentChatResults[0], group: "continue" });
-    const lastActive = (chat: Chat) => chat.lastMessageAt ?? chat.updatedAt;
-    const lastMari = mariEnabled
-      ? [...(mariChats.data ?? [])].sort((a, b) => lastActive(b).localeCompare(lastActive(a)))[0]
-      : undefined;
-    if (lastMari) {
-      rows.push({
-        id: `mari-chat:${lastMari.id}`,
-        action: { kind: "open-mari-chat", chatId: lastMari.id },
-        title: lastMari.name || t("omnibar.categories.professor", "Professor Mari"),
-        description: t("commandCenter.mariChat", "Professor Mari conversation"),
-        category: "chat",
-        group: "continue",
-        score: 0,
-        kind: "action",
-        icon: "professor",
-      });
-    }
-    const editedId = lastEditedRecordId([
-      ["character", characters.data],
-      ["persona", personas.data],
-      // Not presets: the built-in one is rewritten on startup and would always read as "edited".
-      ["lorebook", lorebooks.data],
-    ]);
-    const edited = editedId ? allLocalResults.find((row) => row.id === editedId) : undefined;
-    // Without its inline switch: on a card, Enter opens the record, it never flips it.
-    if (edited) rows.push({ ...edited, group: "continue", control: undefined });
-    return rows;
-  }, [
-    allLocalResults,
-    characters.data,
-    deferredQuery,
-    lorebooks.data,
-    mariChats.data,
-    mariEnabled,
-    personas.data,
-    queryScope,
-    recentChatResults,
-    t,
-  ]);
   const rawResults = useMemo(
     () =>
       // A scope with nothing typed after it ("char:") is a request to browse that
@@ -2329,252 +1242,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     } else executeStateNavigation(definition.action.target);
     return true;
   };
-  /**
-   * Detaches one resource from the open chat. Each kind lives in a different
-   * field, so the mapping is explicit; a lorebook is also added to the excluded
-   * list, because dropping it from the active list alone lets a character
-   * re-activate it immediately.
-   */
-  const detachFromChat = (resource: ChatResourceDragKind, resourceId: string, label: string) => {
-    if (!activeChat || !resourceId) return false;
-    const chatId = activeChat.id;
-    // Each patch is paired with the patch that puts the old value back, so the
-    // toast can offer Undo instead of a modal confirm blocking the keyboard flow.
-    const metadata = parseChatMetadata(activeChat.metadata);
-    const activeAgentIds = Array.isArray(metadata.activeAgentIds) ? metadata.activeAgentIds : [];
-    const characterIds = getChatCharacterIds(activeChat);
-    const activeLorebookIds = getChatActiveLorebookIds(activeChat);
-    const excludedLorebookIds = getChatExcludedLorebookIds(activeChat);
-    const chatPatch = (next: Parameters<typeof patchChat>[0], undo: Parameters<typeof patchChat>[0]) => ({
-      apply: () => void patchChat(next),
-      undo: () => void patchChat(undo),
-    });
-    const metadataPatch = (
-      next: Parameters<typeof patchChatMetadata>[0],
-      undo: Parameters<typeof patchChatMetadata>[0],
-    ) => ({ apply: () => void patchChatMetadata(next), undo: () => void patchChatMetadata(undo) });
-    const change =
-      resource === "character"
-        ? chatPatch(
-            { id: chatId, characterIds: characterIds.filter((id) => id !== resourceId) },
-            { id: chatId, characterIds },
-          )
-        : resource === "persona"
-          ? chatPatch({ id: chatId, personaId: null }, { id: chatId, personaId: activeChat.personaId ?? null })
-          : resource === "preset"
-            ? chatPatch(
-                { id: chatId, promptPresetId: null },
-                { id: chatId, promptPresetId: activeChat.promptPresetId ?? null },
-              )
-            : resource === "connection"
-              ? chatPatch(
-                  { id: chatId, connectionId: null },
-                  { id: chatId, connectionId: activeChat.connectionId ?? null },
-                )
-              : resource === "lorebook"
-                ? metadataPatch(
-                    {
-                      id: chatId,
-                      activeLorebookIds: activeLorebookIds.filter((id) => id !== resourceId),
-                      excludedLorebookIds: [...new Set([...excludedLorebookIds, resourceId])],
-                    },
-                    { id: chatId, activeLorebookIds, excludedLorebookIds },
-                  )
-                : resource === "agent"
-                  ? metadataPatch(
-                      {
-                        id: chatId,
-                        // A chat stores either the agent's id or its type, while the row id
-                        // is always the type. Comparing raw values would detach nothing.
-                        activeAgentIds: activeAgentIds.filter(
-                          (id) =>
-                            (agents.data?.find((agent) => agent.id === id || agent.type === id)?.type ?? id) !==
-                            resourceId,
-                        ),
-                      },
-                      { id: chatId, activeAgentIds },
-                    )
-                  : null;
-    if (!change) return false;
-    change.apply();
-    toast.success(t("commandCenter.actions.removedFromChat", "Removed {{name}} from this chat.", { name: label }), {
-      action: { label: t("ui.chat.chatresourcedropoverlay.undo", "Undo"), onClick: change.undo },
-    });
-    onClose();
-    return true;
-  };
-  /** Attaches one resource to the open chat and closes, unless the drop rules block it. */
-  const attachToChat = (kind: ChatResourceDragKind, id: string, label: string, resultId: string) => {
-    if (!activeChat || !id) return false;
-    const payload: ChatResourceDragPayload = { version: 1, kind, ids: [id], label };
-    const blocked = resolveChatResourceDropAction(payload, activeChat);
-    if (blocked?.type === "blocked") {
-      // Silently returning false left the row looking live but doing nothing.
-      toast.info(t(chatResourceBlockedKey(blocked), { name: label }));
-      return false;
-    }
-    requestChatResourceAssignment(payload);
-    recordUse(resultId);
-    // A character or lorebook attaches quietly with an Undo toast, so the omnibar
-    // stays open for the next one. The others can ask to replace the current
-    // persona, preset or connection, or open agent setup, which must not open
-    // behind this dialog.
-    if (kind !== "character" && kind !== "lorebook") onClose();
-    return true;
-  };
-  /**
-   * Attaches a lorebook to the open chat unless it is already active there, in
-   * which case there is nothing to attach (O4 item 1).
-   */
-  const attachLorebookIfNotActive = (result: OmnibarResult): boolean => {
-    if (!activeChat) return false;
-    const id = getOmnibarResourceId(result);
-    if (!id) return false;
-    const payload: ChatResourceDragPayload = { version: 1, kind: "lorebook", ids: [id], label: result.title };
-    if (resolveChatResourceDropAction(payload, activeChat)?.type === "blocked") return false;
-    return attachToChat("lorebook", id, result.title, result.id);
-  };
-  /** A lorebook row's own "Enabled" toggle, as opposed to the explicit "Add X to chat" suggestion row. */
-  const isLorebookEnableToggleRow = (result: Pick<OmnibarResult, "category" | "control" | "action">) =>
-    result.category === "lorebook" && result.control?.type === "toggle" && !result.action;
-  const runDirectChatAction = (result: OmnibarResult) => {
-    if (!activeChat || !isDirectActiveChatAction(query, result, searchResults)) return false;
-    const kind = CHAT_RESOURCE_KIND[result.category];
-    if (!kind) return false;
-    return attachToChat(kind, getOmnibarResourceId(result), result.title, result.id);
-  };
-  // Typed dispatch for the results that do something other than open an entity.
-  // Results without an `action` fall through to the generic entity-open path in
-  // `choose` below.
-  const runResultAction = (result: OmnibarResult, action: OmnibarAction) => {
-    switch (action.kind) {
-      case "open-mari-chat":
-        setMariOpenChatId(action.chatId);
-        openProfessorMari();
-        return;
-      case "slash": {
-        const chatId = activeChatId;
-        const command = `/${action.command} `;
-        recordUse(result.id);
-        onClose();
-        // After the dialog unmounts, so the chat input keeps the focus it takes.
-        if (chatId) requestAnimationFrame(() => dispatchCardAssetInsert(command, chatId));
-        return;
-      }
-      case "goto-message":
-        // The request is keyed by chat id and survives the switch, so a hit in
-        // another chat opens that chat and the jump is picked up on arrival.
-        if (action.chatId !== activeChatId && !navigate({ kind: "chat", chatId: action.chatId })) return;
-        useChatStore.getState().requestGotoMessage(action.chatId, action.messageNumber);
-        onClose();
-        return;
-      case "refine-query":
-        setQuery(action.query);
-        setActiveResultId(null);
-        requestAnimationFrame(() => inputRef.current?.focus());
-        return;
-      case "add-to-chat":
-        // Named a different (or no open) chat: queue the attach for when that
-        // chat mounts, then navigate there — the same handoff the "goto-message"
-        // action above uses to land on a chat that is not open yet.
-        if (action.chatId && action.chatId !== activeChatId) {
-          if (!navigate({ kind: "chat", chatId: action.chatId })) return;
-          requestChatResourceAssignmentFor(action.chatId, {
-            version: 1,
-            kind: action.resource,
-            ids: [action.resourceId],
-            label: action.label,
-          });
-          recordUse(result.id);
-          onClose();
-          return;
-        }
-        attachToChat(action.resource, action.resourceId, action.label, result.id);
-        return;
-      case "detach-from-chat":
-        if (detachFromChat(action.resource, action.resourceId, action.label)) recordUse(result.id);
-        return;
-      case "personal-extension":
-        if (activatePersonalExtensionCommand(action.commandId)) {
-          recordUse(result.id);
-          onClose();
-        }
-        return;
-      case "open-docs":
-        ui().openModal("docs-viewer", {
-          initialDoc: action.path,
-          initialSearchTerm: query.trim().slice(0, 200),
-        });
-        recordUse(result.id);
-        onClose();
-        return;
-      case "open-faq":
-        ui().openModal("faq-viewer", { initialItemId: action.itemId });
-        recordUse(result.id);
-        onClose();
-        return;
-      case "open-global-search":
-        openGlobalSearch(action.query);
-        onClose();
-        return;
-      case "create-named":
-        ui().openModal(action.modal, { defaultName: action.name });
-        recordUse(result.id);
-        onClose();
-        return;
-      case "start-character-chat":
-        ui().openModal("start-character-chat", {
-          characterId: action.characterId,
-          characterName: action.characterName,
-        });
-        recordUse(result.id);
-        onClose();
-        return;
-      case "start-chat":
-        if (!confirmLeaveEditor()) return;
-        recordUse(result.id);
-        // Closing unmounts this dialog (and the mutation hook inside
-        // `startNewChatMode`), so wait for it to settle first — otherwise the
-        // chat gets created but the unmount drops its success callback.
-        void startNewChatMode(action.mode)
-          .catch(() => {
-            /* The create mutation's own onError already surfaces a toast. */
-          })
-          .finally(() => onClose());
-        return;
-      case "open-lorebook-entry":
-        if (!confirmLeaveEditor()) return;
-        ui().openLorebookDetail(action.lorebookId, { initialTab: "entries", entryId: action.entryId });
-        recordUse(result.id);
-        onClose();
-        return;
-      case "open-chat-tool":
-        recordUse(result.id);
-        onClose();
-        // After the dialog unmounts, so the panel it opens can anchor to a button
-        // that is actually visible on screen again.
-        requestAnimationFrame(() => {
-          switch (action.tool) {
-            case "summary":
-              requestChatSummaryOpen(action.chatId);
-              return;
-            case "lorebook":
-              requestChatLorebookEntriesOpen(action.chatId);
-              return;
-            case "search":
-              requestChatSearchOpen(action.chatId);
-              return;
-            case "reply-checkup":
-              requestChatReplyCheckup(action.chatId);
-              return;
-            case "regenerate":
-              requestChatRegenerate(action.chatId);
-              return;
-          }
-        });
-        return;
-    }
-  };
   const choose = (result: OmnibarResult) => {
     // Slice 78: a pick after typing teaches "search" or "command"; a Try example teaches nothing.
     // Controls are counted where they flip; a row reaching here with one (a lorebook's Enabled
@@ -2788,216 +1455,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // highlight. Without this the box under the expanded row would show the
     // hovered row's preview. Same rule the arrow keys already follow.
     if (expandedPreviewId) setExpandedPreviewId(isRichResult(result) ? result.id : null);
-  };
-  const handleEscape = () => {
-    if (expandedPreviewId || expandedChoiceId) {
-      // One expansion, one press. Collapsing does not close the omnibar.
-      setExpandedPreviewId(null);
-      setExpandedChoiceId(null);
-      requestAnimationFrame(() => inputRef.current?.focus());
-    } else if (pane === "mari") {
-      setMariChatOpen(false);
-      setPane("results");
-      focusMariReturnRow();
-    } else onClose();
-  };
-  const moveSelection = (index: number) => {
-    const next = results[index];
-    autoSelectionRef.current = false;
-    setActiveResultId(next?.id ?? null);
-    if (expandedPreviewId) setExpandedPreviewId(next && isRichResult(next) ? next.id : null);
-  };
-  const onInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    // An IME (Chinese, Japanese, ...) confirms its candidate with Enter, and
-    // arrows move its candidate list, and Escape cancels the composition; none
-    // of them belong to the result list or the dialog's own Escape handling.
-    if (event.nativeEvent.isComposing) {
-      event.stopPropagation();
-      return;
-    }
-    if (event.key === "Tab" && !event.shiftKey && inlineSuffix) {
-      // Accept the ghost completion instead of leaving the field.
-      event.preventDefault();
-      setQuery(query + inlineSuffix);
-      return;
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      handleEscape();
-    } else if (pane === "results" && event.key === "ArrowDown") {
-      event.preventDefault();
-      moveSelection(Math.min(Math.max(activeIndex, -1) + 1, results.length - 1));
-    } else if (pane === "results" && event.key === "ArrowUp") {
-      event.preventDefault();
-      moveSelection(Math.max(activeIndex < 0 ? 0 : activeIndex - 1, 0));
-    } else if (pane === "results" && event.key === "Home") {
-      event.preventDefault();
-      moveSelection(0);
-    } else if (pane === "results" && event.key === "End") {
-      event.preventDefault();
-      moveSelection(results.length - 1);
-    } else if (
-      mariEnabled &&
-      pane === "results" &&
-      event.key === "Enter" &&
-      (event.metaKey || event.ctrlKey) &&
-      asideLive &&
-      (!activeResult || activeResult.id === "ask-professor-mari")
-    ) {
-      // No real row selected (the generic Ask-Mari row doesn't count), and the
-      // aside is answering: ⌘↵ escalates it instead of just asking again (R25).
-      event.preventDefault();
-      escalateAside();
-    } else if (
-      mariEnabled &&
-      pane === "results" &&
-      event.key === "Enter" &&
-      (event.metaKey || event.ctrlKey) &&
-      activeResult &&
-      activeResult.command.availability?.status !== "requires-admin"
-    ) {
-      // Continue the selected result with Mari without opening the detail pane first.
-      event.preventDefault();
-      askMariAbout(resolveCurrentResult(activeResult));
-    } else if (pane === "results" && event.key === "Enter" && !activeResult && mariEnabled && query.trim()) {
-      // Nothing ranked at all, so Enter still reaches Mari by the one door.
-      event.preventDefault();
-      askMariAbout(null);
-    } else if (
-      pane === "results" &&
-      event.key === "Enter" &&
-      event.shiftKey &&
-      activeResult &&
-      activeResult.id.startsWith("settings-control:") &&
-      activeResult.control?.type === "toggle" &&
-      activeResult.target
-    ) {
-      // Enter flips a bound toggle in place (K5); Shift+Enter keeps the pre-K5
-      // path of navigating to the control's spot in Settings instead.
-      event.preventDefault();
-      if (navigate(activeResult.target)) {
-        recordUse(activeResult.id);
-        onClose();
-      }
-    } else if (pane === "results" && event.key === "Enter" && activeResult) {
-      event.preventDefault();
-      if (chooseChoiceOption(activeResult)) return;
-      if (isMariApprovalRow(activeResult)) choose(activeResult);
-      else if (activeResult.control?.type === "toggle" && !isLorebookEnableToggleRow(activeResult))
-        flipToggleControl(activeResult, activeResult.control.value !== true);
-      else if (activeResult.control?.type === "choice")
-        setExpandedChoiceId((current) => (current === activeResult.id ? null : activeResult.id));
-      else if (mariEnabled && activeResult.id === "ask-professor-mari") {
-        // An answer grown inside the promoted row goes along with the question (G3).
-        if (asideLive && activeResult.group !== "continue") escalateAside();
-        else openProfessorMari(null, { submitDraft: true });
-      } else choose(activeResult);
-    } else if (pane === "results" && event.key === "ArrowLeft" && activeResult && expandedPreviewId) {
-      event.preventDefault();
-      setExpandedPreviewId(null);
-    } else if (
-      pane === "results" &&
-      event.key === "ArrowLeft" &&
-      activeResult &&
-      expandedChoiceId &&
-      (activeResult.id === expandedChoiceId || readChoiceOptionId(activeResult.id)?.parentId === expandedChoiceId)
-    ) {
-      // Collapse before the generic ArrowLeft below returns focus to the input,
-      // so one press does one thing.
-      event.preventDefault();
-      setExpandedChoiceId(null);
-      setActiveResultId(expandedChoiceId);
-    } else if (
-      pane === "results" &&
-      event.key === "ArrowRight" &&
-      activeResult &&
-      activeResult.control?.type === "choice"
-    ) {
-      event.preventDefault();
-      setExpandedChoiceId(activeResult.id);
-    } else if (pane === "results" && event.key === "ArrowRight" && activeResult && isRichResult(activeResult)) {
-      event.preventDefault();
-      setExpandedPreviewId((current) => (current === activeResult.id ? null : activeResult.id));
-    }
-  };
-  const trapFocus = (event: KeyboardEvent<HTMLDivElement>) => {
-    // L8: the omnibar may sit over a dialog or the game setup wizard. An Escape
-    // pressed inside it (also one a menu or row already handled) is its own, so
-    // it must not reach their document/window listeners and close them too.
-    if (event.key === "Escape" && panelRef.current?.contains(event.target as Node)) event.stopPropagation();
-    if (event.defaultPrevented) return;
-    if (event.key === "Escape") {
-      event.preventDefault();
-      handleEscape();
-      return;
-    }
-    const focusedRow = (event.target as HTMLElement).closest<HTMLElement>("[data-command-center-result-row]");
-    const focusedRowButton = focusedRow?.querySelector<HTMLElement>(":scope > button");
-    if (focusedRow && event.target === focusedRowButton && pane === "results") {
-      const rowId = focusedRow.dataset.resultId;
-      // Hover moves the highlight without moving DOM focus, so arrows continue
-      // from what is highlighted — otherwise they jump back to the focused row.
-      const rowIndex = activeIndex >= 0 ? activeIndex : results.findIndex((result) => result.id === rowId);
-      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
-        event.preventDefault();
-        const nextIndex =
-          event.key === "Home"
-            ? 0
-            : event.key === "End"
-              ? results.length - 1
-              : event.key === "ArrowDown"
-                ? Math.min(rowIndex + 1, results.length - 1)
-                : Math.max(rowIndex - 1, 0);
-        const next = results[nextIndex];
-        if (next) {
-          // Through `moveSelection`, so this path keeps the expansion in step
-          // with the selection exactly as the input-focused arrows and hover do.
-          moveSelection(nextIndex);
-          listRef.current?.querySelector<HTMLElement>(`[data-result-id="${CSS.escape(next.id)}"] button`)?.focus();
-        }
-        return;
-      }
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        inputRef.current?.focus();
-        return;
-      }
-      if (event.key === "ArrowRight") {
-        const focusedResult = results[rowIndex];
-        if (focusedResult?.control?.type === "choice") {
-          event.preventDefault();
-          setExpandedChoiceId(focusedResult.id);
-          return;
-        }
-        if (focusedResult && isRichResult(focusedResult)) {
-          event.preventDefault();
-          setExpandedPreviewId((current) => (current === focusedResult.id ? null : focusedResult.id));
-          return;
-        }
-      }
-    }
-    if (event.key !== "Tab") return;
-    const focusable = Array.from(
-      panelRef.current?.querySelectorAll<HTMLElement>(
-        'input, textarea, select, button, [tabindex]:not([tabindex="-1"])',
-      ) ?? [],
-    ).filter(
-      (element) =>
-        !element.hasAttribute("disabled") &&
-        !element.closest('[aria-hidden="true"], [inert]') &&
-        element.getClientRects().length > 0,
-    );
-    if (focusable.length === 0) return;
-    const current = focusable.indexOf(document.activeElement as HTMLElement);
-    const next = event.shiftKey
-      ? current <= 0
-        ? focusable.length - 1
-        : current - 1
-      : current === focusable.length - 1
-        ? 0
-        : current + 1;
-    event.preventDefault();
-    focusable[next]?.focus();
   };
   const setCategoryFilter = (nextFilter: CommandCenterCategoryFilter) => {
     setFilter(nextFilter);
@@ -3221,15 +1678,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
    */
   // What Enter does on this row (R8), from the same dispatch `choose` runs: an
   // "Add Eliza to this chat" row must not say Edit.
-  const nowActionLabel = (now: NonNullable<OmnibarResult["now"]>) =>
-    ({
-      review: t("commandCenter.now.review", "Review"),
-      fix: t("commandCenter.now.fix", "Fix"),
-      check: t("commandCenter.now.check", "Check"),
-      working: t("commandCenter.open", "Open"),
-      finished: t("commandCenter.now.see", "See"),
-      setup: t("commandCenter.now.setup", "Set up"),
-    })[now];
   const resultEnterHint = (result: RankedOmnibarResult) => {
     if (result.id === "ask-professor-mari") {
       return result.group === "continue" ? t("commandCenter.open", "Open") : t("commandCenter.enter.ask", "Ask");
@@ -3313,153 +1761,44 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // The row already runs its Enter action, so the expansion offers only the others
   // (D3): an "Edit character" chip under a row whose Enter edits is the same door twice.
   const previewEnterHint = previewResult && !previewResult.control ? resultEnterHint(previewResult) : null;
+  const { detachFromChat, attachLorebookIfNotActive, runDirectChatAction, runResultAction } =
+    createOmnibarResultActions({
+      t,
+      ui,
+      activeChat,
+      activeChatId,
+      agents: agents.data,
+      query,
+      searchResults,
+      inputRef,
+      patchChat,
+      patchChatMetadata,
+      startNewChatMode,
+      setQuery,
+      setActiveResultId,
+      setMariOpenChatId,
+      confirmLeaveEditor,
+      navigate,
+      recordUse,
+      openProfessorMari,
+      onClose,
+    });
   const previewActions = previewResult
-    ? (() => {
-        if (previewResult.command.availability?.status === "requires-admin") return [];
-        // Only for what she can change; a setting, a message or a doc has nothing to continue.
-        const mariActions =
-          mariEnabled && MARI_EDITABLE_CATEGORIES.has(previewResult.category) && !previewResult.action
-            ? [
-                {
-                  label: t("commandCenter.actions.continueWithMari", "Continue with Mari"),
-                  icon: Sparkles,
-                  onSelect: () => askMariAbout(previewResult),
-                },
-              ]
-            : [];
-        if (previewResult.control?.type === "choice") return mariActions;
-        const resourceKind = CHAT_RESOURCE_KIND[previewResult.category];
-        const resourceId = resourceKind ? getOmnibarResourceId(previewResult) : "";
-        const connection =
-          resourceKind === "connection"
-            ? (connections.data ?? []).find((item) => readNamedRow(item)?.id === resourceId)
-            : undefined;
-        const payload: ChatResourceDragPayload | null = resourceKind
-          ? {
-              version: 1,
-              kind: resourceKind,
-              ids: [resourceId],
-              label: previewResult.title,
-              ...(connection && !isLanguageGenerationConnection(connection)
-                ? { unsupported: "connection-kind" as const }
-                : {}),
-            }
-          : null;
-        const rowResource =
-          resourceKind === "character" ||
-          resourceKind === "persona" ||
-          resourceKind === "preset" ||
-          resourceKind === "connection"
-            ? resourceKind
-            : null;
-        const rowState = rowResource
-          ? resolveOmnibarRowState({
-              resource: rowResource,
-              id: resourceId,
-              activeChat,
-              globallyActive:
-                previewResult.category === "persona"
-                  ? previewResult.control?.value === true
-                  : previewResult.category === "preset"
-                    ? previewResult.control?.value === true
-                    : undefined,
-            })
-          : null;
-        const canAddToChat =
-          payload &&
-          activeChat &&
-          (!rowState || rowState.canAddToChat) &&
-          resolveChatResourceDropAction(payload, activeChat)?.type !== "blocked";
-        const addToChatAction =
-          payload && canAddToChat && previewEnterHint !== t("commandCenter.enter.add", "Add")
-            ? {
-                label: t("commandCenter.actions.addToThisChat", "Add to this chat"),
-                icon: MessageCircle,
-                onSelect: () => {
-                  requestChatResourceAssignment(payload);
-                  recordUse(previewResult.id);
-                  onClose();
-                },
-              }
-            : null;
-        // Enter on a persona or preset row flips its toggle, which is the global action.
-        if (previewResult.category === "persona" || previewResult.category === "preset") {
-          return [...mariActions, ...(addToChatAction ? [addToChatAction] : [])];
-        }
-        if (previewResult.category === "lorebook") {
-          const inActiveChat = Boolean(activeChat && attachedResultIds.has(previewResult.id));
-          // Enter on the row itself attaches (or is a no-op) rather than
-          // editing (O4 item 1), so editing always stays a dedicated action here.
-          const editAction = {
-            label: t("commandCenter.actions.editLorebook", "Edit lorebook"),
-            icon: Edit3,
-            onSelect: () => {
-              if (previewResult.target && navigate(previewResult.target)) {
-                recordUse(previewResult.id);
-                onClose();
-              }
-            },
-          };
-          const askMariAction = mariEnabled
-            ? {
-                label: t("commandCenter.mode.work", "Ask Mari"),
-                icon: Sparkles,
-                onSelect: () => askMariAbout(previewResult),
-              }
-            : null;
-          const contextAction = inActiveChat
-            ? {
-                label: t("commandCenter.actions.removeFromThisChat", "Remove from this chat"),
-                icon: X,
-                danger: true,
-                onSelect: () => detachFromChat("lorebook", resourceId, previewResult.title),
-              }
-            : addToChatAction;
-          return [editAction, ...(askMariAction ? [askMariAction] : []), ...(contextAction ? [contextAction] : [])];
-        }
-        if (previewResult.category === "character") {
-          const characterId = getOmnibarResourceId(previewResult);
-          const startChatAction =
-            previewEnterHint !== t("commandCenter.enter.start", "Start")
-              ? {
-                  label: t("commandCenter.actions.startChat", "Start chat"),
-                  icon: Play,
-                  onSelect: () => {
-                    ui().openModal("start-character-chat", { characterId, characterName: previewResult.title });
-                    recordUse(previewResult.id);
-                    onClose();
-                  },
-                }
-              : null;
-          // Symmetric to add-to-chat: when the character is already a participant,
-          // the most useful scene action is removing it from the active chat.
-          const removeFromChatAction =
-            activeChat &&
-            characterId &&
-            rowState?.inActiveChat &&
-            previewEnterHint !== t("commandCenter.enter.remove", "Remove")
-              ? {
-                  label: t("commandCenter.actions.removeFromThisChat", "Remove from this chat"),
-                  icon: UserMinus,
-                  danger: true,
-                  onSelect: () => {
-                    void updateChat.mutateAsync({
-                      id: activeChat.id,
-                      characterIds: (activeChat.characterIds ?? []).filter((id) => id !== characterId),
-                    });
-                    recordUse(previewResult.id);
-                    onClose();
-                  },
-                }
-              : null;
-          return [
-            ...(removeFromChatAction ? [removeFromChatAction] : addToChatAction ? [addToChatAction] : []),
-            ...(startChatAction ? [startChatAction] : []),
-          ];
-        }
-        // Resume chat, Open documentation and Open were all Enter.
-        return [...mariActions, ...(addToChatAction ? [addToChatAction] : [])];
-      })()
+    ? buildOmnibarPreviewActions(previewResult, {
+        t,
+        ui,
+        activeChat,
+        attachedResultIds,
+        connections: connections.data,
+        mariEnabled,
+        previewEnterHint,
+        updateChat,
+        askMariAbout,
+        detachFromChat,
+        navigate,
+        recordUse,
+        onClose,
+      })
     : [];
 
   // The quick answer, as the expansion of the promoted Ask row: only ever below the selection (R9).
@@ -3518,6 +1857,41 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         />
       </Suspense>
     ) : null;
+
+  const { onInputKeyDown, trapFocus } = createOmnibarKeyHandlers({
+    panelRef,
+    listRef,
+    inputRef,
+    autoSelectionRef,
+    pane,
+    query,
+    inlineSuffix,
+    results,
+    activeIndex,
+    activeResult,
+    expandedPreviewId,
+    expandedChoiceId,
+    mariEnabled,
+    asideLive,
+    setQuery,
+    setPane,
+    setActiveResultId,
+    setExpandedPreviewId,
+    setExpandedChoiceId,
+    setMariChatOpen,
+    focusMariReturnRow,
+    onClose,
+    choose,
+    chooseChoiceOption,
+    flipToggleControl,
+    isLorebookEnableToggleRow,
+    navigate,
+    recordUse,
+    askMariAbout,
+    escalateAside,
+    openProfessorMari,
+    resolveCurrentResult,
+  });
 
   return createPortal(
     <motion.div
@@ -3682,29 +2056,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               </button>
             ) : null}
             {!mariSurface && mariEnabled ? (
-              <button
-                type="button"
+              <OmnibarMariDoor
                 onClick={() => askMariAbout(null)}
-                // Slice 79b: her head is the door to her (the footer pill is gone), so it says so.
-                aria-label={t("commandCenter.askMariDoor", "Ask Mari")}
-                aria-keyshortcuts={isApplePlatform() ? "Meta+J" : "Control+J"}
-                title={t("commandCenter.askMariDoorTooltip", "Ask Mari ({{shortcut}})", {
-                  shortcut: isApplePlatform() ? "⌘J" : "Ctrl+J",
-                })}
-                data-component="GlobalOmnibar.ProfessorMariButton"
-                data-mari-glow={mariWorkingInBackground ? "true" : "false"}
-                className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end rounded-t-lg pb-2 pl-8 transition-colors [--mari-glow-size:3.4rem] [--mari-glow-top:0.05rem] hover:bg-[color-mix(in_srgb,var(--primary)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] active:bg-[color-mix(in_srgb,var(--primary)_14%,transparent)] max-[30rem]:w-11 max-[30rem]:pl-0"
-              >
-                {/* P1: only the tall portrait is cropped, so her working glow on the button fades out freely. */}
-                <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
-                  <img
-                    src={appearance.portraits.idle}
-                    alt=""
-                    draggable={false}
-                    className="absolute left-1/2 top-0 h-[6.5rem] w-auto max-w-none -translate-x-1/2 object-contain object-top transition-transform duration-200 ease-out group-hover:-translate-y-1 group-focus-visible:-translate-y-1 group-active:translate-y-0 motion-reduce:transition-none max-[30rem]:h-20"
-                  />
-                </span>
-              </button>
+                working={mariWorkingInBackground}
+                portrait={appearance.portraits.idle}
+              />
             ) : null}
             {/* R11: while a phone keyboard is open her destinations fold into a menu here (one-line header). */}
             {mariSurface ? <span ref={setMariMenuSlot} className="mari-omnibar-header-compact-menu" /> : null}
@@ -3725,55 +2081,21 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             <OmnibarUnderstoodLine line={query.trim() ? understoodLine : null} context={rowVisualContext} />
           ) : null}
           {!query.trim() && !mariSurface ? (
-            <div
-              role="toolbar"
-              aria-label={t("commandCenter.scopeChips.label", "Search a category")}
-              data-component="GlobalOmnibar.ScopeChips"
-              className="omnibar-horizontal-strip scrollbar-hide flex min-h-11 items-center gap-1 overflow-x-auto border-b border-[var(--border)] py-1.5 pl-3 pr-6 overscroll-x-contain sm:min-h-10"
-            >
-              {OMNIBAR_SCOPE_CHIP_FILTERS.map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  data-omnibar-scope-chip={chip}
-                  onClick={() => {
-                    const scope = FILTER_CATEGORY[chip];
-                    if (!scope) return;
-                    // Write the prefix rather than setting hidden state, so the
-                    // syntax is visible in the field the moment it is used.
-                    setQuery(omnibarScopePrefix(scope));
-                    setFilter("all");
-                    requestAnimationFrame(() => inputRef.current?.focus());
-                  }}
-                  className="min-h-8 shrink-0 rounded-md px-2.5 text-xs font-semibold text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
-                >
-                  {filterLabels[chip]}
-                </button>
-              ))}
-            </div>
+            <OmnibarScopeChips
+              filterLabels={filterLabels}
+              setQuery={setQuery}
+              setFilter={setFilter}
+              inputRef={inputRef}
+            />
           ) : null}
           {query.trim() && !mariSurface ? (
-            <motion.div
-              initial={reduceMotion ? false : { opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              transition={reduceMotion ? { duration: 0 } : { duration: 0.14, ease: "easeOut" }}
-              role="toolbar"
-              aria-label={t("commandCenter.filters.label", "Result categories")}
-              data-component="GlobalOmnibar.Filters"
-              className="omnibar-horizontal-strip scrollbar-hide flex min-h-11 items-center gap-1 overflow-x-auto border-b border-[var(--border)] py-1.5 pl-3 pr-6 overscroll-x-contain sm:min-h-10"
-            >
-              {availableFilters.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  aria-pressed={filter === item}
-                  onClick={() => setCategoryFilter(item)}
-                  className={`min-h-8 shrink-0 rounded-md px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] ${filter === item ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]"}`}
-                >
-                  {filterLabels[item]}
-                </button>
-              ))}
-            </motion.div>
+            <OmnibarFilterStrip
+              reduceMotion={reduceMotion}
+              availableFilters={availableFilters}
+              filter={filter}
+              filterLabels={filterLabels}
+              setCategoryFilter={setCategoryFilter}
+            />
           ) : null}
         </header>
 
@@ -3822,309 +2144,46 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             />
           </Suspense>
         ) : null}
-        {pane !== "mari" && idle ? (
-          <div
-            data-component="GlobalOmnibar.Empty"
-            className="flex min-h-40 flex-1 flex-col items-center justify-center px-6 py-8 text-center sm:min-h-32"
-          >
-            <Search size={20} aria-hidden="true" className="mb-2 text-[var(--primary)]" />
-            <p className="text-sm font-semibold text-[var(--foreground)]">
-              {t("commandCenter.empty.title", "Search across Marinara")}
-            </p>
-            <p className="mt-1 max-w-[32rem] text-xs leading-relaxed text-[var(--muted-foreground)]">
-              {t(
-                "commandCenter.empty.description",
-                "Type the name of a chat, character, setting or message. Pick a category above to browse.",
-              )}
-            </p>
-          </div>
-        ) : null}
+        {pane !== "mari" && idle ? <OmnibarEmpty /> : null}
         {!listVisible ? null : (
-          <div className="flex min-h-0 flex-1">
-            <div
-              ref={listRef}
-              id="global-omnibar-results"
-              aria-label={t("omnibar.results", "Search results")}
-              data-component="GlobalOmnibar.Results"
-              className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-[max(0.5rem,var(--mari-safe-area-inset-bottom,env(safe-area-inset-bottom)))] pt-2"
-            >
-              {query.trim() && loading && results.length === 0 ? (
-                <div className="flex min-h-24 items-center justify-center text-sm text-[var(--muted-foreground)]">
-                  <Loader2 className="mr-2 animate-spin" size={16} />
-                  {t("omnibar.loading", "Loading results")}
-                </div>
-              ) : null}
-              {failed ? (
-                <div role="status" className="px-3 py-2 text-xs text-[var(--muted-foreground)]">
-                  {t("omnibar.error", "Some results could not be loaded")}
-                </div>
-              ) : null}
-              {presentation.groups.map((group) => {
-                const GroupIcon =
-                  group.id === "try"
-                    ? Lightbulb
-                    : group.id === "professor-suggested"
-                      ? Sparkles
-                      : group.id === "current-work" || group.id === "context"
-                        ? Compass
-                        : group.id === "continue"
-                          ? Sparkles
-                          : group.id === "recent" || group.id === "frecent"
-                            ? Clock3
-                            : group.id === "quick-controls"
-                              ? SlidersHorizontal
-                              : LayoutGrid;
-                return (
-                  <section
-                    key={group.id}
-                    aria-labelledby={group.id === "now" ? undefined : `omnibar-group-${group.id}`}
-                    aria-label={group.id === "now" ? t("commandCenter.groups.now", "Needs you now") : undefined}
-                  >
-                    {/* Slice 78: the Now row speaks for itself; a heading over one row is noise. */}
-                    <div className={cn("flex items-center gap-1.5 px-3 pb-1 pt-3", group.id === "now" && "hidden")}>
-                      <GroupIcon size={12} className="text-[var(--primary)]" aria-hidden="true" />
-                      <h3
-                        id={`omnibar-group-${group.id}`}
-                        className="text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-[var(--muted-foreground)]"
-                      >
-                        {groupLabels[group.id]}
-                      </h3>
-                      <span className="text-[0.625rem] text-[var(--muted-foreground)]/70">{group.results.length}</span>
-                    </div>
-                    <ul
-                      className={cn(
-                        "space-y-0.5 px-1",
-                        // Slice 78: Continue is a strip of three cards on wider screens, plain rows on a phone.
-                        group.id === "continue" && "sm:grid sm:grid-cols-3 sm:gap-2 sm:space-y-0",
-                        group.id === "now" && "pt-2",
-                      )}
-                    >
-                      {group.results.map((result, rowIndex) => {
-                        const visual = resultVisual(result);
-                        const preview = result.preview?.();
-                        const row = resolveOmnibarRowVisual(result, rowVisualContext, preview);
-                        const selected = result.id === activeResult?.id;
-                        const setupStatus =
-                          result.command.availability?.status === "requires-capability"
-                            ? t("commandCenter.setup", "Set up")
-                            : result.command.availability?.status === "requires-admin"
-                              ? t("commandCenter.adminRequired", "Administrator access required")
-                              : undefined;
-                        return (
-                          <CommandCenterResultRow
-                            key={result.id}
-                            className={cn(
-                              "motion-safe:animate-omnibar-row-in",
-                              result.now && `omnibar-now-row omnibar-now-row--${result.now}`,
-                              group.id === "continue" &&
-                                "sm:h-auto sm:min-h-16 sm:border sm:border-[var(--border)] sm:py-1.5",
-                            )}
-                            style={{ animationDelay: `${Math.min(rowIndex, 8) * 22}ms` }}
-                            dataResultId={result.id}
-                            id={`omnibar-${result.id}`}
-                            title={result.title}
-                            titleHighlight={row.titleMatch}
-                            metadata={resultMetadata(result, preview)}
-                            // The highlight only lines up with `description` itself: a
-                            // contextLabel or preview subtitle shown in its place is
-                            // different text, so it gets no highlight rather than a wrong one.
-                            metadataHighlight={!result.contextLabel && !preview?.subtitle ? row.descriptionMatch : null}
-                            tertiaryMetadata={
-                              <>
-                                {preview?.lorebookCount ? (
-                                  // Q6: a chat's attached lorebooks, as the lorebook icon and a count.
-                                  <span
-                                    className="inline-flex shrink-0 items-center gap-0.5"
-                                    title={t("commandCenter.chat.lorebookCount", {
-                                      count: preview.lorebookCount,
-                                    })}
-                                  >
-                                    <ResultTypeIcon type="lorebook" glyph className="size-3" />
-                                    {preview.lorebookCount}
-                                  </span>
-                                ) : null}
-                                {
-                                  // A toggle/action control already shows the on/active state, so
-                                  // the status label ("Enabled"/"Active") next to it is redundant —
-                                  // keep only the informative metadata line in that case.
-                                  result.control?.type === "toggle"
-                                    ? preview?.metadataLine
-                                    : (preview?.status?.label ?? preview?.badges?.[0] ?? preview?.metadataLine)
-                                }
-                              </>
-                            }
-                            icon={row.icon}
-                            type={row.type}
-                            faces={row.faces}
-                            faceCount={row.faceCount}
-                            selected={selected}
-                            onSelect={() => selectResult(result)}
-                            onMouseMove={(event) => handleResultMouseMove(result, event)}
-                            expanded={
-                              result.id === expandedPreviewId
-                                ? renderResultPreview()
-                                : asideShown &&
-                                    selected &&
-                                    result.id === "ask-professor-mari" &&
-                                    result.group === "professor-suggested"
-                                  ? renderAsideAnswer()
-                                  : undefined
-                            }
-                            mediaSrc={row.src}
-                            mediaKind={row.kind}
-                            avatarCropStyle={row.avatarCropStyle}
-                            groupClassName={visual.groupClassName}
-                            accent={row.accent}
-                            setupStatus={setupStatus}
-                            enterHint={
-                              result.control || group.id === "continue" || result.now
-                                ? undefined
-                                : resultEnterHint(result)
-                            }
-                            control={
-                              result.now && !result.control ? (
-                                // One quiet pill that says what the row does, also on a phone.
-                                <button
-                                  type="button"
-                                  tabIndex={-1}
-                                  onClick={() => selectResult(result)}
-                                  className="omnibar-now-action"
-                                >
-                                  {nowActionLabel(result.now)}
-                                </button>
-                              ) : result.control?.type === "choice" ? (
-                                <CommandCenterSegmentedChoice
-                                  label={result.control.label}
-                                  value={String(result.control.value)}
-                                  // F5: ArrowDown/ArrowUp moves `activeResultId` onto an expanded
-                                  // option row below this one (ids encode the parent + value); show
-                                  // that pick on the inline segments too, since the expanded rows
-                                  // themselves render nowhere a keyboard user can see them.
-                                  pendingValue={
-                                    activeResultId && readChoiceOptionId(activeResultId)?.parentId === result.id
-                                      ? readChoiceOptionId(activeResultId)?.value
-                                      : undefined
-                                  }
-                                  options={(result.control.options ?? []).map((option) => ({ ...option }))}
-                                  onValueChange={(value) => runScopedChoiceChange(result, value)}
-                                  variant="compact"
-                                />
-                              ) : result.category === "preset" && result.control?.type === "toggle" ? (
-                                // Only the preset's own row: an "Add preset to this chat" row
-                                // showed a button that did nothing and hid its Enter hint.
-                                <CommandCenterActionValue
-                                  label={t("commandCenter.actions.setDefaultPreset", "Set default preset")}
-                                  icon={ArrowRight}
-                                  value={
-                                    result.control?.value === true
-                                      ? t("commandCenter.values.active", "Active")
-                                      : undefined
-                                  }
-                                  onClick={() => {
-                                    if (result.control?.type === "toggle") result.control.onChange(true);
-                                  }}
-                                  disabled={result.control?.value === true || resultControlPending(result)}
-                                  loading={resultControlPending(result)}
-                                  variant="compact"
-                                  tone="primary"
-                                  className="justify-end"
-                                />
-                              ) : result.control?.type === "toggle" ? (
-                                <CommandCenterToggle
-                                  label={result.control.label}
-                                  checked={Boolean(result.control.value)}
-                                  stateLabel={
-                                    result.control.value
-                                      ? t("commandCenter.values.enabled", "Enabled")
-                                      : t("commandCenter.values.disabled", "Disabled")
-                                  }
-                                  onCheckedChange={(value) => flipToggleControl(result, value)}
-                                  disabled={resultControlPending(result)}
-                                  loading={resultControlPending(result)}
-                                  variant="compact"
-                                  className="justify-end"
-                                />
-                              ) : undefined
-                            }
-                          />
-                        );
-                      })}
-                    </ul>
-                  </section>
-                );
-              })}
-              {!query.trim() ? (
-                // Slice 78: what to type and what Enter does, under every empty list.
-                <p className="flex items-start gap-2 px-3.5 pb-2 pt-3 text-xs leading-relaxed text-[var(--muted-foreground)]">
-                  <Search size={14} aria-hidden="true" className="mt-0.5 shrink-0" />
-                  <span>
-                    {window.matchMedia("(min-width: 640px)").matches
-                      ? mariEnabled
-                        ? t(
-                            "commandCenter.empty.hintDesktop",
-                            "Type a name, a setting or a question. Enter opens the top row; Ctrl/⌘+Enter asks Mari.",
-                          )
-                        : t(
-                            "commandCenter.empty.hintDesktopNoMari",
-                            "Type a name or a setting. Enter opens the top row.",
-                          )
-                      : mariEnabled
-                        ? t(
-                            "commandCenter.empty.hintPhone",
-                            "Type a name, a setting or a question. Tap a row to open it; a question goes to Mari.",
-                          )
-                        : t("commandCenter.empty.hintPhoneNoMari", "Type a name or a setting, then tap a row.")}
-                  </span>
-                </p>
-              ) : null}
-              {!loading && query.trim() && results.length === 0 ? (
-                <div className="flex min-h-32 flex-col items-center justify-center px-4 text-center">
-                  <Search size={20} className="mb-2 text-[var(--muted-foreground)]" aria-hidden="true" />
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
-                    {t("commandCenter.noResults", "No matching results")}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          </div>
+          <OmnibarResultList
+            listRef={listRef}
+            query={query}
+            loading={loading}
+            failed={failed}
+            results={results}
+            presentation={presentation}
+            groupLabels={groupLabels}
+            rowVisualContext={rowVisualContext}
+            activeResult={activeResult}
+            activeResultId={activeResultId}
+            expandedPreviewId={expandedPreviewId}
+            asideShown={asideShown}
+            mariEnabled={mariEnabled}
+            resultVisual={resultVisual}
+            selectResult={selectResult}
+            handleResultMouseMove={handleResultMouseMove}
+            renderResultPreview={renderResultPreview}
+            renderAsideAnswer={renderAsideAnswer}
+            resultEnterHint={resultEnterHint}
+            runScopedChoiceChange={runScopedChoiceChange}
+            resultControlPending={resultControlPending}
+            flipToggleControl={flipToggleControl}
+          />
         )}
 
         {!mariSurface ? (
-          <footer className="flex min-h-10 shrink-0 items-center justify-between gap-3 border-t border-[var(--border)] px-3 text-[0.6875rem] text-[var(--muted-foreground)]">
-            {/* The conditional hints group to the left so the two permanent
-                hints keep their positions as rows gain and lose shortcuts. */}
-            <span className="hidden items-center gap-4 sm:flex">
-              <span>{t("commandCenter.keyboard.move", "Arrow keys move")}</span>
-              {inlineSuffix ? (
-                <span>{t("commandCenter.keyboard.complete", "⇥ Complete")}</span>
-              ) : mariEnabled && pane === "results" && activeResult ? (
-                // Says whether ⌘↵ sends: "Ask" sends what you typed, "Continue" only opens her.
-                <span>
-                  {mariSends(activeResult)
-                    ? t("commandCenter.keyboard.askMari", "Ctrl/⌘+Enter Ask Mari")
-                    : t("commandCenter.keyboard.continueMari", "Ctrl/⌘+Enter Continue with Mari")}
-                </span>
-              ) : null}
-              {pane === "results" && activeResult && isRichResult(activeResult) ? (
-                <span>
-                  {expandedPreviewId === activeResult.id
-                    ? t("commandCenter.keyboard.closePreview", "← Close preview")
-                    : t("commandCenter.keyboard.preview", "→ Preview")}
-                </span>
-              ) : null}
-            </span>
-            <span className="flex min-w-0 items-center gap-3">
-              {mariEnabled ? (
-                <span className="hidden sm:inline">
-                  {t("commandCenter.keyboard.askMariShortcut", "Ctrl/⌘+J Ask Mari")}
-                </span>
-              ) : null}
-              {!idle ? (
-                <span className="hidden sm:inline">{t("commandCenter.keyboard.escape", "Esc close")}</span>
-              ) : null}
-              <OmnibarSettingsButton open={settingsOpen} onOpen={() => openSettings()} />
-            </span>
-          </footer>
+          <OmnibarFooter
+            inlineSuffix={inlineSuffix}
+            mariEnabled={mariEnabled}
+            pane={pane}
+            activeResult={activeResult}
+            mariSends={mariSends}
+            expandedPreviewId={expandedPreviewId}
+            idle={idle}
+            settingsOpen={settingsOpen}
+            openSettings={openSettings}
+          />
         ) : null}
         {settingsTarget ? (
           <OmnibarSettingsSheet
