@@ -81,7 +81,7 @@ marinara.ui.registerContribution({
   id: "open-weather",
   kind: "command",
   label: "Open weather controls",
-  targetContributionId: "weather-panel",
+  targetContributionId: "weather-settings",
 });
 ```
 

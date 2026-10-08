@@ -154,7 +154,7 @@ Professor Mari can remember your standing preferences so you do not have to repe
 
 There are two ways to give her a memory:
 
-- **Tell her.** Say something like "remember that I always key lorebook entries on the character's name and their nickname." She saves it and shows you a **Keep/Restore** review card with the exact wording. A memory she saves starts **disabled** (off) so it does not change anything until you turn it on. The card offers a third button, **Keep & Enable**, to save it and switch it on right away.
+- **Tell her.** Say something like "remember that I always key lorebook entries on the character's name and their nickname." She saves it and shows you a **Keep/Restore** review card with the exact wording. A memory she saves starts **disabled** (off) so it does not change anything until you turn it on. The card offers a third button, **Keep and enable**, to save it and switch it on right away.
 - **Add it yourself.** Click the **Memories** button in her chat header to open the **Memories** panel, where you can create, edit, enable or disable, and delete your memories. You can also **Upload** a `.md` or text file to turn its contents into a memory.
 
 She only saves or changes a memory when **you** ask her to, never because something she read (a character, lorebook, or file) told her to.
