@@ -62,7 +62,7 @@ At the bottom, **Agent activity** shows what the chat's agents did. From there y
 
 ## Editing tracker values
 
-On a phone, drag the **World State** and **Player & Tracker** buttons wherever you want in the chat. Tap a button to open its panel, and use **X** to close it. The buttons and panels follow your **Chat widget style** in **Settings → Appearance → App**. Your chat remembers where you put each button. On a computer, the same editors are inside the drawers of the Trackers window. Every field is editable, so you can correct a value the AI got wrong. Your edits save right away.
+On a phone, drag the **World State** and **Player & Tracker** buttons wherever you want in the chat. Tap a button to open its panel, and use **X** to close it. The buttons and panels follow your **Chat widget style** in **Settings → Appearance → App**. Your chat remembers where you put each button. On a computer, the same editors are inside the drawers of the Trackers window. Every field is editable, so you can correct a value the AI got wrong. Your edits save right away. The next reply starts from your corrected values, also when you regenerate or swipe the reply you corrected.
 
 Here is what each tracker lets you edit:
 
@@ -105,7 +105,9 @@ The **Tracker Panel** is a larger side panel that shows the same tracker data as
 
 To turn it on in a Roleplay chat, open **Chat Settings** and click the **Tracker Panel** button (the die) in its title bar, next to pin and lock. It stays highlighted while the panel is on, and the panel shows beside the chat. Click it again to turn the panel off and hide it. On a computer, the trackers then show in the Trackers window.
 
-On a phone, turning it on puts a Tracker Panel button on the chat that you can drag anywhere. Tap it to open the panel; closing the panel goes back to the button. With the panel off, use the separate **World State** and **Player & Tracker** buttons.
+On a computer, the panel fits into the space beside your messages, up to the width you choose in **Desktop size**. When the window is too narrow for both, such as with the chats sidebar open, your messages and message box narrow a little so the panel keeps room for its own buttons.
+
+On a phone or tablet, turning it on puts a Tracker Panel button on the chat that you can drag anywhere. Tap it to open the panel, and tap it again to close it. While the panel or another screen covers the chat, the chat's movable buttons are hidden, and they come back in the same places when you return to the chat. With the panel off, use the separate **World State** and **Player & Tracker** buttons.
 
 The controls in the panel header also let you customize tracker structure:
 
@@ -125,7 +127,7 @@ These settings control it:
 - **Desktop size**: choose the panel width. The options are **Compact**, **Standard**, and **Expanded**.
 - **Thought display mode**: choose how a character's thoughts appear. **Docked** opens them inside the character card. **Floating** opens them as a bubble beside the portrait.
 - **Always show Docked thoughts**: when **Thought display mode** is **Docked**, keeps every featured character's thought visible instead of hiding it behind a button.
-- **Temperature unit**: switch temperature displays between **Celsius** and **Fahrenheit**. The default is Celsius. This changes only the display, not the saved world-state value.
+- **Temperature unit**: choose **°C** (Celsius) or **°F** (Fahrenheit) for temperature displays. The default is °C. This changes only the display, not the saved world-state value.
 
 ## Which agents populate the HUD
 

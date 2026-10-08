@@ -687,6 +687,7 @@ test("Advanced Memory stays in Chat Settings with confirmed knowledge, resumable
       retrieveMinMessages: 3,
       retrieveMaxMessages: 10,
       narratorCharacterId: null,
+      autoMessageVisibility: false,
       knowledgeStarts: { [narrator.id]: "historical-0" },
       knowledgeConfirmed: false,
     },
@@ -1773,6 +1774,264 @@ test("Advanced Memory Decision connection is optional and persists for its chat"
     await expect(settings.getByRole("combobox", { name: "Memory Decision connection", exact: true })).toHaveCount(0);
   } finally {
     await request.delete(`/api/connections/${connection.id}`);
+    await fixture.cleanup();
+  }
+});
+
+test("Advanced Memory offers automatic message visibility only in individual group chats", async ({
+  page,
+  request,
+}, info) => {
+  const fixture = await createFixture(request);
+  const soloResponse = await request.post("/api/chats", {
+    data: { name: "Solo visibility proof", mode: "roleplay", characterIds: [fixture.character.id] },
+  });
+  expect(soloResponse.ok()).toBeTruthy();
+  const solo = (await soloResponse.json()) as { id: string };
+  const status = async () =>
+    (await (await request.get(`/api/chats/${fixture.chat.id}/advanced-memory`)).json()) as AdvancedMemoryStatus;
+  const openMemory = async () => {
+    await page.evaluate(async () => {
+      const { useChatStore } = await import("/src/stores/chat.store.ts" as string);
+      useChatStore.getState().setShouldOpenSettings(true);
+    });
+    const section = page.locator('[data-chat-settings-section="roleplay-memory-recall"]');
+    await expect(section).toBeVisible();
+    if (!(await section.locator('[data-component="AdvancedMemorySettings"]').isVisible()))
+      await drawerToggle(section).click();
+    return section.locator('[data-component="AdvancedMemorySettings"]');
+  };
+  const toggleName = /^Decide who sees new messages/;
+  try {
+    for (const chatId of [fixture.chat.id, solo.id]) {
+      expect(
+        (await request.patch(`/api/chats/${chatId}/metadata`, { data: { groupChatMode: "individual" } })).ok(),
+      ).toBeTruthy();
+      expect(
+        (await request.patch(`/api/chats/${chatId}/advanced-memory/settings`, { data: { enabled: true } })).ok(),
+      ).toBeTruthy();
+    }
+    await openChat(page, fixture.chat.id);
+    let settings = await openMemory();
+    const toggle = settings.getByRole("checkbox", { name: toggleName });
+    await expect(toggle).not.toBeChecked();
+    await settings.getByText("Decide who sees new messages", { exact: true }).click();
+    await expect.poll(async () => (await status()).settings.autoMessageVisibility).toBe(true);
+    await expect(toggle).toBeChecked();
+    await captureThemes(page, info, "memory-message-visibility-on");
+
+    expect(
+      (await request.patch(`/api/chats/${fixture.chat.id}/metadata`, { data: { groupChatMode: "merged" } })).ok(),
+    ).toBeTruthy();
+    await page.reload();
+    await expect(page.locator("textarea[data-chat-composer]")).toBeVisible();
+    settings = await openMemory();
+    await expect(settings.getByText("Advanced Memory Recall", { exact: true })).toBeVisible();
+    await expect(settings.getByRole("checkbox", { name: toggleName })).toHaveCount(0);
+
+    await openChat(page, solo.id, false);
+    settings = await openMemory();
+    await expect(settings.getByText("Advanced Memory Recall", { exact: true })).toBeVisible();
+    await expect(settings.getByRole("checkbox", { name: toggleName })).toHaveCount(0);
+  } finally {
+    await request.delete(`/api/chats/${solo.id}?force=true`);
+    await fixture.cleanup();
+  }
+});
+
+test("Advanced Memory problems show a dot and one notice, Fix repairs them and lists changed scenes", async ({
+  page,
+  request,
+}, info) => {
+  const fixture = await createFixture(request);
+  const now = new Date().toISOString();
+  const scene = (
+    sceneId: string,
+    startIndex: number,
+    patch: Partial<AdvancedMemoryStatus["records"][number]> = {},
+  ) => ({
+    id: `${sceneId}-summary`,
+    chatId: fixture.chat.id,
+    sceneId,
+    kind: "scene" as const,
+    status: "closed" as const,
+    startMessageId: fixture.firstMessage.id,
+    endMessageId: fixture.lastMessage.id,
+    startIndex,
+    endIndex: startIndex + 9,
+    messageIds: fixture.messages.map(({ id }) => id),
+    audienceCharacterIds: [fixture.character.id],
+    content: `The ${sceneId} recap.`,
+    title: "Scene",
+    timeline: null,
+    enabled: true,
+    manualOverride: false,
+    sourceFingerprint: "fixture",
+    dependencies: [ADVANCED_MEMORY_SCENE_AUDIENCE] as Array<{ id: string; revision: string }>,
+    embeddingStatus: "vectorized" as const,
+    createdAt: now,
+    updatedAt: now,
+    ...patch,
+  });
+  const settings = {
+    ...DEFAULT_ADVANCED_MEMORY_SETTINGS,
+    enabled: true,
+    knowledgeStarts: { [fixture.character.id]: null, [fixture.narrator.id]: null },
+    knowledgeConfirmed: true,
+  };
+  const status: AdvancedMemoryStatus = {
+    settings,
+    job: { id: "earlier-job", status: "ready", stage: "ready", completed: 2, total: 2, error: null },
+    missingKnowledgeCharacterIds: [],
+    records: [
+      // Scene #1: the helper named someone who isn't in the chat.
+      scene("scene-one", 1, {
+        dependencies: [ADVANCED_MEMORY_SCENE_AUDIENCE, { id: "scene-audience-unmatched", revision: "Stranger" }],
+      }),
+      // Scene #2: a summary the user edited no longer matches its messages.
+      scene("scene-two", 11, { manualOverride: true, embeddingStatus: "stale" }),
+    ],
+    helperModel: "Fixture helper",
+    summaryModel: "Fixture helper",
+    warnings: ["scene-audience-unmatched"],
+    // Scene #3 has no summary yet.
+    unpreparedScenes: [{ sceneId: "scene-three", startIndex: 21, endIndex: 30 }],
+  };
+  const fixRequests: unknown[] = [];
+  expect(
+    (await request.patch(`/api/chats/${fixture.chat.id}/metadata`, { data: { advancedMemory: settings } })).ok(),
+  ).toBeTruthy();
+  await page.route(`**/api/chats/${fixture.chat.id}/advanced-memory**`, async (route) => {
+    const { pathname } = new URL(route.request().url());
+    if (route.request().method() === "POST" && pathname.endsWith("/initialize")) {
+      fixRequests.push(route.request().postDataJSON());
+      status.job = {
+        id: "fix-job",
+        blocking: true,
+        status: "running",
+        stage: "summarizing",
+        completed: 1,
+        total: 3,
+        error: null,
+      };
+      return route.fulfill({ status: 202, json: status });
+    }
+    return route.fulfill({ json: status });
+  });
+  try {
+    await openChat(page, fixture.chat.id, false);
+    const bubble = page.locator("[data-chat-settings-button]");
+    await expect(bubble.locator("[data-advanced-memory-attention]")).toBeVisible();
+    await expect(bubble).toHaveAccessibleDescription(/Advanced Memory needs attention/);
+    const notice = page
+      .locator("[data-sonner-toast]")
+      .filter({ hasText: "Advanced Memory found problems in 3 scenes." });
+    await expect(notice).toHaveCount(1);
+    await captureThemes(page, info, "memory-fix-notice");
+
+    // The same problems are not announced again; the dot stays until they are fixed.
+    await page.reload();
+    await expect(page.locator("textarea[data-chat-composer]")).toBeVisible();
+    await expect(bubble.locator("[data-advanced-memory-attention]")).toBeVisible();
+    await page.waitForTimeout(1500);
+    await expect(page.locator("[data-sonner-toast]").filter({ hasText: "found problems" })).toHaveCount(0);
+
+    // Chat Settings lists the same problems with a Fix button and the scenes only the user can settle.
+    const drawer = page.locator(".mari-chat-settings-drawer");
+    const fix = drawer.locator('[data-component="AdvancedMemoryFix"]');
+    await openChatSettings(page);
+    await drawerToggle(drawer.locator('[data-chat-settings-section="roleplay-memory-recall"]')).click();
+    await expect(fix.getByRole("status")).toContainText("2 scenes need fixing.");
+    await expect(fix.getByRole("status")).toContainText("1 scene needs your review:");
+    await expect(fix.getByRole("button", { name: "Open Scene #2", exact: true })).toBeVisible();
+    await expect(fix.getByRole("button", { name: "Fix", exact: true })).toBeEnabled();
+    await expect(drawer.getByText("couldn't confirm who was in some scenes")).toHaveCount(0);
+    await fix.scrollIntoViewIfNeeded();
+    await captureThemes(page, info, "memory-fix-box", fix);
+    await closeChatSettings(page);
+
+    // A new problem scene is announced once more, and its Fix button starts the repair in Chat Settings.
+    status.unpreparedScenes = [...status.unpreparedScenes!, { sceneId: "scene-four", startIndex: 31, endIndex: 40 }];
+    await page.reload();
+    await expect(
+      page.locator("[data-sonner-toast]").filter({ hasText: "Advanced Memory found problems in 4 scenes." }),
+    ).toHaveCount(1);
+    status.unpreparedScenes = status.unpreparedScenes.slice(0, 1);
+    await page.locator("[data-sonner-toast]").getByRole("button", { name: "Fix", exact: true }).click();
+    await expect.poll(() => fixRequests).toEqual([expect.objectContaining({ fixAll: true })]);
+    const progress = drawer.locator('[data-component="AdvancedMemoryProgress"]');
+    await expect(progress).toContainText("Summarizing scenes");
+    await expect(progress.getByRole("button", { name: "Pause processing", exact: true })).toBeVisible();
+
+    // Closing Chat Settings mid-run still reports the result once.
+    await closeChatSettings(page);
+    status.job = {
+      id: "fix-job",
+      status: "ready",
+      stage: "ready",
+      completed: 3,
+      total: 3,
+      error: null,
+      fixResult: { jobId: "fix-job", fixedSceneIds: ["scene-one", "scene-three"], reviewSceneIds: ["scene-two"] },
+    };
+    status.records = [
+      scene("scene-one", 1),
+      status.records[1]!,
+      scene("scene-three", 21, { content: "The prepared scene-three recap." }),
+    ];
+    status.unpreparedScenes = [];
+    status.warnings = [];
+    const done = page.locator("[data-sonner-toast]").filter({ hasText: "Advanced Memory fixed 2 scenes." });
+    await expect(done).toContainText("1 scene still needs your review.");
+    await done.getByRole("button", { name: "Show", exact: true }).click();
+
+    await expect(fix.getByRole("status")).toContainText("Fixed 2 scenes:");
+    await expect(fix.getByRole("status")).toContainText("1 scene needs your review:");
+    await expect(fix.getByRole("button", { name: "Fix", exact: true })).toHaveCount(0);
+    await expect(fix.getByRole("button", { name: /^Open Scene #/ })).toHaveText(["#1", "#3", "#2"]);
+    await expect(
+      drawer.getByRole("button", { name: "Access memories for this chat", exact: true }),
+    ).toHaveAccessibleDescription("Some scenes need attention.");
+    await fix.scrollIntoViewIfNeeded();
+    await captureThemes(page, info, "memory-fix-result", fix);
+
+    await fix.getByRole("button", { name: "Open Scene #3", exact: true }).click();
+    const inspector = drawer.locator('[data-component="AdvancedMemoryInspector"]');
+    const heading = inspector.getByRole("heading", { name: "Scene #3", exact: true });
+    await expect(heading).toBeFocused();
+    await expect(inspector.getByRole("textbox", { name: "Summary text", exact: true })).toHaveValue(
+      "The prepared scene-three recap.",
+    );
+    await fix.getByRole("button", { name: "Open Scene #2", exact: true }).click();
+    await expect(inspector.getByRole("heading", { name: "Scene #2", exact: true })).toBeFocused();
+    await expect(inspector).toContainText("Check the source messages, the summary, and which characters know it");
+    expect(fixRequests).toHaveLength(1);
+
+    // A paused Fix resumes as Fix, so a hand-edited scene can't stop it.
+    status.job = {
+      id: "fix-job-2",
+      blocking: true,
+      status: "cancelled",
+      stage: "summarizing",
+      completed: 1,
+      total: 3,
+      error: null,
+      fixResult: null,
+    };
+    status.unpreparedScenes = [{ sceneId: "scene-four", startIndex: 31, endIndex: 40 }];
+    await closeChatSettings(page);
+    await page.reload();
+    await expect(page.locator("textarea[data-chat-composer]")).toBeVisible();
+    await openChatSettings(page);
+    const resume = drawer
+      .locator('[data-component="AdvancedMemoryProgress"]')
+      .getByRole("button", { name: "Resume processing", exact: true });
+    if (!(await resume.isVisible()))
+      await drawerToggle(drawer.locator('[data-chat-settings-section="roleplay-memory-recall"]')).click();
+    await resume.click();
+    await expect.poll(() => fixRequests).toHaveLength(2);
+    expect(fixRequests[1]).toEqual(expect.objectContaining({ fixAll: true }));
+  } finally {
     await fixture.cleanup();
   }
 });

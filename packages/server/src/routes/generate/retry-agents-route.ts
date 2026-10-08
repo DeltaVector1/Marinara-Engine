@@ -973,7 +973,9 @@ async function buildRetryAgentContext(args: {
     idleDuration: resolvePromptIdleDuration(recentMessages),
     macroSources: [
       ...recentMessages.map((message: any) => (typeof message.content === "string" ? message.content : "")),
-      ...resolvedAgents.map((agent) => JSON.stringify(agent.settings)),
+      // Agent prompts and the author's note too, so `{{include::...}}` in them has lorebooks to read (#7212).
+      ...resolvedAgents.flatMap((agent) => [agent.promptTemplate, JSON.stringify(agent.settings)]),
+      typeof chatMeta.authorNotes === "string" ? chatMeta.authorNotes : "",
     ],
   });
   const historyMacroProfilesById = (await resolveCharacterMacroData(db, allCharacterIds)).profilesById;
@@ -1219,6 +1221,7 @@ async function buildRetryAgentContext(args: {
     streaming,
     memory: {},
     lorebookEntryCounts: promptMacroContext.lorebookEntryCounts,
+    lorebookIncludes: promptMacroContext.lorebookIncludes,
   };
 
   const previousBeholderState = await loadPriorBeholderState({
@@ -3232,7 +3235,12 @@ async function applyRetryResultEffects(args: {
           !isTrackerRowsUpdate(ctData.presentCharacters) &&
           (!Array.isArray(ctData.presentCharacters) || ctData.presentCharacters.length === 0)
         ) {
-          logger.debug("[retry-agents] character-tracker emitted no presentCharacters; keeping existing snapshot");
+          const resultKeys = Object.keys(ctData);
+          // `{}` and an empty list are the prompt's no-change replies; any other shape is lost output (#7208).
+          logger[resultKeys.length === 0 || Array.isArray(ctData.presentCharacters) ? "debug" : "warn"](
+            "[retry-agents] character-tracker emitted no presentCharacters (result keys: %s); keeping existing snapshot",
+            resultKeys.join(", ") || "none",
+          );
           continue;
         }
         const previousSnapshot = await loadRetryTargetGameStateSnapshot();
@@ -4689,8 +4697,11 @@ export async function registerRetryAgentsRoute(
       const { conn, enabledConfigs, resolvedAgents, warnings } = await runRetrySetupPhase(abortController.signal, () =>
         resolveRetryAgents({
           agentTypes,
+          // Gallery Illustrate and Background are one-off runs, so neither needs Illustrator added to the chat.
           manualIllustration:
-            isManualIllustratorImageRequest && agentTypes.length === 1 && agentTypes[0] === "illustrator",
+            (isManualIllustratorImageRequest || isManualIllustratorBackgroundRequest) &&
+            agentTypes.length === 1 &&
+            agentTypes[0] === "illustrator",
           chat,
           conns,
           agentsStore,

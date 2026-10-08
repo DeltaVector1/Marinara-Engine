@@ -9,14 +9,14 @@ The first time you enter a chat after this update, a short video shows how to ar
 ## Opening Chat Settings
 
 1. Open a chat.
-2. Click or tap the **Chat Settings** button (the sliders icon). It starts at the top right of the chat, below the app's top bar.
+2. Click or tap the **Chat Settings** button (the sliders icon). It starts at the top right of the chat, below the app's top bar. On a computer with the Tracker Panel shown on the right, it starts just left of the panel instead.
 3. Click a section's title to open it. These sections are also called **drawers**: click the title again to fold one away.
 
 Chat Settings opens automatically when you create a new chat. To close it, click its **X** or click the sliders button again.
 
 Chats from before this update keep their familiar tools outside Chat Settings: as movable buttons on a computer, or in the **Chat tools** three-dot menu on a phone. When you upgrade an existing installation, that familiar arrangement also becomes the favorite layout for new chats in each mode, unless you already chose a favorite. Open a tool, then choose **Put back in Chat Settings** if you would rather keep it inside Chat Settings. Desktop Roleplay trackers are grouped in the **Trackers** window. Existing saved window and button positions are preserved.
 
-You can drag the sliders button to a convenient spot. It lines up with nearby chat buttons as you drag; on a computer, hold Alt to place it freely. Each chat remembers its position. A small dot on the button means agents are working.
+You can drag the sliders button to a convenient spot. It lines up with nearby chat buttons as you drag; on a computer, hold Alt to place it freely. Each chat remembers its position. A small dot on the button means agents are working. In a Roleplay chat with Advanced Memory Recall, a steady dot in the button's other corner means some scene memories need attention; see [Fixing memory problems](../agents/memory.md#fixing-memory-problems).
 
 The small reminder beside the sliders button in Roleplay only needs to be dismissed once. Its **X** keeps it hidden across chats and page refreshes.
 
@@ -30,7 +30,7 @@ Use **Font**, **Shape** and the three color pickers below the presets to mix thi
 
 **Button size (px)** changes movable chat buttons and their icons without changing Display Size. Enter a size from 32 to 96 pixels. Leave the field empty, or use its reset button, to keep the current default. The size is saved with your appearance preferences and stays the same when you choose another preset.
 
-To make the rest of the chat match, turn on **Apply preset font**, **Apply preset shape** or **Apply preset colors**. Each switch works on its own and includes your custom choices above it. They apply to messages, input boxes and chat controls; Conversation messages use the optional font and colors but keep their own shape. All three start off. Turn one off to return that part of the chat to its usual styling. See [Custom CSS Themes](../appearance/custom-css-themes.md#ready-made-chat-window-styles) for more detail.
+To make the rest of the chat match, turn on **Apply preset font**, **Apply preset shape** or **Apply preset colors**. Each switch works on its own and includes your custom choices above it. They apply to messages, input boxes and chat controls; Conversation messages use the optional font and colors but keep their own shape. With **Apply preset colors** on, quoted dialogue keeps each Character's or Persona's own Dialogue Highlight Color. All three start off. Turn one off to return that part of the chat to its usual styling. See [Custom CSS Themes](../appearance/custom-css-themes.md#ready-made-chat-window-styles) for more detail.
 
 ## Moving, pinning and locking the window
 
@@ -53,7 +53,7 @@ The title bar has a few other useful buttons:
 - **Help** (the **?** beside the title) shows labels explaining the chat's controls. On a phone, it closes Chat Settings first so you can see the chat. Tap the highlighted **Chat Settings** button for a guide to its icons: Reset View, favorite layout, the Roleplay Tracker Panel, lock/unlock, close and moving a section out. Scroll inside the guide to read every item. You can hide the Help button in **Settings → General → App Behavior → Hide chat Help button**.
 - **Reset View** (the circular arrow) asks for confirmation, then restores this chat's starting layout. It puts popped-out sections back and restores the default window sizes, positions, pins and locks.
 - **Favorite layout** (the star beside Reset View) saves this arrangement for new chats in the current mode. See [Choosing a layout for new chats](#choosing-a-layout-for-new-chats).
-- **Tracker Panel** (the die) turns the panel on or off in a Roleplay chat that uses agents or Advanced Memory. On a computer, the panel opens beside the chat. On a phone, a movable button opens it. This setting also changes the Tracker Panel preference in **Settings → Appearance**.
+- **Tracker Panel** (the die) turns the panel on or off in a Roleplay chat that uses agents or Advanced Memory. On a computer, the panel opens beside the chat. On a phone or tablet, a movable button opens and closes it. This setting also changes the Tracker Panel preference in **Settings → Appearance**.
 
 When the Tracker Panel is not shown, desktop trackers use the [Trackers window](../roleplay/hud-and-trackers.md#the-trackers-window). When there is not enough room beside your messages, it starts as a small **Trackers** button. Closing the window returns it to that button. Use the die in the Chat Settings title bar to show the Tracker Panel again.
 

@@ -220,6 +220,7 @@ import {
   parseRoleplayCommands,
   parseRoleplayUserCommands,
   roleplayCommandKey,
+  roleplayHiddenWhisperMessageIds,
   resolveRoleplayWhisperRecipient,
   RoleplayCommandStreamFilter,
   type RoleplayCommand,
@@ -309,6 +310,7 @@ import {
   appendFallbackChatSummaryToSystemPrompt,
   buildPromptMacroContext,
   decodeDeferredPresetConditionals,
+  loadLorebookIncludesFor,
   normalizeChatMacroVariables,
   mergeGeneratedChatMacroVariables,
   parsePresetVariableNames,
@@ -470,6 +472,7 @@ import {
   resolveUserRegenerationPersistentAttachments,
   resolveVisibleGameStateAnchor,
   resolveKnowledgeSourceLorebookIds,
+  mergedChatSummaryReaders,
   shouldPreferLatestVisibleGameState,
   shouldRunCharacterActivityAgents,
   shouldAbortOnPassiveGenerationDisconnect,
@@ -1722,13 +1725,24 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
 
       // Get chat messages
       const chatMode = requestChatMode;
+      const advancedMemorySettings = normalizeAdvancedMemorySettings(chatMeta.advancedMemory);
+      const advancedMemoryEnabled = chatMode === "roleplay" && advancedMemorySettings.enabled;
+      // A character never replies before Advanced Memory has decided who sees earlier messages (#7192).
+      const decidesMessageVisibility =
+        advancedMemoryEnabled &&
+        advancedMemorySettings.autoMessageVisibility &&
+        groupGenerationMode === "individual" &&
+        parseJsonField<string[]>(chat.characterIds, []).length > 1;
+      if (decidesMessageVisibility)
+        await advancedMemory.settleMessageVisibility(input.chatId, {
+          signal: generationSignal,
+          debugMode: requestDebug,
+        });
       const allChatMessages = (await chats.listMessages(input.chatId)).map((message) =>
         chatMode === "roleplay" && message.role === "user"
           ? { ...message, content: parseRoleplayUserCommands(message.content).content }
           : message,
       );
-      const advancedMemorySettings = normalizeAdvancedMemorySettings(chatMeta.advancedMemory);
-      const advancedMemoryEnabled = chatMode === "roleplay" && advancedMemorySettings.enabled;
       // Resolve historical time before user start markers: later resets must not hide an older swipe target.
       const advancedTargetIndex =
         advancedMemoryEnabled && (input.regenerateMessageId || input.continueMessageId)
@@ -2382,6 +2396,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   }
                 : null,
             memory: {},
+            lorebookIncludes: await loadLorebookIncludesFor(
+              app.db,
+              input.chatId,
+              characterActivityAgents.flatMap((agent) => [agent.promptTemplate, JSON.stringify(agent.settings)]),
+            ),
             writableLorebookIds: null,
             chatSummary: null,
             authorNotes: typeof chatMeta.authorNotes === "string" ? chatMeta.authorNotes : null,
@@ -2803,7 +2822,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           macroSources: [
             activeChatSummary ?? "",
             ...currentInputMessages().map((message) => message.content),
-            ...pipelineConfiguredPromptAgents.map((agent) => JSON.stringify(agent.settings)),
+            // Agent prompts too, so `{{include::...}}` in them has lorebooks to read (#7212).
+            ...pipelineConfiguredPromptAgents.flatMap((agent) => [
+              agent.promptTemplate ?? "",
+              JSON.stringify(agent.settings),
+            ]),
             // Author's notes, a chat's own system or Game prompt, and the preset's mode prompts.
             JSON.stringify(chatMeta),
             resolvedPreset ? JSON.stringify(resolvedPreset) : "",
@@ -2812,7 +2835,18 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         });
         const referencedCharacterIds = new Set(Object.keys(promptMacroContext.characterReferences ?? {}));
         const conversationMacroFieldsByCharacterId = new Map<string, NonNullable<MacroContext["convoFields"]>>();
-        const historyMacroProfilesById = (await resolveCharacterMacroData(app.db, allCharacterIds)).profilesById;
+        const { profilesById: historyMacroProfilesById, unreadableIds } = await resolveCharacterMacroData(
+          app.db,
+          allCharacterIds,
+        );
+        const chatSummaryReaders = mergedChatSummaryReaders({
+          characterIds,
+          individual: promptGroupChatMode === "individual",
+          impersonate: input.impersonate === true,
+          narratorCharacterId: advancedMemorySettings.narratorCharacterId,
+          profilesById: historyMacroProfilesById,
+          unreadableIds,
+        });
 
         // Decision statements in prompt conditionals (#6569). Asked once, before anything
         // below resolves a macro, so every place a condition is evaluated finds its answer.
@@ -3334,6 +3368,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             chatMessages: mappedMessages,
             lorebookScanMessages: toLorebookScanMessages(),
             chatSummary: activeChatSummary,
+            chatSummaryReaders,
             ...(advancedMemoryEnabled ? { advancedMemory: {}, deferAdvancedMemory: true } : {}),
             enableAgents: chatEnableAgents,
             activeAgentIds: chatActiveAgentIds,
@@ -4346,6 +4381,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             wrapFormat,
             promptMacroContext,
             deferCharacterMacros ? { deferCharacterMacros: "all" } : undefined,
+            chatSummaryReaders,
           );
         }
 
@@ -4997,7 +5033,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         // Get current game state (if any)
         // Prefer committed game state after a real user turn, but keep visible
         // uncommitted tracker edits authoritative for continue/impersonate flows.
-        // Regenerate uses the previous assistant's tracker snapshot as the prompt baseline.
+        // Regenerate uses the previous assistant's tracker snapshot as the prompt baseline,
+        // with the Tracker Panel edits made on the regenerated reply laid over it.
         const latestGameState = await selectedGameStateSnapshotPromise;
         const baseGameStateSnapshot = latestGameState;
         const allowLatestGameStateFallback = !input.regenerateMessageId;
@@ -5187,6 +5224,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               : null,
           memory: {},
           lorebookEntryCounts: promptMacroContext.lorebookEntryCounts,
+          lorebookIncludes: promptMacroContext.lorebookIncludes,
           writableLorebookIds: null,
           chatSummary: shouldAttachSummariesToAgents(chatMode, chatMeta) ? activeChatSummary : null,
           authorNotes: authorNotes || null,
@@ -7569,9 +7607,15 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 ? [targetCharId]
                 : []
               : characterIds;
+          const roleplayPrivateAvailable =
+            Boolean(targetCharId) && (allCharacterIds.length === 1 || usesIndividualGroupGeneration);
+          const roleplayCallerId = roleplayPrivateAvailable && speaksOnlyTargetCharacter ? targetCharId : null;
           gameAwareMessagesForGen = filterPromptMessagesForCharacterAudience(
             gameAwareMessagesForGen,
             audienceCharacterIds,
+            chatMode === "roleplay" && !input.impersonate
+              ? roleplayHiddenWhisperMessageIds(roleplayTimeline, roleplayCallerId)
+              : undefined,
           );
           if (
             usesIndividualGroupGeneration &&
@@ -7759,9 +7803,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           // Private state enters only the final responder request, after shared agent context.
           const publicRoleplayPrompt =
             chatMode === "roleplay" ? toProviderMessages(sharedPromptForAgents(preparedMessagesForGen)) : null;
-          const roleplayPrivateAvailable =
-            Boolean(targetCharId) && (allCharacterIds.length === 1 || usesIndividualGroupGeneration);
-          const roleplayCallerId = roleplayPrivateAvailable && speaksOnlyTargetCharacter ? targetCharId : null;
           const roleplayWhisperContext =
             chatMode === "roleplay" &&
             appendRoleplayWhispers(
@@ -10626,11 +10667,30 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               .filter((messageId: unknown): messageId is string => typeof messageId === "string"),
           );
 
+          const inTurnMessageIds = new Set<string>();
           for (let ci = 0; ci < respondingCharIds.length; ci++) {
             if (generationSignal.aborted) break;
             const charId = respondingCharIds[ci];
             if (!charId) continue;
             const charName = charInfo.find((c) => c.id === charId)?.name ?? "Character";
+            if (decidesMessageVisibility && inTurnMessageIds.size) {
+              // Earlier replies in this turn are decided before the next character reads them (#7192).
+              await advancedMemory.settleMessageVisibility(input.chatId, {
+                signal: generationSignal,
+                debugMode: requestDebug,
+              });
+              for (const [index, message] of runningMessages.entries()) {
+                if (!message.id || !inTurnMessageIds.has(message.id)) continue;
+                const saved = await chats.getMessage(message.id);
+                // Apply the saved list even when empty: the user may have unhidden this reply mid-turn.
+                if (saved)
+                  runningMessages[index] = {
+                    ...message,
+                    hiddenFromAICharacterIds: getMessageHiddenFromAICharacterIds(saved),
+                  };
+              }
+              inTurnMessageIds.clear();
+            }
 
             if (chatMode === "conversation") {
               const responderDelay = conversationResponderDelays.get(charId);
@@ -10725,6 +10785,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             currentIterationSavedMsg = genResult.savedMsg;
             if (typeof genResult.savedMsg?.id === "string") {
               knownConversationMessageIds.add(genResult.savedMsg.id);
+              inTurnMessageIds.add(genResult.savedMsg.id);
             }
             recordExpressionTarget(genResult.savedMsg, charId);
             if (genResult.savedMsg?.id) roleplayResponseIndexes.set(genResult.savedMsg.id, allResponses.length);
@@ -11777,9 +11838,14 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               : typeof (lastSavedMsg as { activeSwipeIndex?: unknown } | null)?.activeSwipeIndex === "number"
                 ? (lastSavedMsg as { activeSwipeIndex: number }).activeSwipeIndex
                 : 0;
-          const siblingSwipeSnapshot = projectGameSnapshotLocation(
+          const siblingSwipeRow =
             input.regenerateMessageId && messageId && targetSwipeIndex > 0
               ? await gameStateStore.getByChatAndMessage(input.chatId, messageId, targetSwipeIndex - 1)
+              : null;
+          // A value the trackers leave out keeps the user's edit, which the trackers were shown.
+          const siblingSwipeSnapshot = projectGameSnapshotLocation(
+            siblingSwipeRow
+              ? ((await gameStateStore.applyManualEdits(input.chatId, messageId, siblingSwipeRow)) ?? siblingSwipeRow)
               : null,
             ownerSpatialProjection,
           );
@@ -11963,10 +12029,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               try {
                 const gs = result.data as Record<string, unknown>;
 
-                // Manual overrides are one-shot: they live on the snapshot the user
-                // edited and are visible to the agent as the prevSnap values, but they
-                // are NOT carried forward to new snapshots.  The agent naturally reads
-                // the edited prevSnap values and produces its own output.
+                // Tracker Panel edits live on the snapshot the user edited. A new message
+                // starts from that snapshot and a regeneration lays the edits over its base
+                // (see getForGeneration), so the agent reads them as the prevSnap values.
+                // They are NOT copied into the new snapshot's edit record: the agent's
+                // output replaces them.
                 const prevSnap =
                   trackerBaseGameStateSnapshot ??
                   (allowLatestGameStateFallback ? await gameStateStore.getLatest(input.chatId) : null);
@@ -12092,7 +12159,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                     ),
                     hiddenTrackerFields: currentGameStateForLocks?.hiddenTrackerFields,
                   },
-                  null, // manual overrides are one-shot — never carry forward
+                  null, // never copy the base's edit record; a rewritten row keeps its own
                   // The stats above are the turn before's; this turn's inventory tags already wrote its own.
                   { keepReplacedInventory: true },
                 );
@@ -12172,7 +12239,12 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   !isTrackerRowsUpdate(ctData.presentCharacters) &&
                   (!Array.isArray(ctData.presentCharacters) || ctData.presentCharacters.length === 0)
                 ) {
-                  logger.debug("[generate] character-tracker emitted no presentCharacters; keeping existing snapshot");
+                  const resultKeys = Object.keys(ctData);
+                  // `{}` and an empty list are the prompt's no-change replies; any other shape is lost output (#7208).
+                  logger[resultKeys.length === 0 || Array.isArray(ctData.presentCharacters) ? "debug" : "warn"](
+                    "[generate] character-tracker emitted no presentCharacters (result keys: %s); keeping existing snapshot",
+                    resultKeys.join(", ") || "none",
+                  );
                   continue;
                 }
                 const snapBeforeUpdate = await gameStateStore.getByChatAndMessage(
@@ -13627,6 +13699,40 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           }
         }
 
+        // No tracker may have written the regenerated swipe's row (manual trackers, a failed run).
+        // It then starts as the state this reply began from, so the user's Tracker Panel edits
+        // stay on screen and carry into the next message.
+        if (
+          input.regenerateMessageId &&
+          chatMode !== "game" &&
+          lastSavedMsg?.id === input.regenerateMessageId &&
+          typeof lastSavedSwipeIndex === "number" &&
+          !generationSignal.aborted
+        ) {
+          try {
+            const regeneratedSwipeRow = await gameStateStore.getByChatAndMessage(
+              input.chatId,
+              input.regenerateMessageId,
+              lastSavedSwipeIndex,
+            );
+            const editedBase = regeneratedSwipeRow
+              ? null
+              : await gameStateStore.applyManualEdits(input.chatId, input.regenerateMessageId, baseGameStateSnapshot);
+            if (editedBase) {
+              await gameStateStore.updateByMessage(
+                input.regenerateMessageId,
+                lastSavedSwipeIndex,
+                input.chatId,
+                {},
+                undefined,
+                { baseSnapshot: editedBase },
+              );
+            }
+          } catch (err) {
+            logger.warn(err, "[generate] Could not keep Tracker Panel edits on the regenerated swipe");
+          }
+        }
+
         // Rewriting agents own the final spoken text, so wait for their
         // persisted edit (or no-op result) before releasing TTS.
         if (activatedTextRewriteRunAgents.length > 0) {
@@ -13691,6 +13797,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   characterId,
                   chatId: input.chatId,
                   chats,
+                  characters: chars,
                   sendUpdated: (data) => {
                     sendSseEvent(reply, { type: "schedule_updated", data });
                   },

@@ -11651,6 +11651,9 @@ test("Game character sheet Retry remains a draft until Save", async ({ page, req
     await expect(page.getByRole("heading", { name: characterName })).toHaveCount(0);
     await expect.poll(async () => (await readStoredCard())?.class).toBe("Chronomancer");
     expect((await readStoredCard())?.rpgStats).toEqual(originalCard.rpgStats);
+    // The "sheet updated." toast can cover the mobile top bar, and a pointer resting on it pauses auto-dismiss.
+    await page.mouse.move(0, 0);
+    await expect(page.locator("[data-sonner-toast]")).toHaveCount(0);
     await page.locator('.mari-window-bubble[data-window="control:character-profiles"]').click();
     await page.getByTitle(`${characterName} - Click to open character sheet`).filter({ visible: true }).click();
     await sheet.getByRole("button", { name: "Edit sheet" }).click();
@@ -22694,6 +22697,29 @@ test("mobile chat composer follows the visual viewport above the software keyboa
   } finally {
     await page.request.delete(`/api/chats/${chat.id}`).catch(() => undefined);
   }
+});
+
+test("page backing keeps the app running when the browser refuses canvas reads", async ({ page }) => {
+  // WebKit throws InvalidStateError from getImageData under memory pressure (#7241).
+  await page.addInitScript(() => {
+    CanvasRenderingContext2D.prototype.getImageData = () => {
+      throw new DOMException("Unable to get image data from canvas", "InvalidStateError");
+    };
+  });
+  await page.goto("/");
+  await expect(page.locator('[data-component="AppShell"]')).toBeVisible();
+  await page.evaluate(async () => {
+    const { useUIStore } = await import("/src/stores/ui.store.ts" as string);
+    useUIStore.getState().setAppBackgroundColor("#234567");
+  });
+  await expect(page.getByText("Marinara hit a recoverable UI error.")).toHaveCount(0);
+  // Without the canvas, the backing keeps the theme's own background color, unflattened.
+  await expect(page.locator("html")).toHaveCSS("background-color", "rgb(35, 69, 103)");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(35, 69, 103)");
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#234567");
+  await expect
+    .poll(() => page.locator("html").evaluate((element) => element.style.getPropertyValue("--marinara-page-backing")))
+    .toBe("#234567");
 });
 
 test("mobile Roleplay releases its inactive background after a crossfade", async ({ page }, testInfo) => {

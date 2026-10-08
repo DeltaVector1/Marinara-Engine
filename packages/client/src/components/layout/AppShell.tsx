@@ -121,6 +121,8 @@ const SHARED_SIDEBAR_WIDTH_MAX = Math.min(SIDEBAR_WIDTH_MAX, RIGHT_PANEL_WIDTH_M
 const TRACKER_PANEL_EDGE_OFFSET = 8;
 const TRACKER_PANEL_HUD_GAP = 6;
 const TRACKER_PANEL_CHAT_GAP = 8;
+// The narrowest docked Tracker Panel: its close, settings and help buttons still fit side by side (#7188).
+const TRACKER_PANEL_MIN_DOCKED_WIDTH = 96;
 const TRACKER_PANEL_DESKTOP_MOTION_MS = 260;
 const TRACKER_PANEL_DESKTOP_EXIT_MS = 240;
 const TRACKER_PANEL_DESKTOP_EASE = [0.16, 1, 0.3, 1] as const;
@@ -531,6 +533,7 @@ export function AppShell({
   // width even when the viewport itself is desktop-sized. Switch that pane to the
   // compact chat layout before toolbar controls begin colliding.
   const mainRef = useRef<HTMLElement>(null);
+  const overlayTrackerPanelRef = useRef<HTMLElement>(null);
   const compactWidthRef = useRef(0); // width when we last switched to compact
   const centerCompact = useUIStore((s) => s.centerCompact);
   const setCenterCompact = useUIStore((s) => s.setCenterCompact);
@@ -929,6 +932,14 @@ export function AppShell({
     closeTrackerPanel();
   }, []);
 
+  // The overlay Tracker Panel hides the chat control that opened it (globals.css), so keyboard focus moves into the panel.
+  useEffect(() => {
+    if (!shellOverlayMode || !trackerPanelVisible) return;
+    if (document.activeElement?.closest('[data-chat-covered="true"]')) {
+      overlayTrackerPanelRef.current?.focus({ preventScroll: true });
+    }
+  }, [shellOverlayMode, trackerPanelVisible]);
+
   useEffect(() => {
     restoreTrackerPanelOpenForChat(activeChatId);
   }, [activeChatId, restoreTrackerPanelOpenForChat, trackerPanelEnabled]);
@@ -1142,6 +1153,7 @@ export function AppShell({
         chatColumnRight: chatColumnRect.right,
         side: trackerPanelSide,
         gap: TRACKER_PANEL_CHAT_GAP,
+        minWidth: TRACKER_PANEL_MIN_DOCKED_WIDTH,
       });
       setTrackerPanelResolvedWidth((current) => (current === nextWidth ? current : nextWidth));
       setTrackerPanelWidthMeasured(true);
@@ -1153,6 +1165,13 @@ export function AppShell({
       }
       return true;
     };
+    // Watches for a chat column while there is none. A chat switch unmounts the column after the first
+    // measure, so a miss re-arms it; otherwise the panel would stay unmeasured and hidden (#7188).
+    const discoverChatColumn = () => {
+      if (discoveryObserver || !mainRef.current) return;
+      discoveryObserver = new MutationObserver(() => scheduleUpdate());
+      discoveryObserver.observe(mainRef.current, { childList: true, subtree: true });
+    };
     function scheduleUpdate() {
       if (frame) window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => {
@@ -1161,16 +1180,15 @@ export function AppShell({
         if (foundChatColumn) {
           discoveryObserver?.disconnect();
           discoveryObserver = null;
+        } else {
+          discoverChatColumn();
         }
       });
     }
 
     if (mainRef.current) observer.observe(mainRef.current);
     scheduleUpdate();
-    if (mainRef.current) {
-      discoveryObserver = new MutationObserver(() => scheduleUpdate());
-      discoveryObserver.observe(mainRef.current, { childList: true, subtree: true });
-    }
+    discoverChatColumn();
     window.addEventListener("resize", scheduleUpdate);
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
@@ -1194,6 +1212,10 @@ export function AppShell({
   // Room a Roleplay column placed on the panel's side (Chat position) leaves for it. It uses the chosen
   // width, not the width measured beside that column, so the two never resize each other.
   const trackerPanelChatClearance = trackerPanelOverlayClearance > 0 ? trackerPanelWidth + TRACKER_PANEL_CHAT_GAP : 0;
+  // Room every Roleplay column leaves on each side for the docked panel's minimum width. A fixed amount,
+  // so a column only narrows when the window is too small for both, and the two never resize each other.
+  const trackerPanelColumnRoom =
+    trackerPanelOverlayClearance > 0 ? TRACKER_PANEL_MIN_DOCKED_WIDTH + TRACKER_PANEL_CHAT_GAP : 0;
   const trackerPanelContentScale = resolveTrackerPanelContentScale(trackerPanelWidth, trackerPanelResolvedWidth);
   const trackerPanelPortal =
     trackerPanelActive &&
@@ -1387,7 +1409,9 @@ export function AppShell({
           <MountOnceWhenOpened open={gameAssetsBrowserOpen} overlay>
             <GameAssetsBrowserView />
           </MountOnceWhenOpened>
+          {/* Overlay mode keeps the chat mounted under panels and editors; globals.css hides its windows then. */}
           <div
+            data-chat-covered={chatSurfaceActive ? undefined : "true"}
             className={cn(
               "mari-app-background-paint flex flex-1 flex-col overflow-hidden",
               (botBrowserOpen || gameAssetsBrowserOpen || (!shellOverlayMode && hasDetailView)) && "hidden",
@@ -1398,6 +1422,7 @@ export function AppShell({
                 "--tracker-panel-hud-clear-right": `${trackerPanelSide === "right" ? trackerPanelHudClearance : 0}px`,
                 "--tracker-panel-overlay-clearance": `${trackerPanelOverlayClearance}px`,
                 "--tracker-panel-chat-clearance": `${trackerPanelChatClearance}px`,
+                "--tracker-panel-column-room": `${trackerPanelColumnRoom}px`,
               } as CSSProperties
             }
           >
@@ -1476,6 +1501,8 @@ export function AppShell({
         <AnimatePresence mode="wait">
           {trackerPanelVisible && (
             <motion.aside
+              ref={overlayTrackerPanelRef}
+              tabIndex={-1}
               key="mobile-tracker"
               initial={{ x: trackerPanelSide === "left" ? "-100%" : "100%" }}
               animate={{ x: 0 }}
@@ -1484,7 +1511,7 @@ export function AppShell({
               data-component="TrackerDataSidebarMobile"
               aria-label={localizeUi("ui.layout.appshell.trackerDataPanel")}
               className={cn(
-                "mari-tracker-panel !fixed bottom-0 z-50 w-screen max-w-none overflow-hidden bg-zinc-950/95 shadow-2xl ring-1 ring-[var(--marinara-app-accent-solid)] backdrop-blur-xl",
+                "mari-tracker-panel !fixed bottom-0 z-50 w-screen max-w-none overflow-hidden bg-zinc-950/95 shadow-2xl outline-none ring-1 ring-[var(--marinara-app-accent-solid)] backdrop-blur-xl",
                 MOBILE_SHELL_PANEL_TOP_CLASS,
                 MOBILE_SHELL_PANEL_BOTTOM_PADDING_CLASS,
                 trackerPanelSide === "left" ? "left-0" : "right-0",

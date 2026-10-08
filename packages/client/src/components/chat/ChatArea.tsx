@@ -77,6 +77,7 @@ import {
   PROFESSOR_MARI_ID,
   buildGuidedGenerationInstructionMessage,
   normalizeAvatarCrop,
+  normalizeAdvancedMemorySettings,
   normalizeGroupChatMode,
   normalizeManualTrackerAgentTypes,
   type GeneratedSceneVideo,
@@ -587,7 +588,13 @@ export const ChatArea = memo(function ChatArea({
       <ChatOpeningState error={error} onRetry={refetch} onBack={() => useChatStore.getState().setActiveChatId(null)} />
     );
   const chatSettingsButton =
-    chat && chatSettingsHosted ? <ChatSettingsBubble chatId={chat.id} mode={readChatMode(chat)} /> : null;
+    chat && chatSettingsHosted ? (
+      <ChatSettingsBubble
+        chatId={chat.id}
+        mode={readChatMode(chat)}
+        advancedMemory={normalizeAdvancedMemorySettings(metadata.advancedMemory).enabled}
+      />
+    ) : null;
   if (chat && (metadata.multiplayerSetup === true || metadata.multiplayer)) {
     return (
       <Suspense fallback={null}>
@@ -2441,7 +2448,10 @@ const LocalChatArea = memo(function LocalChatArea({
     (messageId?: string) => {
       if (!activeChatId) return;
       peekPrompt.mutate(messageId ? { chatId: activeChatId, messageId } : activeChatId, {
-        onSuccess: (data) => {
+        // Characters who reply one by one each have their own prompt, so diagnostics follow
+        // the character whose saved prompt is shown, also when {{prompt}} opens the latest one.
+        // Like the server, use the saved mode, which still applies after the group shrinks to one character.
+        onSuccess: ({ characterId, ...data }) => {
           // A cached prompt belongs to the newest reply; its checkup leads the Peek header.
           const reply = messageId
             ? messages?.find((message) => message.id === messageId)
@@ -2451,6 +2461,7 @@ const LocalChatArea = memo(function LocalChatArea({
           setPeekPromptData({
             ...data,
             chatId: activeChatId,
+            ...(normalizeGroupChatMode(chatMeta.groupChatMode) === "individual" && characterId ? { characterId } : {}),
             checkup: reply
               ? {
                   findings: checkMessage(reply),
@@ -2473,7 +2484,7 @@ const LocalChatArea = memo(function LocalChatArea({
         },
       });
     },
-    [activeChatId, checkMessage, handleReplyCheckupLink, messages, peekPrompt],
+    [activeChatId, chatMeta.groupChatMode, checkMessage, handleReplyCheckupLink, messages, peekPrompt],
   );
 
   // R2: only the newest reply gets the quiet line, and only for facts about the reply itself.

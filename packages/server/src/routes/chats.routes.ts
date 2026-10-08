@@ -153,7 +153,7 @@ import {
 } from "../services/chat-insights/transcript-document.js";
 import { readSmallAvatarDataUri } from "../services/chat-insights/transcript-avatars.js";
 import { characters, gameStateSnapshots, memoryChunks } from "../db/schema/index.js";
-import { and, desc, eq, inArray } from "../db/file-query.js";
+import { and, desc, eq, inArray, isNotNull } from "../db/file-query.js";
 import { existsSync } from "fs";
 import { join } from "path";
 import { DATA_DIR } from "../utils/data-dir.js";
@@ -173,6 +173,7 @@ import {
   resolveBaseUrl,
   resolveActiveCharacterIds,
   resolveVisibleGameStateAnchor,
+  mergedChatSummaryReaders,
   shouldEnableAgentsForGeneration,
   formatConversationInstructionsForWrap,
   injectIntoOutputFormatOrLastUser,
@@ -2595,12 +2596,31 @@ export async function chatsRoutes(app: FastifyInstance) {
             partial[key] = normalizeMessageCharacterIds(partial[key]);
           }
         }
+        // A whisper edited to nothing is removed from the message rather than kept as a blank secret.
+        if (Array.isArray(partial.roleplayCommandActivity)) {
+          partial.roleplayCommandActivity = partial.roleplayCommandActivity.filter(
+            (item: { command?: { type?: unknown; text?: unknown }; error?: unknown } | null) =>
+              !(
+                item?.command?.type === "whisper" &&
+                !item.error &&
+                typeof item.command.text === "string" &&
+                !item.command.text.trim()
+              ),
+          );
+        }
         const syncAllSwipeExtra: Record<string, unknown> = {};
         if (Object.prototype.hasOwnProperty.call(partial, "hiddenFromAI")) {
           syncAllSwipeExtra.hiddenFromAI = partial.hiddenFromAI;
         }
         if (Object.prototype.hasOwnProperty.call(partial, "hiddenFromAICharacterIds")) {
           syncAllSwipeExtra.hiddenFromAICharacterIds = partial.hiddenFromAICharacterIds;
+        }
+        // A user's visibility choice, for everyone or per character, always wins over Advanced Memory's automatic one (#7192).
+        if (
+          Object.prototype.hasOwnProperty.call(partial, "hiddenFromAI") ||
+          Object.prototype.hasOwnProperty.call(partial, "hiddenFromAICharacterIds")
+        ) {
+          partial.visibilityManual = syncAllSwipeExtra.visibilityManual = true;
         }
         if (Object.prototype.hasOwnProperty.call(partial, "isConversationStart")) {
           syncAllSwipeExtra.isConversationStart = partial.isConversationStart;
@@ -2674,7 +2694,10 @@ export async function chatsRoutes(app: FastifyInstance) {
       if (typeof hidden !== "boolean") {
         return reply.status(400).send({ error: "hidden must be a boolean" });
       }
-      const updated = (await storage.bulkSetHiddenFromAI(req.params.chatId, messageIds, hidden)).length;
+      // /hide and /unhide are the user's choice too, so Advanced Memory never overrides them (#7192).
+      const updated = (
+        await storage.bulkSetHiddenFromAI(req.params.chatId, messageIds, hidden, { visibilityManual: true })
+      ).length;
       return { updated };
     },
   );
@@ -3022,12 +3045,13 @@ export async function chatsRoutes(app: FastifyInstance) {
     if (!updated && !hasExplicitTarget) {
       updated = await gameStateStore.updateLatest(req.params.id, fields, manual);
     }
-    // Wipe all manual overrides when explicitly requested
+    // Wipe all manual overrides when explicitly requested. Every row's, because a regeneration
+    // starts from the edits on any swipe of the reply it replaces.
     if (clearOverrides && updated) {
       await app.db
         .update(gameStateSnapshots)
         .set({ manualOverrides: null })
-        .where(and(eq(gameStateSnapshots.chatId, req.params.id), eq(gameStateSnapshots.id, (updated as any).id)));
+        .where(and(eq(gameStateSnapshots.chatId, req.params.id), isNotNull(gameStateSnapshots.manualOverrides)));
       updated = { ...updated, manualOverrides: null };
     }
     // If no snapshot exists yet, create one so manual edits aren't lost
@@ -3214,6 +3238,8 @@ export async function chatsRoutes(app: FastifyInstance) {
           parameters: null,
           source: "cached",
           exact: true,
+          // Whose saved prompt this is, so Decision diagnostics can follow that character (#7264).
+          characterId: promptSourceMessage.characterId ?? null,
           generationInfo: cached.generationInfo ?? null,
           gameToolPlanning: cached.gameToolPlanning ?? null,
           agentNote: requestedMessage
@@ -3257,8 +3283,13 @@ export async function chatsRoutes(app: FastifyInstance) {
       try {
         const { createPromptsStorage } = await import("../services/storage/prompts.storage.js");
         const { createCharactersStorage } = await import("../services/storage/characters.storage.js");
-        const { assemblePrompt, buildPromptMacroContext, resolvePromptIdleDuration, setLorebookEntryCounts } =
-          await import("../services/prompt/index.js");
+        const {
+          assemblePrompt,
+          buildPromptMacroContext,
+          resolveCharacterMacroData,
+          resolvePromptIdleDuration,
+          setLorebookEntryCounts,
+        } = await import("../services/prompt/index.js");
         const presetStore = createPromptsStorage(app.db);
         const charStore = createCharactersStorage(app.db);
 
@@ -3690,6 +3721,16 @@ export async function chatsRoutes(app: FastifyInstance) {
             personaStats,
             chatMessages: mappedMessages,
             chatSummary: activeChatSummary,
+            // Read the summary as the next merged reply will, so the preview matches it (#7252).
+            chatSummaryReaders: activeChatSummary
+              ? mergedChatSummaryReaders({
+                  characterIds: assistantCharacterIds,
+                  individual: normalizeGroupChatMode(chatMeta.groupChatMode) === "individual",
+                  impersonate: false,
+                  narratorCharacterId: normalizeAdvancedMemorySettings(chatMeta.advancedMemory).narratorCharacterId,
+                  ...(await resolveCharacterMacroData(app.db, assistantCharacterIds)),
+                })
+              : undefined,
             enableAgents: chatMeta.enableAgents === true,
             activeAgentIds: activePromptAgentIds,
             activeLorebookIds: Array.isArray(chatMeta.activeLorebookIds)

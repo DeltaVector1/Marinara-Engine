@@ -364,6 +364,14 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     kind: "Toggle",
   },
   {
+    id: "continue-adds-newline",
+    sectionId: "responses",
+    label: "Add a new line before /continue text",
+    description: "Start /continue text after a blank line.",
+    aliases: ["continue", "newline", "blank line"],
+    kind: "Toggle",
+  },
+  {
     id: "messages-per-page",
     sectionId: "responses",
     label: "Messages per page",
@@ -645,6 +653,15 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     description: "Use Marinara's accent-colored cursor.",
     aliases: ["cursor", "mouse", "pointer"],
     keywords: ["custom pointer"],
+    kind: "Toggle",
+  },
+  {
+    id: "reduce-ambient-effects",
+    sectionId: "app-style",
+    label: "Reduce Ambient Animations & Effects",
+    description: "Stop decorative animation, particles, and text reveal.",
+    aliases: ["reduced motion", "animation", "particles", "effects"],
+    keywords: ["reduced ambient effects", "less motion"],
     kind: "Toggle",
   },
   {
@@ -1182,6 +1199,14 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     // F6 (O5): "context length"/"context size" sent a user trying to raise the
     // model's context window here instead and Enter silently flipped this
     // toggle - removed; there is no context-size control in this registry.
+    kind: "Toggle",
+  },
+  {
+    id: "show-context-usage",
+    sectionId: "message-tools",
+    label: "Show context usage",
+    description: "Show the latest context usage in connection switchers.",
+    aliases: ["context usage", "context meter"],
     kind: "Toggle",
   },
   {
