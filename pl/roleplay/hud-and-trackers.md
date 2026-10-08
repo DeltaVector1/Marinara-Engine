@@ -62,7 +62,7 @@ Na dole **Agent activity** pokazuje, co zrobili agenci czatu. Możesz tu ponowni
 
 ## Zmiana wartości trackerów
 
-Na telefonie przeciągnij przyciski **World State** i **Player & Tracker** w wybrane miejsca w czacie. Dotknij przycisku, żeby otworzyć jego panel, a **X**, żeby go zamknąć. Przyciski i panele korzystają z ustawienia **Chat widget style** w **Settings → Appearance → App**. Czat zapamiętuje położenie każdego przycisku. Na komputerze te same edytory są w rozwijanych sekcjach okna Trackers. Każde pole można zmienić, więc wartość źle ustawioną przez AI da się poprawić. Zmiany zapisują się od razu.
+Na telefonie przeciągnij przyciski **World State** i **Player & Tracker** w wybrane miejsca w czacie. Dotknij przycisku, żeby otworzyć jego panel, a **X**, żeby go zamknąć. Przyciski i panele korzystają z ustawienia **Chat widget style** w **Settings → Appearance → App**. Czat zapamiętuje położenie każdego przycisku. Na komputerze te same edytory są w rozwijanych sekcjach okna Trackers. Każde pole można zmienić, więc wartość źle ustawioną przez AI da się poprawić. Zmiany zapisują się od razu. Kolejna odpowiedź wychodzi od poprawionych wartości, także wtedy, gdy ponownie generujesz poprawioną odpowiedź albo tworzysz jej nowy swipe.
 
 Oto, co da się zmienić w poszczególnych trackerach:
 

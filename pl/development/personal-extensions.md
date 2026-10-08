@@ -100,7 +100,7 @@ Elementy panelu korzystają z tego samego deklaratywnego słownika co okna ogran
 
 Klient niezależnie sprawdza każdy deskryptor przed dodaniem do magazynu środowiska. Rodzaje wkładu, powierzchnie, pozycje, kontrolki, ID, listy opcji, składnia nazw ikon, długości tekstu, łączny tekst panelu, liczba elementów i liczba wkładów na rozszerzenie są walidowane i ograniczane. React renderuje tekst rozszerzenia jako tekst. Nie przyjmuje HTML, CSS, URL, komponentu React ani funkcji zwrotnej hosta kontrolowanych przez rozszerzenie. Host usuwa wszystkie wkłady po zatrzymaniu workera, zmianie jego hasza lub zniknięciu z zatwierdzonej odpowiedzi środowiska. Zdarzenia trafiają tylko do workera zarejestrowanego dla tego samego ID rozszerzenia i hasza zawartości.
 
-Nie ma tu pomocnika do drzewa DOM, dostępu do API aplikacji Marinara Engine, dostępu do zdarzeń dokumentu nadrzędnego ani dowolnego dostępu do sieci. Ramka iframe sprawdza komunikaty i ogranicza ich częstotliwość. Strażnik oparty na sygnale życia kończy wątek Worker, który nie odpowiada albo kręci się w pętli.
+Nie ma tu pomocnika do drzewa DOM, dostępu do API aplikacji Marinara Engine, dostępu do zdarzeń dokumentu nadrzędnego ani dowolnego dostępu do sieci. Ramka iframe sprawdza komunikaty i ogranicza ich częstotliwość. Strażnik oparty na sygnale życia kończy wątek Worker, który nie odpowiada albo kręci się w pętli. Strażnik czeka, gdy strona jest ukryta albo przeglądarka opóźnia jej timery (karta w tle, uśpienie, wstrzymana aplikacja mobilna), więc takie przerwy nigdy nie zatrzymują sprawnego wątku Worker. Gdy piaskownica rzeczywiście zatrzyma wątek Worker, host usuwa jego wkłady i proponuje użytkownikowi ponowne uruchomienie.
 
 ## Środowisko zgodności z pełnym dostępem do strony
 
