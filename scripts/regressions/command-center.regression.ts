@@ -37,10 +37,7 @@ import {
 import { resolveChatResourceDropAction } from "../../packages/client/src/lib/chat-resource-drop-capabilities.js";
 import { extractDocsSearchQuery } from "../../packages/client/src/lib/docs-command-search.js";
 import { resolveRunAnchorMs, resolveRunSeconds } from "../../packages/client/src/lib/mari-work-card-timing.js";
-import {
-  resolveMariEdgeGlow,
-  type MariRunState,
-} from "../../packages/client/src/lib/mari-presence-seen.js";
+import { resolveMariEdgeGlow, type MariRunState } from "../../packages/client/src/lib/mari-presence-seen.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
@@ -203,6 +200,7 @@ import { OFFICIAL_AGENT_KNOWLEDGE_ENTRIES } from "../../packages/server/src/serv
 import {
   summarizeMergedAgentRow,
   guardRawMessageTableWrite,
+  resolveTransformTables,
 } from "../../packages/server/src/services/mari-db/mari-db.service.js";
 import {
   appDataActionLooksReadOnly,
@@ -2820,6 +2818,12 @@ assert.ok(!("mariDetailId" in mariSession));
     () => guardRawMessageTableWrite("characters"),
     "the guard must not block writes to unrelated tables",
   );
+  // `transform all` runs over every table except the refused message tables, instead of always throwing.
+  const allTables = resolveTransformTables("all");
+  assert.ok(
+    allTables.includes("characters") && !allTables.includes("messages") && !allTables.includes("message_swipes"),
+  );
+  assert.throws(() => resolveTransformTables("messages"), /chat\.updateMessage/);
 }
 
 // L8 (slice 28b): the omnibar and Mari sit above every app overlay through ONE layer,

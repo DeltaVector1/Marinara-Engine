@@ -742,6 +742,20 @@ export function guardRawMessageTableWrite(table: string | undefined): void {
   }
 }
 
+/**
+ * L5/L7: the tables a transform runs over. parseMutation only guards positionals[0], which for
+ * `transform all <script>` is the literal "all", so "all" expands here and skips the message tables:
+ * raw writes there are refused, and the untrusted script only ever gets the tables it may change.
+ * A named message table still throws.
+ */
+export function resolveTransformTables(table: string): string[] {
+  if (table !== "all") {
+    guardRawMessageTableWrite(table);
+    return [table];
+  }
+  return FILE_BACKED_TABLES.filter((name) => name !== "messages" && name !== "message_swipes");
+}
+
 function protectPromptPresetSystemKeys(changes: PlanChange[]): void {
   for (const change of changes) {
     if (change.table !== "prompt_presets" || !change.afterRaw) continue;
@@ -8737,12 +8751,7 @@ export class MariDbService {
   ): Promise<PlanChange[]> {
     const cwd = request.cwd ? resolve(request.cwd) : process.cwd();
     const scriptPath = resolve(cwd, String(request.scriptPath));
-    const tables = request.table === "all" ? [...FILE_BACKED_TABLES] : [String(request.table)];
-    // L5/L7: parseMutation only guards positionals[0], which for `transform all <script>` is the
-    // literal string "all", not a real table name - "all" then expands to every FILE_BACKED_TABLES
-    // entry right here, including messages/message_swipes. Guard the expanded list before the
-    // untrusted script ever runs, so a transform can't patch/insert/delete message rows that way.
-    for (const table of tables) guardRawMessageTableWrite(table);
+    const tables = resolveTransformTables(String(request.table));
     const allParsed = new Map<string, Row[]>();
     const allRaw = new Map<string, Row[]>();
     for (const table of tables) {
