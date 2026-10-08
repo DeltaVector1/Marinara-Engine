@@ -2239,7 +2239,7 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
 }
 
 @media (min-width: 30.0625rem) {
-  .mari-omnibar-header-slot .mari-omnibar-header-destinations > :first-child,
+  .mari-omnibar-header-slot .mari-omnibar-header-destinations > .mari-omnibar-header-tablist > :first-child,
   .mari-omnibar-header-slot .mari-omnibar-header-destinations button[data-destination="chats"] {
     margin-inline-start: auto;
   }
@@ -2284,6 +2284,28 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
 .mari-omnibar-header-destinations button[data-active="true"] {
   color: var(--foreground);
   background: var(--accent);
+}
+
+/* Tabs, like a browser's: the selected tab takes the panel's own surface (--card, what the transcript
+   sits on) and rounds its top corners, so it merges into the content. The header's hairline stays
+   under the other tabs; the selected tab covers it with a shadow. Shadows and no border, so no size
+   or position changes. The tablist is display: contents: the tabs remain flex items of the row. */
+.mari-omnibar-header-tablist {
+  display: contents;
+}
+
+.mari-omnibar-header-destinations button[role="tab"] {
+  background: transparent;
+}
+
+.mari-omnibar-header-destinations button[role="tab"]:hover {
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.mari-omnibar-header-destinations button[role="tab"][data-active="true"] {
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: var(--card);
+  box-shadow: 0 1px 0 var(--card);
 }
 
 .mari-omnibar-header-destinations b,

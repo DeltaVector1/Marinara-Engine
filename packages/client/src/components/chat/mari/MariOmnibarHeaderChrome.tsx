@@ -1,6 +1,6 @@
 import { ProfessorMariAskContext } from "@marinara-engine/shared";
 import { Brain, BookOpen, Eye, MessageCircle, Plus, EllipsisVertical } from "lucide-react";
-import { Fragment, type Dispatch, type KeyboardEvent, type RefObject, type SetStateAction } from "react";
+import { type Dispatch, type KeyboardEvent, type RefObject, type SetStateAction, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { MariWorkspaceContextItem } from "../../../hooks/use-mari-workspace-context";
@@ -105,6 +105,27 @@ export function MariOmnibarHeaderChrome({
   const selectHeaderDestination = (destination: Exclude<ProfessorMariWorkspaceDestination, "chat">) => {
     setWorkspaceDestination(workspaceDestination === destination ? "chat" : destination);
   };
+  // Tabs, manual activation: arrows and Home/End move focus; Enter or Space (the click) selects. A
+  // selected tab would open its panel, and that panel takes focus on mount, so focus must not move with it.
+  const tabRefs = useRef<Partial<Record<string, HTMLButtonElement | null>>>({});
+  const [focusedTabId, setFocusedTabId] = useState<string | null>(null);
+  const tabStop = focusedTabId ?? (workspaceDestination === "chat" ? "skills" : workspaceDestination);
+  const onTabKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const enabledTabs = headerDestinations.filter(({ id }) => !(id === "chats" && isBusy));
+    const currentId = (event.target as HTMLElement).closest<HTMLElement>("[data-destination]")?.dataset.destination;
+    const index = enabledTabs.findIndex(({ id }) => id === currentId);
+    if (index < 0) return;
+    const last = enabledTabs.length - 1;
+    const next =
+      event.key === "ArrowRight" ? (index === last ? 0 : index + 1)
+      : event.key === "ArrowLeft" ? (index === 0 ? last : index - 1)
+      : event.key === "Home" ? 0
+      : event.key === "End" ? last
+      : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    tabRefs.current[enabledTabs[next]!.id]?.focus();
+  };
 
   const omnibarHeaderChrome =
     omnibarMode && omnibarHeaderSlot
@@ -114,12 +135,25 @@ export function MariOmnibarHeaderChrome({
               className="mari-omnibar-header-destinations"
               aria-label={localizeUi("ui.chat.homeprofessormarichat.workspaceDestinations")}
             >
-              {headerDestinations.map(({ id, Icon, label, shortLabel, count }) => (
-                <Fragment key={id}>
+              <div
+                role="tablist"
+                className="mari-omnibar-header-tablist"
+                aria-label={localizeUi("ui.chat.homeprofessormarichat.workspaceDestinations")}
+                onKeyDown={onTabKeyDown}
+              >
+                {headerDestinations.map(({ id, Icon, label, shortLabel, count }) => (
                   <button
+                    key={id}
+                    ref={(element) => {
+                      tabRefs.current[id] = element;
+                    }}
                     type="button"
-                    aria-pressed={workspaceDestination === id}
+                    role="tab"
+                    id={`mari-tab-${id}`}
+                    aria-selected={workspaceDestination === id}
+                    tabIndex={tabStop === id ? 0 : -1}
                     onClick={() => selectHeaderDestination(id)}
+                    onFocus={() => setFocusedTabId(id)}
                     disabled={id === "chats" && isBusy}
                     data-destination={id}
                     data-active={workspaceDestination === id ? "true" : "false"}
@@ -135,22 +169,20 @@ export function MariOmnibarHeaderChrome({
                     </span>
                     {count > 0 ? <b>{count}</b> : null}
                   </button>
-                  {/* Q1: New chat sits right after Chats, one "Chats · +" group; every destination fits the
-                      bar at every width, so the header has no ⋮ menu. Q5: the group closes the row. */}
-                  {id === "chats" ? (
-                    <button
-                      type="button"
-                      onClick={() => void runRestart()}
-                      disabled={isBusy}
-                      className="mari-omnibar-header-new-chat"
-                      aria-label={localizeUi("ui.chat.homeprofessormarichat.newChat")}
-                      title={t("home.professorMari.newChat")}
-                    >
-                      <Plus size="0.85rem" aria-hidden="true" />
-                    </button>
-                  ) : null}
-                </Fragment>
-              ))}
+                ))}
+              </div>
+              {/* Q1: New chat sits right after Chats, one "Chats · +" group; every destination fits the
+                  bar at every width, so the header has no ⋮ menu. Q5: the group closes the row. */}
+              <button
+                type="button"
+                onClick={() => void runRestart()}
+                disabled={isBusy}
+                className="mari-omnibar-header-new-chat"
+                aria-label={localizeUi("ui.chat.homeprofessormarichat.newChat")}
+                title={t("home.professorMari.newChat")}
+              >
+                <Plus size="0.85rem" aria-hidden="true" />
+              </button>
             </nav>
           </div>,
           omnibarHeaderSlot,

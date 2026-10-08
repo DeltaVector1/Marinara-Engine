@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari's Skills, Memories, Context and Chats buttons look like browser tabs. The selected tab merges into the panel below, the others stay quiet, and a hairline runs under them. The row is a tab list: arrow keys and Home/End move between tabs, Enter or Space opens one. The tabs keep their size and place.
 - Lorebook rows in the omnibar no longer have an Enabled/Disabled switch or chip. Attach or remove a lorebook for this chat there. Turn a lorebook on or off for every chat in the Lorebooks panel.
 - Fixed the FAQ window staying open after you chose "Ask Mari about this" from the Home bookmarks. It now closes, and Professor Mari opens with the question.
 - Fixed Tab leaving a dialog (such as **Model Thoughts**) for the page behind it. Tab now stays inside the open dialog again.
