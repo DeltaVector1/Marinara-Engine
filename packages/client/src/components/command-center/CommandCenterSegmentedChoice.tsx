@@ -65,7 +65,9 @@ export function CommandCenterSegmentedChoice<T extends string>({
     const target = enabledOptions[targetIndex];
     if (!target) return;
 
-    onValueChange(target.option.value);
+    // A group with no selected option is a question (an approval's Keep/Restore, "Retry with"), not a
+    // setting: arrows only move focus there, so looking at the options never runs one. Enter/Space picks.
+    if (selectedOption) onValueChange(target.option.value);
     event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("[role='radio']")[target.index]?.focus();
   };
 
