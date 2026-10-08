@@ -116,7 +116,7 @@ export function useOmnibarAside(params: {
               answer += event.data;
               setState({ status: "streaming", answer, error: null, query: trimmed, tier, followUp });
             } else if (event.type === "complete") {
-              if (!followUp) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
+              if (!followUp && answer) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
               setState({ status: "complete", answer, error: null, query: trimmed, tier, followUp });
             } else if (event.type === "error") {
               throw new Error(typeof event.data === "string" ? event.data : "Professor Mari could not answer.");
@@ -125,6 +125,8 @@ export function useOmnibarAside(params: {
           // A cleanly closed stream is still a completed response even if an
           // intermediary omitted the optional terminal event.
           if (!controller.signal.aborted) {
+            // No words at all is a failed answer, not a finished one: never leave it "thinking" or cache it.
+            if (!answer) throw new Error("Professor Mari could not answer.");
             if (!followUp) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
             setState((current) =>
               current.query === trimmed && current.status === "streaming"
