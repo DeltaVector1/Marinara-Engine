@@ -443,7 +443,6 @@ export function HomeProfessorMariChat({
   const lastSyncedMemoryIdRef = useRef<string | null>(null);
   const lastSyncedSkillIdRef = useRef<string | null>(null);
   const hasLoadedSkillsRef = useRef(false);
-  const hasLoadedMemoriesRef = useRef(false);
   const memoriesLoadSeqRef = useRef(0);
   const attachmentInputRef = useRef<HTMLInputElement>(null);
   const embeddedTextareaRef = useRef<HTMLTextAreaElement>(null);
@@ -822,7 +821,6 @@ export function HomeProfessorMariChat({
   }, []);
 
   const loadSkills = useCallback(async () => {
-    if (hasLoadedSkillsRef.current && skills.length > 0) return;
     setSkillsLoading(true);
     try {
       const response = await api.get<MariWorkspaceSkillsResponse>("/professor-mari/workspace/skills");
@@ -840,10 +838,9 @@ export function HomeProfessorMariChat({
     } finally {
       setSkillsLoading(false);
     }
-  }, [skills.length]);
+  }, []);
 
   const loadMemories = useCallback(async () => {
-    if (hasLoadedMemoriesRef.current && memories.length > 0) return;
     const seq = ++memoriesLoadSeqRef.current;
     setMemoriesLoading(true);
     try {
@@ -852,7 +849,6 @@ export function HomeProfessorMariChat({
       // so an older list can't overwrite the newer one or reset the selection.
       if (seq !== memoriesLoadSeqRef.current) return;
       setMemories(response.instructions);
-      hasLoadedMemoriesRef.current = true;
       // Memories open collapsed; only a row the user opened stays open across refreshes.
       setSelectedMemoryId((current) =>
         current && response.instructions.some((memory) => memory.id === current) ? current : null,
@@ -860,7 +856,7 @@ export function HomeProfessorMariChat({
     } finally {
       if (seq === memoriesLoadSeqRef.current) setMemoriesLoading(false);
     }
-  }, [memories.length]);
+  }, []);
 
   const ensureProfessorMariChat = useCallback(
     async (connectionId: string | null) => {
