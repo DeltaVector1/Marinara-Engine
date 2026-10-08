@@ -121,10 +121,8 @@ test("Mari calls chat.diagnose first and names the real limit from the findings"
     // The findings never carry the seeded message's own text.
     expect(diagnosed!.data.output).not.toContain("the castle stood on the hill");
 
-    const finalSay = events.find((event) => event.type === "message" || event.type === "complete");
     const fullOutput = events.map((event) => JSON.stringify(event.data)).join("\n");
     expect(fullOutput).toContain("512-token output limit");
-    void finalSay;
   } finally {
     if (roleplayChatId) await request.delete(`/api/chats/${roleplayChatId}?force=true`);
     if (mariChatId) await request.delete(`/api/chats/internal/professor-mari/chats/${mariChatId}`);
