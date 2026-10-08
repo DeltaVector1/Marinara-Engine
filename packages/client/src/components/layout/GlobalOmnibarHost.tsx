@@ -45,7 +45,6 @@ class OmnibarErrorBoundary extends Component<
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
     console.error("[GlobalOmnibar] Unhandled render error", error, info.componentStack);
-    writeCommandCenterSessionState(DEFAULT_COMMAND_CENTER_SESSION_STATE);
   }
 
   render() {
@@ -57,6 +56,11 @@ class OmnibarErrorBoundary extends Component<
 function OmnibarErrorPanel({ error, onClose }: { error: unknown; onClose: () => void }) {
   const { t } = useTranslation();
   const message = error instanceof Error ? error.message : String(error);
+  // Clear the saved session here, not in componentDidCatch: the crashed dialog's unmount effect flushes
+  // its session after componentDidCatch runs, and this panel's mount effect runs after that flush.
+  useEffect(() => {
+    writeCommandCenterSessionState(DEFAULT_COMMAND_CENTER_SESSION_STATE);
+  }, []);
   return (
     <div
       role="alertdialog"
