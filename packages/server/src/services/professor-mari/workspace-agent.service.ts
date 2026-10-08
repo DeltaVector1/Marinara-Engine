@@ -4009,7 +4009,12 @@ export class ProfessorMariWorkspaceService {
         throw err;
       }
     } finally {
-      if (this.latestRun?.id === userMessage.id && this.latestRun.outcome === "running") {
+      // A retry reuses the user message id, so the start time tells this run apart from the newer one.
+      if (
+        this.latestRun?.id === userMessage.id &&
+        this.latestRun.startedAt === runStartedAt &&
+        this.latestRun.outcome === "running"
+      ) {
         this.latestRun = {
           ...this.latestRun,
           finishedAt: Date.now(),
