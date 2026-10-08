@@ -97,6 +97,3 @@ export function createModalPrefillName(modal: string, query: string): string | u
   }
   return name || undefined;
 }
-/** A lorebook row's own "Enabled" toggle, as opposed to the explicit "Add X to chat" suggestion row. */
-export const isLorebookEnableToggleRow = (result: Pick<OmnibarResult, "category" | "control" | "action">) =>
-  result.category === "lorebook" && result.control?.type === "toggle" && !result.action;

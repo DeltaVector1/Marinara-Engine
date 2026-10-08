@@ -172,7 +172,11 @@ import {
 } from "../../packages/client/src/lib/pull-to-open.js";
 import { QUICK_ANSWER_SETTINGS_LABELS } from "../../packages/server/src/services/professor-mari/quick-answer-settings-labels.js";
 import { formatCapabilityAgentGroundingLines } from "../../packages/server/src/services/professor-mari/official-agent-knowledge.js";
-import { buildOmnibarChatRows, chatRowContextLine } from "../../packages/client/src/lib/omnibar-entity-rows.js";
+import {
+  buildOmnibarChatRows,
+  buildOmnibarLorebookRows,
+  chatRowContextLine,
+} from "../../packages/client/src/lib/omnibar-entity-rows.js";
 import {
   chatResultType,
   COMMAND_ICONS,
@@ -4491,4 +4495,30 @@ console.info("Command Center regression checks passed.");
   assert.equal(start("chat with eli"), null, "two characters: no line");
   assert.equal(start("new character Bob"), null, "a create row is not a resolved record");
   assert.equal(resolveOmnibarUnderstoodLine([], open, chatNameById), null, "a plain search: no line");
+}
+
+{
+  // Slice 83: a lorebook row never carries a global enable/disable toggle or status chip.
+  // The global flag lives in the Lorebooks panel only.
+  const t = ((key: string, fallback: string) => fallback) as never;
+  const lorebook = {
+    id: "lb-global",
+    name: "Lore",
+    description: "",
+    enabled: true,
+    characterIds: [],
+    personaIds: [],
+    tags: [],
+    category: "world",
+    entries: [],
+  } as never;
+  const [row] = buildOmnibarLorebookRows({
+    lorebooks: [lorebook],
+    characterNameById: new Map(),
+    personaById: new Map(),
+    categoryLabels: {} as never,
+    t,
+  });
+  assert.equal(row?.control, undefined, "a lorebook row exposes no global toggle");
+  assert.equal(row?.preview().status, undefined, "a lorebook row shows no Enabled/Disabled chip");
 }

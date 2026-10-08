@@ -288,17 +288,15 @@ export type OmnibarLorebookRowsInput = {
   personaById: ReadonlyMap<string, Persona>;
   categoryLabels: CommandCenterCategoryLabels;
   t: OmnibarTranslate;
-  /** Called when the row's toggle enables or disables a lorebook. */
-  onSetLorebookEnabled: (id: string, enabled: boolean) => void;
 };
 
+// The global enabled flag is not an omnibar action: it lives in the Lorebooks panel only.
 export function buildOmnibarLorebookRows({
   lorebooks,
   characterNameById,
   personaById,
   categoryLabels,
   t,
-  onSetLorebookEnabled,
 }: OmnibarLorebookRowsInput) {
   return lorebooks.map((item) => {
     const linkedNames = [
@@ -330,12 +328,6 @@ export function buildOmnibarLorebookRows({
           ]
             .filter(Boolean)
             .join(" · ") || undefined,
-        status: {
-          label: lorebook.enabled
-            ? t("commandCenter.values.enabled", "Enabled")
-            : t("commandCenter.values.disabled", "Disabled"),
-          tone: lorebook.enabled ? ("success" as const) : ("neutral" as const),
-        },
         supportingInfo: lorebook.linkedNames.length
           ? t("commandCenter.preview.linkedToValue", "Linked to {{names}}", {
               names: lorebook.linkedNames.slice(0, 3).join(", "),
@@ -352,14 +344,6 @@ export function buildOmnibarLorebookRows({
               : [],
           ),
       }),
-      control: {
-        type: "toggle" as const,
-        label: item.enabled
-          ? t("commandCenter.actions.disableLorebook", "Disable lorebook")
-          : t("commandCenter.actions.enableLorebook", "Enable lorebook"),
-        value: item.enabled,
-        onChange: (value: string | boolean) => onSetLorebookEnabled(item.id, value === true),
-      },
     };
   });
 }

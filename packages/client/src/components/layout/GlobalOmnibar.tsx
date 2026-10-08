@@ -28,7 +28,7 @@ import { useStartNewChatMode } from "../../hooks/use-start-new-chat-mode";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { HOME_FAQ_ITEMS, getFaqSearchText } from "../chat/HomeFaq";
 import { useDocsCommandSearchProvider } from "../../hooks/use-docs-command-search";
-import { useLorebooks, useUpdateLorebook } from "../../hooks/use-lorebooks";
+import { useLorebooks } from "../../hooks/use-lorebooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { mariFallbackFocus, mariFixRowId, type MariArrivalAction } from "../../lib/mari-arrival";
 import { isOmnibarSettingsTarget } from "../../lib/settings-registry";
@@ -129,7 +129,6 @@ import {
   MARI_APPROVAL_PREFIX,
   CHAT_SCOPED_CHOICE_CONTROL_IDS,
   EDITOR_CATEGORIES,
-  isLorebookEnableToggleRow,
 } from "./omnibar/omnibar-dialog-rules";
 import { usePreviewDetail } from "./omnibar/use-preview-detail";
 import { useOmnibarLabels } from "./omnibar/use-omnibar-labels";
@@ -323,14 +322,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     [connections.data],
   );
   const agents = useAgentConfigs();
-  const updateLorebook = useUpdateLorebook();
   const setDefaultPreset = useSetDefaultPreset();
   // `useMutation` hands back a new result object on every render, so using
-  // `updateLorebook`/`setDefaultPreset` themselves as memo deps below would
+  // `setDefaultPreset` itself as a memo dep below would
   // rebuild the row list (and everything ranked from it) on every keystroke
-  // and hover instead of only when the underlying data changes. Their
-  // `.mutate` functions are stable across renders, same as `patchChat` below.
-  const updateLorebookMutate = updateLorebook.mutate;
+  // and hover instead of only when the underlying data changes. Its
+  // `.mutate` function is stable across renders, same as `patchChat` below.
   const setDefaultPresetMutate = setDefaultPreset.mutate;
   const updateChat = useUpdateChat();
   const updateChatMetadata = useUpdateChatMetadata();
@@ -376,7 +373,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     agents: agents.data,
     categoryLabels,
     chatModeLabels,
-    updateLorebookMutate,
     setDefaultPresetMutate,
   });
 
@@ -1252,12 +1248,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       runResultAction(result, result.action);
       return;
     }
-    if (isLorebookEnableToggleRow(result)) {
+    if (result.category === "lorebook" && !result.action) {
       // Enter/tap attaches it to the open chat when it is not already active
-      // there, the same unambiguous rule "add <character>" uses, instead of
-      // flipping the global Enabled switch — the default action used to
-      // silently disable it app-wide with no visible Undo (O4 item 1). The
-      // switch rendered beside the row is the only door left to that toggle.
+      // there, the same unambiguous rule "add <character>" uses. Lorebook rows
+      // never flip the global enabled flag; only the Lorebooks panel does.
       if (attachLorebookIfNotActive(result)) return;
       if (result.target && navigate(result.target)) {
         recordUse(result.id);
@@ -1382,10 +1376,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     const control = result.control;
     if (!control || control.type !== "toggle") return;
     markTry("command");
-    // F10 (O5): a lorebook row's own Enabled switch is now the only door to its
-    // app-wide toggle (see `isLorebookEnableToggleRow` above) - a stray tap there
-    // needs the same Undo as a settings toggle, not a silent flip.
-    if (!result.id.startsWith("settings-control:") && result.category !== "lorebook") {
+    if (!result.id.startsWith("settings-control:")) {
       control.onChange(nextValue);
       return;
     }
@@ -1435,7 +1426,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // R9: the row body navigates to the review, not the generic expand/collapse a
     // settings-picker choice control gets — Keep/Restore stay reachable inline.
     if (isMariApprovalRow(result)) choose(result);
-    else if (result.control?.type === "toggle" && !isLorebookEnableToggleRow(result))
+    else if (result.control?.type === "toggle")
       flipToggleControl(result, result.control.value !== true);
     else if (result.control?.type === "choice")
       setExpandedChoiceId((current) => (current === result.id ? null : result.id));
@@ -1723,7 +1714,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // put a spinner on every persona row while one persona was activating.
   const resultControlPending = (result: RankedOmnibarResult) => {
     const resourceId = getOmnibarResourceId(result);
-    if (result.category === "lorebook") return updateLorebook.isPending && updateLorebook.variables?.id === resourceId;
     if (result.category === "preset") return setDefaultPreset.isPending && setDefaultPreset.variables === resourceId;
     return result.id.startsWith("control:chat-") && (updateChat.isPending || updateChatMetadata.isPending);
   };
@@ -1884,8 +1874,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     choose,
     chooseChoiceOption,
     flipToggleControl,
-    isLorebookEnableToggleRow,
-    navigate,
+      navigate,
     recordUse,
     askMariAbout,
     escalateAside,

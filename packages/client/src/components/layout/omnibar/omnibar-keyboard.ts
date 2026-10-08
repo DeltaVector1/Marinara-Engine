@@ -31,7 +31,6 @@ type OmnibarKeyHandlerInput = {
   choose: (result: OmnibarResult) => void;
   chooseChoiceOption: (result: RankedOmnibarResult) => boolean;
   flipToggleControl: (result: RankedOmnibarResult, nextValue: boolean) => void;
-  isLorebookEnableToggleRow: (result: Pick<OmnibarResult, "category" | "control" | "action">) => boolean;
   navigate: (target: ProfessorMariNavigationTarget) => boolean;
   recordUse: (id: string) => void;
   askMariAbout: (result: RankedOmnibarResult | null) => void;
@@ -67,7 +66,6 @@ export function createOmnibarKeyHandlers({
   choose,
   chooseChoiceOption,
   flipToggleControl,
-  isLorebookEnableToggleRow,
   navigate,
   recordUse,
   askMariAbout,
@@ -169,7 +167,7 @@ export function createOmnibarKeyHandlers({
       event.preventDefault();
       if (chooseChoiceOption(activeResult)) return;
       if (isMariApprovalRow(activeResult)) choose(activeResult);
-      else if (activeResult.control?.type === "toggle" && !isLorebookEnableToggleRow(activeResult))
+      else if (activeResult.control?.type === "toggle")
         flipToggleControl(activeResult, activeResult.control.value !== true);
       else if (activeResult.control?.type === "choice")
         setExpandedChoiceId((current) => (current === activeResult.id ? null : activeResult.id));

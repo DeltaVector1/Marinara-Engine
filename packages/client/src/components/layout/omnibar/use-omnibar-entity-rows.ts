@@ -18,7 +18,7 @@ import {
 import { createSystemCommandDefinitions } from "../../../lib/command-center-system-commands";
 import { getCharacterDisplayIdentity } from "../../../lib/character-display";
 import type { usePresets, useSetDefaultPreset } from "../../../hooks/use-presets";
-import type { useLorebooks, useUpdateLorebook } from "../../../hooks/use-lorebooks";
+import type { useLorebooks } from "../../../hooks/use-lorebooks";
 import { useHomeFeed } from "../../../hooks/use-home-feed";
 import type { useConnections } from "../../../hooks/use-connections";
 import type { useChats } from "../../../hooks/use-chats";
@@ -35,7 +35,6 @@ type OmnibarEntityRowsInput = {
   agents: ReturnType<typeof useAgentConfigs>["data"];
   categoryLabels: CommandCenterCategoryLabels;
   chatModeLabels: CommandCenterChatModeLabels;
-  updateLorebookMutate: ReturnType<typeof useUpdateLorebook>["mutate"];
   setDefaultPresetMutate: ReturnType<typeof useSetDefaultPreset>["mutate"];
 };
 
@@ -50,7 +49,6 @@ export function useOmnibarEntityRows({
   agents,
   categoryLabels,
   chatModeLabels,
-  updateLorebookMutate,
   setDefaultPresetMutate,
 }: OmnibarEntityRowsInput) {
   const { t } = useTranslation();
@@ -184,7 +182,6 @@ export function useOmnibarEntityRows({
         personaById,
         categoryLabels,
         t,
-        onSetLorebookEnabled: (id, enabled) => updateLorebookMutate({ id, enabled }),
       }),
       ...buildOmnibarPresetRows({
         presets: presets ?? [],
@@ -221,7 +218,6 @@ export function useOmnibarEntityRows({
     presets,
     setDefaultPresetMutate,
     t,
-    updateLorebookMutate,
   ]);
   return { characterNameById, personaById, connectionById, data };
 }
