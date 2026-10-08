@@ -87,3 +87,13 @@ export function resolveMariEdgeGlow(seen: MariEdgeSeenState, input: MariEdgeInpu
   if (historyUnseen && input.latestHistoryFailed) return "error";
   return historyUnseen || seen.unseenRun ? "finished" : null;
 }
+
+/** Slice 73: the top-bar pill's text for an edge state: its locale key, and the step count while she works. */
+export function mariTopbarStatusLabel(
+  state: Exclude<MariEdgeGlow, null>,
+  steps: number,
+): { key: string; count?: number } {
+  if (state === "working")
+    return steps > 0 ? { key: "mari.topbarStatus.workingSteps", count: steps } : { key: "mari.topbarStatus.working" };
+  return { key: `mari.topbarStatus.${state}` };
+}

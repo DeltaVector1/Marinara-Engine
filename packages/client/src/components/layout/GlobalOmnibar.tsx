@@ -2060,6 +2060,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const enterRequestedMariPane = useEffectEvent((request: ProfessorMariOpenDetail) => {
     // M9: a door that brings nothing (the pull, Home's "Ask Professor Mari", ⌘J) arrives with this
     // screen's context, exactly like ⌘K's own Ask Mari with an empty query. A left-over query is not sent along.
+    // The top-bar pill resumes her current thread like the omnibar's continue row: no routing, reviews in view.
+    if (request.resume) {
+      openProfessorMari(null, { reviewPending: (mariWorkspaceStatus.data?.pendingApprovals.length ?? 0) > 0 });
+      return;
+    }
     if (!request.context && !request.draft) {
       openProfessorMari(null, { arrival: true });
       return;
@@ -2846,8 +2851,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // an id, so "focus id equals Fix row id" can also be true for a plain fallback focus (A5/N6).
     const fix = Boolean(options.fix);
     const source = fix ? ("chat-error" as const) : gameSetupStep ? ("game-setup" as const) : undefined;
+    // Slice 73: the open chat by its id; right after a switch the store's chat record is still loading
+    // (or still the previous chat), and the arrival then dropped the chat from its Context chip.
+    const openChat =
+      activeChat?.id === activeChatId ? activeChat : chats.data?.find((chat) => chat.id === activeChatId);
     return buildProfessorMariCommandCenterContext(message, focusResult, [], focusResult?.id, {
-      activeChat: activeChat ? { id: activeChat.id, label: activeChat.name, mode: activeChat.mode } : undefined,
+      activeChat: openChat ? { id: openChat.id, label: openChat.name, mode: openChat.mode } : undefined,
       settingsLocation:
         settingsPanelVisible && (settingsTab || settingsTargetControlId)
           ? { tab: settingsTab ?? undefined, controlId: settingsTargetControlId ?? undefined }

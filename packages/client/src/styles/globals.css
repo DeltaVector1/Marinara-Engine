@@ -901,11 +901,13 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
    other states hold still. Opening her pane clears it (P3). */
 /* R8: one state colour for the edge line and the pull drop's rim (the TopBar hands the same state to both). */
 .mari-topbar-edge-glow,
+.mari-topbar-status,
 .mari-pull-overlay[data-mari-edge] {
   --mari-edge: oklch(0.72 0.14 155);
 }
 
 .mari-topbar-edge-glow[data-state="working"],
+.mari-topbar-status[data-state="working"],
 .mari-pull-overlay[data-mari-edge="working"] {
   --mari-edge: var(--mari-logo-pink);
   --mari-edge-mid: var(--mari-logo-orange);
@@ -913,6 +915,7 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 }
 
 .mari-topbar-edge-glow[data-state="approval"],
+.mari-topbar-status[data-state="approval"],
 .mari-pull-overlay[data-mari-edge="approval"] {
   --mari-edge: oklch(0.82 0.11 79);
 }
@@ -920,6 +923,7 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 /* An explicit red, not --destructive - that token is pink in dark mode, too close
    to the working state's pink/orange gradient to read as a distinct failure. */
 .mari-topbar-edge-glow[data-state="error"],
+.mari-topbar-status[data-state="error"],
 .mari-pull-overlay[data-mari-edge="error"] {
   --mari-edge: oklch(0.58 0.2 25);
 }
@@ -950,6 +954,72 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 
 .mari-topbar-edge-glow[data-state="error"] {
   opacity: 0.55;
+}
+
+/* Slice 73: her state as a small pill while her window is closed. Tinted by the same edge colour, no
+   motion of its own (the sprite plays its story once); it sits at the end of the left group, so the bar
+   never shifts when it comes and goes. */
+.mari-topbar-status {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.75rem;
+  margin-inline-start: auto;
+  padding-inline: 0.25rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--mari-edge) 30%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mari-edge) 8%, transparent);
+  color: var(--foreground);
+  font-size: 0.75rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mari-topbar-status:hover {
+  background: color-mix(in srgb, var(--mari-edge) 14%, transparent);
+}
+
+.mari-topbar-status:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.mari-topbar-status .mari-story-sprite {
+  width: 1rem;
+  height: 1.5rem;
+}
+
+.mari-topbar-status > svg {
+  color: var(--mari-edge);
+}
+
+/* Phones: the bar is a row of buttons, so an in-flow pill would squeeze them. It sits in the free space
+   between Chats and More instead, out of the flow, and its text truncates on the narrowest screens. */
+@media (max-width: 767px) {
+  .mari-topbar-status {
+    position: absolute;
+    top: 50%;
+    right: calc(max(4px, env(safe-area-inset-right)) + 4.25rem);
+    max-width: calc(100% - 13rem);
+    margin: 0;
+    translate: 0 -50%;
+  }
+
+  .mari-topbar-status > span:not(.mari-story-sprite) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (pointer: coarse) {
+  .mari-topbar-status::after {
+    position: absolute;
+    inset: -0.5rem -0.125rem;
+    content: "";
+  }
 }
 
 /* While she works the pull drop's rim wavers with the edge line. */

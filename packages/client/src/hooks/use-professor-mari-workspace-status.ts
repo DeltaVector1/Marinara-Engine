@@ -27,7 +27,8 @@ export function useProfessorMariWorkspaceStatus(options?: { intervalMs?: number 
       if (query.state.data?.enabled === false) return false;
       const error = query.state.error;
       if (error instanceof ApiError && (error.status === 401 || error.status === 403)) return false;
-      return intervalMs;
+      // Slice 73: while she works, the top-bar pill counts her steps, so the slow heartbeat speeds up.
+      return query.state.data?.active ? Math.min(intervalMs, PROFESSOR_MARI_STATUS_DIALOG_INTERVAL_MS) : intervalMs;
     },
     retry: false,
   });

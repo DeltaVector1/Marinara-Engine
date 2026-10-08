@@ -42,6 +42,7 @@ import type { MariEdgeGlow } from "../../lib/mari-presence-seen";
 import type { PullTarget } from "../../lib/pull-to-open";
 import { requestProfessorMariOpen } from "../../lib/professor-mari-open";
 import { OmnibarPullDrop } from "./OmnibarPullDrop";
+import { MariTopbarStatus } from "./MariTopbarStatus";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import {
   activatePersonalExtensionContribution,
@@ -485,6 +486,7 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
             <LocalMusicPlayer />
           </>
         ) : null}
+        <MariTopbarStatus state={mariEdgeGlow} />
       </div>
 
       {/* Right section - Panel toggles */}

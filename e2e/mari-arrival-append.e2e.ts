@@ -130,6 +130,10 @@ test("Ctrl+J in a chat with existing Mari history appends the arrival instead of
     const appended = mariPane.locator('[data-component="HomeProfessorMariChat.AppendedArrival"]');
     await expect(appended).toBeVisible();
     await expect(appended).toContainText("Arrival test chat");
+    // Slice 73: this chat has no thread of its own yet, so she continues her latest one and offers the choice.
+    const choice = appended.getByRole("group", { name: "Where to continue" });
+    await expect(choice.getByRole("button", { name: "Continue here" })).toBeVisible();
+    await expect(choice.getByRole("button", { name: "New about Arrival test chat" })).toBeVisible();
     // Exactly one pull-morph target on screen: the appended arrival's sprite, not an older resting one.
     await expect(mariPane.locator('[data-mari-pull-target="mari-current"]')).toHaveCount(1);
     await expect(appended.locator('[data-mari-pull-target="mari-current"]')).toHaveCount(1);
@@ -202,6 +206,11 @@ test("mobile: Ctrl+J in a chat with existing Mari history appends the arrival", 
     const appended = mariPane.locator('[data-component="HomeProfessorMariChat.AppendedArrival"]');
     await expect(appended).toBeVisible();
     await expect(appended).toContainText("Arrival test chat mobile");
+    await expect(appended.getByRole("button", { name: "New about Arrival test chat mobile" })).toBeVisible();
+    // Slice 73: the phone's arrival brings the chat along too (its record was still loading on ⌘J).
+    await expect(mariPane.locator('.mari-workspace-composer__context [data-facet="chat"]')).toContainText(
+      "Arrival test chat mobile",
+    );
     await page.screenshot({ path: "test-results/mari-arrival-append-390.png" });
   } finally {
     fixture.server.close();
