@@ -6,6 +6,8 @@ Diese Anleitung erklärt die Roleplay-Tracker: die verschiebbaren Schaltflächen
 
 Am Telefon bietet dir das HUD (heads-up display) die Schaltflächen **World State** und **Player & Tracker**. Du kannst sie im Chat verschieben. Tippe auf eine davon, um aktuelle Angaben zur Geschichte zu sehen, etwa die Uhrzeit, deine Werte oder die anwesenden Charaktere. Marinara hält diese Angaben aktuell, während die Geschichte weiterläuft.
 
+Diese Tracker-Schaltflächen bleiben getrennt vom Drei-Punkte-Menü **Chat tools** (Chat-Tools), das die Abschnitte enthält, die du aus Chat Settings herausgelöst hast.
+
 Am Computer liegen die Tracker nicht in der HUD-Zeile. Sie erscheinen im **Tracker Panel**, solange es sichtbar ist, und sonst im unten beschriebenen Fenster **Trackers**.
 
 Die Werte stammen von Tracker-Agenten. Ein Agent ist ein kleiner KI-Helfer, der im Hintergrund läuft. Jeder Tracker-Agent verfolgt die Geschichte und aktualisiert nach jeder Nachricht einen Teil des HUD. Du musst nichts anstoßen.
