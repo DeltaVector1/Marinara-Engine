@@ -658,6 +658,10 @@ export async function docsRoutes(app: FastifyInstance) {
     if (segments[0] && EXCLUDED_DIRS.has(segments[0].toLowerCase())) {
       return reply.status(400).send({ error: "Invalid path" });
     }
+    // Same rule as the listing: non-curated docs/development files are never served.
+    if (isExcludedDevelopmentDoc(segments.slice(0, -1).join("/").toLowerCase(), filename)) {
+      return reply.status(400).send({ error: "Invalid path" });
+    }
 
     const language = await resolveRequestLanguage(lang, storage);
     let filePath: string;
