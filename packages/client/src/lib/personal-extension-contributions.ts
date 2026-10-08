@@ -377,6 +377,8 @@ export function activatePersonalExtensionContribution(key: string) {
   });
 }
 
+const warnedMissingCommandTargets = new Set<string>();
+
 export function resolvePersonalExtensionCommand(key: string): PersonalExtensionHostContribution | null {
   const command = contributions.find((candidate) => candidate.key === key && candidate.kind === "command");
   if (!command || command.kind !== "command" || !command.targetContributionId) return null;
@@ -389,8 +391,10 @@ export function resolvePersonalExtensionCommand(key: string): PersonalExtensionH
         candidate.kind !== "command",
     ) ?? null;
   // Targets register incrementally, so this cannot be validated at registration time.
-  // Warn instead, otherwise the command just silently never appears.
-  if (!target) {
+  // Warn instead, otherwise the command just silently never appears. Once per command:
+  // every snapshot resolves it again while it waits for its target.
+  if (!target && !warnedMissingCommandTargets.has(key)) {
+    warnedMissingCommandTargets.add(key);
     console.warn(
       `Personal extension "${command.extensionId}": command "${command.id}" targets "${command.targetContributionId}", which is not a registered non-command contribution.`,
     );
