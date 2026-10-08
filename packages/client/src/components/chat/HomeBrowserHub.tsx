@@ -1892,6 +1892,7 @@ export function HomeBrowserHub({ pageActive, onOpenCredits }: HomeBrowserHubProp
                   aria-hidden="true"
                 >
                   {formatShortcutKey("Mod", isApplePlatform())}
+                  {isApplePlatform() ? null : "+"}
                   {formatShortcutKey("K", isApplePlatform())}
                 </kbd>
               </button>
