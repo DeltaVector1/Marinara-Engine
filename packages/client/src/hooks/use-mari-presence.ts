@@ -62,6 +62,8 @@ export function useMariRunSeenId(chatId: string | null | undefined): string | nu
 export function useMarkMariRunSeen(chatId: string | null, latestRun: MariWorkspaceLatestRun | null, working: boolean) {
   const queryClient = useQueryClient();
   const seenRunId = useMariRunSeenId(chatId);
+  // Her chat stays mounted behind the search list (Mari, then Search); only her pane on screen counts as seen.
+  const viewing = useUIStore((state) => state.mariPaneVisible);
   const markSeen = useMutation({
     mutationFn: (runId: string) =>
       api.put(`/app-settings/${professorMariSeenRunSettingsKey(chatId ?? "")}`, { value: runId }),
@@ -70,7 +72,9 @@ export function useMarkMariRunSeen(chatId: string | null, latestRun: MariWorkspa
     },
   });
   const runId =
-    latestRun && latestRun.chatId === chatId && latestRun.outcome !== "running" && !working ? latestRun.id : null;
+    viewing && latestRun && latestRun.chatId === chatId && latestRun.outcome !== "running" && !working
+      ? latestRun.id
+      : null;
   useEffect(() => {
     if (runId && seenRunId !== undefined && seenRunId !== runId) markSeen.mutate(runId);
     // markSeen is stable enough per render; the effect is keyed on the run and the marker.
