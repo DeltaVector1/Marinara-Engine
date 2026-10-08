@@ -47,7 +47,8 @@ export function useMariPresence(): MariPresence {
 export function useMariRunSeenId(chatId: string | null | undefined): string | null | undefined {
   const query = useQuery({
     queryKey: ["app-settings", professorMariSeenRunSettingsKey(chatId ?? "")],
-    queryFn: async () => (await api.get<AppSettingsResponse>(`/app-settings/${professorMariSeenRunSettingsKey(chatId ?? "")}`)).value,
+    queryFn: async () =>
+      (await api.get<AppSettingsResponse>(`/app-settings/${professorMariSeenRunSettingsKey(chatId ?? "")}`)).value,
     enabled: !!chatId,
     staleTime: 60_000,
   });
@@ -68,7 +69,8 @@ export function useMarkMariRunSeen(chatId: string | null, latestRun: MariWorkspa
       queryClient.setQueryData(["app-settings", professorMariSeenRunSettingsKey(chatId ?? "")], runId);
     },
   });
-  const runId = latestRun && latestRun.chatId === chatId && latestRun.outcome !== "running" && !working ? latestRun.id : null;
+  const runId =
+    latestRun && latestRun.chatId === chatId && latestRun.outcome !== "running" && !working ? latestRun.id : null;
   useEffect(() => {
     if (runId && seenRunId !== undefined && seenRunId !== runId) markSeen.mutate(runId);
     // markSeen is stable enough per render; the effect is keyed on the run and the marker.

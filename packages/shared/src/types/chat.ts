@@ -195,7 +195,10 @@ export function professorMariSeenRunSettingsKey(chatId: string) {
 }
 
 export function isProfessorMariSeenRunSettingsKey(key: string) {
-  return key.startsWith(PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX) && /^[A-Za-z0-9_-]{1,80}$/.test(key.slice(PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX.length));
+  return (
+    key.startsWith(PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX) &&
+    /^[A-Za-z0-9_-]{1,80}$/.test(key.slice(PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX.length))
+  );
 }
 
 /** Global Roleplay Chat Summary prompt template settings. */

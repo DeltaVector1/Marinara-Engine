@@ -3282,7 +3282,13 @@ export class ProfessorMariWorkspaceService {
     this.abortController = controller;
     this.active = true;
     this.lastError = null;
-    this.latestRun = { id: userMessage.id, chatId: args.chatId, startedAt: runStartedAt, finishedAt: null, outcome: "running" };
+    this.latestRun = {
+      id: userMessage.id,
+      chatId: args.chatId,
+      startedAt: runStartedAt,
+      finishedAt: null,
+      outcome: "running",
+    };
 
     const workspaceTrace: MariWorkspaceTraceItem[] = [];
     /** R14: set when the run fails, so the saved turn says so instead of reading as a quiet stop. */

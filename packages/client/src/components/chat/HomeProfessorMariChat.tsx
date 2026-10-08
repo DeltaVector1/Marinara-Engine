@@ -3143,141 +3143,141 @@ export function HomeProfessorMariChat({
                       omnibarMode && workspaceDestination !== "chat" ? `mari-tab-${workspaceDestination}` : undefined
                     }
                   >
-                  <AnimatePresence initial={false}>
-                    {chatHistoryOpen ? (
-                      <motion.div
-                        key="professor-mari-chats"
-                        initial={{ opacity: 0, x: 8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 8 }}
-                        transition={paneTransition}
-                        className={MARI_PANEL_SLOT_CLASS}
-                      >
-                        <MariChatsPanel
-                          chatHistory={chatHistory}
-                          chatHistoryLoading={chatHistoryLoading}
-                          chatHistoryQuery={chatHistoryQuery}
-                          chatHistorySelectionMode={chatHistorySelectionMode}
-                          chatHistorySortMode={chatHistorySortMode}
-                          chatId={chatId}
-                          chatRowMenuId={chatRowMenuId}
-                          chatRowMenuRef={chatRowMenuRef}
-                          chatRowPopoverRef={chatRowPopoverRef}
-                          displayedChatHistory={displayedChatHistory}
-                          handleBulkDeleteProfessorChats={handleBulkDeleteProfessorChats}
-                          handleDeleteProfessorChat={handleDeleteProfessorChat}
-                          handleRenameProfessorChat={handleRenameProfessorChat}
-                          handleSelectProfessorChat={handleSelectProfessorChat}
-                          isBusy={isBusy}
-                          onChatRowMenuKeyDown={onChatRowMenuKeyDown}
-                          renameDraft={renameDraft}
-                          renamingChatId={renamingChatId}
-                          runRestart={runRestart}
-                          selectedChatHistoryIds={selectedChatHistoryIds}
-                          setChatHistoryQuery={setChatHistoryQuery}
-                          setChatHistorySelectionMode={setChatHistorySelectionMode}
-                          setChatHistorySortMode={setChatHistorySortMode}
-                          setChatRowMenuId={setChatRowMenuId}
-                          setRenameDraft={setRenameDraft}
-                          setRenamingChatId={setRenamingChatId}
-                          setSelectedChatHistoryIds={setSelectedChatHistoryIds}
-                          setWorkspaceDestination={setWorkspaceDestination}
-                          toggleProfessorChatSelection={toggleProfessorChatSelection}
-                        />
-                      </motion.div>
-                    ) : memoriesMenuOpen ? (
-                      <motion.div
-                        key="professor-mari-memories"
-                        initial={{ opacity: 0, x: 8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 8 }}
-                        transition={paneTransition}
-                        className={MARI_PANEL_SLOT_CLASS}
-                      >
-                        <Suspense fallback={null}>
-                          <ProfessorMariMemoriesMenu
-                            memories={memories}
-                            query={memoriesQuery}
-                            selectedMemory={selectedMemory}
-                            draft={memoryDraft}
-                            loading={memoriesLoading}
-                            saving={memoriesSaving}
-                            fileInputRef={memoryFileInputRef}
-                            onClose={() => setWorkspaceDestination("chat")}
-                            onNew={handleNewMemory}
-                            onUploadClick={handleMemoryUploadClick}
-                            onFileChange={handleMemoryFileChange}
-                            onSelect={setSelectedMemoryId}
-                            onDraftChange={setMemoryDraft}
-                            onSave={() => void handleSaveMemory()}
-                            onDelete={(id) => void handleDeleteMemory(id)}
-                            onToggleEnabled={handleToggleMemoryEnabled}
-                            onTogglePersistent={handleToggleMemoryPersistent}
-                            onQueryChange={setMemoriesQuery}
+                    <AnimatePresence initial={false}>
+                      {chatHistoryOpen ? (
+                        <motion.div
+                          key="professor-mari-chats"
+                          initial={{ opacity: 0, x: 8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 8 }}
+                          transition={paneTransition}
+                          className={MARI_PANEL_SLOT_CLASS}
+                        >
+                          <MariChatsPanel
+                            chatHistory={chatHistory}
+                            chatHistoryLoading={chatHistoryLoading}
+                            chatHistoryQuery={chatHistoryQuery}
+                            chatHistorySelectionMode={chatHistorySelectionMode}
+                            chatHistorySortMode={chatHistorySortMode}
+                            chatId={chatId}
+                            chatRowMenuId={chatRowMenuId}
+                            chatRowMenuRef={chatRowMenuRef}
+                            chatRowPopoverRef={chatRowPopoverRef}
+                            displayedChatHistory={displayedChatHistory}
+                            handleBulkDeleteProfessorChats={handleBulkDeleteProfessorChats}
+                            handleDeleteProfessorChat={handleDeleteProfessorChat}
+                            handleRenameProfessorChat={handleRenameProfessorChat}
+                            handleSelectProfessorChat={handleSelectProfessorChat}
+                            isBusy={isBusy}
+                            onChatRowMenuKeyDown={onChatRowMenuKeyDown}
+                            renameDraft={renameDraft}
+                            renamingChatId={renamingChatId}
+                            runRestart={runRestart}
+                            selectedChatHistoryIds={selectedChatHistoryIds}
+                            setChatHistoryQuery={setChatHistoryQuery}
+                            setChatHistorySelectionMode={setChatHistorySelectionMode}
+                            setChatHistorySortMode={setChatHistorySortMode}
+                            setChatRowMenuId={setChatRowMenuId}
+                            setRenameDraft={setRenameDraft}
+                            setRenamingChatId={setRenamingChatId}
+                            setSelectedChatHistoryIds={setSelectedChatHistoryIds}
+                            setWorkspaceDestination={setWorkspaceDestination}
+                            toggleProfessorChatSelection={toggleProfessorChatSelection}
                           />
-                        </Suspense>
-                      </motion.div>
-                    ) : skillsMenuOpen ? (
-                      <motion.div
-                        key="professor-mari-skills"
-                        initial={{ opacity: 0, x: 8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 8 }}
-                        transition={paneTransition}
-                        className={MARI_PANEL_SLOT_CLASS}
-                      >
-                        <Suspense fallback={null}>
-                          <ProfessorMariSkillsMenu
-                            skills={skills}
-                            query={skillsQuery}
-                            selectedSkill={selectedSkill}
-                            draft={skillDraft}
-                            loading={skillsLoading}
-                            saving={skillsSaving}
-                            diagnostics={skillsDiagnostics}
-                            fileInputRef={skillFileInputRef}
-                            onClose={() => setWorkspaceDestination("chat")}
-                            onNew={handleNewSkill}
-                            onUploadClick={handleSkillUploadClick}
-                            onFileChange={handleSkillFileChange}
-                            onSelect={setSelectedSkillId}
-                            onDraftChange={setSkillDraft}
-                            onSave={() => void handleSaveSkill()}
-                            onDelete={(id) => void handleDeleteSkill(id)}
-                            onToggle={(skill) => void handleToggleSkill(skill)}
-                            onQueryChange={setSkillsQuery}
+                        </motion.div>
+                      ) : memoriesMenuOpen ? (
+                        <motion.div
+                          key="professor-mari-memories"
+                          initial={{ opacity: 0, x: 8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 8 }}
+                          transition={paneTransition}
+                          className={MARI_PANEL_SLOT_CLASS}
+                        >
+                          <Suspense fallback={null}>
+                            <ProfessorMariMemoriesMenu
+                              memories={memories}
+                              query={memoriesQuery}
+                              selectedMemory={selectedMemory}
+                              draft={memoryDraft}
+                              loading={memoriesLoading}
+                              saving={memoriesSaving}
+                              fileInputRef={memoryFileInputRef}
+                              onClose={() => setWorkspaceDestination("chat")}
+                              onNew={handleNewMemory}
+                              onUploadClick={handleMemoryUploadClick}
+                              onFileChange={handleMemoryFileChange}
+                              onSelect={setSelectedMemoryId}
+                              onDraftChange={setMemoryDraft}
+                              onSave={() => void handleSaveMemory()}
+                              onDelete={(id) => void handleDeleteMemory(id)}
+                              onToggleEnabled={handleToggleMemoryEnabled}
+                              onTogglePersistent={handleToggleMemoryPersistent}
+                              onQueryChange={setMemoriesQuery}
+                            />
+                          </Suspense>
+                        </motion.div>
+                      ) : skillsMenuOpen ? (
+                        <motion.div
+                          key="professor-mari-skills"
+                          initial={{ opacity: 0, x: 8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 8 }}
+                          transition={paneTransition}
+                          className={MARI_PANEL_SLOT_CLASS}
+                        >
+                          <Suspense fallback={null}>
+                            <ProfessorMariSkillsMenu
+                              skills={skills}
+                              query={skillsQuery}
+                              selectedSkill={selectedSkill}
+                              draft={skillDraft}
+                              loading={skillsLoading}
+                              saving={skillsSaving}
+                              diagnostics={skillsDiagnostics}
+                              fileInputRef={skillFileInputRef}
+                              onClose={() => setWorkspaceDestination("chat")}
+                              onNew={handleNewSkill}
+                              onUploadClick={handleSkillUploadClick}
+                              onFileChange={handleSkillFileChange}
+                              onSelect={setSelectedSkillId}
+                              onDraftChange={setSkillDraft}
+                              onSave={() => void handleSaveSkill()}
+                              onDelete={(id) => void handleDeleteSkill(id)}
+                              onToggle={(skill) => void handleToggleSkill(skill)}
+                              onQueryChange={setSkillsQuery}
+                            />
+                          </Suspense>
+                        </motion.div>
+                      ) : workspaceDestination === "context" ? (
+                        <motion.section
+                          key="professor-mari-context"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={paneTransition}
+                          className={MARI_PANEL_SLOT_CLASS}
+                        >
+                          <MariSeesPanel
+                            attachedContext={attachedContext}
+                            contextBudget={contextBudget}
+                            effectiveConnection={effectiveConnection}
+                            handleOpenHistoryPicker={handleOpenHistoryPicker}
+                            handoffContext={handoffContext}
+                            oneShotContext={oneShotContext}
+                            oneShotContextFacets={oneShotContextFacets}
+                            removeOneShotFacet={removeOneShotFacet}
+                            selectedContextId={selectedContextId}
+                            setConnectionMenuOpen={setConnectionMenuOpen}
+                            setHandoffContext={setHandoffContext}
+                            setSelectedContextId={setSelectedContextId}
+                            setWorkspaceDestination={setWorkspaceDestination}
+                            showContextUsage={showContextUsage}
+                            workspaceStatus={workspaceStatus}
                           />
-                        </Suspense>
-                      </motion.div>
-                    ) : workspaceDestination === "context" ? (
-                      <motion.section
-                        key="professor-mari-context"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={paneTransition}
-                        className={MARI_PANEL_SLOT_CLASS}
-                      >
-                        <MariSeesPanel
-                          attachedContext={attachedContext}
-                          contextBudget={contextBudget}
-                          effectiveConnection={effectiveConnection}
-                          handleOpenHistoryPicker={handleOpenHistoryPicker}
-                          handoffContext={handoffContext}
-                          oneShotContext={oneShotContext}
-                          oneShotContextFacets={oneShotContextFacets}
-                          removeOneShotFacet={removeOneShotFacet}
-                          selectedContextId={selectedContextId}
-                          setConnectionMenuOpen={setConnectionMenuOpen}
-                          setHandoffContext={setHandoffContext}
-                          setSelectedContextId={setSelectedContextId}
-                          setWorkspaceDestination={setWorkspaceDestination}
-                          showContextUsage={showContextUsage}
-                          workspaceStatus={workspaceStatus}
-                        />
-                      </motion.section>
-                    ) : null}
-                  </AnimatePresence>
+                        </motion.section>
+                      ) : null}
+                    </AnimatePresence>
                   </div>
                 </div>
               </div>
