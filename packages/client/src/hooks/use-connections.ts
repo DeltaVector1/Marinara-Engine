@@ -203,18 +203,26 @@ export function useTestConnection() {
     mutationFn: (id: string) =>
       api.post<ConnectionTestResult>(`/connections/${id}/test`, { debugMode: useUIStore.getState().debugMode }),
     onError: (error, id) => recordConnectionFailure(id, "Test connection", error),
-    onSuccess: () => useUIStore.getState().setLastAppError(null),
+    // A failed check still answers 200 with `success: false`.
+    onSuccess: (result, id) =>
+      result.success
+        ? useUIStore.getState().setLastAppError(null)
+        : recordConnectionFailure(id, "Test connection", result.message),
   });
 }
 
 export function useTestMessage() {
   return useMutation({
     mutationFn: (id: string) =>
-      api.post<{ success: boolean; response: string; latencyMs: number }>(`/connections/${id}/test-message`, {
-        debugMode: useUIStore.getState().debugMode,
-      }),
+      api.post<{ success: boolean; response: string; latencyMs: number; error?: string }>(
+        `/connections/${id}/test-message`,
+        { debugMode: useUIStore.getState().debugMode },
+      ),
     onError: (error, id) => recordConnectionFailure(id, "Send test message", error),
-    onSuccess: () => useUIStore.getState().setLastAppError(null),
+    onSuccess: (result, id) =>
+      result.success
+        ? useUIStore.getState().setLastAppError(null)
+        : recordConnectionFailure(id, "Send test message", result.error ?? "Unknown error"),
   });
 }
 
