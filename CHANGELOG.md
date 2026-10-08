@@ -258,6 +258,15 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 - Updated the MCP SDK used by Claude agents and the developer MCP tool to 1.32.1, which fixes an advisory where its OAuth client could send credentials to an authorization server chosen by an MCP server.
 - Mistral connections now work with **Mistral Large 4**. Its thinking shows in the chat instead of being lost, **Reasoning Effort** offers Off or high for Mistral's reasoning models (low, high or max for GLM 5.3 on Mistral), and refreshing the model list picks up each model's real context size (1M tokens for Large 4). Requests also stop sending settings Mistral rejects, Assistant Prefill is continued without the reply repeating it, and a tool round no longer fails on tool calls Mistral did not create itself (#7164).
 - The Roleplay whisper browser regression now expects an empty whisper to be saveable and checks that saving it removes the whisper, matching #7196. The Game character sheet Retry regression no longer fails now and then on mobile WebKit: it waits for its "sheet updated." notice to close before reopening the party window. The typed illustration prompt regression now checks that the composer still holds the next `/illustrate` before sending, so a rare WebKit failure there points at the composer.
+- Fixed a failed reply in visual novel mode showing no **Retry** line while the history is closed.
+- Fixed the reply checkup line missing on group chat replies that use speaker segments.
+- Fixed Professor Mari's Skills and Memories lists keeping stale rows after a save, toggle or delete.
+- Fixed Professor Mari's top-bar pill showing a finished run while a retried run was still active.
+- Fixed the omnibar shortcut hint reading "CtrlK" outside Apple platforms.
+- Fixed Tab skipping textareas and links inside dialog popovers and views.
+- Fixed a Professor Mari failure staying in the top bar after the chat store resets.
+- Fixed the lorebook test scan ignoring a chat's characters, which gave Mari a wrong diagnosis for character filters.
+- Fixed the docs viewer serving non-curated `docs/development` notes when their path is requested directly.
 
 ## [2.5.0]
 
