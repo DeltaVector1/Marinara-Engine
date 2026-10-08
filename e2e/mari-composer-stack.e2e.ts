@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { createServer, type Server } from "node:http";
 import { readFileSync } from "node:fs";
 import { acquireMariThreadLock, releaseMariThreadLock } from "./mari-thread-lock.js";
 import { seedUIState } from "./ui-state-fixture.js";
@@ -25,12 +26,12 @@ const LONG_ANSWER = Array.from(
   (_, line) => `Line ${line + 1}: a paragraph long enough to wrap on a phone screen and take real height.`,
 ).join("\n\n");
 
-async function openMariFixture(page: Page, request: APIRequestContext) {
+async function openMariFixture(page: Page, request: APIRequestContext, baseUrl = "http://127.0.0.1:9/v1") {
   const connection = await request.post("/api/connections", {
     data: {
       name: `Composer stack fixture ${Date.now().toString(36)}`,
       provider: "custom",
-      baseUrl: "http://127.0.0.1:9/v1",
+      baseUrl,
       apiKey: "fixture",
       model: "fixture",
       maxContext: 65536,
@@ -172,6 +173,143 @@ test("mobile: answers end above the composer when the keyboard opens and closes"
       await expect.poll(() => contentUnderStack(page), { message: `keyboard closed ${round}` }).toBeLessThanOrEqual(1);
     }
   } finally {
+    await cleanup(request, connectionId);
+  }
+});
+
+/**
+ * Scripted fake model (as in mari-run-pill and mari-live-done-marks): each round is an action, a 400, or a held answer.
+ * It gives real error, chip, change and live-run states without a real model.
+ */
+type FixtureRound = { delayMs: number; status?: number; action?: Record<string, unknown> };
+async function startFixtureModel(rounds: FixtureRound[]) {
+  const queue = [...rounds];
+  const provider: Server = createServer((incoming, response) => {
+    if (incoming.method !== "POST") {
+      incoming.resume();
+      response.writeHead(200, { "content-type": "application/json" });
+      response.end(JSON.stringify({ data: [{ id: "fixture" }] }));
+      return;
+    }
+    incoming.resume();
+    const round = queue.shift() ?? { delayMs: 0, action: { say: "Done.", commands: [], stop: true } };
+    setTimeout(() => {
+      if (round.status) {
+        response.writeHead(round.status, { "content-type": "application/json" });
+        response.end(JSON.stringify({ error: { message: "fixture failure" } }));
+        return;
+      }
+      response.writeHead(200, { "content-type": "text/event-stream", connection: "close" });
+      response.end(
+        [
+          `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: JSON.stringify(round.action) }, finish_reason: null }] })}`,
+          `data: ${JSON.stringify({ choices: [{ index: 0, delta: {}, finish_reason: "stop" }] })}`,
+          "data: [DONE]",
+          "",
+        ].join("\n\n"),
+      );
+    }, round.delayMs);
+  });
+  await new Promise<void>((resolve) => provider.listen(0, "127.0.0.1", resolve));
+  const address = provider.address();
+  if (!address || typeof address === "string") throw new Error("Missing fixture model address");
+  return { provider, baseUrl: `http://127.0.0.1:${address.port}/v1` };
+}
+
+async function openWindowAndSend(page: Page, text: string) {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "What shall we cook tonight?" })).toBeVisible({ timeout: 30_000 });
+  await page.locator("main").first().click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Control+j");
+  const pane = page.locator('[data-component="GlobalOmnibar.Mari"]:not([aria-hidden="true"])');
+  const composer = pane.locator("textarea:visible");
+  await expect(composer).toBeVisible();
+  await composer.fill(text);
+  await page.keyboard.press("Control+Enter");
+  return pane;
+}
+
+test("an error card with Retry ends above the composer", async ({ page, request }) => {
+  const model = await startFixtureModel([{ delayMs: 0, status: 400 }]);
+  const { connectionId, chatId } = await openMariFixture(page, request, model.baseUrl);
+  void chatId;
+  try {
+    await seedAnswers(request, chatId, 1);
+    await openWindowAndSend(page, "Fail on purpose");
+    await expect(page.locator(".mari-run-error")).toBeVisible({ timeout: 30_000 });
+    await expect.poll(() => contentUnderStack(page), { message: "error card with Retry" }).toBeLessThanOrEqual(1);
+  } finally {
+    model.provider.close();
+    await cleanup(request, connectionId);
+  }
+});
+
+test("suggestion chips end above the composer", async ({ page, request }) => {
+  const model = await startFixtureModel([
+    {
+      delayMs: 0,
+      action: {
+        say: "Pick one of these.",
+        commands: [],
+        stop: true,
+        suggestions: ["Tell me more", "Show my lorebooks", "Something else entirely", "Start over"],
+      },
+    },
+  ]);
+  const { connectionId, chatId } = await openMariFixture(page, request, model.baseUrl);
+  void chatId;
+  try {
+    await seedAnswers(request, chatId, 1);
+    const pane = await openWindowAndSend(page, "Give me choices");
+    await expect(pane.getByText("Show my lorebooks")).toBeVisible({ timeout: 30_000 });
+    await expect.poll(() => contentUnderStack(page), { message: "chips and Next list" }).toBeLessThanOrEqual(1);
+  } finally {
+    model.provider.close();
+    await cleanup(request, connectionId);
+  }
+});
+
+test("a change card ends above the composer", async ({ page, request }) => {
+  const tool = (action: string, extra: Record<string, unknown>) => ({ name: "app_data", arguments: { action, ...extra } });
+  const model = await startFixtureModel([
+    {
+      delayMs: 0,
+      action: {
+        say: "Created it.",
+        commands: [tool("character.create", { apply: true, data: { name: `Stack Probe ${Date.now().toString(36)}` } })],
+        stop: true,
+      },
+    },
+  ]);
+  const { connectionId, chatId } = await openMariFixture(page, request, model.baseUrl);
+  void chatId;
+  try {
+    await seedAnswers(request, chatId, 1);
+    await openWindowAndSend(page, "Make a character");
+    await expect(page.getByText("Created it.")).toBeVisible({ timeout: 60_000 });
+    await expect.poll(() => contentUnderStack(page), { message: "change card" }).toBeLessThanOrEqual(1);
+  } finally {
+    model.provider.close();
+    await cleanup(request, connectionId);
+  }
+});
+
+test("the live run line ends above the composer while Mari works", async ({ page, request }) => {
+  const model = await startFixtureModel([
+    {
+      delayMs: 6_000,
+      action: { say: "Finished.", commands: [{ name: "app_data", arguments: { action: "character.list" } }], stop: true },
+    },
+  ]);
+  const { connectionId, chatId } = await openMariFixture(page, request, model.baseUrl);
+  void chatId;
+  try {
+    await seedAnswers(request, chatId, 1);
+    await openWindowAndSend(page, "Look around");
+    await expect(page.locator('.mari-work-timeline[data-active="true"]')).toBeVisible({ timeout: 30_000 });
+    await expect.poll(() => contentUnderStack(page), { message: "live run line" }).toBeLessThanOrEqual(1);
+  } finally {
+    model.provider.close();
     await cleanup(request, connectionId);
   }
 });
