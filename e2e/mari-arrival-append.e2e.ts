@@ -222,6 +222,149 @@ test("mobile: Ctrl+J in a chat with existing Mari history appends the arrival", 
 });
 
 /**
+ * Slice 73: the phone's pull-down door (a real touch drag on the right half of the top bar) is an arrival
+ * like ⌘J. From a chat, and from an editor, that has no Mari thread of its own while another thread has
+ * messages, she continues that thread and offers "Continue here" / "New about <context>".
+ */
+for (const theme of ["dark", "light"] as const) {
+  test(`mobile: the pull-down from a chat or an editor offers where to continue (${theme})`, async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(
+      !testInfo.project.name.includes("mobile-chromium"),
+      "The touch pull is a phone gesture (Chromium input).",
+    );
+    test.setTimeout(90_000);
+
+    const fixture = await startFixtureProvider("Hi there! How can I help?");
+    let connectionId = "";
+    let chatId = "";
+    let characterId = "";
+    let mariChatId = "";
+    try {
+      const connection = await request.post("/api/connections", {
+        data: {
+          name: `Pull arrival fixture ${Date.now().toString(36)}`,
+          provider: "custom",
+          baseUrl: fixture.baseUrl,
+          apiKey: "fixture",
+          model: "fixture",
+          maxContext: 65536,
+        },
+      });
+      expect(connection.ok(), await connection.text()).toBeTruthy();
+      connectionId = ((await connection.json()) as { id: string }).id;
+      const mariChat = await request.get(`/api/chats/internal/professor-mari?connectionId=${connectionId}`);
+      mariChatId = ((await mariChat.json()) as { id: string }).id;
+      const prompted = await request.post("/api/professor-mari/workspace/prompt", {
+        data: { chatId: mariChatId, connectionId, message: "Hello Mari" },
+      });
+      expect(prompted.ok(), await prompted.text()).toBeTruthy();
+      const character = await request.post("/api/characters", {
+        data: { data: { name: "Pull Gandalf", first_mes: "" } },
+      });
+      expect(character.ok(), await character.text()).toBeTruthy();
+      characterId = ((await character.json()) as { id: string }).id;
+      const chat = await request.post("/api/chats", {
+        data: { name: "Pull arrival chat", mode: "conversation", characterIds: [] },
+      });
+      chatId = ((await chat.json()) as { id: string }).id;
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.addInitScript((v) => localStorage.setItem("marinara:whats-new:seen-version", v), APP_VERSION);
+      await seedUIState(page, {
+        hasCompletedOnboarding: true,
+        rightPanelOpen: false,
+        sidebarOpen: false,
+        professorMariNavigationEnabled: false,
+      });
+      await page.goto("/");
+      await page.evaluate(
+        async ({ id, theme }) => {
+          const { useChatStore } = await import("/src/stores/chat.store.ts" as string);
+          const { useUIStore } = await import("/src/stores/ui.store.ts" as string);
+          useUIStore.getState().setTheme(theme);
+          useChatStore.getState().setActiveChatId(id);
+        },
+        { id: chatId, theme },
+      );
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+
+      // A real touch drag (touch pointer events) down from the right half of the bar: Mari's side.
+      const cdp = await page.context().newCDPSession(page);
+      const pullDown = async () => {
+        await expect(page.locator(".mari-pull-overlay")).toHaveCount(0);
+        const bar = (await page.locator('[data-component="TopBar"]').boundingBox())!;
+        const x = bar.x + bar.width * 0.75;
+        const y = bar.y + bar.height / 2;
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+        for (let step = 1; step <= 16; step += 1) {
+          await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y + step * 22 }] });
+          await page.waitForTimeout(16);
+        }
+        await page.waitForTimeout(150);
+        await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+      };
+      const mariPane = page.locator('[data-component="GlobalOmnibar.Mari"]');
+      const appended = mariPane.locator('[data-component="HomeProfessorMariChat.AppendedArrival"]');
+      // "Visible" in Playwright ignores opacity; the offer must really be drawn, not held at its first frame.
+      const drawnOpacity = () =>
+        appended.getByRole("group", { name: "Where to continue" }).evaluate((node) => {
+          let opacity = 1;
+          for (let el: Element | null = node; el; el = el.parentElement)
+            opacity *= Number(getComputedStyle(el).opacity);
+          return { opacity, landing: document.documentElement.dataset.mariPullLanding ?? null };
+        });
+      const closeMari = async () => {
+        await page
+          .locator('[data-component="GlobalOmnibar"]')
+          .getByRole("button", { name: /^Close/ })
+          .first()
+          .click();
+        await expect(page.locator('[data-component="GlobalOmnibar"]')).toBeHidden();
+      };
+
+      // From the chat.
+      await pullDown();
+      await expect(mariPane).toBeVisible();
+      await expect(appended).toContainText("Pull arrival chat");
+      await expect(appended.getByRole("button", { name: "Continue here" })).toBeVisible();
+      await expect(appended.getByRole("button", { name: "New about Pull arrival chat" })).toBeVisible();
+      await expect.poll(drawnOpacity, { timeout: 6_000 }).toEqual({ opacity: 1, landing: null });
+      await expect(mariPane.locator('.mari-workspace-composer__context [data-facet="chat"]')).toContainText(
+        "Pull arrival chat",
+      );
+      await page.screenshot({ path: `test-results/mari-pull-arrival-proof/pull-chat-${theme}-390.png` });
+
+      // From an editor.
+      await closeMari();
+      await page.evaluate(async (id) => {
+        const { useUIStore } = await import("/src/stores/ui.store.ts" as string);
+        useUIStore.getState().openCharacterDetail(id);
+      }, characterId);
+      await expect(page.getByText("Pull Gandalf").first()).toBeVisible();
+      await pullDown();
+      await expect(mariPane).toBeVisible();
+      await expect(appended.getByRole("button", { name: "Continue here" })).toBeVisible();
+      await expect(appended.getByRole("button", { name: "New about Pull Gandalf" })).toBeVisible();
+      await expect.poll(drawnOpacity, { timeout: 6_000 }).toEqual({ opacity: 1, landing: null });
+      await page.screenshot({ path: `test-results/mari-pull-arrival-proof/pull-editor-${theme}-390.png` });
+    } finally {
+      fixture.server.close();
+      if (chatId) await request.delete(`/api/chats/${chatId}?force=true`).catch(() => undefined);
+      if (characterId) await request.delete(`/api/characters/${characterId}`).catch(() => undefined);
+      const threads = (await (await request.get("/api/chats/internal/professor-mari/chats")).json()) as Array<{
+        id: string;
+      }>;
+      for (const thread of threads)
+        await request.delete(`/api/chats/internal/professor-mari/chats/${thread.id}`).catch(() => undefined);
+      if (connectionId) await request.delete(`/api/connections/${connectionId}`).catch(() => undefined);
+    }
+  });
+}
+
+/**
  * R13 (slice 62g): opening Mari from a chat (⌘J) while she is still working in another thread must not
  * reroute the moment the run ends. Slice 62b switched threads as soon as isBusy cleared, so the finished
  * run's done marks and "Worked for" line vanished unseen. The finished run stays on screen first; only

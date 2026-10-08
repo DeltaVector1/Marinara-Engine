@@ -2644,8 +2644,6 @@
   "mari.topbarStatus.finished": "Done",
   "mari.topbarStatus.open": "Open Professor Mari: {{status}}",
   "mari.topbarStatus.working": "Working",
-  "mari.topbarStatus.workingSteps_one": "Working · {{count}} step",
-  "mari.topbarStatus.workingSteps_other": "Working · {{count}} steps",
   "mari.workCard.couldNotFind": "Couldn't find",
   "mari.workCard.couldNotRead": "Couldn't read",
   "mari.workCard.done": "Done",

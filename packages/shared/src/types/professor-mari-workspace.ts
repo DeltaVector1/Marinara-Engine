@@ -900,8 +900,6 @@ export interface MariWorkspaceStatus {
   skills: MariWorkspaceSkillSummary[];
   skillDiagnostics: string[];
   active: boolean;
-  /** Steps (tool calls) the running turn has taken so far; 0 when she is idle. */
-  activeSteps?: number;
   /** The EFFECTIVE Permissions Mode for the requested chat (#5725): the chat's override, else the global default. */
   permissionsMode: MariPermissionsMode;
   /** The global default mode (what a chat without an override runs under). */

@@ -2793,8 +2793,6 @@ export class ProfessorMariWorkspaceService {
   private readonly workspaceChangeReviews = new WorkspaceChangeReviewService(this.workspaceRoot);
   private lastError: string | null = null;
   private active = false;
-  /** Slice 73: the running turn's trace, so the status can say how many steps she has taken. */
-  private activeTrace: MariWorkspaceTraceItem[] = [];
   // #5725: the Permissions Mode of the run currently in flight. Set at every
   // prompt() start (never latched at construction, never cleared - each run
   // overwrites) so command execution and deferral read the run's own mode.
@@ -2880,7 +2878,6 @@ export class ProfessorMariWorkspaceService {
       skills: skillsResponse.skills.map(({ content: _content, ...summary }) => summary),
       skillDiagnostics: skillsResponse.diagnostics,
       active: this.active,
-      activeSteps: this.active ? this.activeTrace.filter((item) => item.type === "tool").length : 0,
       ...(await (async () => {
         const resolved = await this.resolvePermissionsMode(chatId ?? null);
         return {
@@ -3252,7 +3249,6 @@ export class ProfessorMariWorkspaceService {
     this.lastError = null;
 
     const workspaceTrace: MariWorkspaceTraceItem[] = [];
-    this.activeTrace = workspaceTrace;
     /** R14: set when the run fails, so the saved turn says so instead of reading as a quiet stop. */
     let runError: { message: string } | null = null;
     let assistantText = "";

@@ -2060,9 +2060,26 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       },
     });
   };
+  // Slice 73: the open chat by its id. Right after a switch (or on a cold phone start) the store's chat
+  // record can still be loading, or still be the previous chat; the list may not be there yet either.
+  const openChat = activeChat?.id === activeChatId ? activeChat : chats.data?.find((chat) => chat.id === activeChatId);
+  // A handoff built before that record arrived gets the chat once it does, so her Context chip (and what
+  // she is sent) includes the chat on every door: ⌘J, the pull, the top-bar button.
+  const chatPendingForMariRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!openChat || chatPendingForMariRef.current !== openChat.id) return;
+    chatPendingForMariRef.current = null;
+    setMariContext((current) =>
+      current && !current.activeChat
+        ? { ...current, activeChat: { id: openChat.id, label: openChat.name, mode: openChat.mode } }
+        : current,
+    );
+  }, [openChat]);
   /** Every route into the Work pane goes through here, so none forgets a flag. */
   const enterMariPane = (context?: ProfessorMariAskContext, submitDraft = false, draftOverride?: string) => {
     startFieldFlight();
+    // Set here, not in buildAskContext: that also runs while rendering, and would clear the mark first.
+    chatPendingForMariRef.current = context && !context.activeChat && activeChatId ? activeChatId : null;
     if (context) {
       setMariContext(context);
       // The handoff lives in session state, not component state, so a task that
@@ -2887,10 +2904,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // an id, so "focus id equals Fix row id" can also be true for a plain fallback focus (A5/N6).
     const fix = Boolean(options.fix);
     const source = fix ? ("chat-error" as const) : gameSetupStep ? ("game-setup" as const) : undefined;
-    // Slice 73: the open chat by its id; right after a switch the store's chat record is still loading
-    // (or still the previous chat), and the arrival then dropped the chat from its Context chip.
-    const openChat =
-      activeChat?.id === activeChatId ? activeChat : chats.data?.find((chat) => chat.id === activeChatId);
     return buildProfessorMariCommandCenterContext(message, focusResult, [], focusResult?.id, {
       activeChat: openChat ? { id: openChat.id, label: openChat.name, mode: openChat.mode } : undefined,
       settingsLocation:
@@ -3353,13 +3366,15 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
       onKeyDown={trapFocus}
     >
+      {/* Slice 73: the height transition is the desktop dialog's. On a phone the panel is the full screen, and
+          animating it let every keyboard close leave her composer up to ~200 px above the bottom for 300 ms. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="global-omnibar-title"
         ref={dialogRef}
         data-component="GlobalOmnibar.Panel"
-        className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--card)] shadow-2xl ${fromPull ? "" : "motion-safe:animate-omnibar-in"} sm:max-w-[44rem] sm:rounded-2xl sm:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] sm:ring-1 sm:ring-[var(--border)]/60 motion-safe:transition-[height,max-height,max-width] motion-safe:duration-300 motion-safe:ease-out motion-reduce:transition-none ${
+        className={`relative isolate flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--card)] shadow-2xl ${fromPull ? "" : "motion-safe:animate-omnibar-in"} sm:max-w-[44rem] sm:rounded-2xl sm:shadow-[0_24px_60px_-12px_rgba(0,0,0,0.55)] sm:ring-1 sm:ring-[var(--border)]/60 sm:motion-safe:transition-[height,max-height,max-width] sm:motion-safe:duration-300 sm:motion-safe:ease-out motion-reduce:transition-none ${
           pane === "mari"
             ? "mari-workspace-shell sm:h-[min(44rem,80dvh)] sm:max-h-[min(44rem,80dvh)]"
             : idle && !settingsOpen

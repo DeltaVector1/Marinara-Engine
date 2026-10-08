@@ -4012,12 +4012,6 @@ assert.ok(!("mariDetailId" in mariSession));
   };
   assert.equal(resolveMariEdgeGlow(nextMariEdgeSeen(seen, failedInput), failedInput), "error", "red while viewed");
   assert.equal(resolveMariEdgeGlow(seen, { ...failedInput, working: true }), "working", "a retry runs, not red");
-  // Slice 73: the top-bar pill names each edge state; only "Working" carries her step count.
-  assert.deepEqual(mariTopbarStatusLabel("working", 3), { key: "mari.topbarStatus.workingSteps", count: 3 });
-  assert.deepEqual(mariTopbarStatusLabel("working", 0), { key: "mari.topbarStatus.working" }, "no '0 steps'");
-  assert.deepEqual(mariTopbarStatusLabel("approval", 3), { key: "mari.topbarStatus.approval" });
-  assert.deepEqual(mariTopbarStatusLabel("error", 0), { key: "mari.topbarStatus.error" });
-  assert.deepEqual(mariTopbarStatusLabel("finished", 2), { key: "mari.topbarStatus.finished" });
   const presentation = {
     hasRecovery: true,
     hasWorkspaceError: false,

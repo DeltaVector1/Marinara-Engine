@@ -901,13 +901,11 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
    other states hold still. Opening her pane clears it (P3). */
 /* R8: one state colour for the edge line and the pull drop's rim (the TopBar hands the same state to both). */
 .mari-topbar-edge-glow,
-.mari-topbar-status,
 .mari-pull-overlay[data-mari-edge] {
   --mari-edge: oklch(0.72 0.14 155);
 }
 
 .mari-topbar-edge-glow[data-state="working"],
-.mari-topbar-status[data-state="working"],
 .mari-pull-overlay[data-mari-edge="working"] {
   --mari-edge: var(--mari-logo-pink);
   --mari-edge-mid: var(--mari-logo-orange);
@@ -915,7 +913,6 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 }
 
 .mari-topbar-edge-glow[data-state="approval"],
-.mari-topbar-status[data-state="approval"],
 .mari-pull-overlay[data-mari-edge="approval"] {
   --mari-edge: oklch(0.82 0.11 79);
 }
@@ -923,7 +920,6 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
 /* An explicit red, not --destructive - that token is pink in dark mode, too close
    to the working state's pink/orange gradient to read as a distinct failure. */
 .mari-topbar-edge-glow[data-state="error"],
-.mari-topbar-status[data-state="error"],
 .mari-pull-overlay[data-mari-edge="error"] {
   --mari-edge: oklch(0.58 0.2 25);
 }
@@ -956,11 +952,15 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   opacity: 0.55;
 }
 
-/* Slice 73: her state as a small pill while her window is closed. Tinted by the same edge colour, no
-   motion of its own (the sprite plays its story once); it sits at the end of the left group, so the bar
-   never shifts when it comes and goes. */
+/* Slice 73: her state as a small pill while her window is closed, with her pull-drop head. It glows in
+   the composer glow's colours (cyan thinking, gold needs you, green done, red failed): low, faint and
+   slowly wavering, static with reduced motion. It sits at the end of the left group, so the bar never
+   shifts when it comes and goes. */
 .mari-topbar-status {
+  --mari-pill-a: oklch(0.78 0.08 158);
+  --mari-pill-b: oklch(0.82 0.07 172);
   position: relative;
+  isolation: isolate;
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -968,17 +968,46 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   height: 1.75rem;
   margin-inline-start: auto;
   padding-inline: 0.25rem 0.625rem;
-  border: 1px solid color-mix(in srgb, var(--mari-edge) 30%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--mari-pill-a) 30%, var(--border));
   border-radius: 999px;
-  background: color-mix(in srgb, var(--mari-edge) 8%, transparent);
+  background: color-mix(in srgb, var(--mari-pill-a) 7%, var(--marinara-topbar-surface, var(--background)));
   color: var(--foreground);
   font-size: 0.75rem;
   line-height: 1;
   white-space: nowrap;
 }
 
+.mari-topbar-status[data-state="working"] {
+  --mari-pill-a: var(--mari-logo-cyan);
+  --mari-pill-b: oklch(0.68 0.16 280);
+}
+
+.mari-topbar-status[data-state="approval"] {
+  --mari-pill-a: var(--mari-workspace-gold, oklch(0.82 0.11 79));
+  --mari-pill-b: var(--mari-logo-orange);
+}
+
+/* An explicit red, like the edge line: --destructive is pink in dark mode. */
+.mari-topbar-status[data-state="error"] {
+  --mari-pill-a: oklch(0.58 0.2 25);
+  --mari-pill-b: oklch(0.62 0.18 35);
+}
+
+.mari-topbar-status::before {
+  position: absolute;
+  z-index: -1;
+  inset: -0.125rem;
+  border-radius: inherit;
+  content: "";
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--mari-pill-a), var(--mari-pill-b), var(--mari-pill-a));
+  filter: blur(0.375rem);
+  opacity: 0.3;
+  animation: mari-pill-waver 4s ease-in-out infinite alternate;
+}
+
 .mari-topbar-status:hover {
-  background: color-mix(in srgb, var(--mari-edge) 14%, transparent);
+  background: color-mix(in srgb, var(--mari-pill-a) 14%, var(--marinara-topbar-surface, var(--background)));
 }
 
 .mari-topbar-status:focus-visible {
@@ -986,13 +1015,50 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
   outline-offset: 2px;
 }
 
-.mari-topbar-status .mari-story-sprite {
-  width: 1rem;
-  height: 1.5rem;
+.mari-topbar-status__head {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: var(--mari-pull-heads) 0 0 / 600% 100% no-repeat;
+  image-rendering: pixelated;
+}
+
+.mari-topbar-status__head[data-gaze="down"] {
+  background-position-x: 20%;
+}
+
+.mari-topbar-status__head[data-gaze="peering"] {
+  background-position-x: 80%;
+}
+
+.mari-topbar-status__head[data-gaze="delighted"] {
+  background-position-x: 100%;
 }
 
 .mari-topbar-status > svg {
-  color: var(--mari-edge);
+  color: var(--mari-pill-a);
+}
+
+@keyframes mari-pill-waver {
+  from {
+    opacity: 0.2;
+    scale: 0.97 0.9;
+  }
+  to {
+    opacity: 0.38;
+    scale: 1.03 1.05;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mari-topbar-status::before {
+    animation: none;
+  }
+}
+
+html[data-marinara-reduced-effects="true"] .mari-topbar-status::before,
+html[data-marinara-effects-paused="true"] .mari-topbar-status::before {
+  animation: none;
 }
 
 /* Phones: the bar is a row of buttons, so an in-flow pill would squeeze them. It sits in the free space
@@ -1007,7 +1073,7 @@ html[data-marinara-effects-paused="true"] .mari-workspace-glow-band::after {
     translate: 0 -50%;
   }
 
-  .mari-topbar-status > span:not(.mari-story-sprite) {
+  .mari-topbar-status > span:not(.mari-topbar-status__head) {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;

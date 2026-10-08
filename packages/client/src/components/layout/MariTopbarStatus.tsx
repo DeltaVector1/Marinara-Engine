@@ -1,20 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Check } from "lucide-react";
-import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
-import { mariTopbarStatusLabel, type MariEdgeGlow } from "../../lib/mari-presence-seen";
-import type { MariStoryState } from "../../lib/mari-work-animations";
+import { useMariAppearancePack } from "../../hooks/use-mari-appearance-pack";
+import type { MariEdgeGlow } from "../../lib/mari-presence-seen";
 import { requestProfessorMariOpen } from "../../lib/professor-mari-open";
 import { useUIStore } from "../../stores/ui.store";
-import { MariStorySprite } from "../chat/MariStorySprite";
 
 const DONE_VISIBLE_MS = 4_000;
-const STATE_STORY: Record<Exclude<MariEdgeGlow, null>, MariStoryState> = {
-  working: "thinking",
-  approval: "approval",
-  error: "retry",
-  finished: "success",
+/** Her pull-drop head (six frames: neutral, down, down-left, down-right, peering, delighted) per state. */
+const STATE_GAZE: Record<Exclude<MariEdgeGlow, null>, string> = {
+  working: "down",
+  approval: "peering",
+  error: "neutral",
+  finished: "delighted",
 };
 
 /**
@@ -25,7 +24,7 @@ const STATE_STORY: Record<Exclude<MariEdgeGlow, null>, MariStoryState> = {
 export function MariTopbarStatus({ state }: { state: MariEdgeGlow }) {
   const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
-  const steps = useProfessorMariWorkspaceStatus({ intervalMs: 30_000 }).data?.activeSteps ?? 0;
+  const appearance = useMariAppearancePack();
   const viewing = useUIStore((ui) => ui.mariPaneVisible);
   // The edge state passes through null for a render between "working" and "finished", so this
   // remembers the run itself, not the previous state. A run seen in her window needs no "Done".
@@ -54,8 +53,7 @@ export function MariTopbarStatus({ state }: { state: MariEdgeGlow }) {
       (state === "finished" && doneFresh))
       ? state
       : null;
-  const label = shown ? mariTopbarStatusLabel(shown, steps) : null;
-  const text = label ? t(label.key, { count: label.count }) : "";
+  const text = shown ? t(`mari.topbarStatus.${shown}`) : "";
 
   return (
     <AnimatePresence initial={false}>
@@ -74,7 +72,12 @@ export function MariTopbarStatus({ state }: { state: MariEdgeGlow }) {
           aria-label={t("mari.topbarStatus.open", { status: text })}
           title={t("mari.topbarStatus.open", { status: text })}
         >
-          <MariStorySprite state={STATE_STORY[shown]} pullTarget={false} />
+          <span
+            className="mari-topbar-status__head"
+            data-gaze={STATE_GAZE[shown]}
+            style={{ "--mari-pull-heads": `url("${appearance.portraits.pullHeads}")` } as CSSProperties}
+            aria-hidden="true"
+          />
           <span>{text}</span>
           {shown === "finished" ? <Check size="0.75rem" aria-hidden="true" /> : null}
         </motion.button>
