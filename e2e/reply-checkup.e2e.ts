@@ -2,10 +2,11 @@
 // checkup, links to the exact setting, and leads the Peek header. Facts are seeded, no model runs.
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { seedUIState } from "./ui-state-fixture.js";
 
 const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
-const shots = new URL("../.tmp/omnibar-ux/round9/slice-61/", import.meta.url).pathname;
+const shots = fileURLToPath(new URL("../.tmp/omnibar-ux/round9/slice-61/", import.meta.url));
 
 const fit = (patch: Record<string, unknown>) => ({
   trimmed: false,

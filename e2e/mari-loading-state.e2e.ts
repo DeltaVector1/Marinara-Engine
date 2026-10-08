@@ -1,11 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFileSync, mkdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { seedUIState } from "./ui-state-fixture.js";
 
 const APP_VERSION = (
   JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }
 ).version;
-const PROOF_DIR = new URL("../.tmp/omnibar-ux/round9/slice-83/", import.meta.url).pathname;
+const PROOF_DIR = fileURLToPath(new URL("../.tmp/omnibar-ux/round9/slice-83/", import.meta.url));
 
 /**
  * Slice 83 (item 7): while Professor Mari's chat loads she shows a calm skeleton: her sprite, soft rows,
