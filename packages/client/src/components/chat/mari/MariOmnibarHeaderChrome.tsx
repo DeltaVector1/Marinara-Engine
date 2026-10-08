@@ -117,11 +117,19 @@ export function MariOmnibarHeaderChrome({
     if (index < 0) return;
     const last = enabledTabs.length - 1;
     const next =
-      event.key === "ArrowRight" ? (index === last ? 0 : index + 1)
-      : event.key === "ArrowLeft" ? (index === 0 ? last : index - 1)
-      : event.key === "Home" ? 0
-      : event.key === "End" ? last
-      : -1;
+      event.key === "ArrowRight"
+        ? index === last
+          ? 0
+          : index + 1
+        : event.key === "ArrowLeft"
+          ? index === 0
+            ? last
+            : index - 1
+          : event.key === "Home"
+            ? 0
+            : event.key === "End"
+              ? last
+              : -1;
     if (next < 0) return;
     event.preventDefault();
     tabRefs.current[enabledTabs[next]!.id]?.focus();

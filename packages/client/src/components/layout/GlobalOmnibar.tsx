@@ -1426,8 +1426,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // R9: the row body navigates to the review, not the generic expand/collapse a
     // settings-picker choice control gets — Keep/Restore stay reachable inline.
     if (isMariApprovalRow(result)) choose(result);
-    else if (result.control?.type === "toggle")
-      flipToggleControl(result, result.control.value !== true);
+    else if (result.control?.type === "toggle") flipToggleControl(result, result.control.value !== true);
     else if (result.control?.type === "choice")
       setExpandedChoiceId((current) => (current === result.id ? null : result.id));
     else choose(result);
@@ -1874,7 +1873,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     choose,
     chooseChoiceOption,
     flipToggleControl,
-      navigate,
+    navigate,
     recordUse,
     askMariAbout,
     escalateAside,
