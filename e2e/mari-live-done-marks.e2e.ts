@@ -148,10 +148,11 @@ test("done marks show on each step while Mari is still working", async ({ page, 
     // R13.2: the prompt she really got no longer sends her on reads just to make a card show, lets a
     // question that needs it get a paragraph, and keeps chat.diagnose for real bad-reply complaints.
     const systemPrompt = prompts[0] ?? "";
-    expect(systemPrompt).toContain("never run a read only to make a card show");
-    expect(systemPrompt).toContain("write a short paragraph or a few steps");
-    expect(systemPrompt).toContain("Never run a read only to fill a suggestion");
-    expect(systemPrompt).toContain("Do not call it for other questions");
+    // Slice 68 shortened these rules; the checks follow its wording, same intent.
+    expect(systemPrompt).toContain("only for its contents or an unknown id");
+    expect(systemPrompt).toContain("a short paragraph or steps if needed");
+    expect(systemPrompt).toContain("never read just to fill `detail` or `action`");
+    expect(systemPrompt).toContain("not for questions about you or how-tos");
     expect(systemPrompt).not.toContain("so its card can show");
     expect(systemPrompt).not.toContain("she forgets things");
 
