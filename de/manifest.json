@@ -1,6 +1,6 @@
 {
   "language": "de",
-  "sourceCommit": "d63d559fd024a54bdc0c73c9ad05326c5e3e152a",
+  "sourceCommit": "8e48661874e1e5f90acaa4164532fa76f2745173",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -64,8 +64,8 @@
     },
     {
       "path": "agents/memory.md",
-      "sha256": "b48e1a11d869621b9fa664375dd95c6efda1b5837b0badb5252160c2263b74c8",
-      "bytes": 48116
+      "sha256": "00f84b87392cb3cd9144a6fa4c9497998b301ecffb95b8893946d1aaf8eb3329",
+      "bytes": 50507
     },
     {
       "path": "appearance/appearance-settings.md",
@@ -389,8 +389,8 @@
     },
     {
       "path": "development/personal-extensions.md",
-      "sha256": "1bab1960b00ab95c392e43e85a65a7843fb8896c48827250db6aaa2b967ad891",
-      "bytes": 17327
+      "sha256": "e2fc0f13097fae5229d4638826f60e49b312dd7d66c2ba7222941fa36d8cfaa5",
+      "bytes": 17648
     },
     {
       "path": "extending/custom-tools.md",
@@ -664,8 +664,8 @@
     },
     {
       "path": "roleplay/hud-and-trackers.md",
-      "sha256": "d94b15c2c0faba037de1eb50e1f6052f2ce8fc6e3ee248a500a4c582f4ff5f04",
-      "bytes": 16677
+      "sha256": "1d29e1eccf4c8cced4e42527e63bb1755d61cdd00346de65acef1387c66953b2",
+      "bytes": 16804
     },
     {
       "path": "roleplay/narrative-director.md",

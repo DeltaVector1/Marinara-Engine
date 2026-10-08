@@ -100,7 +100,7 @@ Os elementos do painel usam o mesmo vocabulário declarativo das janelas restrit
 
 O cliente valida cada descritor por conta própria antes de adicioná-lo ao armazenamento de execução. Tipos de contribuição, superfícies, posições, controles, IDs, listas de opções, sintaxe dos nomes de ícones, comprimentos de texto, texto total do painel, quantidade de elementos e quantidade de contribuições por extensão são validados e limitados. React renderiza o texto da extensão como texto. Nenhum HTML, CSS, URL, componente React ou callback do host controlado pela extensão é aceito. O host remove todas as contribuições quando o worker é encerrado, quando o hash dele muda ou quando ele some da resposta de execução aprovada. Os eventos só são entregues ao worker registrado com o mesmo ID de extensão e o mesmo hash de conteúdo.
 
-Não existe auxiliar de DOM, requisição à API do Marinara, acesso a eventos do pai nem capacidade de rede arbitrária. O iframe valida as mensagens e limita a frequência delas. Um watchdog de heartbeat encerra o worker que não responde ou que entra em laço infinito.
+Não existe auxiliar de DOM, requisição à API do Marinara, acesso a eventos do pai nem capacidade de rede arbitrária. O iframe valida as mensagens e limita a frequência delas. Um watchdog de heartbeat encerra o worker que não responde ou que entra em laço infinito. Ele espera enquanto a página está oculta ou o navegador está retendo os temporizadores dela (aba em segundo plano, modo de suspensão, aplicativo de celular suspenso), então essas pausas nunca encerram um worker saudável. Quando a sandbox de fato encerra um worker, o host remove as contribuições dele e oferece ao usuário a opção de reiniciá-lo.
 
 ## Ambiente de compatibilidade de página completa
 

@@ -62,7 +62,7 @@ Unten zeigt **Agent activity**, was die Agenten des Chats getan haben. Hier kann
 
 ## Tracker-Werte bearbeiten
 
-Am Telefon kannst du die Schaltflächen **World State** und **Player & Tracker** an beliebige Stellen im Chat ziehen. Tippe auf eine Schaltfläche, um ihr Panel zu öffnen, und auf **X**, um es zu schließen. Schaltflächen und Panels übernehmen deinen **Chat widget style** unter **Settings → Appearance → App**. Dein Chat merkt sich die Position jeder Schaltfläche. Am Computer stehen dieselben Bearbeitungsfelder in den Abschnitten des Trackers-Fensters. Jedes Feld lässt sich bearbeiten, sodass du einen falsch geratenen Wert der KI korrigieren kannst. Änderungen werden sofort gespeichert.
+Am Telefon kannst du die Schaltflächen **World State** und **Player & Tracker** an beliebige Stellen im Chat ziehen. Tippe auf eine Schaltfläche, um ihr Panel zu öffnen, und auf **X**, um es zu schließen. Schaltflächen und Panels übernehmen deinen **Chat widget style** unter **Settings → Appearance → App**. Dein Chat merkt sich die Position jeder Schaltfläche. Am Computer stehen dieselben Bearbeitungsfelder in den Abschnitten des Trackers-Fensters. Jedes Feld lässt sich bearbeiten, sodass du einen falsch geratenen Wert der KI korrigieren kannst. Änderungen werden sofort gespeichert. Die nächste Antwort geht von deinen korrigierten Werten aus, auch wenn du die korrigierte Antwort neu generierst oder swipst.
 
 Diese Angaben lassen sich in den einzelnen Trackern bearbeiten:
 

@@ -62,7 +62,7 @@ Al final, **Agent activity** muestra qué hicieron los agentes. Desde ahí puede
 
 ## Editar los valores de los trackers
 
-En un teléfono, arrastra los botones **World State** y **Player & Tracker** donde quieras dentro del chat. Toca un botón para abrir su panel y usa **X** para cerrarlo. Los botones y paneles usan tu **Chat widget style** de **Settings → Appearance → App**. El chat recuerda dónde colocas cada botón. En una computadora, los mismos editores están en las secciones de la ventana Trackers. Todos los campos son editables para que puedas corregir valores equivocados de la IA. Los cambios se guardan al instante.
+En un teléfono, arrastra los botones **World State** y **Player & Tracker** donde quieras dentro del chat. Toca un botón para abrir su panel y usa **X** para cerrarlo. Los botones y paneles usan tu **Chat widget style** de **Settings → Appearance → App**. El chat recuerda dónde colocas cada botón. En una computadora, los mismos editores están en las secciones de la ventana Trackers. Todos los campos son editables para que puedas corregir valores equivocados de la IA. Los cambios se guardan al instante. La siguiente respuesta parte de tus valores corregidos, también cuando regeneras la respuesta que corregiste o generas un swipe (respuesta alternativa) de ella.
 
 Esto es lo que cada tracker te permite editar:
 
