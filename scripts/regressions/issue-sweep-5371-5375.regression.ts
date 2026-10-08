@@ -120,17 +120,17 @@ assert.match(
 // M5a (slice 36): a turn's reviews split into its outcome group - "what changed" and "needs your OK".
 assert.match(
   professorMariHomeSource,
-  /const entries = reviewsByTurn\.byMessageId\.get\(messageId\) \?\? \[\];[\s\S]*?needsOk: entries\.filter\([\s\S]*?\.map\(renderTurnPrompt\)/u,
+  /const entries = \(reviewsByTurn\.byMessageId\.get\(messageId\) \?\? \[\]\)\.filter\([\s\S]*?needsOk: \[[\s\S]*?waiting\.filter\([\s\S]*?\.map\(renderTurnPrompt\)/u,
   "A turn's assigned reviews must reach its renderer",
 );
 assert.match(
   professorMariHomeSource,
-  /<MariOutcomeGroup\s+changed=\{\[\s*\.\.\.\(reviews\?\.changed \?\? \[\]\)[\s\S]*?needsOk=\{reviews\?\.needsOk \?\? \[\]\}/u,
+  /<MariOutcomeGroup\s+changed=\{reviews\?\.changed \?\? \[\]\}[\s\S]*?needsOk=\{reviews\?\.needsOk \?\? \[\]\}/u,
   "A Mari turn must render the reviews assigned to it",
 );
 assert.match(
   professorMariHomeSource,
-  /mari-transcript-stack[\s\S]*?\{reviewsByTurn\.unassigned\.length > 0 \? \(\s*<div className="space-y-3">\{reviewsByTurn\.unassigned\.map\(renderTurnPrompt\)\}<\/div>[\s\S]*?<form/u,
+  /mari-transcript-stack[\s\S]*?\{reviewsByTurn\.unassigned\.length > 0 \|\| \(heldCardNode && !lastAssistantId\) \? \(\s*<div className="space-y-3">[\s\S]*?\{reviewsByTurn\.unassigned\.map\(renderTurnPrompt\)\}\s*<\/div>[\s\S]*?<form/u,
   "A pending review without a reply turn must still render inline in the transcript, before the composer",
 );
 assert.match(

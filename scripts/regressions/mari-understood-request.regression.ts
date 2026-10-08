@@ -195,7 +195,6 @@ assert.match(mariChat, /understoodRequest\.outcome === "held"/u);
 const enJson = JSON.parse(readSource("packages/client/src/localization/locales/en.json")) as Record<string, string>;
 for (const key of [
   "ui.chat.homeprofessormarichat.goalQuote",
-  "ui.chat.homeprofessormarichat.goalNothingReported",
   "ui.chat.homeprofessormarichat.actingOnExpand",
   "ui.chat.homeprofessormarichat.actingOnCollapse",
   "ui.chat.homeprofessormarichat.actingOnModeOutcomeValue1Value2",
