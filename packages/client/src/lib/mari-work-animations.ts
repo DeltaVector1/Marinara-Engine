@@ -254,6 +254,14 @@ export function stableHash(value: string): number {
   return hash >>> 0;
 }
 
+/**
+ * 1-based index into a phrase group. Each step moves on to the next phrase, so the live line never
+ * repeats the one before it, and each run starts on a different phrase.
+ */
+export function pickMariPhraseIndex(count: number, runSeed: string, step: number): number {
+  return ((stableHash(runSeed) + step) % count) + 1;
+}
+
 /** Prefer a real lifecycle state; tool activity only chooses working stories. */
 export function selectMariWorkAnimation({
   activity,

@@ -9,8 +9,8 @@ import { type CharacterPreviewModel } from "../../../lib/character-preview";
 import { resolveRunAnchorMs, resolveRunSeconds, type RunStepTiming } from "../../../lib/mari-work-card-timing";
 import { type LorebookPreviewModel } from "../../../lib/lorebook-preview";
 import {
+  pickMariPhraseIndex,
   selectMariWorkAnimation,
-  stableHash,
   type MariStoryState,
   type MariWorkAnimation,
 } from "../../../lib/mari-work-animations";
@@ -77,7 +77,7 @@ type WorkspaceToolItem = Extract<WorkspaceTimelineItem, { type: "tool" }>;
  * timer: a fresh start, going over what she just found (naming it when she can), a longer wait, a very
  * long one, or writing her answer. Sizes of each `mari.workCard.phrases.<group>.pN` group in en.json.
  */
-const MARI_PHRASE_GROUPS = { start: 6, review: 6, reviewSubject: 4, long: 7, veryLong: 5, replying: 7 } as const;
+const MARI_PHRASE_GROUPS = { start: 8, review: 8, reviewSubject: 4, long: 8, veryLong: 6, replying: 8 } as const;
 const MARI_LONG_WAIT_SECONDS = 15;
 const MARI_VERY_LONG_WAIT_SECONDS = 45;
 
@@ -398,8 +398,12 @@ export function MariWorkTimeline({
             ? "reviewSubject"
             : "review"
           : "start";
-  // Stable for the run and group: the phrase changes when her situation does, never on its own.
-  const phraseIndex = (stableHash(`${phraseGroup}:${items[0]?.id ?? "mari"}`) % MARI_PHRASE_GROUPS[phraseGroup]) + 1;
+  // Each finished step moves to the next phrase in the group; each run starts on its own phrase.
+  const phraseIndex = pickMariPhraseIndex(
+    MARI_PHRASE_GROUPS[phraseGroup],
+    `${phraseGroup}:${startedAtMs ?? items[0]?.id ?? "mari"}`,
+    toolItems.length,
+  );
   const headline = runningPresentation
     ? { text: runningPresentation.title, subject: runningPresentation.detail }
     : {

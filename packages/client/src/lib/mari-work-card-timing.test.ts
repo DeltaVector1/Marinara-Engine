@@ -1,4 +1,5 @@
 import { resolveRunSeconds, resolveRunStartMs } from "./mari-work-card-timing";
+import { pickMariPhraseIndex } from "./mari-work-animations";
 
 // Minimal assert-based self-check. Run with: pnpm tsx packages/client/src/lib/mari-work-card-timing.test.ts
 function assert(cond: unknown, msg: string) {
@@ -21,5 +22,15 @@ assert(resolveRunStartMs([{}, {}]) === null, "no timestamps means no anchor");
 assert(resolveRunSeconds([{}, {}]) === 0, "no timestamps means no elapsed claim");
 assert(resolveRunSeconds([{ updatedAt: 5_000, durationMs: 0 }]) === 0, "a zero-length run reports zero, not NaN");
 assert(resolveRunSeconds([{ startedAt: 1_000, updatedAt: 1_400 }]) === 1, "a sub-second run reads 1s, like its steps");
+
+// The live line: each step moves to the next phrase, never the one before it, and runs do not share an opener.
+for (let step = 0; step < 20; step += 1) {
+  const now = pickMariPhraseIndex(8, "start:1000", step);
+  const next = pickMariPhraseIndex(8, "start:1000", step + 1);
+  assert(now >= 1 && now <= 8, "a phrase index stays inside its group");
+  assert(now !== next, "the next step never repeats the phrase before it");
+}
+const openers = new Set(Array.from({ length: 40 }, (_, run) => pickMariPhraseIndex(8, `start:${run * 1_000}`, 0)));
+assert(openers.size > 1, "the first phrase differs between runs");
 
 console.log("mari-work-card-timing: ok");
