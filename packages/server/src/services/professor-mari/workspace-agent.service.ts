@@ -102,6 +102,7 @@ import type {
   MariWorkspaceConnectionSummary,
   MariWorkspacePromptEvent,
   MariUnderstoodRequest,
+  MariWorkspaceLatestRun,
   MariWorkspaceStatus,
   MariWorkspaceToolName,
   MariWorkspaceTraceItem,
@@ -2821,6 +2822,8 @@ export class ProfessorMariWorkspaceService {
   private readonly workspaceChangeReviews = new WorkspaceChangeReviewService(this.workspaceRoot);
   private lastError: string | null = null;
   private active = false;
+  /** The newest run and how it ended; the top-bar pill and the window's timer both read it. */
+  private latestRun: MariWorkspaceLatestRun | null = null;
   // #5725: the Permissions Mode of the run currently in flight. Set at every
   // prompt() start (never latched at construction, never cleared - each run
   // overwrites) so command execution and deferral read the run's own mode.
@@ -2922,6 +2925,7 @@ export class ProfessorMariWorkspaceService {
         ...this.workspaceChangeReviews.getPendingApprovals(),
       ].filter((approval) => isMariReviewVisibleInChat(approval.sessionId, chatId)),
       history: await getMariDbService(this.app.db).getHistory(),
+      latestRun: this.latestRun,
       error: this.lastError,
     };
   }
@@ -3261,11 +3265,14 @@ export class ProfessorMariWorkspaceService {
       if (!userMessage) throw new Error("Professor Mari could not save the user message.");
     }
     const promptText = userMessage.content;
+    const runStartedAt = Date.now();
     const userMessageExtra = {
       ...(attachments.length > 0 ? { attachments } : {}),
       professorMariContext: args.context ?? null,
       // A retry reuses this message: its earlier failure is answered now.
       mariRunError: null,
+      // The run's clock, on the server, so a reload mid-run resumes from the true start.
+      mariRunStartedAt: runStartedAt,
     };
     await chatStorage.updateMessageExtra(userMessage.id, userMessageExtra);
     await chatStorage.updateSwipeExtra(userMessage.id, 0, userMessageExtra);
@@ -3275,6 +3282,7 @@ export class ProfessorMariWorkspaceService {
     this.abortController = controller;
     this.active = true;
     this.lastError = null;
+    this.latestRun = { id: userMessage.id, chatId: args.chatId, startedAt: runStartedAt, finishedAt: null, outcome: "running" };
 
     const workspaceTrace: MariWorkspaceTraceItem[] = [];
     /** R14: set when the run fails, so the saved turn says so instead of reading as a quiet stop. */
@@ -3342,6 +3350,8 @@ export class ProfessorMariWorkspaceService {
         extraUpdate.mariWorkspaceActionResults = mergeMariActionResults(workspaceActionResults);
       }
       if (runError) extraUpdate.mariRunError = runError;
+      extraUpdate.mariRunStartedAt = runStartedAt;
+      extraUpdate.mariRunFinishedAt = Date.now();
       const savedChips = runSuggestions.filter((chip) => chip.id !== MARI_AUTHORIZATION_ACCEPT_CHIP.id);
       if (savedChips.length > 0) extraUpdate.mariSuggestions = savedChips;
       extraUpdate.professorMariContext = args.context ?? null;
@@ -3993,6 +4003,13 @@ export class ProfessorMariWorkspaceService {
         throw err;
       }
     } finally {
+      if (this.latestRun?.id === userMessage.id && this.latestRun.outcome === "running") {
+        this.latestRun = {
+          ...this.latestRun,
+          finishedAt: Date.now(),
+          outcome: runError ? "failed" : "finished",
+        };
+      }
       if (this.abortController === controller) {
         this.abortController = null;
         this.active = false;

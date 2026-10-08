@@ -913,6 +913,18 @@ export interface MariUnderstoodRequest {
   recordedAt: string;
 }
 
+/**
+ * The newest Professor Mari run, anchored on the server clock. `id` is the run's request message, which
+ * is also what the client's "seen" marker stores, so a refresh or another device sees the same state.
+ */
+export interface MariWorkspaceLatestRun {
+  id: string;
+  chatId: string;
+  startedAt: number;
+  finishedAt: number | null;
+  outcome: "running" | "finished" | "failed";
+}
+
 export interface MariWorkspaceStatus {
   enabled: boolean;
   piAvailable: boolean;
@@ -939,6 +951,8 @@ export interface MariWorkspaceStatus {
   latestUnderstoodRequest: MariUnderstoodRequest | null;
   pendingApprovals: MariWorkspacePendingApproval[];
   history: MariDbHistoryEntry[];
+  /** The newest run, or null before any run in this server process. */
+  latestRun: MariWorkspaceLatestRun | null;
   error?: string | null;
 }
 

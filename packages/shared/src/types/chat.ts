@@ -187,6 +187,17 @@ export interface ChatSummaryPromptTemplate {
 /** Server app-setting key for Roleplay Chat Summary prompt templates shared across all roleplays. */
 export const CHAT_SUMMARY_PROMPT_SETTINGS_KEY = "chat-summary-prompts";
 
+const PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX = "professor-mari-seen-run:";
+
+/** Per Professor Mari thread: the id of the newest run the user has seen in her window. */
+export function professorMariSeenRunSettingsKey(chatId: string) {
+  return `${PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX}${chatId}`;
+}
+
+export function isProfessorMariSeenRunSettingsKey(key: string) {
+  return key.startsWith(PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX) && /^[A-Za-z0-9_-]{1,80}$/.test(key.slice(PROFESSOR_MARI_SEEN_RUN_SETTINGS_PREFIX.length));
+}
+
 /** Global Roleplay Chat Summary prompt template settings. */
 export interface ChatSummaryPromptSettings {
   templates: ChatSummaryPromptTemplate[];
