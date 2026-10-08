@@ -1487,7 +1487,10 @@ export function buildOmnibarAddSuggestions({
         id: `action:add-to-chat:${result.id}:${chat.id}`,
         action: { kind: "add-to-chat", resource, resourceId, label: result.title, chatId: chat.id } as const,
         title: namedChat
-          ? t("commandCenter.actions.addToNamedChat", "Add {{name}} to {{chat}}", { name: result.title, chat: chat.name })
+          ? t("commandCenter.actions.addToNamedChat", "Add {{name}} to {{chat}}", {
+              name: result.title,
+              chat: chat.name,
+            })
           : t("commandCenter.actions.addToChat", "Add {{name}} to this chat", { name: result.title }),
         description: t("commandCenter.actions.addToChatDescription", "Attach it to {{chat}} now.", {
           chat: chat.name,

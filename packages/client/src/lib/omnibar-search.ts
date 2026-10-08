@@ -409,7 +409,7 @@ export function findOmnibarMatchRange(query: string, text: string): OmnibarMatch
 function withMatchRanges<T extends OmnibarResult>(result: T, queries: readonly string[]): T {
   const titleMatch = queries.map((q) => findOmnibarMatchRange(q, result.title)).find((range) => range) ?? null;
   const descriptionMatch = result.description
-    ? queries.map((q) => findOmnibarMatchRange(q, result.description!)).find((range) => range) ?? null
+    ? (queries.map((q) => findOmnibarMatchRange(q, result.description!)).find((range) => range) ?? null)
     : null;
   return { ...result, titleMatch, descriptionMatch };
 }
@@ -490,7 +490,9 @@ export function splitOmnibarAddTarget(
   const dangling = trimmed.match(DANGLING_CHAT_REF);
   if (dangling) {
     const entityQuery = trimmed.slice(0, dangling.index).trim();
-    return entityQuery ? { entityQuery, ambiguousChats: chats.slice(0, MAX_AMBIGUOUS_ADD_CHATS) } : { entityQuery: targetQuery };
+    return entityQuery
+      ? { entityQuery, ambiguousChats: chats.slice(0, MAX_AMBIGUOUS_ADD_CHATS) }
+      : { entityQuery: targetQuery };
   }
   const match = trimmed.match(TRAILING_CHAT_REF);
   if (!match) return { entityQuery: targetQuery };
