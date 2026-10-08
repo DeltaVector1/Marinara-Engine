@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- The quick-answer switch is now **Quick answers in Search**, and its line says what Mari does: up to three sentences from the docs, sees only what you typed, changes nothing. Search still finds it by its old name. **Wait after typing** says that Search waits before Mari writes the answer.
 - Without a downloaded local model, a quick answer in Search offers Professor Mari's own connection in one tap ("Use NanoGPT · MiniMax M3 for quick answers"), instead of only "Choose a model" on every question. Nothing is sent to it until you tap **Use this connection**.
 - A quick answer in Search says **Quick answer · Read-only** above its words, so it is clear that it is a short answer that changes nothing, not Professor Mari's window.
 - **Continue with Mari** on a quick answer opens a new Professor Mari chat named after your question. Before, it joined the chat that was already open, so one chat collected several copies of the same question. Your open chat stays as it was, and **Continue** in the omnibar still opens the last chat.

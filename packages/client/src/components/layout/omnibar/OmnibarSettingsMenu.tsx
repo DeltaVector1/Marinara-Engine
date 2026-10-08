@@ -415,8 +415,11 @@ export function OmnibarSettingsSheet({
         <Section title={t("omnibar.settings.quickAnswers.heading", "Quick answers")}>
           <SettingRow
             controlId="quick-answers"
-            label={t("omnibar.settings.aside.label", "Answer when Search finds nothing")}
-            description={t("omnibar.settings.aside.description", "Mari writes a short reply to what you typed.")}
+            label={t("omnibar.settings.aside.label", "Quick answers in Search")}
+            description={t(
+              "omnibar.settings.aside.description",
+              "When you type a question, Mari answers in up to three sentences from the docs. She sees only what you typed and changes nothing.",
+            )}
             checked={asideEnabled}
             onChange={setAsideEnabled}
           />
@@ -487,7 +490,10 @@ export function OmnibarSettingsSheet({
           <div id={anchorId("quick-answer-delay")} className="omnibar-settings-menu__row">
             <SettingText
               label={t("omnibar.settings.aside.delay.label", "Wait after typing")}
-              description={t("omnibar.settings.aside.delay.description", "How long Mari waits before she answers.")}
+              description={t(
+                "omnibar.settings.aside.delay.description",
+                "How long Search waits before Mari writes a quick answer.",
+              )}
             />
             <span className="omnibar-settings-menu__segmented">
               {OMNIBAR_ASIDE_DELAY_CHOICES_MS.map((delayMs) => (

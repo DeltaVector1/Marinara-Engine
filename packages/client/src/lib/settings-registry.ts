@@ -191,9 +191,10 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
   {
     id: "quick-answers",
     sectionId: "omnibar",
-    label: "Answer when Search finds nothing",
-    description: "Mari writes a short reply to what you typed.",
-    aliases: ["quick answers", "aside", "dead end", "ask mari"],
+    label: "Quick answers in Search",
+    description:
+      "When you type a question, Mari answers in up to three sentences from the docs. She sees only what you typed and changes nothing.",
+    aliases: ["quick answers", "aside", "dead end", "ask mari", "answer when search finds nothing"],
     kind: "Toggle",
   },
   {
@@ -208,7 +209,7 @@ export const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMet
     id: "quick-answer-delay",
     sectionId: "omnibar",
     label: "Wait after typing",
-    description: "How long Mari waits before she answers.",
+    description: "How long Search waits before Mari writes a quick answer.",
     aliases: ["quick answer delay", "delay", "seconds"],
     kind: "Button group",
   },
