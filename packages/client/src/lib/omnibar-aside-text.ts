@@ -80,3 +80,13 @@ export function stripStrayMarkdown(text: string): string {
     .replace(/^\s*[-*+]\s+/gm, "")
     .replace(/^\s*\d+\.\s+/gm, "");
 }
+
+/**
+ * The connection Mari answers with when nothing else is named: the agents default, then the default, then
+ * the first. The same order the server uses, so a quick answer offered from here is the one she would use.
+ */
+export function marisConnectionFor<T extends { isDefault: boolean; defaultForAgents: boolean }>(
+  connections: readonly T[],
+): T | null {
+  return connections.find((c) => c.defaultForAgents) ?? connections.find((c) => c.isDefault) ?? connections[0] ?? null;
+}

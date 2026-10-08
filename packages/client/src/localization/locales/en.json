@@ -3005,6 +3005,8 @@
   "omnibar.aside.label": "Quick answer · Read-only",
   "omnibar.aside.links": "Open from this answer",
   "omnibar.aside.needsModel": "Choose a model so Professor Mari can answer searches like this.",
+  "omnibar.aside.offer": "Use {{name}} for quick answers. Each answer is one short request.",
+  "omnibar.aside.offerUse": "Use this connection",
   "omnibar.aside.retry": "Try again",
   "omnibar.aside.setUpLocalModel": "Set up a local model",
   "omnibar.aside.thinking": "Professor Mari is thinking…",

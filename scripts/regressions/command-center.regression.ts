@@ -102,6 +102,7 @@ import {
   OMNIBAR_ASIDE_DELAY_CHOICES_MS,
   OMNIBAR_ASIDE_DELAY_MS,
   OmnibarAsideAnswerCache,
+  marisConnectionFor,
   stripStrayMarkdown,
 } from "../../packages/client/src/lib/omnibar-aside-text.js";
 import {
@@ -1327,6 +1328,25 @@ assert.ok(!("mariDetailId" in mariSession));
 }
 
 {
+  // Without a local model the aside offers Mari's own connection: the agents default, then the default, then the first.
+  const plain = { isDefault: false, defaultForAgents: false };
+  assert.equal(marisConnectionFor([]), null, "no connection, nothing to offer");
+  assert.equal(marisConnectionFor([{ id: "a", ...plain }])?.id, "a", "a lone connection is the one offered");
+  assert.equal(
+    marisConnectionFor([
+      { id: "a", ...plain },
+      { id: "b", ...plain, isDefault: true },
+    ])?.id,
+    "b",
+  );
+  assert.equal(
+    marisConnectionFor([
+      { id: "a", ...plain, isDefault: true },
+      { id: "b", ...plain, defaultForAgents: true },
+    ])?.id,
+    "b",
+    "the agents default wins over the default",
+  );
   // G5: the idle delay is a user-facing knob (R23) whose default is one of its choices.
   assert.equal(OMNIBAR_ASIDE_DELAY_MS, 3_000);
   assert.ok((OMNIBAR_ASIDE_DELAY_CHOICES_MS as readonly number[]).includes(OMNIBAR_ASIDE_DELAY_MS));

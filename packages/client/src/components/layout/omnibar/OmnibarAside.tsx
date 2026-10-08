@@ -20,6 +20,9 @@ export interface OmnibarAsideProps {
   onEscalate: () => void;
   /** Opens the omnibar settings, where the answering model is chosen. */
   onChooseModel: () => void;
+  /** Mari's own connection, offered for quick answers when no local model is downloaded. */
+  connectionOffer?: { id: string; name: string } | null;
+  onUseConnectionOffer: (id: string) => void;
   /** Re-fires the call after an error (R24: plain error, never a toast). */
   onRetry: () => void;
   /** Asks the same question again, past the answer cache. */
@@ -71,6 +74,8 @@ export function OmnibarAside({
   onDisable,
   onEscalate,
   onChooseModel,
+  connectionOffer,
+  onUseConnectionOffer,
   onRetry,
   onAnswerAgain,
   onFollowUp,
@@ -107,6 +112,27 @@ export function OmnibarAside({
     onFollowUp(followUp.trim());
     setFollowUp("");
   };
+
+  if (state.status === "unavailable" && connectionOffer) {
+    return (
+      <p
+        data-component="GlobalOmnibar.Aside"
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--muted-foreground)]"
+      >
+        <span>
+          {t("omnibar.aside.offer", "Use {{name}} for quick answers. Each answer is one short request.", {
+            name: connectionOffer.name,
+          })}
+        </span>
+        <button type="button" onClick={() => onUseConnectionOffer(connectionOffer.id)} className={textAction}>
+          {t("omnibar.aside.offerUse", "Use this connection")}
+        </button>
+        <button type="button" onClick={onChooseModel} className={textAction}>
+          {t("omnibar.aside.chooseModel", "Choose a model")}
+        </button>
+      </p>
+    );
+  }
 
   if (state.status === "unavailable") {
     return (

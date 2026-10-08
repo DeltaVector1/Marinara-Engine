@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import type { ChatMode, Message, ProfessorMariAskContext, ProfessorMariEntryPoint } from "@marinara-engine/shared";
 import { chatIdForMariSession, matchOmnibarCapabilityAgentPackageIds } from "@marinara-engine/shared";
 import { api } from "../../lib/api-client";
+import { marisConnectionFor } from "../../lib/omnibar-aside-text";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -317,7 +318,15 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         ) {
           return [];
         }
-        return [{ id: row.id, name: row.name, model: typeof record.model === "string" ? record.model : "" }];
+        return [
+          {
+            id: row.id,
+            name: row.name,
+            model: typeof record.model === "string" ? record.model : "",
+            isDefault: record.isDefault === true,
+            defaultForAgents: record.defaultForAgents === true,
+          },
+        ];
       }),
     [connections.data],
   );
@@ -342,6 +351,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const asideConnectionId = useUIStore((state) => state.omnibarAsideConnectionId);
   const setAsideDisclosed = useUIStore((state) => state.setOmnibarAsideDisclosed);
   const setAsideEnabled = useUIStore((state) => state.setOmnibarAsideEnabled);
+  const setAsideConnectionId = useUIStore((state) => state.setOmnibarAsideConnectionId);
   const openRightPanel = useUIStore((state) => state.openRightPanel);
   const openAgentCatalog = useUIStore((state) => state.openAgentCatalog);
   const activeChat = useChatStore((state) => state.activeChat);
@@ -890,6 +900,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     lorebookEntryResults.length === 0;
   const asideConnectionName =
     languageConnections.find((connection) => connection.id === asideConnectionId)?.name ?? null;
+  // No local model: the aside offers Mari's own connection in one tap instead of failing on every question.
+  const asideConnectionOffer = marisConnectionFor(languageConnections);
   // The real surface the user is on, not always "command-center": an open
   // editor or the active chat is a more honest (and more useful) context for
   // the aside's unasked call than the omnibar shell it happens to appear in.
@@ -1816,6 +1828,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         }}
         onEscalate={() => escalateAside()}
         onChooseModel={() => openSettings("quick-answer-model")}
+        connectionOffer={asideConnectionOffer}
+        onUseConnectionOffer={setAsideConnectionId}
         onRetry={asideState.retry}
         onAnswerAgain={asideState.answerAgain}
         // One quick follow-up; the question after it goes to full Mari (G4).
