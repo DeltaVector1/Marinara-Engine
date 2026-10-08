@@ -45,6 +45,7 @@ import {
   type OmnibarSurface,
 } from "./omnibar-search";
 import { getOmnibarSettingsDestinations } from "./omnibar-settings";
+import { SETTINGS_SEARCHABLE_CONTROLS, settingsLocationPath } from "./settings-registry";
 import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "./omnibar-settings-toggle-bindings";
 import type { ChatResourceDragKind } from "./chat-resource-drag";
 import { getSlashCompletions } from "./slash-commands";
@@ -314,6 +315,9 @@ export function buildOmnibarControlResults({
   theme,
   userStatus,
 }: OmnibarControlResultsInput): OmnibarResult[] {
+  // Each row's settings-registry control id, so it can show "Tab › Section" the
+  // same way a settingsDestinations row does (G5) — null where the toggle (ambient
+  // effects) has no registry entry to point at yet.
   const toggleRows = [
     [
       "reduceAmbientEffects",
@@ -321,6 +325,7 @@ export function buildOmnibarControlResults({
       "Reduced effects",
       reduceAmbientEffects,
       setters.setReduceAmbientEffects,
+      null,
     ],
     [
       "musicPlayerEnabled",
@@ -328,6 +333,7 @@ export function buildOmnibarControlResults({
       "Music player",
       musicPlayerEnabled,
       setters.setMusicPlayerEnabled,
+      "music-player",
     ],
     [
       "speechToTextEnabled",
@@ -335,6 +341,7 @@ export function buildOmnibarControlResults({
       "Speech to text",
       speechToTextEnabled,
       setters.setSpeechToTextEnabled,
+      "speech-to-text",
     ],
     [
       "notificationSoundsOnlyWhenUnfocused",
@@ -342,11 +349,33 @@ export function buildOmnibarControlResults({
       "Sounds only when unfocused",
       notificationSoundsOnlyWhenUnfocused,
       setters.setNotificationSoundsOnlyWhenUnfocused,
+      "notification-unfocused-only",
     ],
-    ["showTimestamps", "commandCenter.controls.timestamps", "Timestamps", showTimestamps, setters.setShowTimestamps],
-    ["showModelName", "commandCenter.controls.modelName", "Model name", showModelName, setters.setShowModelName],
-    ["showTokenUsage", "commandCenter.controls.tokenUsage", "Token usage", showTokenUsage, setters.setShowTokenUsage],
-  ] as const;
+    [
+      "showTimestamps",
+      "commandCenter.controls.timestamps",
+      "Timestamps",
+      showTimestamps,
+      setters.setShowTimestamps,
+      "show-message-timestamps",
+    ],
+    [
+      "showModelName",
+      "commandCenter.controls.modelName",
+      "Model name",
+      showModelName,
+      setters.setShowModelName,
+      "show-model-name",
+    ],
+    [
+      "showTokenUsage",
+      "commandCenter.controls.tokenUsage",
+      "Token usage",
+      showTokenUsage,
+      setters.setShowTokenUsage,
+      "show-token-usage",
+    ],
+  ] as const satisfies readonly (readonly [string, string, string, boolean, (value: boolean) => void, string | null])[];
   const settingsDestinations = getOmnibarSettingsDestinations().map((setting) => {
     const binding = setting.controlId ? OMNIBAR_SETTINGS_TOGGLE_BINDINGS[setting.controlId] : undefined;
     const title = localize(setting.title);
@@ -364,7 +393,14 @@ export function buildOmnibarControlResults({
         controlId: setting.controlId,
         sectionId: setting.sectionId,
       },
-      description: `${localize(setting.sectionLabel)} · ${localize(setting.description)}`,
+      // A control's row shows the full Tab › Section path, since neither is its own
+      // title. A section row's title already names the section, so it keeps the
+      // one-level "sectionLabel" the registry gives it (the parent tab) instead of
+      // repeating itself; same for a bare tab row.
+      description: `${
+        (setting.controlId && setting.sectionId ? settingsLocationPath(setting.sectionId, localize) : null) ??
+        localize(setting.sectionLabel)
+      } · ${localize(setting.description)}`,
       kind: "settings" as const,
       icon: "settings" as const,
       // Bound toggles flip in place instead of only navigating to the tab (K5).
@@ -420,18 +456,24 @@ export function buildOmnibarControlResults({
         onChange: (value) => setters.setUserStatusManual(String(value) as typeof userStatus),
       },
     },
-    ...toggleRows.map(([id, key, fallback, value, onChange]) => ({
-      id: `control:${id}`,
-      title: t(key, fallback),
-      category: "settings" as const,
-      score: 170,
-      control: {
-        type: "toggle" as const,
-        label: t(key, fallback),
-        value,
-        onChange: (nextValue: string | boolean) => onChange(nextValue === true),
-      },
-    })),
+    ...toggleRows.map(([id, key, fallback, value, onChange, controlId]) => {
+      const sectionId = controlId
+        ? SETTINGS_SEARCHABLE_CONTROLS.find((control) => control.id === controlId)?.sectionId
+        : undefined;
+      return {
+        id: `control:${id}`,
+        title: t(key, fallback),
+        category: "settings" as const,
+        score: 170,
+        description: (sectionId ? settingsLocationPath(sectionId, localize) : null) ?? undefined,
+        control: {
+          type: "toggle" as const,
+          label: t(key, fallback),
+          value,
+          onChange: (nextValue: string | boolean) => onChange(nextValue === true),
+        },
+      };
+    }),
   ];
 }
 

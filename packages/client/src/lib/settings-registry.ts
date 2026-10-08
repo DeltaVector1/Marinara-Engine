@@ -17,6 +17,7 @@
 import {
   SETTINGS_SECTION_BY_ID,
   SETTINGS_SECTIONS,
+  SETTINGS_TABS,
   type SettingsSectionId,
   type SettingsSectionMeta,
 } from "@marinara-engine/shared";
@@ -43,6 +44,22 @@ export function isOmnibarSettingsTarget(target: { sectionId?: string | null; con
   return SETTINGS_SEARCHABLE_CONTROLS.some(
     (control) => control.id === target.controlId && control.sectionId === OMNIBAR_SETTINGS_SECTION_ID,
   );
+}
+
+/**
+ * "Tab › Section" for a section, so a row away from the Settings panel (the
+ * omnibar) can still say where a setting lives. Both pieces are the registry's
+ * English; the caller localizes the same way the rest of this module does.
+ */
+export function settingsLocationPath(
+  sectionId: SettingsSectionId,
+  localize: (englishText: string) => string,
+): string | null {
+  const section = SETTINGS_SECTION_BY_ID.get(sectionId);
+  if (!section) return null;
+  const tab = SETTINGS_TABS.find((entry) => entry.id === section.tab);
+  const sectionLabel = localize(section.label);
+  return tab ? `${localize(tab.label)} › ${sectionLabel}` : sectionLabel;
 }
 
 export type SettingsControlKind = "Toggle" | "Slider" | "Select" | "Input" | "Picker" | "Button group";
