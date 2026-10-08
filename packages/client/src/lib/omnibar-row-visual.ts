@@ -102,7 +102,7 @@ function isMariRow(result: VisualRow) {
 
 export type OmnibarRowVisualContext = {
   /** The plain entity rows by id: where a derived row finds its record's picture. */
-  recordById: ReadonlyMap<string, Pick<OmnibarResult, "preview">>;
+  recordById: ReadonlyMap<string, OmnibarResult>;
   /** Chat modes by row id (`chat:<id>`), so a chat row shows its mode. */
   chatModeById: ReadonlyMap<string, string | undefined>;
   /** From `omnibarMatchQueries`; omitted while the field is empty. */

@@ -48,10 +48,12 @@ test("desktop shortcut opens a focused command palette with useful initial optio
   await expect(omnibar.getByRole("dialog", { name: "Search Marinara" })).toBeVisible();
   await expect(input).toBeFocused();
   await expect(input).toHaveValue("");
-  // Slice 78: a fresh client gets the first-use examples, the what-to-type line and a labelled door to Mari.
+  // Slice 78: a fresh client gets the first-use examples and the what-to-type line. Slice 79b: Mari's head
+  // in the search bar is her one door (the footer pill is gone), so exactly one "Ask Mari" button.
   await expect(omnibar.locator('[data-result-id="try:search"]')).toBeVisible();
   await expect(omnibar.getByText(/^Type a name, a setting/)).toBeVisible();
   await expect(omnibar.locator('[data-component="GlobalOmnibar.ProfessorMariButton"]')).toBeVisible();
+  await expect(omnibar.getByRole("button", { name: "Ask Mari", exact: true })).toHaveCount(1);
   await expect(omnibar.getByRole("toolbar", { name: "Result categories" })).toBeHidden();
   await expect(omnibar.locator("[data-omnibar-scope-chip='characters']")).toBeVisible();
 });

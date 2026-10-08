@@ -1598,6 +1598,57 @@ export function buildOmnibarRemovalSuggestions({
   return out;
 }
 
+/** What a verb sentence resolved to, for the line under the input (slice 79b). */
+export type OmnibarUnderstoodLine = {
+  kind: "add" | "remove" | "start-chat";
+  /** The plain entity row of the record, e.g. `character:<id>`. */
+  recordRowId: string;
+  name: string;
+  chatRowId?: string;
+  chatName?: string;
+};
+
+/**
+ * Reads the add/remove/start-chat rows a sentence produced and says what it
+ * resolved to — but only when every row agrees on one record (and one chat).
+ * "add eli" with Eliza and Elias, a bare "add" or "remove", or "add Eliza to "
+ * with several candidate chats is still a choice, so the rows answer it and
+ * there is no line.
+ */
+export function resolveOmnibarUnderstoodLine(
+  rows: readonly Pick<OmnibarResult, "action">[],
+  activeChat: { id: string; name: string } | null | undefined,
+  chatNameById: ReadonlyMap<string, string>,
+): OmnibarUnderstoodLine | null {
+  const lines = rows.flatMap((row): OmnibarUnderstoodLine[] => {
+    const action = row.action;
+    if (action?.kind === "start-character-chat") {
+      return [{ kind: "start-chat", recordRowId: `character:${action.characterId}`, name: action.characterName }];
+    }
+    if (action?.kind !== "add-to-chat" && action?.kind !== "detach-from-chat") return [];
+    const chatId = (action.kind === "add-to-chat" ? action.chatId : undefined) ?? activeChat?.id;
+    const chatName = chatId
+      ? (chatNameById.get(chatId) ?? (chatId === activeChat?.id ? activeChat.name : undefined))
+      : undefined;
+    if (!chatId || !chatName) return [];
+    return [
+      {
+        kind: action.kind === "add-to-chat" ? "add" : "remove",
+        recordRowId: `${action.resource}:${action.resourceId}`,
+        name: action.label,
+        chatRowId: `chat:${chatId}`,
+        chatName,
+      },
+    ];
+  });
+  const first = lines[0];
+  if (!first) return null;
+  const agree = lines.every(
+    (line) => line.kind === first.kind && line.recordRowId === first.recordRowId && line.chatRowId === first.chatRowId,
+  );
+  return agree ? first : null;
+}
+
 export type OmnibarApprovalDecision = "keep" | "restore";
 
 export type OmnibarApprovalResultsInput = {

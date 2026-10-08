@@ -151,7 +151,8 @@ import {
   type CommandRankingState,
 } from "../../lib/command-center";
 import { createSystemCommandDefinitions } from "../../lib/command-center-system-commands";
-import { MARI_FACE_CROP, resolveOmnibarRowVisual, type OmnibarRowVisualContext } from "../../lib/omnibar-row-visual";
+import { resolveOmnibarRowVisual, type OmnibarRowVisualContext } from "../../lib/omnibar-row-visual";
+import { OmnibarUnderstoodLine } from "./omnibar/OmnibarUnderstoodLine";
 import {
   createOmnibarContext,
   resolveOmnibarScreen,
@@ -170,6 +171,7 @@ import {
   buildOmnibarChatControlResults,
   buildOmnibarContextResults,
   idleOmnibarContextResults,
+  resolveOmnibarUnderstoodLine,
   buildOmnibarApprovalResults,
   buildOmnibarContinueResult,
   buildOmnibarControlResults,
@@ -3196,6 +3198,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }),
     [appearance.portraits.idle, chatModeByResultId, searchMatchQueries, searchableEntityResults],
   );
+  // Slice 79b: the quiet "Add [Eliza] to [Tavern Night]" line under the input.
+  const understoodLine = useMemo(
+    () =>
+      resolveOmnibarUnderstoodLine(
+        [...addSuggestions, ...removalSuggestions, ...intentShortcuts],
+        activeChat,
+        new Map(recentChatNamedRows.map((chat) => [chat.id, chat.name] as const)),
+      ),
+    [activeChat, addSuggestions, intentShortcuts, recentChatNamedRows, removalSuggestions],
+  );
   const resultVisual = (result: RankedOmnibarResult) => {
     if (result.category === "chat") {
       const mode = chatModeByResultId.get(result.id);
@@ -3673,11 +3685,15 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               <button
                 type="button"
                 onClick={() => askMariAbout(null)}
-                aria-label={t("commandCenter.openWork", "Ask Professor Mari")}
-                title={t("commandCenter.openWork", "Ask Professor Mari")}
+                // Slice 79b: her head is the door to her (the footer pill is gone), so it says so.
+                aria-label={t("commandCenter.askMariDoor", "Ask Mari")}
+                aria-keyshortcuts={isApplePlatform() ? "Meta+J" : "Control+J"}
+                title={t("commandCenter.askMariDoorTooltip", "Ask Mari ({{shortcut}})", {
+                  shortcut: isApplePlatform() ? "⌘J" : "Ctrl+J",
+                })}
                 data-component="GlobalOmnibar.ProfessorMariButton"
                 data-mari-glow={mariWorkingInBackground ? "true" : "false"}
-                className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end pb-2 pl-8 [--mari-glow-size:3.4rem] [--mari-glow-top:0.05rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] max-[30rem]:w-11 max-[30rem]:pl-0"
+                className="group relative -mb-px flex h-14 w-[4.25rem] shrink-0 self-end items-end justify-end rounded-t-lg pb-2 pl-8 transition-colors [--mari-glow-size:3.4rem] [--mari-glow-top:0.05rem] hover:bg-[color-mix(in_srgb,var(--primary)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--primary)] active:bg-[color-mix(in_srgb,var(--primary)_14%,transparent)] max-[30rem]:w-11 max-[30rem]:pl-0"
               >
                 {/* P1: only the tall portrait is cropped, so her working glow on the button fades out freely. */}
                 <span aria-hidden="true" className="absolute inset-0 overflow-hidden">
@@ -3685,7 +3701,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                     src={appearance.portraits.idle}
                     alt=""
                     draggable={false}
-                    className="absolute left-1/2 top-0 h-[6.5rem] w-auto max-w-none -translate-x-1/2 object-contain object-top transition-transform duration-200 ease-out group-hover:-translate-y-1 group-focus-visible:-translate-y-1 motion-reduce:transition-none max-[30rem]:h-20"
+                    className="absolute left-1/2 top-0 h-[6.5rem] w-auto max-w-none -translate-x-1/2 object-contain object-top transition-transform duration-200 ease-out group-hover:-translate-y-1 group-focus-visible:-translate-y-1 group-active:translate-y-0 motion-reduce:transition-none max-[30rem]:h-20"
                   />
                 </span>
               </button>
@@ -3704,6 +3720,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           </div>
           {mariSurface ? (
             <div ref={setMariHeaderSlot} className="mari-omnibar-header-slot mari-omnibar-header-row" />
+          ) : null}
+          {!mariSurface ? (
+            <OmnibarUnderstoodLine line={query.trim() ? understoodLine : null} context={rowVisualContext} />
           ) : null}
           {!query.trim() && !mariSurface ? (
             <div
@@ -4096,25 +4115,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             </span>
             <span className="flex min-w-0 items-center gap-3">
               {mariEnabled ? (
-                // Slice 78: a labelled door to Mari on every screen size; phones have no Ctrl/⌘+J.
-                <button
-                  type="button"
-                  onClick={() => askMariAbout(null)}
-                  aria-keyshortcuts={isApplePlatform() ? "Meta+J" : "Control+J"}
-                  className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--primary)_30%,var(--border))] py-0.5 pl-0.5 pr-2.5 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] max-sm:min-h-10"
-                >
-                  <img
-                    src={appearance.portraits.idle}
-                    alt=""
-                    draggable={false}
-                    className="size-6 rounded-full object-cover [image-rendering:pixelated]"
-                    style={MARI_FACE_CROP}
-                  />
-                  {t("commandCenter.footer.askMari", "Ask Mari")}
-                  <kbd className="hidden font-sans text-[0.6875rem] font-normal text-[var(--muted-foreground)] sm:inline">
-                    {t("commandCenter.footer.askMariShortcut", "Ctrl/⌘+J")}
-                  </kbd>
-                </button>
+                <span className="hidden sm:inline">
+                  {t("commandCenter.keyboard.askMariShortcut", "Ctrl/⌘+J Ask Mari")}
+                </span>
               ) : null}
               {!idle ? (
                 <span className="hidden sm:inline">{t("commandCenter.keyboard.escape", "Esc close")}</span>

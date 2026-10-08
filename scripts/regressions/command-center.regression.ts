@@ -53,6 +53,7 @@ import {
   buildOmnibarLorebookEntryResults,
   buildOmnibarMariChatResults,
   buildOmnibarRemovalSuggestions,
+  resolveOmnibarUnderstoodLine,
   buildOmnibarContextResults,
   buildOmnibarControlResults,
   buildOmnibarIntentShortcuts,
@@ -4413,4 +4414,77 @@ console.info("Command Center regression checks passed.");
   assert.equal(visualOf({ ...find("ask-professor-mari"), title: "Ask Mari: “eliza”" }, "eliza").titleMatch, null);
   assert.equal(visualOf(find("shortcut:create-character"), "bob").titleMatch, null, "a quoted name is not bolded");
   assert.equal(visualOf({ ...records[0]!, titleMatch: null }, "eliza").titleMatch, null, "the search's null stays");
+}
+
+// Slice 79b: the "Add [Eliza] to [Tavern Night]" line shows only when a verb sentence resolved to one record.
+{
+  const t = ((_key: string, fallback: string, values?: Record<string, unknown>) =>
+    fallback.replace(/{{(\w+)}}/g, (_m, name: string) => String(values?.[name] ?? ""))) as never;
+  const chats = [
+    { id: "tavern", name: "Tavern Night" },
+    { id: "herb", name: "Herb garden" },
+    { id: "herb2", name: "Herb garden" },
+  ];
+  const chatNameById = new Map(chats.map((chat) => [chat.id, chat.name] as const));
+  const people: OmnibarResult[] = [
+    { id: "character:eliza", title: "Eliza Thornwood", category: "character", score: 1 },
+    { id: "character:elias", title: "Elias Vane", category: "character", score: 1 },
+  ];
+  const open = { id: "tavern", name: "Tavern Night" } as never;
+  const add = (query: string, activeChat: never | null, searchResults: OmnibarResult[]) =>
+    resolveOmnibarUnderstoodLine(
+      buildOmnibarAddSuggestions({
+        activeChat,
+        attachedResultIds: new Set(),
+        chats,
+        deferredQuery: query,
+        omnibarSuggestionsEnabled: true,
+        searchResults,
+        t,
+      }),
+      activeChat,
+      chatNameById,
+    );
+  assert.deepEqual(add("add eliza to tavern night", null, [people[0]!]), {
+    kind: "add",
+    recordRowId: "character:eliza",
+    name: "Eliza Thornwood",
+    chatRowId: "chat:tavern",
+    chatName: "Tavern Night",
+  });
+  assert.equal(add("add eliza", open, [people[0]!])?.chatName, "Tavern Night", "no chat named: the open chat");
+  assert.equal(add("add eli", open, people), null, "two people match: the rows choose, no line");
+  assert.equal(add("add", open, people), null, "a bare verb: no line");
+  assert.equal(add("add eliza to herb garden", null, [people[0]!]), null, "two chats tie: no line");
+  assert.equal(add("add eliza", null, [people[0]!]), null, "no chat at all: no line");
+  const removal = (query: string) =>
+    resolveOmnibarUnderstoodLine(
+      buildOmnibarRemovalSuggestions({
+        activeChat: open,
+        attachedResultIds: new Set(people.map((person) => person.id)),
+        contextResults: people,
+        deferredQuery: query,
+        omnibarSuggestionsEnabled: true,
+        t,
+      }),
+      open,
+      chatNameById,
+    );
+  assert.equal(removal("remove elias")?.kind, "remove");
+  assert.equal(removal("remove elias")?.chatName, "Tavern Night");
+  assert.equal(removal("remove"), null, "a bare remove lists everything: no line");
+  const start = (query: string) =>
+    resolveOmnibarUnderstoodLine(
+      buildOmnibarIntentShortcuts({
+        query,
+        characters: people.map((person) => ({ id: person.id.slice(10), name: person.title })),
+        t,
+      }),
+      null,
+      chatNameById,
+    );
+  assert.equal(start("chat with eliza")?.recordRowId, "character:eliza");
+  assert.equal(start("chat with eli"), null, "two characters: no line");
+  assert.equal(start("new character Bob"), null, "a create row is not a resolved record");
+  assert.equal(resolveOmnibarUnderstoodLine([], open, chatNameById), null, "a plain search: no line");
 }

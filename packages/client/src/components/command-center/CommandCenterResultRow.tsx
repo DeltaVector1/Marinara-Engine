@@ -51,9 +51,10 @@ export interface CommandCenterResultRowProps {
 }
 
 /**
- * Wraps the matched span in a neutral `<mark>` — bold, no background, so a row
- * reads as "this is why it matched" without the browser's default yellow
- * highlight shouting over the row's own category color.
+ * Wraps the matched span in a `<mark>` in the theme's accent colour, no
+ * background block (slice 79b). Mixed 70/30 with the foreground so it stays
+ * readable on the card in dark and light and in user themes: the mix moves
+ * toward light text on a dark card and toward dark text on a light one.
  */
 function highlightSpan(text: string, range: CommandCenterResultHighlight | null | undefined) {
   if (!range) return text;
@@ -62,7 +63,9 @@ function highlightSpan(text: string, range: CommandCenterResultHighlight | null 
   return (
     <>
       {text.slice(0, start)}
-      <mark className="rounded-[1px] bg-transparent font-bold text-inherit">{text.slice(start, end)}</mark>
+      <mark className="bg-transparent text-[color-mix(in_srgb,var(--primary)_70%,var(--foreground))]">
+        {text.slice(start, end)}
+      </mark>
       {text.slice(end)}
     </>
   );
