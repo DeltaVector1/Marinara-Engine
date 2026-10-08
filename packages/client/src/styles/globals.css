@@ -5050,7 +5050,7 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 
 @media (max-width: 30rem) {
   .mari-workspace-composer-dock {
-    padding-bottom: max(0.65rem, env(safe-area-inset-bottom));
+    padding-bottom: max(0.65rem, var(--mari-safe-area-inset-bottom, env(safe-area-inset-bottom)));
   }
 }
 
@@ -13590,7 +13590,7 @@ html[data-marinara-reduced-effects="true"] .mari-window {
   line-height: 1.35;
 }
 
-/* Q2: Search, Quick answers, Professor Mari, Appearance. Each section is a small heading over one
+/* Q2: Search, Quick answers, Professor Mari, Around the app, Appearance. Each section is a small heading over one
    direction A hairline group (`.mari-edit`, like Mari's side panels), rows split by a divider. */
 .omnibar-settings-section {
   margin-top: 0.75rem;
@@ -13712,6 +13712,7 @@ html[data-marinara-reduced-effects="true"] .mari-window {
 .omnibar-settings-pack {
   position: relative;
   display: grid;
+  align-content: start;
   justify-items: start;
   gap: 0.15rem;
   padding: 0.75rem;
@@ -13739,16 +13740,26 @@ html[data-marinara-reduced-effects="true"] .mari-window {
   outline-offset: 2px;
 }
 
-/* The profile pose at half its 128 px grid: whole pixels, never blurred. */
+/* Her profile pose at its own 128 px grid, on a small stage: whole pixels, never blurred. */
+.omnibar-settings-pack__stage {
+  display: grid;
+  place-items: center;
+  justify-self: stretch;
+  height: 8.5rem;
+  margin-bottom: 0.4rem;
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--foreground) 4%, transparent);
+}
+
 .omnibar-settings-pack__sprite {
   display: block;
-  width: 4rem;
-  height: 4rem;
-  margin-bottom: 0.35rem;
+  width: 8rem;
+  height: 8rem;
   image-rendering: pixelated;
 }
 
-/* R12: a locked pack is quiet, not hidden: a lock where the preview goes and its play-time progress. */
+/* R12: a locked pack is quiet, not hidden: a lock where the preview goes and its play-time progress.
+   No art of a locked pack loads. */
 .omnibar-settings-pack[data-locked] {
   cursor: default;
 }
@@ -13758,10 +13769,6 @@ html[data-marinara-reduced-effects="true"] .mari-window {
 }
 
 .omnibar-settings-pack__lock {
-  display: grid;
-  place-items: center;
-  border-radius: 0.625rem;
-  background: color-mix(in srgb, var(--foreground) 5%, transparent);
   color: var(--muted-foreground);
 }
 
@@ -13771,7 +13778,7 @@ html[data-marinara-reduced-effects="true"] .mari-window {
 
 .omnibar-settings-pack__name {
   color: var(--foreground);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
@@ -13785,18 +13792,36 @@ html[data-marinara-reduced-effects="true"] .mari-window {
   line-height: 1.35;
 }
 
+.omnibar-settings-pack__progress {
+  justify-self: stretch;
+  height: 0.25rem;
+  margin-top: 0.3rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+.omnibar-settings-pack__progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+}
+
+/* The selected pack says so in words, so colour is never the only sign. */
 .omnibar-settings-pack__check {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 1.15rem;
+  right: 1.15rem;
   display: none;
-  width: 1.25rem;
-  height: 1.25rem;
   align-items: center;
-  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.45rem 0.15rem 0.35rem;
   border-radius: 999px;
   background: var(--primary);
   color: var(--primary-foreground);
+  font-size: 0.6rem;
+  font-weight: 700;
 }
 
 .omnibar-settings-pack:has(input:checked) .omnibar-settings-pack__check {

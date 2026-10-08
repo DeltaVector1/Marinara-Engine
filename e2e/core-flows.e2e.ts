@@ -17990,7 +17990,7 @@ test("character editor hands an editable resource context to floating Professor 
 
     await composer.fill("Explain only the character's scenario.");
     await expect(composer).toHaveValue("Explain only the character's scenario.");
-    await context.getByRole("button", { name: "Remove workspace context" }).click();
+    await context.getByRole("button", { name: "Remove context" }).click();
     await expect(context).toHaveCount(0);
   } finally {
     await request.delete(`/api/characters/${character.id}`);
@@ -20374,8 +20374,8 @@ test("home browser hub scales cleanly and opens FAQ as a bookmark window", async
     // `role="switch"` there, reached via the main panel's "Open" row.
     await page.getByRole("button", { name: "Open Search and Professor Mari settings", exact: true }).click();
     const omnibarSettingsDialog = page.locator('[data-component="GlobalOmnibar"]');
-    const suggestionsToggle = omnibarSettingsDialog.getByRole("switch", { name: "Professor Mari suggestions" });
-    const navigationToggle = omnibarSettingsDialog.getByRole("switch", { name: "Professor Mari navigation" });
+    const suggestionsToggle = omnibarSettingsDialog.getByRole("switch", { name: "Reply chips" });
+    const navigationToggle = omnibarSettingsDialog.getByRole("switch", { name: "Home navigator" });
     await expect(suggestionsToggle).toBeVisible();
     await expect(navigationToggle).toBeChecked();
     const [suggestionsBounds, navigationBounds] = await Promise.all([

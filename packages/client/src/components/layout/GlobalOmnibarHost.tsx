@@ -60,13 +60,11 @@ function OmnibarErrorPanel({ error, onClose }: { error: unknown; onClose: () => 
   return (
     <div
       role="alertdialog"
-      aria-label={t("commandCenter.error.title", "The Command Center could not open")}
+      aria-label={t("commandCenter.error.title", "Search could not open")}
       className="fixed inset-0 z-(--mari-layer-omnibar) flex items-start justify-center bg-black/55 p-4 backdrop-blur-sm sm:pt-[10vh]"
     >
       <div className="w-full max-w-lg rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-[var(--foreground)] shadow-2xl">
-        <h2 className="text-base font-semibold">
-          {t("commandCenter.error.title", "The Command Center could not open")}
-        </h2>
+        <h2 className="text-base font-semibold">{t("commandCenter.error.title", "Search could not open")}</h2>
         <p className="mt-1 text-sm text-[var(--muted-foreground)]">
           {t("commandCenter.error.description", "Its saved state was cleared. Opening it again should work.")}
         </p>

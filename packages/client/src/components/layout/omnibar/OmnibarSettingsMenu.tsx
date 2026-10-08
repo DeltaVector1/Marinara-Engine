@@ -242,20 +242,20 @@ function AppearancePacks() {
               aria-labelledby={nameId}
               aria-describedby={descriptionId}
             />
-            {locked ? (
-              <span className="omnibar-settings-pack__sprite omnibar-settings-pack__lock" aria-hidden="true">
-                <Lock size={18} />
-              </span>
-            ) : (
-              <img
-                className="omnibar-settings-pack__sprite"
-                src={near ? pack.poses.profile : undefined}
-                {...mariImgLoading(3)}
-                width={64}
-                height={64}
-                alt=""
-              />
-            )}
+            <span className="omnibar-settings-pack__stage" aria-hidden="true">
+              {locked ? (
+                <Lock size={28} className="omnibar-settings-pack__lock" />
+              ) : (
+                <img
+                  className="omnibar-settings-pack__sprite"
+                  src={near ? pack.poses.profile : undefined}
+                  {...mariImgLoading(3)}
+                  width={128}
+                  height={128}
+                  alt=""
+                />
+              )}
+            </span>
             <span id={nameId} className="omnibar-settings-pack__name">
               {t(`mari.appearancePacks.${pack.id}.label`, pack.label)}
             </span>
@@ -269,8 +269,14 @@ function AppearancePacks() {
                       total: pack.unlock!.playHours,
                     })}
             </span>
+            {locked && playHours !== null ? (
+              <span className="omnibar-settings-pack__progress" aria-hidden="true">
+                <span style={{ width: `${Math.min(100, (playHours / pack.unlock!.playHours) * 100)}%` }} />
+              </span>
+            ) : null}
             <span className="omnibar-settings-pack__check" aria-hidden="true">
               <Check size={12} strokeWidth={3} />
+              {t("mari.appearancePacks.inUse", "In use")}
             </span>
           </label>
         );
@@ -379,22 +385,26 @@ export function OmnibarSettingsSheet({
         <Section title={t("omnibar.settings.search.heading", "Search")}>
           <SettingRow
             controlId="omnibar-suggestions"
-            label={t("omnibar.settings.suggestions.label", "Context suggestions")}
-            description={t("omnibar.settings.suggestions.description", "Mari offers context and edits before you ask.")}
+            label={t("omnibar.settings.suggestions.label", "Offer to improve a field")}
+            description={t(
+              "omnibar.settings.suggestions.description",
+              "While you edit a field, Search offers to have Mari improve it.",
+            )}
             checked={suggestionsEnabled}
             onChange={setSuggestionsEnabled}
           />
           <div id={anchorId("omnibar-search-history")} className="omnibar-settings-menu__row">
             <SettingText
-              label={t("omnibar.settings.history.clear.label", "Clear search history")}
+              label={t("omnibar.settings.history.clear.label", "Search history")}
               description={t(
                 "omnibar.settings.history.clear.description",
-                "Forgets which results you use most on each screen. Stored only on this device.",
+                "Search lists the results you pick most first. Kept on this device only.",
               )}
             />
             <button
               type="button"
               className="mari-chrome-control mari-chrome-control--compact"
+              aria-label={t("omnibar.settings.history.clear.action", "Clear search history")}
               onClick={onClearSearchHistory}
             >
               {t("omnibar.settings.history.clear.button", "Clear")}
@@ -405,8 +415,8 @@ export function OmnibarSettingsSheet({
         <Section title={t("omnibar.settings.quickAnswers.heading", "Quick answers")}>
           <SettingRow
             controlId="quick-answers"
-            label={t("omnibar.settings.aside.label", "Quick answers")}
-            description={t("omnibar.settings.aside.description", "Mari answers when a search finds nothing.")}
+            label={t("omnibar.settings.aside.label", "Answer when Search finds nothing")}
+            description={t("omnibar.settings.aside.description", "Mari writes a short reply to what you typed.")}
             checked={asideEnabled}
             onChange={setAsideEnabled}
           />
@@ -416,12 +426,12 @@ export function OmnibarSettingsSheet({
           >
             <label htmlFor={connectionSelectId} className="min-w-0">
               <span className="omnibar-settings-menu__label">
-                {t("omnibar.settings.aside.connection.label", "Answers come from")}
+                {t("omnibar.settings.aside.connection.label", "Answer with")}
               </span>
               <span className="omnibar-settings-menu__description">
                 {t(
                   "omnibar.settings.aside.connection.description",
-                  "Quick answers send only your search text to this model, not your memories or the field you are editing.",
+                  "Gets only your search text, never your chats, memories or the field you edit.",
                 )}
               </span>
             </label>
@@ -476,8 +486,8 @@ export function OmnibarSettingsSheet({
           </div>
           <div id={anchorId("quick-answer-delay")} className="omnibar-settings-menu__row">
             <SettingText
-              label={t("omnibar.settings.aside.delay.label", "Wait before answering")}
-              description={t("omnibar.settings.aside.delay.description", "How long Mari waits after you stop typing.")}
+              label={t("omnibar.settings.aside.delay.label", "Wait after typing")}
+              description={t("omnibar.settings.aside.delay.description", "How long Mari waits before she answers.")}
             />
             <span className="omnibar-settings-menu__segmented">
               {OMNIBAR_ASIDE_DELAY_CHOICES_MS.map((delayMs) => (
@@ -501,7 +511,7 @@ export function OmnibarSettingsSheet({
             label={t("omnibar.settings.mari.label", "Ask Mari from Search")}
             description={t(
               "omnibar.settings.mari.description",
-              "Use the Search field, the pull-down or Ctrl/Command+J.",
+              "Open her from the Search field, the pull-down or Ctrl/Command+J.",
             )}
             checked={mariEnabled}
             onChange={setMariEnabled}
@@ -516,8 +526,8 @@ export function OmnibarSettingsSheet({
           />
           <div id={anchorId("mari-edit-view")} className="omnibar-settings-menu__row">
             <SettingText
-              label={t("omnibar.settings.editView.label", "Edit review opens in")}
-              description={t("omnibar.settings.editView.description", "The default view for Mari's change cards.")}
+              label={t("omnibar.settings.editView.label", "Change cards open in")}
+              description={t("omnibar.settings.editView.description", "Easy shows a summary. Raw shows every field.")}
             />
             <span className="omnibar-settings-menu__segmented">
               {(["easy", "raw"] as const).map((mode) => (
@@ -544,6 +554,9 @@ export function OmnibarSettingsSheet({
             checked={enterToSendMari}
             onChange={setEnterToSendMari}
           />
+        </Section>
+
+        <Section title={t("omnibar.settings.around.heading", "Around the app")}>
           <SettingRow
             controlId="professor-mari-navigation"
             label={t("settings.controls.professorMariNavigation.label")}
@@ -565,7 +578,7 @@ export function OmnibarSettingsSheet({
           title={t("omnibar.settings.appearance.heading", "Appearance")}
           description={t(
             "omnibar.settings.appearance.description",
-            "How Mari looks in her workspace, Search, Home and the top bar.",
+            "How Mari looks in her chat, Search, Home and the top bar.",
           )}
         >
           <AppearancePacks />

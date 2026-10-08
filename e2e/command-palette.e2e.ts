@@ -437,7 +437,7 @@ test("Professor Mari consolidates privileged bootstrap failures", async ({ page 
 
   // One quiet note in the transcript, not a toast per failed request.
   const toolsNote = omnibar.locator(".mari-note").filter({
-    hasText: "Some of Professor Mari's workspace tools are unavailable.",
+    hasText: "Some of Professor Mari's tools are unavailable.",
   });
   await expect(toolsNote).toHaveCount(1);
   await expect(toolsNote).toContainText("Settings → Advanced → Admin Access");

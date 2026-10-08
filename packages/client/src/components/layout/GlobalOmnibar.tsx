@@ -666,8 +666,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       activeChat.mode === "roleplay"
         ? [
             t("omnibar.greetings.roleplay.one", "What should we look into in this roleplay?"),
-            t("omnibar.greetings.roleplay.two", "A scene is in progress. What do you need?"),
-            t("omnibar.greetings.roleplay.three", "This story is open. What would you like to find?"),
+            t("omnibar.greetings.roleplay.two", "Your roleplay is open. What do you need?"),
+            t("omnibar.greetings.roleplay.three", "This roleplay is open. What would you like to find?"),
           ]
         : activeChat.mode === "conversation"
           ? [
@@ -3846,7 +3846,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               id="global-omnibar-results"
               aria-label={t("omnibar.results", "Search results")}
               data-component="GlobalOmnibar.Results"
-              className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-[max(0.5rem,var(--mari-safe-area-inset-bottom,env(safe-area-inset-bottom)))] pt-2"
             >
               {query.trim() && loading && results.length === 0 ? (
                 <div className="flex min-h-24 items-center justify-center text-sm text-[var(--muted-foreground)]">
@@ -4081,7 +4081,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 <div className="flex min-h-32 flex-col items-center justify-center px-4 text-center">
                   <Search size={20} className="mb-2 text-[var(--muted-foreground)]" aria-hidden="true" />
                   <p className="text-sm font-semibold text-[var(--foreground)]">
-                    {t("commandCenter.noResults", "No matching commands")}
+                    {t("commandCenter.noResults", "No matching results")}
                   </p>
                 </div>
               ) : null}

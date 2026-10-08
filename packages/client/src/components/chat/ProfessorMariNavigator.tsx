@@ -603,7 +603,7 @@ export function ProfessorMariNavigator({
           "mari-home-professor-recall absolute z-[30] flex h-14 w-14 items-end justify-center overflow-hidden rounded-full border border-[color-mix(in_srgb,oklch(0.73_0.21_345)_54%,var(--border))] bg-[color-mix(in_srgb,oklch(0.73_0.21_345)_12%,var(--card))] p-0.5 shadow-[0_16px_36px_-18px_oklch(0.73_0.21_345/0.72)] transition-[transform,box-shadow,background-color] hover:-translate-y-0.5 hover:bg-[color-mix(in_srgb,oklch(0.73_0.21_345)_18%,var(--card))] hover:shadow-[0_20px_42px_-16px_oklch(0.73_0.21_345/0.78)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.73_0.21_345)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] active:scale-95 motion-reduce:transition-none",
           layout === "omnibar"
             ? "left-1/2 top-2 -translate-x-1/2"
-            : "bottom-[max(0.65rem,env(safe-area-inset-bottom))] right-[max(0.75rem,env(safe-area-inset-right))] sm:bottom-4 sm:right-4",
+            : "bottom-[max(0.65rem,var(--mari-safe-area-inset-bottom,env(safe-area-inset-bottom)))] right-[max(0.75rem,env(safe-area-inset-right))] sm:bottom-4 sm:right-4",
         )}
       >
         <img
@@ -662,7 +662,7 @@ export function ProfessorMariNavigator({
           ? "inset-0"
           : layout === "omnibar"
             ? "left-2 right-2 top-2 flex flex-col items-center gap-1"
-            : "bottom-[max(0rem,env(safe-area-inset-bottom))] left-2 right-2 flex items-end justify-end sm:left-5 sm:right-5",
+            : "bottom-[max(0rem,var(--mari-safe-area-inset-bottom,env(safe-area-inset-bottom)))] left-2 right-2 flex items-end justify-end sm:left-5 sm:right-5",
       )}
       aria-label={t("home.assistant.landmark")}
       data-dragging={dragging ? "true" : "false"}

@@ -156,7 +156,7 @@ export function ProfessorMariContextControl({
         className={cn(
           "fixed z-[calc(var(--mari-layer-omnibar)+2)] flex max-h-[min(28rem,80vh)] flex-col overflow-hidden border border-[var(--border)] bg-[var(--card)] text-left shadow-2xl outline-none",
           mobile
-            ? "inset-x-2 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] rounded-xl"
+            ? "inset-x-2 bottom-[calc(var(--mari-safe-area-inset-bottom,env(safe-area-inset-bottom))+0.5rem)] rounded-xl"
             : "w-[min(20rem,calc(100vw-1rem))] rounded-lg",
         )}
         style={!mobile && position ? position : undefined}

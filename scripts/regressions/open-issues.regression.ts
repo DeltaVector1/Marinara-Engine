@@ -5747,10 +5747,11 @@ assert.match(
   /handleDeleteProfessorChat[\s\S]{0,500}showConfirmDialog/u,
   "Deleting one Professor Mari chat must use the app confirmation dialog",
 );
-// Every step row (failed ones get the warning icon) opens to technical details with the tool's output.
+// Every step row, failed ones included, opens to technical details with the tool's output (slice 72
+// moved the details into one `technicalDetails` helper that every step row renders).
 assert.match(
   professorMariHomeSource,
-  /const StepIcon = stepFailed \? AlertTriangle[\s\S]{0,4000}tool\.output !== null && tool\.output !== undefined \? \(\s*<pre>/u,
+  /const technicalDetails = \(tool: WorkspaceToolCall\) =>[\s\S]{0,600}tool\.output !== null && tool\.output !== undefined \? <pre>/u,
   "Failed workspace tools must reveal their provider output in the transcript",
 );
 const professorMariTranscript = { clientHeight: 240, scrollHeight: 720, scrollTop: 0 };

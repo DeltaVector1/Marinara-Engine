@@ -1798,7 +1798,7 @@ export function buildOmnibarApprovalResults({
               ...facts,
               {
                 label: t("commandCenter.approval.decideIn", "Decide in"),
-                value: t("commandCenter.approval.workPane", "Mari's Work pane"),
+                value: t("commandCenter.approval.workPane", "Mari's chat"),
               },
             ]
           : facts,
@@ -1829,9 +1829,9 @@ export function buildOmnibarContinueResult({
         ? t("commandCenter.continueMariReview", "Review Mari's pending work")
         : t("commandCenter.continueMari", "Continue with Professor Mari");
   const description = status?.active
-    ? t("commandCenter.continueMariActiveDescription", "Return to the active Mari workspace.")
+    ? t("commandCenter.continueMariActiveDescription", "Go back to what Mari is doing.")
     : mariFinished
-      ? t("commandCenter.continueMariFinishedDescription", "Open the Work pane to see what she did.")
+      ? t("commandCenter.continueMariFinishedDescription", "Open Mari to see what she did.")
       : hasPendingApprovals
         ? t("commandCenter.continueMariReviewDescription", "Mari is waiting for your review.")
         : t("commandCenter.continueMariDescription", "Open Mari with the current work attached.");

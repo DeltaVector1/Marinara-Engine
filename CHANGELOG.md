@@ -4,6 +4,13 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Fixed Professor Mari's empty chat sliding under her message box after you went from her to Search and back (with Escape, her head in the search bar or Ctrl/⌘+J). Her greeting and suggestions now stay above the message box.
+- The Search and Professor Mari settings are easier to scan. Labels say what each switch does ("Offer to improve a field", "Answer when Search finds nothing", "Reply chips", "Change cards open in"), each with one short line, and the Home navigator and Mini Mari visits have their own **Around the app** group. Search finds every setting by its new name and by its old one.
+- Choosing Mari's look is clearer. Each pack shows her full-size pixel portrait, the pack in use says **In use**, and a locked pack shows how far you are, such as "43 h of 100 h played", with a progress bar.
+- Plainer words around Search and Professor Mari: no more "story" or "stories" for chats ("Your chats will show here", "This roleplay is open"), no "workspace" in Mari's messages ("Professor Mari could not apply that change"), and Search's own error says "Search could not open".
+- Three Settings controls that Search could not find before now show up: **Add a new line before /continue text**, **Reduce Ambient Animations & Effects** and **Show context usage**.
+- Fixed a few places in Professor Mari's panels and Search that ignored the phone's bottom safe-area fix (#5667), which could leave a gap above the gesture bar in Firefox on Android.
+
 - Every omnibar row about a record now shows its picture. "Add Eliza to this chat", "Remove Elowen from this chat" and "Start a chat with Eliza" show the portrait, avatar, lorebook or preset art and the persona colour; a found message shows its chat's faces; a lorebook entry shows its lorebook's image; Professor Mari's rows show her face. Rows without a picture keep their type icon. Docs, FAQ, message, entry and "Add …" rows now also mark the part that matched your search, like the other rows. Row pictures load as you scroll.
 - The part of an omnibar row that matched your search now shows in your theme's accent colour, in the title and in the second line. Before, it was a bold that was hard to see.
 - When an omnibar sentence names one record, a quiet line under the search field shows what it understood, with faces: "Add [Eliza Thornwood] to [Tavern Night]", "Remove [Elowen] from [Tavern Night]" or "Start a chat with [Eliza Thornwood]". The field stays plain text. The line does not show while the sentence still matches several records or chats.
