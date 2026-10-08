@@ -126,10 +126,14 @@ export function OmnibarAside({
   }
 
   return (
-    <section data-component="GlobalOmnibar.Aside" aria-label={t("omnibar.aside.label", "Professor Mari's answer")}>
+    <section data-component="GlobalOmnibar.Aside" aria-label={t("omnibar.aside.label", "Quick answer · Read-only")}>
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </span>
+      {/* Says what this is before its words: a short answer that changes nothing, not her window. */}
+      <p className="mb-1 text-[0.6875rem] font-semibold text-[var(--muted-foreground)]">
+        {t("omnibar.aside.label", "Quick answer · Read-only")}
+      </p>
       {state.status === "thinking" ? (
         <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
           <MariStorySprite state="thinking" />
