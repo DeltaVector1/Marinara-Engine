@@ -24,7 +24,7 @@ export interface OmnibarAsideProps {
   onRetry: () => void;
   /** Asks the same question again, past the answer cache. */
   onAnswerAgain: () => void;
-  /** The follow-up line. The first one is a quick call; the next goes to full Mari. */
+  /** The follow-up line. Every follow-up goes to Mari's window with this answer attached. */
   onFollowUp: (question: string) => void;
   /** Things the answer names, which a click opens like their own rows. */
   links: readonly { id: string; title: string }[];
@@ -130,12 +130,6 @@ export function OmnibarAside({
       <span className="sr-only" aria-live="polite" aria-atomic="true">
         {announcement}
       </span>
-      {state.followUp ? (
-        <>
-          <AnswerText text={state.followUp.previousAnswer} muted />
-          <p className="mt-2 text-xs font-semibold text-[var(--foreground)]">{state.followUp.question}</p>
-        </>
-      ) : null}
       {state.status === "thinking" ? (
         <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
           <MariStorySprite state="thinking" />
@@ -237,11 +231,7 @@ export function OmnibarAside({
           onKeyDown={onFollowUpKeyDown}
           maxLength={500}
           aria-label={t("omnibar.aside.followUp.label", "Follow-up question")}
-          placeholder={
-            state.followUp
-              ? t("omnibar.aside.followUp.toMari", "Ask Professor Mari in full…")
-              : t("omnibar.aside.followUp.placeholder", "Ask a follow-up…")
-          }
+          placeholder={t("omnibar.aside.followUp.placeholder", "Ask Mari more…")}
           className="mt-2 h-11 w-full min-w-0 border-0 border-t border-[var(--border)] bg-transparent px-0 text-base text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus-visible:border-[var(--ring)] sm:h-8 sm:text-xs"
         />
       ) : null}

@@ -80,13 +80,3 @@ export function stripStrayMarkdown(text: string): string {
     .replace(/^\s*[-*+]\s+/gm, "")
     .replace(/^\s*\d+\.\s+/gm, "");
 }
-
-/** What escalating to Mari carries: the answer, or the whole exchange once a follow-up was asked. */
-export function omnibarAsideHandoffAnswer(
-  answer: string,
-  followUp?: { question: string; previousAnswer: string },
-): string {
-  return followUp
-    ? `${followUp.previousAnswer.trim()}\n\nFollow-up: ${followUp.question.trim()}\n${answer.trim()}`
-    : answer;
-}

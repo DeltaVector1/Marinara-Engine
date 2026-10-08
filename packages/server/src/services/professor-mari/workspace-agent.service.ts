@@ -3136,13 +3136,6 @@ export class ProfessorMariWorkspaceService {
     };
     const messages: ChatMessage[] = [
       { role: "system", content: systemParts.join("\n\n"), contextKind: "prompt" },
-      // A follow-up in the omnibar's Ask row carries the one exchange it continues.
-      ...(unasked && args.previous
-        ? ([
-            { role: "user", content: args.previous.question, contextKind: "history" },
-            { role: "assistant", content: args.previous.answer, contextKind: "history" },
-          ] satisfies ChatMessage[])
-        : []),
       { role: "user", content: args.message, contextKind: "history" },
     ];
     const debugOverrideEnabled = args.debugMode === true || isDebugAgentsEnabled();

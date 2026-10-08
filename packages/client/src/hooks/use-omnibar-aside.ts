@@ -26,13 +26,6 @@ export interface OmnibarAsideState {
   query: string;
   /** What answered: the local sidecar, or a connection name. */
   tier: "local" | "remote";
-  /** Set when this answer is the one follow-up: its question and the answer it continues. */
-  followUp?: OmnibarAsideFollowUp;
-}
-
-export interface OmnibarAsideFollowUp {
-  question: string;
-  previousAnswer: string;
 }
 
 const IDLE: OmnibarAsideState = { status: "idle", answer: "", error: null, query: "", tier: "local" };
@@ -58,8 +51,6 @@ export function useOmnibarAside(params: {
   retry: () => void;
   /** Asks the same question again, past the cache. */
   answerAgain: () => void;
-  /** The one follow-up: a second quick call with the first answer as context. */
-  askFollowUp: (question: string) => void;
 } {
   const enabled = useUIStore((state) => state.omnibarAsideEnabled);
   const connectionId = useUIStore((state) => state.omnibarAsideConnectionId);
@@ -77,11 +68,9 @@ export function useOmnibarAside(params: {
   const ready = enabled && deadEnd && trimmed.length >= MIN_QUERY_LENGTH;
 
   const runQuery = useCallback(
-    (options: { followUp?: OmnibarAsideFollowUp; bypassCache?: boolean } = {}) => {
-      const { followUp } = options;
+    (options: { bypassCache?: boolean } = {}) => {
       abortRef.current?.abort();
-      // Follow-ups are never cached: the same words mean something else after another answer.
-      const cached = followUp || options.bypassCache ? undefined : omnibarAsideAnswerCache.get(connectionId, trimmed);
+      const cached = options.bypassCache ? undefined : omnibarAsideAnswerCache.get(connectionId, trimmed);
       if (cached) {
         setState({ status: "complete", answer: cached.answer, error: null, query: trimmed, tier: cached.tier });
         abortRef.current = null;
@@ -89,16 +78,13 @@ export function useOmnibarAside(params: {
       }
       const controller = new AbortController();
       abortRef.current = controller;
-      setState({ status: "thinking", answer: "", error: null, query: trimmed, tier, followUp });
+      setState({ status: "thinking", answer: "", error: null, query: trimmed, tier });
       const body: ProfessorMariQuickPromptRequest = {
-        message: followUp?.question ?? trimmed,
+        message: trimmed,
         connectionId,
         unasked: true,
         resourceLabel: resourceLabel ?? undefined,
         context: { source, query: trimmed },
-        ...(followUp
-          ? { previous: { question: trimmed.slice(0, 500), answer: followUp.previousAnswer.slice(0, 4_000) } }
-          : {}),
       };
       void (async () => {
         let answer = "";
@@ -114,10 +100,10 @@ export function useOmnibarAside(params: {
               );
             } else if (event.type === "token" && typeof event.data === "string") {
               answer += event.data;
-              setState({ status: "streaming", answer, error: null, query: trimmed, tier, followUp });
+              setState({ status: "streaming", answer, error: null, query: trimmed, tier });
             } else if (event.type === "complete") {
-              if (!followUp && answer) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
-              setState({ status: "complete", answer, error: null, query: trimmed, tier, followUp });
+              if (answer) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
+              setState({ status: "complete", answer, error: null, query: trimmed, tier });
             } else if (event.type === "error") {
               throw new Error(typeof event.data === "string" ? event.data : "Professor Mari could not answer.");
             }
@@ -127,10 +113,10 @@ export function useOmnibarAside(params: {
           if (!controller.signal.aborted) {
             // No words at all is a failed answer, not a finished one: never leave it "thinking" or cache it.
             if (!answer) throw new Error("Professor Mari could not answer.");
-            if (!followUp) omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
+            omnibarAsideAnswerCache.set(connectionId, trimmed, { answer, tier });
             setState((current) =>
               current.query === trimmed && current.status === "streaming"
-                ? { status: "complete", answer, error: null, query: trimmed, tier, followUp }
+                ? { status: "complete", answer, error: null, query: trimmed, tier }
                 : current,
             );
           }
@@ -142,7 +128,6 @@ export function useOmnibarAside(params: {
             error: error instanceof Error ? error.message : String(error),
             query: trimmed,
             tier,
-            followUp,
           });
         } finally {
           if (abortRef.current === controller) abortRef.current = null;
@@ -174,11 +159,9 @@ export function useOmnibarAside(params: {
     };
   }, [available, delayMs, ready, runQuery, tier, trimmed]);
 
-  const { followUp, answer } = state;
   return {
     ...state,
-    retry: () => runQuery({ followUp }),
-    answerAgain: () => runQuery({ followUp, bypassCache: true }),
-    askFollowUp: (question) => runQuery({ followUp: { question, previousAnswer: answer } }),
+    retry: () => runQuery(),
+    answerAgain: () => runQuery({ bypassCache: true }),
   };
 }

@@ -35,7 +35,6 @@ import { isOmnibarSettingsTarget } from "../../lib/settings-registry";
 import { usePresets, useSetDefaultPreset } from "../../hooks/use-presets";
 import { useProfessorMariWorkspaceStatus } from "../../hooks/use-professor-mari-workspace-status";
 import { useOmnibarAside } from "../../hooks/use-omnibar-aside";
-import { omnibarAsideHandoffAnswer } from "../../lib/omnibar-aside-text";
 import { expandChoiceRows, readChoiceOptionId } from "../../lib/omnibar-choice-rows";
 import {
   clearOmnibarFrecencyHistory,
@@ -1582,7 +1581,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         // The aside escalation is never the deliberate Fix-row pick, so `fix` stays unset below.
         // Match the server's zod limits so an over-length aside can't 400 the whole send.
         query: asideState.query.slice(0, 500),
-        answer: omnibarAsideHandoffAnswer(asideState.answer, asideState.followUp).slice(0, 4_000),
+        answer: asideState.answer.slice(0, 4_000),
         tier: asideState.tier,
       }),
       true,
@@ -1807,7 +1806,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         onRetry={asideState.retry}
         onAnswerAgain={asideState.answerAgain}
         // One quick follow-up; the question after it goes to full Mari (G4).
-        onFollowUp={(question) => (asideState.followUp ? escalateAside(question) : asideState.askFollowUp(question))}
+        onFollowUp={(question) => escalateAside(question)}
         links={asideLinks.map((row) => ({ id: row.id, title: row.title }))}
         onOpenLink={(id) => {
           const row = asideLinks.find((item) => item.id === id);
