@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- **Continue with Mari** on a quick answer opens a new Professor Mari chat named after your question. Before, it joined the chat that was already open, so one chat collected several copies of the same question. Your open chat stays as it was, and **Continue** in the omnibar still opens the last chat.
 - A quick answer in Search has no follow-up of its own anymore. Every follow-up goes to Professor Mari's window with the answer attached, and the box below the answer says "Ask Mari more…".
 - Professor Mari's answers have her voice again: a little sarcasm, teasing, and the occasional kek in plain replies. Approvals, reasons and change diffs stay literal, so you can still trust every one.
 - Professor Mari's live status line changes with each step and no longer opens with the same phrase every run. Her status lines have new phrases in her voice.

@@ -2998,6 +2998,7 @@
   "omnibar.aside.disclosure": "No results matched, so Professor Mari answered.",
   "omnibar.aside.downloadAgents": "Download Agents",
   "omnibar.aside.escalate": "Continue with Mari",
+  "omnibar.aside.escalateFailed": "Professor Mari could not start a new chat. Try again.",
   "omnibar.aside.followUp.label": "Follow-up question",
   "omnibar.aside.followUp.placeholder": "Ask Mari more…",
   "omnibar.aside.gotIt": "Got it",

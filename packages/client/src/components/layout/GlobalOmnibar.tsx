@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import type { ChatMode, Message, ProfessorMariAskContext, ProfessorMariEntryPoint } from "@marinara-engine/shared";
 import { chatIdForMariSession, matchOmnibarCapabilityAgentPackageIds } from "@marinara-engine/shared";
+import { api } from "../../lib/api-client";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -1569,13 +1570,25 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
    * R25: `⌘↵` with the aside answering takes its query and answer into the full agent.
    * From the follow-up line, the question typed there is what Mari is asked.
    */
-  const escalateAside = (question?: string) => {
+  const escalateAside = async (question?: string) => {
     if (!asideLive) return;
     const draft = question ?? asideState.query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
     markTry("mari");
     const focusResult = mariFallbackFocus(contextResults);
     rememberMariReturn(focusResult);
+    // The hand-off starts a new Mari chat named after the quick question, so the open chat is not mixed in.
+    try {
+      const chat = await api.post<{ id: string }>(
+        `/chats/internal/professor-mari/restart?${new URLSearchParams({ name: asideState.query })}`,
+      );
+      useChatStore.getState().setActiveChatId(chat.id);
+      queryClient.setQueryData(chatKeys.detail(chat.id), chat);
+      await api.post("/professor-mari/workspace/reset", { clearHistory: true });
+    } catch {
+      toast.error(t("omnibar.aside.escalateFailed", "Professor Mari could not start a new chat. Try again."));
+      return;
+    }
     enterMariPane(
       buildAskContext(draft, focusResult, {
         // The aside escalation is never the deliberate Fix-row pick, so `fix` stays unset below.
