@@ -6,7 +6,7 @@ Z tego przewodnika dowiesz się, do czego służy agent **Illustrator** – wbud
 
 Agent to niewielki pomocnik AI, który działa automatycznie w obrębie jednego czatu. Agent **Illustrator** uruchamia się po zakończeniu generowania, czyli dopiero wtedy, gdy AI skończy pisać odpowiedź. Czyta ostatnią odpowiedź i ocenia, czy dana chwila zasługuje na obrazek. Jeśli tak, agent **Illustrator** pisze prompt obrazu i wysyła go do dostawcy obrazów. Prompt to tekstowy opis, który mówi modelowi graficznemu, co ma narysować.
 
-Agent **Illustrator** nie rysuje do każdej wiadomości. Domyślnie po wykonaniu obrazu czeka na 5 przyjętych wiadomości użytkownika i AI, zanim zrobi kolejny. Przeglądanie swipe'ów ani ponowne generowanie tej samej odpowiedzi nie przesuwa tego licznika. Jeśli agent uzna, że dana chwila nie nadaje się na ilustrację, pomija ją i nie tworzy obrazu. Każdy powstały obraz trafia do sekcji **Gallery** (Galeria) danego czatu.
+Agent **Illustrator** nie rysuje do każdej wiadomości. Domyślnie po wykonaniu obrazu czeka na 5 przyjętych wiadomości użytkownika i AI, zanim zrobi kolejny. Tę liczbę da się zmienić osobno dla każdego czatu Roleplay. Przeglądanie swipe'ów ani ponowne generowanie tej samej odpowiedzi nie przesuwa tego licznika. Jeśli agent uzna, że dana chwila nie nadaje się na ilustrację, pomija ją i nie tworzy obrazu. Każdy powstały obraz trafia do sekcji **Gallery** (Galeria) danego czatu.
 
 Agenta **Illustrator** można używać w czatach **Roleplay** i **Game Mode**, a jego instalacja odblokowuje też selfie w trybie Conversation. Krótki opis w aplikacji brzmi: "Responsible for image and video generations." Kroki konfiguracji i ustawienia opisane w tym przewodniku dotyczą czatów Roleplay. Tryb Game Mode korzysta zamiast tego z jednego prostego przełącznika, opisanego niżej w sekcji o trybie Game Mode.
 
@@ -83,9 +83,11 @@ Nie trzeba niczego ustawiać. Opisy pojawiają się tylko przy połączeniu z w�
 
 ## Więcej ustawień i ręczne uruchamianie
 
-Na karcie agenta **Illustrator** jest przycisk **Open Setup** (pełna konfiguracja). Otwiera on pełny ekran konfiguracji agenta, gdzie ustawia się częstotliwość jego działania i przypisuje mu własne połączenie graficzne.
+Na karcie agenta **Illustrator** jest przycisk **Open Setup** (pełna konfiguracja). Otwiera on pełny ekran konfiguracji agenta, gdzie ustawia się domyślną częstotliwość jego działania i przypisuje mu własne połączenie graficzne.
 
-Ustaw **Run Interval** (odstęp uruchamiania) na **0**, aby generować wyłącznie ręcznie. Wyłącza to automatyczne uruchomienia agenta Illustrator, w tym automatyczne tła scen, ale agent pozostaje zainstalowany i dostępny w działaniach galerii. Domyślna wartość nadal wynosi **5**; ustaw wartość dodatnią, aby wznowić automatyczne uruchomienia. Wartość 0 można też wybrać podczas dodawania agenta Illustrator do czatu.
+Każdy czat Roleplay ma własne pole **Run Interval** (odstęp uruchamiania) na karcie agenta **Illustrator** w panelu **Chat Settings**. Jego tekst pomocy brzmi: "Messages between automatic images in this chat. 0 means only when you ask." Czat bez własnej wartości korzysta z wartości **Run Interval** z ekranu konfiguracji, która wynosi **5**, dopóki jej nie zmienisz. Karta pokazuje napis **Using agent default** albo **Chat override**. Naciśnij przycisk **Use agent default** (użycie wartości domyślnej agenta), aby wrócić do wartości z ekranu konfiguracji. Gdy dodajesz agenta **Illustrator** do czatu, okno dodawania pokazuje to samo pole i zapisuje twój wybór tylko dla tego czatu.
+
+Ustaw **Run Interval** na **0**, aby generować wyłącznie ręcznie. Wyłącza to automatyczne uruchomienia agenta Illustrator, w tym automatyczne tła scen, ale agent pozostaje zainstalowany i dostępny w działaniach galerii. Ustaw wartość dodatnią, aby wznowić automatyczne uruchomienia.
 
 Obraz da się też zamówić od ręki, bez czekania. Otwórz **Chat Settings**, rozwiń sekcję **Gallery** i użyj przycisku **Illustrate** (zilustruj). Agent **Illustrator** uruchamia się wtedy jednorazowo od razu, a przycisk pokazuje w trakcie pracy napis **Generating...**. Przydaje się to wtedy, gdy chcesz mieć obraz bieżącej chwili, a agent jeszcze nic nie narysował.
 

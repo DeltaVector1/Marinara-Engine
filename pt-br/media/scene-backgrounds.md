@@ -16,6 +16,8 @@ Para gerar um plano de fundo, é preciso ter uma conexão de **Image Generation*
 
 A **Gallery** guarda as imagens e os vídeos do chat. É uma seção de **Chat Settings**: abra Chat Settings e expanda Gallery. No computador, você pode destacá-la em uma janela própria; veja [Visão geral de Chat Settings](../chats/chat-settings.md#popping-a-section-out-into-its-own-window). O botão **Background** (plano de fundo) gera o fundo da cena atual.
 
+No Roleplay, o botão **Background** aparece assim que o agente **Illustrator** é instalado. Não é preciso adicioná-lo ao chat nem ativar os agentes. Assim como **Illustrate**, ele roda uma vez e não inicia execuções automáticas.
+
 Para gerar um plano de fundo:
 
 1. Abra a seção **Gallery** de **Chat Settings**.

@@ -97,7 +97,7 @@
 
 每个追踪器里都有一个小小的刷新按钮（圆形箭头）。点它就只重跑这一个追踪器，针对最新的回合。提示文字里会写明是哪个追踪器，比如 **Re-run world state tracker only** 或 **Re-run quest tracker only**。
 
-在 **Chat Settings → Agents** 里，**Manual Trackers** 会把所有启用的追踪器改成手动控制。也可以保持关闭，只在 **Individual tracker schedule** 下选择几个智能体设为手动。只要有一个手动追踪器，就会显示刷新按钮：手机上在 HUD 行里，电脑上在 Trackers 窗口标题旁。点击可为当前回合运行这组手动追踪器。每个追踪器内部的刷新按钮仍只运行它自己。
+在 **Chat Settings → Agents** 里展开 **Trackers Control**(追踪器控制)，在 **Individual tracker schedule**(单独的追踪器运行计划) 下开启某个追踪器，就能把它设为手动。手动追踪器不会每次回复之后都运行。原先开着旧版 **Manual Trackers**(手动追踪器) 开关的聊天，会在那里显示所有追踪器都已开启。只要有一个手动追踪器，就会显示刷新按钮：手机上在 HUD 行里，电脑上在 Trackers 窗口标题旁。点击可为当前回合运行这组手动追踪器。每个追踪器内部的刷新按钮仍只运行它自己。
 
 **Agent activity** 在 **Chat Settings** 的 **Agents** 下方有独立区域，也在 Tracker Panel 底部，以及电脑上的 Trackers 窗口底部。这里可以重跑全部追踪器、重试失败的智能体，还能用 **Clear Trackers**(清空追踪器) 清除聊天的全部世界追踪状态。**Clear Trackers** 无法撤销，使用时要留意。
 

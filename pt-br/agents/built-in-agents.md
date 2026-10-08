@@ -16,7 +16,7 @@ Marinara separa os agentes no painel **Agents** em **Apps**, **Writer Agents**, 
 
 Um intervalo de execução faz o agente rodar uma vez a cada tantas mensagens do usuário e do assistente, em vez de rodar depois de cada mensagem. O intervalo pode ser alterado na configuração do agente, até o limite de 100.
 
-Illustrator também aceita **0** para geração apenas manual: continua disponível nas ações da Gallery, mas nunca executa automaticamente. Os outros agentes mantêm seus intervalos positivos atuais.
+No Roleplay, o intervalo de execução do Illustrator é definido por chat, no card dele em **Chat Settings**. O valor da configuração do agente é o padrão para os chats que não definem um valor próprio. Illustrator também aceita **0** para geração apenas manual: continua disponível nas ações da Gallery, mas nunca executa automaticamente. Os outros agentes mantêm seus intervalos positivos atuais.
 
 ## Apps
 
@@ -268,7 +268,7 @@ Responsável pela geração de imagens e de vídeos. Ele escreve prompts visuais
 
 - **Fase**: Post-Processing.
 - **Onde funciona**: Roleplay.
-- **Configurações principais**: por padrão, roda uma vez a cada 5 mensagens do usuário e do assistente. Entre as configurações estão **Prompt Model**, **Image Style**, **Attach Card Appearance** e **Send Avatar References**. Para configurar tudo, veja [Agente Illustrator](../media/illustrator-agent.md).
+- **Configurações principais**: por padrão, roda uma vez a cada 5 mensagens do usuário e do assistente, e cada chat de Roleplay pode mudar isso com **Run Interval** (intervalo de execução) no card do agente. Entre as configurações estão **Prompt Model**, **Image Style**, **Attach Card Appearance** e **Send Avatar References**. Para configurar tudo, veja [Agente Illustrator](../media/illustrator-agent.md).
 
 ### Lorebook Keeper
 

@@ -16,7 +16,7 @@ Marinara répartit ses agents dans le panneau **Agents** entre **Apps**, **Write
 
 Un intervalle d'exécution signifie que l'agent s'exécute périodiquement, après un certain nombre de messages, les tiens et ceux de l'IA, au lieu de s'exécuter après chaque message. Cet intervalle se change dans la configuration de l'agent, jusqu'à 100.
 
-Illustrator accepte aussi **0** pour une génération uniquement manuelle : il reste disponible pour les actions de Gallery, mais ne s'exécute jamais automatiquement. Les autres agents conservent leurs intervalles positifs actuels.
+En Roleplay, l'intervalle d'exécution d'Illustrator se règle chat par chat, dans sa fiche de configuration de **Chat Settings**. La valeur définie dans sa configuration sert de valeur par défaut aux chats qui ne définissent pas la leur. Illustrator accepte aussi **0** pour une génération uniquement manuelle : il reste disponible pour les actions de Gallery, mais ne s'exécute jamais automatiquement. Les autres agents conservent leurs intervalles positifs actuels.
 
 ## Apps
 
@@ -268,7 +268,7 @@ Prend en charge la génération d'images et de vidéos. Il rédige des prompts v
 
 - **Phase** : **Post-Processing**.
 - **Où ça marche** : Roleplay.
-- **Réglages clés** : par défaut, il s'exécute une fois tous les 5 messages, les tiens et ceux de l'IA. Les réglages comprennent **Prompt Model**, **Image Style**, **Attach Card Appearance** et **Send Avatar References**. Pour la configuration complète, voir [Agent Illustrator](../media/illustrator-agent.md).
+- **Réglages clés** : par défaut, il s'exécute une fois tous les 5 messages, les tiens et ceux de l'IA, et chaque chat Roleplay peut changer cette valeur avec le champ **Run Interval** (intervalle d'exécution) de sa fiche de configuration. Les réglages comprennent **Prompt Model**, **Image Style**, **Attach Card Appearance** et **Send Avatar References**. Pour la configuration complète, voir [Agent Illustrator](../media/illustrator-agent.md).
 
 ### Lorebook Keeper
 

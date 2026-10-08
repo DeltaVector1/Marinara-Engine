@@ -11,7 +11,8 @@
 1. 打开想要控制的聊天。
 2. 打开 **Chat Settings**(聊天设置)。
 3. 滚动到 **Agents**(智能体) 区域。
-4. 开启 **Review Agent Outputs**。
+4. 在 Roleplay(角色扮演) 聊天里，展开 **Trackers Control**(追踪器控制)。在 Game(游戏) 聊天里跳过这一步。
+5. 开启 **Review Agent Outputs**。
 
 **Review Agent Outputs** 开启时，世界书更新、摘要更新，以及其他可审核的写入型智能体输出，都要等你批准才会保存。关闭时，世界书更新和摘要更新可以自动保存。
 

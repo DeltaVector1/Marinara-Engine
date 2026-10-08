@@ -97,7 +97,7 @@
 
 각 트래커 안에는 작은 새로고침(원형 화살표) 버튼이 있습니다. 이 버튼을 클릭하면 가장 최근 턴에 대해 그 트래커 하나만 다시 실행합니다. 툴팁에는 **Re-run world state tracker only**(월드 트래커만 재실행), **Re-run quest tracker only**(퀘스트 트래커만 재실행)처럼 대상 트래커 이름이 들어갑니다.
 
-**Chat Settings → Agents**의 **Manual Trackers**(트래커 작동 설정)를 켜면 활성화된 모든 트래커가 수동 실행으로 바뀝니다. 이 스위치를 끈 채로 **Individual tracker schedule**(개별 트래커 스케줄)에서 원하는 에이전트만 수동으로 지정할 수도 있습니다. 수동 트래커가 하나라도 있으면 휴대폰의 HUD 줄이나 컴퓨터의 Trackers 창 제목 옆에 새로고침 버튼이 나타나고, 이 버튼을 클릭하면 현재 턴에 대해 수동 트래커 묶음을 실행합니다. 트래커 안의 새로고침 버튼은 여전히 해당 트래커만 바로 실행합니다.
+**Chat Settings → Agents**에서 **Trackers Control**(트래커 제어)을 열고 **Individual tracker schedule**(개별 트래커 스케줄)에서 트래커를 켜면 그 트래커가 수동 실행으로 바뀝니다. 수동 트래커는 답변마다 실행되지 않습니다. 예전 **Manual Trackers**(트래커 작동 설정) 스위치를 켜 두었던 채팅에서는 **Individual tracker schedule**의 트래커가 모두 켜진 상태로 표시됩니다. 수동 트래커가 하나라도 있으면 휴대폰의 HUD 줄이나 컴퓨터의 Trackers 창 제목 옆에 새로고침 버튼이 나타나고, 이 버튼을 클릭하면 현재 턴에 대해 수동 트래커 묶음을 실행합니다. 트래커 안의 새로고침 버튼은 여전히 해당 트래커만 바로 실행합니다.
 
 **Agent activity**는 **Chat Settings**의 **Agents** 바로 아래와 Tracker Panel 아래쪽, 컴퓨터의 Trackers 창 아래쪽에 전용 섹션으로 있습니다. 여기에서 모든 트래커를 다시 실행하고, 실패한 에이전트를 재시도하고, **Clear Trackers**(트래커 비우기)로 그 채팅에 기록된 세계 상태를 전부 지울 수 있습니다. **Clear Trackers**는 되돌릴 수 없으니 신중하게 사용하세요.
 

@@ -16,7 +16,7 @@ En el panel **Agents**, Marinara agrupa sus agentes en **Apps** (aplicaciones), 
 
 Un intervalo de ejecución significa que el agente se ejecuta una vez cada varios mensajes del usuario y del asistente en lugar de después de cada mensaje. Puedes cambiar un intervalo de ejecución en la configuración del agente, hasta 100.
 
-Illustrator también acepta **0** para generar solo de forma manual: sigue disponible para las acciones de Gallery, pero nunca se ejecuta automáticamente. Los demás agentes conservan sus intervalos positivos actuales.
+En Roleplay, el intervalo de ejecución de Illustrator se define por chat, en su tarjeta dentro de **Chat Settings**. El valor de su configuración es el predeterminado para los chats que no definen uno propio. Illustrator también acepta **0** para generar solo de forma manual: sigue disponible para las acciones de Gallery, pero nunca se ejecuta automáticamente. Los demás agentes conservan sus intervalos positivos actuales.
 
 ## Apps
 
@@ -268,7 +268,7 @@ Responsable de las generaciones de imágenes y video. Escribe prompts visuales p
 
 - **Fase**: Post-Processing.
 - **Dónde funciona**: Roleplay.
-- **Ajustes clave**: se ejecuta una vez cada 5 mensajes del usuario y del asistente de forma predeterminada. Los ajustes incluyen **Prompt Model** (modelo de prompt), **Image Style** (estilo de imagen), **Attach Card Appearance** (adjuntar la apariencia de la tarjeta) y **Send Avatar References** (enviar referencias de avatar). Para la configuración completa, consulta [Agente Illustrator](../media/illustrator-agent.md).
+- **Ajustes clave**: se ejecuta una vez cada 5 mensajes del usuario y del asistente de forma predeterminada, y cada chat de Roleplay puede cambiarlo con **Run Interval** (intervalo de ejecución) en su tarjeta. Los ajustes incluyen **Prompt Model** (modelo de prompt), **Image Style** (estilo de imagen), **Attach Card Appearance** (adjuntar la apariencia de la tarjeta) y **Send Avatar References** (enviar referencias de avatar). Para la configuración completa, consulta [Agente Illustrator](../media/illustrator-agent.md).
 
 ### Lorebook Keeper
 

@@ -1,6 +1,6 @@
 {
   "language": "fr",
-  "sourceCommit": "8e48661874e1e5f90acaa4164532fa76f2745173",
+  "sourceCommit": "85b85d6764f1e354e8a7e395c966ce7b05e65be1",
   "files": [
     {
       "path": "CONFIGURATION.md",
@@ -34,18 +34,18 @@
     },
     {
       "path": "agents/agents-overview.md",
-      "sha256": "493e0d625e4b63c99a67a3c8978d8d09ca8d92704be1d5e5db50c490a226313c",
-      "bytes": 13058
+      "sha256": "356cb468ae9ec998ff763c379c1f565388ab1146d7fb5b1c7d16434257e23c6a",
+      "bytes": 13837
     },
     {
       "path": "agents/approvals-and-agent-suite.md",
-      "sha256": "f3c0a10d41f702b47991b4534337154493bf0453155ca500fa871d29d248501d",
-      "bytes": 8480
+      "sha256": "d9fcb0ce48f7dd44872aed0cba23ca962cb474fd7182f41697c8ba33f31d7ed4",
+      "bytes": 8597
     },
     {
       "path": "agents/built-in-agents.md",
-      "sha256": "7590cbf4bce0aef3034b7a01d0fba0700d49655247891e0c4e28fd6d1e5511cd",
-      "bytes": 38508
+      "sha256": "c43b3ae141acecca862b4a7bfc0f759e6c27fd6e4ae1d4577cf444ce9b60f6e6",
+      "bytes": 38887
     },
     {
       "path": "agents/custom-agents.md",
@@ -574,8 +574,8 @@
     },
     {
       "path": "media/illustrator-agent.md",
-      "sha256": "25f89e023fc20d2af36c0c3884c035965e18595ab6a491809f71880bcc095a8d",
-      "bytes": 13387
+      "sha256": "e092165cf873fa3487cefaaadfd5e62e78a0e9d4f3e55776fb0e83097bfc88c6",
+      "bytes": 14030
     },
     {
       "path": "media/image-providers.md",
@@ -589,8 +589,8 @@
     },
     {
       "path": "media/scene-backgrounds.md",
-      "sha256": "e481c8441a1d00eba733255e79e5f5210bd9220aefae385f709e277c5ad7a6eb",
-      "bytes": 7405
+      "sha256": "13244e58f1ef00cd737c9eea0dbf48e2c780b397d8198ba7c8a2a7a3037b6363",
+      "bytes": 7674
     },
     {
       "path": "media/scene-video.md",
@@ -649,8 +649,8 @@
     },
     {
       "path": "roleplay/backgrounds.md",
-      "sha256": "75e2c32899ae7d6e6baa5e4b76b94696f4cfc6ac5f5079db3ff0d0b8e9a893bf",
-      "bytes": 4726
+      "sha256": "78e9dafcd157f521583878743301060e251533c31a53308283dbafc91d24e444",
+      "bytes": 4849
     },
     {
       "path": "roleplay/combat-encounters.md",
@@ -664,8 +664,8 @@
     },
     {
       "path": "roleplay/hud-and-trackers.md",
-      "sha256": "438bfe6a5f0601af038ea30a2401d7e67b0dad95e747cfd4e7ae5e7d89638003",
-      "bytes": 16683
+      "sha256": "3c48c66ef7da5eb7aa5135fc438ddd76b30fb7aa73985b50eb4ba72ab6ea4ccb",
+      "bytes": 16889
     },
     {
       "path": "roleplay/narrative-director.md",

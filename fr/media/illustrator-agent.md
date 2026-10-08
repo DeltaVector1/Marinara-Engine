@@ -6,7 +6,7 @@ Ce guide explique le fonctionnement de l'agent **Illustrator** (illustrateur), i
 
 Un agent est un petit programme d'IA qui tourne automatiquement dans un chat. L'agent **Illustrator** travaille en post-traitement : il se déclenche une fois que l'IA a terminé sa réponse. Il lit la dernière réponse et juge si le moment mérite une image. Si c'est le cas, il rédige un prompt d'image et l'envoie au fournisseur d'images. Un prompt, c'est le texte qui décrit au modèle d'images ce qu'il doit dessiner.
 
-L'agent Illustrator ne dessine pas à chaque message. Par défaut, après avoir produit une image, il attend 5 messages acceptés, de toi comme de l'assistant, avant d'en produire une autre. Faire un swipe (réponse alternative) ou régénérer la même réponse ne fait pas avancer ce compteur. Si un moment ne lui semble pas digne d'une illustration, il le laisse passer sans rien créer. Toutes les images produites arrivent dans la section **Gallery** (galerie) du chat.
+L'agent Illustrator ne dessine pas à chaque message. Par défaut, après avoir produit une image, il attend 5 messages acceptés, de toi comme de l'assistant, avant d'en produire une autre. Chaque chat Roleplay peut modifier ce nombre. Faire un swipe (réponse alternative) ou régénérer la même réponse ne fait pas avancer ce compteur. Si un moment ne lui semble pas digne d'une illustration, il le laisse passer sans rien créer. Toutes les images produites arrivent dans la section **Gallery** (galerie) du chat.
 
 L'agent Illustrator s'utilise dans les chats **Roleplay** et **Game Mode**, et son installation débloque aussi les selfies en mode **Conversation**. Sa description courte dans l'application indique : "Responsible for image and video generations." Les étapes de configuration et les réglages décrits ici valent pour les chats Roleplay. Game Mode se contente d'un seul interrupteur, présenté plus bas dans la section consacrée à ce mode.
 
@@ -83,9 +83,11 @@ Aucun réglage n'est nécessaire. Les descriptions ne sont utilisées qu'avec un
 
 ## Autres réglages et déclenchement manuel
 
-La carte Illustrator comporte un bouton **Open Setup** (ouvrir la configuration). Il ouvre l'écran de configuration complet de l'agent, où tu règles sa fréquence de déclenchement et lui attribues sa propre connexion d'images.
+La carte Illustrator comporte un bouton **Open Setup** (ouvrir la configuration). Il ouvre l'écran de configuration complet de l'agent, où tu règles la valeur par défaut de sa fréquence de déclenchement et lui attribues sa propre connexion d'images.
 
-Règle **Run Interval** (intervalle d'exécution) sur **0** pour générer uniquement à la demande. Cela arrête les exécutions automatiques d'Illustrator, y compris ses arrière-plans de scène automatiques, tout en gardant l'agent installé et disponible pour les actions de Gallery. La valeur par défaut reste **5** ; choisis un intervalle positif pour reprendre les exécutions automatiques. Tu peux aussi choisir 0 lorsque tu ajoutes Illustrator à un chat.
+Chaque chat Roleplay a son propre champ **Run Interval** (intervalle d'exécution) sur la carte Illustrator de **Chat Settings**. Son texte d'aide indique : "Messages between automatic images in this chat. 0 means only when you ask." Un chat qui n'a rien défini utilise la valeur **Run Interval** de l'écran de configuration, soit **5** sauf si tu la modifies. La carte affiche **Using agent default** ou **Chat override**. Appuie sur **Use agent default** (utiliser la valeur par défaut de l'agent) pour revenir à la valeur de l'écran de configuration. Quand tu ajoutes l'agent Illustrator à un chat, la fenêtre d'ajout affiche le même champ et enregistre ton choix pour ce chat uniquement.
+
+Règle **Run Interval** sur **0** pour générer uniquement à la demande. Cela arrête les exécutions automatiques d'Illustrator, y compris ses arrière-plans de scène automatiques, tout en gardant l'agent installé et disponible pour les actions de Gallery. Choisis un intervalle positif pour reprendre les exécutions automatiques.
 
 Il est aussi possible de créer une image à la demande, sans attendre. Ouvre **Chat Settings** et déplie **Gallery** et utilise le bouton **Illustrate** (illustrer). L'agent Illustrator se lance immédiatement pour une passe, et le bouton affiche **Generating...** pendant le travail. Pratique quand tu veux une image du moment présent et que l'agent n'en a pas encore dessiné.
 

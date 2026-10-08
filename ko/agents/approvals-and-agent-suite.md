@@ -11,7 +11,8 @@
 1. 통제하려는 채팅을 여세요.
 2. **Chat Settings**(채팅 설정)를 여세요.
 3. **Agents**(에이전트) 섹션까지 스크롤하세요.
-4. **Review Agent Outputs**를 켜세요.
+4. Roleplay 채팅에서는 **Trackers Control**(트래커 제어)을 여세요. Game 채팅에서는 이 단계를 건너뛰세요.
+5. **Review Agent Outputs**를 켜세요.
 
 **Review Agent Outputs**가 켜져 있으면 로어북 업데이트, 요약 업데이트를 비롯해 검토 대상인 쓰기 에이전트의 출력이 승인을 받을 때까지 저장되지 않고 대기합니다. 꺼져 있으면 로어북과 요약 업데이트가 자동으로 저장될 수 있습니다.
 

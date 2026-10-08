@@ -16,6 +16,8 @@ Scene background generation is available in Roleplay and Game modes.
 
 **Gallery**에는 채팅의 이미지와 동영상이 모여 있습니다. **Chat Settings**(채팅 설정) 안의 섹션이므로 Chat Settings를 열고 **Gallery**를 펼치세요. 컴퓨터에서는 별도 창으로 꺼낼 수 있습니다([채팅 설정 개요](../chats/chat-settings.md#popping-a-section-out-into-its-own-window) 참고). **Background**(배경) 버튼을 누르면 현재 장면에 맞는 배경 그림을 생성합니다.
 
+Roleplay에서는 **Illustrator** 에이전트를 설치하기만 하면 **Background** 버튼이 나타납니다. Illustrator를 채팅에 추가하거나 에이전트를 켤 필요는 없습니다. **Illustrate**(이미지 생성) 버튼과 마찬가지로 한 번만 실행되며 자동 실행을 시작하지 않습니다.
+
 배경을 생성하는 방법은 다음과 같습니다.
 
 1. **Chat Settings**의 **Gallery** 섹션을 여세요.

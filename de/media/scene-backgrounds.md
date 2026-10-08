@@ -16,6 +16,8 @@ Für einen Hintergrund brauchst du eine **Image Generation**-Verbindung (Bildgen
 
 Die **Gallery** enthält die Bilder und Videos eines Chats. Öffne **Chat Settings** und klapp den Abschnitt **Gallery** auf. Am Computer kannst du ihn in einem eigenen Fenster öffnen (siehe [Chat Settings im Überblick](../chats/chat-settings.md#popping-a-section-out-into-its-own-window)). Mit der Schaltfläche **Background** (Hintergrund) erzeugst du ein Hintergrundbild für die aktuelle Szene.
 
+In Roleplay-Chats erscheint die Schaltfläche **Background**, sobald der Agent **Illustrator** installiert ist. Du musst ihn weder dem Chat hinzufügen noch Agenten aktivieren. Wie **Illustrate** (Illustrieren) startet sie einen einzelnen Lauf und keine automatischen Läufe.
+
 So generierst du einen Hintergrund:
 
 1. Öffne den Abschnitt **Gallery** in **Chat Settings**.

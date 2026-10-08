@@ -16,7 +16,7 @@ Marinara sortiert die Agenten im Panel **Agents** in **Apps**, **Writer Agents**
 
 Ein Laufintervall bedeutet: Der Agent läuft nur alle paar Nutzer- und Assistenten-Nachrichten statt nach jeder Nachricht. Das Intervall lässt sich in der Einrichtung des Agenten ändern, bis maximal 100.
 
-Illustrator akzeptiert auch **0** für ausschließlich manuelle Generierung: Der Agent bleibt für Galerieaktionen verfügbar, läuft aber nie automatisch. Andere Agenten behalten ihre bisherigen positiven Laufintervalle.
+In Roleplay-Chats legst du das Laufintervall von Illustrator pro Chat fest, und zwar auf seiner Karte in **Chat Settings**. Der Wert aus seiner Einrichtung gilt als Standard für alle Chats, die keinen eigenen festlegen. Illustrator akzeptiert auch **0** für ausschließlich manuelle Generierung: Der Agent bleibt für Galerieaktionen verfügbar, läuft aber nie automatisch. Andere Agenten behalten ihre bisherigen positiven Laufintervalle.
 
 ## Apps
 
@@ -268,7 +268,7 @@ Zuständig für Bild- und Videogenerierung. Er schreibt visuelle Prompts für wi
 
 - **Phase**: Post-Processing.
 - **Wo er funktioniert**: Roleplay.
-- **Wichtige Einstellungen**: Standardmäßig läuft er alle 5 Nutzer- und Assistenten-Nachrichten. Zu den Einstellungen gehören **Prompt Model**, **Image Style**, **Attach Card Appearance** und **Send Avatar References**. Die komplette Einrichtung steht unter [Illustrator-Agent](../media/illustrator-agent.md).
+- **Wichtige Einstellungen**: Standardmäßig läuft er alle 5 Nutzer- und Assistenten-Nachrichten; jeder Roleplay-Chat kann das mit **Run Interval** (Laufintervall) auf der Illustrator-Karte ändern. Zu den Einstellungen gehören **Prompt Model**, **Image Style**, **Attach Card Appearance** und **Send Avatar References**. Die komplette Einrichtung steht unter [Illustrator-Agent](../media/illustrator-agent.md).
 
 ### Lorebook Keeper
 

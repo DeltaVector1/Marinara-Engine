@@ -23,7 +23,7 @@ Ensuite, l'arrière-plan de scène se met à jour tout seul au fil des lieux que
 
 ## Générer un arrière-plan à la main
 
-Autre option : créer un arrière-plan toi-même, sans l'agent. Marinara construit un prompt d'image – le texte envoyé à l'IA – à partir de la scène (genre, cadre, lieu actuel, météo et moment de la journée), puis crée un arrière-plan inédit.
+Autre option : créer un arrière-plan toi-même, sans l'agent. Marinara construit un prompt d'image – le texte envoyé à l'IA – à partir de la scène (genre, cadre, lieu actuel, météo et moment de la journée), puis crée un arrière-plan inédit. Le bouton **Background** demande que l'agent **Illustrator** soit installé, mais tu n'as pas besoin de l'ajouter au chat.
 
 1. Ouvre **Chat Settings** et déplie **Gallery** (galerie).
 2. Clique sur le bouton **Background**.

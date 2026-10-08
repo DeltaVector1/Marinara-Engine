@@ -23,7 +23,7 @@ A partir daí, o plano de fundo da cena se atualiza sozinho conforme a história
 
 ## Gerar um plano de fundo na mão
 
-Outra opção: criar um plano de fundo você mesmo, sem o agente. Marinara monta um prompt de imagem a partir da cena, ou seja, do gênero, do cenário, do local atual, do clima e do horário, e cria um plano de fundo novo.
+Outra opção: criar um plano de fundo você mesmo, sem o agente. Marinara monta um prompt de imagem a partir da cena, ou seja, do gênero, do cenário, do local atual, do clima e do horário, e cria um plano de fundo novo. O botão **Background** precisa do agente **Illustrator** instalado, mas não é preciso adicioná-lo ao chat.
 
 1. Abra **Chat Settings** e expanda **Gallery** (galeria).
 2. Clique no botão **Background**.

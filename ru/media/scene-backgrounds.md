@@ -16,6 +16,8 @@ Scene background generation is available in Roleplay and Game modes.
 
 **Gallery** хранит изображения и видео чата. Это раздел **Chat Settings** (настройки чата): откройте Chat Settings и разверните **Gallery**. На компьютере раздел можно вынести в отдельное окно (см. [Обзор настроек чата](../chats/chat-settings.md#popping-a-section-out-into-its-own-window)). Кнопка **Background** (фон) создает фон для текущей сцены.
 
+В режиме Roleplay кнопка **Background** появляется, как только установлен агент **Illustrator**. Добавлять его в чат или включать агентов не нужно. Как и кнопка **Illustrate**, она срабатывает один раз и не включает автоматические запуски.
+
 Как сгенерировать фон:
 
 1. Откройте раздел **Gallery** в **Chat Settings**.

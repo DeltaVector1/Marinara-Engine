@@ -11,7 +11,8 @@ Para achar essa opção:
 1. Abra o chat que você quer controlar.
 2. Abra **Chat Settings** (configurações do chat).
 3. Desça até a seção **Agents**.
-4. Ative **Review Agent Outputs**.
+4. Em um chat de Roleplay, abra **Trackers Control** (controle dos trackers). No Game Mode, pule esta etapa.
+5. Ative **Review Agent Outputs**.
 
 Com **Review Agent Outputs** ativado, as atualizações de lorebook, as atualizações de resumo e as demais saídas revisáveis dos agentes de escrita esperam a sua aprovação antes de serem salvas. Com a opção desativada, as atualizações de lorebook e de resumo podem ser salvas automaticamente.
 

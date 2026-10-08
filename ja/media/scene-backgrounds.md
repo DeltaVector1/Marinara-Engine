@@ -16,6 +16,8 @@ Scene background generation is available in Roleplay and Game modes.
 
 **Gallery**には、チャットの画像と動画が保存されます。**Chat Settings**(チャット設定)内のセクションなので、Chat Settingsを開いて**Gallery**を展開してください。コンピューターでは、独立したウィンドウとして切り離すこともできます([チャット設定の概要](../chats/chat-settings.md#popping-a-section-out-into-its-own-window)を参照)。**Background**(背景)ボタンを押すと、現在のシーンに合わせた背景を生成できます。
 
+Roleplayでは、**Illustrator**エージェントをインストールした時点で**Background**ボタンが表示されます。チャットに追加する必要も、エージェントをオンにする必要もありません。**Illustrate**(イラスト生成)と同じく1回だけ動き、自動実行は始まりません。
+
 背景を生成する手順は次のとおりです。
 
 1. **Chat Settings**内の**Gallery**セクションを開きます。

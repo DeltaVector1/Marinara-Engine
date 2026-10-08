@@ -11,7 +11,8 @@ Gdzie go znaleźć:
 1. Otwórz czat, który chcesz nadzorować.
 2. Otwórz **Chat Settings** (ustawienia czatu).
 3. Przewiń do sekcji **Agents**.
-4. Włącz przełącznik **Review Agent Outputs**.
+4. W czacie Roleplay rozwiń kartę **Trackers Control** (sterowanie trackerami). W trybie Game Mode pomiń ten krok.
+5. Włącz przełącznik **Review Agent Outputs**.
 
 Kiedy przełącznik **Review Agent Outputs** jest włączony, aktualizacje lorebooków, aktualizacje podsumowań i inne wyniki agentów zapisujących dane czekają na twoją zgodę. Kiedy jest wyłączony, aktualizacje lorebooków i podsumowań mogą zapisywać się automatycznie.
 

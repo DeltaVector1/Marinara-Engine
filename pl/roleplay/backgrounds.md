@@ -23,7 +23,7 @@ Od tej pory tło sceny zmienia się samo, w miarę jak fabuła przenosi się mi�
 
 ## Ręczne wygenerowanie tła
 
-Nowe tło da się też stworzyć samodzielnie, bez udziału agenta. Marinara buduje prompt obrazu – czyli tekst wysyłany do AI – na podstawie sceny (gatunek, świat, aktualne miejsce, pogoda i pora dnia), a następnie tworzy nowe tło.
+Nowe tło da się też stworzyć samodzielnie, bez udziału agenta. Marinara buduje prompt obrazu – czyli tekst wysyłany do AI – na podstawie sceny (gatunek, świat, aktualne miejsce, pogoda i pora dnia), a następnie tworzy nowe tło. Przycisk **Background** wymaga zainstalowanego agenta **Illustrator**, ale nie trzeba dodawać go do czatu.
 
 1. Otwórz **Chat Settings** i rozwiń sekcję **Gallery** (galeria).
 2. Kliknij przycisk **Background**.

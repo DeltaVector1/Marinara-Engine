@@ -11,7 +11,8 @@ Pour trouver cet interrupteur :
 1. Ouvre le chat que tu veux piloter.
 2. Ouvre **Chat Settings** (réglages du chat).
 3. Descends jusqu'à la section **Agents**.
-4. Active **Review Agent Outputs**.
+4. Dans un chat Roleplay, ouvre **Trackers Control** (contrôle des trackers). Dans une partie, ignore cette étape.
+5. Active **Review Agent Outputs**.
 
 Quand **Review Agent Outputs** est activé, les mises à jour de lorebook, les mises à jour de résumé et les autres sorties d'agents rédacteurs soumises à relecture attendent ton approbation avant d'être enregistrées. Quand il est désactivé, les mises à jour de lorebook et de résumé peuvent être enregistrées automatiquement.
 

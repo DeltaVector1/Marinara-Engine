@@ -16,7 +16,7 @@ Marinara는 **Agents**(에이전트) 패널에서 에이전트를 **Apps**(앱),
 
 실행 간격을 두면 에이전트가 메시지마다 실행되지 않고 사용자와 어시스턴트 메시지 몇 개마다 한 번씩 실행됩니다. 실행 간격은 에이전트 설정에서 최대 100까지 바꿀 수 있습니다.
 
-Illustrator는 수동 생성 전용 값인 **0**도 허용합니다. Gallery 작업에서는 계속 사용할 수 있지만 자동으로 실행되지는 않습니다. 다른 에이전트는 기존의 양수 실행 간격을 유지합니다.
+Roleplay에서는 Illustrator의 실행 간격을 채팅마다 **Chat Settings**의 Illustrator 카드에서 설정합니다. 에이전트 설정에 지정한 값은 자체 값을 정하지 않은 채팅에 적용되는 기본값입니다. Illustrator는 수동 생성 전용 값인 **0**도 허용합니다. Gallery 작업에서는 계속 사용할 수 있지만 자동으로 실행되지는 않습니다. 다른 에이전트는 기존의 양수 실행 간격을 유지합니다.
 
 ## Apps
 
@@ -268,7 +268,7 @@ Misc 에이전트는 이미지, 음악, 관객 반응, 카드 업데이트 같�
 
 - **단계**: Post-Processing.
 - **사용 가능한 곳**: Roleplay.
-- **주요 설정**: 기본적으로 사용자와 어시스턴트 메시지 5개마다 한 번 실행됩니다. 설정에는 **Prompt Model**(프롬프트 모델), **Image Style**(이미지 스타일), **Attach Card Appearance**(카드 외형 첨부), **Send Avatar References**(아바타 참조 전송)가 있습니다. 전체 설정 방법은 [Illustrator 에이전트](../media/illustrator-agent.md)에서 설명합니다.
+- **주요 설정**: 기본적으로 사용자와 어시스턴트 메시지 5개마다 한 번 실행되며, Roleplay 채팅마다 카드의 **Run Interval**(실행 간격)로 이 값을 바꿀 수 있습니다. 설정에는 **Prompt Model**(프롬프트 모델), **Image Style**(이미지 스타일), **Attach Card Appearance**(카드 외형 첨부), **Send Avatar References**(아바타 참조 전송)가 있습니다. 전체 설정 방법은 [Illustrator 에이전트](../media/illustrator-agent.md)에서 설명합니다.
 
 ### Lorebook Keeper
 
