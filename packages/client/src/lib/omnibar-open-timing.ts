@@ -10,7 +10,10 @@ export function markOmnibarOpenStart() {
 }
 
 export function measureOmnibarFirstResultPaint(debugMode: boolean) {
-  if (!debugMode) return;
+  if (!debugMode) {
+    performance.clearMarks(START_MARK);
+    return;
+  }
   try {
     performance.mark(PAINT_MARK);
     const { duration } = performance.measure(MEASURE_NAME, START_MARK, PAINT_MARK);
