@@ -114,10 +114,11 @@ export function createOmnibarKeyHandlers({
     } else if (pane === "results" && event.key === "ArrowUp") {
       event.preventDefault();
       moveSelection(Math.max(activeIndex < 0 ? 0 : activeIndex - 1, 0));
-    } else if (pane === "results" && event.key === "Home") {
+    } else if (pane === "results" && !query && event.key === "Home") {
+      // With text in the field, Home/End move the caret (editable combobox); only an empty field jumps the list.
       event.preventDefault();
       moveSelection(0);
-    } else if (pane === "results" && event.key === "End") {
+    } else if (pane === "results" && !query && event.key === "End") {
       event.preventDefault();
       moveSelection(results.length - 1);
     } else if (
