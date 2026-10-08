@@ -1127,6 +1127,7 @@ export const ConversationMessage = memo(function ConversationMessage({
     return (
       <>
         <ConversationMessageGrouped ctx={ctx} msgRef={msgRef} reactionRow={reactionRow} />
+        {replyCheckup && <div className="px-4">{replyCheckup}</div>}
         {sceneInvitation}
         {modals}
       </>
