@@ -1,5 +1,5 @@
 import { mkdirSync, rmSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 
 // F11: several Mari e2e specs drive a live run against the shared dev server and route by "the most
 // recent Mari thread" — two of them running on different Playwright workers at once can steal each
@@ -10,6 +10,8 @@ import { resolve } from "node:path";
 const lockDir = resolve(import.meta.dirname, "../.tmp/mari-thread-lock");
 
 export async function acquireMariThreadLock(): Promise<void> {
+  // A fresh checkout has no .tmp/ yet; create the parent so the atomic mkdir below can run.
+  mkdirSync(dirname(lockDir), { recursive: true });
   for (;;) {
     try {
       mkdirSync(lockDir, { recursive: false });
