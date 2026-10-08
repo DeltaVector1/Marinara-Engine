@@ -6,6 +6,8 @@ Esta guía explica los trackers de Roleplay: los botones y paneles que puedes mo
 
 En un teléfono, el HUD (heads-up display) te ofrece los botones **World State** y **Player & Tracker**. Puedes moverlos por el chat. Toca uno para ver detalles actuales de la historia, como la hora, tus estadísticas o quién está presente. Marinara actualiza estos valores a medida que avanza la historia.
 
+Estos botones de los trackers siguen separados del menú de tres puntos **Chat tools** (Herramientas del chat), que reúne las secciones que has sacado de Chat Settings.
+
 En una computadora, los trackers no están en la fila del HUD. Aparecen en **Tracker Panel** cuando se muestra, y en caso contrario en la ventana **Trackers** descrita más abajo.
 
 Los valores vienen de los tracker (agentes de seguimiento). Un agente es un pequeño ayudante de IA que corre en segundo plano. Cada tracker vigila la historia y actualiza una parte del HUD después de cada mensaje. No tienes que pedirlo.
