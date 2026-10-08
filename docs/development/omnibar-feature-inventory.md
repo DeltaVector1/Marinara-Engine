@@ -717,9 +717,8 @@ This is the part most likely to break silently. All of it must survive.
   position (top-center or bottom-center, following the notification-position
   setting) once the omnibar closes. The command-center regression fails on
   any numeric z-index at or above the layer.
-  Two more deliberate exceptions sit at or above it: Mari's end-of-run sprite
-  puff (`.mari-sprite-ghost`, globals.css, scoped to its exact value) and the
-  touch folder-drag ghost (`use-touch-folder-drag.ts`, equal to the layer).
+  One more deliberate exception sits at the layer: the touch folder-drag ghost
+  (`use-touch-folder-drag.ts`, equal to the layer).
 - Over the game setup wizard the surface is the game setup: the quick answer
   and the Mari handoff use the `game-setup` entry point with the wizard step
   title as the only label (`data-game-setup-step`, R22).

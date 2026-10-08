@@ -2823,8 +2823,8 @@ assert.ok(!("mariDetailId" in mariSession));
 // L8 (slice 28b): the omnibar and Mari sit above every app overlay through ONE layer,
 // `--mari-layer-omnibar`. No other numeric z-index in the client may reach it, except a few
 // deliberate, known exceptions above it: user extension windows/menus (they sit near 2^31 and
-// above the sonner toaster too, so outranking them would need the toaster moved as well), Mari's
-// end-of-run sprite puff, and the touch folder-drag ghost. Sonner's toaster (999999999) stays above
+// above the sonner toaster too, so outranking them would need the toaster moved as well) and the
+// touch folder-drag ghost. Sonner's toaster (999999999) stays above
 // the layer so Undo toasts remain visible over the omnibar.
 {
   const clientSource = (relativePath: string) =>
@@ -2838,9 +2838,8 @@ assert.ok(!("mariDetailId" in mariSession));
     "components/layout/PersonalExtensionInjector.tsx",
     "hooks/use-touch-folder-drag.ts",
   ]);
-  // mari.css is large and shared by all of her surfaces, so it keeps no blanket file exemption: only the
-  // exact known .mari-sprite-ghost value is allowed through, not any future z-index someone adds.
-  const aboveLayerValueAllowed = new Map<string, Set<number>>([["styles/mari.css", new Set([2_147_483_000])]]);
+  // Slice 82: the end-of-run sprite puff (.mari-sprite-ghost, the one exempt CSS value) had no user
+  // left and was deleted, so any z-index at or above the layer in a stylesheet now fails this check.
   const files = readdirSync(new URL("../../packages/client/src/", import.meta.url), {
     recursive: true,
     encoding: "utf8",
@@ -2848,11 +2847,10 @@ assert.ok(!("mariDetailId" in mariSession));
   const offenders = files.flatMap((file) => {
     const normalizedFile = file.replaceAll("\\", "/");
     if (aboveLayerAllowed.has(normalizedFile)) return [];
-    const allowedValues = aboveLayerValueAllowed.get(normalizedFile);
     const source = clientSource(file);
     return [...source.matchAll(/z-\[(\d+)\]|zIndex:\s*"?(\d+)|z-index:\s*(\d+)|Z_INDEX\s*=\s*"?(\d+)/gu)]
       .map((match) => Number(match[1] ?? match[2] ?? match[3] ?? match[4]))
-      .filter((value) => value >= layer && !allowedValues?.has(value))
+      .filter((value) => value >= layer)
       .map((value) => `${file}: ${value}`);
   });
   assert.deepEqual(offenders, [], "a numeric z-index at or above the omnibar layer would cover the omnibar");

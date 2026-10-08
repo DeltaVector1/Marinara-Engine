@@ -52,7 +52,6 @@ export interface ProfessorMariNavigationChat {
 }
 
 export const PROFESSOR_MARI_NAVIGATOR_POSITION_STORAGE_KEY = "marinara:home:professor-position:v1";
-export const PROFESSOR_MARI_OMNIBAR_POSITION_STORAGE_KEY = "marinara:omnibar:professor-position:v1";
 export const PROFESSOR_MARI_NAVIGATOR_RESET_EVENT = "marinara:home:professor-navigation-reset";
 
 export const professorMariNavigatorRuntime = {

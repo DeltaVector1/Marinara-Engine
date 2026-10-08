@@ -2374,39 +2374,9 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
   flex: 1;
 }
 
-/* The big Home Mari, standing to the left of the greeting. */
-.mari-welcome-portrait {
-  position: relative;
-  flex: none;
-  width: 8rem;
-  aspect-ratio: 511 / 770;
-}
-
-.mari-welcome-portrait img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  image-rendering: pixelated;
-}
-
-.mari-welcome-portrait [data-part="idle"] {
-  animation: mari-workspace-rare-idle 11s steps(1, end) infinite;
-}
-
-.mari-welcome-portrait [data-part="blink"] {
-  opacity: 0;
-  animation: mari-workspace-rare-blink 11s steps(1, end) infinite;
-}
-
 @media (max-width: 30rem) {
   .mari-omnibar-empty-welcome {
     gap: 0.9rem;
-  }
-
-  .mari-welcome-portrait {
-    width: 5rem;
   }
 }
 
@@ -2444,8 +2414,7 @@ html[data-marinara-effects-paused="true"] .mari-status-shimmer[data-active="true
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mari-omnibar-empty-welcome,
-  .mari-welcome-portrait img {
+  .mari-omnibar-empty-welcome {
     animation: none;
   }
 }
@@ -2616,91 +2585,6 @@ html[data-mari-pull-landing] .mari-arrival-content * {
   }
   75% {
     transform: translateY(0.05rem);
-  }
-}
-
-/* The run ended: a copy of working Mari hops off in a puff where she stood (see MariSprite). */
-.mari-sprite-ghost {
-  position: fixed;
-  z-index: 2147483000;
-  pointer-events: none;
-  animation: mari-sprite-bye 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.mari-sprite-ghost::after {
-  display: none;
-}
-
-.mari-sprite-ghost[data-reaction="flip"] {
-  animation: mari-sprite-flip 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.mari-sprite-ghost[data-reaction="wave"] {
-  transform-origin: 50% 100%;
-  animation: mari-sprite-wave 1.2s ease-in-out forwards;
-}
-
-.mari-sprite-ghost[data-reaction="bounce"] {
-  transform-origin: 50% 100%;
-  animation: mari-sprite-bounce 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes mari-sprite-flip {
-  40% {
-    opacity: 1;
-    transform: translateY(-0.9rem) rotateY(180deg);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-1.2rem) rotateY(360deg) scale(0.7);
-  }
-}
-
-@keyframes mari-sprite-wave {
-  15% {
-    transform: rotate(-10deg);
-  }
-  30% {
-    transform: rotate(9deg);
-  }
-  45% {
-    transform: rotate(-8deg);
-  }
-  60% {
-    opacity: 1;
-    transform: rotate(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-0.6rem);
-  }
-}
-
-@keyframes mari-sprite-bounce {
-  25% {
-    transform: translateY(-0.7rem) scale(0.95, 1.05);
-  }
-  45% {
-    transform: translateY(0) scale(1.08, 0.92);
-  }
-  65% {
-    opacity: 1;
-    transform: translateY(-0.35rem);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(0) scale(0.5);
-  }
-}
-
-@keyframes mari-sprite-bye {
-  30% {
-    opacity: 1;
-    transform: translateY(-0.5rem);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-1.4rem) scale(0.6);
   }
 }
 
@@ -3227,12 +3111,6 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 .mari-live-work__sprite[data-scene="images"],
 .mari-live-work__sprite[data-scene="thinking-notes"] {
   --mari-sprite-cycle: 4.4s;
-}
-
-.mari-live-work__complete-icon {
-  flex: 0 0 auto;
-  color: oklch(0.74 0.15 154);
-  filter: drop-shadow(0 0 0.45rem color-mix(in srgb, oklch(0.74 0.15 154) 24%, transparent));
 }
 
 .mari-live-work__failed-icon {
@@ -3814,10 +3692,6 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   }
 }
 
-.mari-tool-line[data-status="running"] {
-  position: relative;
-}
-
 .mari-reasoning-panel__ticker {
   position: relative;
   flex: 1;
@@ -3845,38 +3719,10 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   }
 }
 
-.mari-tool-line[data-status="running"]::after {
-  position: absolute;
-  right: 0;
-  bottom: -0.25rem;
-  left: 0;
-  height: 1px;
-  content: "";
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  background-size: 45% 100%;
-  background-repeat: no-repeat;
-  animation: mari-tool-progress 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-@keyframes mari-tool-progress {
-  from {
-    background-position: -80% 0;
-  }
-  to {
-    background-position: 180% 0;
-  }
-}
-
 .mari-workspace-composer-dock {
   width: 100%;
   max-width: 47.5rem;
   margin-inline: auto;
-}
-
-.mari-workspace-review-dock {
-  max-height: min(45dvh, 24rem);
-  background: color-mix(in srgb, var(--background) 94%, var(--mari-workspace-hoodie));
-  overscroll-behavior: contain;
 }
 
 .mari-workspace-answer-strip {
@@ -3948,33 +3794,6 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 
 .mari-workspace-composer-dock .mari-workspace-question-dock .mari-workspace-answer-strip {
   padding: 0;
-}
-
-.mari-suggestion-surface {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--mari-workspace-blush) 28%, var(--border));
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--card) 92%, var(--mari-workspace-hoodie));
-  padding: 0.875rem;
-  box-shadow:
-    0 0.75rem 1.75rem color-mix(in srgb, var(--background) 34%, transparent),
-    inset 0 1px color-mix(in srgb, var(--foreground) 6%, transparent);
-}
-
-.mari-suggestion-surface::after {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 4rem;
-  height: 1px;
-  content: "";
-  background: color-mix(in srgb, var(--mari-workspace-gold) 60%, transparent);
-}
-
-.mari-suggestion-surface .mari-suggestion-chips {
-  margin-top: 0.75rem;
-  margin-bottom: 0;
 }
 
 /* R11 (composer v5, docs/development/mockups/mari-v5 § Composer): Mari's composer is her own shell, not the
@@ -4448,12 +4267,6 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
 
 [data-theme="light"] .mari-workspace-shell {
   background: color-mix(in srgb, var(--background) 96%, oklch(0.93 0.025 73));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mari-tool-line[data-status="running"]::after {
-    animation: none;
-  }
 }
 
 [data-component="GlobalOmnibar"]:not([data-pane="mari"]) .mari-workspace-portrait img,

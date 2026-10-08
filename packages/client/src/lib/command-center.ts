@@ -85,20 +85,6 @@ export interface CommandCenterResultMedia {
   alt: string;
 }
 
-export type CommandCenterPreviewKind = Exclude<CommandCenterResultCategory, "navigation" | "professor" | "settings">;
-
-export interface CommandCenterPreviewData {
-  kind: CommandCenterPreviewKind;
-  title?: string;
-  categoryLabel?: string;
-  subtitle?: string;
-  description?: string;
-  media?: CommandCenterResultMedia;
-  accent?: string;
-  badges?: readonly string[];
-  facts?: readonly CommandCenterResultMetadata[];
-}
-
 export interface CommandCenterPresentableResult {
   id: string;
   category: CommandCenterResultCategory;
@@ -161,14 +147,6 @@ export interface CommandRankingState {
 export interface RankedCommandResult<T extends CommandResult = CommandResult> {
   result: T;
   rankingScore: number;
-}
-
-export interface CommandControl {
-  type: "toggle" | "choice" | "action";
-  label: string;
-  value?: string | boolean;
-  options?: readonly { value: string; label: string; aliases?: readonly string[] }[];
-  onChange: (value: string | boolean) => void;
 }
 
 interface CommandStorage {
@@ -234,8 +212,6 @@ const RECENCY_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** The list, or the one surface that has taken it over. */
 export type CommandCenterPane = "results" | "mari";
-/** Where a takeover returns to when it closes. */
-export type CommandCenterReturnPane = Exclude<CommandCenterPane, "mari">;
 
 /**
  * A task handed to Professor Mari, held in session state rather than component

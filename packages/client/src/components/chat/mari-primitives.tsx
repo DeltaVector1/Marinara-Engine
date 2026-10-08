@@ -6,8 +6,8 @@ import { cn } from "../../lib/utils";
 
 /**
  * Small layout primitives shared by Professor Mari's workspace. Turns use
- * `TranscriptRow`, controls use `.mari-chrome-control`, resource identity
- * comes from `ResourceIdentityHeader`, and a risky prompt is a `MariCard`.
+ * `TranscriptRow`, controls use `.mari-chrome-control`, and a risky prompt
+ * is a `MariCard`.
  *
  * Direction A (`docs/development/mockups/mari-v3/index.html`): text first,
  * chrome last. See `docs/development/omnibar-concept.md` R41-R48.
