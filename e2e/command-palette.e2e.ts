@@ -353,7 +353,8 @@ test("expanded results stay reachable and expose concise accessible names", asyn
     await input.fill(`char: Preview Reachability ${suffix}`);
     await page.keyboard.press("End");
     const selectedRow = omnibar.locator("[data-command-center-result-row]:has([data-selected='true'])");
-    await expect(selectedRow).toBeVisible();
+    // Wait for the typed results: the empty list's first row (a Now or Try row) has no preview.
+    await expect(selectedRow).toContainText(`Preview Reachability ${suffix}`);
     const accessibleName = await selectedRow.locator(":scope > button").getAttribute("aria-label");
     expect(accessibleName).not.toContain("Long private description marker");
 
