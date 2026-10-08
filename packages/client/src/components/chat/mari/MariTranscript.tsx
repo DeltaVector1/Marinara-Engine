@@ -22,7 +22,7 @@ import { MariSuggestionChips, MariNextStepCards } from "../MariSuggestionChips";
 import { TranscriptRow } from "../MariTranscriptRow";
 import { MariTurnReviews, MariWorkTimelineOutcome } from "./CompactMariMessage";
 import { ProfessorMariRecovery, continuedThereByContext } from "./mari-chat-helpers";
-import { WorkspaceTimelineItem, getMessageRunError } from "./mari-tool-presentation";
+import { WorkspaceTimelineItem, getMessageRunError, getMessageRunTime } from "./mari-tool-presentation";
 import { LoadingHistoryState } from "./MariChatStates";
 import { CompactMarkdown } from "./MariReplyContent";
 import { MariWorkTimeline } from "./MariWorkTimeline";
@@ -251,7 +251,11 @@ export function MariTranscript({
                   }
                   startedAtMs={
                     workspaceRunClock?.startedAt ??
-                    (lastUserMessage ? Date.parse(lastUserMessage.createdAt) || null : null)
+                    (lastUserMessage
+                      ? getMessageRunTime(lastUserMessage, "mariRunStartedAt") ||
+                        Date.parse(lastUserMessage.createdAt) ||
+                        null
+                      : null)
                   }
                   endedAtMs={workspaceRunClock?.endedAt ?? null}
                   characterPreviews={characterPreviewById}

@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Professor Mari's top-bar status keeps working after a reload. **Done** and **Failed** stay until you open her on that run; **Needs you** stays until you answer. The run's timer picks up from its real start instead of restarting, and a run still going after a reload shows its live work.
 - Professor Mari's chat loads with a calm skeleton: her sprite and three soft rows, shown after a short moment so fast loads do not flash. The chat fades in when it arrives. Reduced motion turns the animations off.
 - Professor Mari's Skills, Memories, Context and Chats buttons look like browser tabs. The selected tab merges into the panel below, the others stay quiet, and a hairline runs under them. The row is a tab list: arrow keys and Home/End move between tabs, Enter or Space opens one. The tabs keep their size and place.
 - Lorebook rows in the omnibar no longer have an Enabled/Disabled switch or chip. Attach or remove a lorebook for this chat there. Turn a lorebook on or off for every chat in the Lorebooks panel.

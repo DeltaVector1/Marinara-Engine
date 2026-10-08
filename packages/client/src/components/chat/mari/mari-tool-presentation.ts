@@ -97,6 +97,12 @@ export function getMessageWorkspaceTrace(message: Message): MariWorkspaceTraceIt
 }
 
 /** R14: why this turn failed (`mariRunError`); null when it did not, or once you dismissed it. */
+/** The run's start or end on the server clock (ms), saved on the request and reply messages; null for older messages. */
+export function getMessageRunTime(message: Message, key: "mariRunStartedAt" | "mariRunFinishedAt"): number | null {
+  const value = toMessageExtra(message)?.[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 export function getMessageRunError(
   message: Message,
   { includeDismissed = false }: { includeDismissed?: boolean } = {},

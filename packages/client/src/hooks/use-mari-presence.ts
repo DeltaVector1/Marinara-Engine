@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  nextMariEdgeSeen,
-  readMariSeenHistoryId,
-  rememberMariSeenHistoryId,
-  resolveMariEdgeGlow,
-  type MariEdgeGlow,
-  type MariEdgeInput,
-} from "../lib/mari-presence-seen";
+  professorMariSeenRunSettingsKey,
+  type AppSettingsResponse,
+  type MariWorkspaceLatestRun,
+} from "@marinara-engine/shared";
+import { api } from "../lib/api-client";
+import { resolveMariEdgeGlow, type MariEdgeGlow } from "../lib/mari-presence-seen";
 import { useChatStore } from "../stores/chat.store";
 import { useUIStore } from "../stores/ui.store";
 import { useProfessorMariWorkspaceStatus } from "./use-professor-mari-workspace-status";
@@ -24,63 +24,69 @@ const PRESENCE_INTERVAL_MS = 30_000;
 export interface MariPresence {
   /** She is running something right now. */
   working: boolean;
-  /** She is blocked on the user: an approval is waiting. */
-  needsAttention: boolean;
   pendingCount: number;
-  /** Ids of approvals waiting right now, so a newly arrived one can be told apart from one already seen. */
-  pendingApprovalIds: readonly string[];
-  /** Newest workspace-history entry id, or null when she has no history. */
-  latestHistoryId: string | null;
-  /** The newest history entry failed. */
-  latestHistoryFailed: boolean;
-  /** R14: her last run failed and nothing has answered it yet (a run, a retry, or Dismiss). */
-  runFailed: boolean;
+  /** The newest run and how it ended (server clock). */
+  latestRun: MariWorkspaceLatestRun | null;
+  /** A failure before the server saw the run. */
+  clientRunFailed: boolean;
 }
 
 export function useMariPresence(): MariPresence {
   const status = useProfessorMariWorkspaceStatus({ intervalMs: PRESENCE_INTERVAL_MS });
-  const pendingCount = status.data?.pendingApprovals.length ?? 0;
   // F10: a failure before the server ever saw the run (404/network) has no server-side error to read.
   const clientRunFailed = useChatStore((state) => state.mariClientRunFailed);
   return {
     working: status.data?.active === true,
-    needsAttention: pendingCount > 0,
-    pendingCount,
-    pendingApprovalIds: status.data?.pendingApprovals.map((approval) => approval.id) ?? [],
-    // getHistory() reverses after slicing, so the newest entry is first.
-    latestHistoryId: status.data?.history[0]?.id ?? null,
-    latestHistoryFailed: status.data?.history[0]?.status === "failed",
-    runFailed: Boolean(status.data?.error) || clientRunFailed,
+    pendingCount: status.data?.pendingApprovals.length ?? 0,
+    latestRun: status.data?.latestRun ?? null,
+    clientRunFailed,
   };
 }
 
-/** Her state for the top-bar edge line (P2), until the user has seen it in her pane (P3). */
+/** The id of the newest run the user has seen in her window on this thread; undefined while it loads. */
+export function useMariRunSeenId(chatId: string | null | undefined): string | null | undefined {
+  const query = useQuery({
+    queryKey: ["app-settings", professorMariSeenRunSettingsKey(chatId ?? "")],
+    queryFn: async () => (await api.get<AppSettingsResponse>(`/app-settings/${professorMariSeenRunSettingsKey(chatId ?? "")}`)).value,
+    enabled: !!chatId,
+    staleTime: 60_000,
+  });
+  return chatId ? query.data : null;
+}
+
+/**
+ * Her window shows a finished run on this thread: store that run's id as seen, so the top-bar pill
+ * clears (Done, Failed) and stays cleared after a reload and on other devices.
+ */
+export function useMarkMariRunSeen(chatId: string | null, latestRun: MariWorkspaceLatestRun | null, working: boolean) {
+  const queryClient = useQueryClient();
+  const seenRunId = useMariRunSeenId(chatId);
+  const markSeen = useMutation({
+    mutationFn: (runId: string) =>
+      api.put(`/app-settings/${professorMariSeenRunSettingsKey(chatId ?? "")}`, { value: runId }),
+    onSuccess: (_result, runId) => {
+      queryClient.setQueryData(["app-settings", professorMariSeenRunSettingsKey(chatId ?? "")], runId);
+    },
+  });
+  const runId = latestRun && latestRun.chatId === chatId && latestRun.outcome !== "running" && !working ? latestRun.id : null;
+  useEffect(() => {
+    if (runId && seenRunId !== undefined && seenRunId !== runId) markSeen.mutate(runId);
+    // markSeen is stable enough per render; the effect is keyed on the run and the marker.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runId, seenRunId]);
+}
+
+/** Her state for the top-bar edge line and pill, once the user has seen the result in her pane. */
 export function useMariEdgeGlow(): MariEdgeGlow {
   const presence = useMariPresence();
-  const viewing = useUIStore((state) => state.mariPaneVisible);
   const mariEnabled = useUIStore((state) => state.commandCenterMariEnabled);
-  const input: MariEdgeInput = { ...presence, viewing };
-  const [seen, setSeen] = useState(() => ({
-    wasWorking: false,
-    unseenRun: false,
-    seenApprovalIds: [] as readonly string[],
-    seenHistoryId: readMariSeenHistoryId(),
-  }));
-  const pendingApprovalIdsKey = presence.pendingApprovalIds.join(",");
-
-  useEffect(() => {
-    setSeen((prev) => nextMariEdgeSeen(prev, input));
-    if (viewing && presence.latestHistoryId) rememberMariSeenHistoryId(presence.latestHistoryId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- steps once per change of the inputs below
-  }, [
-    presence.working,
-    presence.needsAttention,
-    pendingApprovalIdsKey,
-    presence.latestHistoryId,
-    presence.latestHistoryFailed,
-    presence.runFailed,
-    viewing,
-  ]);
-
-  return mariEnabled ? resolveMariEdgeGlow(seen, input) : null;
+  const seenRunId = useMariRunSeenId(presence.latestRun?.chatId ?? null);
+  if (!mariEnabled) return null;
+  return resolveMariEdgeGlow({
+    working: presence.working,
+    pendingApprovals: presence.pendingCount,
+    latestRun: presence.latestRun,
+    seenRunId,
+    clientRunFailed: presence.clientRunFailed,
+  });
 }

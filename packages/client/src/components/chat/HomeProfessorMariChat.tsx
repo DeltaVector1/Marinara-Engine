@@ -15,6 +15,7 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { professorMariWorkspaceStatusKeys } from "../../hooks/use-professor-mari-workspace-status";
+import { useMariPresence, useMarkMariRunSeen } from "../../hooks/use-mari-presence";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { AlertTriangle, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -173,6 +174,7 @@ import {
   WorkspaceTimelineItem,
   appendTextTimeline,
   getMessageRunError,
+  getMessageRunTime,
   getMessageWorkspaceActionResults,
   getMessageWorkspaceTrace,
   timelineItemsFromTrace,
@@ -335,6 +337,16 @@ export function HomeProfessorMariChat({
     null,
   );
   const [workspaceActive, setWorkspaceActive] = useState(false);
+  // The newest run, from the server: its clock survives a reload, and showing it marks it seen (the top-bar pill clears).
+  const mariPresence = useMariPresence();
+  const serverRun = mariPresence.latestRun;
+  // A run that started before a reload (or in another tab) is still live here: show its timeline and clock.
+  const serverRunningHere = serverRun?.outcome === "running" && serverRun.chatId === chatId;
+  useMarkMariRunSeen(chatId, serverRun, mariPresence.working);
+  useEffect(() => {
+    if (!serverRun || serverRun.chatId !== chatId) return;
+    setWorkspaceRunClock({ startedAt: serverRun.startedAt, endedAt: serverRun.finishedAt });
+  }, [chatId, serverRun?.id, serverRun?.chatId, serverRun?.startedAt, serverRun?.finishedAt]);
   const [workspaceTimeline, setWorkspaceTimeline] = useState<WorkspaceTimelineItem[]>([]);
   const [workspaceReviewActionId, setWorkspaceReviewActionId] = useState<string | null>(null);
   const [workspaceDestination, setWorkspaceDestination] = useState<ProfessorMariWorkspaceDestination>("chat");
@@ -1292,7 +1304,7 @@ export function HomeProfessorMariChat({
     showNativeMessageNotification({ ...notification, enabled: uiState.generationMobileNotifications });
   }, [pendingChangeReviews]);
 
-  const workspaceTimelineActive = workspaceActive || hasActiveGeneration;
+  const workspaceTimelineActive = workspaceActive || hasActiveGeneration || serverRunningHere;
   // When a run ends, the composer halo flashes once and lets go instead of vanishing mid-turn. Set while
   // rendering (not in an effect), so the arrival routing below never sees the end of a run without it.
   const [composerHaloEnding, setComposerHaloEnding] = useState(false);
@@ -2744,7 +2756,7 @@ export function HomeProfessorMariChat({
   const sentAtBefore = (message: Message) => {
     const index = messages.findIndex((item) => item.id === message.id);
     const sent = messages.slice(0, Math.max(0, index)).findLast((item) => item.role === "user");
-    return sent ? Date.parse(sent.createdAt) || null : null;
+    return sent ? getMessageRunTime(sent, "mariRunStartedAt") || Date.parse(sent.createdAt) || null : null;
   };
 
   const renderDisplayMessage = (message: Message) => {

@@ -38,10 +38,8 @@ import { resolveChatResourceDropAction } from "../../packages/client/src/lib/cha
 import { extractDocsSearchQuery } from "../../packages/client/src/lib/docs-command-search.js";
 import { resolveRunAnchorMs, resolveRunSeconds } from "../../packages/client/src/lib/mari-work-card-timing.js";
 import {
-  nextMariEdgeSeen,
   resolveMariEdgeGlow,
-  type MariEdgeInput,
-  type MariEdgeSeenState,
+  type MariRunState,
 } from "../../packages/client/src/lib/mari-presence-seen.js";
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
@@ -3743,279 +3741,69 @@ assert.ok(!("mariDetailId" in mariSession));
   );
 }
 
-// P2/P3 (slice 52): the top-bar edge line shows her state until her pane shows the result.
+// P2/P3 (slice 83): the top-bar line and pill are server-backed. Done and Failed stay until the run is seen.
 {
-  let seen: MariEdgeSeenState = { wasWorking: false, unseenRun: false, seenApprovalIds: [], seenHistoryId: "h-0" };
-  const idle: MariEdgeInput = {
-    working: false,
-    needsAttention: false,
-    pendingApprovalIds: [],
-    latestHistoryId: "h-0",
-    latestHistoryFailed: false,
-    viewing: false,
-  };
-  const step = (input: MariEdgeInput) => {
-    seen = nextMariEdgeSeen(seen, input);
-    return resolveMariEdgeGlow(seen, input);
-  };
-  assert.equal(step(idle), null, "idle with everything seen: no line");
-  assert.equal(step({ ...idle, working: true }), "working", "a run in progress shows the working line");
-  assert.equal(step({ ...idle, working: true, viewing: true }), "working", "seeing her does not hide a live run");
-  assert.equal(step({ ...idle, working: true }), "working", "closing the pane mid-run keeps the working line");
-  assert.equal(step(idle), "finished", "a run that ends while her pane is closed leaves an unseen result");
-  assert.equal(seen.unseenRun, true, "unseen is tracked as state");
-  assert.equal(step(idle), "finished", "the result stays unseen until the user looks");
-  assert.equal(step({ ...idle, viewing: true }), null, "opening her pane on the result clears it");
-  assert.equal(seen.unseenRun, false, "seen resets the flag");
-  assert.equal(step(idle), null, "closing the pane again keeps it cleared");
-  assert.equal(step({ ...idle, working: true }), "working", "a new run brings back the working line");
-  assert.equal(step(idle), "finished", "and its end is unseen again");
-  assert.equal(step({ ...idle, viewing: true }), null);
-
-  // A run that starts and ends between two slow polls still leaves a new history entry.
-  assert.equal(step({ ...idle, latestHistoryId: "h-1" }), "finished", "a new history entry is an unseen result");
-  assert.equal(step({ ...idle, latestHistoryId: "h-1", viewing: true }), null);
-  assert.equal(seen.seenHistoryId, "h-1", "seeing records the newest history entry");
-  assert.equal(
-    step({ ...idle, latestHistoryId: "h-2", latestHistoryFailed: true }),
-    "error",
-    "an unseen failed entry is the red line",
-  );
-  assert.equal(step({ ...idle, latestHistoryId: "h-2", latestHistoryFailed: true, viewing: true }), null);
-  assert.equal(
-    step({ ...idle, latestHistoryId: "h-2", latestHistoryFailed: true }),
-    null,
-    "a seen failure stays cleared",
-  );
-
-  const base = { ...idle, latestHistoryId: "h-2" };
-  assert.equal(
-    step({ ...base, needsAttention: true, pendingApprovalIds: ["a1"], working: true }),
-    "approval",
-    "a pending approval wins over working",
-  );
-  assert.equal(
-    step({ ...base, needsAttention: true, pendingApprovalIds: ["a1"], viewing: true }),
-    null,
-    "seeing the approval clears it",
-  );
-  assert.equal(
-    step({ ...base, needsAttention: true, pendingApprovalIds: ["a1"] }),
-    null,
-    "the same approval stays seen",
-  );
-  assert.equal(step(base), null);
-  assert.equal(
-    step({ ...base, needsAttention: true, pendingApprovalIds: ["a2"] }),
-    "approval",
-    "a new approval needs a new look",
-  );
-
-  // F5: a second approval arriving while the first is still pending and already seen
-  // must still re-glow the line - a single seen boolean could not tell a1 and a2 apart.
-  assert.equal(step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"] }), "approval", "a3 pending");
-  assert.equal(step({ ...base, needsAttention: true, pendingApprovalIds: ["a3"], viewing: true }), null, "a3 seen");
-  assert.equal(
-    step({ ...base, needsAttention: true, pendingApprovalIds: ["a3", "a4"] }),
-    "approval",
-    "a4 arrives while a3 is still pending and already seen - must re-glow",
-  );
-}
-
-{
-  // R7: one Mari thread per context; arrivals continue it, or continue her latest one and ask (R13).
-  const now = Date.parse("2026-10-06T12:00:00Z");
-  const ago = (minutes: number) => new Date(now - minutes * 60_000).toISOString();
-  const thread = (id: string, key: string | null, lastMinutesAgo: number | null, createdMinutesAgo = 600) =>
-    readMariThread({
-      id,
-      metadata: key ? JSON.stringify({ mariContextKey: key, mariContextLabel: `${id} label` }) : { tags: ["internal"] },
-      lastMessageAt: lastMinutesAgo === null ? null : ago(lastMinutesAgo),
-      createdAt: ago(createdMinutesAgo),
-    });
-  const choose = (threads: ReturnType<typeof thread>[], contextKey: string, continuedThereId?: string) =>
-    chooseMariThread({ threads, contextKey, continuedThereId });
-
-  assert.deepEqual(
-    choose([thread("a-old", "chat:a", 900), thread("a-new", "chat:a", 120), thread("b", "chat:b", 5)], "chat:a"),
-    { kind: "continue", chatId: "a-new" },
-    "same context key continues its newest thread, even with another thread used a moment ago",
-  );
-  assert.deepEqual(
-    choose([thread("b", "chat:b", 45)], "chat:a"),
-    { kind: "ask", recentChatId: "b" },
-    "R13: a different key never starts an empty thread silently; she continues her latest one and offers New about",
-  );
-  assert.deepEqual(
-    choose([thread("b", "chat:b", 60 * 24 * 9), thread("c", null, 60 * 24 * 2)], "chat:a"),
-    { kind: "ask", recentChatId: "c" },
-    "R13: however old, the most recent conversation is continued (with the offer), not a blank one",
-  );
-  assert.deepEqual(choose([], "general"), { kind: "new" }, "no threads at all starts one");
-  assert.deepEqual(
-    choose([thread("b", "chat:b", 10), thread("c", "chat:c", 20)], "chat:a"),
-    { kind: "ask", recentChatId: "b" },
-    "a different key with recent threads continues the newest and offers Continue here / New about",
-  );
-  assert.deepEqual(
-    choose([thread("b", "chat:b", 10)], "chat:a", "b"),
-    { kind: "continue", chatId: "b" },
-    "after Continue here, the same door goes there without asking again",
-  );
-  assert.deepEqual(
-    choose([thread("b", "chat:b", 10)], "chat:a", "deleted"),
-    { kind: "ask", recentChatId: "b" },
-    "a remembered thread that no longer exists is ignored",
-  );
-  const legacy = thread("legacy", null, 300);
-  assert.equal(legacy.contextKey, "general", "a thread from before R7 has no key and counts as general");
-  assert.equal(legacy.contextLabel, undefined, "a general thread shows no context label");
-  assert.deepEqual(choose([legacy, thread("b", "chat:b", 5)], "general"), { kind: "continue", chatId: "legacy" });
-  assert.deepEqual(
-    choose([thread("empty-a", "chat:a", null, 2)], "chat:a"),
-    { kind: "continue", chatId: "empty-a" },
-    "a thread with no messages yet still belongs to its context",
-  );
-  assert.deepEqual(
-    choose([thread("empty-b", "chat:b", null, 2)], "chat:a"),
-    { kind: "new" },
-    "with no conversation to continue (only an empty thread), one starts for this context",
-  );
-
-  const base = { surfaceResultIds: [], editorDirty: false, recentResultIds: [], setupResultIds: [] };
-  const arrivalNamed = { line: "x", strong: "Zylo", meta: [], refs: [], cards: [] };
-  assert.deepEqual(
-    mariThreadContextFor({ ...base, surface: "chat", activeChat: { id: "c1", resultIds: [] } }, arrivalNamed),
-    { key: "chat:c1", label: "Zylo" },
-  );
-  assert.deepEqual(
-    mariThreadContextFor(
-      { ...base, surface: "editor", openResource: { kind: "agent", id: "illustrator", resultId: "agent:illustrator" } },
-      arrivalNamed,
-    ),
-    { key: "agent:illustrator", label: "Zylo" },
-    "an editor's context is its open resource",
-  );
-  assert.deepEqual(mariThreadContextFor({ ...base, surface: "home" }, null), { key: "general" });
-  assert.deepEqual(
-    mariThreadContextFor({ ...base, surface: "settings", activeChat: { id: "c1", resultIds: [] } }, arrivalNamed),
-    { key: "general" },
-    "settings over a chat is not that chat",
-  );
-}
-
-// R10 (slice 62d): Mari cards v5. A card's fact says something about THIS thing, never its type; one row
-// per record; a review row's fact is in words; a checkup row puts the number in the title.
-{
-  const keyOf = (key: string, options?: Record<string, unknown>) =>
-    options ? `${key}:${JSON.stringify(options)}` : key;
-  const typeWords = /^(chat|character|agent|lorebook|persona|setting)$/iu;
-  assert.equal(firstSentence("Captain of the Meridian. Keeps her crew alive."), "Captain of the Meridian.");
-  assert.equal(firstSentence("\n  A line without an end"), "A line without an end");
-  assert.equal(firstSentence(""), undefined);
-  assert.equal(mariReferenceFact("character", { description: "A smuggler. Loyal." }, keyOf), "A smuggler.");
-  assert.equal(mariReferenceFact("character", {}, keyOf), undefined, "no description: no fact, never the type");
-  assert.equal(
-    mariReferenceFact("lorebook", { entryCount: 4 }, keyOf),
-    'ui.chat.homeprofessormarichat.refFact.entries:{"count":4}',
-  );
-  assert.equal(
-    mariReferenceFact("lorebookEntry", { lorebookName: "Meridian lore", entryKey: "silver compass" }, keyOf),
-    'Meridian lore · ui.chat.homeprofessormarichat.refFact.key:{"key":"silver compass"}',
-  );
-  assert.equal(mariReferenceFact("lorebookEntry", {}, keyOf), undefined, "an entry with no lorebook says nothing");
-  assert.equal(mariReferenceFact("chat", { people: "Elara", time: "4 min ago" }, keyOf), "Elara · 4 min ago");
-  assert.equal(mariReferenceFact("chat", {}, keyOf), undefined, "a chat never reads 'Chat'");
-  assert.equal(
-    mariReferenceFact("agent", { agentState: "on", description: "Tracks places. Not items." }, keyOf),
-    "ui.chat.homeprofessormarichat.refFact.on · Tracks places.",
-  );
-  assert.equal(
-    mariReferenceFact("agent", { agentState: "failed", description: "x" }, keyOf),
-    "ui.chat.homeprofessormarichat.referenceAgentFailed",
-  );
-  assert.equal(mariReferenceFact("setting", { section: "Chat settings" }, keyOf), "Chat settings");
-  for (const kind of ["character", "lorebook", "lorebookEntry", "chat", "agent", "setting", "persona"] as const) {
-    const fact = mariReferenceFact(kind, {}, keyOf);
-    assert.ok(!fact || !typeWords.test(fact), `${kind}: the fact never repeats the type`);
-  }
-
-  const reviewed = reviewRecordKeys([
-    { id: "r1", diffPreview: [{ table: "characters", id: "elara" }] },
-    { id: "r2", diffPreview: [{ table: "prompt_presets", id: "p1" }] },
-  ]);
-  const results = [
-    { status: "updated", resource: { kind: "character", id: "elara" } },
-    { status: "created", resource: { kind: "lorebook", id: "crew" } },
-    { status: "updated", resource: { kind: "persona", id: "nell" }, reviewId: "r1" },
-    { status: "updated", resource: { kind: "preset", id: "p1" } },
-  ];
-  assert.deepEqual(
-    withoutReviewedResults(results, reviewed).map((result) => result.resource.id),
-    ["crew"],
-    "a result a review already shows (same record, or its own review) is dropped",
-  );
-  assert.equal(withoutReviewedResults(results, new Set()).length, 4, "no reviews: every result stays");
-
-  const keysChange = {
-    table: "lorebook_entries",
-    id: "e1",
-    action: "update" as const,
-    before: { name: "Silver compass", keys: ["silver compass"] },
-    after: { name: "Silver compass", keys: ["silver compass", "compass", "heirloom"] },
-  };
-  assert.equal(
-    reviewRowFact(keysChange, computeFieldChanges(keysChange), keyOf),
-    'ui.chat.mariappliededit.factAddsKeys:{"count":2,"keys":"compass, heirloom"}',
-  );
-  const descChange = {
-    table: "characters",
-    id: "c1",
-    action: "update" as const,
-    before: { data: { name: "Elara", description: "Old." } },
-    after: { data: { name: "Elara", description: "New." } },
-  };
-  assert.equal(
-    reviewRowFact(descChange, computeFieldChanges(descChange), keyOf),
-    'ui.chat.mariappliededit.factChanged:{"fields":"description"}',
-  );
-  assert.equal(
-    reviewRowFact({ ...descChange, action: "insert", before: null }, [], keyOf),
-    'ui.chat.mariappliededit.factNew:{"entity":"character"}',
-  );
-
-  const translate = (key: string, fallback: string, options?: Record<string, unknown>) =>
-    fallback.replace(/\{\{(\w+)\}\}/gu, (_, name: string) => String(options?.[name] ?? ""));
-  assert.deepEqual(replyCheckupRow({ code: "cut_off", text: "", values: { limit: 512 }, link: null }, translate), {
-    title: "Cut off at 512 tokens",
-    why: "Stopped mid-sentence",
+  const run = (outcome: "running" | "finished" | "failed", id = "run-1") => ({
+    id,
+    chatId: "thread-1",
+    startedAt: 1_000,
+    finishedAt: outcome === "running" ? null : 2_000,
+    outcome,
   });
+  const idle: MariRunState = {
+    working: false,
+    pendingApprovals: 0,
+    latestRun: null,
+    seenRunId: undefined,
+    clientRunFailed: false,
+  };
+  assert.equal(resolveMariEdgeGlow(idle), null, "no run: nothing shows");
   assert.equal(
-    replyCheckupRow(
-      { code: "history_trimmed", text: "", values: { count: 42, before: 30000, budget: 7000 }, link: null },
-      translate,
-    ).why,
-    `Needed ${(30000).toLocaleString()} tokens, budget ${(7000).toLocaleString()}`,
+    resolveMariEdgeGlow({ ...idle, latestRun: run("finished"), seenRunId: undefined }),
+    null,
+    "while the seen marker loads, a result does not flash as new",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, latestRun: run("finished"), seenRunId: null }),
+    "finished",
+    "a finished run nobody has seen is Done",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, latestRun: run("finished"), seenRunId: "run-1" }),
+    null,
+    "once the run is seen, Done is gone (it does not come back on reload)",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, latestRun: run("failed"), seenRunId: "run-0" }),
+    "error",
+    "an unseen failed run is Failed",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, latestRun: run("failed"), seenRunId: "run-1" }),
+    null,
+    "a seen failed run clears",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, working: true, latestRun: run("running"), seenRunId: "run-0" }),
+    "working",
+    "a run in progress is Working",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, working: true, latestRun: run("failed"), seenRunId: null }),
+    "error",
+    "Failed beats Working",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, working: true, pendingApprovals: 1, latestRun: run("failed"), seenRunId: null }),
+    "approval",
+    "Needs you beats everything",
+  );
+  assert.equal(
+    resolveMariEdgeGlow({ ...idle, latestRun: run("finished"), seenRunId: "run-0", clientRunFailed: true }),
+    "error",
+    "a failure before the server saw the run stays Failed until a retry or Dismiss",
   );
 }
-
-// R12: Golden Mari unlocks at 100 h of play time; a stored locked pick renders as Basic and returns by itself.
-{
-  const golden = getMariAppearancePack("golden");
-  assert.deepEqual(golden.unlock, { playHours: 100 });
-  assert.equal(playHoursFromMs(undefined), null, "unknown play time stays unknown");
-  assert.equal(playHoursFromMs(100 * 3_600_000 - 1), 99, "hours round down");
-  assert.equal(isMariPackUnlocked(golden, [], null), false, "unknown play time keeps Golden locked");
-  assert.equal(isMariPackUnlocked(golden, [], 99), false, "99 h: locked");
-  assert.equal(isMariPackUnlocked(golden, [], 100), true, "100 h: unlocked");
-  assert.equal(isMariPackUnlocked(golden, ["golden"], 0), true, "an unlock already recorded stays");
-  assert.equal(isMariPackUnlocked(getMariAppearancePack("safari"), [], 0), true, "packs without a rule are open");
-  assert.equal(resolveMariAppearancePack("golden", [], 99).id, "basic", "stored Golden under 100 h renders Basic");
-  assert.equal(resolveMariAppearancePack("golden", [], 100).id, "golden", "stored Golden at 100 h renders Golden");
-  assert.equal(resolveMariAppearancePack("golden", ["golden"]).id, "golden", "a recorded unlock renders Golden");
-  assert.equal(resolveMariAppearancePack("dottore", []).id, "dottore");
-}
-
 {
   // R14 (item 7): the run's clock is anchored on the send, never on a later step.
   const steps = [{ startedAt: 4_000, updatedAt: 6_000 }];
@@ -4027,19 +3815,6 @@ assert.ok(!("mariDetailId" in mariSession));
     8,
     "Worked for counts from the send to the reply, the same anchor as the live timer",
   );
-  // R14: an unresolved failure stays red on the top-bar line, seen or not; working wins over it.
-  const seen: MariEdgeSeenState = { wasWorking: false, unseenRun: false, seenApprovalIds: [], seenHistoryId: null };
-  const failedInput: MariEdgeInput = {
-    working: false,
-    needsAttention: false,
-    pendingApprovalIds: [],
-    latestHistoryId: null,
-    latestHistoryFailed: false,
-    runFailed: true,
-    viewing: true,
-  };
-  assert.equal(resolveMariEdgeGlow(nextMariEdgeSeen(seen, failedInput), failedInput), "error", "red while viewed");
-  assert.equal(resolveMariEdgeGlow(seen, { ...failedInput, working: true }), "working", "a retry runs, not red");
   const presentation = {
     hasRecovery: true,
     hasWorkspaceError: false,

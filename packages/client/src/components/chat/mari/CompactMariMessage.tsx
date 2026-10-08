@@ -43,6 +43,7 @@ import {
   getMessageWorkspaceTrace,
   timelineItemsFromTrace,
   getMessageRunError,
+  getMessageRunTime,
 } from "./mari-tool-presentation";
 import {
   CompactMarkdown,
@@ -572,7 +573,7 @@ export const CompactMariMessage = memo(function CompactMariMessage({
           // ponytail: a retry that reused your saved message counts from your first send; a per-attempt
           // start would need the server to stamp each run. Add it if long retries make this misleading.
           startedAtMs={runStartedAtMs}
-          endedAtMs={Date.parse(message.createdAt) || null}
+          endedAtMs={getMessageRunTime(message, "mariRunFinishedAt") || Date.parse(message.createdAt) || null}
           characterPreviews={characterPreviews}
           lorebookPreviews={lorebookPreviews}
           actionResults={actionResults}
