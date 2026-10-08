@@ -3561,17 +3561,22 @@ export function HomeProfessorMariChat({
 
   // The composer floats over the transcript (M1); the transcript's bottom padding and fade both
   // need the dock's live height, kept on the shared pane as a CSS var so both can read it in CSS.
-  const transcriptPaneRef = useRef<HTMLDivElement>(null);
-  const composerDockRef = useRef<HTMLFormElement>(null);
-  useLayoutEffect(() => {
-    const pane = transcriptPaneRef.current;
-    const dock = composerDockRef.current;
-    if (!pane || !dock) return;
+  // A ref callback, not a mount effect: leaving her pane for Search unmounts the dock while this
+  // component stays mounted, and the new dock on return must be measured again, or the transcript
+  // loses its bottom padding and her empty state slides under the composer.
+  const composerDockRef = useRef<HTMLFormElement | null>(null);
+  const attachComposerDock = useCallback((dock: HTMLFormElement | null) => {
+    composerDockRef.current = dock;
+    const pane = dock?.parentElement;
+    if (!dock || !pane) return;
     const sync = () => pane.style.setProperty("--mari-dock-h", `${dock.offsetHeight}px`);
     sync();
     const observer = new ResizeObserver(sync);
     observer.observe(dock);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      composerDockRef.current = null;
+    };
   }, []);
 
   // M4: the newest turn (the local user message plus everything that follows it) reserves the
@@ -7234,7 +7239,7 @@ export function HomeProfessorMariChat({
                         </div>
                       </div>
 
-                      <div ref={transcriptPaneRef} className="relative flex min-h-0 flex-1 flex-col">
+                      <div className="relative flex min-h-0 flex-1 flex-col">
                         {omnibarMode && !reduceAmbientEffects ? (
                           <div
                             aria-hidden="true"
@@ -7476,7 +7481,7 @@ export function HomeProfessorMariChat({
                         </div>
 
                         <form
-                          ref={composerDockRef}
+                          ref={attachComposerDock}
                           className={cn(
                             "px-2.5 py-2.5",
                             omnibarMode &&
