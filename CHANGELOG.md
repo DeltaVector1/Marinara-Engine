@@ -4,8 +4,9 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
-- While Professor Mari's window is closed, a small pill in the top bar shows what she is doing, with her sprite: "Working · 5 steps", "Needs you", "Done" or "Failed". "Done" fades after a few seconds; "Needs you" and "Failed" stay until you open her. A tap opens her current conversation. The pill uses the same state as the line under the top bar and never moves the other top-bar buttons.
-- Fixed opening Professor Mari from a chat on a phone, right after switching to that chat, leaving the chat out of her "Context" chip, so she did not get it.
+- While Professor Mari's window is closed, a small pill in the top bar shows what she is doing, with her face: "Working", "Needs you", "Done ✓" or "Failed". It glows faintly in her state colour (cyan while she works, gold when she needs you, green when done, red when a run failed), and holds still with reduced motion. "Done" fades after a few seconds; "Needs you" and "Failed" stay until you open her. A tap opens her current conversation. The pill never moves the other top-bar buttons.
+- Fixed opening Professor Mari from a chat on a phone (pull-down, top-bar button or ⌘J) while the chat was still loading, for example right after switching to it or just after the app started: the chat was missing from her "Context" chip, so she did not get it. The chat now joins the chip as soon as it has loaded. Opening her from a chat or an editor without a conversation of its own offers "Continue here" or "New about …" the same way from every one of these doors.
+- Fixed Professor Mari's message box on a phone sitting higher than the bottom of the screen, with a gap under it, for a moment each time the keyboard closed. Her window no longer animates its height on a phone.
 - Professor Mari's step list is calmer and easier to scan. "Worked for 13s · 6 steps" now sits on top of her work and folds it: open on her newest answer, folded on older ones. Steps are grouped by what she did ("Looked at 4 things" with the faces of what she read, "Updated Shrek · scenario"), each row starts with its green check, and rows name the record with a tiny face ("Read Swamp Lore · 3 entries", "Searched help for lorebook keys"). Per-step seconds are gone; the time is on the "Worked for" line.
 - Names in Professor Mari's answer are now links that open the record, with a tiny face. The cards under her answer that repeated those names are gone; cards stay for what she changed and what needs you. A plain word such as "swamp" no longer turns into a card for a lorebook entry with that name.
 - The "Using" button and label in Professor Mari's panel and composer are now called "Context".
@@ -173,6 +174,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 - Completed Professor Mari changes now use compact cards and a lower completed-work history in the desktop Details sidebar.
 - Professor Mari now uses one integrated workspace across Home, FAQ, and handoff flows, with shared resource previews, review decisions, contextual suggestions, animated work scenes, and reduced-motion support.
 - Search and Home Mari navigator can now find characters by saved summary, comment, description, creator, and tags, while character result previews prefer the saved summary.
+- The omnibar now bolds the part of a result's name (and its second line, when the match is there) that matched what you typed, in characters, personas, lorebooks, chats, settings, commands and connections.
+- "Add Eliza to Tavern Night" now attaches to that chat by name, even if it is not the one open — it switches to it and attaches there. Naming no chat with no chat open ("Add Eliza to…") lists your recent chats to pick from; naming one that matches several chats lists those instead of guessing.
 
 ## [2.5.0]
 

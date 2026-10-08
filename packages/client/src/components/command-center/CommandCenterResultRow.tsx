@@ -7,11 +7,18 @@ import { cn } from "@/lib/utils";
 import type { CommandCenterMediaKind } from "./CommandCenterMedia";
 import { ResultTypeIcon, type ResultTypeFace } from "./ResultTypeIcon";
 
+/** A `[start, end)` span into `title`/`metadata`, for highlighting the matched text. */
+export type CommandCenterResultHighlight = readonly [number, number];
+
 export interface CommandCenterResultRowProps {
   id?: string;
   dataResultId?: string;
   title: string;
+  /** The span of `title` that matched the search, if any. */
+  titleHighlight?: CommandCenterResultHighlight | null;
   metadata: string | null;
+  /** The span of `metadata` that matched the search, if any. */
+  metadataHighlight?: CommandCenterResultHighlight | null;
   tertiaryMetadata?: ReactNode;
   icon: LucideIcon;
   /** What the row is (Q6): badges a portrait, and names the row's kind for anything without one. */
@@ -43,11 +50,31 @@ export interface CommandCenterResultRowProps {
   style?: CSSProperties;
 }
 
+/**
+ * Wraps the matched span in a neutral `<mark>` — bold, no background, so a row
+ * reads as "this is why it matched" without the browser's default yellow
+ * highlight shouting over the row's own category color.
+ */
+function highlightSpan(text: string, range: CommandCenterResultHighlight | null | undefined) {
+  if (!range) return text;
+  const [start, end] = range;
+  if (start < 0 || end <= start || end > text.length) return text;
+  return (
+    <>
+      {text.slice(0, start)}
+      <mark className="rounded-[1px] bg-transparent font-bold text-inherit">{text.slice(start, end)}</mark>
+      {text.slice(end)}
+    </>
+  );
+}
+
 export function CommandCenterResultRow({
   id,
   dataResultId,
   title,
+  titleHighlight,
   metadata,
+  metadataHighlight,
   tertiaryMetadata,
   icon,
   type,
@@ -108,7 +135,7 @@ export function CommandCenterResultRow({
           faceCount={faceCount}
         />
         <span className="min-w-0 leading-tight">
-          <span className="block truncate text-sm font-semibold">{title}</span>
+          <span className="block truncate text-sm font-semibold">{highlightSpan(title, titleHighlight)}</span>
           {metadata ? (
             <span
               id={id ? `${id}-metadata` : undefined}
@@ -119,7 +146,7 @@ export function CommandCenterResultRow({
                 expanded ? "line-clamp-2 break-words" : "truncate",
               )}
             >
-              {metadata}
+              {highlightSpan(metadata, metadataHighlight)}
             </span>
           ) : null}
         </span>

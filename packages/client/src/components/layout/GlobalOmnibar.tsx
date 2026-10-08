@@ -117,6 +117,7 @@ import {
 import { getChatCharacterIds } from "../../lib/chat-macros";
 import {
   requestChatResourceAssignment,
+  requestChatResourceAssignmentFor,
   type ChatResourceDragKind,
   type ChatResourceDragPayload,
 } from "../../lib/chat-resource-drag";
@@ -1562,11 +1563,22 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       // from copying every attachable row on each query change (section 10).
     ].slice(0, 40);
   }, [allLocalResults, recentAttachable]);
+  // Most-recent-first, so "add Eliza to Tavern Night" and a dangling "add Eliza
+  // to " (no chat open) both resolve/list real candidates in the order a user
+  // would expect — the chat they were just in, not an arbitrary one.
+  const recentChatNamedRows = useMemo(
+    () =>
+      [...(chats.data ?? [])]
+        .sort((a, b) => (b.lastMessageAt ?? b.updatedAt).localeCompare(a.lastMessageAt ?? a.updatedAt))
+        .map((chat) => ({ id: chat.id, name: chat.name })),
+    [chats.data],
+  );
   const addSuggestions = useMemo<OmnibarResult[]>(
     () =>
       buildOmnibarAddSuggestions({
         activeChat,
         attachedResultIds,
+        chats: recentChatNamedRows,
         deferredQuery,
         omnibarSuggestionsEnabled,
         searchResults: searchResults.some((result) => CHAT_RESOURCE_KIND[result.category])
@@ -1574,7 +1586,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
           : attachableFallback,
         t,
       }),
-    [activeChat, attachableFallback, attachedResultIds, deferredQuery, omnibarSuggestionsEnabled, searchResults, t],
+    [
+      activeChat,
+      attachableFallback,
+      attachedResultIds,
+      deferredQuery,
+      omnibarSuggestionsEnabled,
+      recentChatNamedRows,
+      searchResults,
+      t,
+    ],
   );
   const verbSuggestions = useMemo<OmnibarResult[]>(
     () => buildOmnibarVerbSuggestions({ allLocalResults, deferredQuery }),
@@ -2291,6 +2312,21 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
         requestAnimationFrame(() => inputRef.current?.focus());
         return;
       case "add-to-chat":
+        // Named a different (or no open) chat: queue the attach for when that
+        // chat mounts, then navigate there — the same handoff the "goto-message"
+        // action above uses to land on a chat that is not open yet.
+        if (action.chatId && action.chatId !== activeChatId) {
+          if (!navigate({ kind: "chat", chatId: action.chatId })) return;
+          requestChatResourceAssignmentFor(action.chatId, {
+            version: 1,
+            kind: action.resource,
+            ids: [action.resourceId],
+            label: action.label,
+          });
+          recordUse(result.id);
+          onClose();
+          return;
+        }
         attachToChat(action.resource, action.resourceId, action.label, result.id);
         return;
       case "detach-from-chat":
@@ -3672,7 +3708,14 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                             dataResultId={result.id}
                             id={`omnibar-${result.id}`}
                             title={result.title}
+                            titleHighlight={result.titleMatch}
                             metadata={resultMetadata(result, preview)}
+                            // The highlight only lines up with `description` itself: a
+                            // contextLabel or preview subtitle shown in its place is
+                            // different text, so it gets no highlight rather than a wrong one.
+                            metadataHighlight={
+                              !result.contextLabel && !preview?.subtitle ? result.descriptionMatch : null
+                            }
                             tertiaryMetadata={
                               <>
                                 {preview?.lorebookCount ? (

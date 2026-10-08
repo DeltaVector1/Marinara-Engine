@@ -37,7 +37,14 @@ export type OmnibarAction =
   | { kind: "slash"; command: string }
   | { kind: "goto-message"; chatId: string; messageNumber: number }
   | { kind: "detach-from-chat"; resource: ChatResourceDragKind; resourceId: string; label: string }
-  | { kind: "add-to-chat"; resource: ChatResourceDragKind; resourceId: string; label: string }
+  | {
+      kind: "add-to-chat";
+      resource: ChatResourceDragKind;
+      resourceId: string;
+      label: string;
+      /** Set when the query named a chat ("add Eliza to Tavern Night"); absent targets the open chat. */
+      chatId?: string;
+    }
   | { kind: "refine-query"; query: string }
   | { kind: "personal-extension"; commandId: string }
   | { kind: "open-docs"; path?: string }
@@ -79,6 +86,9 @@ export type OmnibarResult = {
   contextLabel?: string;
   /** Internal search tier used to discard fuzzy rows once a literal match exists. */
   matchKind?: "literal" | "fuzzy";
+  /** Where the query hit `title`/`description`, for highlighting. Null when no cheap literal span exists. */
+  titleMatch?: OmnibarMatchRange | null;
+  descriptionMatch?: OmnibarMatchRange | null;
   control?: {
     type: "toggle" | "choice";
     label: string;
@@ -374,6 +384,36 @@ const RESOURCE_ICONS: Partial<Record<string, CommandIcon>> = {
 /** A query no normalised title can equal, so a bare verb matches nothing by text. */
 const NO_MATCH = "\u0000";
 
+/** A `[start, end)` span into a result's own `title`/`description` text, for highlighting. */
+export type OmnibarMatchRange = readonly [number, number];
+
+/**
+ * Where `query` sits inside `text`, for highlighting the matched span.
+ *
+ * A literal, case-insensitive substring check against the row's own text —
+ * not the normalized query used for scoring — so no index-mapping table is
+ * needed to translate a normalized offset back into the original string.
+ * ponytail: this covers the exact/prefix/substring/whole-word score tiers
+ * (the ones that are a real substring relationship) but not the "every word
+ * starts a word" or subsequence/typo tiers; those return null (no highlight)
+ * rather than a wrong one. Upgrade: track per-tier offsets inside `scoreText`.
+ */
+export function findOmnibarMatchRange(query: string, text: string): OmnibarMatchRange | null {
+  const needle = query.trim();
+  if (!needle || needle === NO_MATCH) return null;
+  const index = text.toLowerCase().indexOf(needle.toLowerCase());
+  return index < 0 ? null : [index, index + needle.length];
+}
+
+/** Tries each candidate query (e.g. the entity text, then the full typed phrase) and keeps the first hit. */
+function withMatchRanges<T extends OmnibarResult>(result: T, queries: readonly string[]): T {
+  const titleMatch = queries.map((q) => findOmnibarMatchRange(q, result.title)).find((range) => range) ?? null;
+  const descriptionMatch = result.description
+    ? queries.map((q) => findOmnibarMatchRange(q, result.description!)).find((range) => range) ?? null
+    : null;
+  return { ...result, titleMatch, descriptionMatch };
+}
+
 /**
  * The bottom rung under exact, prefix, whole-word and substring: the query's
  * letters appear in order but not together. It catches a typo ("elzia" for
@@ -413,6 +453,66 @@ function scoreText(query: string, values: readonly string[]) {
     }
     return Math.max(best, scoreSubsequence(query, normalized));
   }, -1);
+}
+
+export type OmnibarAddTarget = {
+  /** The entity text with any trailing chat reference removed. Unchanged when there was none. */
+  entityQuery: string;
+  chatId?: string;
+  chatName?: string;
+  /** Several chats tied for the best match, or the reference named no chat at all ("add Eliza to "): list these instead of picking one. Callers should pass chats most-recent-first. */
+  ambiguousChats?: readonly { id: string; name: string }[];
+};
+
+/** A trailing "in/to/into" with nothing after it: the user named an entity and is about to name a chat. */
+const DANGLING_CHAT_REF = /\s+(?:in|to|into)\s*$/i;
+/** A trailing "in/to/into <chat name>": the rightmost one wins, so "Lost in Tokyo" still falls through to no-split when no chat is named "Tokyo". */
+const TRAILING_CHAT_REF = /\s+(?:in|to|into)\s+(.+)$/i;
+/** How many recent chats a dangling "add X to " or an ambiguous chat name lists. */
+const MAX_AMBIGUOUS_ADD_CHATS = 5;
+
+/**
+ * Splits "Eliza to Tavern Night" into its entity and target chat, so "add X
+ * to/in/into Y" can attach X to a chat other than the one that is open.
+ *
+ * Only ever splits when the text after the preposition actually names a known
+ * chat (or is empty, i.e. the user is mid-sentence) — otherwise the whole
+ * phrase is kept as the entity text, so "Lost in Tokyo" (a character, no chat
+ * named "Tokyo") searches as one name instead of losing "in Tokyo" to a false
+ * split.
+ */
+export function splitOmnibarAddTarget(
+  targetQuery: string,
+  chats: readonly { id: string; name: string }[],
+): OmnibarAddTarget {
+  const trimmed = targetQuery.trim();
+  if (!trimmed) return { entityQuery: targetQuery };
+  const dangling = trimmed.match(DANGLING_CHAT_REF);
+  if (dangling) {
+    const entityQuery = trimmed.slice(0, dangling.index).trim();
+    return entityQuery ? { entityQuery, ambiguousChats: chats.slice(0, MAX_AMBIGUOUS_ADD_CHATS) } : { entityQuery: targetQuery };
+  }
+  const match = trimmed.match(TRAILING_CHAT_REF);
+  if (!match) return { entityQuery: targetQuery };
+  const entityQuery = trimmed.slice(0, match.index).trim();
+  const chatQuery = normalizeProfessorMariNavigationQuery(match[1]!);
+  if (!entityQuery || !chatQuery) return { entityQuery: targetQuery };
+  const scored = chats
+    .map((chat) => ({ chat, score: scoreText(chatQuery, [chat.name]) }))
+    .filter((entry) => entry.score >= 100)
+    .sort((a, b) => b.score - a.score);
+  const best = scored[0];
+  if (!best) return { entityQuery: targetQuery };
+  if (scored[1] && scored[1].score === best.score) {
+    return {
+      entityQuery,
+      ambiguousChats: scored
+        .filter((entry) => entry.score === best.score)
+        .map((entry) => entry.chat)
+        .slice(0, MAX_AMBIGUOUS_ADD_CHATS),
+    };
+  }
+  return { entityQuery, chatId: best.chat.id, chatName: best.chat.name };
 }
 
 /**
@@ -494,13 +594,18 @@ export function searchOmnibar(query: string, data: OmnibarSearchData): OmnibarRe
   const normalized = normalizeProfessorMariNavigationQuery(query);
   if (!normalized) return [];
   const intent = parseOmnibarIntent(query);
+  // "add Eliza to Tavern Night" names a chat, not more of the entity's name: strip
+  // it before the entity text is searched, so "Eliza" (not "Eliza to Tavern
+  // Night") is what gets matched against character/persona/etc. rows.
+  const addTarget = intent?.kind === "action" ? splitOmnibarAddTarget(intent.targetQuery, data.chats) : undefined;
+  const effectiveTargetQuery = addTarget?.entityQuery ?? intent?.targetQuery;
   // A bare verb ("add", "remove") is a half-sentence, not a search term. Text
   // matching it just surfaces every row containing the word, so the verb is
   // matched against nothing and the verb-suggestion builder answers it instead.
   // "add character" is not bare: the kind narrows the list, and the empty
   // target then matches every row in that category.
-  const bare = Boolean(intent && !intent.targetQuery && !intent.objectCategory);
-  const searchQuery = bare ? NO_MATCH : intent ? intent.targetQuery : normalized;
+  const bare = Boolean(intent && !effectiveTargetQuery && !intent.objectCategory);
+  const searchQuery = bare ? NO_MATCH : intent ? effectiveTargetQuery! : normalized;
   const fullQuery = bare ? NO_MATCH : normalized;
   const results: OmnibarResult[] = [];
   for (const control of data.controls ?? []) {
@@ -621,6 +726,7 @@ export function searchOmnibar(query: string, data: OmnibarSearchData): OmnibarRe
       );
   }
   return (intent?.objectCategory ? results.filter((item) => item.category === intent.objectCategory) : results)
+    .map((item) => withMatchRanges(item, [searchQuery, fullQuery]))
     .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title) || a.id.localeCompare(b.id))
     .concat({
       id: "ask-professor-mari",

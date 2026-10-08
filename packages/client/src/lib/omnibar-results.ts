@@ -36,6 +36,7 @@ import {
   isOmnibarRemovalIntent,
   parseOmnibarIntent,
   searchOmnibar,
+  splitOmnibarAddTarget,
   type OmnibarCategory,
   type OmnibarContext,
   type OmnibarContextReason,
@@ -271,6 +272,8 @@ export type OmnibarAddSuggestionsInput = {
   activeChat: Chat | null | undefined;
   /** Result ids already attached to the open chat, so nothing is offered twice. */
   attachedResultIds: ReadonlySet<string>;
+  /** Every chat, most-recent-first: resolves "add X to Y" and lists recents when Y is unnamed or ambiguous. */
+  chats?: readonly OmnibarNamedRow[];
   deferredQuery: string;
   omnibarSuggestionsEnabled: boolean;
   searchResults: readonly OmnibarResult[];
@@ -1443,38 +1446,60 @@ export function buildOmnibarVerbSuggestions({
 export function buildOmnibarAddSuggestions({
   activeChat,
   attachedResultIds,
+  chats = [],
   deferredQuery,
   omnibarSuggestionsEnabled,
   searchResults,
   t,
 }: OmnibarAddSuggestionsInput): OmnibarResult[] {
-  if (!omnibarSuggestionsEnabled || !activeChat || !isOmnibarAddIntent(deferredQuery)) return [];
-  const browsingKind = Boolean(parseOmnibarIntent(deferredQuery)?.objectCategory);
+  if (!omnibarSuggestionsEnabled || !isOmnibarAddIntent(deferredQuery)) return [];
+  const intent = parseOmnibarIntent(deferredQuery);
+  const target = splitOmnibarAddTarget(intent?.targetQuery ?? "", chats);
+  // A named/ambiguous chat always wins; otherwise fall back to the open chat.
+  const chatTargets: OmnibarNamedRow[] = target.chatId
+    ? [{ id: target.chatId, name: target.chatName! }]
+    : target.ambiguousChats?.length
+      ? [...target.ambiguousChats]
+      : activeChat
+        ? [{ id: activeChat.id, name: activeChat.name }]
+        : [];
+  // No open chat and no named chat either: nothing to attach to yet.
+  if (!chatTargets.length) return [];
+  const browsingKind = Boolean(intent?.objectCategory);
   const limit = browsingKind ? MAX_ADD_SUGGESTIONS_BROWSING : MAX_ADD_SUGGESTIONS;
   const out: OmnibarResult[] = [];
   for (const result of searchResults) {
     if (out.length >= limit) break;
     const resource = ADD_RESOURCE_KINDS[result.category];
-    if (!resource || attachedResultIds.has(result.id)) continue;
+    if (!resource) continue;
     // Entity rows are `<category>:<id>`. Control and command rows are not, and
     // must never be offered as something to attach.
     if (!result.id.startsWith(`${result.category}:`)) continue;
     const resourceId = result.id.slice(result.category.length + 1);
     if (!resourceId) continue;
-    out.push({
-      id: `action:add-to-chat:${result.id}`,
-      action: { kind: "add-to-chat", resource, resourceId, label: result.title } as const,
-      title: t("commandCenter.actions.addToChat", "Add {{name}} to this chat", { name: result.title }),
-      description: t("commandCenter.actions.addToChatDescription", "Attach it to {{chat}} now.", {
-        chat: activeChat.name,
-      }),
-      category: result.category,
-      media: result.media,
-      score: ADD_SUGGESTION_SCORE - out.length,
-      kind: "action" as const,
-      icon: result.icon,
-      group: "current-work" as const,
-    });
+    for (const chat of chatTargets) {
+      if (out.length >= limit) break;
+      // Already attached only means something for the open chat: a named different
+      // chat's membership is not part of this row set, so it is not checked here.
+      if (chat.id === activeChat?.id && attachedResultIds.has(result.id)) continue;
+      const namedChat = chatTargets.length > 1 || Boolean(target.chatId);
+      out.push({
+        id: `action:add-to-chat:${result.id}:${chat.id}`,
+        action: { kind: "add-to-chat", resource, resourceId, label: result.title, chatId: chat.id } as const,
+        title: namedChat
+          ? t("commandCenter.actions.addToNamedChat", "Add {{name}} to {{chat}}", { name: result.title, chat: chat.name })
+          : t("commandCenter.actions.addToChat", "Add {{name}} to this chat", { name: result.title }),
+        description: t("commandCenter.actions.addToChatDescription", "Attach it to {{chat}} now.", {
+          chat: chat.name,
+        }),
+        category: result.category,
+        media: result.media,
+        score: ADD_SUGGESTION_SCORE - out.length,
+        kind: "action" as const,
+        icon: result.icon,
+        group: "current-work" as const,
+      });
+    }
   }
   return out;
 }

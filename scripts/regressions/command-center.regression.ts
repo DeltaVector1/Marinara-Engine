@@ -27,16 +27,17 @@ import {
   getOmnibarActiveChatContextResultIds,
   getUnambiguousOmnibarResult,
   isDirectActiveChatAction,
+  findOmnibarMatchRange,
   parseOmnibarIntent,
   resultOpensDirectlyOnTap,
   searchOmnibar,
+  splitOmnibarAddTarget,
   type OmnibarResult,
 } from "../../packages/client/src/lib/omnibar-search.js";
 import { resolveChatResourceDropAction } from "../../packages/client/src/lib/chat-resource-drop-capabilities.js";
 import { extractDocsSearchQuery } from "../../packages/client/src/lib/docs-command-search.js";
 import { resolveRunAnchorMs, resolveRunSeconds } from "../../packages/client/src/lib/mari-work-card-timing.js";
 import {
-  mariTopbarStatusLabel,
   nextMariEdgeSeen,
   resolveMariEdgeGlow,
   type MariEdgeInput,
@@ -45,6 +46,7 @@ import {
 import { getOmnibarSettingsDestinations } from "../../packages/client/src/lib/omnibar-settings.js";
 import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/lib/omnibar-scope.js";
 import {
+  buildOmnibarAddSuggestions,
   buildOmnibarApprovalResults,
   buildOmnibarContextResults,
   buildOmnibarControlResults,
@@ -716,6 +718,57 @@ assert.equal(parseOmnibarIntent("recommend a preset")?.kind, "recommend");
 assert.equal(parseOmnibarIntent("image generation failed")?.kind, "repair");
 assert.equal(parseOmnibarIntent("add Luna to this chat")?.kind, "action");
 assert.equal(parseOmnibarIntent("profile Luna"), null);
+
+// Slice 75: "add X in/to/into Y" names a chat to attach to, not more of the entity name.
+const slice75Chats = [
+  { id: "chat-tavern", name: "Tavern Night" },
+  { id: "chat-study", name: "Study Group" },
+  { id: "chat-crawl", name: "Tavern Crawl" },
+];
+assert.deepEqual(splitOmnibarAddTarget("eliza to tavern night", slice75Chats), {
+  entityQuery: "eliza",
+  chatId: "chat-tavern",
+  chatName: "Tavern Night",
+});
+// No chat is actually named "Tokyo": the name stays whole rather than a false split.
+assert.deepEqual(splitOmnibarAddTarget("lost in tokyo", slice75Chats), { entityQuery: "lost in tokyo" });
+// Two chats share "Tavern": list both instead of guessing one.
+const slice75Ambiguous = splitOmnibarAddTarget("eliza to tavern", slice75Chats);
+assert.equal(slice75Ambiguous.entityQuery, "eliza");
+assert.equal(slice75Ambiguous.ambiguousChats?.length, 2);
+// A dangling "to " with nothing named yet offers every recent chat as the next step.
+assert.deepEqual(
+  splitOmnibarAddTarget("eliza to ", slice75Chats).ambiguousChats?.map((chat) => chat.id),
+  ["chat-tavern", "chat-study", "chat-crawl"],
+);
+// The split feeds the entity search too, so "Eliza" (not "Eliza to Tavern Night") is what matches.
+const slice75SearchResults = searchOmnibar("add eliza to tavern night", {
+  commands: [],
+  chats: slice75Chats,
+  resources: [{ kind: "character", id: "eliza", name: "Eliza" }],
+  connections: [],
+});
+assert.ok(
+  slice75SearchResults.some((result) => result.id === "character:eliza" && result.titleMatch?.[0] === 0),
+  "the entity row is found and keeps a highlight range for its own matched title",
+);
+assert.deepEqual(findOmnibarMatchRange("liz", "Eliza"), [1, 4]);
+assert.equal(findOmnibarMatchRange("zzz", "Eliza"), null);
+const slice75NamedChatAdd = buildOmnibarAddSuggestions({
+  activeChat: null,
+  attachedResultIds: new Set(),
+  chats: slice75Chats,
+  deferredQuery: "add eliza to tavern night",
+  omnibarSuggestionsEnabled: true,
+  searchResults: [{ id: "character:eliza", title: "Eliza", category: "character", score: 200, icon: "character" }],
+  t: (_key: string, fallback?: string) => fallback ?? "",
+});
+assert.equal(slice75NamedChatAdd[0]?.action?.kind, "add-to-chat");
+assert.equal(
+  (slice75NamedChatAdd[0]?.action as { chatId?: string } | undefined)?.chatId,
+  "chat-tavern",
+  "a named chat attaches there even with no chat open",
+);
 
 const directOpenResults = searchOmnibar("open Luna", {
   commands: [],

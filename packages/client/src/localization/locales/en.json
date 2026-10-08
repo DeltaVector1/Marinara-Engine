@@ -886,6 +886,7 @@
   "chatWindowIntro.videoLabel": "How to arrange your chat buttons and windows",
   "commandCenter.actions.addToChat": "Add {{name}} to this chat",
   "commandCenter.actions.addToChatDescription": "Attach it to {{chat}} now.",
+  "commandCenter.actions.addToNamedChat": "Add {{name}} to {{chat}}",
   "commandCenter.actions.addToThisChat": "Add to this chat",
   "commandCenter.actions.chatControlChosen": "{{label}}: {{value}}",
   "commandCenter.actions.continueWithMari": "Continue with Mari",
