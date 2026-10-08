@@ -2,7 +2,11 @@ import { useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import type { MariDbHistoryEntry, MariWorkspacePendingApproval } from "@marinara-engine/shared";
+import {
+  chatIdForMariSession,
+  type MariDbHistoryEntry,
+  type MariWorkspacePendingApproval,
+} from "@marinara-engine/shared";
 import { api } from "../lib/api-client";
 import { replyFixChat } from "../lib/mari-edit-diff";
 import { describeProfessorMariError } from "../lib/professor-mari-errors";
@@ -81,6 +85,9 @@ export function useMariApprovals(options: { onRefresh?: () => Promise<void> | vo
               .map((change) => replyFixChat(change)?.id)
               .filter((chatId): chatId is string => Boolean(chatId)),
           );
+          // Slice 74: the server wrote "Kept" onto the receipt of the Mari message that made the change.
+          const mariChatId = chatIdForMariSession(result.approval?.sessionId);
+          if (mariChatId) fixedChatIds.add(mariChatId);
           await Promise.all(
             [...fixedChatIds].map((chatId) => qc.invalidateQueries({ queryKey: chatKeys.messages(chatId) })),
           );

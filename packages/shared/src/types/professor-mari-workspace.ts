@@ -244,9 +244,36 @@ export interface MariWorkspaceActionResult {
   };
   changedFields: string[];
   editorTarget?: string;
+  /** The first review; kept for messages saved before `reviewIds`. */
   reviewId?: string;
   summary: string;
+  // Slice 74 receipt: what changed, kept on the message so the card stays full after Keep, Undo or a
+  // reload. All optional: an older message lacks them and falls back to the field names.
+  /** Every review merged into this record (one record per run). */
+  reviewIds?: string[];
+  /** Her one-line why for the change. */
+  reason?: string;
+  /** Per field, short before/after excerpts or list names, in editor order. */
+  changes?: MariChangeExcerpt[];
+  /** Changed fields the excerpts leave out. */
+  moreChanges?: number;
+  /** When the undo record expires; absent when there is no undo (Accept edits mode). */
+  undoUntil?: string;
+  /** Written back by the Keep / Undo routes. */
+  outcome?: "kept" | "undone";
 }
+
+export type MariChangeExcerpt =
+  | { field: string; kind: "text"; before: string; after: string }
+  | { field: string; kind: "value"; before: string; after: string }
+  | {
+      field: string;
+      kind: "list";
+      added: string[];
+      edited: string[];
+      removed: string[];
+      count: { added: number; edited: number; removed: number };
+    };
 
 export type MariWorkspaceToolName =
   | "docs_search"
@@ -770,6 +797,8 @@ export interface MariDbCommandResult {
     status: "not_required" | "pending" | "approved" | "rejected" | "cancelled" | "timed_out" | "state_changed";
     id?: string;
     operationHash?: string;
+    /** An applied review's undo deadline. */
+    expiresAt?: string;
   };
   journalPath?: string | null;
   error?: string;

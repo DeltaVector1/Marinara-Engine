@@ -67,6 +67,8 @@ import {
   isMariHeldChangeApprovalChip,
   withHeldChangeDeclineChip,
   MARI_STARTER_CHIPS,
+  mariReceiptReviewIds,
+  mergeMariActionResults,
   sanitizeMariSuggestionChips,
   type APIConnection,
   type Chat,
@@ -135,7 +137,6 @@ import {
   countBlockingReviews,
   isMariReviewWaiting,
   isPersistentProfessorMariContext,
-  professorMariContextCount,
   professorMariContextFacets,
   professorMariFacetSendsContentLater,
   resolveProfessorMariPresentationState,
@@ -171,6 +172,7 @@ import { useAgentStore } from "../../stores/agent.store";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { useUIStore } from "../../stores/ui.store";
 import { DeleteReviewCard, MariHeldChangeCard, ResolvedPromptLine, WorkspaceApprovalCard } from "./MariApprovalCards";
+import { MariChangeReceipt, type MariReceiptControls } from "./MariChangeReceipt";
 import {
   MARI_SIDE_ROW_CLASS,
   MariPanelSortSelect,
@@ -744,10 +746,34 @@ function isMariWorkspaceActionResult(value: unknown): value is MariWorkspaceActi
   );
 }
 
+/** Slice 74: a receipt excerpt the card can draw; anything else is dropped, never rendered half. */
+function isMariChangeExcerpt(value: unknown): boolean {
+  const change = asRecord(value);
+  if (typeof change?.field !== "string") return false;
+  if (change.kind === "text" || change.kind === "value") {
+    return typeof change.before === "string" && typeof change.after === "string";
+  }
+  const count = asRecord(change.count);
+  return (
+    change.kind === "list" &&
+    ["added", "edited", "removed"].every((part) => Array.isArray(change[part]) && typeof count?.[part] === "number")
+  );
+}
+
+/** One record per thing the run changed (older messages kept one per command). */
 function getMessageWorkspaceActionResults(message: Message): MariWorkspaceActionResult[] {
   const extra = toMessageExtra(message);
   const results = extra?.mariWorkspaceActionResults;
-  return Array.isArray(results) ? results.filter(isMariWorkspaceActionResult) : [];
+  if (!Array.isArray(results)) return [];
+  return mergeMariActionResults(
+    results
+      .filter(isMariWorkspaceActionResult)
+      .map((result) =>
+        Array.isArray(result.changes)
+          ? { ...result, changes: result.changes.filter(isMariChangeExcerpt) }
+          : { ...result, changes: undefined },
+      ),
+  );
 }
 
 type WorkspaceTimelineItem =
@@ -2600,63 +2626,6 @@ function MariReplyActions({
  * I3 / R10: something she made or changed, as a row of the outcome group: its face, its name (with "New"
  * when she made it), one fact in words ("Changed description", "New lorebook · 4 entries") and › to open.
  */
-function MariWorkspaceActionResultRow({
-  result,
-  onOpen,
-  character,
-  lorebook,
-}: {
-  result: MariWorkspaceActionResult;
-  onOpen: (result: MariWorkspaceActionResult) => void;
-  character?: CharacterPreviewModel | null;
-  lorebook?: LorebookPreviewModel | null;
-}) {
-  const { t: localizeUi, i18n } = useUiTranslation();
-  const characterPreview =
-    result.resource.kind === "character" && character?.id === result.resource.id ? character : null;
-  const lorebookPreview = result.resource.kind === "lorebook" && lorebook?.id === result.resource.id ? lorebook : null;
-  const name = characterPreview?.name ?? lorebookPreview?.name ?? result.resource.label ?? result.summary;
-  const created = result.status === "created";
-  const fact = created
-    ? [
-        localizeUi("ui.chat.homeprofessormarichat.resultFact.new", {
-          type: localizeUi(`omnibar.categories.${result.resource.kind}`).toLocaleLowerCase(),
-        }),
-        typeof lorebookPreview?.entryCount === "number"
-          ? localizeUi("ui.chat.homeprofessormarichat.refFact.entries", { count: lorebookPreview.entryCount })
-          : null,
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    : result.changedFields.length > 0
-      ? localizeUi("ui.chat.homeprofessormarichat.changedFields", {
-          fields: new Intl.ListFormat(i18n.resolvedLanguage ?? "en", { type: "conjunction" }).format(
-            result.changedFields.slice(0, 3),
-          ),
-        })
-      : result.summary;
-  return (
-    <MariRow
-      slot={
-        <ResultTypeIcon
-          type={resourceResultType(result.resource.kind)}
-          src={characterPreview?.avatarSrc ?? lorebookPreview?.imageSrc}
-          kind={characterPreview ? "avatar" : "image"}
-          avatarCropStyle={characterPreview?.avatarCropStyle}
-        />
-      }
-      title={name}
-      badge={
-        created ? <span className="mari-new-badge">{localizeUi("ui.chat.mariediteasyviewer.actionNew")}</span> : null
-      }
-      fact={fact}
-      trail="open"
-      trailLabel={localizeUi("ui.chat.homeprofessormarichat.openResult")}
-      onClick={() => onOpen(result)}
-    />
-  );
-}
-
 /**
  * What her answer is about, as rows of one group right under her words (R10): a face or type icon, the
  * name and one fact about that thing (never its type), and › to open it at once. The description is the
@@ -2844,7 +2813,13 @@ function MariResourceSubject({
  * The reviews a turn holds, split by whether they already changed something or wait for your answer.
  * `records` names what they show (`review:<id>`, `<type>:<record id>`), so a turn draws one row per record.
  */
-type MariTurnReviews = { changed: ReactNode[]; needsOk: ReactNode[]; records: ReadonlySet<string> };
+type MariTurnReviews = {
+  changed: ReactNode[];
+  needsOk: ReactNode[];
+  records: ReadonlySet<string>;
+  /** Slice 74: Keep / Undo for the turn's change receipt. */
+  receipt?: MariReceiptControls;
+};
 
 /**
  * M5a / R10: what a run needs from you and what it changed, as two groups after her answer. What needs
@@ -2852,13 +2827,18 @@ type MariTurnReviews = { changed: ReactNode[]; needsOk: ReactNode[]; records: Re
  */
 /** Slice 71 (N7): what needs you comes first, each card on its own with its accent edge; what changed
  * follows as one quiet group, headed only when a card stands above it. */
-function MariOutcomeGroup({ changed, needsOk }: Pick<MariTurnReviews, "changed" | "needsOk">) {
+function MariOutcomeGroup({
+  changed,
+  needsOk,
+  receipt,
+}: Pick<MariTurnReviews, "changed" | "needsOk"> & { receipt?: ReactNode }) {
   const { t: localizeUi } = useUiTranslation();
-  if (changed.length === 0 && needsOk.length === 0) return null;
+  if (changed.length === 0 && needsOk.length === 0 && !receipt) return null;
   const label = localizeUi("ui.chat.homeprofessormarichat.outcomeChanged");
   return (
     <div className="mari-list-stack" data-cards="outcome">
       {needsOk}
+      {receipt}
       {changed.length > 0 ? (
         <MariList head={needsOk.length > 0 ? label : undefined} role="group" aria-label={label}>
           {changed}
@@ -2907,25 +2887,46 @@ function MariWorkTimelineOutcome({
 }) {
   // Slice 72: no reference cards here - the names in her answer are the links; cards are for what changed
   // and what needs you.
+  // R10: one row per record. A review of the same record that the receipt does not cover shows it instead.
+  const receiptResults = withoutReviewedResults(actionResults, reviews?.records ?? new Set());
+  const whyPoints = splitMariAnswerWhy(stripProfessorMariSpeakerPrefix(content)).why;
+  // Slice 74: the receipt's Why is her reason, else her first Why point (which then leaves the list).
+  const receiptWhy = receiptResults.some((result) => result.reason) ? undefined : whyPoints[0];
+  const receiptName = (result: MariWorkspaceActionResult) =>
+    (result.resource.kind === "character" ? characterPreviews.get(result.resource.id)?.name : undefined) ??
+    (result.resource.kind === "lorebook" ? lorebookPreviews.get(result.resource.id)?.name : undefined) ??
+    result.resource.label ??
+    result.summary;
   return (
     <div className="mari-run-outcome">
       <MariOutcomeGroup
-        changed={[
-          ...(reviews?.changed ?? []),
-          // R10: one row per record. A review of the same record already shows it, with its Undo.
-          ...withoutReviewedResults(actionResults, reviews?.records ?? new Set()).map((result) => (
-            <MariWorkspaceActionResultRow
-              key={`${result.status}-${result.resource.kind}-${result.resource.id}`}
-              result={result}
-              onOpen={onOpenActionResult}
-              character={characterPreviews.get(result.resource.id)}
-              lorebook={lorebookPreviews.get(result.resource.id)}
-            />
-          )),
-        ]}
+        changed={reviews?.changed ?? []}
         needsOk={reviews?.needsOk ?? []}
+        receipt={
+          receiptResults.length > 0 ? (
+            <MariChangeReceipt
+              results={receiptResults}
+              fallbackWhy={receiptWhy}
+              controls={reviews?.receipt}
+              onOpen={onOpenActionResult}
+              nameOf={receiptName}
+              faceOf={(result) => {
+                const character = characterPreviews.get(result.resource.id);
+                const lorebook = result.resource.kind === "lorebook" ? lorebookPreviews.get(result.resource.id) : null;
+                return (
+                  <MariFace
+                    type={resourceResultType(result.resource.kind)}
+                    name={receiptName(result)}
+                    src={character?.avatarSrc ?? lorebook?.imageSrc}
+                    avatarCropStyle={character?.avatarCropStyle}
+                  />
+                );
+              }}
+            />
+          ) : null
+        }
       />
-      <MariWhyDisclosure points={splitMariAnswerWhy(stripProfessorMariSpeakerPrefix(content)).why} />
+      <MariWhyDisclosure points={receiptWhy ? whyPoints.slice(1) : whyPoints} />
       <MariReplyActions
         content={stripProfessorMariSpeakerPrefix(content)}
         onRegenerate={onRegenerate}
@@ -3667,7 +3668,6 @@ export function HomeProfessorMariChat({
     connectionOptions[0] ??
     null;
   const effectiveConnectionId = effectiveConnection?.id ?? null;
-  const persistentContextCount = professorMariContextCount(attachedContext?.length ?? 0, handoffContext);
   const oneShotContext = handoffContext && !isPersistentProfessorMariContext(handoffContext) ? handoffContext : null;
   const oneShotContextFacets = useMemo(() => professorMariContextFacets(oneShotContext), [oneShotContext]);
   // R14: the composer's context row shows everything she is using - the one-shot facets and her lasting
@@ -6316,8 +6316,32 @@ export function HomeProfessorMariChat({
   };
   // M5a / slice 71 (F1): applied changes and answered prompts are "what changed"; everything still waiting
   // - a delete too, whose rows stay hidden until you choose - needs you. The deletes of one turn are one card.
+  // Slice 74: a change her message has a receipt for shows as that receipt, which answers its reviews.
+  const receiptControls: MariReceiptControls = {
+    // All of them, also while a run is busy: a receipt must not read "Undo closed" mid-run.
+    pending: new Map(pendingChangeReviews.map((approval) => [approval.id, approval])),
+    answered: new Map(
+      resolvedPrompts
+        .filter((prompt) => prompt.chatId === chatId)
+        .map(({ approval, outcome }) => [approval.id, outcome === "applied" ? "kept" : "undone"]),
+    ),
+    busy: approvalBusyId !== null,
+    // Read when the receipt renders: the highlight state is declared further down this component.
+    isHighlighted: (id) => highlightedReviewId === id,
+    onAnswer: (approvals, keep) =>
+      void answerAll(
+        approvals.map((approval) => ({ approval })),
+        keep,
+      ),
+    renderDetails: (approval) => renderTurnPrompt({ requestedAt: approval.requestedAt, approval, outcome: null }),
+  };
   const renderTurnReviews = (messageId: string): MariTurnReviews => {
-    const entries = reviewsByTurn.byMessageId.get(messageId) ?? [];
+    const message = displayMessages.find((item) => item.id === messageId);
+    const covered = new Set(message ? getMessageWorkspaceActionResults(message).flatMap(mariReceiptReviewIds) : []);
+    const entries = (reviewsByTurn.byMessageId.get(messageId) ?? []).filter(
+      ({ approval }) =>
+        !(approval.kind === "applied_review" && covered.has(approval.id) && !isMariReviewWaiting(approval)),
+    );
     const waiting = entries.filter(({ approval, outcome }) => !outcome && isMariReviewWaiting(approval));
     const deletes = waiting.filter(
       (entry): entry is typeof entry & { approval: MariDbPendingApproval } => entry.approval.kind === "applied_review",
@@ -6348,6 +6372,7 @@ export function HomeProfessorMariChat({
         ...waiting.filter((entry) => !deleteGroup || !deletes.includes(entry as never)).map(renderTurnPrompt),
       ],
       records: reviewRecordKeys(entries.map(({ approval }) => approval)),
+      receipt: receiptControls,
     };
   };
   // M9 / R10: she arrives knowing the screen she was opened from: her sprite and one line with its facts,
@@ -6427,7 +6452,8 @@ export function HomeProfessorMariChat({
       Icon: Eye,
       label: localizeUi("ui.chat.homeprofessormarichat.awareOf"),
       shortLabel: localizeUi("ui.chat.homeprofessormarichat.awareOf"),
-      count: persistentContextCount + oneShotContextFacets.length,
+      // Slice 74 (slice 73 leftover): one per chip the composer shows, plus what is attached for good.
+      count: (attachedContext?.length ?? 0) + (composerContextFacets.length || (oneShotContext?.query ? 1 : 0)),
     },
     {
       id: "chats",

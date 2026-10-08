@@ -197,6 +197,8 @@ const LABEL_OVERRIDES: Record<string, string> = {
   "data.system_prompt": "System prompt",
   "data.post_history_instructions": "Post-history instructions",
   "data.creator_notes": "Creator notes",
+  "data.alternate_greetings": "Alternate greetings",
+  "data.character_book": "Lorebook entries",
   name: "Name",
   description: "Description",
   content: "Content",

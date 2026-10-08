@@ -3992,6 +3992,319 @@ details[open] > .mari-disclosure .mari-disclosure__chevron {
   display: none;
 }
 
+/* Slice 74: what she changed, as a receipt - face, name, what changed in words, one before/after pair, her
+   reason, Keep / Undo. Calm: a hairline with a little of the "kept" green, one soft ring on arrival; the
+   "Needs you" accent stays with what waits for you. */
+.mari-receipt {
+  --mari-receipt-edge: calc(var(--mari-card-pad-inline) + 2rem + 0.65rem);
+  border-color: color-mix(in srgb, var(--mari-ok) 22%, var(--mari-hairline));
+}
+
+.mari-receipt:is([data-state="undone"], [data-state="old"], [data-state="closed"]) {
+  border-color: var(--mari-hairline);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-marinara-reduced-effects="true"], [data-marinara-effects-paused="true"])
+    .mari-receipt[data-state="open"] {
+    animation:
+      mari-list-in 0.2s ease-out both,
+      mari-receipt-arrive 1.4s ease-out 0.15s both;
+  }
+}
+
+@keyframes mari-receipt-arrive {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  30% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--mari-ok) 16%, transparent);
+  }
+}
+
+.mari-receipt svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: none;
+}
+
+.mari-receipt__record + .mari-receipt__record {
+  border-top: 1px solid var(--mari-divider);
+}
+
+.mari-receipt__head {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 3.25rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem var(--mari-card-pad-inline) 0.45rem;
+  color: var(--foreground);
+  text-align: start;
+  transition: background-color 0.12s ease-out;
+}
+
+.mari-receipt[data-multi] .mari-receipt__head {
+  padding-block: 0.55rem;
+}
+
+.mari-receipt__head:hover {
+  background: var(--mari-hover);
+}
+
+.mari-receipt__head:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.mari-receipt__face {
+  display: inline-flex;
+  flex: none;
+}
+
+.mari-receipt__face .mari-face {
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.mari-receipt__face .mari-face[data-type] {
+  border-radius: 0.55rem;
+}
+
+.mari-receipt__face .mari-face[data-type] > svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.mari-receipt__text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.05rem;
+}
+
+.mari-receipt__name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.mari-receipt__name > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mari-receipt__what {
+  color: color-mix(in srgb, var(--foreground) 78%, transparent);
+  font-size: var(--mari-card-fact);
+  line-height: 1.35;
+}
+
+.mari-receipt[data-state="undone"] :is(.mari-receipt__what, .mari-receipt__preview) {
+  opacity: 0.55;
+}
+
+.mari-receipt__state {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--mari-ok);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.mari-receipt__state[data-state="undone"] {
+  color: var(--muted-foreground);
+}
+
+.mari-receipt__chevron {
+  color: var(--muted-foreground);
+  transition: transform 0.15s ease-out;
+}
+
+.mari-receipt__record[data-open="true"] .mari-receipt__chevron {
+  transform: rotate(90deg);
+}
+
+/* Folded: one field as − / + lines with a gutter sign (both marks, not just colour). */
+.mari-receipt__preview {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+  margin: 0 var(--mari-card-pad-inline) 0 var(--mari-receipt-edge);
+  padding-block: 0.1rem 0.35rem;
+  font-size: 0.8125rem;
+}
+
+.mari-receipt__label {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.mari-receipt__line {
+  display: flex;
+  min-width: 0;
+  gap: 0.4rem;
+  border-radius: 0.35rem;
+  padding: 0.12rem 0.45rem 0.12rem 0.35rem;
+  line-height: 1.45;
+}
+
+.mari-receipt__line > :last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mari-receipt__line--del {
+  background: color-mix(in srgb, var(--destructive) 7%, transparent);
+  color: var(--muted-foreground);
+}
+
+.mari-receipt__line--del del {
+  text-decoration: line-through 1px;
+}
+
+.mari-receipt__line--ins {
+  background: color-mix(in srgb, var(--mari-ins-line) 12%, transparent);
+}
+
+.mari-receipt__line--ins ins {
+  text-decoration: none;
+}
+
+.mari-receipt[data-state="undone"] .mari-receipt__line--ins ins {
+  text-decoration: line-through 1px;
+}
+
+.mari-receipt__sign {
+  flex: none;
+  width: 0.6rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mari-receipt__line--del .mari-receipt__sign {
+  color: color-mix(in srgb, var(--destructive) 75%, var(--foreground));
+}
+
+.mari-receipt__line--ins .mari-receipt__sign {
+  color: var(--mari-ok);
+}
+
+.mari-receipt__tag--edit::before {
+  margin-inline-end: 3px;
+  color: var(--mari-ok);
+  content: "~";
+  font-weight: 600;
+}
+
+/* Opened: every field. */
+.mari-receipt__body {
+  display: grid;
+  min-width: 0;
+  gap: 0.7rem;
+  margin: 0.15rem var(--mari-card-pad-inline) 0.5rem var(--mari-receipt-edge);
+}
+
+/* The links' own padding hangs into the margin, so their words line up with the fields above. */
+.mari-receipt__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.25rem;
+  margin-inline-start: -0.5rem;
+}
+
+.mari-receipt .mari-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mari-receipt__details {
+  flex-basis: 100%;
+}
+
+.mari-receipt__details > summary {
+  width: fit-content;
+  list-style: none;
+  cursor: pointer;
+}
+
+.mari-receipt__details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Foot: her reason, then the undo window and Keep / Undo. */
+.mari-receipt__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  margin-inline: var(--mari-receipt-edge) var(--mari-card-pad-inline);
+  padding-block: 0.3rem 0.55rem;
+}
+
+.mari-receipt[data-multi] .mari-receipt__foot {
+  border-top: 1px solid var(--mari-divider);
+  padding-top: 0.5rem;
+}
+
+.mari-receipt__foot:not(:has(.mari-receipt__why, .mari-receipt__actions > *)) {
+  display: none;
+}
+
+.mari-receipt__why {
+  min-width: 0;
+  flex: 1 1 16rem;
+  margin: 0;
+  color: color-mix(in srgb, var(--foreground) 72%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.mari-receipt__why > b {
+  margin-inline-end: 0.2rem;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.mari-receipt__actions {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+
+.mari-receipt__muted {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+/* A narrow card: the folded lines, the body and the foot use the whole width under the face. */
+@container (width < 26rem) {
+  .mari-receipt__preview,
+  .mari-receipt__body,
+  .mari-receipt__foot {
+    margin-inline-start: var(--mari-card-pad-inline);
+  }
+}
+
 /* Slice 72: a name in her answer that opens its record - a tiny face and a quiet underline, no card. */
 .mari-ref {
   display: inline;

@@ -81,6 +81,9 @@ import {
   MARI_AUTHORIZATION_ACCEPT_CHIP,
   MARI_PERMISSIONS_MODE_SETTINGS_KEY,
   MODEL_LISTS,
+  buildMariChangeExcerpts,
+  mariReceiptReason,
+  mergeMariActionResults,
   PROFESSOR_MARI_ID,
   sanitizeMariGuidedPlan,
   sanitizeMariSuggestionChips,
@@ -187,11 +190,12 @@ const ACTION_RESULT_TABLES = {
   prompt_presets: "preset",
 } as const satisfies Record<string, MariWorkspaceActionResult["resource"]["kind"]>;
 
+// `field` names the list a child row shows under on the change receipt (slice 74).
 const ACTION_RESULT_CHILD_TABLES = {
-  lorebook_entries: { kind: "lorebook", parentId: "lorebookId" },
-  prompt_sections: { kind: "preset", parentId: "presetId" },
-  prompt_groups: { kind: "preset", parentId: "presetId" },
-  choice_blocks: { kind: "preset", parentId: "presetId" },
+  lorebook_entries: { kind: "lorebook", parentId: "lorebookId", field: "entries" },
+  prompt_sections: { kind: "preset", parentId: "presetId", field: "sections" },
+  prompt_groups: { kind: "preset", parentId: "presetId", field: "groups" },
+  choice_blocks: { kind: "preset", parentId: "presetId", field: "choices" },
 } as const;
 
 function actionResultLabel(row: Record<string, unknown> | null | undefined): string | undefined {
@@ -218,6 +222,7 @@ function changedActionResultFields(
 export function buildMariWorkspaceActionResult(
   action: string,
   result: MariDbCommandResult,
+  reason?: unknown,
 ): MariWorkspaceActionResult | null {
   if (!result.ok || result.mode !== "apply") return null;
   const preview = result.summary?.preview ?? [];
@@ -233,15 +238,37 @@ export function buildMariWorkspaceActionResult(
   if (typeof id !== "string" || !id) return null;
   const status =
     directKind && (primary.action === "insert" || action.toLowerCase().endsWith(".create")) ? "created" : "updated";
-  const label = actionResultLabel(primary.after) ?? actionResultLabel(primary.before);
+  // The record's own row; an entry or section edit may not carry its parent's row at all.
+  const direct = preview.find(
+    (change) => ACTION_RESULT_TABLES[change.table as keyof typeof ACTION_RESULT_TABLES] === kind && change.id === id,
+  );
+  // Slice 74: a child row's name is the entry's, not the lorebook's - never label the record with it.
+  const label = actionResultLabel(direct?.after) ?? actionResultLabel(direct?.before);
   const changedFields = changedActionResultFields(primary.before, primary.after);
   const resourceLabel = label ? `${kind} “${label}”` : kind;
+  // Slice 74: the receipt - every preview row of this record, its own and its children's.
+  const { changes, moreChanges } = buildMariChangeExcerpts({
+    direct,
+    children: preview.flatMap((change) => {
+      const childTable = ACTION_RESULT_CHILD_TABLES[change.table as keyof typeof ACTION_RESULT_CHILD_TABLES];
+      const row = change.after ?? change.before;
+      return childTable?.kind === kind && row?.[childTable.parentId] === id
+        ? [{ field: childTable.field, change }]
+        : [];
+    }),
+  });
+  const reviewId = result.approval?.status === "pending" ? result.approval.id : undefined;
+  const why = mariReceiptReason(reason);
   return {
     status,
     resource: { kind, id, ...(label ? { label } : {}) },
     changedFields,
     ...(changedFields[0] ? { editorTarget: changedFields[0] } : {}),
-    ...(result.approval?.status === "pending" && result.approval.id ? { reviewId: result.approval.id } : {}),
+    ...(reviewId ? { reviewId, reviewIds: [reviewId] } : {}),
+    ...(reviewId && result.approval?.expiresAt ? { undoUntil: result.approval.expiresAt } : {}),
+    ...(why ? { reason: why } : {}),
+    changes,
+    ...(moreChanges > 0 ? { moreChanges } : {}),
     summary: `${status === "created" ? "Created" : "Updated"} ${resourceLabel}.`,
   };
 }
@@ -909,6 +936,7 @@ ${MARI_GUIDED_SEQUENCES}
 - Personal Extensions: create or update the complete draft with \`apply:true\` (the result's \`readBack\` confirms persistence), then read it with \`personal_extension.get\` to fetch the exact hash, and tell the user the draft remains disabled until they review that hash and the requested capabilities in Settings → Addons. Browser UI should use \`marinara.ui.registerContribution\` for \`button\`, \`menu-item\`, or \`panel\` slots; a button targets the top bar when \`surface\` and \`position\` are omitted. A side-panel button sets \`surface\` to \`chats\`, \`bots\`, \`characters\`, \`personas\`, \`lorebooks\`, \`presets\`, \`connections\`, \`agents\`, or \`settings\`, and sets \`position\` to \`header\`, \`before-content\`, or \`after-content\`. Panel controls are host-rendered and return values through \`onEvent\`. Use \`marinara.context\` for active IDs and request \`read_active_characters\` or \`read_active_persona\` only for bounded active-record reads. Do not offer or invent an approval action, DOM access, direct app-data access, or network access.
 - Use \`apply:false\` only for explicit preview/dry-run requests or when you need to inspect validation before making a risky change. A dry run renders nothing in the UI - the user cannot see it, so never present one as something they can review.
 - Do not say "preview" unless you show the concrete fields/content in \`say\` or the UI has returned an explicit preview artifact.
+- Every mutating command carries \`reason\`: one short sentence the user reads on the change card, saying why the change helps (what it fixes or adds). Never "User asked…" - they know they asked.
 - Skills (\`skill.list|get\`, read-only; the user manages them in the Skills panel): \`<professor_mari_custom_skills>\` indexes the enabled ones and inlines short ones; \`skill.get\` a skill before you follow it.
 - "Propose your edits" / "present a proposal" / "draft a change" style requests: do NOT run an apply:false preview (the user cannot see it) and do NOT apply silently. Describe the exact edits in \`say\` (the fields with before/after), include the real \`apply:true\` commands in the SAME response, and set \`awaitingAuthorization\` to \`true\` - outside Plan and Bypass, Marinara holds the commands and shows the user an Accept action, and they apply only after the user accepts. In Plan, present the plan without staging anything; in Bypass, nothing is ever held - describe the change and apply it, since immediate application is what that mode's user chose. One response, one proposal, no duplicate work.
 - When you ask whether to apply, the question is binding for the rest of the run: do not stage further changes until the user answers, and never answer your own question or apply "to show the result" - the user's reply or their Accept is the only go-ahead. Outside Plan and Bypass, Marinara enforces this by holding anything you stage after asking.
@@ -929,29 +957,29 @@ Informational request (answer with reads and words, make no change):
 How-to that names the change as its goal (answer with the method plus an offer, make NO change):
 {"say":"To change a character's appearance, open Gundorfson in the character editor and edit the Appearance field — or I can set it for you. Want me to set his appearance to 'willy funny little guy'?","commands":[],"stop":true}
 Direct request to make that change — a plain imperative OR a polite question form (act on it; Marinara shows a Keep/Restore card, and the result's readBack confirms the persisted state):
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"character.update","characterId":"gundorfson-id","patch":{"appearance":"willy funny little guy"},"reason":"User asked me to set Gundorfson's appearance","apply":true}}],"stop":false}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"persona.create","data":{"name":"Dr. Marisia Voss","description":"A successful alternate version of Mari.","personality":"Confident, witty, organized, still warmly sarcastic."},"reason":"User requested a test persona","apply":true}}],"stop":false}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"character.create","data":{"name":"Dr. Voss","description":"A brilliant field researcher.","personality":"Exacting, curious, dryly funny.","firstMes":"You are late. Sit down.","appearance":"Silver hair and a white laboratory coat."},"reason":"User requested a character","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"character.update","characterId":"gundorfson-id","patch":{"appearance":"willy funny little guy"},"reason":"Gives Gundorfson the look you described","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"persona.create","data":{"name":"Dr. Marisia Voss","description":"A successful alternate version of Mari.","personality":"Confident, witty, organized, still warmly sarcastic."},"reason":"A persona to test Mari's successful alternate self","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"character.create","data":{"name":"Dr. Voss","description":"A brilliant field researcher.","personality":"Exacting, curious, dryly funny.","firstMes":"You are late. Sit down.","appearance":"Silver hair and a white laboratory coat."},"reason":"A field researcher with a ready opening line","apply":true}}],"stop":false}
 Lorebook creation, then finding it for follow-up work (the create's readBack already verified persistence):
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.create","data":{"name":"Nightfall Wallachia","description":"Vlad's vampire-gothic setting.","category":"world","entries":[{"name":"World premise","content":"The year is 1890; vampires are real and hunt the Carpathian nights.","constant":true,"description":"Always-true ground rules of the setting."},{"name":"Castle Dracul","content":"A black-stone fortress above the village, seat of the vampire count.","keys":["Castle Dracul","the castle"],"description":"The count's seat of power."},{"name":"Vlad","content":"The immortal count who rules Wallachia after dark.","keys":["Vlad"],"matchWholeWords":true,"description":"The setting's central vampire."}]},"reason":"User requested a lorebook for the setting","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.create","data":{"name":"Nightfall Wallachia","description":"Vlad's vampire-gothic setting.","category":"world","entries":[{"name":"World premise","content":"The year is 1890; vampires are real and hunt the Carpathian nights.","constant":true,"description":"Always-true ground rules of the setting."},{"name":"Castle Dracul","content":"A black-stone fortress above the village, seat of the vampire count.","keys":["Castle Dracul","the castle"],"description":"The count's seat of power."},{"name":"Vlad","content":"The immortal count who rules Wallachia after dark.","keys":["Vlad"],"matchWholeWords":true,"description":"The setting's central vampire."}]},"reason":"Keeps the 1890 vampire setting, the castle and Vlad consistent in every chat","apply":true}}],"stop":false}
 {"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.search","query":"Nightfall Wallachia"}}],"stop":false}
 {"say":"Done — created the lorebook. Want me to do a fidelity pass on the entries?","commands":[],"stop":true}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"preset.create","data":{"name":"Test preset","sections":[{"name":"Main","content":"You are {{char}}. Speak in a {{tone}} tone.","role":"system"}],"choiceBlocks":[{"variableName":"tone","question":"Tone","options":[{"label":"Warm","value":"warm"},{"label":"Sharp","value":"sharp"}]}]},"reason":"User requested a preset with variables","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"preset.create","data":{"name":"Test preset","sections":[{"name":"Main","content":"You are {{char}}. Speak in a {{tone}} tone.","role":"system"}],"choiceBlocks":[{"variableName":"tone","question":"Tone","options":[{"label":"Warm","value":"warm"},{"label":"Sharp","value":"sharp"}]}]},"reason":"Lets each chat pick a warm or sharp tone","apply":true}}],"stop":false}
 Editing one section of a preset (read the index, read the full section, then rewrite it):
 {"say":"","commands":[{"name":"app_data","arguments":{"action":"preset.sections","presetId":"preset-id"}}],"stop":false}
 {"say":"Found the section. I'll read its full content before editing.","commands":[{"name":"app_data","arguments":{"action":"preset.getSection","sectionId":"section-id"}}],"stop":false}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"preset.updateSection","sectionId":"section-id","data":{"content":"...the full section content with the requested line spliced in..."},"reason":"User asked to add a line to this section","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"preset.updateSection","sectionId":"section-id","data":{"content":"...the full section content with the requested line spliced in..."},"reason":"Adds the line where the section already talks about tone","apply":true}}],"stop":false}
 Revising a saved memory (read its full text, edit it, then write the whole new content back — do not decline as already-satisfied):
 {"say":"Found the memory. I'll read its full text before editing.","commands":[{"name":"app_data","arguments":{"action":"instruction.get","id":"memory-id"}}],"stop":false}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"instruction.update","id":"memory-id","data":{"content":"...the full memory text with the requested change applied..."},"reason":"User asked to reword this memory","apply":true}}],"stop":false}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"agent.create","data":{"name":"Image Marker","description":"Turns IMG_PROMPT markers into image prompts.","resultType":"image_prompt","settings":{"activationKeywords":["IMG_PROMPT:"],"activationScanDepth":4,"customCapabilities":{"trigger_image_generation":true}}},"reason":"User requested a marker-triggered image agent","apply":true}}],"stop":false}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.updateEntry","entryId":"entry-id","patch":{"content":"new content"},"reason":"Update requested by user","apply":true}}],"stop":false}
-{"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.deleteEntry","entryId":"entry-id","reason":"User asked to delete this entry","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"instruction.update","id":"memory-id","data":{"content":"...the full memory text with the requested change applied..."},"reason":"Says the same preference in clearer words","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"agent.create","data":{"name":"Image Marker","description":"Turns IMG_PROMPT markers into image prompts.","resultType":"image_prompt","settings":{"activationKeywords":["IMG_PROMPT:"],"activationScanDepth":4,"customCapabilities":{"trigger_image_generation":true}}},"reason":"Turns IMG_PROMPT markers into pictures without a manual step","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.updateEntry","entryId":"entry-id","patch":{"content":"new content"},"reason":"The entry now covers what the chat kept asking about","apply":true}}],"stop":false}
+{"say":"","commands":[{"name":"app_data","arguments":{"action":"lorebook.deleteEntry","entryId":"entry-id","reason":"A duplicate of the Swamp entry","apply":true}}],"stop":false}
 Fixing a broken reply:
 {"say":"","commands":[{"name":"app_data","arguments":{"action":"chat.updateMessage","chatId":"chat-id","messageId":"message-id","content":"...the same reply with only the cut-off ending completed...","reason":"Reply was cut off mid-sentence","apply":true}}],"stop":false}
 Running a package action (list the offered actions first, then run the one the user asked for):
 {"say":"","commands":[{"name":"package_service","arguments":{}}],"stop":false}
-{"say":"","commands":[{"name":"package_service","arguments":{"package":"package-id","action":"add-idea","input":{"accountId":"account-id","text":"A rainy-day cafe post"},"reason":"User asked me to add this idea"}}],"stop":false}
+{"say":"","commands":[{"name":"package_service","arguments":{"package":"package-id","action":"add-idea","input":{"accountId":"account-id","text":"A rainy-day cafe post"},"reason":"Saves the cafe post idea for a rainy day"}}],"stop":false}
 
 Available command schemas:
 ${toolDocs}
@@ -3310,7 +3338,9 @@ export class ProfessorMariWorkspaceService {
       const storedTrace = sanitizeTraceForStorage(workspaceTrace);
       if (thinkingText.trim()) extraUpdate.thinking = thinkingText;
       if (storedTrace.length > 0) extraUpdate.mariWorkspaceTimeline = storedTrace;
-      if (workspaceActionResults.length > 0) extraUpdate.mariWorkspaceActionResults = workspaceActionResults;
+      if (workspaceActionResults.length > 0) {
+        extraUpdate.mariWorkspaceActionResults = mergeMariActionResults(workspaceActionResults);
+      }
       if (runError) extraUpdate.mariRunError = runError;
       const savedChips = runSuggestions.filter((chip) => chip.id !== MARI_AUTHORIZATION_ACCEPT_CHIP.id);
       if (savedChips.length > 0) extraUpdate.mariSuggestions = savedChips;
@@ -5191,7 +5221,7 @@ export class ProfessorMariWorkspaceService {
       ].join("\n"),
     );
     if (result.ok === false) throw new Error(output);
-    return { output, actionResult: buildMariWorkspaceActionResult(action, result) ?? undefined };
+    return { output, actionResult: buildMariWorkspaceActionResult(action, result, args.reason) ?? undefined };
   }
 
   private buildLocalSidecarConnection(): WorkspaceConnection {

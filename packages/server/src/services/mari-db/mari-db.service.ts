@@ -7496,7 +7496,7 @@ export class MariDbService {
       command: context.command,
       summary: plan.summary,
       validation: plan.validation,
-      approval: { status: "pending", id: review.id, operationHash: plan.operationHash },
+      approval: { status: "pending", id: review.id, operationHash: plan.operationHash, expiresAt: review.expiresAt },
     };
   }
 
@@ -8065,7 +8065,7 @@ export class MariDbService {
         summary: plan.summary,
         readBack,
         validation: plan.validation,
-        approval: { status: "pending", id: review.id, operationHash: plan.operationHash },
+        approval: { status: "pending", id: review.id, operationHash: plan.operationHash, expiresAt: review.expiresAt },
         journalPath,
       };
     } catch (err) {

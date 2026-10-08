@@ -1,7 +1,12 @@
 // ──────────────────────────────────────────────
 // Routes: Professor Mari Workspace Agent
 // ──────────────────────────────────────────────
-import { MARI_PERMISSIONS_MODES, MARI_PERMISSIONS_MODE_SETTINGS_KEY } from "@marinara-engine/shared";
+import {
+  chatIdForMariSession,
+  MARI_PERMISSIONS_MODES,
+  MARI_PERMISSIONS_MODE_SETTINGS_KEY,
+  withMariReceiptOutcome,
+} from "@marinara-engine/shared";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { requirePrivilegedAccess } from "../middleware/privileged-gate.js";
@@ -225,6 +230,38 @@ export function reviewActionFailure(err: unknown, action: "keep" | "restore"): s
   return `The ${action === "keep" ? "Keep" : "Restore"} did not finish, so the card stays.${detail}`;
 }
 
+/**
+ * Slice 74: Keep / Undo writes its outcome onto the receipt of the Mari message that made the change, so
+ * the card says "Kept" / "Undone" after a reload. Newest message first; never fails the answer.
+ */
+export async function recordMariReceiptOutcome(
+  app: FastifyInstance,
+  sessionId: string,
+  reviewId: string,
+  outcome: "kept" | "undone",
+) {
+  const chatId = chatIdForMariSession(sessionId);
+  if (!chatId) return;
+  try {
+    const chats = createChatsStorage(app.db);
+    for (const message of (await chats.listMessages(chatId)).reverse()) {
+      if (message.role !== "assistant") continue;
+      let extra: { mariWorkspaceActionResults?: unknown } | null;
+      try {
+        extra = typeof message.extra === "string" ? JSON.parse(message.extra || "{}") : (message.extra ?? null);
+      } catch {
+        continue;
+      }
+      const next = withMariReceiptOutcome(extra?.mariWorkspaceActionResults, reviewId, outcome);
+      if (!next) continue;
+      await chats.updateMessageExtra(message.id, { mariWorkspaceActionResults: next });
+      return;
+    }
+  } catch (err) {
+    logger.warn(err, "[professor-mari] could not record the receipt outcome for review %s", reviewId);
+  }
+}
+
 function privileged(request: FastifyRequest, reply: FastifyReply, loopbackOnly = false) {
   return requirePrivilegedAccess(request, reply, {
     loopbackOnly,
@@ -439,6 +476,7 @@ export async function professorMariWorkspaceRoutes(app: FastifyInstance) {
     }
     if (!result) return reply.status(404).send({ error: "Applied change review not found" });
     if (result.approval.affectedTables.installed_extensions) await personalServerExtensionRuntime.reloadAll();
+    await recordMariReceiptOutcome(app, result.approval.sessionId, result.approval.id, "kept");
     return { ok: true, ...result };
   });
 
@@ -465,6 +503,7 @@ export async function professorMariWorkspaceRoutes(app: FastifyInstance) {
       return { ok: false, completed: true, ...result };
     }
     if (result.approval.affectedTables.installed_extensions) await personalServerExtensionRuntime.reloadAll();
+    await recordMariReceiptOutcome(app, result.approval.sessionId, result.approval.id, "undone");
     return { ok: true, ...result, completed: true };
   });
 
