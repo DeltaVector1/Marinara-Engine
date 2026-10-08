@@ -2104,6 +2104,10 @@ export function ChatRoleplaySurface({
                               key={`${activeChatId}:${activeVnMessage.id}:${activeVnMessage.activeSwipeIndex}`}
                               message={activeVnMessage}
                               memoryStartCharacterIds={memoryContextStarts.get(activeVnMessage.id)}
+                              failedReply={activeVnMessage.id === failedReplyMessageId}
+                              failedReplyReason={failedReplyReason}
+                              onRetryFailedReply={onRetryFailedReply}
+                              replyCheckup={activeVnMessage.id === replyCheckupMessageId ? replyCheckup : undefined}
                               visualNovel
                               visualNovelSpeech={vnSpeech}
                               onVisualNovelSpeechParagraph={setVnParagraphIndex}
