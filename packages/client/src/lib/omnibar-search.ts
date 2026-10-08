@@ -7,7 +7,6 @@ import {
 } from "./professor-mari-navigation";
 import type {
   CommandCenterResultGroupId,
-  CommandCenterResultMedia,
   CommandCenterResultMetadata,
   CommandIcon,
   CommandKind,
@@ -77,7 +76,6 @@ export type OmnibarResult = {
   description?: string;
   preview?: () => CommandCenterPreviewData;
   metadata?: readonly CommandCenterResultMetadata[];
-  media?: CommandCenterResultMedia;
   group?: CommandCenterResultGroupId;
   source?: string;
   snippet?: string;
@@ -596,14 +594,20 @@ export function filterOmnibarFuzzyFallback<T extends Pick<OmnibarResult, "id" | 
   return hasLiteralMatch ? results.filter((result) => result.matchKind !== "fuzzy") : [...results];
 }
 
-export function searchOmnibar(query: string, data: OmnibarSearchData): OmnibarResult[] {
+/**
+ * What a query is matched against: the entity part of a sentence, then the
+ * whole query. Shared by the search and every row's highlight (slice 79).
+ */
+export function omnibarMatchQueries(
+  query: string,
+  chats: readonly { id: string; name: string }[],
+): readonly [searchQuery: string, fullQuery: string] {
   const normalized = normalizeProfessorMariNavigationQuery(query);
-  if (!normalized) return [];
   const intent = parseOmnibarIntent(query);
   // "add Eliza to Tavern Night" names a chat, not more of the entity's name: strip
   // it before the entity text is searched, so "Eliza" (not "Eliza to Tavern
   // Night") is what gets matched against character/persona/etc. rows.
-  const addTarget = intent?.kind === "action" ? splitOmnibarAddTarget(intent.targetQuery, data.chats) : undefined;
+  const addTarget = intent?.kind === "action" ? splitOmnibarAddTarget(intent.targetQuery, chats) : undefined;
   const effectiveTargetQuery = addTarget?.entityQuery ?? intent?.targetQuery;
   // A bare verb ("add", "remove") is a half-sentence, not a search term. Text
   // matching it just surfaces every row containing the word, so the verb is
@@ -611,8 +615,14 @@ export function searchOmnibar(query: string, data: OmnibarSearchData): OmnibarRe
   // "add character" is not bare: the kind narrows the list, and the empty
   // target then matches every row in that category.
   const bare = Boolean(intent && !effectiveTargetQuery && !intent.objectCategory);
-  const searchQuery = bare ? NO_MATCH : intent ? effectiveTargetQuery! : normalized;
-  const fullQuery = bare ? NO_MATCH : normalized;
+  return bare ? [NO_MATCH, NO_MATCH] : [intent ? effectiveTargetQuery! : normalized, normalized];
+}
+
+export function searchOmnibar(query: string, data: OmnibarSearchData): OmnibarResult[] {
+  const normalized = normalizeProfessorMariNavigationQuery(query);
+  if (!normalized) return [];
+  const intent = parseOmnibarIntent(query);
+  const [searchQuery, fullQuery] = omnibarMatchQueries(query, data.chats);
   const results: OmnibarResult[] = [];
   for (const control of data.controls ?? []) {
     const score = Math.max(

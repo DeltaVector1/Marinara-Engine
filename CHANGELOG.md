@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Every omnibar row about a record now shows its picture. "Add Eliza to this chat", "Remove Elowen from this chat" and "Start a chat with Eliza" show the portrait, avatar, lorebook or preset art and the persona colour; a found message shows its chat's faces; a lorebook entry shows its lorebook's image; Professor Mari's rows show her face. Rows without a picture keep their type icon. Docs, FAQ, message, entry and "Add …" rows now also bold the part that matched your search, like the other rows. Row pictures load as you scroll.
 - The empty omnibar now shows what needs you first: one row for a change Professor Mari is waiting on you to review, a failed request, a reply that looks cut off, Mari working or finished, or no model connected yet, each with one button ("Review", "Fix", "Check", "Set up").
 - The empty omnibar gets a **Continue** strip: your last chat, Professor Mari's last conversation and the record you edited last, as three cards on a wide screen and rows on a phone. The four **Recent** chats stay below it. Slash commands, the open chat's own row and **Regenerate reply** no longer repeat in the empty list; type `/` for slash commands.
 - New users see three **Try** examples in the empty omnibar ("Search by name", "Change a setting", "Ask Mari a question"). Picking one writes the example into the search field. Each disappears once you have done that kind of thing, and all of them stop after 15 opens.

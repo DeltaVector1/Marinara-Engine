@@ -99,8 +99,9 @@ export function CommandCenterMedia({
           }}
           src={resolvedSrc}
           alt={role === "row" ? "" : alt}
-          loading={size === "grid" ? "lazy" : "eager"}
-          decoding={size === "grid" ? "async" : "auto"}
+          // Only the open preview is above the fold for sure; a long row list (40 "Add X" rows) loads as it scrolls.
+          loading={size === "preview" ? "eager" : "lazy"}
+          decoding={size === "preview" ? "auto" : "async"}
           onLoad={() => setLoadedSrc(resolvedSrc)}
           onError={() => setFailedSrc(resolvedSrc)}
           style={kind === "avatar" ? avatarCropStyle : undefined}

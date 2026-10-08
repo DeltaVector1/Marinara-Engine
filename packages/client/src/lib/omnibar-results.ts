@@ -1441,8 +1441,9 @@ const ADD_SUGGESTION_SCORE = 470;
 /**
  * Turns "add Eliza" into a real, labelled row instead of relying on the ranked
  * character row secretly doing an attach. Reads the already-ranked search
- * results rather than re-deriving entities, so it inherits their media, icons
- * and matching.
+ * results rather than re-deriving entities, so it inherits their icons and
+ * matching; the picture comes from the record its action names
+ * (`resolveOmnibarRowVisual`).
  */
 /** Below `ADD_SUGGESTION_SCORE`, so concrete "Add Eliza" rows lead and the kind rows follow as the fallback. */
 const VERB_SUGGESTION_SCORE = 460;
@@ -1540,7 +1541,6 @@ export function buildOmnibarAddSuggestions({
           chat: chat.name,
         }),
         category: result.category,
-        media: result.media,
         score: ADD_SUGGESTION_SCORE - out.length,
         kind: "action" as const,
         icon: result.icon,
@@ -1589,7 +1589,6 @@ export function buildOmnibarRemovalSuggestions({
         chat: activeChat.name,
       }),
       category: result.category,
-      media: result.media,
       score: REMOVAL_SUGGESTION_SCORE - out.length,
       kind: "action" as const,
       icon: result.icon,

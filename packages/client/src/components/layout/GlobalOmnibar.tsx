@@ -151,7 +151,7 @@ import {
   type CommandRankingState,
 } from "../../lib/command-center";
 import { createSystemCommandDefinitions } from "../../lib/command-center-system-commands";
-import { chatResultType, getCommandIcon, RESULT_TYPE_ICONS, type ResultType } from "../../lib/command-icons";
+import { MARI_FACE_CROP, resolveOmnibarRowVisual, type OmnibarRowVisualContext } from "../../lib/omnibar-row-visual";
 import {
   createOmnibarContext,
   resolveOmnibarScreen,
@@ -159,6 +159,7 @@ import {
   getOmnibarActiveChatContextResultIds,
   isDirectActiveChatAction,
   resultOpensDirectlyOnTap,
+  omnibarMatchQueries,
   parseOmnibarIntent,
   type OmnibarAction,
   type OmnibarCategory,
@@ -269,18 +270,6 @@ const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
 /** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
 /** Chats the empty omnibar offers to switch back to. */
 const IDLE_RECENT_CHATS = 4;
-/** Mari's tall portrait, cropped to her face in a row's square media slot. */
-const MARI_FACE_CROP: React.CSSProperties = { objectPosition: "50% 8%" };
-const OMNIBAR_CATEGORY_RESULT_TYPE: Partial<Record<OmnibarCategory, ResultType>> = {
-  character: "character",
-  persona: "persona",
-  lorebook: "lorebook",
-  preset: "preset",
-  connection: "connection",
-  agent: "agent",
-  settings: "setting",
-  docs: "doc",
-};
 // F3 (O5): the idle frecent group only offers rows that *navigate* somewhere
 // (open a chat/entity, or run a navigation command) - never a row that writes
 // on Enter, like a settings toggle or a lorebook attach. An empty Ctrl+K must
@@ -3193,28 +3182,20 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     () => new Map(data.chats.map((chat) => [`chat:${chat.id}` as string, chat.mode] as const)),
     [data.chats],
   );
-  // Q6: what each row is. Entity rows take their kind's icon (and a badge on a portrait); a chat
-  // takes its mode. Commands and settings keep the icon they name (Home, Backups, Spotify).
-  const resultType = (result: RankedOmnibarResult): ResultType | undefined => {
-    const prefix = result.id.split(":")[0];
-    if (prefix === "message") return "message";
-    if (prefix === "mari-chat") return "mari-chat";
-    if (prefix === "lorebook-entry") return "lorebook-entry";
-    if (result.action?.kind === "start-chat") return chatResultType(result.action.mode);
-    if (result.category === "chat") {
-      const mode = chatModeByResultId.get(result.id);
-      return mode ? chatResultType(mode) : undefined;
-    }
-    return OMNIBAR_CATEGORY_RESULT_TYPE[result.category];
-  };
-  const resultIcon = (result: RankedOmnibarResult) => {
-    if (result.id === "try:search") return Search;
-    if (result.id === "try:command") return SlidersHorizontal;
-    const type = resultType(result);
-    return type && type !== "setting" && type !== "doc"
-      ? RESULT_TYPE_ICONS[type]
-      : getCommandIcon(result.command.icon, result.command.kind);
-  };
+  // Slice 79: one resolver gives every row its record's picture (or its type icon) and its highlight.
+  const searchMatchQueries = useMemo(
+    () => (deferredQuery.trim() ? omnibarMatchQueries(deferredQuery, data.chats) : undefined),
+    [data.chats, deferredQuery],
+  );
+  const rowVisualContext = useMemo<OmnibarRowVisualContext>(
+    () => ({
+      recordById: new Map(searchableEntityResults.map((result) => [result.id, result] as const)),
+      chatModeById: chatModeByResultId,
+      matchQueries: searchMatchQueries,
+      mariPortrait: appearance.portraits.idle,
+    }),
+    [appearance.portraits.idle, chatModeByResultId, searchMatchQueries, searchableEntityResults],
+  );
   const resultVisual = (result: RankedOmnibarResult) => {
     if (result.category === "chat") {
       const mode = chatModeByResultId.get(result.id);
@@ -3902,6 +3883,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                       {group.results.map((result, rowIndex) => {
                         const visual = resultVisual(result);
                         const preview = result.preview?.();
+                        const row = resolveOmnibarRowVisual(result, rowVisualContext, preview);
                         const selected = result.id === activeResult?.id;
                         const setupStatus =
                           result.command.availability?.status === "requires-capability"
@@ -3909,7 +3891,6 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                             : result.command.availability?.status === "requires-admin"
                               ? t("commandCenter.adminRequired", "Administrator access required")
                               : undefined;
-                        const mariFace = result.now || result.id === "try:mari";
                         return (
                           <CommandCenterResultRow
                             key={result.id}
@@ -3923,14 +3904,12 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                             dataResultId={result.id}
                             id={`omnibar-${result.id}`}
                             title={result.title}
-                            titleHighlight={result.titleMatch}
+                            titleHighlight={row.titleMatch}
                             metadata={resultMetadata(result, preview)}
                             // The highlight only lines up with `description` itself: a
                             // contextLabel or preview subtitle shown in its place is
                             // different text, so it gets no highlight rather than a wrong one.
-                            metadataHighlight={
-                              !result.contextLabel && !preview?.subtitle ? result.descriptionMatch : null
-                            }
+                            metadataHighlight={!result.contextLabel && !preview?.subtitle ? row.descriptionMatch : null}
                             tertiaryMetadata={
                               <>
                                 {preview?.lorebookCount ? (
@@ -3955,10 +3934,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                                 }
                               </>
                             }
-                            icon={resultIcon(result)}
-                            type={resultType(result)}
-                            faces={preview?.participants}
-                            faceCount={preview?.participantCount}
+                            icon={row.icon}
+                            type={row.type}
+                            faces={row.faces}
+                            faceCount={row.faceCount}
                             selected={selected}
                             onSelect={() => selectResult(result)}
                             onMouseMove={(event) => handleResultMouseMove(result, event)}
@@ -3972,11 +3951,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                                   ? renderAsideAnswer()
                                   : undefined
                             }
-                            mediaSrc={mariFace ? appearance.portraits.idle : preview?.media?.src}
-                            mediaKind={mariFace ? "avatar" : preview?.media?.kind}
-                            avatarCropStyle={mariFace ? MARI_FACE_CROP : preview?.media?.avatarCropStyle}
+                            mediaSrc={row.src}
+                            mediaKind={row.kind}
+                            avatarCropStyle={row.avatarCropStyle}
                             groupClassName={visual.groupClassName}
-                            accent={preview?.accent}
+                            accent={row.accent}
                             setupStatus={setupStatus}
                             enterHint={
                               result.control || group.id === "continue" || result.now

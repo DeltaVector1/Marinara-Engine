@@ -48,6 +48,11 @@ import { isMariInstruction, parseOmnibarScope } from "../../packages/client/src/
 import {
   buildOmnibarAddSuggestions,
   buildOmnibarApprovalResults,
+  buildOmnibarContinueResult,
+  buildOmnibarGlobalMessageResults,
+  buildOmnibarLorebookEntryResults,
+  buildOmnibarMariChatResults,
+  buildOmnibarRemovalSuggestions,
   buildOmnibarContextResults,
   buildOmnibarControlResults,
   buildOmnibarIntentShortcuts,
@@ -91,6 +96,7 @@ import {
   getCharacterDisplayIdentity,
   parseCharacterDisplayData,
 } from "../../packages/client/src/lib/character-display.js";
+import { omnibarRecordRowId, resolveOmnibarRowVisual } from "../../packages/client/src/lib/omnibar-row-visual.js";
 import { reconcileActiveResultId, resolveOmnibarRowState } from "../../packages/client/src/lib/omnibar-row-state.js";
 import {
   buildProfessorMariCommandCenterContext,
@@ -4242,4 +4248,169 @@ console.info("Command Center regression checks passed.");
     [],
     "no slash rows before a /",
   );
+}
+
+// Slice 79: every row from the builders carries a visual. A row about a record shows that record's
+// picture (its own, or the referenced record's for a derived row); anything else its type icon.
+// Titles are highlighted from the search's own queries, also on rows the search never built.
+{
+  const t = ((_key: string, fallback: string, values?: Record<string, unknown>) =>
+    fallback.replace(/{{(\w+)}}/g, (_m, name: string) => String(values?.[name] ?? ""))) as never;
+  const avatar = (src: string) => ({ src, alt: "", kind: "avatar" as const });
+  const records: OmnibarResult[] = [
+    {
+      id: "character:eliza",
+      title: "Eliza Thornwood",
+      category: "character",
+      score: 1,
+      icon: "character",
+      preview: () => ({ kind: "character", media: avatar("/a/eliza.png") }),
+    },
+    {
+      id: "character:kai",
+      title: "Kai",
+      category: "character",
+      score: 1,
+      icon: "character",
+      preview: () => ({ kind: "character" }),
+    },
+    {
+      id: "persona:elowen",
+      title: "Elowen",
+      category: "persona",
+      score: 1,
+      icon: "persona",
+      preview: () => ({ kind: "persona", media: avatar("/a/elowen.png"), accent: "#e879f9" }),
+    },
+    {
+      id: "lorebook:grove",
+      title: "Elder Grove Codex",
+      category: "lorebook",
+      score: 1,
+      icon: "lorebook",
+      preview: () => ({ kind: "lorebook", media: { src: "/l/grove.png", alt: "", kind: "artwork" } }),
+    },
+    {
+      id: "connection:or",
+      title: "OpenRouter",
+      category: "connection",
+      score: 1,
+      icon: "connection",
+      preview: () => ({ kind: "connection", media: { src: "/c/or.png", alt: "", kind: "artwork" } }),
+    },
+    {
+      id: "chat:tavern",
+      title: "Tavern Night",
+      category: "chat",
+      score: 1,
+      icon: "chats",
+      preview: () => ({
+        kind: "chat",
+        media: avatar("/a/eliza.png"),
+        participants: [{ src: "/a/eliza.png" }, { src: "/a/elias.png" }],
+        participantCount: 4,
+      }),
+    },
+  ];
+  const context = {
+    recordById: new Map(records.map((record) => [record.id, record] as const)),
+    chatModeById: new Map([["chat:tavern", "roleplay"]]),
+    mariPortrait: "/sprites/mari/idle.webp",
+  };
+  const visualOf = (row: OmnibarResult, query = "") =>
+    resolveOmnibarRowVisual(row, { ...context, matchQueries: query ? [query] : undefined });
+  const activeChat = { id: "tavern", name: "Tavern Night" } as never;
+  const rows: OmnibarResult[] = [
+    ...records,
+    ...buildOmnibarAddSuggestions({
+      activeChat,
+      attachedResultIds: new Set(),
+      deferredQuery: "add el",
+      omnibarSuggestionsEnabled: true,
+      searchResults: records.filter((record) => record.category !== "chat"),
+      t,
+    }),
+    ...buildOmnibarRemovalSuggestions({
+      activeChat,
+      attachedResultIds: new Set(["character:eliza", "persona:elowen"]),
+      contextResults: records,
+      deferredQuery: "remove",
+      omnibarSuggestionsEnabled: true,
+      t,
+    }),
+    ...buildOmnibarIntentShortcuts({
+      query: "chat with eli",
+      characters: [{ id: "eliza", name: "Eliza Thornwood" }],
+      t,
+    }),
+    ...buildOmnibarIntentShortcuts({ query: "new character Bob", characters: [], t }),
+    ...buildOmnibarGlobalMessageResults({
+      activeChatId: null,
+      hits: [
+        {
+          chatId: "tavern",
+          chatName: "Tavern Night",
+          messageNumber: 2,
+          snippet: "The elderberry crates came.",
+        } as never,
+      ],
+      hasMore: true,
+      messageSearchQuery: "elderberry",
+      t,
+    }),
+    ...buildOmnibarLorebookEntryResults({
+      entries: [
+        { id: "gate", lorebookId: "grove", name: "The Elder Gate", keys: ["gate"], content: "An old gate." } as never,
+      ],
+      lorebookNameById: new Map([["grove", "Elder Grove Codex"]]),
+      query: "elder",
+      t,
+    }),
+    ...buildOmnibarMariChatResults({ deferredQuery: "plan", mariChats: [{ id: "m1", name: "Plan the heist" }], t }),
+    buildOmnibarContinueResult({ mariEnabled: true, t, workspaceStatus: { active: true, pendingApprovals: [] } })!,
+    ...buildOmnibarSlashResults({
+      activeChatId: "tavern",
+      deferredQuery: "/",
+      slashAvailability: {} as never,
+      surface: "chat",
+    }),
+    ...buildOmnibarTryResults(["search", "command"], { search: "s", command: "light mode", mari: "Why?" }, t),
+    { id: "docs:faq.md", title: "Importing from SillyTavern", category: "docs", score: 1, icon: "documentation" },
+  ];
+  assert.ok(rows.length >= 20, "the fixture covers the row builders");
+  for (const row of rows) {
+    const visual = visualOf(row);
+    assert.ok(visual.icon, `${row.id} has a type icon`);
+    const record = context.recordById.get(omnibarRecordRowId(row) ?? "")?.preview?.();
+    if (record?.media || record?.participants?.length) {
+      assert.ok(visual.src || visual.faces?.length, `${row.id} shows its record's picture`);
+    }
+  }
+  const find = (prefix: string) => rows.find((row) => row.id.startsWith(prefix))!;
+  assert.equal(visualOf(find("action:add-to-chat:character:eliza")).src, "/a/eliza.png", "add row: the portrait");
+  assert.equal(visualOf(find("action:add-to-chat:persona:elowen")).accent, "#e879f9", "add row: the persona colour");
+  assert.equal(visualOf(find("action:add-to-chat:lorebook:grove")).kind, "artwork", "add row: the lorebook image");
+  assert.equal(visualOf(find("action:detach-from-chat:persona:elowen")).src, "/a/elowen.png", "remove row: the avatar");
+  assert.equal(visualOf(find("shortcut:start-chat:eliza")).src, "/a/eliza.png", "start-chat row: the portrait");
+  assert.equal(visualOf(find("shortcut:start-chat:eliza")).type, "chat", "start-chat row: badged as a chat");
+  const message = visualOf(find("message:tavern:"));
+  assert.equal(message.faces?.length, 2, "message row: the chat's faces");
+  assert.equal(message.type, "message", "message row: badged as a message");
+  assert.equal(visualOf(find("lorebook-entry:")).src, "/l/grove.png", "entry row: its lorebook's image");
+  assert.equal(visualOf(find("mari-chat:")).src, "/sprites/mari/idle.webp", "Mari's conversation: her face");
+  assert.equal(visualOf(find("ask-professor-mari")).src, "/sprites/mari/idle.webp", "Mari's row: her face");
+  assert.equal(visualOf(find("character:kai")).src, undefined, "no picture: the type icon only");
+  assert.equal(visualOf(find("slash:")).src, undefined, "a command shows its icon");
+  // The Fix row keeps its own text preview but still shows the connection's picture.
+  const fix = {
+    ...records.find((record) => record.id === "connection:or")!,
+    preview: () => ({ kind: "docs" as const }),
+  };
+  assert.equal(visualOf(fix).src, "/c/or.png", "Fix row: the connection's image");
+  // Highlights: rows the search never built are matched too; a quoted query and an existing range are kept as is.
+  assert.deepEqual(visualOf(find("docs:faq.md"), "import").titleMatch, [0, 6], "docs rows are highlighted");
+  assert.deepEqual(visualOf(find("action:add-to-chat:character:eliza"), "eliza").titleMatch, [4, 9]);
+  assert.equal(visualOf({ ...find("ask-professor-mari"), title: "Ask Mari: “eliza”" }, "eliza").titleMatch, null);
+  assert.equal(visualOf(find("shortcut:create-character"), "bob").titleMatch, null, "a quoted name is not bolded");
+  assert.equal(visualOf({ ...records[0]!, titleMatch: null }, "eliza").titleMatch, null, "the search's null stays");
 }
