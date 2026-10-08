@@ -3124,7 +3124,8 @@ export class ProfessorMariWorkspaceService {
     let streamed = false;
     const options: ChatOptions = {
       ...baseOptions,
-      maxTokens: Math.min(baseOptions.maxTokens ?? 700, unasked ? 220 : 700),
+      // A Quick Edit writes the whole field (up to 8,000 chars, ~2,500 tokens) after its explanation.
+      maxTokens: Math.min(baseOptions.maxTokens ?? Infinity, quickEditTarget ? 3_000 : unasked ? 220 : 700),
       responseFormat: undefined,
       onToken: quickEditTarget
         ? undefined
