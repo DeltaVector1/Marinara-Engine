@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 
 const topBarUrl = new URL("../../packages/client/src/components/layout/TopBar.tsx", import.meta.url);
 const appShellUrl = new URL("../../packages/client/src/components/layout/AppShell.tsx", import.meta.url);
@@ -36,8 +36,14 @@ assert.doesNotMatch(
   /hasProfessorMariFloatingFollowup/u,
   "Professor Mari has no floating window to follow chats",
 );
-assert.doesNotMatch(
+// Slice 82: the chat's parts live in components/chat/mari/, so "nowhere" reads all of them.
+const professorMariPartsDir = new URL("../../packages/client/src/components/chat/mari/", import.meta.url);
+const professorMariAllSource = [
   professorMariSource,
+  ...readdirSync(professorMariPartsDir).map((name) => readFileSync(new URL(name, professorMariPartsDir), "utf8")),
+].join("\n");
+assert.doesNotMatch(
+  professorMariAllSource,
   /floatingFollowupEligibleRef|rememberProfessorMariFloatingEnabled/u,
   "Professor Mari's chat must not track a floating window",
 );

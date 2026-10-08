@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -5496,6 +5496,17 @@ const professorMariHomeSource = readFileSync(
   new URL("../../packages/client/src/components/chat/HomeProfessorMariChat.tsx", import.meta.url),
   "utf8",
 );
+// Slice 82: the chat's parts live in components/chat/mari/; "nowhere" and count checks read all of them.
+const mariChatDir = new URL("../../packages/client/src/components/chat/mari/", import.meta.url);
+const mariChatPart = (name: string) => readFileSync(new URL(name, mariChatDir), "utf8");
+const mariChatAllSource = [professorMariHomeSource, ...readdirSync(mariChatDir).map(mariChatPart)].join("\n");
+const mariSeesPanelSource = mariChatPart("MariSeesPanel.tsx");
+const mariMessageActionsSource = mariChatPart("use-mari-message-actions.ts");
+const mariWorkspaceRunSource = mariChatPart("use-mari-workspace-run.ts");
+const mariChatHistoryActionsSource = mariChatPart("use-mari-chat-history-actions.ts");
+const mariWorkTimelineSource = mariChatPart("MariWorkTimeline.tsx");
+const mariTranscriptSource = mariChatPart("MariTranscript.tsx");
+const compactMariMessageSource = mariChatPart("CompactMariMessage.tsx");
 const contextBudgetChatInputSource = readFileSync(
   new URL("../../packages/client/src/components/chat/ChatInput.tsx", import.meta.url),
   "utf8",
@@ -5700,7 +5711,7 @@ for (const [name, source] of [
 // Mari's context use moved out of the connection popups (69be7be17: it duplicated the status strip) into the
 // "how she works" connection row, behind the Show context usage setting.
 assert.match(
-  professorMariHomeSource,
+  mariSeesPanelSource,
   /showContextUsage && contextBudget\s*\?\s*localizeUi\("ui\.chat\.homeprofessormarichat\.awareOfContextUse"/u,
   "Professor Mari's connection row must show context usage when the setting is on",
 );
@@ -5712,7 +5723,7 @@ assert.match(
 );
 // One composer since the floating-mode branch was removed (f27ce165b).
 assert.equal(
-  professorMariHomeSource.match(
+  mariChatAllSource.match(
     /event\.key === "Enter" &&\s*!event\.shiftKey &&\s*\(enterToSend \|\| event\.metaKey \|\| event\.ctrlKey\)/gu,
   )?.length,
   1,
@@ -5721,19 +5732,19 @@ assert.equal(
 assert.match(professorMariHomeSource, /toggleProfessorChatSelection/u);
 assert.match(professorMariHomeSource, /handleBulkDeleteProfessorChats/u);
 assert.match(
-  professorMariHomeSource,
+  mariMessageActionsSource,
   /const handleEditMessage = useCallback\([\s\S]{0,180}if \(!chatId \|\| isBusy\) return;/u,
   "Professor Mari's first edit after generation must not be rejected by a stale busy ref",
 );
 // A failed send now keeps the message in the transcript with one Retry card (failRun) and never refills the
 // composer; Stop is not a failure, so failRun returns before it shows anything.
 assert.match(
-  professorMariHomeSource,
+  mariWorkspaceRunSource,
   /const failRun = useCallback\(\s*\([^)]*\) => \{\s*if \(isProfessorMariAbortError\(error\)\) return;/u,
   "Stopping Professor Mari must not show a failure",
 );
 assert.doesNotMatch(
-  professorMariHomeSource,
+  mariChatAllSource,
   /catch \(error\) \{[^}]*setDraft\(/u,
   "A failed or stopped Professor Mari send must not restore the submitted prompt to the composer",
 );
@@ -5743,14 +5754,14 @@ assert.match(
   "Deleting a lorebook must refresh cached chat metadata so it leaves active context immediately",
 );
 assert.match(
-  professorMariHomeSource,
+  mariChatHistoryActionsSource,
   /handleDeleteProfessorChat[\s\S]{0,500}showConfirmDialog/u,
   "Deleting one Professor Mari chat must use the app confirmation dialog",
 );
 // Every step row, failed ones included, opens to technical details with the tool's output (slice 72
 // moved the details into one `technicalDetails` helper that every step row renders).
 assert.match(
-  professorMariHomeSource,
+  mariWorkTimelineSource,
   /const technicalDetails = \(tool: WorkspaceToolCall\) =>[\s\S]{0,600}tool\.output !== null && tool\.output !== undefined \? <pre>/u,
   "Failed workspace tools must reveal their provider output in the transcript",
 );
@@ -5769,7 +5780,7 @@ assert.equal(
   "Professor Mari streaming must stop following output after the reader scrolls away from the bottom",
 );
 assert.match(
-  professorMariHomeSource,
+  mariTranscriptSource,
   /ref=\{setTranscriptScrollNode\}[\s\S]{0,100}data-component="HomeProfessorMariChat\.Transcript"/u,
   "Professor Mari transcript panes must trigger scrolling from their mounted ref",
 );
@@ -5784,7 +5795,7 @@ assert.match(
   "Professor Mari message loads must recheck an operation guard before applying a response",
 );
 assert.match(
-  professorMariHomeSource,
+  mariWorkspaceRunSource,
   /loadMessages\(completedChatId, \{[\s\S]{0,160}workspaceRunIdRef\.current === runId[\s\S]{0,100}activeChatIdRef\.current === completedChatId/u,
   "Professor Mari background refreshes must not overwrite state after a newer operation starts",
 );
@@ -5796,13 +5807,13 @@ assert.match(
   "Professor Mari workspace status loads must recheck an operation guard before applying a response",
 );
 assert.match(
-  professorMariHomeSource,
+  mariWorkspaceRunSource,
   /refreshWorkspaceStatus\([\s\S]{0,140}workspaceRunIdRef\.current === runId[\s\S]{0,100}activeChatIdRef\.current === completedChatId/u,
   "Professor Mari post-run status refreshes must not overwrite state after a newer operation starts",
 );
 // The work-stage layout (1a61247d1) replaced the user-message separators with a right-aligned bubble.
 assert.match(
-  professorMariHomeSource,
+  compactMariMessageSource,
   /message\.role === "user"[\s\S]{0,180}<TranscriptRow[^>]*className="mari-user-request/u,
   "Professor Mari user messages must render as the user-request row",
 );
@@ -5812,7 +5823,7 @@ assert.match(
   "Professor Mari user bubbles must take their colour from the theme",
 );
 assert.match(
-  professorMariHomeSource,
+  mariChatHistoryActionsSource,
   /Promise\.allSettled\([\s\S]*?api\.delete\(`\/chats\/internal\/professor-mari\/chats\/\$\{id\}`\)/u,
   "Professor Mari chat history should delete all selected chats through the existing endpoint",
 );

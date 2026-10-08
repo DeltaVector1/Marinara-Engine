@@ -2,7 +2,7 @@
 // Plan / Bypass). Functional checks on the pure pieces plus source pins on the
 // enforcement seams.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -218,6 +218,14 @@ for (const mode of MARI_PERMISSIONS_MODES) {
 
 // ── Client surfaces exist ───────────────────────────────────────────────────
 const mariChat = readSource("packages/client/src/components/chat/HomeProfessorMariChat.tsx");
+// Slice 82: the mode menu lives in the composer, the run's write barrier in the run hook.
+const mariChatDir = "packages/client/src/components/chat/mari";
+const mariChatAll = [
+  mariChat,
+  ...readdirSync(join(repositoryRoot, mariChatDir)).map((name) => readSource(`${mariChatDir}/${name}`)),
+].join("\n");
+const mariComposer = readSource(`${mariChatDir}/MariComposer.tsx`);
+const mariRun = readSource(`${mariChatDir}/use-mari-workspace-run.ts`);
 assert.match(mariChat, /changePermissionsMode/u);
 assert.match(mariChat, /workspaceStatus\?\.permissionsMode \?\? DEFAULT_MARI_PERMISSIONS_MODE/u);
 // The picker is per-chat: status polls carry the chat id, the menu has a
@@ -228,11 +236,11 @@ assert.match(mariChat, /params\.set\("chatId", chatIdAtStart\)/u);
 // never short-circuited on possibly-stale check state.
 assert.match(mariChat, /\}, \[chatId, refreshWorkspaceStatus\]\);/u);
 assert.match(mariChat, /No same-value short-circuits/u);
-assert.doesNotMatch(mariChat, /mode === null && !permissionsModeOverridden\) return;/u);
-assert.match(mariChat, /changePermissionsMode\(null\)/u);
+assert.doesNotMatch(mariChatAll, /mode === null && !permissionsModeOverridden\) return;/u);
+assert.match(mariComposer, /changePermissionsMode\(null\)/u);
 assert.match(mariChat, /\{ mode, chatId: chatIdForMode \}/u);
 assert.match(mariChat, /permissionsModeSource === "chat"/u);
-assert.match(mariChat, /localize\(MARI_PERMISSIONS_MODE_LABELS\[permissionsMode\]\.label\)/u);
+assert.match(mariComposer, /localize\(MARI_PERMISSIONS_MODE_LABELS\[permissionsMode\]\.label\)/u);
 // After a successful PUT the panel refetches - an in-flight poll must not
 // clobber the optimistic patch permanently.
 assert.match(
@@ -249,7 +257,7 @@ assert.match(mariChat, /permissionsModeWritePendingChatRef\.current === chatIdAt
 // order) covering BOTH surfaces, and runs await the whole chain - a Settings
 // default change can never race a prompt on an un-overridden chat.
 assert.match(mariChat, /const write = enqueueMariPermissionsModeWrite\(/u);
-assert.match(mariChat, /await awaitMariPermissionsModeWrites\(\);/u);
+assert.match(mariRun, /await awaitMariPermissionsModeWrites\(\);/u);
 const writeChainLib = readSource("packages/client/src/lib/mari-permissions-write-chain.ts");
 assert.match(writeChainLib, /export function enqueueMariPermissionsModeWrite/u);
 assert.match(writeChainLib, /export function awaitMariPermissionsModeWrites/u);
@@ -305,7 +313,7 @@ assert.match(writeChainLib, /chain = link\.then\(\s*\(\) => undefined,\s*\(\) =>
 }
 // The latest failed write refetches authoritative status - it never restores
 // a rendered snapshot (which can be optimistic or another chat's).
-assert.doesNotMatch(mariChat, /previous \? previous : current/u);
+assert.doesNotMatch(mariChatAll, /previous \? previous : current/u);
 assert.match(mariChat, /if \(permissionsModeWriteSeqRef\.current !== writeSeq\) return;/u);
 assert.match(mariChat, /permissionsModeWriteSeqRef\.current !== writeSeqAtStart/u);
 assert.match(

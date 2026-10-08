@@ -4068,8 +4068,13 @@ assert.ok(!("mariDetailId" in mariSession));
   );
   assert.match(mariSource, /pendingReviewCount: countBlockingReviews\(visiblePendingChangeReviews\)/u);
   // Slice 71: the header counts the "Needs you" cards (waiting reviews, a turn's deletes as one, a held change).
+  // Slice 82: the header's Mari parts live in their own component.
+  const headerChromeSource = readFileSync(
+    new URL("../../packages/client/src/components/chat/mari/MariOmnibarHeaderChrome.tsx", import.meta.url),
+    "utf8",
+  );
   assert.match(
-    mariSource,
+    headerChromeSource,
     /const needsYouCount =[\s\S]*?isMariReviewWaiting\(approval\)[\s\S]*?\(heldChangeCard \? 1 : 0\);/u,
     "the omnibar header asks for an answer only for a real approval or a held change",
   );

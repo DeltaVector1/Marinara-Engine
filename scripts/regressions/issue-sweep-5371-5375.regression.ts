@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 
 const chatSetupWizardSource = readFileSync(
   new URL("../../packages/client/src/components/chat/ChatSetupWizard.tsx", import.meta.url),
@@ -21,6 +21,14 @@ const professorMariHomeSource = readFileSync(
   new URL("../../packages/client/src/components/chat/HomeProfessorMariChat.tsx", import.meta.url),
   "utf8",
 );
+// Slice 82: the chat's parts live in components/chat/mari/; "nowhere" checks read all of them.
+const mariChatDir = new URL("../../packages/client/src/components/chat/mari/", import.meta.url);
+const mariChatPart = (name: string) => readFileSync(new URL(name, mariChatDir), "utf8");
+const mariChatAll = [professorMariHomeSource, ...readdirSync(mariChatDir).map(mariChatPart)].join("\n");
+const mariComposerSource = mariChatPart("MariComposer.tsx");
+const mariTranscriptSource = mariChatPart("MariTranscript.tsx");
+const mariWorkTimelineSource = mariChatPart("MariWorkTimeline.tsx");
+const compactMariMessageSource = mariChatPart("CompactMariMessage.tsx");
 const homeBrowserHubSource = readFileSync(
   new URL("../../packages/client/src/components/chat/HomeBrowserHub.tsx", import.meta.url),
   "utf8",
@@ -46,64 +54,52 @@ assert.match(
   "Restarting Professor Mari must mark the new empty chat history as loaded",
 );
 assert.equal(
-  professorMariHomeSource.match(/showConnectionFirstHint &&/gu)?.length,
+  mariChatAll.match(/showConnectionFirstHint &&/gu)?.length,
   1,
   "The mounted Professor Mari transcript must render one connection guidance note",
 );
-assert.doesNotMatch(
-  professorMariHomeSource,
-  /mari-workspace-focusbar/u,
-  "The omnibar must not mount a second Mari header",
-);
-assert.doesNotMatch(
-  professorMariHomeSource,
-  /OmnibarIntro/u,
-  "The empty omnibar must not mount the long first-open intro",
-);
+assert.doesNotMatch(mariChatAll, /mari-workspace-focusbar/u, "The omnibar must not mount a second Mari header");
+assert.doesNotMatch(mariChatAll, /OmnibarIntro/u, "The empty omnibar must not mount the long first-open intro");
 // Like other agents, the composer's Send button turns into Stop while Mari works, and it is the one Stop
 // control: the header and the live work line no longer carry their own.
 assert.match(
-  professorMariHomeSource,
+  mariComposerSource,
   /data-mode=\{workspaceTimelineActive \? "stop" : "send"\}[\s\S]{0,900}stopProfessorMariWorkspaceAgent/u,
   "The composer's Send button must turn into a labelled Stop while Mari works",
 );
-assert.doesNotMatch(
-  professorMariHomeSource,
-  /mari-omnibar-header-stop|mari-live-work__stop/u,
-  "Stop lives only in the composer",
-);
+assert.doesNotMatch(mariChatAll, /mari-omnibar-header-stop|mari-live-work__stop/u, "Stop lives only in the composer");
 assert.match(
-  professorMariHomeSource,
+  mariWorkTimelineSource,
   /className="mari-live-work__sprite"/u,
   "The running step must keep its animated mini Mari sprite",
 );
 assert.match(
-  professorMariHomeSource,
+  compactMariMessageSource,
   /<MariWorkTimeline[\s\S]*?items=\{traceItems\}[\s\S]*?active=\{false\}/u,
   "Completed workspace traces must remain visible, fully open, in Mari's message",
 );
 assert.match(
-  professorMariHomeSource,
+  mariComposerSource,
   /<form[\s\S]*?mari-workspace-question-dock[\s\S]*?mari-workspace-answer-strip[\s\S]*?mari-workspace-composer\b/u,
   "Mari's question and suggestions must stay together above the composer",
 );
 assert.doesNotMatch(
-  professorMariHomeSource,
+  mariChatAll,
   /mari-omnibar-trust-chrome/u,
   "Omnibar Mari must not render a separate trust toolbar above the composer",
 );
 assert.match(
-  professorMariHomeSource,
+  mariTranscriptSource,
   /mari-omnibar-empty-welcome[\s\S]*?chips=\{chipRowChips\}/u,
   "Empty omnibar Mari must show a styled welcome with starter actions",
 );
 assert.match(
-  professorMariHomeSource,
+  mariComposerSource,
   /className="mari-workspace-context-chip"/u,
   "One-shot context must appear as a compact composer chip",
 );
 assert.doesNotMatch(
-  professorMariHomeSource,
+  mariChatAll,
   /id: "details"|workspaceDestination === "details"/u,
   "Mari has no Details sidebar or destination: results and reviews live in the chat",
 );
@@ -124,17 +120,22 @@ assert.match(
   "A turn's assigned reviews must reach its renderer",
 );
 assert.match(
-  professorMariHomeSource,
+  compactMariMessageSource,
   /<MariOutcomeGroup\s+changed=\{reviews\?\.changed \?\? \[\]\}[\s\S]*?needsOk=\{reviews\?\.needsOk \?\? \[\]\}/u,
   "A Mari turn must render the reviews assigned to it",
 );
 assert.match(
-  professorMariHomeSource,
-  /mari-transcript-stack[\s\S]*?\{reviewsByTurn\.unassigned\.length > 0 \|\| \(heldCardNode && !lastAssistantId\) \? \(\s*<div className="space-y-3">[\s\S]*?\{reviewsByTurn\.unassigned\.map\(renderTurnPrompt\)\}\s*<\/div>[\s\S]*?<form/u,
+  mariTranscriptSource,
+  /mari-transcript-stack[\s\S]*?\{reviewsByTurn\.unassigned\.length > 0 \|\| \(heldCardNode && !lastAssistantId\) \? \(\s*<div className="space-y-3">[\s\S]*?\{reviewsByTurn\.unassigned\.map\(renderTurnPrompt\)\}\s*<\/div>/u,
   "A pending review without a reply turn must still render inline in the transcript, before the composer",
 );
 assert.match(
   professorMariHomeSource,
+  /<MariTranscript\b[\s\S]*?<MariComposer\b/u,
+  "the transcript renders before the composer",
+);
+assert.match(
+  mariComposerSource,
   /<form[\s\S]*?mari-workspace-answer-strip[\s\S]*?mari-workspace-composer\b/u,
   "Suggestion answers must stay in the composer dock instead of inside transcript turns",
 );

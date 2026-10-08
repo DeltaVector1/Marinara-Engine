@@ -2,7 +2,7 @@
 // #5743 compact mobile bookmarks, #5752 New-chat discoverability, #5753 chips
 // slot hygiene, #5754 same-frame verification without the apology round).
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -78,6 +78,10 @@ assert.ok(
 // held-proposal Accept chip the delivery path deliberately exempts.
 for (const file of [
   "packages/client/src/components/chat/HomeProfessorMariChat.tsx",
+  // Slice 82: and every part of her chat.
+  ...readdirSync(join(repositoryRoot, "packages/client/src/components/chat/mari")).map(
+    (name) => `packages/client/src/components/chat/mari/${name}`,
+  ),
   "packages/client/src/components/chat/ChatInput.tsx",
   "packages/client/src/components/chat/ConversationInput.tsx",
 ]) {
@@ -88,7 +92,16 @@ for (const file of [
 }
 const mariChat = readSource("packages/client/src/components/chat/HomeProfessorMariChat.tsx");
 const mariChatFlat = flatten(mariChat);
-assert.doesNotMatch(mariChat, /clearSuggestions/u, "the dead loadMessages option stays deleted");
+// Slice 82: the chat's parts live in components/chat/mari/; "nowhere" checks read all of them.
+const mariChatDir = "packages/client/src/components/chat/mari";
+const mariChatAll = [
+  mariChat,
+  ...readdirSync(join(repositoryRoot, mariChatDir)).map((name) => readSource(`${mariChatDir}/${name}`)),
+].join("\n");
+const mariChatsPanelFlat = flatten(readSource(`${mariChatDir}/MariChatsPanel.tsx`));
+const mariHeaderChrome = readSource(`${mariChatDir}/MariOmnibarHeaderChrome.tsx`);
+const mariHeaderChromeFlat = flatten(mariHeaderChrome);
+assert.doesNotMatch(mariChatAll, /clearSuggestions/u, "the dead loadMessages option stays deleted");
 
 // ── #5752: New chat is discoverable ─────────────────────────────────────────
 const enJson = JSON.parse(readSource("packages/client/src/localization/locales/en.json")) as Record<string, string>;
@@ -99,28 +112,28 @@ assert.ok(!("ui.chat.homeprofessormarichat.restart" in enJson), "the misleading 
 assert.ok(!("ui.chat.homeprofessormarichat.restartSavesTheCurrentChatHere" in enJson));
 assert.ok(!("home.professorMari.restart" in enJson));
 // The Chats pane carries its own New chat button.
-assert.ok(mariChatFlat.includes('setWorkspaceDestination("chat"); void runRestart();'));
+assert.ok(mariChatsPanelFlat.includes('setWorkspaceDestination("chat"); void runRestart();'));
 
 // ── #5741: Skills and Memories never crowd the header ───────────────────────
 // The omnibar workspace routes them through header destinations, each with its own badge.
 assert.ok(
-  mariChatFlat.includes(
+  mariHeaderChromeFlat.includes(
     'id: "skills", Icon: Brain, label: localizeUi("ui.chat.homeprofessormarichat.skills"), shortLabel: undefined, count: activeSkillCount,',
   ),
 );
 assert.ok(
-  mariChatFlat.includes(
+  mariHeaderChromeFlat.includes(
     'id: "memories", Icon: BookOpen, label: localizeUi("ui.chat.homeprofessormarichat.memories"), shortLabel: undefined, count: activeMemoryCount,',
   ),
 );
 // Q1 (slice 56): every destination fits the bar at every width, so the header has no ⋮ menu that would
 // only repeat them, and New chat sits right after Chats as one group.
-assert.doesNotMatch(mariChat, /mari-omnibar-header-menu__destinations|moreMariActions/u);
-assert.ok(mariChatFlat.includes('{id === "chats" ? ( <button type="button" onClick={() => void runRestart()}'));
+assert.doesNotMatch(mariChatAll, /mari-omnibar-header-menu__destinations|moreMariActions/u);
+assert.ok(mariHeaderChromeFlat.includes('{id === "chats" ? ( <button type="button" onClick={() => void runRestart()}'));
 // Q5 (slice 57b): the "Chats · +" group closes the row, at the right under settings and Close, so Chats is
 // the last destination (DOM order is the tab order).
 const headerDestinationIds = [
-  ...(mariChat.match(/const headerDestinations = \[[\s\S]*?\] as const/u)?.[0] ?? "").matchAll(/id: "(\w+)"/gu),
+  ...(mariHeaderChrome.match(/const headerDestinations = \[[\s\S]*?\] as const/u)?.[0] ?? "").matchAll(/id: "(\w+)"/gu),
 ].map((match) => match[1]);
 assert.deepEqual(headerDestinationIds, ["skills", "memories", "context", "chats"]);
 
