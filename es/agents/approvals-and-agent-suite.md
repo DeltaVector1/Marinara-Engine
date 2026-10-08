@@ -11,7 +11,8 @@ Para encontrar el interruptor:
 1. Abre el chat que quieres controlar.
 2. Abre **Chat Settings** (Ajustes del chat).
 3. Desplázate hasta la sección **Agents**.
-4. Activa **Review Agent Outputs**.
+4. En un chat de Roleplay, abre **Trackers Control** (Control de trackers). En una partida de Game, omite este paso.
+5. Activa **Review Agent Outputs**.
 
 Cuando **Review Agent Outputs** está activado, las actualizaciones de lorebook, las actualizaciones de resumen y otras salidas revisables de agentes escritores esperan tu aprobación antes de guardarse. Cuando está desactivado, las actualizaciones de lorebook y de resumen pueden guardarse automáticamente.
 

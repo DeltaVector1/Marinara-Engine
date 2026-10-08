@@ -16,6 +16,8 @@ Do wygenerowania tła potrzebne jest połączenie **Image Generation** (generowa
 
 **Gallery** zbiera obrazy i wideo z danego czatu. Jest sekcją w **Chat Settings**: otwórz Chat Settings i rozwiń **Gallery**. Na komputerze możesz otworzyć ją w osobnym oknie (zobacz [Panel **Chat Settings** – przegląd](../chats/chat-settings.md#popping-a-section-out-into-its-own-window)). Przycisk **Background** (tło) generuje grafikę tła dla bieżącej sceny.
 
+W trybie Roleplay przycisk **Background** pojawia się od razu po zainstalowaniu agenta **Illustrator**. Nie trzeba dodawać tego agenta do czatu ani włączać agentów. Podobnie jak przycisk **Illustrate** (zilustruj), przycisk **Background** uruchamia generowanie jednorazowo i nie włącza automatycznych uruchomień.
+
 Jak wygenerować tło:
 
 1. Otwórz sekcję **Gallery** w **Chat Settings**.

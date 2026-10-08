@@ -16,6 +16,8 @@ Scene background generation is available in Roleplay and Game modes.
 
 **Gallery** 保存聊天的图像和视频，是 **Chat Settings** 里的一个区域。打开 Chat Settings，再展开 **Gallery** 即可。在电脑上还能把它弹出为独立窗口，见[聊天设置概览](../chats/chat-settings.md#popping-a-section-out-into-its-own-window)。**Background**(背景) 按钮用于生成当前场景的背景图。
 
+在 Roleplay 里，只要安装了 **Illustrator** 智能体，**Background** 按钮就会显示。不需要把这个智能体添加到聊天里，也不需要启用智能体。和 **Illustrate**(生成插图) 一样，它只运行一次，不会因此开始自动运行。
+
 生成背景的步骤：
 
 1. 打开 **Chat Settings** 里的 **Gallery** 区域。

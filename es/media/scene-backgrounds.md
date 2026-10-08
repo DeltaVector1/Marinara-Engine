@@ -16,6 +16,8 @@ Para generar un fondo necesitas una conexión de **Image Generation** (Generaci�
 
 La **Gallery** guarda las imágenes y los videos del chat. Es una sección de **Chat Settings**: abre Chat Settings y despliega Gallery. En una computadora puedes sacarla a su propia ventana; consulta [Vista general de Chat Settings](../chats/chat-settings.md#popping-a-section-out-into-its-own-window). El botón **Background** (Fondo) genera el fondo de la escena actual.
 
+En Roleplay, el botón **Background** aparece en cuanto el agente **Illustrator** está instalado. No necesitas añadirlo al chat ni activar los agentes. Igual que **Illustrate** (Ilustrar), se ejecuta una vez y no inicia ejecuciones automáticas.
+
 Para generar un fondo:
 
 1. Abre la sección **Gallery** de **Chat Settings**.

@@ -16,7 +16,7 @@ Marinara dzieli agentów na kategorie w panelu **Agents**: **Apps**, **Writer Ag
 
 Odstęp uruchamiania oznacza, że agent działa raz na kilka wiadomości użytkownika i asystenta, a nie po każdej wiadomości. Odstęp uruchamiania zmienisz w konfiguracji agenta, maksymalnie do 100.
 
-Agent Illustrator przyjmuje też wartość **0**, która oznacza generowanie wyłącznie ręczne: pozostaje dostępny w działaniach galerii, ale nigdy nie uruchamia się automatycznie. Pozostali agenci zachowują dotychczasowe dodatnie odstępy uruchamiania.
+W trybie Roleplay odstęp uruchamiania agenta Illustrator ustawia się osobno dla każdego czatu, na karcie tego agenta w panelu **Chat Settings**. Wartość z konfiguracji agenta jest domyślna dla czatów, które nie mają własnej. Agent Illustrator przyjmuje też wartość **0**, która oznacza generowanie wyłącznie ręczne: pozostaje dostępny w działaniach galerii, ale nigdy nie uruchamia się automatycznie. Pozostali agenci zachowują dotychczasowe dodatnie odstępy uruchamiania.
 
 <a id="apps"></a>
 
@@ -270,7 +270,7 @@ Odpowiada za generowanie obrazów i wideo. Pisze prompty wizualne do ważnych mo
 
 - **Faza**: Post-Processing.
 - **Gdzie działa**: Roleplay.
-- **Najważniejsze ustawienia**: domyślnie działa raz na 5 wiadomości użytkownika i asystenta. Wśród ustawień są **Prompt Model**, **Image Style**, **Attach Card Appearance** i **Send Avatar References**. Pełną konfigurację opisuje przewodnik [Agent Illustrator](../media/illustrator-agent.md).
+- **Najważniejsze ustawienia**: domyślnie działa raz na 5 wiadomości użytkownika i asystenta, a w każdym czacie Roleplay da się to zmienić polem **Run Interval** (odstęp uruchamiania) na karcie agenta. Wśród ustawień są **Prompt Model**, **Image Style**, **Attach Card Appearance** i **Send Avatar References**. Pełną konfigurację opisuje przewodnik [Agent Illustrator](../media/illustrator-agent.md).
 
 ### Lorebook Keeper
 

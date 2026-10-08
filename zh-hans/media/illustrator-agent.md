@@ -6,7 +6,7 @@
 
 智能体是一个小型 AI 帮手，只在一场聊天里自动运行。**Illustrator** 属于后处理智能体，也就是说，AI 每写完一条回复之后它才动手。它会读最新的这条回复，判断这一刻值不值得配一张图。值得的话，Illustrator 就写一段图像提示词，发给图像服务商。提示词就是告诉图像模型该画什么的那段文字描述。
 
-Illustrator 不会每条消息都画。默认情况下，画完一张图之后，要再经过 5 条被采纳的用户消息和 AI 回复，它才会画下一张。对同一条回复滑动切换备选回复或者重新生成，都不会推进这个间隔。如果它判断某一刻不值得配图，就直接跳过，不出图。它画出来的每张图都会保存到聊天的 **Gallery**(图库) 里。
+Illustrator 不会每条消息都画。默认情况下，画完一张图之后，要再经过 5 条被采纳的用户消息和 AI 回复，它才会画下一张。每个 Roleplay 聊天都可以改这个数字。对同一条回复滑动切换备选回复或者重新生成，都不会推进这个间隔。如果它判断某一刻不值得配图，就直接跳过，不出图。它画出来的每张图都会保存到聊天的 **Gallery**(图库) 里。
 
 Illustrator 可以用在 **Roleplay**(角色扮演) 和 **Game Mode**(游戏模式) 聊天里，装上它之后，Conversation(对话模式) 的自拍功能也会一并解锁。应用里给它的简介是“Responsible for image and video generations.”本指南的设置步骤和选项针对的是 Roleplay 聊天。Game Mode 换成了一个简单开关，见下面的 Game Mode 一节。
 
@@ -83,9 +83,11 @@ Illustrator 卡片上有两个开关，能让角色形象保持一致。两个�
 
 ## 更多设置和手动运行
 
-Illustrator 卡片上有一个 **Open Setup** 按钮，点开就是这个智能体的完整设置界面，在那里可以设置它运行的频率，也可以单独给它指定图像连接。
+Illustrator 卡片上有一个 **Open Setup** 按钮，点开就是这个智能体的完整设置界面，在那里可以设置它默认的运行频率，也可以单独给它指定图像连接。
 
-把 **Run Interval**(运行间隔)设为 **0**，即可仅手动生成。这会停止 Illustrator 的自动运行，包括自动生成场景背景，但智能体仍保持安装，也仍可用于 Gallery 操作。默认值仍是 **5**；设为正数即可恢复自动运行。把 Illustrator 加入聊天时也可以选择 0。
+每个 Roleplay 聊天都有自己的 **Run Interval**(运行间隔)，就在 **Chat Settings** 里的 Illustrator 卡片上。它的帮助文字是：“Messages between automatic images in this chat. 0 means only when you ask.”没有单独设置过的聊天会使用设置界面里的 **Run Interval**，没改过的话就是 **5**。卡片上会显示 **Using agent default** 或 **Chat override**。按 **Use agent default**(改用智能体默认值) 就能回到设置界面里的值。把 Illustrator 加入聊天时，添加窗口里也有同一个字段，你的选择只会保存到那个聊天。
+
+把 **Run Interval** 设为 **0**，即可仅手动生成。这会停止 Illustrator 的自动运行，包括自动生成场景背景，但智能体仍保持安装，也仍可用于 Gallery 操作。设为正数即可恢复自动运行。
 
 也可以不等它自己动手，随时手动出一张图。打开 **Chat Settings**，展开 **Gallery**，点 **Illustrate**(生成插图) 按钮，Illustrator 会立刻运行一次，出图期间按钮会显示 **Generating...**。想给眼下这一刻配张图、而智能体还没画的时候，这个按钮很好用。
 

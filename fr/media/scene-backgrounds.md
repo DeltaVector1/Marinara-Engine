@@ -16,6 +16,8 @@ Pour générer un arrière-plan, il te faut une connexion **Image Generation** (
 
 La **Gallery** contient les images et vidéos du chat. C'est une section de **Chat Settings** : ouvre Chat Settings et déplie Gallery. Sur ordinateur, tu peux en faire une fenêtre séparée ; consulte [Présentation de Chat Settings](../chats/chat-settings.md#popping-a-section-out-into-its-own-window). Le bouton **Background** (arrière-plan) génère le décor de la scène actuelle.
 
+En Roleplay, le bouton **Background** apparaît dès que l'agent **Illustrator** est installé. Tu n'as pas besoin de l'ajouter au chat ni d'activer les agents. Comme **Illustrate** (illustrer), il s'exécute une seule fois et ne lance pas d'exécutions automatiques.
+
 Pour générer un arrière-plan :
 
 1. Ouvre la section **Gallery** de **Chat Settings**.

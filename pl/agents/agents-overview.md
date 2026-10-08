@@ -59,9 +59,13 @@ Dodani agenci powinni pojawić się na liście jako aktywni, każdy z małym prz
 
 W sekcji **Agents** jest jeszcze kilka opcji:
 
-- **Attach chat summaries** (dołączanie podsumowań czatu; tylko czaty Roleplay): domyślnie wyłączone, także w istniejących czatach bez zapisanego wyboru. Włącz tę opcję, aby dołączać zapisane podsumowania do zapytań agentów, również podczas przetwarzania po odpowiedzi i ręcznych ponowień. Nie usuwa to podsumowań z kontekstu głównej odpowiedzi ani nie zatrzymuje ich generowania. Agenci z przyznanym dostępem do pełnego głównego promptu nadal mogą odczytać zawarte w nim podsumowania.
-- **Review Agent Outputs** (przeglądanie wyników agentów): po włączeniu zmiany w lorebooku, podsumowaniu i karcie postaci czekają na twoje zatwierdzenie przed zapisem. Po wyłączeniu zmiany w lorebooku i podsumowaniu zapisują się same, ale zmiany w karcie postaci nadal wymagają wcześniejszego potwierdzenia. Zobacz [Zatwierdzanie zapisów agentów i Agent Suite](approvals-and-agent-suite.md).
-- **Manual Trackers** (ręczne uruchamianie trackerów; tylko czaty Roleplay): po włączeniu agenci trackerów nie działają po każdej odpowiedzi. Uruchamiasz je ręcznie przyciskiem na pasku HUD. HUD to pasek informacji na górze czatu w trybie Roleplay.
+- **Agent Menus** (menu agentów; tylko czaty Roleplay): znajduje się tuż pod przełącznikiem **Enable Agents**. Kliknij nazwę agenta, aby przejść do jego ustawień.
+- **Trackers Control** (sterowanie trackerami; tylko czaty Roleplay): karta, która domyślnie jest zwinięta. Kliknij ją, aby rozwinąć te ustawienia:
+  - **Attach chat summaries** (dołączanie podsumowań czatu): domyślnie wyłączone, także w istniejących czatach bez zapisanego wyboru. Włącz tę opcję, aby dołączać zapisane podsumowania do zapytań agentów, również podczas przetwarzania po odpowiedzi i ręcznych ponowień. Nie usuwa to podsumowań z kontekstu głównej odpowiedzi ani nie zatrzymuje ich generowania. Agenci z przyznanym dostępem do pełnego głównego promptu nadal mogą odczytać zawarte w nim podsumowania.
+  - **Attach Lorebooks to Trackers** (dołączanie lorebooków do trackerów): po włączeniu agenci trackerów dostają też wpisy lorebooków użyte przy generowaniu głównej odpowiedzi. Ta opcja pojawia się, gdy do czatu dodano już któregoś z agentów trackerów.
+  - **Review Agent Outputs** (przeglądanie wyników agentów): opis znajdziesz w osobnym punkcie pod tą listą.
+  - **Individual tracker schedule** (harmonogram poszczególnych trackerów): włącz tu tracker, aby nie uruchamiał się po każdej odpowiedzi. Uruchamiasz go wtedy ręcznie przyciskiem na pasku HUD. HUD to pasek informacji na górze czatu w trybie Roleplay. Ta opcja pojawia się, gdy do czatu dodano już któregoś z agentów trackerów.
+- **Review Agent Outputs**: po włączeniu zmiany w lorebooku, podsumowaniu i karcie postaci czekają na twoje zatwierdzenie przed zapisem. Po wyłączeniu zmiany w lorebooku i podsumowaniu zapisują się same, ale zmiany w karcie postaci nadal wymagają wcześniejszego potwierdzenia. Zobacz [Zatwierdzanie zapisów agentów i Agent Suite](approvals-and-agent-suite.md). W czatach Roleplay ta opcja znajduje się w karcie **Trackers Control**.
 - **Agent Suite**: otwiera podgląd, w którym można przeczytać i zmienić wszystko, co agenci zapisali dla tego czatu.
 
 ### Ostrzeżenie o koszcie

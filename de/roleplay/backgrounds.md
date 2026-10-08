@@ -23,7 +23,7 @@ Danach aktualisiert sich der Szenenhintergrund von allein, sobald die Geschichte
 
 ## Einen Hintergrund von Hand generieren
 
-Einen neuen Hintergrund kannst du auch selbst erzeugen, ganz ohne Agenten. Marinara baut aus der Szene einen Bild-Prompt (also den Text für die KI) – aus Genre, Setting, aktuellem Ort, Wetter und Uhrzeit – und erstellt daraus einen frischen Hintergrund.
+Einen neuen Hintergrund kannst du auch selbst erzeugen, ganz ohne Agenten. Marinara baut aus der Szene einen Bild-Prompt (also den Text für die KI) – aus Genre, Setting, aktuellem Ort, Wetter und Uhrzeit – und erstellt daraus einen frischen Hintergrund. Für die Schaltfläche **Background** muss der Agent **Illustrator** installiert sein; dem Chat hinzufügen musst du ihn aber nicht.
 
 1. Öffne den Abschnitt **Gallery** (Galerie) in **Chat Settings**.
 2. Klick auf die Schaltfläche **Background**.

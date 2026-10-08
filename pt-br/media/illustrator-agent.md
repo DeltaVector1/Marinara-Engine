@@ -6,7 +6,7 @@ Este guia explica o **Illustrator** (ilustrador), um ajudante embutido que desen
 
 Um agente é um pequeno ajudante de IA que roda automaticamente dentro de um chat. O **Illustrator** é um agente de pós-processamento, ou seja, entra em ação depois que a IA termina cada resposta. Ele lê a resposta mais recente e decide se aquele momento merece uma imagem. Quando merece, o Illustrator escreve um prompt de imagem (o texto que Marinara envia para a IA) e manda para o provedor de imagens. O prompt é a descrição em texto que diz ao modelo de imagem o que desenhar.
 
-O Illustrator não desenha a cada mensagem. Por padrão, depois de criar uma imagem ele espera 5 mensagens aceitas, do usuário e da IA, antes de criar outra. Dar swipe (resposta alternativa) ou regenerar a mesma resposta não faz esse intervalo avançar. Se ele achar que o momento não vale uma ilustração, pula e não gera nada. Toda imagem criada vai para a galeria do chat, na seção **Gallery** (galeria).
+O Illustrator não desenha a cada mensagem. Por padrão, depois de criar uma imagem ele espera 5 mensagens aceitas, do usuário e da IA, antes de criar outra. Cada chat de Roleplay pode mudar esse número. Dar swipe (resposta alternativa) ou regenerar a mesma resposta não faz esse intervalo avançar. Se ele achar que o momento não vale uma ilustração, pula e não gera nada. Toda imagem criada vai para a galeria do chat, na seção **Gallery** (galeria).
 
 O Illustrator funciona em chats de **Roleplay** e **Game Mode**, e instalar o agente também libera as selfies do Conversation Mode. A descrição curta dele no aplicativo diz: "Responsible for image and video generations." Os passos de configuração e as opções deste guia valem para os chats de Roleplay. Game Mode usa um único botão liga/desliga, explicado na seção de Game Mode mais abaixo.
 
@@ -83,9 +83,11 @@ Não é preciso configurar nada. As descrições só são usadas em uma conexão
 
 ## Mais configurações e execução manual
 
-O card do Illustrator tem um botão **Open Setup** (abrir a configuração). Ele abre a tela completa de configuração do agente, onde você define com que frequência o agente roda e dá a ele uma conexão de imagem própria.
+O card do Illustrator tem um botão **Open Setup** (abrir a configuração). Ele abre a tela completa de configuração do agente, onde você define com que frequência o agente roda por padrão e dá a ele uma conexão de imagem própria.
 
-Defina **Run Interval** (intervalo de execução) como **0** para gerar apenas manualmente. Isso interrompe as execuções automáticas do Illustrator, inclusive os fundos automáticos de cena, mas mantém o agente instalado e disponível nas ações da Gallery. O padrão continua sendo **5**; escolha um intervalo positivo para retomar as execuções automáticas. Você também pode escolher 0 ao adicionar Illustrator a um chat.
+Cada chat de Roleplay tem o próprio **Run Interval** (intervalo de execução) no card do Illustrator em **Chat Settings**. O texto de ajuda diz: "Messages between automatic images in this chat. 0 means only when you ask." Um chat que não definiu o próprio valor usa o **Run Interval** da tela de configuração, que é **5**, a menos que você mude esse valor. O card mostra **Using agent default** ou **Chat override**. Clique em **Use agent default** (usar o padrão do agente) para voltar ao valor da tela de configuração. Quando você adiciona o Illustrator a um chat, a janela que se abre mostra o mesmo campo e salva a sua escolha apenas nesse chat.
+
+Defina **Run Interval** como **0** para gerar apenas manualmente. Isso interrompe as execuções automáticas do Illustrator, inclusive os fundos automáticos de cena, mas mantém o agente instalado e disponível nas ações da Gallery. Escolha um intervalo positivo para retomar as execuções automáticas.
 
 Também é possível criar uma imagem na hora, sem esperar. Abra **Chat Settings** e expanda **Gallery** e use o botão **Illustrate**. O Illustrator roda uma vez imediatamente, e o botão mostra **Generating...** enquanto trabalha. Isso é útil quando você quer uma imagem do momento atual e o agente ainda não desenhou nenhuma.
 

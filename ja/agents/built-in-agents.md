@@ -16,7 +16,7 @@ Marinaraは**Agents**パネルでエージェントを**Apps**、**Writer Agents
 
 実行間隔とは、毎回のメッセージではなく、ユーザーとアシスタントのメッセージ数回に1度だけエージェントを動かす設定です。実行間隔はエージェントの設定で最大100まで変更できます。
 
-Illustratorでは、手動生成専用にする値**0**も指定できます。Galleryの操作では引き続き利用できますが、自動実行はされません。他のエージェントの実行間隔は、従来どおり正の値です。
+Roleplayでは、Illustratorの実行間隔をチャットごとに、**Chat Settings**にあるIllustratorのカードで設定します。エージェントの設定で指定した値は、個別に設定していないチャットでのデフォルトになります。Illustratorでは、手動生成専用にする値**0**も指定できます。Galleryの操作では引き続き利用できますが、自動実行はされません。他のエージェントの実行間隔は、従来どおり正の値です。
 
 <a id="apps"></a>
 
@@ -270,7 +270,7 @@ Roleplayチャットごとに、短く編集可能な記憶保管庫を維持し
 
 - **フェーズ**: Post-Processing。
 - **使える場所**: Roleplay。
-- **主な設定**: デフォルトではユーザーとアシスタントのメッセージ5回に1度動きます。設定には**Prompt Model**、**Image Style**、**Attach Card Appearance**、**Send Avatar References**があります。詳しい設定方法は[Illustratorエージェント](../media/illustrator-agent.md)を参照してください。
+- **主な設定**: デフォルトではユーザーとアシスタントのメッセージ5回に1度動き、Roleplayのチャットごとにカードの**Run Interval**(実行間隔)で変更できます。設定には**Prompt Model**、**Image Style**、**Attach Card Appearance**、**Send Avatar References**があります。詳しい設定方法は[Illustratorエージェント](../media/illustrator-agent.md)を参照してください。
 
 ### Lorebook Keeper
 

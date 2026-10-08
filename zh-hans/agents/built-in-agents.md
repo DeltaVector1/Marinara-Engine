@@ -16,7 +16,7 @@ Marinara 在 **Agents** 面板里把智能体分成 **Apps**(应用类)、**Writ
 
 运行间隔的意思是，智能体每隔几条用户消息和 AI 回复才运行一次，而不是每条消息之后都运行。运行间隔可以在智能体的设置里改，最大 100。
 
-Illustrator 也接受 **0**，表示仅手动生成：它仍可用于 Gallery 操作，但不会自动运行。其他智能体保持原有的正数运行间隔。
+在 Roleplay 里，Illustrator 的运行间隔按聊天分别设置，位置在 **Chat Settings** 里它的卡片上。智能体设置里的值就是默认值，供没有单独设置的聊天使用。Illustrator 也接受 **0**，表示仅手动生成：它仍可用于 Gallery 操作，但不会自动运行。其他智能体保持原有的正数运行间隔。
 
 <a id="apps"></a>
 
@@ -270,7 +270,7 @@ Knowledge Retrieval 的省钱替代方案。它不做摘要，而是读取世界
 
 - **阶段**：Post-Processing。
 - **适用范围**：Roleplay。
-- **主要设置**：默认每 5 条用户消息和 AI 回复运行一次。设置包括 **Prompt Model**(提示词模型)、**Image Style**(图像风格)、**Attach Card Appearance**(附带角色卡外貌) 和 **Send Avatar References**(发送头像参考)。完整设置步骤见 [Illustrator 智能体](../media/illustrator-agent.md)。
+- **主要设置**：默认每 5 条用户消息和 AI 回复运行一次，每个 Roleplay 聊天都可以用卡片上的 **Run Interval**(运行间隔) 修改这个值。设置包括 **Prompt Model**(提示词模型)、**Image Style**(图像风格)、**Attach Card Appearance**(附带角色卡外貌) 和 **Send Avatar References**(发送头像参考)。完整设置步骤见 [Illustrator 智能体](../media/illustrator-agent.md)。
 
 ### Lorebook Keeper
 

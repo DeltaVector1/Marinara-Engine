@@ -11,7 +11,8 @@ So findest du den Schalter:
 1. Öffne den Chat, den du steuern willst.
 2. Öffne **Chat Settings** (Chat-Einstellungen).
 3. Scroll zum Abschnitt **Agents**.
-4. Aktivier **Review Agent Outputs**.
+4. Öffne in einem Roleplay-Chat **Trackers Control** (Tracker-Steuerung). In einem Game-Chat überspringst du diesen Schritt.
+5. Aktivier **Review Agent Outputs**.
 
 Ist **Review Agent Outputs** aktiv, warten Lorebook-Updates, Zusammenfassungs-Updates und alle anderen prüfbaren Ausgaben schreibender Agenten auf deine Freigabe. Ist der Schalter aus, speichert Marinara Lorebook- und Zusammenfassungs-Updates auch automatisch.
 

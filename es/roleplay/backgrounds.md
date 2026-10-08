@@ -23,7 +23,7 @@ Después de eso, el fondo de escena se actualiza por sí solo a medida que tu hi
 
 ## Generar un fondo a mano
 
-También puedes crear un fondo nuevo tú mismo, sin el agente. Marinara construye un prompt de imagen a partir de la escena (su género, ambientación, ubicación actual, clima y hora) y crea un fondo nuevo.
+También puedes crear un fondo nuevo tú mismo, sin el agente. Marinara construye un prompt de imagen a partir de la escena (su género, ambientación, ubicación actual, clima y hora) y crea un fondo nuevo. El botón **Background** necesita el agente **Illustrator** instalado, pero no necesitas añadirlo al chat.
 
 1. Abre **Chat Settings** y despliega **Gallery** (Galería).
 2. Haz clic en el botón **Background**.

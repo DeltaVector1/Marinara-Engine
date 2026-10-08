@@ -6,7 +6,7 @@ In dieser Anleitung geht es um den **Illustrator** – einen eingebauten Helfer,
 
 Ein Agent ist ein kleiner KI-Helfer, der automatisch in einem einzelnen Chat mitläuft. Der **Illustrator** ist ein Nachbearbeitungs-Agent: Er startet, sobald die KI eine Antwort fertig geschrieben hat. Er liest die letzte Antwort und entscheidet, ob der Moment ein Bild verdient. Wenn ja, schreibt der Illustrator einen Prompt für das Bild und schickt ihn an den Bild-Anbieter. Ein Prompt ist die Textbeschreibung, die einem Bildmodell sagt, was es zeichnen soll.
 
-Der Illustrator zeichnet nicht zu jeder Nachricht. Standardmäßig wartet er nach einem Bild 5 angenommene Nachrichten von dir und der KI ab, bevor das nächste entstehen kann. Swipes oder neu generierte Fassungen derselben Antwort zählen dabei nicht mit. Hält er einen Moment nicht für bildwürdig, überspringt er ihn und erzeugt kein Bild. Jedes fertige Bild landet in der **Gallery** (Galerie) des Chats.
+Der Illustrator zeichnet nicht zu jeder Nachricht. Standardmäßig wartet er nach einem Bild 5 angenommene Nachrichten von dir und der KI ab, bevor das nächste entstehen kann. Jeder Roleplay-Chat kann diese Zahl ändern. Swipes oder neu generierte Fassungen derselben Antwort zählen dabei nicht mit. Hält er einen Moment nicht für bildwürdig, überspringt er ihn und erzeugt kein Bild. Jedes fertige Bild landet in der **Gallery** (Galerie) des Chats.
 
 Einsetzen lässt sich der Illustrator in **Roleplay**- und **Game Mode**-Chats; installiert schaltet er außerdem die Selfies im Conversation Mode frei. Die Kurzbeschreibung in der App lautet: „Responsible for image and video generations.“ Die Einrichtungsschritte und Einstellungen in dieser Anleitung beziehen sich auf Roleplay-Chats. Game Mode arbeitet stattdessen mit einem einzigen Schalter – dazu weiter unten der Abschnitt zum Game Mode.
 
@@ -83,9 +83,11 @@ Du musst dafür nichts einstellen. Die Beschreibungen werden nur bei einer Novel
 
 ## Weitere Einstellungen und manueller Start
 
-Auf der Illustrator-Karte sitzt die Schaltfläche **Open Setup** (Einrichtung öffnen). Sie öffnet das vollständige Einrichtungsfenster des Agenten. Dort legst du fest, wie oft der Agent läuft, und gibst ihm eine eigene Bild-Verbindung.
+Auf der Illustrator-Karte sitzt die Schaltfläche **Open Setup** (Einrichtung öffnen). Sie öffnet das vollständige Einrichtungsfenster des Agenten. Dort legst du den Standardwert dafür fest, wie oft der Agent läuft, und gibst ihm eine eigene Bild-Verbindung.
 
-Setze **Run Interval** (Laufintervall) auf **0**, um ausschließlich manuell zu generieren. Damit stoppst du automatische Illustrator-Läufe einschließlich automatischer Szenenhintergründe. Der Agent bleibt installiert und für Galerieaktionen verfügbar. Der Standardwert bleibt **5**; ein positiver Wert aktiviert automatische Läufe wieder. Du kannst 0 auch wählen, wenn du Illustrator zu einem Chat hinzufügst.
+Jeder Roleplay-Chat hat auf der Illustrator-Karte in **Chat Settings** ein eigenes **Run Interval** (Laufintervall). Sein Hilfetext lautet: „Messages between automatic images in this chat. 0 means only when you ask.“ Ein Chat ohne eigenen Wert nutzt das **Run Interval** aus dem Einrichtungsfenster; das liegt bei **5**, solange du es nicht änderst. Die Karte zeigt entweder **Using agent default** oder **Chat override**. Mit **Use agent default** (Agent-Standard verwenden) kehrst du zum Wert aus dem Einrichtungsfenster zurück. Fügst du den Illustrator einem Chat hinzu, zeigt das Fenster zum Hinzufügen dasselbe Feld und speichert deine Auswahl nur für diesen Chat.
+
+Setze **Run Interval** auf **0**, um ausschließlich manuell zu generieren. Damit stoppst du automatische Illustrator-Läufe einschließlich automatischer Szenenhintergründe. Der Agent bleibt installiert und für Galerieaktionen verfügbar. Ein positiver Wert aktiviert automatische Läufe wieder.
 
 Ein Bild lässt sich auch jederzeit von Hand erzeugen, statt darauf zu warten. Öffne dazu den Abschnitt **Gallery** in **Chat Settings** und klick auf die Schaltfläche **Illustrate** (Illustrieren). Der Illustrator läuft dann sofort einmal durch, währenddessen steht auf der Schaltfläche **Generating...**. Praktisch, wenn du ein Bild vom aktuellen Moment willst und der Agent noch keines gezeichnet hat.
 
