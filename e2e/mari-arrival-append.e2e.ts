@@ -484,7 +484,14 @@ test("an arrival during a run waits until the finished run has been shown", asyn
       const { useChatStore } = await import("/src/stores/chat.store.ts" as string);
       useChatStore.getState().setActiveChatId(id);
     }, chatId);
-    await expect(page.getByText("Current chat: Arrival during run chat")).toBeVisible();
+    // Slice 78: the empty list no longer repeats the open chat, so wait on the store itself.
+    await expect
+      .poll(() =>
+        page.evaluate(
+          async () => (await import("/src/stores/chat.store.ts" as string)).useChatStore.getState().activeChatId,
+        ),
+      )
+      .toBe(chatId);
     await page.keyboard.press("Control+j");
     await expect(page.getByPlaceholder(/Search everything/)).toBeHidden();
 

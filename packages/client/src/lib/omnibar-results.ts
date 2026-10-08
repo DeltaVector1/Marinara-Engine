@@ -64,11 +64,6 @@ const MAX_GLOBAL_MESSAGE_SEARCH_RESULTS = 6;
  */
 const CHAT_CONTEXT_MAX_RESULTS = 8;
 const MAX_SLASH_RESULTS = 8;
-/**
- * Slash commands worth offering before anything is typed while a chat is open.
- * Everything else stays discoverable by typing "/".
- */
-const IDLE_CHAT_SLASH_COMMANDS = ["continue", "impersonate", "scene", "goto"] as const;
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -611,7 +606,7 @@ export function idleOmnibarContextResults(
       : [],
   );
   return contextResults
-    .filter((result) => result.id === fixRowId || !composerRowIds.has(result.id))
+    .filter((result) => result.id === fixRowId || (!composerRowIds.has(result.id) && !result.idleHidden))
     .slice(0, CHAT_CONTEXT_MAX_RESULTS);
 }
 
@@ -1109,13 +1104,8 @@ export function buildOmnibarSlashResults({
 }: OmnibarSlashResultsInput): OmnibarResult[] {
   if (!activeChatId || surface !== "chat") return [];
   const typed = deferredQuery.trim();
-  const commands = typed.startsWith("/")
-    ? getSlashCompletions(typed, slashAvailability)
-    : typed
-      ? []
-      : getSlashCompletions("/", slashAvailability).filter((command) =>
-          (IDLE_CHAT_SLASH_COMMANDS as readonly string[]).includes(command.name),
-        );
+  // Slice 78: only on "/"; the empty list no longer suggests slash commands.
+  const commands = typed.startsWith("/") ? getSlashCompletions(typed, slashAvailability) : [];
   return commands.slice(0, MAX_SLASH_RESULTS).map((command, index) => ({
     id: `slash:${command.name}`,
     action: { kind: "slash", command: command.name } as const,
@@ -1290,6 +1280,7 @@ export function buildOmnibarContextResults({
       });
     }
   }
+  // Slice 78: the chat's own members are one tap away in the chat; the empty list skips them.
   if (isActiveChat && activeChat) {
     pushCanonical(`chat:${activeChat.id}`, {
       id: `chat:${activeChat.id}`,
@@ -1297,6 +1288,7 @@ export function buildOmnibarContextResults({
       category: "chat",
       target: { kind: "chat", chatId: activeChat.id },
       score: 0,
+      idleHidden: true,
       icon: "chats",
     });
     for (const characterId of getChatCharacterIds(activeChat)) {
@@ -1308,6 +1300,7 @@ export function buildOmnibarContextResults({
         category: "character",
         target: { kind: "resource", resource: "character", id: characterId },
         score: 0,
+        idleHidden: true,
         icon: "character",
       });
     }
@@ -1320,6 +1313,7 @@ export function buildOmnibarContextResults({
           category: "persona",
           target: { kind: "resource", resource: "persona", id: activeChat.personaId },
           score: 0,
+          idleHidden: true,
           icon: "persona",
         });
     }
@@ -1332,6 +1326,7 @@ export function buildOmnibarContextResults({
           category: "preset",
           target: { kind: "resource", resource: "preset", id: activeChat.promptPresetId },
           score: 0,
+          idleHidden: true,
           icon: "preset",
         });
     }
@@ -1343,6 +1338,7 @@ export function buildOmnibarContextResults({
           title: name,
           category: "connection",
           score: 0,
+          idleHidden: true,
           icon: "connection",
         });
     }
@@ -1360,6 +1356,7 @@ export function buildOmnibarContextResults({
         category: "lorebook",
         target: { kind: "resource", resource: "lorebook", id: lorebook.id },
         score: 0,
+        idleHidden: true,
         icon: "lorebook",
       });
     }
@@ -1377,6 +1374,7 @@ export function buildOmnibarContextResults({
           category: "agent",
           target: { kind: "resource", resource: "agent", id: agent.type },
           score: 0,
+          idleHidden: true,
           icon: "agent",
         });
       }
@@ -1408,7 +1406,11 @@ export function buildOmnibarContextResults({
       push(chatTool("summary", t("commandCenter.chatTools.summary", "Summary"), "chats"));
     }
     if (activeChat.mode !== "game") {
-      push(chatTool("regenerate", t("commandCenter.chatTools.regenerate", "Regenerate reply"), "command"));
+      // The button under the reply already does this; the empty list does not repeat it (slice 78).
+      push({
+        ...chatTool("regenerate", t("commandCenter.chatTools.regenerate", "Regenerate reply"), "command"),
+        idleHidden: true,
+      });
     }
   }
   return out;

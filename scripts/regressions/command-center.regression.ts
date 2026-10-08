@@ -57,6 +57,7 @@ import {
   findMentionedResults,
   idleOmnibarContextResults,
   matchesAtWordStart,
+  buildOmnibarSlashResults,
 } from "../../packages/client/src/lib/omnibar-results.js";
 import {
   FRECENCY_BOOST_CAP,
@@ -67,6 +68,17 @@ import {
   topFrecentResultIds,
   type OmnibarFrecencyEntry,
 } from "../../packages/client/src/lib/omnibar-frecency.js";
+import {
+  OMNIBAR_TRY_MAX_OPENS,
+  buildOmnibarTryResults,
+  countOmnibarTryOpen,
+  isOmnibarCommandPick,
+  lastEditedRecordId,
+  markOmnibarTryUsed,
+  pickOmnibarNowResult,
+  readOmnibarTryState,
+  visibleOmnibarTryKinds,
+} from "../../packages/client/src/lib/omnibar-empty-state.js";
 import { OMNIBAR_SETTINGS_TOGGLE_BINDINGS } from "../../packages/client/src/lib/omnibar-settings-toggle-bindings.js";
 import {
   OMNIBAR_SETTINGS_SECTION_ID,
@@ -273,10 +285,16 @@ assert.deepEqual(
     ["create-navigation", ["characters"]],
   ],
 );
+// Slice 78: the empty list reads Now, Try, Continue, then this screen's work, then Recent. A row
+// marked `now` leads whatever group it came from, so the Mari row keeps its "continue" group
+// (her resume-not-send rules key on it) and still renders first.
 const contextualPresentation = presentCommandCenterResults(
   [
+    { id: "chat:recent", category: "chat", group: "recent" },
     { id: "context:chat:one", category: "chat", group: "current-work" },
-    { id: "ask-professor-mari", category: "professor", group: "continue" },
+    { id: "chat:last", category: "chat", group: "continue" },
+    { id: "try:search", category: "navigation", group: "try" },
+    { id: "ask-professor-mari", category: "professor", group: "continue", now: "review" },
     { id: "create-character", category: "navigation" },
   ],
   { query: "" },
@@ -284,14 +302,13 @@ const contextualPresentation = presentCommandCenterResults(
 assert.deepEqual(
   contextualPresentation.groups.map((group) => [group.id, group.results.map((result) => result.id)]),
   [
+    ["now", ["ask-professor-mari"]],
+    ["try", ["try:search"]],
+    ["continue", ["chat:last"]],
     ["current-work", ["context:chat:one"]],
-    ["continue", ["ask-professor-mari"]],
+    ["recent", ["chat:recent"]],
     ["create-navigation", ["create-character"]],
   ],
-);
-assert.deepEqual(
-  contextualPresentation.results.map((result) => result.id),
-  ["context:chat:one", "ask-professor-mari", "create-character"],
 );
 assert.equal(contextualPresentation.results[0]?.id, contextualPresentation.groups[0]?.results[0]?.id);
 assert.equal(
@@ -299,7 +316,8 @@ assert.equal(
     null,
     contextualPresentation.results.map((result) => result.id),
   ),
-  "context:chat:one",
+  "ask-professor-mari",
+  "Enter on an empty list runs the Now row",
 );
 assert.deepEqual(
   presentCommandCenterResults(
@@ -4102,3 +4120,126 @@ assert.ok(!("mariDetailId" in mariSession));
 }
 
 console.info("Command Center regression checks passed.");
+
+// Slice 78: the empty omnibar - one Now row, Try rows until each kind is used, Continue.
+{
+  const row = (id: string, extra: Partial<OmnibarResult> = {}) =>
+    ({ id, title: id, category: "chat", score: 0, ...extra }) as OmnibarResult;
+  const mari = row("ask-professor-mari", { category: "professor", group: "continue" });
+  const fix = row("connection:k1");
+  const check = row("chat-tool:reply-checkup:c1");
+  const setup = row("now:setup-connection");
+  const base = {
+    mariRow: mari,
+    pendingApprovals: 0,
+    mariActive: false,
+    mariFinished: false,
+    fixRow: fix,
+    checkupRow: check,
+    setupRow: setup,
+  };
+  const pick = (input: Partial<typeof base>) => pickOmnibarNowResult({ ...base, ...input });
+  assert.deepEqual(
+    [
+      pick({ pendingApprovals: 2 }),
+      pick({}),
+      pick({ fixRow: null }),
+      pick({ fixRow: null, checkupRow: null, mariActive: true }),
+    ].map((result) => [result?.id, result?.now]),
+    [
+      ["ask-professor-mari", "review"],
+      ["connection:k1", "fix"],
+      ["chat-tool:reply-checkup:c1", "check"],
+      ["ask-professor-mari", "working"],
+    ],
+    "Now priority: Mari's review, a failure, a cut-off reply, Mari working",
+  );
+  assert.equal(pick({ fixRow: null, checkupRow: null, mariFinished: true })?.now, "finished");
+  assert.equal(pick({ fixRow: null, checkupRow: null })?.now, "setup", "no model is the last resort");
+  assert.equal(pick({ fixRow: null, checkupRow: null, setupRow: null }), null, "nothing up, no Now row");
+  assert.equal(pick({ mariRow: null, pendingApprovals: 3 })?.now, "fix", "approvals without her row fall through");
+  assert.equal(mari.now, undefined, "picking never mutates the source row");
+
+  // Try rows: fixed order, a used kind never returns, a hard stop after 15 opens, none when switched off.
+  const fresh = readOmnibarTryState(null);
+  const on = { enabled: true, mariEnabled: true };
+  assert.deepEqual(visibleOmnibarTryKinds(fresh, on), ["search", "command", "mari"]);
+  assert.deepEqual(visibleOmnibarTryKinds({ used: { search: 1 }, opens: 0 }, on), ["command", "mari"]);
+  assert.deepEqual(visibleOmnibarTryKinds({ used: {}, opens: 0 }, { ...on, mariEnabled: false }), [
+    "search",
+    "command",
+  ]);
+  assert.deepEqual(visibleOmnibarTryKinds({ used: {}, opens: OMNIBAR_TRY_MAX_OPENS - 1 }, on).length, 3);
+  assert.deepEqual(visibleOmnibarTryKinds({ used: {}, opens: OMNIBAR_TRY_MAX_OPENS }, on), [], "stop rule");
+  assert.deepEqual(visibleOmnibarTryKinds(fresh, { ...on, enabled: false }), [], "suggestions off");
+  const memory = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => memory.get(key) ?? null,
+    setItem: (key: string, value: string) => void memory.set(key, value),
+  };
+  markOmnibarTryUsed("mari", 100, storage);
+  markOmnibarTryUsed("mari", 200, storage);
+  countOmnibarTryOpen(storage);
+  countOmnibarTryOpen(storage);
+  assert.deepEqual(
+    readOmnibarTryState(storage),
+    { used: { mari: 100 }, opens: 2 },
+    "first use is kept; opens count up",
+  );
+  memory.set("marinara:omnibar:try:v1", "{not json");
+  assert.deepEqual(readOmnibarTryState(storage), { used: {}, opens: 0 }, "corrupt storage reads as new");
+  const t = ((_key: string, fallback: string, options?: Record<string, unknown>) =>
+    fallback.replace("{{example}}", String(options?.example ?? ""))) as never;
+  const tryRows = buildOmnibarTryResults(["command", "mari"], { search: "s", command: "light mode", mari: "Why?" }, t);
+  assert.deepEqual(
+    tryRows.map((result) => [result.id, result.group, result.action, result.description]),
+    [
+      ["try:command", "try", { kind: "refine-query", query: "light mode" }, "Try “light mode”"],
+      ["try:mari", "try", { kind: "refine-query", query: "Why?" }, "Try “Why?”"],
+    ],
+    "an example only fills the field",
+  );
+
+  // Which kind a typed pick teaches.
+  assert.equal(isOmnibarCommandPick({ action: { kind: "goto-message", chatId: "c", messageNumber: 1 } }), false);
+  assert.equal(isOmnibarCommandPick({}), false, "opening a record is a search");
+  assert.equal(isOmnibarCommandPick({ action: { kind: "slash", command: "goto" } }), true);
+  assert.equal(isOmnibarCommandPick({ chooseValue: () => {} }), true);
+
+  // Continue's "edited last": changed after creation, newest wins.
+  assert.equal(
+    lastEditedRecordId([
+      ["character", [{ id: "imported", createdAt: "2026-10-08T10:00:00Z", updatedAt: "2026-10-08T10:00:00Z" }]],
+      [
+        "lorebook",
+        [
+          { id: "old", createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-02T00:00:00Z" },
+          { id: "new", createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-07T00:00:00Z" },
+        ],
+      ],
+    ]),
+    "lorebook:new",
+  );
+  assert.equal(lastEditedRecordId([["preset", [{ id: "default", createdAt: "x", updatedAt: "y" }]]]), null);
+
+  // The empty list skips rows that repeat the chat's own buttons, but never a Fix row.
+  const hidden = [
+    row("chat:c1", { idleHidden: true }),
+    row("connection:k1", { idleHidden: true }),
+    row("chat-tool:search:c1"),
+  ];
+  assert.deepEqual(
+    idleOmnibarContextResults(hidden, null, "connection:k1").map((result) => result.id),
+    ["connection:k1", "chat-tool:search:c1"],
+  );
+  assert.deepEqual(
+    buildOmnibarSlashResults({
+      activeChatId: "c1",
+      deferredQuery: "",
+      slashAvailability: {} as never,
+      surface: "chat",
+    }),
+    [],
+    "no slash rows before a /",
+  );
+}

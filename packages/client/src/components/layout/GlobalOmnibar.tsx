@@ -30,6 +30,7 @@ import {
   Compass,
   Edit3,
   LayoutGrid,
+  Lightbulb,
   Loader2,
   MessageCircle,
   Play,
@@ -102,6 +103,17 @@ import {
   topFrecentResultIds,
   type OmnibarFrecencyEntry,
 } from "../../lib/omnibar-frecency";
+import {
+  buildOmnibarTryResults,
+  countOmnibarTryOpen,
+  isOmnibarCommandPick,
+  lastEditedRecordId,
+  markOmnibarTryUsed,
+  pickOmnibarNowResult,
+  readOmnibarTryState,
+  visibleOmnibarTryKinds,
+  type OmnibarTryKind,
+} from "../../lib/omnibar-empty-state";
 import { useMariApprovals } from "../../hooks/use-mari-approvals";
 import { getCharacterDisplayIdentity } from "../../lib/character-display";
 import { completeInline } from "../../lib/inline-completion";
@@ -257,6 +269,8 @@ const EDITOR_CATEGORIES = new Set<OmnibarCategory>([
 /** What Professor Mari can change, and so what a "Continue with Mari" action is offered on. */
 /** Chats the empty omnibar offers to switch back to. */
 const IDLE_RECENT_CHATS = 4;
+/** Mari's tall portrait, cropped to her face in a row's square media slot. */
+const MARI_FACE_CROP: React.CSSProperties = { objectPosition: "50% 8%" };
 const OMNIBAR_CATEGORY_RESULT_TYPE: Partial<Record<OmnibarCategory, ResultType>> = {
   character: "character",
   persona: "persona",
@@ -721,6 +735,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   );
   const groupLabels = useMemo<Record<CommandCenterResultGroupId, string>>(
     () => ({
+      now: t("commandCenter.groups.now", "Needs you now"),
+      try: t("commandCenter.groups.try", "Try"),
       context: t("commandCenter.groups.context", "On this screen"),
       "current-work": t("commandCenter.groups.currentWork", "Current work"),
       continue: t("commandCenter.groups.continue", "Continue"),
@@ -1662,14 +1678,17 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const recentChatResults = useMemo<OmnibarResult[]>(() => {
     const rowById = new Map(searchableEntityResults.map((row) => [row.id, row] as const));
     const lastActive = (chat: Chat) => chat.lastMessageAt ?? chat.updatedAt;
-    return [...(chats.data ?? [])]
-      .filter((chat) => chat.id !== activeChatId)
-      .sort((a, b) => lastActive(b).localeCompare(lastActive(a)))
-      .flatMap((chat) => {
-        const row = rowById.get(`chat:${chat.id}`);
-        return row ? [{ ...row, group: "recent" as const }] : [];
-      })
-      .slice(0, IDLE_RECENT_CHATS);
+    return (
+      [...(chats.data ?? [])]
+        .filter((chat) => chat.id !== activeChatId)
+        .sort((a, b) => lastActive(b).localeCompare(lastActive(a)))
+        .flatMap((chat) => {
+          const row = rowById.get(`chat:${chat.id}`);
+          return row ? [{ ...row, group: "recent" as const }] : [];
+        })
+        // One more than shown: the newest leads the Continue strip and is dropped here as a duplicate.
+        .slice(0, IDLE_RECENT_CHATS + 1)
+    );
   }, [activeChatId, chats.data, searchableEntityResults]);
   // O2: on an empty query, the top 3-5 rows this surface's user actually runs
   // most, ahead of the plain "last used anywhere" recents group below.
@@ -1682,7 +1701,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       // Already the thing you're on — showing "open it" again would be noise.
       if (id === `chat:${activeChatId}` || id === omnibarContext.openResource?.resultId) return [];
       const row = rowById.get(id);
-      return row && isNavigationOmnibarResult(row) ? [{ ...row, group: "frecent" as const }] : [];
+      // Slice 78: chats already lead Continue and Recent, so this group keeps the buried things.
+      return row && isNavigationOmnibarResult(row) && row.category !== "chat"
+        ? [{ ...row, group: "frecent" as const }]
+        : [];
     });
   }, [
     activeChatId,
@@ -1691,6 +1713,133 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     frecencyEntries,
     omnibarContext.openResource,
     omnibarContext.surface,
+  ]);
+  // Slice 78: Try examples until each kind was used once. Read once per open, so a row never
+  // vanishes under the pointer; the open itself counts toward the stop rule.
+  const [tryState, setTryState] = useState(() => readOmnibarTryState());
+  const tryKinds = useMemo(
+    () => visibleOmnibarTryKinds(tryState, { enabled: omnibarSuggestionsEnabled, mariEnabled }),
+    [mariEnabled, omnibarSuggestionsEnabled, tryState],
+  );
+  const tryShownOnOpenRef = useRef(tryKinds.length > 0);
+  useEffect(() => {
+    if (tryShownOnOpenRef.current) countOmnibarTryOpen();
+  }, []);
+  const markTry = (kind: OmnibarTryKind) => {
+    if (tryState.used[kind] === undefined) setTryState(markOmnibarTryUsed(kind));
+  };
+  const tryResults = useMemo<OmnibarResult[]>(() => {
+    if (deferredQuery.trim() || queryScope || !tryKinds.length) return [];
+    const chatCharacterId = activeChat?.id === activeChatId && activeChat ? getChatCharacterIds(activeChat)[0] : null;
+    const chatCharacterName = chatCharacterId ? characterNameById.get(chatCharacterId) : undefined;
+    return buildOmnibarTryResults(
+      tryKinds,
+      {
+        // Real names from this install, so the example finds something; a fresh one searches the docs.
+        search: readNamedRow(lorebooks.data?.[0])?.name ?? characterNameById.values().next().value ?? "openrouter",
+        command:
+          theme === "light"
+            ? t("commandCenter.try.commandDark", "dark mode")
+            : t("commandCenter.try.commandLight", "light mode"),
+        mari: !mariHasModel
+          ? t("commandCenter.try.mariSetup", "How do I connect a model?")
+          : chatCharacterName
+            ? t("commandCenter.try.mariChat", "Why is {{name}} acting out of character?", { name: chatCharacterName })
+            : t("commandCenter.try.mariHome", "Why are my replies so short?"),
+      },
+      t,
+    );
+  }, [
+    activeChat,
+    activeChatId,
+    characterNameById,
+    deferredQuery,
+    lorebooks.data,
+    mariHasModel,
+    queryScope,
+    t,
+    theme,
+    tryKinds,
+  ]);
+  // Slice 78: the one row that needs you now, from rows the omnibar already builds.
+  const nowResult = useMemo<OmnibarResult | null>(() => {
+    if (deferredQuery.trim() || queryScope) return null;
+    const lastFixRowId = mariFixRowId(lastAppError);
+    return pickOmnibarNowResult({
+      mariRow: continueResult,
+      pendingApprovals: mariEnabled ? (mariWorkspaceStatus.data?.pendingApprovals.length ?? 0) : 0,
+      mariActive: mariWorkspaceStatus.data?.active === true,
+      mariFinished,
+      fixRow: (lastFixRowId && contextResults.find((row) => row.id === lastFixRowId)) || null,
+      checkupRow: contextResults.find((row) => row.id.startsWith("chat-tool:reply-checkup:")) ?? null,
+      setupRow: mariHasModel
+        ? null
+        : {
+            id: "now:setup-connection",
+            title: t("commandCenter.now.setupTitle", "No model connected yet"),
+            description: t("commandCenter.now.setupDescription", "Replies need a model connection. Add one to start."),
+            category: "navigation",
+            target: { kind: "panel", panel: "connections" },
+            score: 0,
+            kind: "navigation",
+            icon: "connection",
+          },
+    });
+  }, [
+    contextResults,
+    continueResult,
+    deferredQuery,
+    lastAppError,
+    mariEnabled,
+    mariFinished,
+    mariHasModel,
+    mariWorkspaceStatus.data,
+    queryScope,
+    t,
+  ]);
+  // Slice 78: where you left off - the last chat, Mari's last conversation, the record edited last.
+  const continueResults = useMemo<OmnibarResult[]>(() => {
+    if (deferredQuery.trim() || queryScope) return [];
+    const rows: OmnibarResult[] = [];
+    if (recentChatResults[0]) rows.push({ ...recentChatResults[0], group: "continue" });
+    const lastActive = (chat: Chat) => chat.lastMessageAt ?? chat.updatedAt;
+    const lastMari = mariEnabled
+      ? [...(mariChats.data ?? [])].sort((a, b) => lastActive(b).localeCompare(lastActive(a)))[0]
+      : undefined;
+    if (lastMari) {
+      rows.push({
+        id: `mari-chat:${lastMari.id}`,
+        action: { kind: "open-mari-chat", chatId: lastMari.id },
+        title: lastMari.name || t("omnibar.categories.professor", "Professor Mari"),
+        description: t("commandCenter.mariChat", "Professor Mari conversation"),
+        category: "chat",
+        group: "continue",
+        score: 0,
+        kind: "action",
+        icon: "professor",
+      });
+    }
+    const editedId = lastEditedRecordId([
+      ["character", characters.data],
+      ["persona", personas.data],
+      // Not presets: the built-in one is rewritten on startup and would always read as "edited".
+      ["lorebook", lorebooks.data],
+    ]);
+    const edited = editedId ? allLocalResults.find((row) => row.id === editedId) : undefined;
+    // Without its inline switch: on a card, Enter opens the record, it never flips it.
+    if (edited) rows.push({ ...edited, group: "continue", control: undefined });
+    return rows;
+  }, [
+    allLocalResults,
+    characters.data,
+    deferredQuery,
+    lorebooks.data,
+    mariChats.data,
+    mariEnabled,
+    personas.data,
+    queryScope,
+    recentChatResults,
+    t,
   ]);
   const rawResults = useMemo(
     () =>
@@ -1718,17 +1867,20 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                 ? searchResults.filter((result) => !addedResultIds.has(result.id) && !removedResultIds.has(result.id))
                 : searchResults),
             ]
-          : [
+          : // Slice 78: first occurrence wins, so the Now row and Continue drop their duplicates below.
+            [
+              ...(nowResult ? [nowResult] : []),
+              ...tryResults,
+              ...continueResults,
               ...idleOmnibarContextResults(
                 contextResults,
                 activeChat?.id === activeChatId ? (activeChat ?? null) : null,
                 lastAppError?.retry?.kind === "open-connection" ? `connection:${lastAppError.retry.id}` : null,
               ),
+              // A pending review's own Keep/Restore rows sit with the screen's work, not in Continue.
+              ...approvalResults.map((row) => ({ ...row, group: "current-work" as const })),
               ...frecentIdleResults,
               ...recentChatResults,
-              ...slashResults,
-              ...approvalResults,
-              ...(continueResult ? [continueResult] : []),
             ],
     [
       allLocalResults,
@@ -1745,7 +1897,9 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       newChatCommands,
       recentChatResults,
       approvalResults,
-      continueResult,
+      continueResults,
+      nowResult,
+      tryResults,
       deferredQuery,
       globalMessageResults,
       lorebookEntryResults,
@@ -2431,6 +2585,11 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     }
   };
   const choose = (result: OmnibarResult) => {
+    // Slice 78: a pick after typing teaches "search" or "command"; a Try example teaches nothing.
+    // Controls are counted where they flip; a row reaching here with one (a lorebook's Enabled
+    // switch) is being opened, which is a search.
+    if (query.trim() && result.id !== "ask-professor-mari" && result.action?.kind !== "refine-query")
+      markTry(isOmnibarCommandPick({ action: result.action, chooseValue: result.chooseValue }) ? "command" : "search");
     if (result.action) {
       runResultAction(result, result.action);
       return;
@@ -2523,6 +2682,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   // expanded option rows) gets the exact same treatment.
   const runScopedChoiceChange = (result: RankedOmnibarResult, value: string | boolean) => {
     if (!result.control) return;
+    markTry("command");
     result.control.onChange(value);
     if (!isChatScopedChoiceControlId(result.id)) return;
     const optionLabel = result.control.options?.find((option) => option.value === value)?.label ?? String(value);
@@ -2537,6 +2697,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   };
   const chooseChoiceOption = (result: RankedOmnibarResult) => {
     if (!result.chooseValue) return false;
+    markTry("command");
     result.chooseValue();
     // Keep the parent selected when the row came from an expansion, so the list
     // does not jump; a row found by typing has no parent on screen.
@@ -2562,6 +2723,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
   const flipToggleControl = (result: RankedOmnibarResult, nextValue: boolean) => {
     const control = result.control;
     if (!control || control.type !== "toggle") return;
+    markTry("command");
     // F10 (O5): a lorebook row's own Enabled switch is now the only door to its
     // app-wide toggle (see `isLorebookEnableToggleRow` above) - a stray tap there
     // needs the same Undo as a settings toggle, not a silent flip.
@@ -2937,6 +3099,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     // "Current chat" resource.
     const draft = options.arrival ? "" : parseOmnibarScope(query.trim()).query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
+    if (draft && options.submitDraft) markTry("mari");
     // A deliberate pick of the Fix row — not the fallback landing on the same id — is what opens
     // the chat-error door (A5/N6): `selectedResult` is only set on an actual pick.
     const fix = Boolean(selectedResult && fixRowId && selectedResult.id === fixRowId);
@@ -2973,6 +3136,7 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     if (!asideLive) return;
     const draft = question ?? asideState.query;
     if (draft) useChatStore.getState().setInputDraft(PROFESSOR_MARI_DRAFT_KEY, draft);
+    markTry("mari");
     const focusResult = mariFallbackFocus(contextResults);
     rememberMariReturn(focusResult);
     enterMariPane(
@@ -3044,6 +3208,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
     return OMNIBAR_CATEGORY_RESULT_TYPE[result.category];
   };
   const resultIcon = (result: RankedOmnibarResult) => {
+    if (result.id === "try:search") return Search;
+    if (result.id === "try:command") return SlidersHorizontal;
     const type = resultType(result);
     return type && type !== "setting" && type !== "doc"
       ? RESULT_TYPE_ICONS[type]
@@ -3062,6 +3228,15 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
    */
   // What Enter does on this row (R8), from the same dispatch `choose` runs: an
   // "Add Eliza to this chat" row must not say Edit.
+  const nowActionLabel = (now: NonNullable<OmnibarResult["now"]>) =>
+    ({
+      review: t("commandCenter.now.review", "Review"),
+      fix: t("commandCenter.now.fix", "Fix"),
+      check: t("commandCenter.now.check", "Check"),
+      working: t("commandCenter.open", "Open"),
+      finished: t("commandCenter.now.see", "See"),
+      setup: t("commandCenter.now.setup", "Set up"),
+    })[now];
   const resultEnterHint = (result: RankedOmnibarResult) => {
     if (result.id === "ask-professor-mari") {
       return result.group === "continue" ? t("commandCenter.open", "Open") : t("commandCenter.enter.ask", "Ask");
@@ -3091,6 +3266,8 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
       case "start-character-chat":
       case "start-chat":
         return t("commandCenter.enter.start", "Start");
+      case "refine-query":
+        return t("commandCenter.enter.try", "Try");
     }
     if (activeChat && CHAT_RESOURCE_KIND[result.category] && isDirectActiveChatAction(query, result, searchResults)) {
       return t("commandCenter.enter.add", "Add");
@@ -3480,7 +3657,10 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                     onKeyDown={onInputKeyDown}
                     placeholder={
                       idle
-                        ? idleGreeting
+                        ? // Slice 78: the greeting is cut off at 390 px ("Type to search,"), so a phone gets the short form.
+                          window.matchMedia("(min-width: 640px)").matches
+                          ? idleGreeting
+                          : t("commandCenter.placeholderIdleShort", "Search or ask Mari")
                         : // ponytail: read once per open (the dialog remounts each time); a resize
                           // while open keeps the old text. Use a shared media hook if one lands.
                           window.matchMedia("(min-width: 640px)").matches
@@ -3681,20 +3861,27 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
               ) : null}
               {presentation.groups.map((group) => {
                 const GroupIcon =
-                  group.id === "professor-suggested"
-                    ? Sparkles
-                    : group.id === "current-work" || group.id === "context"
-                      ? Compass
-                      : group.id === "continue"
-                        ? Sparkles
-                        : group.id === "recent" || group.id === "frecent"
-                          ? Clock3
-                          : group.id === "quick-controls"
-                            ? SlidersHorizontal
-                            : LayoutGrid;
+                  group.id === "try"
+                    ? Lightbulb
+                    : group.id === "professor-suggested"
+                      ? Sparkles
+                      : group.id === "current-work" || group.id === "context"
+                        ? Compass
+                        : group.id === "continue"
+                          ? Sparkles
+                          : group.id === "recent" || group.id === "frecent"
+                            ? Clock3
+                            : group.id === "quick-controls"
+                              ? SlidersHorizontal
+                              : LayoutGrid;
                 return (
-                  <section key={group.id} aria-labelledby={`omnibar-group-${group.id}`}>
-                    <div className="flex items-center gap-1.5 px-3 pb-1 pt-3">
+                  <section
+                    key={group.id}
+                    aria-labelledby={group.id === "now" ? undefined : `omnibar-group-${group.id}`}
+                    aria-label={group.id === "now" ? t("commandCenter.groups.now", "Needs you now") : undefined}
+                  >
+                    {/* Slice 78: the Now row speaks for itself; a heading over one row is noise. */}
+                    <div className={cn("flex items-center gap-1.5 px-3 pb-1 pt-3", group.id === "now" && "hidden")}>
                       <GroupIcon size={12} className="text-[var(--primary)]" aria-hidden="true" />
                       <h3
                         id={`omnibar-group-${group.id}`}
@@ -3704,7 +3891,14 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                       </h3>
                       <span className="text-[0.625rem] text-[var(--muted-foreground)]/70">{group.results.length}</span>
                     </div>
-                    <ul className="space-y-0.5 px-1">
+                    <ul
+                      className={cn(
+                        "space-y-0.5 px-1",
+                        // Slice 78: Continue is a strip of three cards on wider screens, plain rows on a phone.
+                        group.id === "continue" && "sm:grid sm:grid-cols-3 sm:gap-2 sm:space-y-0",
+                        group.id === "now" && "pt-2",
+                      )}
+                    >
                       {group.results.map((result, rowIndex) => {
                         const visual = resultVisual(result);
                         const preview = result.preview?.();
@@ -3715,10 +3909,16 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                             : result.command.availability?.status === "requires-admin"
                               ? t("commandCenter.adminRequired", "Administrator access required")
                               : undefined;
+                        const mariFace = result.now || result.id === "try:mari";
                         return (
                           <CommandCenterResultRow
                             key={result.id}
-                            className="motion-safe:animate-omnibar-row-in"
+                            className={cn(
+                              "motion-safe:animate-omnibar-row-in",
+                              result.now && `omnibar-now-row omnibar-now-row--${result.now}`,
+                              group.id === "continue" &&
+                                "sm:h-auto sm:min-h-16 sm:border sm:border-[var(--border)] sm:py-1.5",
+                            )}
                             style={{ animationDelay: `${Math.min(rowIndex, 8) * 22}ms` }}
                             dataResultId={result.id}
                             id={`omnibar-${result.id}`}
@@ -3772,15 +3972,29 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                                   ? renderAsideAnswer()
                                   : undefined
                             }
-                            mediaSrc={preview?.media?.src}
-                            mediaKind={preview?.media?.kind}
-                            avatarCropStyle={preview?.media?.avatarCropStyle}
+                            mediaSrc={mariFace ? appearance.portraits.idle : preview?.media?.src}
+                            mediaKind={mariFace ? "avatar" : preview?.media?.kind}
+                            avatarCropStyle={mariFace ? MARI_FACE_CROP : preview?.media?.avatarCropStyle}
                             groupClassName={visual.groupClassName}
                             accent={preview?.accent}
                             setupStatus={setupStatus}
-                            enterHint={result.control ? undefined : resultEnterHint(result)}
+                            enterHint={
+                              result.control || group.id === "continue" || result.now
+                                ? undefined
+                                : resultEnterHint(result)
+                            }
                             control={
-                              result.control?.type === "choice" ? (
+                              result.now && !result.control ? (
+                                // One quiet pill that says what the row does, also on a phone.
+                                <button
+                                  type="button"
+                                  tabIndex={-1}
+                                  onClick={() => selectResult(result)}
+                                  className="omnibar-now-action"
+                                >
+                                  {nowActionLabel(result.now)}
+                                </button>
+                              ) : result.control?.type === "choice" ? (
                                 <CommandCenterSegmentedChoice
                                   label={result.control.label}
                                   value={String(result.control.value)}
@@ -3841,6 +4055,30 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
                   </section>
                 );
               })}
+              {!query.trim() ? (
+                // Slice 78: what to type and what Enter does, under every empty list.
+                <p className="flex items-start gap-2 px-3.5 pb-2 pt-3 text-xs leading-relaxed text-[var(--muted-foreground)]">
+                  <Search size={14} aria-hidden="true" className="mt-0.5 shrink-0" />
+                  <span>
+                    {window.matchMedia("(min-width: 640px)").matches
+                      ? mariEnabled
+                        ? t(
+                            "commandCenter.empty.hintDesktop",
+                            "Type a name, a setting or a question. Enter opens the top row; Ctrl/⌘+Enter asks Mari.",
+                          )
+                        : t(
+                            "commandCenter.empty.hintDesktopNoMari",
+                            "Type a name or a setting. Enter opens the top row.",
+                          )
+                      : mariEnabled
+                        ? t(
+                            "commandCenter.empty.hintPhone",
+                            "Type a name, a setting or a question. Tap a row to open it; a question goes to Mari.",
+                          )
+                        : t("commandCenter.empty.hintPhoneNoMari", "Type a name or a setting, then tap a row.")}
+                  </span>
+                </p>
+              ) : null}
               {!loading && query.trim() && results.length === 0 ? (
                 <div className="flex min-h-32 flex-col items-center justify-center px-4 text-center">
                   <Search size={20} className="mb-2 text-[var(--muted-foreground)]" aria-hidden="true" />
@@ -3879,9 +4117,25 @@ export function GlobalOmnibarDialog({ onClose }: { onClose: () => void }) {
             </span>
             <span className="flex min-w-0 items-center gap-3">
               {mariEnabled ? (
-                <span className="hidden sm:inline">
-                  {t("commandCenter.keyboard.askMariShortcut", "Ctrl/⌘+J Ask Mari")}
-                </span>
+                // Slice 78: a labelled door to Mari on every screen size; phones have no Ctrl/⌘+J.
+                <button
+                  type="button"
+                  onClick={() => askMariAbout(null)}
+                  aria-keyshortcuts={isApplePlatform() ? "Meta+J" : "Control+J"}
+                  className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-[color-mix(in_srgb,var(--primary)_30%,var(--border))] py-0.5 pl-0.5 pr-2.5 text-xs font-semibold text-[var(--foreground)] transition-colors hover:bg-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] max-sm:min-h-10"
+                >
+                  <img
+                    src={appearance.portraits.idle}
+                    alt=""
+                    draggable={false}
+                    className="size-6 rounded-full object-cover [image-rendering:pixelated]"
+                    style={MARI_FACE_CROP}
+                  />
+                  {t("commandCenter.footer.askMari", "Ask Mari")}
+                  <kbd className="hidden font-sans text-[0.6875rem] font-normal text-[var(--muted-foreground)] sm:inline">
+                    {t("commandCenter.footer.askMariShortcut", "Ctrl/⌘+J")}
+                  </kbd>
+                </button>
               ) : null}
               {!idle ? (
                 <span className="hidden sm:inline">{t("commandCenter.keyboard.escape", "Esc close")}</span>

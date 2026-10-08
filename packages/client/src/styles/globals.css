@@ -10794,6 +10794,40 @@ html[data-mari-pull-landing] [data-mari-pull-target] * {
   }
 }
 
+/* Slice 78: the empty omnibar's one "Now" row. Status colours at low alpha (semantic only),
+   one quiet pill for its action. */
+.omnibar-now-row {
+  --omnibar-now-tone: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--omnibar-now-tone) 30%, var(--border));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--omnibar-now-tone) 9%, transparent), transparent 70%);
+}
+.omnibar-now-row--review {
+  --omnibar-now-tone: rgb(245 158 11);
+}
+.omnibar-now-row--fix {
+  --omnibar-now-tone: rgb(244 63 94);
+}
+.omnibar-now-row--check,
+.omnibar-now-row--setup {
+  --omnibar-now-tone: rgb(14 165 233);
+}
+.omnibar-now-row--finished {
+  --omnibar-now-tone: rgb(16 185 129);
+}
+.omnibar-now-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--foreground);
+  border: 1px solid color-mix(in srgb, var(--omnibar-now-tone) 35%, var(--border));
+  background: color-mix(in srgb, var(--omnibar-now-tone) 8%, var(--card));
+}
+
 .omnibar-row-expansion {
   grid-template-rows: 1fr;
   animation: omnibar-row-expand 180ms ease-out both;

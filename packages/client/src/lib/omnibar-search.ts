@@ -104,6 +104,10 @@ export type OmnibarResult = {
   chooseValue?: () => void;
   kind?: CommandKind;
   icon?: CommandIcon;
+  /** Promoted to the empty list's single "Now" row, and why. */
+  now?: "review" | "fix" | "check" | "working" | "finished" | "setup";
+  /** Shown only while typing: in the empty list it repeats a button the screen already has (slice 78). */
+  idleHidden?: boolean;
   availability?:
     | "available"
     | "unavailable"

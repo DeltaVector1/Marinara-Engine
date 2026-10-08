@@ -58,6 +58,8 @@ export type CommandCenterResultCategory =
   | "docs";
 
 export type CommandCenterResultGroupId =
+  | "now"
+  | "try"
   | "context"
   | "current-work"
   | "continue"
@@ -104,6 +106,8 @@ export interface CommandCenterPresentableResult {
   metadata?: readonly CommandCenterResultMetadata[];
   media?: CommandCenterResultMedia;
   group?: CommandCenterResultGroupId;
+  /** Set on the empty list's one "Now" row (slice 78), which leads every other group. */
+  now?: string;
   /** Match strength; a Top hit needs a prefix match or better (see TOP_HIT_MIN_SCORE). */
   score?: number;
   /** The visible name. A Top hit must match it, not a hidden alias. */
@@ -211,9 +215,12 @@ export const COMMAND_CENTER_SEARCH_GROUP_ORDER: readonly CommandCenterResultGrou
   "docs",
   "professor-fallback",
 ];
+// Slice 78: what needs you, then the first-use examples, then where you left off, then this screen.
 const COMMAND_CENTER_EMPTY_GROUP_ORDER = [
-  "current-work",
+  "now",
+  "try",
   "continue",
+  "current-work",
   // O2: the surface's most frecent rows lead the fallback, above plain "last used anywhere" recents.
   "frecent",
   "recent",
@@ -587,6 +594,8 @@ const TOP_HIT_MIN_SCORE = 200;
  * while the arrow keys are on it.
  */
 const NEVER_TOP_HIT = new Set<CommandCenterResultGroupId>([
+  "now",
+  "try",
   "current-work",
   "context",
   "continue",
@@ -665,7 +674,9 @@ export function presentCommandCenterResults<T extends CommandCenterPresentableRe
     const ranking = normalizeCommandRankingState(options.rankingState);
     const recentIds = new Set(ranking.recent.map((entry) => entry.id));
     for (const result of results) {
-      if (result.group === "current-work" || result.group === "context") addToGroup("current-work", result);
+      if (result.now) addToGroup("now", result);
+      else if (result.group === "try") addToGroup("try", result);
+      else if (result.group === "current-work" || result.group === "context") addToGroup("current-work", result);
       else if (result.group === "continue") addToGroup("continue", result);
       else if (result.group === "frecent") addToGroup("frecent", result);
       else if (result.group === "recent" || recentIds.has(result.id)) addToGroup("recent", result);

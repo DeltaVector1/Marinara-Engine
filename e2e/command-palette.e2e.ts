@@ -48,9 +48,9 @@ test("desktop shortcut opens a focused command palette with useful initial optio
   await expect(omnibar.getByRole("dialog", { name: "Search Marinara" })).toBeVisible();
   await expect(input).toBeFocused();
   await expect(input).toHaveValue("");
-  // No idle deck: an empty query shows one hint and the scope chips.
-  await expect(omnibar.getByText("Search across Marinara", { exact: true })).toBeVisible();
-  await expect(omnibar.locator("[data-command-center-result-row]")).toHaveCount(0);
+  // Slice 78: a fresh client gets the first-use examples, the what-to-type line and a labelled door to Mari.
+  await expect(omnibar.locator('[data-result-id="try:search"]')).toBeVisible();
+  await expect(omnibar.getByText(/^Type a name, a setting/)).toBeVisible();
   await expect(omnibar.locator('[data-component="GlobalOmnibar.ProfessorMariButton"]')).toBeVisible();
   await expect(omnibar.getByRole("toolbar", { name: "Result categories" })).toBeHidden();
   await expect(omnibar.locator("[data-omnibar-scope-chip='characters']")).toBeVisible();
