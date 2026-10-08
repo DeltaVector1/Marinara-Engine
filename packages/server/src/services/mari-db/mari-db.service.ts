@@ -3790,7 +3790,9 @@ export class MariDbService {
             lastBudgetSkippedEntries = extra?.lorebookScan?.budgetSkippedEntries ?? [];
             break;
           }
-          activeCharacterIds = Array.isArray(chat.characterIds) ? chat.characterIds.map(String) : [];
+          // chats.character_ids is a JSON text column, so the row carries a string here.
+          const storedCharacterIds = parseJsonMaybe(chat.characterIds);
+          activeCharacterIds = Array.isArray(storedCharacterIds) ? storedCharacterIds.map(String) : [];
           const characterRows = await createCharactersStorage(this.db).getByIds(activeCharacterIds);
           activeCharacterTags = characterRows.flatMap((row) => {
             let data: Record<string, unknown> = {};
