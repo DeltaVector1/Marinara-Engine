@@ -3135,6 +3135,14 @@ export function HomeProfessorMariChat({
                       </div>
                     </div>
                   </motion.div>
+                  {/* The destination's panel: the one tab-panel for the selected tab (omnibar header). */}
+                  <div
+                    className="contents"
+                    role={omnibarMode && workspaceDestination !== "chat" ? "tabpanel" : undefined}
+                    aria-labelledby={
+                      omnibarMode && workspaceDestination !== "chat" ? `mari-tab-${workspaceDestination}` : undefined
+                    }
+                  >
                   <AnimatePresence initial={false}>
                     {chatHistoryOpen ? (
                       <motion.div
@@ -3270,6 +3278,7 @@ export function HomeProfessorMariChat({
                       </motion.section>
                     ) : null}
                   </AnimatePresence>
+                  </div>
                 </div>
               </div>
             </motion.div>

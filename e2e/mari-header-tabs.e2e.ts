@@ -39,6 +39,11 @@ test("Mari's destinations are a tablist with roving tab stops and arrow-key sele
   await expect(tabs.nth(0)).toHaveAttribute("tabindex", "-1");
   // The panel that the selected tab opens takes focus when it mounts; let that happen before the keys.
   await expect(page.locator(".mari-side-head button:visible").first()).toBeFocused();
+  // The panel the selected tab shows is the one tabpanel, labelled by that tab.
+  await expect(page.getByRole("tabpanel", { name: "Memories", exact: true })).toHaveAttribute(
+    "aria-labelledby",
+    "mari-tab-memories",
+  );
 
   // Arrows move focus and the one tab stop with it; selection is Enter or Space (the click).
   await tabs.nth(1).focus();
