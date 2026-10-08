@@ -2829,7 +2829,8 @@ assert.ok(!("mariDetailId" in mariSession));
 {
   const clientSource = (relativePath: string) =>
     readFileSync(new URL(`../../packages/client/src/${relativePath}`, import.meta.url), "utf8");
-  const layer = Number(/--mari-layer-omnibar:\s*(\d+);/u.exec(clientSource("styles/globals.css"))?.[1]);
+  // Slice 82: Mari's rules (the layer token and the sprite ghost) moved from globals.css to mari.css.
+  const layer = Number(/--mari-layer-omnibar:\s*(\d+);/u.exec(clientSource("styles/mari.css"))?.[1]);
   assert.ok(layer > 10_050, "the omnibar layer must clear the highest app overlay (the chat help overlay)");
   assert.ok(layer < 999_999_999, "the sonner toaster (999999999) must stay above the omnibar layer");
   const aboveLayerAllowed = new Set([
@@ -2837,9 +2838,9 @@ assert.ok(!("mariDetailId" in mariSession));
     "components/layout/PersonalExtensionInjector.tsx",
     "hooks/use-touch-folder-drag.ts",
   ]);
-  // globals.css is huge and shared by everything, so it keeps no blanket file exemption: only the
+  // mari.css is large and shared by all of her surfaces, so it keeps no blanket file exemption: only the
   // exact known .mari-sprite-ghost value is allowed through, not any future z-index someone adds.
-  const aboveLayerValueAllowed = new Map<string, Set<number>>([["styles/globals.css", new Set([2_147_483_000])]]);
+  const aboveLayerValueAllowed = new Map<string, Set<number>>([["styles/mari.css", new Set([2_147_483_000])]]);
   const files = readdirSync(new URL("../../packages/client/src/", import.meta.url), {
     recursive: true,
     encoding: "utf8",

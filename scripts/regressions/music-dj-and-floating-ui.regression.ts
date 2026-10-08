@@ -47,8 +47,13 @@ assert.doesNotMatch(
   /floatingFollowupEligibleRef|rememberProfessorMariFloatingEnabled/u,
   "Professor Mari's chat must not track a floating window",
 );
-assert.doesNotMatch(
+// Slice 82: globals.css imports Mari's and the omnibar's rules from their own files; check all of them.
+const allGlobalStyles = [
   globalsSource,
+  ...["mari.css", "omnibar.css", "omnibar-settings.css"].map((name) => readFileSync(new URL(name, globalsUrl), "utf8")),
+].join("\n");
+assert.doesNotMatch(
+  allGlobalStyles,
   /\.mari-chrome-token-scope\s*\{[^}]*--primary:/u,
   "The shared chat-chroma scope must not replace the configured app accent",
 );

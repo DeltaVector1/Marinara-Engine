@@ -5818,7 +5818,7 @@ assert.match(
   "Professor Mari user messages must render as the user-request row",
 );
 assert.match(
-  readFileSync(new URL("../../packages/client/src/styles/globals.css", import.meta.url), "utf8"),
+  readFileSync(new URL("../../packages/client/src/styles/mari.css", import.meta.url), "utf8"),
   /\.mari-user-request__bubble \{[^}]*background: color-mix\(in srgb, var\(--foreground\) \d+%, var\(--card\)\)/u,
   "Professor Mari user bubbles must take their colour from the theme",
 );
