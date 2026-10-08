@@ -1091,6 +1091,7 @@ export const useChatStore = create<ChatState>()(
         gotoRequest: null,
         activeConversationCall: null,
         conversationCallExpanded: false,
+        mariClientRunFailed: false,
       });
       try {
         localStorage.removeItem(STORAGE_KEY);
