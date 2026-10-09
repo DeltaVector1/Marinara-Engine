@@ -152,9 +152,6 @@ export interface MessageRenderContext {
   generationReplay: MessageExtra["generationReplay"] | null;
   canRegenerate: boolean;
   isLastAssistantMessage?: boolean;
-  translatedText?: string | null;
-  isTranslating: boolean;
-  showTranslationOnly: boolean;
   // swipes
   hasSwipes: boolean;
   swipeCount: number;
@@ -165,7 +162,6 @@ export interface MessageRenderContext {
   // handlers
   handleMobileTap: (e: React.MouseEvent) => void;
   onCopy: () => void;
-  onTranslate: () => void;
   onStartEdit: () => void;
   onImageOpen: (url: string, prompt?: string | null) => void;
   /** Open the Convo about-me profile popout, anchored to the clicked avatar (undefined when unresolvable). */
@@ -614,29 +610,6 @@ export function ConversationMessageAttachments({
             </button>
           </div>
         ),
-      )}
-    </div>
-  );
-}
-
-/** Translation display block. */
-export function ConversationMessageTranslation({
-  translatedText,
-  isTranslating,
-}: {
-  translatedText?: string | null;
-  isTranslating: boolean;
-}) {
-  const { t: localizeUi } = useUiTranslation();
-  if (!translatedText && !isTranslating) return null;
-  return (
-    <div className="mt-1.5 border-t border-[var(--border)] pt-1.5">
-      {isTranslating ? (
-        <span className="text-[0.75rem] italic text-[var(--muted-foreground)]">
-          {localizeUi("ui.chat.chatmessage.translating")}
-        </span>
-      ) : (
-        <div className="translation-text whitespace-pre-wrap">{translatedText}</div>
       )}
     </div>
   );

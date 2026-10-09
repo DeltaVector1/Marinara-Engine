@@ -1,19 +1,7 @@
 // ──────────────────────────────────────────────
 // Message action row — follows the message content
 // ──────────────────────────────────────────────
-import {
-  Brain,
-  Copy,
-  Eye,
-  EyeOff,
-  GitBranch,
-  Languages,
-  Pencil,
-  RefreshCw,
-  ScrollText,
-  Search,
-  Trash2,
-} from "lucide-react";
+import { Brain, Copy, Eye, EyeOff, GitBranch, Pencil, RefreshCw, ScrollText, Search, Trash2 } from "lucide-react";
 import { ReplyToMessageButton } from "./MessageReplyPreview";
 import type { Message, MessageExtra } from "@marinara-engine/shared";
 import { useEffect, useRef, useState, type RefObject } from "react";
@@ -34,7 +22,6 @@ export interface ConversationMessageActionsProps {
   thinkingOnly?: boolean;
   // State
   copied: boolean;
-  translatedText?: string | null;
   isHiddenFromAI: boolean;
   canRegenerate: boolean;
   isLastAssistantMessage?: boolean;
@@ -47,7 +34,6 @@ export interface ConversationMessageActionsProps {
   regenerateGuidedClass?: string;
   // Handlers
   onCopy: () => void;
-  onTranslate: () => void;
   onEdit: () => void;
   onRegenerate?: () => void;
   onBranch?: () => void;
@@ -68,7 +54,6 @@ export function ConversationMessageActions({
   forceShowActions,
   thinkingOnly,
   copied,
-  translatedText,
   isHiddenFromAI,
   canRegenerate,
   isLastAssistantMessage,
@@ -79,7 +64,6 @@ export function ConversationMessageActions({
   regenerateButtonTitle,
   regenerateGuidedClass,
   onCopy,
-  onTranslate,
   onEdit,
   onRegenerate,
   onBranch,
@@ -144,15 +128,6 @@ export function ConversationMessageActions({
       {!thinkingOnly && <ReplyToMessageButton message={message} name={name} />}
       {onPickReaction && <ReactionAddButton onPick={onPickReaction} />}
       {!thinkingOnly && <MessageMarksAction message={message} align={isUser ? "right" : "left"} stopPropagation />}
-      <MsgAction
-        icon={<Languages size={MESSAGE_ACTION_ICON_SIZE} />}
-        onClick={onTranslate}
-        title={
-          translatedText
-            ? localizeUi("ui.chat.chatmessage.hideTranslation")
-            : localizeUi("ui.chat.chatmessage.translate")
-        }
-      />
       <MsgAction
         icon={<Pencil size={MESSAGE_ACTION_ICON_SIZE} />}
         onClick={onEdit}

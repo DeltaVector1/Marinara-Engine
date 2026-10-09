@@ -6,10 +6,8 @@ import {
   Component,
   lazy,
   Suspense,
-  useCallback,
   useEffect,
   useMemo,
-  useState,
   type CSSProperties,
   type ErrorInfo,
   type ReactNode,
@@ -20,10 +18,8 @@ import { APP_VERSION } from "@marinara-engine/shared";
 import { CustomThemeInjector } from "./components/layout/CustomThemeInjector";
 import { PersonalExtensionInjector } from "./components/layout/PersonalExtensionInjector";
 import { ModelDownloadModal } from "./components/modals/ModelDownloadModal";
-import { WhatsNewModal } from "./components/modals/WhatsNewModal";
 import { StorageMigrationNoticeModal } from "./components/modals/StorageMigrationNoticeModal";
 import { AppDialogRenderer } from "./components/ui/AppDialogRenderer";
-import { ChibiProfessorMariEasterEgg } from "./components/ui/ChibiProfessorMariEasterEgg";
 import { CsrfOriginWarningBanner } from "./components/diagnostics/CsrfOriginWarningBanner";
 import { AgentUpdatePrompter } from "./components/agents/AgentUpdatePrompter";
 import { Toaster, toast } from "sonner";
@@ -516,13 +512,6 @@ export function App() {
   const setShowDownloadModal = useSidecarStore((s) => s.setShowDownloadModal);
   const fetchSidecarStatus = useSidecarStore((s) => s.fetchStatus);
   const hasAppDialogOpen = useDialogStore((s) => s.dialog !== null);
-  const [whatsNewOpen, setWhatsNewOpen] = useState(false);
-  const [whatsNewResolved, setWhatsNewResolved] = useState(false);
-  const [agentUpdateOpen, setAgentUpdateOpen] = useState(false);
-  const [agentUpdatesResolved, setAgentUpdatesResolved] = useState(false);
-  const handleAgentUpdatesResolved = useCallback(() => setAgentUpdatesResolved(true), []);
-  const [chatWindowIntroOpen, setChatWindowIntroOpen] = useState(false);
-  const handleWhatsNewResolved = useCallback(() => setWhatsNewResolved(true), []);
   // Shares the modal's query via the cache; gating the prompter on the QUERY
   // (pending or a notice still waiting) instead of the modal's open state
   // closes the race where the prompter fires in the window before the notice
@@ -1158,44 +1147,18 @@ export function App() {
     <>
       <CustomThemeInjector />
       <PersonalExtensionInjector />
-      <ChibiProfessorMariEasterEgg />
       <Suspense fallback={null}>
-        <LazyAppShell
-          chatWindowIntroAllowed={
-            whatsNewResolved &&
-            !hasModalOpen &&
-            !hasAppDialogOpen &&
-            !whatsNewOpen &&
-            !migrationNoticePending &&
-            !migrationNotice &&
-            agentUpdatesResolved &&
-            !agentUpdateOpen &&
-            (isLite || !showDownloadModal)
-          }
-          onChatWindowIntroOpenChange={setChatWindowIntroOpen}
-        />
+        <LazyAppShell />
       </Suspense>
-      <WhatsNewModal
-        presentationAllowed={!hasModalOpen && !hasAppDialogOpen && (isLite || !showDownloadModal)}
-        onOpenChange={setWhatsNewOpen}
-        onResolved={handleWhatsNewResolved}
-      />
       <StorageMigrationNoticeModal
-        presentationAllowed={
-          whatsNewResolved && !hasModalOpen && !hasAppDialogOpen && !whatsNewOpen && (isLite || !showDownloadModal)
-        }
+        presentationAllowed={!hasModalOpen && !hasAppDialogOpen && (isLite || !showDownloadModal)}
       />
       <AgentUpdatePrompter
-        onOpenChange={setAgentUpdateOpen}
-        onResolved={handleAgentUpdatesResolved}
         presentationAllowed={
-          whatsNewResolved &&
           !hasModalOpen &&
           !hasAppDialogOpen &&
-          !whatsNewOpen &&
           !migrationNoticePending &&
           !migrationNotice &&
-          !chatWindowIntroOpen &&
           (isLite || !showDownloadModal)
         }
       />

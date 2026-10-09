@@ -8,7 +8,6 @@ import {
   HiddenFromAIConversationSummary,
   MessageContent,
   ConversationMessageAttachments,
-  ConversationMessageTranslation,
   ConversationMessageSwipes,
   IMAGE_URL_RE,
   nameColorStyle,
@@ -68,8 +67,6 @@ export function ConversationMessageGrouped({
     onRemoveAttachment,
     handleMobileTap,
     copied,
-    translatedText,
-    isTranslating,
     isHiddenFromAI,
     canRegenerate,
     isLastAssistantMessage,
@@ -81,7 +78,6 @@ export function ConversationMessageGrouped({
     regenerateButtonTitle,
     regenerateGuidedClass,
     onCopy,
-    onTranslate,
     onStartEdit,
     onRegenerate,
     onToggleHiddenFromAI,
@@ -117,9 +113,8 @@ export function ConversationMessageGrouped({
     "data-card-css": message.characterId ?? undefined,
     "data-grouped": isGrouped || undefined,
   };
-  const hasTranslationContent = Boolean(translatedText || isTranslating);
   const hasAttachmentContent = (extra.attachments?.length ?? 0) > 0 && !IMAGE_URL_RE.test(renderedContent.trim());
-  const hasTrailingContent = isStreaming || (!isHiddenCollapsed && (hasTranslationContent || hasAttachmentContent));
+  const hasTrailingContent = isStreaming || (!isHiddenCollapsed && hasAttachmentContent);
 
   return (
     <div
@@ -409,15 +404,6 @@ export function ConversationMessageGrouped({
           )}
 
           {!isHiddenCollapsed && (
-            <div className="ml-14">
-              <ConversationMessageTranslation
-                translatedText={ctx.showTranslationOnly ? null : translatedText}
-                isTranslating={isTranslating}
-              />
-            </div>
-          )}
-
-          {!isHiddenCollapsed && (
             <>
               {/* Image attachments */}
               <div className="ml-14">
@@ -448,7 +434,6 @@ export function ConversationMessageGrouped({
           forceShowActions={hideActions && hasReasoning ? true : forceShowActions}
           thinkingOnly={hideActions && hasReasoning}
           copied={copied}
-          translatedText={translatedText}
           isHiddenFromAI={isHiddenFromAI}
           canRegenerate={canRegenerate}
           isLastAssistantMessage={isLastAssistantMessage}
@@ -460,7 +445,6 @@ export function ConversationMessageGrouped({
           regenerateButtonTitle={regenerateButtonTitle}
           regenerateGuidedClass={regenerateGuidedClass}
           onCopy={onCopy}
-          onTranslate={onTranslate}
           onEdit={onStartEdit}
           onRegenerate={onRegenerate ? () => onRegenerate(message.id) : undefined}
           onToggleHiddenFromAI={

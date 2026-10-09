@@ -32,10 +32,6 @@ import { useTranslation } from "react-i18next";
 import { useUIStore } from "../../stores/ui.store";
 import { useChatStore } from "../../stores/chat.store";
 import { cn } from "../../lib/utils";
-import { SpotifyMiniPlayer } from "../spotify/SpotifyMiniPlayer";
-import { YouTubePlayer } from "../chat/YouTubePlayer";
-import { LocalMusicPlayer } from "../chat/LocalMusicPlayer";
-import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 import {
   activatePersonalExtensionContribution,
@@ -91,9 +87,6 @@ const RIGHT_PANEL_BUTTONS: readonly RightPanelButtonConfig[] = [
   },
 ] as const;
 
-const SPOTIFY_TOPBAR_MIN_WIDTH = 320;
-const SPOTIFY_TOPBAR_MIN_WIDTH_WITH_VOLUME = 416;
-const SPOTIFY_TOPBAR_LAYOUT_BUFFER = 32;
 const PHONE_TOPBAR_QUERY = "(max-width: 639px)";
 const PHONE_OVERFLOW_HIDDEN_CLASS = "max-sm:hidden";
 const TOPBAR_COARSE_TARGET_CLASS = "[@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9";
@@ -131,13 +124,7 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
   const headerRef = useRef<HTMLElement | null>(null);
   const leftControlsRef = useRef<HTMLDivElement | null>(null);
   const rightNavRef = useRef<HTMLElement | null>(null);
-  const [spotifyDesktopViewport, setSpotifyDesktopViewport] = useState(false);
-  const [spotifyUseFloatingFallback, setSpotifyUseFloatingFallback] = useState(false);
   const [hoveredTopbarKey, setHoveredTopbarKey] = useState<string | null>(null);
-  const { data: installedCapabilities = [] } = useInstalledCapabilityPackages();
-  const musicDjInstalled = installedCapabilities.some(
-    (capability) => capability.id === "spotify" && capability.status === "active",
-  );
 
   const isCharactersPanelActive =
     (rightPanelOpen && rightPanel === "characters") ||
@@ -253,52 +240,6 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
   ];
 
   useEffect(() => {
-    const header = headerRef.current;
-    const leftControls = leftControlsRef.current;
-    const rightNav = rightNavRef.current;
-    if (!header || !leftControls || !rightNav) return;
-
-    const measureSpotifyFit = () => {
-      const desktop = window.matchMedia("(min-width: 768px)").matches;
-      setSpotifyDesktopViewport(desktop);
-
-      if (!desktop) {
-        setSpotifyUseFloatingFallback(false);
-        return;
-      }
-
-      const headerWidth = header.getBoundingClientRect().width;
-      const leftControlsWidth = leftControls.getBoundingClientRect().width;
-      const rightNavWidth = rightNav.getBoundingClientRect().width;
-      const minPlayerWidth = window.matchMedia("(min-width: 1024px)").matches
-        ? SPOTIFY_TOPBAR_MIN_WIDTH_WITH_VOLUME
-        : SPOTIFY_TOPBAR_MIN_WIDTH;
-
-      setSpotifyUseFloatingFallback(
-        headerWidth < leftControlsWidth + rightNavWidth + minPlayerWidth + SPOTIFY_TOPBAR_LAYOUT_BUFFER,
-      );
-    };
-
-    measureSpotifyFit();
-
-    const observer =
-      typeof ResizeObserver === "undefined"
-        ? null
-        : new ResizeObserver(() => {
-            measureSpotifyFit();
-          });
-    observer?.observe(header);
-    observer?.observe(leftControls);
-    observer?.observe(rightNav);
-    window.addEventListener("resize", measureSpotifyFit);
-
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener("resize", measureSpotifyFit);
-    };
-  }, []);
-
-  useEffect(() => {
     const clearWhenHidden = () => {
       if (document.visibilityState !== "visible") clearTopbarHover();
     };
@@ -393,13 +334,6 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
         >
           {mobileTopbarNavigation ? [homeButton, chatsButton] : [chatsButton, homeButton]}
         </div>
-        {musicDjInstalled ? (
-          <>
-            {spotifyDesktopViewport && <SpotifyMiniPlayer forceFloating={spotifyUseFloatingFallback} />}
-            <YouTubePlayer />
-            <LocalMusicPlayer />
-          </>
-        ) : null}
       </div>
 
       {/* Right section - Panel toggles */}

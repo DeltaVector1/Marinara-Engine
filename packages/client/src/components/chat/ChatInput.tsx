@@ -2,26 +2,12 @@
 // Chat: Input — mode-aware styling
 // ──────────────────────────────────────────────
 import { useState, useRef, useCallback, useEffect, useMemo, memo, type FormEvent } from "react";
-import {
-  Send,
-  Paperclip,
-  StopCircle,
-  X,
-  Smile,
-  Users,
-  UserCheck,
-  Languages,
-  Loader2,
-  FileText,
-  Sparkles,
-  WandSparkles,
-} from "lucide-react";
+import { Send, Paperclip, StopCircle, X, Smile, Users, UserCheck, Loader2, FileText, WandSparkles } from "lucide-react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { updateCurrentInputSnapshot, useChatStore } from "../../stores/chat.store";
 import { hasActiveTextSelection } from "../../lib/text-selection";
-import { useAgentStore } from "../../stores/agent.store";
 import { useUIStore } from "../../stores/ui.store";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { useGenerate } from "../../hooks/use-generate";
@@ -34,9 +20,6 @@ import { characterKeys } from "../../hooks/use-characters";
 import {
   buildGuidedGenerationInstructionMessage,
   formatTextQuotes,
-  MARI_STARTER_CHIPS,
-  PROFESSOR_MARI_ID,
-  type MariSuggestionChip,
   type Message,
   type Persona,
 } from "@marinara-engine/shared";
@@ -53,7 +36,6 @@ import { parseChatMetadata } from "../../lib/chat-display";
 import type { AvatarCrop } from "@marinara-engine/shared";
 import { cn, getAvatarCropStyle } from "../../lib/utils";
 import { applyTextareaQuoteFormat } from "../../lib/textarea-quotes";
-import { translateDraftText } from "../../lib/draft-translation";
 import { prepareImageAttachment } from "../../lib/chat-attachment-images";
 import { CARD_ASSET_INSERT_EVENT, type CardAssetInsertDetail } from "../../lib/card-asset-links";
 import { isFileDrag } from "../../lib/chat-resource-drag";
@@ -68,7 +50,6 @@ import { SlashCommandFeedback } from "./SlashCommandFeedback";
 import { MessageReplyPreview } from "./MessageReplyPreview";
 import { QuickReplyMenu, type QuickReplyAction } from "./QuickReplyMenu";
 import { getChatInputShellClass } from "./chat-input-styles";
-import { MariSuggestionChips } from "./MariSuggestionChips";
 import { resolveChatContextBudget } from "../../lib/professor-mari-context-budget";
 import { CapabilityElement } from "../capabilities/CapabilityElement";
 import type { PendingSpatialTransitionDraft } from "../../stores/chat.store";
@@ -222,7 +203,6 @@ export const ChatInput = memo(function ChatInput({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [pendingAttachmentReadsByChat, setPendingAttachmentReadsByChat] = useState<Record<string, number>>({});
-  const [isTranslatingDraft, setIsTranslatingDraft] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const isMobileComposerViewport = useIsMobileComposerViewport();
   // Push Story arms for the next response with an explicit mode picked from
@@ -251,9 +231,6 @@ export const ChatInput = memo(function ChatInput({
     activeChatId ? (s.pendingSpatialTransitions.get(activeChatId) ?? null) : null,
   );
   const canSubmitSpatialMove = mode === "roleplay" && pendingSpatialTransition?.status === "ready";
-  const mariChips = useAgentStore((s) => s.mariChips);
-  const mariChipsChatId = useAgentStore((s) => s.mariChipsChatId);
-  const professorMariSuggestionsEnabled = useUIStore((s) => s.professorMariSuggestionsEnabled);
   const streamingChatId = useChatStore((s) => s.streamingChatId);
   const isStreamingGlobal = useChatStore((s) => s.isStreaming);
   const isBackgroundIllustration = useChatStore((s) =>
@@ -585,65 +562,6 @@ export const ChatInput = memo(function ChatInput({
   const contextBudget = useMemo(
     () => resolveChatContextBudget(contextMessages, activeChat?.connectionId, contextConnections, sidecarMaxContext),
     [activeChat?.connectionId, contextConnections, contextMessages, sidecarMaxContext],
-  );
-  const isProfessorMariChat = activeChatCharacters?.some((character) => character.id === PROFESSOR_MARI_ID) ?? false;
-  const hasMessages = (messagesData?.pages ?? []).some((page) => page.length > 0);
-  const visibleMariChips =
-    isProfessorMariChat && professorMariSuggestionsEnabled
-      ? mariChipsChatId === activeChatId && mariChips.length > 0
-        ? mariChips
-        : !hasMessages
-          ? MARI_STARTER_CHIPS
-          : []
-      : [];
-
-  const mariPlan = useAgentStore((s) => s.mariPlan);
-  const mariPlanChatId = useAgentStore((s) => s.mariPlanChatId);
-  const mariPlanCursor = useAgentStore((s) => s.mariPlanCursor);
-  const recordMariPlanAnswer = useAgentStore((s) => s.recordMariPlanAnswer);
-  const clearMariPlan = useAgentStore((s) => s.clearMariPlan);
-  const activeGuidedPlan = professorMariSuggestionsEnabled && mariPlanChatId === activeChatId ? mariPlan : null;
-  const guidedPlanStep = activeGuidedPlan ? (activeGuidedPlan[mariPlanCursor] ?? null) : null;
-  const chipRowChips = guidedPlanStep ? guidedPlanStep.chips : visibleMariChips;
-  const chipRowHint = guidedPlanStep
-    ? `${guidedPlanStep.question} Suggestions only; you can type your own answer.`
-    : chipRowChips.length > 0
-      ? "Suggestions only. Pick one, or type your own."
-      : null;
-
-  const handleMariChipSelect = useCallback(
-    (chip: MariSuggestionChip) => {
-      if (guidedPlanStep) {
-        const result = recordMariPlanAnswer(guidedPlanStep.fieldKey, chip.prompt);
-        if (result === "complete") {
-          const answers = useAgentStore.getState().mariPlanAnswers;
-          const summary = Object.entries(answers)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("; ");
-          clearMariPlan();
-          const el = textareaRef.current;
-          if (el && activeChatId) {
-            const text = `Create it - ${summary}`;
-            el.value = text;
-            resizeChatInputTextarea(el);
-            syncInputState(text);
-            setInputDraft(activeChatId, text);
-            el.focus();
-          }
-        }
-        return;
-      }
-      const el = textareaRef.current;
-      if (!el || !activeChatId) return;
-      const current = el.value;
-      const next = current.trim() ? `${current.trimEnd()} ${chip.prompt}` : chip.prompt;
-      el.value = next;
-      resizeChatInputTextarea(el);
-      syncInputState(next);
-      setInputDraft(activeChatId, next);
-      el.focus();
-    },
-    [activeChatId, setInputDraft, syncInputState, guidedPlanStep, recordMariPlanAnswer, clearMariPlan],
   );
   const lastMessage = useMemo(() => {
     const firstPage = messagesData?.pages?.[0];
@@ -1008,17 +926,6 @@ export const ChatInput = memo(function ChatInput({
       scopedMode: chatMeta.scopedRegexMode,
     });
 
-    // Input translation: translate user's message before sending
-    if (chatMeta.translateInput && message.trim()) {
-      try {
-        const { translateText } = await import("../../lib/translate-text");
-        const translated = await translateText(message, "input");
-        if (translated.trim()) message = translated;
-      } catch {
-        toast.error(localizeUi("ui.chat.chatinput.failedToTranslateMessageSendingOriginal"));
-      }
-    }
-
     message = resolveInputMacros(message);
 
     const submittingChatId = activeChatId;
@@ -1266,16 +1173,6 @@ export const ChatInput = memo(function ChatInput({
       resolveMacros: resolveInputMacros,
       scopedMode: chatMeta.scopedRegexMode,
     });
-
-    if (chatMeta.translateInput && message.trim()) {
-      try {
-        const { translateText } = await import("../../lib/translate-text");
-        const translated = await translateText(message, "input");
-        if (translated.trim()) message = translated;
-      } catch {
-        toast.error(localizeUi("ui.chat.chatinput.failedToTranslateMessagePostingOriginal"));
-      }
-    }
 
     message = resolveInputMacros(message);
     const submittedDraft = raw;
@@ -1773,27 +1670,6 @@ export const ChatInput = memo(function ChatInput({
 
   const showCharPicker =
     !!chatCharacters && chatCharacters.length > 1 && !!activeChatCharacters?.length && !!groupResponseOrder;
-  const showDraftTranslateButton = chatMetadata.showInputTranslateButton === true;
-
-  const handleTranslateDraft = useCallback(async () => {
-    if (!activeChatId || isTranslatingDraft) return;
-    const raw = getValue();
-    if (!raw.trim()) return;
-
-    setIsTranslatingDraft(true);
-    try {
-      const translated = await translateDraftText(raw);
-      if (!translated || !textareaRef.current) return;
-      const formatted = formatTextQuotes(translated, quoteFormat);
-      textareaRef.current.value = formatted;
-      resizeChatInputTextarea(textareaRef.current);
-      syncInputState(formatted);
-      setInputDraft(activeChatId, formatted);
-      textareaRef.current.focus();
-    } finally {
-      setIsTranslatingDraft(false);
-    }
-  }, [activeChatId, isTranslatingDraft, quoteFormat, setInputDraft, syncInputState]);
 
   const handleSpeechTranscript = useCallback(
     (transcript: string) => {
@@ -2008,14 +1884,6 @@ export const ChatInput = memo(function ChatInput({
         </div>
       )}
 
-      {chipRowHint && (
-        <p className="mb-1 flex items-center gap-1.5 px-0.5 text-xs text-[var(--muted-foreground)]">
-          <Sparkles size="0.75rem" className="shrink-0 text-[var(--primary)]" />
-          <span>{chipRowHint}</span>
-        </p>
-      )}
-      <MariSuggestionChips chips={chipRowChips} onSelect={handleMariChipSelect} disabled={isInputBusy} />
-
       {replyDraft && (
         <MessageReplyPreview reply={replyDraft} onCancel={() => activeChatId && setReplyDraft(activeChatId, null)} />
       )}
@@ -2145,23 +2013,6 @@ export const ChatInput = memo(function ChatInput({
             }
           >
             <Users size="1rem" />
-          </button>
-        )}
-
-        {showDraftTranslateButton && (
-          <button
-            type="button"
-            onClick={() => void handleTranslateDraft()}
-            disabled={!activeChatId || !hasInput || isInputBusy || isTranslatingDraft}
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all duration-200 sm:h-8 sm:w-8",
-              hasInput && !isInputBusy && !isTranslatingDraft
-                ? "text-foreground/40 hover:bg-foreground/10 hover:text-foreground/70 active:scale-90"
-                : "text-foreground/25",
-            )}
-            title={t("chat.input.translateDraft")}
-          >
-            {isTranslatingDraft ? <Loader2 size="0.9375rem" className="animate-spin" /> : <Languages size="1rem" />}
           </button>
         )}
 

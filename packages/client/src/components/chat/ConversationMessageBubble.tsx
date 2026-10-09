@@ -15,7 +15,6 @@ import {
   MessageContent,
   ConversationMessageEditForm,
   ConversationMessageAttachments,
-  ConversationMessageTranslation,
   ConversationMessageName,
   diceRollReplacesMessageContent,
   nameColorStyle,
@@ -65,8 +64,6 @@ export function ConversationMessageBubble({ ctx }: { ctx: MessageRenderContext }
     messageIndex,
     onImageOpen,
     onRemoveAttachment,
-    translatedText,
-    isTranslating,
     multiSelectMode,
     isSelected,
     onToggleSelect,
@@ -323,10 +320,6 @@ export function ConversationMessageBubble({ ctx }: { ctx: MessageRenderContext }
 
           {!isHiddenCollapsed && (
             <>
-              <ConversationMessageTranslation
-                translatedText={ctx.showTranslationOnly ? null : translatedText}
-                isTranslating={isTranslating}
-              />
               <ConversationMessageAttachments
                 attachments={extra.attachments ?? []}
                 renderedContent={renderedContent}

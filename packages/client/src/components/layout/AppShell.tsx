@@ -4,12 +4,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ChatSidebar } from "./ChatSidebar";
 import { TopBar } from "./TopBar";
-import { SpotifyMobileWidget } from "../spotify/SpotifyMiniPlayer";
-import { YouTubeMobileWidget } from "../chat/YouTubePlayer";
-import { LocalMusicMobileWidget } from "../chat/LocalMusicPlayer";
-import { ProfessorMariFloatingAssistantHost } from "../chat/ProfessorMariFloatingAssistantHost";
 import { ChatResourceMobileDropDock } from "../chat/ChatResourceMobileDropDock";
-import { hasProfessorMariFloatingFollowup } from "../chat/professor-mari-floating-events";
 import {
   getTrackerPanelWidthForProfile,
   isMobileShellViewport,
@@ -103,9 +98,6 @@ const TrackerDataSidebar = lazy(() =>
 );
 const ChatNotificationBubbles = lazy(() =>
   import("../chat/ChatNotificationBubbles").then((module) => ({ default: module.ChatNotificationBubbles })),
-);
-const OnboardingTutorial = lazy(() =>
-  import("../onboarding/OnboardingTutorial").then((module) => ({ default: module.OnboardingTutorial })),
 );
 
 function clampWidth(width: number, min: number, max: number) {
@@ -228,22 +220,12 @@ function SidePanelFallback() {
   );
 }
 
-export function AppShell({
-  chatWindowIntroAllowed = false,
-  onChatWindowIntroOpenChange,
-}: {
-  chatWindowIntroAllowed?: boolean;
-  onChatWindowIntroOpenChange?: (open: boolean) => void;
-}) {
+export function AppShell() {
   const { t: localizeUi } = useUiTranslation();
-  const chatWindowIntroNavigationBlocked = useUIStore((state) => state.hasAnyDetailOpen());
   const queryClient = useQueryClient();
   const capabilityAgents = useCapabilityAgentRegistry();
   const installedCapabilities = useCapabilityClientModules();
   const updateChatMetadata = useUpdateChatMetadata();
-  const musicDjInstalled = (installedCapabilities.data ?? []).some(
-    (capability) => capability.id === "spotify" && capability.status === "active",
-  );
 
   // Background autonomous polling for inactive conversation chats
   useBackgroundAutonomousPolling();
@@ -612,7 +594,6 @@ export function AppShell({
   const personaDetailId = useUIStore((s) => s.personaDetailId);
   const regexDetailId = useUIStore((s) => s.regexDetailId);
   const gameAssetsBrowserOpen = useUIStore((s) => s.gameAssetsBrowserOpen);
-  const hasCompletedOnboarding = useUIStore((s) => s.hasCompletedOnboarding);
   const activeChatId = useChatStore((s) => s.activeChatId);
   const activeChat = useChatStore((s) => s.activeChat);
   const clearUnread = useChatStore((s) => s.clearUnread);
@@ -872,8 +853,7 @@ export function AppShell({
   const trackerPanelModeAvailable = activeChat?.mode === "roleplay";
   const trackerPanelActive = trackerPanelEnabled && trackerPanelOpen && trackerPanelSurfaceOpen;
   const trackerPanelDetached = trackerPanelWindowTarget !== null;
-  const trackerPanelSurfaceAvailable =
-    trackerPanelModeAvailable && !gameAssetsBrowserOpen && !hasDetailView;
+  const trackerPanelSurfaceAvailable = trackerPanelModeAvailable && !gameAssetsBrowserOpen && !hasDetailView;
   // The chat preference chooses the surface; its Trackers button controls visibility.
   const trackerPanelVisible = trackerPanelActive && trackerPanelSurfaceAvailable && !trackerPanelDetached;
   const chatSurfaceActive =
@@ -925,13 +905,6 @@ export function AppShell({
     setTrackerPanelWindowTarget(null);
     closeTrackerPanel();
   }, []);
-
-  const professorMariFloatingActive =
-    hasProfessorMariFloatingFollowup() &&
-    (Boolean(activeChatId) ||
-      hasDetailView ||
-      gameAssetsBrowserOpen ||
-      (shellOverlayMode && Boolean(mobileNavigationPanel)));
 
   // The overlay Tracker Panel hides the chat control that opened it (globals.css), so keyboard focus moves into the panel.
   useEffect(() => {
@@ -1410,18 +1383,7 @@ export function AppShell({
               } as CSSProperties
             }
           >
-            <Suspense fallback={<MainPaneFallback />}>
-              {(shellOverlayMode || !hasDetailView) && (
-                <ChatArea
-                  chatWindowIntroAllowed={
-                    chatWindowIntroAllowed &&
-                    !chatWindowIntroNavigationBlocked &&
-                    (!shellOverlayMode || (!mobileNavigationPanel && !trackerPanelVisible))
-                  }
-                  onChatWindowIntroOpenChange={onChatWindowIntroOpenChange}
-                />
-              )}
-            </Suspense>
+            <Suspense fallback={<MainPaneFallback />}>{(shellOverlayMode || !hasDetailView) && <ChatArea />}</Suspense>
           </div>
           {/* Keep the detail host at one React tree position across the mobile breakpoint.
               Moving an editor between separate desktop/mobile branches remounts it and
@@ -1619,23 +1581,6 @@ export function AppShell({
           }}
         />
       ) : null}
-
-      {/* First-time onboarding tutorial */}
-      {!hasCompletedOnboarding && (
-        <Suspense fallback={null}>
-          <OnboardingTutorial />
-        </Suspense>
-      )}
-      <ProfessorMariFloatingAssistantHost active={professorMariFloatingActive} />
-      <div data-component="MobileMusicWidgetLayer" className="contents">
-        {isMobile && musicDjInstalled ? (
-          <>
-            <SpotifyMobileWidget />
-            <YouTubeMobileWidget />
-            <LocalMusicMobileWidget />
-          </>
-        ) : null}
-      </div>
     </div>
   );
 }

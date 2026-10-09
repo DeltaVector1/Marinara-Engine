@@ -135,7 +135,6 @@ import {
   Settings2,
   Bell,
   Copy,
-  BookOpen,
   BarChart3,
   Gauge,
   HardDrive,
@@ -156,7 +155,6 @@ import { parseChatMetadata } from "../../lib/chat-display";
 import { useOpenGameAssetsFolder, useRescanGameAssets } from "../../hooks/use-game-assets";
 import { chatKeys } from "../../hooks/use-chats";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
-import { useDocsLanguage, useFixDocsLanguage, useSetDocsLanguage } from "../../hooks/use-docs-language";
 import { HelpTooltip } from "../ui/HelpTooltip";
 import { ColorPicker } from "../ui/ColorPicker";
 import { getChatWidgetColorRoles, getChatWidgetColorStyle, type ChatWidgetColors } from "../../lib/chat-widget-colors";
@@ -165,7 +163,6 @@ import { TrackerPanelIcon } from "../ui/TrackerPanelIcon";
 import { TrackerSizeTierIcon } from "../ui/TrackerSizeTierIcon";
 import {
   ConversationSoundSetting,
-  MariPermissionsModeSetting,
   SettingsIntro,
   SettingsSection,
   SettingsSwitch,
@@ -3490,165 +3487,6 @@ function CustomQuickRepliesManager() {
   );
 }
 
-/**
- * Documentation Language row (Settings › General › App Behavior). Separate from
- * the UI-language selector above it: this controls which docs/i18n/<code> tree
- * the in-app guides are served from. The choice is server-authoritative (a
- * data-dir app-setting), so it survives updates and applies to every device.
- */
-function DocsLanguageSetting() {
-  const { t: localizeUi } = useUiTranslation();
-  const { data: status, isLoading: statusLoading } = useDocsLanguage();
-  const setDocsLanguage = useSetDocsLanguage();
-  const fixDocsLanguage = useFixDocsLanguage();
-  // null = "no pending pick"; the select then mirrors the server-active language.
-  const [pickedLanguage, setPickedLanguage] = useState<string | null>(null);
-
-  const active = status?.active ?? "en";
-  const options = status?.available ?? [];
-  const selection = pickedLanguage ?? active;
-  const pendingSwitch = selection !== active;
-  const selectionInfo = options.find((option) => option.code === selection);
-  const activeInfo = options.find((option) => option.code === active);
-  const integrityOk = status ? status.integrity.ok : true;
-  // A language without a downloaded pack needs a download first — the button
-  // becomes "Download & Replace" and the switch may take a short while.
-  const needsDownload = pendingSwitch && selection !== "en" && !(selectionInfo?.installed ?? false);
-  const installProgress = status?.install ?? null;
-
-  const handleSwitch = async () => {
-    try {
-      const result = await setDocsLanguage.mutateAsync(selection);
-      setPickedLanguage(null);
-      const label = result.available.find((option) => option.code === result.active)?.label ?? result.active;
-      toast.success(localizeUi("settings.application.docsLanguage.switched", { language: label }));
-    } catch (err) {
-      const reason =
-        err instanceof ApiError && err.status === 409
-          ? localizeUi("settings.application.docsLanguage.installInProgress")
-          : err instanceof Error
-            ? err.message
-            : String(err);
-      toast.error(localizeUi("settings.application.docsLanguage.switchFailed", { reason }));
-    }
-  };
-
-  const handleFix = async () => {
-    try {
-      const result = await fixDocsLanguage.mutateAsync();
-      setPickedLanguage(null);
-      // Say what the fix actually did: re-downloaded the pack, reset to
-      // English, or just swept leftovers — the outcomes are very different.
-      const message = !result.repaired
-        ? "settings.application.docsLanguage.healthy"
-        : result.actions.includes("reinstalled-pack")
-          ? "settings.application.docsLanguage.fixedReinstalled"
-          : result.actions.some((action) => action.startsWith("reset"))
-            ? "settings.application.docsLanguage.fixed"
-            : "settings.application.docsLanguage.fixedCleaned";
-      toast.success(localizeUi(message));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
-    }
-  };
-
-  return (
-    <div id={getSettingsControlAnchorId("docs-language")} className="flex scroll-mt-3 flex-col gap-1">
-      <label className="flex flex-col gap-1">
-        <span className="inline-flex items-center gap-1 text-xs font-medium">
-          {localizeUi("settings.application.docsLanguage.label")}
-          <HelpTooltip text={localizeUi("settings.application.docsLanguage.help")} />
-        </span>
-        <select
-          value={selection}
-          onChange={(event) => setPickedLanguage(event.target.value)}
-          disabled={statusLoading || setDocsLanguage.isPending}
-          className="rounded-lg bg-[var(--secondary)] px-3 py-2 text-xs outline-none ring-1 ring-transparent transition-shadow focus:ring-[var(--primary)]"
-        >
-          {(options.length > 0 ? options : [{ code: "en", label: "English" }]).map((option) => (
-            <option key={option.code} value={option.code}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-      {activeInfo && active !== "en" ? (
-        <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-          {localizeUi("settings.application.docsLanguage.active", {
-            language: activeInfo.label,
-            translated: activeInfo.translated,
-            total: activeInfo.total,
-          })}
-        </p>
-      ) : null}
-      {(pendingSwitch && selection !== "en") || active !== "en" ? (
-        <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-          {localizeUi("settings.application.docsLanguage.fallbackNote")}
-        </p>
-      ) : null}
-      {needsDownload ? (
-        <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-          {localizeUi("settings.application.docsLanguage.downloadNote")}
-        </p>
-      ) : null}
-      {pendingSwitch ? (
-        <button
-          type="button"
-          onClick={() => void handleSwitch()}
-          disabled={setDocsLanguage.isPending}
-          className={SETTINGS_PRIMARY_BUTTON_CLASS}
-        >
-          {setDocsLanguage.isPending ? (
-            <>
-              <Loader2 size="0.8125rem" className="animate-spin" />
-              {installProgress && installProgress.filesTotal > 0
-                ? localizeUi("settings.application.docsLanguage.downloading", {
-                    done: installProgress.filesDone,
-                    total: installProgress.filesTotal,
-                  })
-                : localizeUi("settings.application.docsLanguage.switching")}
-            </>
-          ) : (
-            <>
-              <BookOpen size="0.8125rem" />
-              {needsDownload
-                ? localizeUi("settings.application.docsLanguage.downloadAndReplace")
-                : localizeUi("settings.application.docsLanguage.switch", {
-                    language: selectionInfo?.label ?? selection,
-                  })}
-            </>
-          )}
-        </button>
-      ) : null}
-      {!integrityOk ? (
-        <div className="flex flex-col gap-1.5 rounded-lg bg-[var(--background)]/60 p-2 ring-1 ring-[var(--border)]">
-          <div className="flex items-start gap-1.5">
-            <AlertTriangle size="0.8125rem" className="mt-0.5 shrink-0 text-amber-500" />
-            <span className="text-[0.6875rem] text-[var(--muted-foreground)]">
-              {localizeUi("settings.application.docsLanguage.fixNeeded")}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => void handleFix()}
-            disabled={fixDocsLanguage.isPending}
-            className={SETTINGS_PRIMARY_BUTTON_CLASS}
-          >
-            {fixDocsLanguage.isPending ? (
-              <>
-                <Loader2 size="0.8125rem" className="animate-spin" />
-                {localizeUi("settings.application.docsLanguage.fixing")}
-              </>
-            ) : (
-              localizeUi("settings.application.docsLanguage.fix")
-            )}
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function GeneralSettings() {
   const { t: localizeUi } = useUiTranslation();
   const { t, i18n: localization } = useTranslation();
@@ -3707,10 +3545,6 @@ function GeneralSettings() {
   const setSpeechToTextEnabled = useUIStore((s) => s.setSpeechToTextEnabled);
   const chibiProfessorMariEnabled = useUIStore((s) => s.chibiProfessorMariEnabled);
   const setChibiProfessorMariEnabled = useUIStore((s) => s.setChibiProfessorMariEnabled);
-  const professorMariSuggestionsEnabled = useUIStore((s) => s.professorMariSuggestionsEnabled);
-  const setProfessorMariSuggestionsEnabled = useUIStore((s) => s.setProfessorMariSuggestionsEnabled);
-  const professorMariNavigationEnabled = useUIStore((s) => s.professorMariNavigationEnabled);
-  const setProfessorMariNavigationEnabled = useUIStore((s) => s.setProfessorMariNavigationEnabled);
   const musicPlayerEnabled = useUIStore((s) => s.musicPlayerEnabled);
   const setMusicPlayerEnabled = useUIStore((s) => s.setMusicPlayerEnabled);
   const intuitiveSwipeNavigation = useUIStore((s) => s.intuitiveSwipeNavigation);
@@ -3734,8 +3568,6 @@ function GeneralSettings() {
       >
         <div className="flex flex-col gap-2.5">
           <UILanguageSetting anchorId={getSettingsControlAnchorId("language")} />
-
-          <DocsLanguageSetting />
 
           <ToggleSetting
             anchorId={getSettingsControlAnchorId("confirm-before-delete")}
@@ -3776,21 +3608,6 @@ function GeneralSettings() {
             onChange={setChibiProfessorMariEnabled}
             help={localizeUi("settings.controls.miniMari.help")}
           />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("professor-mari-suggestions")}
-            label={localizeUi("settings.controls.professorMariSuggestions.label")}
-            checked={professorMariSuggestionsEnabled}
-            onChange={setProfessorMariSuggestionsEnabled}
-            help={localizeUi("settings.controls.professorMariSuggestions.help")}
-          />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("professor-mari-navigation")}
-            label={localizeUi("settings.controls.professorMariNavigation.label")}
-            checked={professorMariNavigationEnabled}
-            onChange={setProfessorMariNavigationEnabled}
-            help={localizeUi("settings.controls.professorMariNavigation.help")}
-          />
-          <MariPermissionsModeSetting anchorId={getSettingsControlAnchorId("mari-permissions-mode")} />
         </div>
       </SettingsSection>
 

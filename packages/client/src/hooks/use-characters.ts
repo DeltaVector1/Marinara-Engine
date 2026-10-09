@@ -21,7 +21,6 @@ import {
   LIBRARY_PAGE_SIZE,
   type PaginatedList,
 } from "../lib/list-pagination";
-import { achievementKeys, trackAchievementEvent } from "./use-achievements";
 import { cleanTrackerCardColorConfig } from "../lib/tracker-card-colors";
 import { personaCacheKeys, syncCachedPersona } from "../lib/persona-cache";
 import {
@@ -226,9 +225,6 @@ export function useCreateCharacter() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: characterKeys.list() });
       qc.invalidateQueries({ queryKey: characterKeys.summariesRoot() });
-      void trackAchievementEvent("library_changed")
-        .finally(() => qc.invalidateQueries({ queryKey: achievementKeys.all }))
-        .catch(() => undefined);
     },
   });
 }
@@ -1208,9 +1204,6 @@ export function useCreatePersona() {
     onSuccess: async (createdPersona) => {
       await syncCachedPersona(qc, createdPersona);
       invalidatePersonaPages(qc);
-      void trackAchievementEvent("library_changed")
-        .finally(() => qc.invalidateQueries({ queryKey: achievementKeys.all }))
-        .catch(() => undefined);
     },
   });
 }

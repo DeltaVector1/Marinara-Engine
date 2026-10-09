@@ -10,11 +10,9 @@ import {
   Paperclip,
   Keyboard,
   AtSign,
-  Languages,
   Loader2,
   FileText,
   RefreshCw,
-  Sparkles,
   WandSparkles,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -24,7 +22,6 @@ import { hasActiveTextSelection } from "../../lib/text-selection";
 import { useAgentStore } from "../../stores/agent.store";
 import { useUIStore } from "../../stores/ui.store";
 import { useSidecarStore } from "../../stores/sidecar.store";
-import { useConversationGamesStore } from "../../stores/conversation-games.store";
 import { useGenerate } from "../../hooks/use-generate";
 import { useApplyRegex } from "../../hooks/use-apply-regex";
 import { useCreateMessage, useDeleteMessage, useUpdateMessageExtra, useChat, chatKeys } from "../../hooks/use-chats";
@@ -35,7 +32,6 @@ import {
   shouldExecuteQuickPostAsCommand,
   getSlashCompletions,
   getSlashCommandUsage,
-  type ConversationGameSlashContribution,
   type SlashCommand,
   type SlashCommandContext,
 } from "../../lib/slash-commands";
@@ -44,7 +40,6 @@ import { parseChatMetadata } from "../../lib/chat-display";
 import type { AvatarCrop } from "@marinara-engine/shared";
 import { cn } from "../../lib/utils";
 import { applyTextareaQuoteFormat } from "../../lib/textarea-quotes";
-import { translateDraftText } from "../../lib/draft-translation";
 import { prepareImageAttachment } from "../../lib/chat-attachment-images";
 import { isFileDrag } from "../../lib/chat-resource-drag";
 import { CARD_ASSET_INSERT_EVENT, type CardAssetInsertDetail } from "../../lib/card-asset-links";
@@ -61,7 +56,6 @@ import { SlashCommandFeedback } from "./SlashCommandFeedback";
 import { MessageReplyPreview } from "./MessageReplyPreview";
 import { QuickReplyMenu, type QuickReplyAction } from "./QuickReplyMenu";
 import { getChatInputShellClass } from "./chat-input-styles";
-import { MariSuggestionChips } from "./MariSuggestionChips";
 import { resolveChatContextBudget } from "../../lib/professor-mari-context-budget";
 import {
   ConversationMediaPickerPanel,
@@ -72,14 +66,10 @@ import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packa
 import {
   formatTextQuotes,
   includesTextForMatch,
-  MARI_STARTER_CHIPS,
   normalizeTextForMatch,
-  PROFESSOR_MARI_ID,
   startsWithTextForMatch,
-  type MariSuggestionChip,
   type Message,
   type Persona,
-  isInstalledCapabilityReady,
 } from "@marinara-engine/shared";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 
@@ -183,7 +173,6 @@ function buildConversationSlashCompletions(
   input: string,
   characters: Array<{ id: string; name: string }> | undefined,
   availableCapabilityIds: ReadonlySet<string>,
-  conversationGames: readonly ConversationGameSlashContribution[],
 ): ConversationSlashCompletion[] {
   if (!input.startsWith("/")) return [];
 
@@ -240,7 +229,7 @@ function buildConversationSlashCompletions(
       });
   }
 
-  return getSlashCompletions(input, { mode: "conversation", availableCapabilityIds, conversationGames })
+  return getSlashCompletions(input, { mode: "conversation", availableCapabilityIds })
     .filter((command) => !isConversationHiddenSlashCommand(command))
     .map((command) => {
       const { value, cursor } = buildSlashCommandPrefill(command, characters);
@@ -353,7 +342,6 @@ export function ConversationInput({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [pendingAttachmentReadsByChat, setPendingAttachmentReadsByChat] = useState<Record<string, number>>({});
-  const [isTranslatingDraft, setIsTranslatingDraft] = useState(false);
   const [mobilePickerOpen, setMobilePickerOpen] = useState(false);
   const [mobilePickerTab, setMobilePickerTab] = useState<MobilePickerTab>("emoji");
   const isMobileComposerViewport = useIsMobileComposerViewport();
@@ -378,9 +366,6 @@ export function ConversationInput({
   const currentInputFrameRef = useRef<number | null>(null);
   const pendingCurrentInputRef = useRef("");
   const activeChatId = useChatStore((s) => s.activeChatId);
-  const mariChips = useAgentStore((s) => s.mariChips);
-  const mariChipsChatId = useAgentStore((s) => s.mariChipsChatId);
-  const professorMariSuggestionsEnabled = useUIStore((s) => s.professorMariSuggestionsEnabled);
   const { data: activeChat } = useChat(activeChatId);
   const { data: contextConnections = [] } = useConnections();
   const sidecarMaxContext = useSidecarStore((state) => state.config.contextSize);
@@ -389,27 +374,6 @@ export function ConversationInput({
   const availableCapabilityIds = useMemo(
     () => new Set(installedCapabilities.filter((item) => item.status === "active").map((item) => item.id)),
     [installedCapabilities],
-  );
-  const availableConversationGames = useMemo(
-    () =>
-      installedCapabilities.filter(
-        (item) =>
-          isInstalledCapabilityReady(item) &&
-          item.manifest.kind.includes("turn-game") &&
-          item.manifest.entrypoints.client &&
-          item.manifest.contributions?.conversationGame,
-      ),
-    [installedCapabilities],
-  );
-  const conversationGameSlashContributions = useMemo<ConversationGameSlashContribution[]>(
-    () =>
-      availableConversationGames.map((game) => ({
-        packageId: game.id,
-        packageName: game.manifest.name,
-        command: game.manifest.contributions!.conversationGame!.command,
-        aliases: game.manifest.contributions!.conversationGame!.aliases,
-      })),
-    [availableConversationGames],
   );
   const chatName = activeChat?.name;
   const streamingChatId = useChatStore((s) => s.streamingChatId);
@@ -508,16 +472,6 @@ export function ConversationInput({
     () => resolveChatContextBudget(contextMessages, activeChat?.connectionId, contextConnections, sidecarMaxContext),
     [activeChat?.connectionId, contextConnections, contextMessages, sidecarMaxContext],
   );
-  const isProfessorMariChat = activeChatCharacters?.some((character) => character.id === PROFESSOR_MARI_ID) ?? false;
-  const hasMessages = (messagesData?.pages ?? []).some((page) => page.length > 0);
-  const visibleMariChips =
-    isProfessorMariChat && professorMariSuggestionsEnabled
-      ? mariChipsChatId === activeChatId && mariChips.length > 0
-        ? mariChips
-        : !hasMessages
-          ? MARI_STARTER_CHIPS
-          : []
-      : [];
   const lastMessage = useMemo(() => {
     const firstPage = messagesData?.pages?.[0];
     return firstPage?.[firstPage.length - 1] ?? null;
@@ -596,56 +550,6 @@ export function ConversationInput({
     [activeChatId, setInputDraft, syncInputState],
   );
 
-  const mariPlan = useAgentStore((s) => s.mariPlan);
-  const mariPlanChatId = useAgentStore((s) => s.mariPlanChatId);
-  const mariPlanCursor = useAgentStore((s) => s.mariPlanCursor);
-  const recordMariPlanAnswer = useAgentStore((s) => s.recordMariPlanAnswer);
-  const clearMariPlan = useAgentStore((s) => s.clearMariPlan);
-  const activeGuidedPlan = professorMariSuggestionsEnabled && mariPlanChatId === activeChatId ? mariPlan : null;
-  const guidedPlanStep = activeGuidedPlan ? (activeGuidedPlan[mariPlanCursor] ?? null) : null;
-  const chipRowChips = guidedPlanStep ? guidedPlanStep.chips : visibleMariChips;
-  const chipRowHint = guidedPlanStep
-    ? `${guidedPlanStep.question} Suggestions only; you can type your own answer.`
-    : chipRowChips.length > 0
-      ? "Suggestions only. Pick one, or type your own."
-      : null;
-
-  const handleMariChipSelect = useCallback(
-    (chip: MariSuggestionChip) => {
-      if (guidedPlanStep) {
-        const result = recordMariPlanAnswer(guidedPlanStep.fieldKey, chip.prompt);
-        if (result === "complete") {
-          const answers = useAgentStore.getState().mariPlanAnswers;
-          const summary = Object.entries(answers)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("; ");
-          clearMariPlan();
-          const el = textareaRef.current;
-          if (el && activeChatId) {
-            const text = `Create it - ${summary}`;
-            el.value = text;
-            el.style.height = "auto";
-            el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-            syncInputState(text);
-            setInputDraft(activeChatId, text);
-            el.focus();
-          }
-        }
-        return;
-      }
-      const el = textareaRef.current;
-      if (!el || !activeChatId) return;
-      const current = el.value;
-      const next = current.trim() ? `${current.trimEnd()} ${chip.prompt}` : chip.prompt;
-      el.value = next;
-      el.style.height = "auto";
-      el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-      syncInputState(next);
-      setInputDraft(activeChatId, next);
-      el.focus();
-    },
-    [activeChatId, setInputDraft, syncInputState, guidedPlanStep, recordMariPlanAnswer, clearMariPlan],
-  );
   useEffect(() => {
     const handleCardAssetInsert = (event: Event) => {
       const detail = (event as CustomEvent<CardAssetInsertDetail>).detail;
@@ -1037,7 +941,6 @@ export function ConversationInput({
     const matched = matchSlashCommand(raw, {
       mode: "conversation",
       availableCapabilityIds,
-      conversationGames: conversationGameSlashContributions,
     });
     if (matched) {
       if (isConversationHiddenSlashCommand(matched.command)) {
@@ -1061,7 +964,6 @@ export function ConversationInput({
         illustrate: onIllustrate,
         selfie: onGenerateSelfie,
         availableCapabilityIds,
-        conversationGames: conversationGameSlashContributions,
       };
       const submittedInput: SubmittedConversationInput = {
         chatId: activeChatId,
@@ -1095,23 +997,6 @@ export function ConversationInput({
       return;
     }
 
-    // Downloaded games contribute their own aliases. The message still sends so characters can react.
-    {
-      const normalized = raw.toLocaleLowerCase();
-      if (/\b(?:play|start|deal|rack)\b/i.test(normalized)) {
-        const matchedGame = availableConversationGames.find((game) => {
-          const contribution = game.manifest.contributions!.conversationGame!;
-          const aliases = [game.manifest.name, contribution.command.slice(1), ...contribution.aliases].map((alias) =>
-            alias.toLocaleLowerCase(),
-          );
-          return aliases.some((alias) => normalized.includes(alias));
-        });
-        if (matchedGame) {
-          useConversationGamesStore.getState().openSetup(matchedGame.id, activeChatId);
-        }
-      }
-    }
-
     const activeChat = useChatStore.getState().activeChat;
     const cachedCharacters = qc.getQueryData<Array<{ id: string; data: unknown }>>(characterKeys.list());
     const cachedPersonas = qc.getQueryData<Persona[]>(characterKeys.personas);
@@ -1122,17 +1007,6 @@ export function ConversationInput({
       resolveMacros: resolveInputMacros,
       scopedMode: chatMeta.scopedRegexMode,
     });
-
-    // Input translation: translate user's message before sending
-    if (chatMeta.translateInput && message.trim()) {
-      try {
-        const { translateText } = await import("../../lib/translate-text");
-        const translated = await translateText(message, "input");
-        if (translated.trim()) message = translated;
-      } catch {
-        toast.error(localizeUi("ui.chat.chatinput.failedToTranslateMessageSendingOriginal"));
-      }
-    }
 
     // Final pass: resolve macros introduced by translation while {{input}} still points to raw.
     message = resolveInputMacros(message);
@@ -1206,7 +1080,6 @@ export function ConversationInput({
     activeChatId,
     replyDraft,
     setReplyDraft,
-    availableConversationGames,
     activeChatCharacters,
     lastMessageRole,
     attachments,
@@ -1233,7 +1106,6 @@ export function ConversationInput({
     onIllustrate,
     onGenerateSelfie,
     availableCapabilityIds,
-    conversationGameSlashContributions,
     localizeUi,
   ]);
 
@@ -1244,7 +1116,6 @@ export function ConversationInput({
       const matched = matchSlashCommand(commandLine, {
         mode: "conversation",
         availableCapabilityIds,
-        conversationGames: conversationGameSlashContributions,
       });
       if (!matched) return;
       if (isConversationHiddenSlashCommand(matched.command)) {
@@ -1273,7 +1144,6 @@ export function ConversationInput({
         illustrate: onIllustrate,
         selfie: onGenerateSelfie,
         availableCapabilityIds,
-        conversationGames: conversationGameSlashContributions,
       };
 
       const submittedInput: SubmittedConversationInput = {
@@ -1328,7 +1198,6 @@ export function ConversationInput({
       onIllustrate,
       onGenerateSelfie,
       availableCapabilityIds,
-      conversationGameSlashContributions,
       qc,
       restoreSubmittedInput,
       syncInputState,
@@ -1352,7 +1221,6 @@ export function ConversationInput({
       shouldExecuteQuickPostAsCommand(raw, {
         mode: "conversation",
         availableCapabilityIds,
-        conversationGames: conversationGameSlashContributions,
       })
     ) {
       await handleSend();
@@ -1373,16 +1241,6 @@ export function ConversationInput({
       resolveMacros: resolveInputMacros,
       scopedMode: chatMeta.scopedRegexMode,
     });
-
-    if (chatMeta.translateInput && message.trim()) {
-      try {
-        const { translateText } = await import("../../lib/translate-text");
-        const translated = await translateText(message, "input");
-        if (translated.trim()) message = translated;
-      } catch {
-        toast.error(localizeUi("ui.chat.chatinput.failedToTranslateMessagePostingOriginal"));
-      }
-    }
 
     message = resolveInputMacros(message);
     const submittedInput: SubmittedConversationInput = {
@@ -1437,7 +1295,6 @@ export function ConversationInput({
     replaceAttachments,
     handleSend,
     availableCapabilityIds,
-    conversationGameSlashContributions,
     localizeUi,
   ]);
 
@@ -1680,12 +1537,7 @@ export function ConversationInput({
 
       // Slash completions
       if (formatted.startsWith("/")) {
-        const results = buildConversationSlashCompletions(
-          formatted,
-          activeChatCharacters,
-          availableCapabilityIds,
-          conversationGameSlashContributions,
-        );
+        const results = buildConversationSlashCompletions(formatted, activeChatCharacters, availableCapabilityIds);
         setCompletions(results);
         setSelectedCompletion(0);
       } else {
@@ -1750,7 +1602,6 @@ export function ConversationInput({
       setInputDraft,
       syncInputState,
       availableCapabilityIds,
-      conversationGameSlashContributions,
     ],
   );
 
@@ -1854,7 +1705,6 @@ export function ConversationInput({
     },
     [activeChatId, isSendBlocked, generate, insertStickerToken],
   );
-  const showDraftTranslateButton = chatMetadata.showInputTranslateButton === true;
   const mobilePickerTabs: ConversationMediaPickerTab[] = [
     { id: "emoji", label: "Emoji" },
     { id: "kaomoji", label: "Kaomoji" },
@@ -1862,27 +1712,6 @@ export function ConversationInput({
     { id: "stickers", label: "Stickers" },
     { id: "tools", label: t("chat.input.tools") },
   ];
-
-  const handleTranslateDraft = useCallback(async () => {
-    if (!activeChatId || isTranslatingDraft) return;
-    const raw = textareaRef.current?.value ?? "";
-    if (!raw.trim()) return;
-
-    setIsTranslatingDraft(true);
-    try {
-      const translated = await translateDraftText(raw);
-      if (!translated || !textareaRef.current) return;
-      const formatted = formatTextQuotes(translated, quoteFormat);
-      textareaRef.current.value = formatted;
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
-      syncInputState(formatted);
-      setInputDraft(activeChatId, formatted);
-      textareaRef.current.focus();
-    } finally {
-      setIsTranslatingDraft(false);
-    }
-  }, [activeChatId, isTranslatingDraft, quoteFormat, setInputDraft, syncInputState]);
 
   const handleSpeechTranscript = useCallback(
     (transcript: string) => {
@@ -1939,30 +1768,6 @@ export function ConversationInput({
     mobilePickerTab === "tools" ? (
       <div className="flex h-full flex-col gap-3 overflow-y-auto p-3">
         <div className="grid gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setMobilePickerOpen(false);
-              void handleTranslateDraft();
-            }}
-            disabled={!activeChatId || !hasInput || isTranslatingDraft}
-            className={cn(
-              "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left transition-colors",
-              activeChatId && hasInput && !isTranslatingDraft
-                ? "text-foreground/80 hover:bg-foreground/10"
-                : "cursor-not-allowed text-foreground/25",
-            )}
-          >
-            {isTranslatingDraft ? (
-              <Loader2 size="1rem" className="shrink-0 animate-spin" />
-            ) : (
-              <Languages size="1rem" className="shrink-0" />
-            )}
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">
-              {localizeUi("chat.input.translateDraft")}
-            </span>
-          </button>
-
           {speechToTextEnabled && (
             <div className="flex min-h-11 items-center justify-between gap-2 rounded-lg px-3 py-2">
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground/80">
@@ -2200,14 +2005,6 @@ export function ConversationInput({
         </div>
       )}
 
-      {chipRowHint && (
-        <p className="mb-1 flex items-center gap-1.5 px-0.5 text-xs text-[var(--muted-foreground)]">
-          <Sparkles size="0.75rem" className="shrink-0 text-[var(--primary)]" />
-          <span>{chipRowHint}</span>
-        </p>
-      )}
-      <MariSuggestionChips chips={chipRowChips} onSelect={handleMariChipSelect} disabled={isSendBlocked} />
-
       {replyDraft && (
         <MessageReplyPreview reply={replyDraft} onCancel={() => activeChatId && setReplyDraft(activeChatId, null)} />
       )}
@@ -2343,23 +2140,6 @@ export function ConversationInput({
               />
             )}
           </div>
-
-          {showDraftTranslateButton && (
-            <button
-              type="button"
-              onClick={() => void handleTranslateDraft()}
-              disabled={!activeChatId || !hasInput || isTranslatingDraft}
-              className={cn(
-                "hidden h-11 w-11 items-center justify-center rounded-full transition-colors sm:flex sm:h-8 sm:w-8",
-                hasInput && !isTranslatingDraft
-                  ? "text-foreground/40 hover:bg-foreground/10 hover:text-foreground/70"
-                  : "text-foreground/25",
-              )}
-              title={t("chat.input.translateDraft")}
-            >
-              {isTranslatingDraft ? <Loader2 size="1rem" className="animate-spin" /> : <Languages size="1rem" />}
-            </button>
-          )}
 
           {speechToTextEnabled && (
             <SpeechToTextButton

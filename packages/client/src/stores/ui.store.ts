@@ -15,12 +15,10 @@ import {
   type ScenePromptPreferences,
   type ScenePackageOrigin,
 } from "@marinara-engine/shared";
-import type { LegacyNoodleNavigationState as NoodleNavigationState } from "../lib/legacy-noodle-navigation";
-import { isCssGradient, MARINARA_GRADIENT_PRESET, RAINBOW_GRADIENT_PRESET } from "../lib/css-colors";
+import { MARINARA_GRADIENT_PRESET } from "../lib/css-colors";
 import { announceChatFloatingUiDismiss } from "../lib/chat-floating-ui-events";
 import { detectConversationTimeZone, normalizeConversationTimeZone } from "../lib/conversation-time-zone";
 import { BASIC_PANEL_SORT_OPTIONS, normalizeBasicPanelSort, type BasicPanelSort } from "../lib/panel-sort";
-import { resetProfessorMariNavigator } from "../lib/professor-mari-navigation";
 import { DEFAULT_APP_LANGUAGE, type AppLanguage } from "../localization/locale-types";
 import { deferEditorLeave } from "../lib/editor-leave";
 import { UI_PERSISTENCE } from "../lib/ui-persistence";
@@ -28,15 +26,7 @@ import { normalizeChatWidgetFont } from "../lib/font-family";
 import type { ChatWizardDefaults, ChatWizardMode } from "../lib/chat-wizard-defaults";
 
 export type Panel =
-  | "chat"
-  | "characters"
-  | "lorebooks"
-  | "presets"
-  | "connections"
-  | "agents"
-  | "personas"
-  | "settings"
-  | "extensions";
+  "chat" | "characters" | "lorebooks" | "presets" | "connections" | "agents" | "personas" | "settings" | "extensions";
 export type ChatModeShortcut = "conversation" | "roleplay" | "game";
 export const CHARACTER_LIBRARY_SORT_OPTIONS = ["name-asc", "name-desc", "newest", "oldest", "favorites"] as const;
 export type CharacterLibrarySort = (typeof CHARACTER_LIBRARY_SORT_OPTIONS)[number];
@@ -707,12 +697,6 @@ interface UIState {
   /** When true, the main area shows the browser */
   /** When true, the main area shows the game assets browser */
   gameAssetsBrowserOpen: boolean;
-  /** When true, the main area shows the Noodle social timeline */
-  noodleOpen: boolean;
-  /** Last persona selected inside Noodle, persisted per browser. */
-  noodleSelectedPersonaId: string | null;
-  /** Last stable surface viewed inside Noodle or NoodleR, persisted per browser. */
-  noodleNavigation: NoodleNavigationState;
   /** When true, the main area shows the full-page character library */
   characterLibraryOpen: boolean;
   /** Which resource collection the shared full-page card library displays */
@@ -1167,10 +1151,6 @@ interface UIState {
   closeAgentCatalog: () => void;
   openGameAssetsBrowser: () => void;
   closeGameAssetsBrowser: () => void;
-  openNoodle: () => void;
-  closeNoodle: () => void;
-  setNoodleSelectedPersonaId: (id: string | null) => void;
-  setNoodleNavigation: (navigation: NoodleNavigationState) => void;
 
   /** Returns true if any full-page detail editor is currently open */
   hasAnyDetailOpen: () => boolean;
@@ -1360,40 +1340,6 @@ function restoreMobileDetailReturnPanel(panel: Panel | null) {
     detailReturnRightPanel: null,
     ...(panel && { rightPanelOpen: true, rightPanel: panel }),
   };
-}
-
-function normalizePersistedMainSurface(persisted: Record<string, unknown>) {
-  const surfaceKeys = [
-    "regexDetailId",
-    "personaDetailId",
-    "toolDetailId",
-    "agentDetailId",
-    "connectionDetailId",
-    "presetDetailId",
-    "characterDetailId",
-    "lorebookDetailId",
-    "characterLibraryOpen",
-    "agentCatalogOpen",
-    "gameAssetsBrowserOpen",
-    "noodleOpen",
-  ] as const;
-  let found = false;
-  for (const key of surfaceKeys) {
-    const value = persisted[key];
-    const isOpen = typeof value === "string" ? value.trim().length > 0 : value === true;
-    if (!isOpen) {
-      if (typeof value === "string") persisted[key] = null;
-      if (typeof value === "boolean") persisted[key] = false;
-      continue;
-    }
-    if (!found) {
-      found = true;
-      continue;
-    }
-    persisted[key] = typeof value === "string" ? null : false;
-  }
-  persisted.editorDirty = false;
-  persisted.detailReturnRightPanel = null;
 }
 
 /**
@@ -1601,9 +1547,6 @@ export function pickPersistedUIState(state: UIState) {
     regexDetailId: state.regexDetailId,
     spatialMapDetailChatId: state.spatialMapDetailChatId,
     gameAssetsBrowserOpen: state.gameAssetsBrowserOpen,
-    noodleOpen: state.noodleOpen,
-    noodleSelectedPersonaId: state.noodleSelectedPersonaId,
-    noodleNavigation: state.noodleNavigation,
     characterLibraryOpen: state.characterLibraryOpen,
     cardLibraryKind: state.cardLibraryKind,
     agentCatalogOpen: state.agentCatalogOpen,
@@ -1879,9 +1822,6 @@ export const useUIStore = create<UIState>()(
         lorebookDetailInitialEntryId: null,
         personaDetailInitialTab: null,
         gameAssetsBrowserOpen: false,
-        noodleOpen: false,
-        noodleSelectedPersonaId: null,
-        noodleNavigation: { mode: "public", view: "home" },
         characterLibraryOpen: false,
         cardLibraryKind: "characters" as CardLibraryKind,
         agentCatalogOpen: false,
@@ -2246,7 +2186,6 @@ export const useUIStore = create<UIState>()(
               agentCatalogOpen: false,
               characterLibrarySelectedId: preserveCharacterLibrary ? id : s.characterLibrarySelectedId,
               gameAssetsBrowserOpen: false,
-              noodleOpen: false,
               ...getMobileDetailReturnState(s),
             };
           }),
@@ -2265,7 +2204,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             characterDetailId: null,
             presetDetailId: null,
             connectionDetailId: null,
@@ -2289,7 +2227,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             connectionDetailId: null,
@@ -2313,7 +2250,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2336,7 +2272,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2360,7 +2295,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2387,7 +2321,6 @@ export const useUIStore = create<UIState>()(
               personaLibrarySelectedId: preservePersonaLibrary ? id : s.personaLibrarySelectedId,
               agentCatalogOpen: false,
               gameAssetsBrowserOpen: false,
-              noodleOpen: false,
               characterDetailId: null,
               lorebookDetailId: null,
               presetDetailId: null,
@@ -2415,7 +2348,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2464,7 +2396,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             ...getMobileDetailReturnState(s),
           })),
         openSpatialMapDraftReview: (review) =>
@@ -2482,7 +2413,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             ...getMobileDetailReturnState(s),
           })),
         clearPendingSpatialMapDraftReview: () => set({ pendingSpatialMapDraftReview: null }),
@@ -2511,7 +2441,6 @@ export const useUIStore = create<UIState>()(
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
@@ -2532,7 +2461,6 @@ export const useUIStore = create<UIState>()(
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
@@ -2554,7 +2482,6 @@ export const useUIStore = create<UIState>()(
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
@@ -2563,7 +2490,6 @@ export const useUIStore = create<UIState>()(
         openGameAssetsBrowser: () =>
           set({
             gameAssetsBrowserOpen: true,
-            noodleOpen: false,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             detailReturnRightPanel: null,
@@ -2579,28 +2505,6 @@ export const useUIStore = create<UIState>()(
             ...(isMobileShellViewport() && { rightPanelOpen: false }),
           }),
         closeGameAssetsBrowser: () => set({ gameAssetsBrowserOpen: false }),
-        openNoodle: () =>
-          set({
-            noodleOpen: true,
-            gameAssetsBrowserOpen: false,
-            characterLibraryOpen: false,
-            agentCatalogOpen: false,
-            detailReturnRightPanel: null,
-            regexDetailId: null,
-            spatialMapDetailChatId: null,
-            personaDetailId: null,
-            characterDetailId: null,
-            lorebookDetailId: null,
-            presetDetailId: null,
-            connectionDetailId: null,
-            agentDetailId: null,
-            toolDetailId: null,
-            editorDirty: false,
-            ...(isMobileShellViewport() && { rightPanelOpen: false }),
-          }),
-        closeNoodle: () => set({ noodleOpen: false }),
-        setNoodleSelectedPersonaId: (id) => set({ noodleSelectedPersonaId: id }),
-        setNoodleNavigation: (navigation) => set({ noodleNavigation: navigation }),
 
         hasAnyDetailOpen: () => {
           const s = get();
@@ -2616,8 +2520,7 @@ export const useUIStore = create<UIState>()(
             s.spatialMapDetailChatId ||
             s.characterLibraryOpen ||
             s.agentCatalogOpen ||
-            s.gameAssetsBrowserOpen ||
-            s.noodleOpen
+            s.gameAssetsBrowserOpen
           );
         },
         closeAllDetails: () =>
@@ -2634,7 +2537,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
           }),
@@ -2655,7 +2557,6 @@ export const useUIStore = create<UIState>()(
             characterLibraryOpen: false,
             agentCatalogOpen: false,
             gameAssetsBrowserOpen: false,
-            noodleOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             chatModeShortcutRequest: {
@@ -2796,9 +2697,7 @@ export const useUIStore = create<UIState>()(
         setChibiProfessorMariEnabled: (v) => set({ chibiProfessorMariEnabled: v }),
         setProfessorMariSuggestionsEnabled: (v) => set({ professorMariSuggestionsEnabled: v }),
         setProfessorMariNavigationEnabled: (v) => {
-          const wasEnabled = get().professorMariNavigationEnabled;
           set({ professorMariNavigationEnabled: v });
-          if (v && !wasEnabled) resetProfessorMariNavigator();
         },
         setAchievementsEnabled: (v) => set({ achievementsEnabled: v }),
         setMusicPlayerEnabled: (v) => set({ musicPlayerEnabled: v }),
@@ -3137,530 +3036,6 @@ export const useUIStore = create<UIState>()(
         if (version <= 99) {
           persisted.imageCharacterSheetWidth ??= persisted.imageBackgroundWidth ?? 1280;
           persisted.imageCharacterSheetHeight ??= persisted.imageBackgroundHeight ?? 720;
-        }
-        if (version <= 98 && (persisted.imageNoodleWidth !== undefined || persisted.imageNoodleHeight !== undefined)) {
-          try {
-            localStorage.setItem(
-              "marinara:noodle:legacy-image-size",
-              JSON.stringify({
-                width: persisted.imageNoodleWidth,
-                height: persisted.imageNoodleHeight,
-              }),
-            );
-          } catch {
-            // Package settings use their defaults if browser storage is unavailable.
-          }
-        }
-        if (version <= 97) {
-          if (persisted.showHomeBrowserAddressBar === undefined) persisted.showHomeBrowserAddressBar = true;
-          if (persisted.showHomeBrowserDesktopBookmarksOnOtherTabs === undefined) {
-            persisted.showHomeBrowserDesktopBookmarksOnOtherTabs = true;
-          }
-          if (persisted.showHomeBrowserMobileBookmarksOnOtherTabs === undefined) {
-            persisted.showHomeBrowserMobileBookmarksOnOtherTabs = true;
-          }
-        }
-        if (version <= 96 && persisted.showCharactersInPersonaPickers === undefined) {
-          persisted.showCharactersInPersonaPickers = false;
-        }
-        if (version <= 95 && !Array.isArray(persisted.chatHelpSeenModes)) {
-          persisted.chatHelpSeenModes = persisted.gameTutorialDisabled === true ? ["game"] : [];
-        }
-        delete persisted.gameTutorialDisabled;
-        if (version <= 91 && persisted.rightPanel === "bot-browser") {
-          persisted.rightPanel = "characters";
-          persisted.rightPanelOpen = false;
-        }
-        if (version === 0 && persisted.fontSize === 14) {
-          persisted.fontSize = 17;
-        }
-        // v1 → v2: replace streamingFps (30|60) with streamingSpeed (1–100)
-        if (version <= 1) {
-          delete persisted.streamingFps;
-          if (persisted.streamingSpeed === undefined) {
-            persisted.streamingSpeed = 50;
-          }
-        }
-        // v2 → v3: split enterToSend into per-mode toggles
-        if (version <= 2) {
-          const old = persisted.enterToSend;
-          delete persisted.enterToSend;
-          // Keep conversation default true; respect old value for RP
-          if (persisted.enterToSendRP === undefined) {
-            persisted.enterToSendRP = old === true ? true : false;
-          }
-          if (persisted.enterToSendConvo === undefined) {
-            persisted.enterToSendConvo = true;
-          }
-        }
-        // v3 → v4: add conversation notification sound default
-        if (version <= 3) {
-          if (persisted.convoNotificationSound === undefined) {
-            persisted.convoNotificationSound = true;
-          }
-        }
-        // v4 → v5: add RP notification sound default
-        if (version <= 4) {
-          if (persisted.rpNotificationSound === undefined) {
-            persisted.rpNotificationSound = true;
-          }
-        }
-        // v5 → v6: add text appearance settings
-        if (version <= 5) {
-          if (persisted.chatFontColor === undefined) persisted.chatFontColor = "";
-          if (persisted.chatFontOpacity === undefined) persisted.chatFontOpacity = 90;
-          if (persisted.textStrokeWidth === undefined) persisted.textStrokeWidth = 0.5;
-          if (persisted.textStrokeColor === undefined) persisted.textStrokeColor = "#000000";
-        }
-        // v6 → v7: add legacy theme migration completion flag
-        if (version <= 6) {
-          if (persisted.hasMigratedCustomThemesToServer === undefined) {
-            persisted.hasMigratedCustomThemesToServer = false;
-          }
-        }
-        // v7 → v8: persist right panel width
-        if (version <= 7) {
-          if (persisted.rightPanelWidth === undefined) {
-            persisted.rightPanelWidth = 320;
-          }
-          if (persisted.sidebarWidth === 280) {
-            persisted.sidebarWidth = 320;
-          }
-        }
-        // v8 → v9: add roleplay avatar layout setting
-        if (version <= 8) {
-          if (persisted.roleplayAvatarStyle === undefined) {
-            persisted.roleplayAvatarStyle = "circles";
-          }
-        }
-        // v9 → v10: add Game mode avatar/sprite scale.
-        if (version <= 9) {
-          if (persisted.gameAvatarScale === undefined) {
-            persisted.gameAvatarScale = 1;
-          }
-        }
-        // v10 → v11: convert flat convoGradientFrom/To into per-scheme nested object.
-        if (version <= 10) {
-          if ("convoGradientFrom" in persisted || "convoGradientTo" in persisted) {
-            const oldFrom = persisted.convoGradientFrom ?? "#0a0a0e";
-            const oldTo = persisted.convoGradientTo ?? "#1c2133";
-            persisted.convoGradient = {
-              dark: { from: oldFrom, to: oldTo },
-              light: { from: "#f2eff7", to: "#eae6f0" },
-            };
-            delete persisted.convoGradientFrom;
-            delete persisted.convoGradientTo;
-          }
-        }
-        // v11 -> v12: add Game mode dialogue display layout.
-        if (version <= 11) {
-          if (persisted.gameDialogueDisplayMode === undefined) {
-            persisted.gameDialogueDisplayMode = "classic";
-          }
-        }
-        // v12 -> v13: image generation prompt review and default canvas sizes.
-        if (version <= 12) {
-          if (persisted.reviewImagePromptsBeforeSend === undefined) {
-            persisted.reviewImagePromptsBeforeSend = false;
-          }
-          if (persisted.imageBackgroundWidth === undefined) persisted.imageBackgroundWidth = 1280;
-          if (persisted.imageBackgroundHeight === undefined) persisted.imageBackgroundHeight = 720;
-          if (persisted.imageIllustrationWidth === undefined) persisted.imageIllustrationWidth = 896;
-          if (persisted.imageIllustrationHeight === undefined) persisted.imageIllustrationHeight = 1280;
-          if (persisted.imagePortraitWidth === undefined) persisted.imagePortraitWidth = 1024;
-          if (persisted.imagePortraitHeight === undefined) persisted.imagePortraitHeight = 1024;
-          if (persisted.imageSelfieWidth === undefined) persisted.imageSelfieWidth = 896;
-          if (persisted.imageSelfieHeight === undefined) persisted.imageSelfieHeight = 1152;
-        }
-        // v13 -> v14: add optional custom user activity text for Conversation status.
-        if (version <= 13) {
-          if (persisted.userActivity === undefined) {
-            persisted.userActivity = "";
-          }
-        }
-        // v14 -> v15: remember reusable custom Game setup options.
-        if (version <= 14) {
-          if (persisted.learnedGameSetupOptions === undefined) {
-            persisted.learnedGameSetupOptions = DEFAULT_GAME_SETUP_LEARNED_OPTIONS;
-          }
-        }
-        // v15 -> v16: add impersonate settings and opt-in output cleanup for incomplete final sentences.
-        if (version <= 15) {
-          if (persisted.impersonatePromptTemplate === undefined) persisted.impersonatePromptTemplate = "";
-          if (persisted.impersonatePresetId === undefined) persisted.impersonatePresetId = null;
-          if (persisted.impersonateConnectionId === undefined) persisted.impersonateConnectionId = null;
-          if (persisted.impersonateBlockAgents === undefined) persisted.impersonateBlockAgents = false;
-          if (persisted.trimIncompleteModelOutput === undefined) {
-            persisted.trimIncompleteModelOutput = false;
-          }
-        }
-        // v16 -> v17: opt-in intuitive swipe/reroll shortcuts.
-        if (version <= 16) {
-          if (persisted.intuitiveSwipeNavigation === undefined) {
-            persisted.intuitiveSwipeNavigation = false;
-          }
-          if (persisted.intuitiveSwipeRerollLatest === undefined) {
-            persisted.intuitiveSwipeRerollLatest = false;
-          }
-        }
-        // v18 -> v19: add impersonate CYOA opt-in and split full-body sprite scale from portrait scale.
-        if (version <= 18) {
-          if (persisted.impersonateCyoaChoices === undefined) persisted.impersonateCyoaChoices = false;
-          if (persisted.gameFullBodySpriteScale === undefined) {
-            persisted.gameFullBodySpriteScale = 1.35;
-          }
-        }
-        // v19 -> v20: add global Spotify mini player controls.
-        if (version <= 19) {
-          if (persisted.spotifyMobileWidgetCollapsed === undefined) persisted.spotifyMobileWidgetCollapsed = true;
-          if (persisted.spotifyMobileWidgetPosition === undefined) {
-            persisted.spotifyMobileWidgetPosition = { ...DEFAULT_MOBILE_MUSIC_WIDGET_POSITION };
-          }
-        }
-        // v20 -> v21: remember Game setup free-text fields and learned preference chips.
-        if (version <= 20) {
-          const learned =
-            persisted.learnedGameSetupOptions && typeof persisted.learnedGameSetupOptions === "object"
-              ? persisted.learnedGameSetupOptions
-              : {};
-          persisted.learnedGameSetupOptions = {
-            ...DEFAULT_GAME_SETUP_LEARNED_OPTIONS,
-            ...learned,
-            preferences: Array.isArray(learned.preferences) ? learned.preferences : [],
-          };
-          if (persisted.rememberedGameSetupText === undefined) {
-            persisted.rememberedGameSetupText = DEFAULT_GAME_SETUP_REMEMBERED_TEXT;
-          } else {
-            persisted.rememberedGameSetupText = {
-              playerGoals: normalizeRememberedGameSetupText(persisted.rememberedGameSetupText.playerGoals),
-              preferences: normalizeRememberedGameSetupText(persisted.rememberedGameSetupText.preferences),
-            };
-          }
-        }
-        // v21 -> v22: add the optional centralized tracker sidebar.
-        if (version <= 21) {
-          if (persisted.trackerPanelOpen === undefined) persisted.trackerPanelOpen = false;
-          if (persisted.trackerPanelSide === undefined) persisted.trackerPanelSide = "right";
-          if (persisted.trackerPanelEnabled === undefined) persisted.trackerPanelEnabled = true;
-          if (persisted.trackerPanelHideHudWidgets === undefined) persisted.trackerPanelHideHudWidgets = false;
-        }
-        // v22 -> v23: persist the desktop tracker sidebar width.
-        if (version <= 22) {
-          persisted.trackerPanelWidth = clampTrackerPanelWidth(persisted.trackerPanelWidth);
-        }
-        persisted.trackerPanelCollapsedSections = normalizeTrackerPanelCollapsedSections(
-          persisted.trackerPanelCollapsedSections,
-        );
-        if (persisted.trackerPanelUseExpressionSprites === undefined) {
-          persisted.trackerPanelUseExpressionSprites = false;
-        }
-        persisted.trackerPanelSectionOrder = normalizeTrackerPanelSectionOrder(persisted.trackerPanelSectionOrder);
-        // v26 -> v27: add Roleplay avatar and default sprite scale controls.
-        if (version <= 26) {
-          if (persisted.roleplayAvatarScale === undefined) {
-            persisted.roleplayAvatarScale = 1;
-          }
-          if (persisted.roleplaySpriteScale === undefined) {
-            persisted.roleplaySpriteScale = 1;
-          }
-        }
-        if (persisted.roleplayAvatarsScrollable === undefined) {
-          persisted.roleplayAvatarsScrollable = false;
-        }
-        // v27 -> v28: enable Up-Arrow recall of the last user message by default.
-        if (version <= 27 && persisted.editLastMessageOnArrowUp === undefined) {
-          persisted.editLastMessageOnArrowUp = true;
-        }
-        // v28 -> v29: preserve existing Impersonate quick-button users by moving them into Quick replies.
-        if (
-          version <= 28 &&
-          persisted.showQuickRepliesMenu === undefined &&
-          persisted.impersonateShowQuickButton === true
-        ) {
-          persisted.showQuickRepliesMenu = true;
-          persisted.showQuickReplyPostOnly = false;
-          persisted.showQuickReplyGuide = false;
-          persisted.showQuickReplyImpersonate = true;
-        }
-        // v29 -> v30: allow users to disable the rare Chibi Professor Mari toast.
-        if (version <= 29 && persisted.chibiProfessorMariEnabled === undefined) {
-          persisted.chibiProfessorMariEnabled = true;
-        }
-        persisted.summaryPopoverSettings = normalizeSummaryPopoverSettings(persisted.summaryPopoverSettings);
-        // v31 -> v32: add native chat/game background blur.
-        if (version <= 31 && persisted.chatBackgroundBlur === undefined) {
-          persisted.chatBackgroundBlur = 0;
-        }
-        if (persisted.conversationBackgroundImageOpacity === undefined) {
-          persisted.conversationBackgroundImageOpacity = DEFAULT_CONVERSATION_BACKGROUND_IMAGE_OPACITY;
-        }
-        persisted.conversationBackgroundImageOpacity = normalizeConversationBackgroundImageOpacity(
-          persisted.conversationBackgroundImageOpacity,
-        );
-        persisted.trackerPanelThoughtBubbleDisplay = normalizeTrackerThoughtBubbleDisplay(
-          persisted.trackerPanelThoughtBubbleDisplay,
-        );
-        persisted.trackerPanelSizeProfile = normalizeTrackerPanelSizeProfile(
-          persisted.trackerPanelSizeProfile,
-          persisted.trackerPanelWidth,
-        );
-        persisted.trackerTemperatureUnit = normalizeTrackerTemperatureUnit(persisted.trackerTemperatureUnit);
-        if (persisted.trackerPanelDockedThoughtsAlwaysVisible === undefined) {
-          persisted.trackerPanelDockedThoughtsAlwaysVisible = false;
-        }
-        persisted.quoteFormat = normalizeQuoteFormat(persisted.quoteFormat);
-        // v37 -> v38: customizable image style profiles.
-        if (version <= 37) {
-          persisted.imageStyleProfiles = normalizeImageStyleProfileSettings(
-            persisted[IMAGE_STYLE_PROFILES_STORAGE_KEY] ?? persisted.imageStyleProfiles,
-          );
-        }
-        persisted.imageStyleProfiles = normalizeImageStyleProfileSettings(persisted.imageStyleProfiles);
-        // v38 -> v39: opt-in browser notifications for background replies.
-        if (version <= 38 && persisted.conversationBrowserNotifications === undefined) {
-          persisted.conversationBrowserNotifications = false;
-        }
-        if (version <= 71 && persisted.conversationMobileNotifications === undefined) {
-          persisted.conversationMobileNotifications = false;
-        }
-        // v72 -> v73: separate manual-generation completion notifications from autonomous messages.
-        if (version <= 72) {
-          if (persisted.generationBrowserNotifications === undefined) {
-            persisted.generationBrowserNotifications = false;
-          }
-          if (persisted.generationMobileNotifications === undefined) {
-            persisted.generationMobileNotifications = false;
-          }
-        }
-        // v39 -> v40: selectable Conversation message layout.
-        persisted.conversationMessageStyle = normalizeConversationMessageStyle(persisted.conversationMessageStyle);
-        // v82 -> v83: selectable Conversation avatar corners, circular by default.
-        persisted.conversationAvatarShape = normalizeConversationAvatarShape(persisted.conversationAvatarShape);
-        // v40 -> v41: reconcile parallel v40 UI preference additions.
-        if (persisted.editMessageOnDoubleClick === undefined) {
-          persisted.editMessageOnDoubleClick = true;
-        }
-        // v40 -> v41: separate Illustrator/scene illustration canvas from backgrounds.
-        if (version <= 40) {
-          if (persisted.imageIllustrationWidth === undefined) persisted.imageIllustrationWidth = 896;
-          if (persisted.imageIllustrationHeight === undefined) persisted.imageIllustrationHeight = 1280;
-        }
-        // v41 -> v42: Game mode gets its own turn-loaded notification sound setting.
-        if (version <= 41 && persisted.gameNotificationSound === undefined) {
-          persisted.gameNotificationSound = true;
-        }
-        // v62 -> v63: optional focus-aware notification sounds.
-        if (version <= 62 && persisted.notificationSoundsOnlyWhenUnfocused === undefined) {
-          persisted.notificationSoundsOnlyWhenUnfocused = false;
-        }
-        // v63 -> v64: add the offline Custom music player volume.
-        if (version <= 63 && typeof persisted.localMusicPlayerVolume !== "number") {
-          persisted.localMusicPlayerVolume = 70;
-        }
-        // v64 -> v65: queue image generation requests by default for provider compatibility.
-        if (version <= 64 && persisted.queueImageGenerationRequests === undefined) {
-          persisted.queueImageGenerationRequests = true;
-        }
-
-        if (version <= 65 && persisted.includeReasoningInExports === undefined) {
-          persisted.includeReasoningInExports = false;
-        }
-        if (typeof persisted.conversationCallVoiceVolume !== "number") {
-          persisted.conversationCallVoiceVolume = 100;
-        }
-        persisted.conversationCallVoiceVolume = Math.max(
-          0,
-          Math.min(100, Math.round(persisted.conversationCallVoiceVolume)),
-        );
-        if (typeof persisted.conversationCallVoiceMuted !== "boolean") {
-          persisted.conversationCallVoiceMuted = false;
-        }
-        // v68 -> v69: persist message TTS line playback volume.
-        if (typeof persisted.ttsLineVolume !== "number") {
-          persisted.ttsLineVolume = 50;
-        }
-        persisted.ttsLineVolume = Math.max(0, Math.min(100, Math.round(persisted.ttsLineVolume)));
-        // v69 -> v70: remember scene prompt setup choices.
-        persisted.scenePromptPreferences = normalizeScenePromptPreferences(persisted.scenePromptPreferences);
-        persisted.trackerPanelBackgroundColor = normalizeTrackerPanelBackgroundColor(
-          persisted.trackerPanelBackgroundColor,
-        );
-        if (version <= 44) {
-          const spotifyEnabled = persisted.spotifyPlayerEnabled === true;
-          const youtubeEnabled = persisted.youtubePlayerEnabled !== false;
-          if (
-            persisted.musicPlayerSource !== "spotify" &&
-            persisted.musicPlayerSource !== "youtube" &&
-            persisted.musicPlayerSource !== "custom"
-          ) {
-            persisted.musicPlayerSource = spotifyEnabled ? "spotify" : "youtube";
-          }
-          if (persisted.musicPlayerEnabled === undefined) {
-            persisted.musicPlayerEnabled = spotifyEnabled || youtubeEnabled;
-          }
-        }
-        if (version <= 45) {
-          persisted.appAccentColor = normalizeAppAccentColor(persisted.appAccentColor);
-        }
-        if (version <= 46 && typeof persisted.youtubePlayerVolume !== "number") {
-          persisted.youtubePlayerVolume = 70;
-        }
-        if (version <= 47 && persisted.chatChromeTextColor === undefined) {
-          persisted.chatChromeTextColor = "";
-        }
-        if (version <= 48 && !Array.isArray(persisted.recentUserActivities)) {
-          persisted.recentUserActivities = [];
-        }
-        if (version <= 49 && persisted.defaultRoleplayBackground === undefined) {
-          persisted.defaultRoleplayBackground = DEFAULT_ROLEPLAY_BACKGROUND_URL;
-        }
-        if (version <= 50 && persisted.achievementsEnabled === undefined) {
-          persisted.achievementsEnabled = true;
-        }
-        if (version <= 52 && persisted.convertLatexSymbols === undefined) {
-          persisted.convertLatexSymbols = true;
-        }
-        if (version <= 57 && persisted.appAccentRgbMode === undefined) {
-          persisted.appAccentRgbMode = false;
-        }
-        if (version <= 58 && persisted.appBackgroundColor === undefined) {
-          persisted.appBackgroundColor = "";
-        }
-        if (version <= 59 && persisted.appAccentRgbMode === undefined) {
-          persisted.appAccentRgbMode = false;
-        }
-        const legacyAccentBeforeRgb = persisted.appAccentColorBeforeRgbMode;
-        if (
-          version <= 61 &&
-          persisted.appAccentRgbMode === true &&
-          persisted.appAccentColor === RAINBOW_GRADIENT_PRESET &&
-          legacyAccentBeforeRgb !== null &&
-          legacyAccentBeforeRgb !== undefined
-        ) {
-          persisted.appAccentColor = legacyAccentBeforeRgb;
-        }
-        delete persisted.appAccentColorBeforeRgbMode;
-        persisted.characterLibrarySort = normalizeCharacterLibrarySort(persisted.characterLibrarySort);
-        persisted.cardLibraryKind = persisted.cardLibraryKind === "personas" ? "personas" : "characters";
-        persisted.personaLibrarySort = normalizeBasicPanelSort(persisted.personaLibrarySort);
-        persisted.characterPanelSearch = normalizePanelText(persisted.characterPanelSearch);
-        persisted.characterPanelIncludedTags = normalizePanelStringArray(persisted.characterPanelIncludedTags);
-        persisted.characterPanelExcludedTags = normalizePanelStringArray(persisted.characterPanelExcludedTags);
-        persisted.characterPanelTagsExpanded = persisted.characterPanelTagsExpanded === true;
-        persisted.characterPanelFavoriteFilter = normalizeCharacterPanelFavoriteFilter(
-          persisted.characterPanelFavoriteFilter,
-        );
-        persisted.characterPanelScrollTop = normalizeScrollTop(persisted.characterPanelScrollTop);
-        persisted.characterLibraryScrollTop = normalizeScrollTop(persisted.characterLibraryScrollTop);
-        persisted.personaLibraryScrollTop = normalizeScrollTop(persisted.personaLibraryScrollTop);
-        persisted.lorebookPanelCategory = normalizeLorebookPanelCategory(persisted.lorebookPanelCategory);
-        persisted.lorebookPanelSearch = normalizePanelText(persisted.lorebookPanelSearch);
-        persisted.lorebookPanelSort = normalizeLorebookPanelSort(persisted.lorebookPanelSort);
-        persisted.lorebookPanelActiveTag =
-          typeof persisted.lorebookPanelActiveTag === "string" && persisted.lorebookPanelActiveTag.trim()
-            ? persisted.lorebookPanelActiveTag.trim()
-            : null;
-        persisted.lorebookPanelTagsExpanded = persisted.lorebookPanelTagsExpanded === true;
-        persisted.presetPanelSort = normalizeBasicPanelSort(persisted.presetPanelSort);
-        persisted.connectionPanelSort = normalizeConnectionPanelSort(persisted.connectionPanelSort);
-        persisted.agentPanelSort = normalizeBasicPanelSort(persisted.agentPanelSort);
-        normalizePersistedMainSurface(persisted);
-        if (Array.isArray(persisted.recentUserActivities)) {
-          persisted.recentUserActivities = persisted.recentUserActivities
-            .filter((activity: unknown): activity is string => typeof activity === "string")
-            .map((activity: string) => normalizeUserActivity(activity))
-            .filter(Boolean)
-            .slice(0, RECENT_USER_ACTIVITY_LIMIT);
-        } else {
-          persisted.recentUserActivities = [];
-        }
-        persisted.appAccentColor = normalizeAppAccentColor(persisted.appAccentColor);
-        persisted.appBackgroundColor = normalizeAppBackgroundColor(persisted.appBackgroundColor);
-        if (typeof persisted.appAccentPulseMode !== "boolean") {
-          persisted.appAccentPulseMode = persisted.appAccentRgbMode !== true && getDefaultAppAccentPulseMode();
-        }
-        if (version <= 60 && persisted.appAccentRgbMode === true) {
-          // The old scheme default was solid, even though today's default is a gradient.
-          if (!persisted.appAccentColor || !isCssGradient(persisted.appAccentColor)) {
-            persisted.appAccentPulseMode = true;
-            persisted.appAccentRgbMode = false;
-          }
-        }
-        if (version <= 66 && persisted.customCursorEnabled === undefined) {
-          persisted.customCursorEnabled = true;
-        }
-        if (version <= 70 && persisted.professorMariSuggestionsEnabled === undefined) {
-          persisted.professorMariSuggestionsEnabled = true;
-        }
-        if (version <= 74) {
-          persisted.conversationTimeZone = normalizeConversationTimeZone(persisted.conversationTimeZone);
-        }
-        if (version <= 75) {
-          delete persisted.characterPanelSearch;
-          delete persisted.characterPanelIncludedTags;
-          delete persisted.characterPanelExcludedTags;
-          delete persisted.characterPanelTagsExpanded;
-          delete persisted.characterPanelFavoriteFilter;
-          delete persisted.characterPanelScrollTop;
-        }
-        if (version <= 76 && persisted.roleplayReducedPaintEffects === undefined) {
-          persisted.roleplayReducedPaintEffects = false;
-        }
-        if (version <= 77 && persisted.gameTextEffectsEnabled === undefined) {
-          persisted.gameTextEffectsEnabled = true;
-        }
-        if (version <= 78) {
-          persisted.trackerPanelOpenByChatId = {};
-        }
-        if (
-          !persisted.trackerPanelOpenByChatId ||
-          typeof persisted.trackerPanelOpenByChatId !== "object" ||
-          Array.isArray(persisted.trackerPanelOpenByChatId)
-        ) {
-          persisted.trackerPanelOpenByChatId = {};
-        } else {
-          persisted.trackerPanelOpenByChatId = Object.fromEntries(
-            Object.entries(persisted.trackerPanelOpenByChatId).filter(
-              ([chatId, open]) => chatId.trim().length > 0 && typeof open === "boolean",
-            ),
-          );
-        }
-        if (version <= 79) {
-          if (persisted.defaultDialogueColor === undefined) {
-            persisted.defaultDialogueColor = "";
-          }
-        }
-        if (version <= 80) {
-          delete persisted.installedExtensions;
-          delete persisted.hasMigratedExtensionsToServer;
-        }
-        // v81 -> v82: the global dialogue fallback is now always active.
-        if (version <= 81) {
-          delete persisted.defaultDialogueColorEnabled;
-        }
-        if (version <= 83) {
-          if (persisted.imageGameWidth === undefined) persisted.imageGameWidth = 1280;
-          if (persisted.imageGameHeight === undefined) persisted.imageGameHeight = 720;
-        }
-        // v85 → v86: navigation mode "private" became "noodler". A user who was on a NoodleR
-        // screen at upgrade time rehydrates the old mode, which no longer matches the union —
-        // it falls through to NoodleHome and breaks the Noodle screen. Every old variant has a
-        // structurally equivalent renamed state, so translate rather than reset to the hub.
-        if (version <= 85 && persisted.noodleNavigation?.mode === "private") {
-          const nav = persisted.noodleNavigation;
-          if (nav.view === "profiles") {
-            persisted.noodleNavigation = { mode: "noodler", view: "profiles" };
-          } else if (nav.view === "profile" && typeof nav.accountId === "string") {
-            persisted.noodleNavigation = { mode: "noodler", view: "profile", accountId: nav.accountId };
-          } else if (nav.view === "create-profile" && typeof nav.publicAccountId === "string") {
-            persisted.noodleNavigation = {
-              mode: "noodler",
-              view: "create-profile",
-              noodleAccountId: nav.publicAccountId,
-            };
-          } else {
-            persisted.noodleNavigation = { mode: "noodler", view: "hub" };
-          }
         }
         // v86 -> v87: remember Echo Chamber dimensions independently for each chat.
         if (version <= 86) {

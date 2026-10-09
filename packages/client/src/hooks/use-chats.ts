@@ -25,7 +25,6 @@ import { trackChatMetadataSave, waitForPendingChatMetadataSaves } from "../lib/c
 import { isMessageHidden } from "../lib/message-visibility";
 import { copyLocalSpriteVisualSettings } from "../components/chat/local-sprite-visual-settings";
 import { lorebookKeys } from "./use-lorebooks";
-import { achievementKeys, trackAchievementEvent } from "./use-achievements";
 import { normalizeAdvancedMemorySettings } from "@marinara-engine/shared";
 import type {
   AdvancedMemoryStatus,
@@ -42,13 +41,11 @@ import type {
   MessageTrashEntry,
   DaySummaryEntry,
   WeekSummaryEntry,
-  HomeFeedSnapshot,
   ChatPersonaAttributionsSummary,
   ReassignMessagePersonaInput,
 } from "@marinara-engine/shared";
 
 import { useRollingBackfillStore } from "../stores/backfill.store";
-import { homeFeedKeys } from "./use-home-feed";
 
 export const chatKeys = {
   all: ["chats"] as const,
@@ -571,12 +568,6 @@ function upsertCachedChat(rows: Chat[] | undefined, chat: Chat): Chat[] | undefi
   return rows.map((row) => (row.id === chat.id ? chat : row));
 }
 
-function removeChatsFromHomeFeed(snapshot: HomeFeedSnapshot | undefined, ids: ReadonlySet<string>) {
-  if (!snapshot) return snapshot;
-  const recentChats = snapshot.recentChats.filter(({ chat }) => !ids.has(chat.id));
-  return recentChats.length === snapshot.recentChats.length ? snapshot : { ...snapshot, recentChats };
-}
-
 function normalizeChatMetadataValue(raw: unknown): Chat["metadata"] {
   if (!raw) return {} as Chat["metadata"];
   if (typeof raw === "string") {
@@ -720,10 +711,6 @@ export function useCreateChat() {
         qc.setQueryData<Chat[]>(chatKeys.list(), (existing) => upsertCachedChat(existing, chat));
       }
       qc.invalidateQueries({ queryKey: chatKeys.list() });
-      qc.invalidateQueries({ queryKey: homeFeedKeys.all });
-      void trackAchievementEvent("chat_created")
-        .finally(() => qc.invalidateQueries({ queryKey: achievementKeys.all }))
-        .catch(() => undefined);
     },
     onError: (error) => {
       toast.error(chatMutationErrorMessage(error, "Couldn't create the conversation. Please try again."));
@@ -746,16 +733,13 @@ export function useDeleteChat() {
         ? qc.getQueryData<Chat[]>(chatKeys.group(providedGroupId))
         : undefined;
       const cachedDetail = qc.getQueryData<Chat>(chatKeys.detail(id));
-      const cachedHomeFeed = qc.getQueryData<HomeFeedSnapshot>(homeFeedKeys.snapshot());
       const deletedChat =
         cachedList?.find((chat) => chat.id === id) ??
         cachedProvidedGroup?.find((chat) => chat.id === id) ??
         cachedDetail ??
-        cachedHomeFeed?.recentChats.find(({ chat }) => chat.id === id)?.chat ??
         null;
       const groupId = deletedChat?.groupId ?? providedGroupId;
       await qc.cancelQueries({ queryKey: chatKeys.list() });
-      await qc.cancelQueries({ queryKey: homeFeedKeys.all });
       await qc.cancelQueries({ queryKey: chatKeys.detail(id), exact: true });
       const affectedGroupIds = Array.from(
         new Set([providedGroupId, groupId].filter((value): value is string => Boolean(value))),
@@ -764,21 +748,19 @@ export function useDeleteChat() {
         await qc.cancelQueries({ queryKey: chatKeys.group(affectedGroupId) });
       }
       const previous = qc.getQueryData<Chat[]>(chatKeys.list());
-      const previousHomeFeed = qc.getQueryData<HomeFeedSnapshot>(homeFeedKeys.snapshot());
       const previousGroups = affectedGroupIds.map((affectedGroupId) => ({
         groupId: affectedGroupId,
         chats: qc.getQueryData<Chat[]>(chatKeys.group(affectedGroupId)),
       }));
 
       qc.setQueryData<Chat[]>(chatKeys.list(), (old) => old?.filter((c) => c.id !== id));
-      qc.setQueryData<HomeFeedSnapshot>(homeFeedKeys.snapshot(), (old) => removeChatsFromHomeFeed(old, new Set([id])));
       qc.removeQueries({ queryKey: chatKeys.detail(id), exact: true });
 
       for (const affectedGroupId of affectedGroupIds) {
         qc.setQueryData<Chat[]>(chatKeys.group(affectedGroupId), (old) => old?.filter((c) => c.id !== id));
       }
 
-      return { previous, previousDetail: cachedDetail, previousHomeFeed, previousGroups, affectedGroupIds };
+      return { previous, previousDetail: cachedDetail, previousGroups, affectedGroupIds };
     },
     onError: (_err, input, context) => {
       const id = getDeleteChatId(input);
@@ -790,7 +772,6 @@ export function useDeleteChat() {
       if (context?.previousDetail !== undefined) {
         qc.setQueryData(chatKeys.detail(id), context.previousDetail);
       }
-      if (context?.previousHomeFeed) qc.setQueryData(homeFeedKeys.snapshot(), context.previousHomeFeed);
       for (const previousGroup of context?.previousGroups ?? []) {
         if (previousGroup.chats !== undefined) {
           qc.setQueryData(chatKeys.group(previousGroup.groupId), previousGroup.chats);
@@ -805,7 +786,6 @@ export function useDeleteChat() {
       const affectedGroupIds =
         context?.affectedGroupIds ?? [getDeleteChatGroupId(input)].filter((value): value is string => Boolean(value));
       qc.invalidateQueries({ queryKey: chatKeys.list() });
-      qc.invalidateQueries({ queryKey: homeFeedKeys.all });
       if (!error) {
         qc.removeQueries({ queryKey: chatKeys.detail(id), exact: true });
       }
@@ -827,27 +807,17 @@ export function useDeleteChatGroup() {
     onMutate: async (input) => {
       const groupId = typeof input === "string" ? input : input.groupId;
       await qc.cancelQueries({ queryKey: chatKeys.list() });
-      await qc.cancelQueries({ queryKey: homeFeedKeys.all });
       await qc.cancelQueries({ queryKey: chatKeys.group(groupId) });
       const previous = qc.getQueryData<Chat[]>(chatKeys.list());
       const previousGroup = qc.getQueryData<Chat[]>(chatKeys.group(groupId));
-      const previousHomeFeed = qc.getQueryData<HomeFeedSnapshot>(homeFeedKeys.snapshot());
-      const removedIds = new Set([
-        ...(previous?.filter((chat) => chat.groupId === groupId).map((chat) => chat.id) ?? []),
-        ...(previousGroup?.map((chat) => chat.id) ?? []),
-        ...(previousHomeFeed?.recentChats.filter(({ chat }) => chat.groupId === groupId).map(({ chat }) => chat.id) ??
-          []),
-      ]);
 
       qc.setQueryData<Chat[]>(chatKeys.list(), (old) => old?.filter((c) => c.groupId !== groupId));
       qc.setQueryData<Chat[]>(chatKeys.group(groupId), []);
-      qc.setQueryData<HomeFeedSnapshot>(homeFeedKeys.snapshot(), (old) => removeChatsFromHomeFeed(old, removedIds));
 
-      return { previous, previousGroup, previousHomeFeed, groupId };
+      return { previous, previousGroup, groupId };
     },
     onError: (_err, _input, context) => {
       if (context?.previous) qc.setQueryData(chatKeys.list(), context.previous);
-      if (context?.previousHomeFeed) qc.setQueryData(homeFeedKeys.snapshot(), context.previousHomeFeed);
       if (context?.groupId && context.previousGroup) {
         qc.setQueryData(chatKeys.group(context.groupId), context.previousGroup);
       } else if (context?.groupId) {
@@ -856,7 +826,6 @@ export function useDeleteChatGroup() {
     },
     onSettled: (_data, _err, _input, context) => {
       qc.invalidateQueries({ queryKey: chatKeys.list() });
-      qc.invalidateQueries({ queryKey: homeFeedKeys.all });
       if (context?.groupId) {
         qc.invalidateQueries({ queryKey: chatKeys.group(context.groupId) });
       }

@@ -13,7 +13,6 @@ import type {
   SetLorebooksEnabledResult,
 } from "@marinara-engine/shared";
 import { characterKeys } from "./use-characters";
-import { achievementKeys, trackAchievementEvent } from "./use-achievements";
 import {
   collectAllPaginatedItems,
   flattenPaginatedItems,
@@ -161,9 +160,6 @@ export function useCreateLorebook() {
     mutationFn: (data: Record<string, unknown>) => api.post<Lorebook>("/lorebooks", data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: lorebookKeys.all });
-      void trackAchievementEvent("library_changed")
-        .finally(() => qc.invalidateQueries({ queryKey: achievementKeys.all }))
-        .catch(() => undefined);
     },
   });
 }

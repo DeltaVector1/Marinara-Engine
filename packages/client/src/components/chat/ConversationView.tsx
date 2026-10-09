@@ -18,7 +18,6 @@ import { useTranslation, useTranslation as useUiTranslation } from "react-i18nex
 import { Loader2, ChevronUp, Puzzle } from "lucide-react";
 import { ConversationMessage } from "./ConversationMessage";
 import { ConversationInput } from "./ConversationInput";
-import { ConversationGamesPicker } from "./ConversationGamesPicker";
 import { SceneBanner, EndSceneBar } from "./SceneBanner";
 import { CHAT_TOOLBAR_OVERFLOW_BUTTON_SIZE_CLASS, getChatToolbarButtonClass } from "./ChatToolbarControls";
 import { CHAT_CONTROL_WINDOW_IDS, ChatControlWindow } from "./ChatControlWindow";
@@ -28,7 +27,6 @@ import { TranscriptWindowControls } from "./TranscriptWindowControls";
 import { PinnedImageOverlay } from "./PinnedImageOverlay";
 import { useChatStore } from "../../stores/chat.store";
 import { hasActiveTextSelection } from "../../lib/text-selection";
-import { useConversationGamesStore } from "../../stores/conversation-games.store";
 import { useUIStore } from "../../stores/ui.store";
 import { playConfiguredNotificationPing } from "../../lib/notification-sound";
 import { rememberBoundedSetValue } from "../../lib/bounded-set";
@@ -54,8 +52,6 @@ import {
 } from "@marinara-engine/shared";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { CapabilityElement } from "../capabilities/CapabilityElement";
-import { TURN_GAME_BOT_REQUEST_EVENT } from "../../lib/capability-turn-game-events";
-import { useGenerate } from "../../hooks/use-generate";
 import { useChatOpeningScroll } from "../../hooks/use-chat-opening-scroll";
 import {
   useChatComposerFocused,
@@ -404,25 +400,6 @@ export function ConversationView({
   useRenderTimer("convo-messages"); // [#3104 diagnostic]
   const streamingChatId = useChatStore((s) => s.streamingChatId);
   const isStreaming = useChatStore((s) => s.isStreaming) && streamingChatId === chatId;
-  const { generate: generateTurnGameBots } = useGenerate();
-  useEffect(() => {
-    const handleBotRequest = (event: Event) => {
-      const requestedChatId = (event as CustomEvent<{ chatId?: string }>).detail?.chatId;
-      if (requestedChatId !== chatId) return;
-      const activeChat = useChatStore.getState().activeChat;
-      generateTurnGameBots({
-        chatId,
-        connectionId: activeChat?.id === chatId ? (activeChat.connectionId ?? null) : null,
-        turnGameBots: true,
-      });
-    };
-    window.addEventListener(TURN_GAME_BOT_REQUEST_EVENT, handleBotRequest);
-    return () => window.removeEventListener(TURN_GAME_BOT_REQUEST_EVENT, handleBotRequest);
-  }, [chatId, generateTurnGameBots]);
-  const gamesPickerOpen = useConversationGamesStore((s) => s.pickerChatId === chatId);
-  const closeGamesPicker = useConversationGamesStore((s) => s.closePicker);
-  const gameSetup = useConversationGamesStore((s) => (s.setup?.chatId === chatId ? s.setup : null));
-  const closeGameSetup = useConversationGamesStore((s) => s.closeSetup);
   const { data: installedCapabilities = [] } = useInstalledCapabilityPackages();
   const turnGamePackages = installedCapabilities.filter(
     (item) => item.status === "active" && item.manifest.kind.includes("turn-game") && item.manifest.entrypoints.client,
@@ -1437,7 +1414,6 @@ export function ConversationView({
                 visibleSegmentCount={visibleSegmentCount}
                 bubbleGroupPosition={item.bubbleGroupPosition}
                 originalContent={originalContent}
-                translationDisplayOnly={chatMeta.translationDisplayOnly === true}
               />
               {regenerationDraftMessage && (
                 <ConversationMessage
@@ -1464,7 +1440,6 @@ export function ConversationView({
                   contentParts={liveStreamContentParts}
                   visiblePartCount={liveStreamContentParts?.length}
                   bubbleGroupPosition="single"
-                  translationDisplayOnly={chatMeta.translationDisplayOnly === true}
                 />
               )}
             </Fragment>
@@ -1496,7 +1471,6 @@ export function ConversationView({
             contentParts={liveStreamContentParts}
             visiblePartCount={liveStreamContentParts?.length}
             bubbleGroupPosition="single"
-            translationDisplayOnly={chatMeta.translationDisplayOnly === true}
           />
         )}
 
@@ -1599,23 +1573,6 @@ export function ConversationView({
           Keyed by chatId so their internal selection state resets on a chat switch
           (matches ConversationInput below) — otherwise stale selected ids would
           inflate botCount and could deal an empty botCharacterIds list. */}
-      {/* Keys must be unique across this whole children list — ConversationInput
-          below is also keyed by chatId, and duplicate sibling keys make React
-          duplicate/orphan the setup modals (stuck un-closable "Start UNO"). */}
-      <ConversationGamesPicker
-        key={`games-${chatId}`}
-        chatId={chatId}
-        open={gamesPickerOpen}
-        onClose={closeGamesPicker}
-      />
-      {gameSetup && turnGamePackages.some((game) => game.id === gameSetup.packageId) && (
-        <CapabilityElement
-          key={`${gameSetup.packageId}-setup-${chatId}`}
-          packageId={gameSetup.packageId}
-          view="setup"
-          capabilityProps={{ chatId, open: true, onClose: closeGameSetup }}
-        />
-      )}
 
       {/* ── Input area ── */}
       <ConversationInput

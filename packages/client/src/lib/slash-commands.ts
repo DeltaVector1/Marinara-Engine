@@ -4,7 +4,6 @@
 import { api } from "./api-client";
 import { useChatStore } from "../stores/chat.store";
 import { useUIStore } from "../stores/ui.store";
-import { useConversationGamesStore } from "../stores/conversation-games.store";
 import { useGalleryStore } from "../stores/gallery.store";
 import { toast } from "sonner";
 import { startSceneWithPromptPreferences } from "./scene-generation";
@@ -88,21 +87,11 @@ export interface SlashCommandContext {
   selfie?: (characterId?: string) => void | Promise<void>;
   /** Active downloadable capability packages available to this composer. */
   availableCapabilityIds?: ReadonlySet<string>;
-  /** Installed Conversation games that contribute manual slash launchers. */
-  conversationGames?: readonly ConversationGameSlashContribution[];
-}
-
-export interface ConversationGameSlashContribution {
-  packageId: string;
-  packageName: string;
-  command: string;
-  aliases: readonly string[];
 }
 
 export interface SlashCommandAvailability {
   mode?: "conversation" | "roleplay";
   availableCapabilityIds?: ReadonlySet<string>;
-  conversationGames?: readonly ConversationGameSlashContribution[];
 }
 
 function isSlashCommandAvailable(command: SlashCommand, availability: SlashCommandAvailability = {}): boolean {
@@ -646,7 +635,6 @@ const COMMANDS: SlashCommand[] = [
         feedback: await buildSlashHelpText({
           mode: ctx.mode,
           availableCapabilityIds: ctx.availableCapabilityIds,
-          conversationGames: ctx.conversationGames,
         }),
       };
     },
@@ -670,28 +658,6 @@ const COMMANDS: SlashCommand[] = [
         content: text,
         extra: { diceRollResult: { notation, rolls, modifier: parsed.modifier, total: sum } },
       });
-      return { handled: true };
-    },
-  },
-  {
-    name: "games",
-    aliases: ["game", "play"],
-    description: "Choose a conversation game to start",
-    usage: "/games",
-    local: true,
-    async execute(args, ctx) {
-      if (ctx.mode === "roleplay") {
-        return { handled: true, feedback: "Conversation games can only be played in conversation chats." };
-      }
-
-      if (args.trim()) {
-        return {
-          handled: true,
-          feedback: "Use an installed game's own slash command, or /games to choose one.",
-        };
-      }
-
-      useConversationGamesStore.getState().openPicker(ctx.chatId);
       return { handled: true };
     },
   },
@@ -1465,44 +1431,8 @@ const COMMANDS: SlashCommand[] = [
   },
 ];
 
-function buildConversationGameSlashCommands(games: readonly ConversationGameSlashContribution[] = []): SlashCommand[] {
-  const reserved = new Set(
-    COMMANDS.flatMap((command) => [command.name, ...(command.aliases ?? [])]).map((name) => name.toLowerCase()),
-  );
-  const commands: SlashCommand[] = [];
-  for (const game of games) {
-    const name = game.command.startsWith("/") ? game.command.slice(1).toLowerCase() : "";
-    if (!/^[a-z0-9-]+$/u.test(name) || reserved.has(name)) continue;
-    reserved.add(name);
-    const aliases = game.aliases
-      .map((alias) => alias.trim().toLowerCase())
-      .filter((alias) => {
-        if (!/^[a-z0-9-]+$/u.test(alias) || reserved.has(alias)) return false;
-        reserved.add(alias);
-        return true;
-      });
-    commands.push({
-      name,
-      aliases,
-      description: `Start ${game.packageName}`,
-      usage: game.command,
-      requiredCapabilityId: game.packageId,
-      modes: ["conversation"],
-      local: true,
-      async execute(args, ctx) {
-        if (args.trim()) return { handled: true, feedback: `Usage: ${game.command}` };
-        useConversationGamesStore.getState().openSetup(game.packageId, ctx.chatId);
-        return { handled: true };
-      },
-    });
-  }
-  return commands;
-}
-
 function getAvailableSlashCommands(availability: SlashCommandAvailability = {}): SlashCommand[] {
-  return [...COMMANDS, ...buildConversationGameSlashCommands(availability.conversationGames)].filter((command) =>
-    isSlashCommandAvailable(command, availability),
-  );
+  return COMMANDS.filter((command) => isSlashCommandAvailable(command, availability));
 }
 
 /** Find a matching command for the given input. */

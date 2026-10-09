@@ -96,7 +96,6 @@ import { ImpersonateSection } from "../../features/chat-settings/sections/Impers
 import { LorebooksSection } from "../../features/chat-settings/sections/LorebooksSection";
 import { PromptPresetSection } from "../../features/chat-settings/sections/PromptPresetSection";
 import { SceneInstructionsSection } from "../../features/chat-settings/sections/SceneInstructionsSection";
-import { TranslationSection } from "../../features/chat-settings/sections/TranslationSection";
 import { CapabilityElement } from "../capabilities/CapabilityElement";
 import type { AvatarCrop } from "@marinara-engine/shared";
 import {
@@ -130,7 +129,6 @@ import {
 } from "./AgentSettingsControls";
 import { ExpressionSpriteSettings } from "./ExpressionSpriteSettings";
 import { AgentPromptTemplateSelect } from "./AgentPromptTemplateSelect";
-import { HapticConnectionPanel } from "./HapticConnectionPanel";
 import { HAPTIC_SENSITIVITY_OPTIONS } from "./haptic-sensitivity-options";
 import { ChatModeIcon } from "./ChatModeIcon";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
@@ -217,7 +215,6 @@ import { addSilentGreetingSwipes } from "../../lib/message-swipes";
 import { useUIStore } from "../../stores/ui.store";
 import { abortGenerationForChat, useChatStore } from "../../stores/chat.store";
 import { blurActiveChatFloatingUiControl } from "../../lib/chat-floating-ui-events";
-import { requestChatHelp } from "../../lib/chat-help-events";
 import { CHAT_SETTINGS_WINDOW_ID, useFloatingWindowStore } from "../../stores/floating-window.store";
 import { getChatSettingsWindowProps, useTrackerPanelClearance } from "./chat-settings-window";
 import { useMatchMedia } from "../../hooks/use-match-media";
@@ -890,7 +887,6 @@ export function ChatSettingsDrawer({
   open: windowOpen,
   onClose,
   anchor,
-  showHelpLayout = false,
   initialSection,
   chatTools,
   spriteArrangeMode = false,
@@ -918,7 +914,6 @@ export function ChatSettingsDrawer({
   const drawerClosingRef = useRef(false);
   const updateChat = useUpdateChat();
   const updateMeta = useUpdateChatMetadata();
-  const updateTranslationMeta = useUpdateChatMetadata({ serialize: true });
   // Generation waits for queued saves, so the next reply uses the narration mode shown here (#6959).
   const updateGroupChatModeMeta = useUpdateChatMetadata({ serialize: true });
   const updateMetaMutateAsyncRef = useRef(updateMeta.mutateAsync);
@@ -967,7 +962,6 @@ export function ChatSettingsDrawer({
   const callsSettingsOpen = useUIStore((s) => s.chatSettingsExpandedSections[callsSettingsMenuId] ?? false);
   const setChatSettingsSectionExpanded = useUIStore((s) => s.setChatSettingsSectionExpanded);
   const showContextUsage = useUIStore((s) => s.showContextUsage);
-  const chatHelpButtonHidden = useUIStore((s) => s.chatHelpButtonHidden ?? false);
   const trackerPanelEnabled = useUIStore((s) => s.trackerPanelEnabled);
   const trackerPanelOpen = useUIStore((s) => s.trackerPanelOpen);
   const trackerPanelSide = useUIStore((s) => s.trackerPanelSide);
@@ -4817,10 +4811,6 @@ export function ChatSettingsDrawer({
                 }
               />
             </div>
-            <HapticConnectionPanel
-              intifaceUrl={typeof metadata.hapticIntifaceUrl === "string" ? metadata.hapticIntifaceUrl : undefined}
-              onIntifaceUrlChange={(hapticIntifaceUrl) => updateMeta.mutate({ id: chat.id, hapticIntifaceUrl })}
-            />
           </>
         )}
       </AgentSettingsCard>
@@ -4830,22 +4820,6 @@ export function ChatSettingsDrawer({
   if (!open) return null;
   // Only the loaded settings add the Chat Settings classes below; themes and select styling target them.
   const windowProps = getChatSettingsWindowProps(anchor);
-  const helpLayoutButton =
-    showHelpLayout && !chatHelpButtonHidden ? (
-      <span data-chat-help="help" className="inline-flex">
-        <HelpTooltip
-          text={localizeUi("chat.settings.helpLayoutHint")}
-          ariaLabel={localizeUi("chat.help.button")}
-          side="bottom"
-          buttonClassName="h-6 w-6 justify-center max-md:h-9 max-md:w-9"
-          onActivate={() => {
-            // A phone's sheet covers the chat, so it closes first and Help labels what is under it.
-            if (!phoneLayout) requestChatHelp(chatMode);
-            else void requestClose().then((closed) => closed && requestChatHelp(chatMode));
-          }}
-        />
-      </span>
-    ) : null;
 
   const resetViewLabel = localizeUi("chat.settings.resetView");
   const trackerPanelLabel = localizeUi("ui.panels.trackerpanelappearancedrawer.trackerPanel");
@@ -4900,7 +4874,6 @@ export function ChatSettingsDrawer({
         presentation={phoneLayout ? "sheet" : "window"}
         title={localizeUi("chat.toolbar.settings")}
         titleIcon={<Settings2 size="0.8125rem" className="shrink-0 text-[var(--muted-foreground)]" />}
-        titleAccessory={helpLayoutButton}
         headerControls={headerControls}
         closeLabel={localizeUi("ui.chat.chatsettingsdrawer.closeChatSettings")}
         {...windowProps}
@@ -9703,15 +9676,6 @@ export function ChatSettingsDrawer({
               {renderMemoryRecallControls(metadata.sceneStatus === "active")}
             </Section>
           )}
-
-          <div style={{ order: CHAT_SETTINGS_ORDER.translation }}>
-            <TranslationSection
-              chatId={chat.id}
-              metadata={metadata}
-              textConnections={textConnectionsList}
-              onMetadataChange={(patch) => updateTranslationMeta.mutate({ id: chat.id, ...patch })}
-            />
-          </div>
 
           {/* Advanced Parameters */}
           <div style={{ order: CHAT_SETTINGS_ORDER.advancedParameters }}>

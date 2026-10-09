@@ -21,7 +21,6 @@ import { useUIStore, type ConversationMessageStyle } from "../../stores/ui.store
 import { cn, copyToClipboard, getAvatarCropStyle } from "../../lib/utils";
 import { normalizeAvatarCrop } from "@marinara-engine/shared";
 import { resolveMessageMacros } from "../../lib/chat-macros";
-import { useTranslate } from "../../hooks/use-translate";
 import { useApplyRegex } from "../../hooks/use-apply-regex";
 import { api } from "../../lib/api-client";
 import { chatKeys } from "../../hooks/use-chats";
@@ -119,7 +118,6 @@ interface ConversationMessageProps {
   isSelected?: boolean;
   onToggleSelect?: (toggle: MessageSelectionToggle) => void;
   hasDraftInput?: boolean;
-  translationDisplayOnly?: boolean;
 }
 
 // ── Shell component ──────────────────────────────────────────────
@@ -161,7 +159,6 @@ export const ConversationMessage = memo(function ConversationMessage({
   isSelected,
   onToggleSelect,
   hasDraftInput = false,
-  translationDisplayOnly = false,
 }: ConversationMessageProps) {
   const { t: localizeUi } = useUiTranslation();
   // ── Local state ──
@@ -190,12 +187,6 @@ export const ConversationMessage = memo(function ConversationMessage({
   const presetVariables = useMessagePresetVariables(`${message.id}:${message.activeSwipeIndex ?? 0}`);
   const scopedRegexMode = useMemo(() => parseChatMetadata(activeChatMetadata).scopedRegexMode, [activeChatMetadata]);
   const { applyToAIOutput } = useApplyRegex();
-
-  // ── Translation ──
-  const { translate, translations, translationSources, translating } = useTranslate();
-  const translatedText = translations[message.id];
-  const translationSource = translationSources[message.id];
-  const isTranslating = !!translating[message.id];
 
   // ── Derived flags ──
   const isUser = message.role === "user";
@@ -436,13 +427,8 @@ export const ConversationMessage = memo(function ConversationMessage({
     scopedRegexMode,
     visiblePartCount,
   ]);
-  const showTranslationOnly =
-    translationDisplayOnly &&
-    !!translatedText &&
-    !isTranslating &&
-    (translationSource === renderedContent || translationSource === message.content);
-  const displayedContent = showTranslationOnly ? translatedText : renderedContent;
-  const displayedContentParts = showTranslationOnly ? null : renderedContentParts;
+  const displayedContent = renderedContent;
+  const displayedContentParts = renderedContentParts;
 
   // ── Attachment removal ──
   const qc = useQueryClient();
@@ -614,7 +600,6 @@ export const ConversationMessage = memo(function ConversationMessage({
   // ── Staggered reveal for multi-speaker segments ──
   const segmentCount = groupedSegments?.length ?? 0;
   const prevContentRef = useRef(displayedContent);
-  const prevTranslationOnlyRef = useRef(showTranslationOnly);
   const initialRenderRef = useRef(true);
   const [internalVisibleSegments, setInternalVisibleSegments] = useState(segmentCount);
 
@@ -623,13 +608,6 @@ export const ConversationMessage = memo(function ConversationMessage({
       initialRenderRef.current = false;
       setInternalVisibleSegments(segmentCount);
       prevContentRef.current = displayedContent;
-      prevTranslationOnlyRef.current = showTranslationOnly;
-      return;
-    }
-    if (prevTranslationOnlyRef.current !== showTranslationOnly) {
-      prevTranslationOnlyRef.current = showTranslationOnly;
-      prevContentRef.current = displayedContent;
-      setInternalVisibleSegments(segmentCount);
       return;
     }
     if (displayedContent !== prevContentRef.current && segmentCount > 1) {
@@ -646,8 +624,7 @@ export const ConversationMessage = memo(function ConversationMessage({
     }
     setInternalVisibleSegments(segmentCount);
     prevContentRef.current = displayedContent;
-    prevTranslationOnlyRef.current = showTranslationOnly;
-  }, [displayedContent, segmentCount, showTranslationOnly]);
+  }, [displayedContent, segmentCount]);
   const visibleSegments =
     segmentCount > 0 ? Math.max(1, Math.min(visibleSegmentCount ?? internalVisibleSegments, segmentCount)) : 0;
 
@@ -744,11 +721,6 @@ export const ConversationMessage = memo(function ConversationMessage({
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }, [displayedContent]);
-
-  const handleTranslate = useCallback(
-    () => translate(message.id, renderedContent, message.chatId, [message.content]),
-    [message.content, message.id, message.chatId, renderedContent, translate],
-  );
 
   // ── Mobile tap (show actions / multi-select) ──
   const handleMobileTap = useCallback(
@@ -914,9 +886,6 @@ export const ConversationMessage = memo(function ConversationMessage({
     generationReplay,
     canRegenerate,
     isLastAssistantMessage,
-    translatedText,
-    isTranslating,
-    showTranslationOnly,
     hasSwipes: (message.swipeCount ?? 0) > 1,
     swipeCount: message.swipeCount ?? 0,
     multiSelectMode,
@@ -933,7 +902,6 @@ export const ConversationMessage = memo(function ConversationMessage({
         : undefined,
     handleMobileTap,
     onCopy: handleCopy,
-    onTranslate: handleTranslate,
     onStartEdit: handleStartEdit,
     onImageOpen: (url, prompt) => setImageLightbox({ url, prompt }),
     onRemoveAttachment: handleRemoveAttachment,
@@ -1175,7 +1143,6 @@ export const ConversationMessage = memo(function ConversationMessage({
               forceShowActions={hideActions && hasReasoning ? true : forceShowActions}
               thinkingOnly={hideActions && hasReasoning}
               copied={copied}
-              translatedText={translatedText}
               isHiddenFromAI={isHiddenFromAI}
               canRegenerate={canRegenerate}
               isLastAssistantMessage={isLastAssistantMessage}
@@ -1187,7 +1154,6 @@ export const ConversationMessage = memo(function ConversationMessage({
               regenerateButtonTitle={regenerateButtonTitle}
               regenerateGuidedClass={regenerateGuidedClass}
               onCopy={handleCopy}
-              onTranslate={handleTranslate}
               onEdit={handleStartEdit}
               onRegenerate={onRegenerate ? () => onRegenerate(message.id) : undefined}
               onBranch={onBranch ? () => onBranch(message.id) : undefined}

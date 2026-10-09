@@ -37,7 +37,6 @@ import { getCurrentInputSnapshot, useChatStore } from "../../stores/chat.store";
 import { hasActiveTextSelection } from "../../lib/text-selection";
 import { useChatWindowLayout } from "../../hooks/use-chat-window-layout";
 import { ChatSettingsBubble } from "./ChatSettingsBubble";
-import { ChatWindowWelcomeModal } from "../modals/ChatWindowWelcomeModal";
 import { useGenerate } from "../../hooks/use-generate";
 import { useGenerateGallerySelfie } from "../../hooks/use-gallery";
 import { characterKeys, spriteKeys, usePersona, useUpdateCharacter, type SpriteInfo } from "../../hooks/use-characters";
@@ -80,8 +79,7 @@ import { useAgentStore, EMPTY_AGENT_TYPES } from "../../stores/agent.store";
 import { isBuiltInTrackerAgentType, resolveTrackerRerunTypes } from "../../lib/tracker-agents";
 import { Modal } from "../ui/Modal";
 import { useScene } from "../../hooks/use-scene";
-import { useTranslationStore } from "../../stores/translation.store";
-import { getChatTranslationConfig, type ChatMode } from "@marinara-engine/shared";
+import { type ChatMode } from "@marinara-engine/shared";
 import { ttsService } from "../../lib/tts-service";
 import { useTTSConfig } from "../../hooks/use-tts";
 import {
@@ -136,8 +134,6 @@ import type {
   MessageWithSwipes,
   PeekPromptData,
 } from "./chat-area.types";
-import { HomeCreditsModal } from "./HomeCreditsModal";
-import { HomeBrowserHub } from "./HomeBrowserHub";
 import { NewChatConnectionGate } from "./NewChatConnectionGate";
 import { preloadChatSettingsDrawer, type ChatSettingsInitialSection } from "./ChatCommonOverlays";
 import { ADVANCED_MEMORY_SETTINGS_EVENT } from "../../hooks/use-advanced-memory";
@@ -150,9 +146,8 @@ import {
 } from "../ui/ImagePromptReviewModal";
 import { useTranslation as useUiTranslation } from "react-i18next";
 import { ChatResourceDropOverlay } from "./ChatResourceDropOverlay";
-import { ChatHelpOverlay } from "./ChatHelpOverlay";
+import { HomeView } from "./HomeView";
 import { CHAT_SETTINGS_WINDOW_ID, useFloatingWindowStore } from "../../stores/floating-window.store";
-import { readChatHelpMode } from "../../lib/chat-help-events";
 
 export type { CharacterMap };
 
@@ -525,15 +520,7 @@ function ChatOpeningState({
   );
 }
 
-interface ChatWindowIntroProps {
-  chatWindowIntroAllowed?: boolean;
-  onChatWindowIntroOpenChange?: (open: boolean) => void;
-}
-
-export const ChatArea = memo(function ChatArea({
-  chatWindowIntroAllowed,
-  onChatWindowIntroOpenChange,
-}: ChatWindowIntroProps) {
+export const ChatArea = memo(function ChatArea() {
   const activeChatId = useChatStore((state) => state.activeChatId);
   const { data: chat, error, refetch } = useChat(activeChatId);
   const hostsChatSettings = Boolean(activeChatId);
@@ -558,10 +545,7 @@ export const ChatArea = memo(function ChatArea({
     chat && chatSettingsHosted ? <ChatSettingsBubble chatId={chat.id} mode={readChatMode(chat)} /> : null;
   return (
     <>
-      <LocalChatArea
-        chatWindowIntroAllowed={chatWindowIntroAllowed}
-        onChatWindowIntroOpenChange={onChatWindowIntroOpenChange}
-      />
+      <LocalChatArea />
       <SelectionLorebookButton />
       {chatSettingsButton}
     </>
@@ -576,10 +560,7 @@ function readChatMode(chat: { mode?: unknown }): ChatMode {
   return chat.mode === "conversation" || chat.mode === "game" ? chat.mode : "roleplay";
 }
 
-const LocalChatArea = memo(function LocalChatArea({
-  chatWindowIntroAllowed = false,
-  onChatWindowIntroOpenChange,
-}: ChatWindowIntroProps) {
+const LocalChatArea = memo(function LocalChatArea() {
   const { t: localizeUi } = useUiTranslation();
   useRenderTimer("chat-area"); // [#3104 diagnostic]
   const activeChatId = useChatStore((s) => s.activeChatId);
@@ -593,7 +574,6 @@ const LocalChatArea = memo(function LocalChatArea({
   const isPageActive = usePageActivity();
   const regenerateMessageId = useChatStore((s) => s.regenerateMessageId);
   const chatBackground = useUIStore((s) => s.chatBackground);
-  const chatWindowIntroDismissed = useUIStore((s) => s.chatWindowIntroDismissed);
   const messagesPerPage = useUIStore((s) => s.messagesPerPage);
   const centerCompact = useUIStore((s) => s.centerCompact);
   const guideGenerations = useUIStore((s) => s.guideGenerations);
@@ -623,14 +603,7 @@ const LocalChatArea = memo(function LocalChatArea({
   const [agentInjectionDrafts, setAgentInjectionDrafts] = useState<Record<string, string>>({});
   const [illustratorPromptReview, setIllustratorPromptReview] = useState<IllustratorPromptReviewRequest | null>(null);
   const [illustratorPromptReviewSubmitting, setIllustratorPromptReviewSubmitting] = useState(false);
-  const [creditsOpen, setCreditsOpen] = useState(false);
-  const [homeProfessorChatOpen, setHomeProfessorChatOpen] = useState(false);
-  const [homeProfessorChatActive, setHomeProfessorChatActive] = useState(false);
-  const homeProfessorChatOpenRef = useRef(false);
   const queryClient = useQueryClient();
-  useEffect(() => {
-    homeProfessorChatOpenRef.current = homeProfessorChatOpen;
-  }, [homeProfessorChatOpen]);
   // #5889: when Safari's autoplay policy blocks playback, the service parks in
   // "blocked" and waits for a user gesture instead of retrying - tell the user
   // the one tap that resumes it. Deduped by toast id across repeat blocks.
@@ -647,14 +620,6 @@ const LocalChatArea = memo(function LocalChatArea({
       lastTtsState = state;
     });
   }, [localizeUi]);
-  const handleHomeProfessorChatOpenChange = useCallback((open: boolean) => {
-    homeProfessorChatOpenRef.current = open;
-    if (open) setHomeProfessorChatActive(true);
-    setHomeProfessorChatOpen(open);
-  }, []);
-  const handleHomeProfessorChatExitComplete = useCallback(() => {
-    if (!homeProfessorChatOpenRef.current) setHomeProfessorChatActive(false);
-  }, []);
   // Delete dialog & multi-select state
   const [deleteDialogMessageId, setDeleteDialogMessageId] = useState<string | null>(null);
   const [multiSelectMode, setMultiSelectMode] = useState(false);
@@ -700,12 +665,6 @@ const LocalChatArea = memo(function LocalChatArea({
     setSettingsAnchor(null);
     setSettingsInitialSection(null);
   }, [settingsOpen]);
-  useEffect(() => {
-    if (!activeChatId) return;
-    homeProfessorChatOpenRef.current = false;
-    setHomeProfessorChatOpen(false);
-    setHomeProfessorChatActive(false);
-  }, [activeChatId]);
   const closeFloatingChatDrawers = useCallback(
     (event?: Event) => {
       const preservedPanel = event ? readAnnouncedChatToolbarPanelAction(event) : null;
@@ -1574,32 +1533,6 @@ const LocalChatArea = memo(function LocalChatArea({
       chatMode={cardCssChatMode}
     />
   );
-
-  // Sync translation config from chat metadata to the translation store
-  useEffect(() => {
-    if (!chat?.id) return;
-    useTranslationStore.getState().setConfig(getChatTranslationConfig(chat.id, chatMeta));
-  }, [chat?.id, chatMeta]);
-
-  // On chat switch, clear in-memory translations and seed from persisted extras.
-  // Also re-seed when message extras arrive after a chat switch or pagination.
-  // This view remounts while an uncached chat loads, so start from the chat the store last held.
-  const prevChatIdRef = useRef(useTranslationStore.getState().config.chatId);
-  useEffect(() => {
-    if (!messages) return;
-    // Clear on actual chat switch
-    if (prevChatIdRef.current !== chat?.id) {
-      useTranslationStore.getState().clearAll();
-      prevChatIdRef.current = chat?.id;
-    }
-    useTranslationStore.getState().seedFromMessages(
-      messages as unknown as Array<{
-        id: string;
-        content?: string;
-        extra?: string | Record<string, unknown> | null;
-      }>,
-    );
-  }, [chat?.id, messages]);
 
   // Sync chat background from metadata when switching chats. Set the UI store
   // to whatever the chat's metadata says — including null. The previous version
@@ -3033,15 +2966,7 @@ const LocalChatArea = memo(function LocalChatArea({
   if (!activeChatId) {
     return (
       <>
-        <HomeCreditsModal open={creditsOpen} onClose={() => setCreditsOpen(false)} />
-        <HomeBrowserHub
-          pageActive={isPageActive}
-          professorChatActive={homeProfessorChatActive}
-          professorChatOpen={homeProfessorChatOpen}
-          onProfessorChatOpenChange={handleHomeProfessorChatOpenChange}
-          onProfessorChatExitComplete={handleHomeProfessorChatExitComplete}
-          onOpenCredits={() => setCreditsOpen(true)}
-        />
+        <HomeView />
         {pendingNewChatMode && (
           <NewChatConnectionGate
             mode={pendingNewChatMode}
@@ -3120,43 +3045,6 @@ const LocalChatArea = memo(function LocalChatArea({
     </Suspense>
   ) : null;
   const resourceDropOverlay = chat ? <ChatResourceDropOverlay chat={chat} /> : null;
-  const chatWindowIntro = (
-    <ChatWindowWelcomeModal
-      presentationAllowed={
-        chatWindowIntroAllowed &&
-        chat?.id === activeChatId &&
-        !isLoading &&
-        !wizardOpen &&
-        !shouldOpenWizard &&
-        !pendingNewChatMode &&
-        !peekPromptData &&
-        !deleteDialogMessageId &&
-        !scheduleModalCharacterId &&
-        !agentInjectionReview &&
-        !illustratorPromptReview &&
-        conversationSelfieReviewItems.length === 0 &&
-        roleplayVideoReviewItems.length === 0
-      }
-      onOpenChange={onChatWindowIntroOpenChange}
-    />
-  );
-  const chatHelpMode = readChatHelpMode(chatMode);
-  const chatHelpOverlay =
-    chat && chatHelpMode ? (
-      <ChatHelpOverlay
-        mode={chatHelpMode}
-        activeChatId={chat.id}
-        isFirstChat={(allChats ?? []).filter((candidate) => candidate.mode === chatMode).length === 1}
-        autoOpenBlocked={
-          !chatWindowIntroDismissed ||
-          wizardOpen ||
-          settingsOpen ||
-          !!pendingNewChatMode ||
-          !!peekPromptData ||
-          !!deleteDialogMessageId
-        }
-      />
-    ) : null;
 
   // ═══════════════════════════════════════════════
   // Conversation mode — Discord-style layout
@@ -3235,7 +3123,6 @@ const LocalChatArea = memo(function LocalChatArea({
             onSelectAllBelowSelection={handleSelectAllBelowSelection}
             lastAssistantMessageId={lastAssistantMessageId}
           />
-          {chatWindowIntro}
         </Suspense>
         {illustratorPromptReviewModal}
         <ImagePromptReviewModal
@@ -3245,7 +3132,6 @@ const LocalChatArea = memo(function LocalChatArea({
           onCancel={() => closeConversationSelfiePromptReview(null)}
           onConfirm={confirmConversationSelfiePromptReview}
         />
-        {chatHelpOverlay}
         {pendingNewChatMode && (
           <NewChatConnectionGate
             mode={pendingNewChatMode}
@@ -3379,7 +3265,6 @@ const LocalChatArea = memo(function LocalChatArea({
           onSelectAllBelowSelection={handleSelectAllBelowSelection}
           isGrouped={isGrouped}
         />
-        {chatWindowIntro}
       </Suspense>
       {agentInjectionReview && (
         <AgentInjectionReviewModal
@@ -3399,7 +3284,6 @@ const LocalChatArea = memo(function LocalChatArea({
         onCancel={() => closeRoleplayVideoPromptReview(null)}
         onConfirm={confirmRoleplayVideoPromptReview}
       />
-      {chatHelpOverlay}
       {pendingNewChatMode && (
         <NewChatConnectionGate
           mode={pendingNewChatMode}

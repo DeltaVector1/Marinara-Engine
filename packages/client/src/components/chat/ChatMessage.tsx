@@ -53,7 +53,6 @@ import {
   Search,
   ScrollText,
   Brain,
-  Languages,
   Volume2,
   VolumeX,
   Mic,
@@ -90,7 +89,6 @@ import { getDefaultChatTextColor, useUIStore } from "../../stores/ui.store";
 import { useChatStore } from "../../stores/chat.store";
 import { hasActiveTextSelection } from "../../lib/text-selection";
 import { parseChatMetadata } from "../../lib/chat-display";
-import { useTranslate } from "../../hooks/use-translate";
 import { api } from "../../lib/api-client";
 import { applyTextareaQuoteFormat } from "../../lib/textarea-quotes";
 import { ttsService } from "../../lib/tts-service";
@@ -2033,17 +2031,6 @@ export const ChatMessage = memo(function ChatMessage({
     setImageLightbox(null);
   }, []);
 
-  // Translation
-  const { translate, translations, translationSources, translating } = useTranslate();
-  const translationSource = translationSources[message.id];
-  // Translations are keyed by message, not swipe. Show one only for the text it
-  // was made from, so a new swipe or a live stream never inherits the old one.
-  const translatedText =
-    !isStreaming && (translationSource === undefined || translationSource === message.content)
-      ? translations[message.id]
-      : undefined;
-  const isTranslating = !!translating[message.id];
-
   // TTS
   const { data: ttsConfig } = useTTSConfig();
   const ttsEnabled = ttsConfig?.enabled ?? false;
@@ -3074,69 +3061,6 @@ export const ChatMessage = memo(function ChatMessage({
     ],
   );
 
-  // Translated text is rendered through the same markdown pipeline as the
-  // message so bold/italics/quotes format identically.
-  const vnTranslatedParagraphs = useMemo(
-    () => (visualNovel && translatedText ? splitRoleplayParagraphs(translatedText, false) : []),
-    [translatedText, visualNovel],
-  );
-  // In VN mode, ensure translated paragraphs map one-to-one with source paragraphs.
-  // If paragraph counts diverge, disable paragraph-level translation to avoid mismatched content.
-  const hasMatchingVnTranslation =
-    visualNovel && vnTranslatedParagraphs.length > 0 && vnTranslatedParagraphs.length === vnParagraphs.length;
-
-  const translatedVnText = hasMatchingVnTranslation ? (vnTranslatedParagraphs[activeVnParagraphIndex] ?? "") : "";
-
-  const effectiveTranslationText = visualNovel ? (hasMatchingVnTranslation ? translatedVnText : null) : translatedText;
-
-  const renderedTranslation = useMemo(
-    () =>
-      effectiveTranslationText
-        ? renderContent(
-            effectiveTranslationText,
-            dialogueColor,
-            speakerColorMap,
-            boldDialogue,
-            htmlScopeClass,
-            quoteFormat,
-            selfCharacterId,
-            galleryIndex,
-            nameColorMap,
-            textShadowStr,
-          )
-        : null,
-    [
-      effectiveTranslationText,
-      dialogueColor,
-      speakerColorMap,
-      boldDialogue,
-      htmlScopeClass,
-      quoteFormat,
-      selfCharacterId,
-      galleryIndex,
-      nameColorMap,
-      textShadowStr,
-    ],
-  );
-  const translationDisplayOnly = useMemo(
-    () => parseChatMetadata(activeChatMetadata).translationDisplayOnly === true,
-    [activeChatMetadata],
-  );
-  // When enabled, the translation replaces the original in place instead of
-  // appearing below it — but only while it matches the currently visible
-  // content, so switching swipes or editing never shows a stale translation
-  // in place of the real text.
-  const showTranslationOnly =
-    translationDisplayOnly && !!effectiveTranslationText && !isTranslating && translationSource === message.content;
-  // A translation has no reliable source-text offsets. Keep its visible
-  // paragraph's command results after the translated prose.
-  const renderedTranslationOnly = (
-    <>
-      {renderedTranslation}
-      {inlineRoleplayCommands.map(renderInlineRoleplayCommand)}
-    </>
-  );
-
   const handleCopy = () => {
     copyToClipboard(message.content);
     setCopied(true);
@@ -3322,7 +3246,7 @@ export const ChatMessage = memo(function ChatMessage({
             {diceRollResult ? (
               <DiceMessageContent diceRollResult={diceRollResult} createdAt={message.createdAt} />
             ) : null}
-            {diceReplacesContent ? null : showTranslationOnly ? renderedTranslationOnly : renderedContent}
+            {diceReplacesContent ? null : renderedContent}
             {isStreaming && (
               <span className="ml-0.5 inline-block h-4 w-[0.125rem] animate-pulse rounded-full bg-blue-400" />
             )}
@@ -3330,15 +3254,6 @@ export const ChatMessage = memo(function ChatMessage({
         )}
       </div>
       {roleplayCommandResults}
-      {(translatedText || isTranslating) && !showTranslationOnly && (
-        <div className="mt-2 border-t border-white/10 pt-2">
-          {isTranslating ? (
-            <span className="text-[0.75rem] italic text-white/40">{localizeUi("ui.chat.chatmessage.translating")}</span>
-          ) : (
-            <div className="translation-text whitespace-pre-wrap">{renderedTranslation}</div>
-          )}
-        </div>
-      )}
     </>
   );
 
@@ -3539,14 +3454,9 @@ export const ChatMessage = memo(function ChatMessage({
                   {diceRollResult && (
                     <DiceMessageContent diceRollResult={diceRollResult} createdAt={message.createdAt} />
                   )}
-                  {diceReplacesContent ? null : showTranslationOnly ? renderedTranslationOnly : renderedContent}
+                  {diceReplacesContent ? null : renderedContent}
                   {roleplayAttachments}
                   {roleplayCommandResults}
-                  {renderedTranslation && !showTranslationOnly && (
-                    <div className="translation-text mt-2 whitespace-pre-wrap border-t border-[var(--border)] pt-2">
-                      {renderedTranslation}
-                    </div>
-                  )}
                 </>
               )}
             </div>
@@ -3683,7 +3593,7 @@ export const ChatMessage = memo(function ChatMessage({
                     {diceRollResult ? (
                       <DiceMessageContent diceRollResult={diceRollResult} createdAt={message.createdAt} />
                     ) : null}
-                    {diceReplacesContent ? null : showTranslationOnly ? renderedTranslationOnly : renderedContent}
+                    {diceReplacesContent ? null : renderedContent}
                   </div>
                 )}
               </div>
@@ -4057,15 +3967,6 @@ export const ChatMessage = memo(function ChatMessage({
                 title={localizeUi("lorebook.editor.batch.copy")}
               />
               <ActionBtn
-                icon={<Languages size={MESSAGE_ACTION_ICON_SIZE} />}
-                onClick={() => translate(message.id, message.content, message.chatId)}
-                title={
-                  translatedText
-                    ? localizeUi("ui.chat.chatmessage.hideTranslation")
-                    : localizeUi("ui.chat.chatmessage.translate")
-                }
-              />
-              <ActionBtn
                 icon={<Pencil size={MESSAGE_ACTION_ICON_SIZE} />}
                 onClick={startEditing}
                 title={localizeUi("ui.noodle.noodlepostcard.edit")}
@@ -4357,25 +4258,13 @@ export const ChatMessage = memo(function ChatMessage({
                       {diceRollResult ? (
                         <DiceMessageContent diceRollResult={diceRollResult} createdAt={message.createdAt} />
                       ) : null}
-                      {diceReplacesContent ? null : showTranslationOnly ? renderedTranslationOnly : renderedContent}
+                      {diceReplacesContent ? null : renderedContent}
                       {isStreaming && (
                         <span className="ml-0.5 inline-block h-4 w-[0.125rem] animate-pulse rounded-full bg-white/70" />
                       )}
                     </>
                   )}
                 </div>
-                {/* Translation */}
-                {(translatedText || isTranslating) && !showTranslationOnly && (
-                  <div className="mt-2 border-t border-[var(--border)] pt-2">
-                    {isTranslating ? (
-                      <span className="text-[0.75rem] italic text-[var(--muted-foreground)]">
-                        {localizeUi("ui.chat.chatmessage.translating")}
-                      </span>
-                    ) : (
-                      <div className="translation-text whitespace-pre-wrap">{renderedTranslation}</div>
-                    )}
-                  </div>
-                )}
               </>
             )}
           </div>
@@ -4486,15 +4375,6 @@ export const ChatMessage = memo(function ChatMessage({
             {chatMode === "conversation" && !isStreaming && (
               <ReplyToMessageButton message={message} name={displayName} />
             )}
-            <ActionBtn
-              icon={<Languages size={MESSAGE_ACTION_ICON_SIZE} />}
-              onClick={() => translate(message.id, message.content, message.chatId)}
-              title={
-                translatedText
-                  ? localizeUi("ui.chat.chatmessage.hideTranslation")
-                  : localizeUi("ui.chat.chatmessage.translate")
-              }
-            />
             <ActionBtn
               icon={<Pencil size={MESSAGE_ACTION_ICON_SIZE} />}
               onClick={startEditing}

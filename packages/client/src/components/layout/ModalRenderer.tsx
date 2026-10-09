@@ -50,9 +50,6 @@ const CharacterCardUpdateModal = lazy(() =>
 const AgentWriteApprovalModal = lazy(() =>
   import("../modals/AgentWriteApprovalModal").then((module) => ({ default: module.AgentWriteApprovalModal })),
 );
-const DocsViewerModal = lazy(() =>
-  import("../modals/DocsViewerModal").then((module) => ({ default: module.DocsViewerModal })),
-);
 const AboutMeViewerModal = lazy(() =>
   import("../modals/AboutMeViewerModal").then((module) => ({ default: module.AboutMeViewerModal })),
 );
@@ -141,11 +138,6 @@ export function ModalRenderer() {
       break;
     case "agent-write-approval":
       content = <AgentWriteApprovalModal open onClose={closeModal} />;
-      break;
-    case "docs-viewer":
-      content = (
-        <DocsViewerModal open onClose={closeModal} initialDoc={(modal?.props?.initialDoc as string | null) ?? null} />
-      );
       break;
     case "about-me-viewer":
       content = (
