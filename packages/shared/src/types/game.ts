@@ -5,16 +5,12 @@
 /** The four main states a game can be in during a session. */
 export type GameActiveState = "exploration" | "dialogue" | "combat" | "travel_rest";
 
-
 /**
  * Combat presentation preference for Game Mode.
  * - `classic`: existing cinematic JRPG menu combat (GameCombatUI + combat.service).
  * - `tactical`: Fire Emblem / FFT style grid battle (tactical-combat feature engine).
  */
 export type GameCombatStyle = "classic" | "tactical";
-
-
-
 
 // ── Maps ──
 
@@ -96,9 +92,6 @@ export interface GameNpc {
   /** Optional avatar URL (generated or uploaded) */
   avatarUrl?: string | null;
 }
-
-
-
 
 // ── Dice ──
 
@@ -383,11 +376,6 @@ interface HudWidgetConfig {
   valueHints?: Record<string, string>;
 }
 
-
-
-
-
-
 export type GameSceneVideoAspectRatio = "16:9" | "9:16";
 
 export interface GeneratedSceneVideo {
@@ -405,8 +393,7 @@ export interface GeneratedSceneVideo {
   createdAt: string;
 }
 
-type GameStoryboardStatus =
-  "planning" | "rendering_images" | "rendering_videos" | "complete" | "partial" | "failed";
+type GameStoryboardStatus = "planning" | "rendering_images" | "rendering_videos" | "complete" | "partial" | "failed";
 
 type GameStoryboardKeyframeStatus =
   "planned" | "rendering_image" | "image_complete" | "rendering_video" | "complete" | "failed";

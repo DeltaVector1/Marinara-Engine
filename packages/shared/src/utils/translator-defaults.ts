@@ -46,4 +46,3 @@ export function normalizeTranslatorSettings(value: unknown): Record<string, unkn
   }
   return settings;
 }
-

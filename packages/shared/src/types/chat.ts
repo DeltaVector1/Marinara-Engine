@@ -13,7 +13,6 @@ import type {
   RoleplayPrivateCommand,
 } from "./roleplay-command.js";
 
-
 /** The three primary chat modes the engine supports. */
 export type ChatMode = "conversation" | "roleplay" | "game";
 

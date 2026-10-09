@@ -9,12 +9,9 @@
 // downloaded or deleted. Only one downloaded language is kept on disk.
 // ──────────────────────────────────────────────
 import { createHash } from "node:crypto";
-import {
-  APP_VERSION,
-} from "@marinara-engine/shared";
+import { APP_VERSION } from "@marinara-engine/shared";
 import { logger } from "../../lib/logger.js";
 import { safeFetch } from "../../utils/security.js";
-
 
 /**
  * Base URL of the docs-i18n content branch. Overridable for forks and mirrors.
@@ -26,17 +23,11 @@ const DEFAULT_BASE_URL = "https://raw.githubusercontent.com/Pasta-Devs/Marinara-
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const FILE_FETCH_ATTEMPTS = 3;
 
-
 export interface DocsPackManifestFile {
   path: string;
   sha256: string;
   bytes: number;
 }
-
-
-
-
-
 
 export function docsPackBaseUrl(): string {
   const configured = process.env.DOCS_I18N_BASE_URL?.trim();
@@ -87,8 +78,6 @@ export async function resolvePinnedBase(base: string): Promise<string> {
   }
 }
 
-
-
 export async function fetchPackBytes(url: string, maximum: number): Promise<Buffer> {
   const response = await safeFetch(url, {
     // Forks/mirrors are allowed, so no hostname pin — integrity rests on the
@@ -125,19 +114,6 @@ export async function fetchPackFile(url: string, file: DocsPackManifestFile): Pr
   throw lastError instanceof Error ? lastError : new Error(`Failed to download ${file.path}`);
 }
 
-
-
-
-
-
-
-
-
 // ──────────────────────────────────────────────
 // Boot-time reconcile: after an Engine update, refresh the selected pack
 // ──────────────────────────────────────────────
-
-
-
-
-

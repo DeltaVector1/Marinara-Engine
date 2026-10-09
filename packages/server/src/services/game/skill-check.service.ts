@@ -8,7 +8,6 @@
 
 import type { RPGAttributes } from "@marinara-engine/shared";
 
-
 export interface SkillCheckResult {
   skill: string;
   dc: number;
@@ -34,14 +33,12 @@ export interface SkillCheckResult {
   dice: string;
 }
 
-
 /**
  * Compute a D&D-style attribute modifier: floor((score - 10) / 2).
  */
 export function attributeModifier(score: number): number {
   return Math.floor((score - 10) / 2);
 }
-
 
 /**
  * Map character-sheet attribute names (free-form, e.g. "STR", "Strength",

@@ -74,13 +74,3 @@ export function noodleTimelineVoiceDefaultText(enhanced: boolean, allowRandomUse
     ...(enhanced ? [NOODLE_CONGRUENCY_INSTRUCTION] : []),
   ].join("\n");
 }
-
-
-
-
-
-
-
-
-
-

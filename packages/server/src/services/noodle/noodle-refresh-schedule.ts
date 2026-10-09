@@ -48,11 +48,7 @@ function localScheduleTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
 }
 
-function generateNoodleRefreshTimes(
-  date: Date,
-  refreshesPerDay: number,
-  random: RandomSource = Math.random,
-): string[] {
+function generateNoodleRefreshTimes(date: Date, refreshesPerDay: number, random: RandomSource = Math.random): string[] {
   const count = Math.max(0, Math.min(24, Math.floor(refreshesPerDay)));
   if (count === 0) return [];
 
@@ -153,7 +149,6 @@ function nextNoodleRefreshTime(schedule: PersistedNoodleRefreshSchedule): string
   const completed = new Set(schedule.completedTimes);
   return schedule.scheduledTimes.find((time) => !completed.has(time)) ?? null;
 }
-
 
 export function clearNoodleRefreshFailure(schedule: PersistedNoodleRefreshSchedule): PersistedNoodleRefreshSchedule {
   return {

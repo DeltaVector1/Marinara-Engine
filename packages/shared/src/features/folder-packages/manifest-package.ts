@@ -1,4 +1,3 @@
-
 interface MarinaraItemManifest<T = unknown> {
   kind: string;
   version: 1;

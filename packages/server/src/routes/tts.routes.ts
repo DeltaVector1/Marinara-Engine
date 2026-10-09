@@ -8,7 +8,23 @@ import { createHash, randomUUID } from "crypto";
 import { addAbortListener } from "node:events";
 import { access, mkdir, readdir, rename, unlink, writeFile } from "fs/promises";
 import { join } from "path";
-import { ttsConfigSchema, ttsSourceProfileFromConfig, ttsVoiceAssignmentInputSchema, ttsVoiceModeInputSchema, setCharacterVoiceAssignment, TTS_VOICE_MAX_LENGTH, TTS_SETTINGS_KEY, TTS_API_KEY_MASK, ttsRoleplaySpeakerExtractorResponseSchema, type TTSSource, type TTSConfig, type TTSRoleplaySpeakerExtractorResponse, type TTSSourceProfiles, type TTSModelsResponse, type TTSVoicesResponse } from "@marinara-engine/shared";
+import {
+  ttsConfigSchema,
+  ttsSourceProfileFromConfig,
+  ttsVoiceAssignmentInputSchema,
+  ttsVoiceModeInputSchema,
+  setCharacterVoiceAssignment,
+  TTS_VOICE_MAX_LENGTH,
+  TTS_SETTINGS_KEY,
+  TTS_API_KEY_MASK,
+  ttsRoleplaySpeakerExtractorResponseSchema,
+  type TTSSource,
+  type TTSConfig,
+  type TTSRoleplaySpeakerExtractorResponse,
+  type TTSSourceProfiles,
+  type TTSModelsResponse,
+  type TTSVoicesResponse,
+} from "@marinara-engine/shared";
 import { createAppSettingsStorage } from "../services/storage/app-settings.storage.js";
 import { createConnectionsStorage } from "../services/storage/connections.storage.js";
 import { encryptApiKey, decryptApiKey } from "../utils/crypto.js";
@@ -159,7 +175,6 @@ const extractedDialogueSchema = z.object({
     )
     .max(500),
 });
-
 
 const AUDIO_FILE_PATTERN = /\.(mp3|wav|ogg|m4a|flac)$/i;
 

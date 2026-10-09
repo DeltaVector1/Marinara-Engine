@@ -12,10 +12,23 @@ import { sidecarSpeechService } from "../services/sidecar/sidecar-speech.service
 import { mlxRuntimeService } from "../services/sidecar/mlx-runtime.service.js";
 import { sidecarRuntimeService } from "../services/sidecar/sidecar-runtime.service.js";
 import { getLocalSidecarProvider, LOCAL_SIDECAR_MODEL } from "../services/llm/local-sidecar.js";
-import { isInferenceAvailable, isInferenceBusy, runTestMessage, runTrackerPrompt, unloadModel } from "../services/sidecar/sidecar-inference.service.js";
+import {
+  isInferenceAvailable,
+  isInferenceBusy,
+  runTestMessage,
+  runTrackerPrompt,
+  unloadModel,
+} from "../services/sidecar/sidecar-inference.service.js";
 import { sidecarProcessService } from "../services/sidecar/sidecar-process.service.js";
 import { capabilityPackageManager } from "../services/capability-packages/package-manager.service.js";
-import { SIDECAR_EMBEDDING_POOLING_TYPES, SIDECAR_RUNTIME_PREFERENCES, SIDECAR_SPEECH_MODELS, type SidecarDownloadProgress, type SidecarQuantization, type SidecarSpeechModelId } from "@marinara-engine/shared";
+import {
+  SIDECAR_EMBEDDING_POOLING_TYPES,
+  SIDECAR_RUNTIME_PREFERENCES,
+  SIDECAR_SPEECH_MODELS,
+  type SidecarDownloadProgress,
+  type SidecarQuantization,
+  type SidecarSpeechModelId,
+} from "@marinara-engine/shared";
 import { isSidecarRuntimeInstallEnabled } from "../config/runtime-config.js";
 import { isAdminAuthorized, requirePrivilegedAccess } from "../middleware/privileged-gate.js";
 

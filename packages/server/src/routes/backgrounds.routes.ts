@@ -9,7 +9,13 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { DATA_DIR } from "../utils/data-dir.js";
 import { buildAssetManifest, GAME_ASSETS_DIR, getAssetManifest } from "../services/game/asset-manifest.service.js";
-import { moveBackgroundAssignment, normalizeBackgroundLibraryOrganization, pruneBackgroundLibraryOrganization, removeBackgroundFolder, type BackgroundLibraryOrganization } from "../services/background-library-organization.js";
+import {
+  moveBackgroundAssignment,
+  normalizeBackgroundLibraryOrganization,
+  pruneBackgroundLibraryOrganization,
+  removeBackgroundFolder,
+  type BackgroundLibraryOrganization,
+} from "../services/background-library-organization.js";
 import { assertInsideDir, isAllowedImageBuffer } from "../utils/security.js";
 import { sendValidatedMediaFile, validateImageAssetFile } from "../utils/media-file-security.js";
 import { parseThumbnailWidth, resolveThumbPath } from "../services/image/image-thumbnail.js";
@@ -104,7 +110,6 @@ function fileCreatedAt(filePath: string): string {
 const ALLOWED_EXTS = new Set([".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"]);
 const BACKGROUND_UPLOAD_MAX_BYTES = 20 * 1024 * 1024;
 
-
 const backgroundFolderNameSchema = z.object({
   name: z.string().trim().min(1).max(80),
 });
@@ -140,12 +145,6 @@ function encodeAssetPath(path: string): string {
     .map((segment) => encodeURIComponent(segment))
     .join("/");
 }
-
-
-
-
-
-
 
 export async function backgroundsRoutes(app: FastifyInstance) {
   // List all backgrounds (includes tags)
@@ -331,8 +330,6 @@ export async function backgroundsRoutes(app: FastifyInstance) {
       tags: [],
     };
   });
-
-
 
   // Set tags for a background
   app.patch("/:filename/tags", async (req, reply) => {

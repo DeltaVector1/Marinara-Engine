@@ -77,10 +77,7 @@ function resolveGoogleFunctionCallingMode(toolChoice: ChatOptions["toolChoice"])
   return toolChoice === "required" ? "ANY" : "AUTO";
 }
 
-function applyGoogleFunctionCallingMode(
-  body: Record<string, unknown>,
-  toolChoice: ChatOptions["toolChoice"],
-): void {
+function applyGoogleFunctionCallingMode(body: Record<string, unknown>, toolChoice: ChatOptions["toolChoice"]): void {
   const toolConfig = isRecord(body.toolConfig) ? body.toolConfig : {};
   const functionCallingConfig = isRecord(toolConfig.functionCallingConfig) ? toolConfig.functionCallingConfig : {};
   body.toolConfig = {

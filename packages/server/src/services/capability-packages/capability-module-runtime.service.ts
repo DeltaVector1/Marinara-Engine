@@ -5,26 +5,46 @@ import { mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse as InjectResponse } from "fastify";
-import { type CapabilityRuntimeHost, type CapabilityRuntimeLogArgument, type InstalledCapabilityPackage, parseAgentSettingsRecord, type PackagedAchievementDefinition, type SceneOriginProvider } from "@marinara-engine/shared";
+import {
+  type CapabilityRuntimeHost,
+  type CapabilityRuntimeLogArgument,
+  type InstalledCapabilityPackage,
+  parseAgentSettingsRecord,
+  type PackagedAchievementDefinition,
+  type SceneOriginProvider,
+} from "@marinara-engine/shared";
 import { isDebugAgentsEnabled } from "../../config/runtime-config.js";
 import { logger, logDebugOverride } from "../../lib/logger.js";
 import { DATA_DIR } from "../../utils/data-dir.js";
 import { parseGameJsonish } from "../game/jsonish.js";
 import { createAgentsStorage } from "../storage/agents.storage.js";
 import { capabilityPackageManager } from "./package-manager.service.js";
-import { registerCapabilityConversationCommand, type CapabilityConversationCommandRegistration } from "./capability-command-registry.service.js";
+import {
+  registerCapabilityConversationCommand,
+  type CapabilityConversationCommandRegistration,
+} from "./capability-command-registry.service.js";
 import { registerCapabilityService } from "./capability-service-registry.service.js";
 import { assertCapabilityAgentRuntimeServiceRegistration } from "./capability-agent-runtime.service.js";
 import { createCapabilityIntegrationHost } from "./capability-integrations.service.js";
 import { createCapabilityLanguageModelHost } from "./capability-language-model.service.js";
 import { linkCapabilityNativeDependencies } from "./capability-native-dependencies.service.js";
-import { createCapabilityEmbeddingHost, createConfiguredCapabilityEmbeddingHost } from "./capability-embedding.service.js";
+import {
+  createCapabilityEmbeddingHost,
+  createConfiguredCapabilityEmbeddingHost,
+} from "./capability-embedding.service.js";
 import { createCapabilityAchievementHost } from "./capability-achievement-host.service.js";
 import { registerCapabilityAchievements } from "./capability-achievement-registry.service.js";
 import { createCapabilityPersistenceHost } from "./capability-persistence.service.js";
 import { createCapabilityResourceHost } from "./capability-resources.service.js";
-import { registerCapabilityPrivilegedRoutes, runCapabilityInternalRoute } from "./capability-route-registration.service.js";
-import { registerCapabilityPromptContext, withDeadline, type CapabilityPromptContextContributor } from "./capability-prompt-context.service.js";
+import {
+  registerCapabilityPrivilegedRoutes,
+  runCapabilityInternalRoute,
+} from "./capability-route-registration.service.js";
+import {
+  registerCapabilityPromptContext,
+  withDeadline,
+  type CapabilityPromptContextContributor,
+} from "./capability-prompt-context.service.js";
 import { registerCapabilityTool, type CapabilityToolRegistration } from "./capability-tool-registry.service.js";
 import { registerCapabilitySceneOrigin } from "./capability-scene-origin.service.js";
 import { failInjectFastDuring } from "../../lib/fastify-inject-gate.js";

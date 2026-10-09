@@ -403,10 +403,7 @@ function questLockRef(quest: Pick<QuestProgress, "questEntryId" | "name"> | null
   return `index:${index}`;
 }
 
-function questTrackerLockPrefix(
-  quest: Pick<QuestProgress, "questEntryId" | "name"> | null | undefined,
-  index: number,
-) {
+function questTrackerLockPrefix(quest: Pick<QuestProgress, "questEntryId" | "name"> | null | undefined, index: number) {
   return `quests.${questLockRef(quest, index)}`;
 }
 

@@ -30,7 +30,6 @@ export type {
   ConnectionAdmissionMode,
 } from "@marinara-engine/shared";
 
-
 class BackgroundConnectionBusyError extends Error {
   constructor(readonly connectionId: string) {
     super(`Connection ${connectionId} is not available for background generation.`);

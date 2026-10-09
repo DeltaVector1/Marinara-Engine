@@ -1,7 +1,4 @@
-import {
-  DECISION_LOCAL_DEFAULT_SETTINGS_KEY,
-  decisionLocalSlotForId,
-} from "@marinara-engine/shared";
+import { DECISION_LOCAL_DEFAULT_SETTINGS_KEY, decisionLocalSlotForId } from "@marinara-engine/shared";
 import type { DB } from "../../db/connection.js";
 import { createAppSettingsStorage } from "../storage/app-settings.storage.js";
 import { createConnectionsStorage } from "../storage/connections.storage.js";

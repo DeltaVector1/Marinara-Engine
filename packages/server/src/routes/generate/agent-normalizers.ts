@@ -1,6 +1,5 @@
 import type { AgentInjection } from "../../services/agents/agent-pipeline.js";
 
-
 export function normalizeContextInjections(raw: unknown): AgentInjection[] {
   if (!Array.isArray(raw)) return [];
   const normalized: AgentInjection[] = [];

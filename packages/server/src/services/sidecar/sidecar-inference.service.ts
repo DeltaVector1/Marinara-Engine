@@ -185,7 +185,6 @@ function extractContentText(content: unknown): string {
   return "";
 }
 
-
 function extractChoiceContent(
   choice:
     | {
@@ -481,7 +480,6 @@ Line 2: one short sentence confirming that the local sidecar test succeeded.`,
 export async function unloadModel(): Promise<void> {
   await sidecarProcessService.unload();
 }
-
 
 export async function runTrackerPrompt(
   systemPrompt: string,

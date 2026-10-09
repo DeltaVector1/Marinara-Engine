@@ -2730,10 +2730,7 @@ function buildCommittedTrackerStateContext(
  * when the host set it, so non-NovelAI connections never see the schema extension.
  * Card appearance references are independent and also serve custom image agents.
  */
-function buildIllustratorCharacterPromptInstructionBlock(
-  instruction: unknown,
-  appearanceReference?: unknown,
-): string {
+function buildIllustratorCharacterPromptInstructionBlock(instruction: unknown, appearanceReference?: unknown): string {
   const block = typeof instruction === "string" ? instruction.trim() : "";
   const reference = typeof appearanceReference === "string" ? appearanceReference.trim() : "";
   return [block, reference].filter(Boolean).join("\n");

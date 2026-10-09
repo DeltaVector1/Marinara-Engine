@@ -43,7 +43,10 @@
 import { normalizeTextForMatch, stripLeadingMessageTimestamps } from "@marinara-engine/shared";
 
 import { stripConversationPromptTimestamps } from "./transcript-sanitize.js";
-import { parseCapabilityConversationCommands, stripCapabilityConversationCommands } from "../capability-packages/capability-command-registry.service.js";
+import {
+  parseCapabilityConversationCommands,
+  stripCapabilityConversationCommands,
+} from "../capability-packages/capability-command-registry.service.js";
 
 export interface ScheduleUpdateCommand {
   type: "schedule_update";

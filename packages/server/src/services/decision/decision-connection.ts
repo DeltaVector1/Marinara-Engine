@@ -32,8 +32,7 @@ export interface DecisionConnection {
   timeoutMs?: number;
 }
 
-type DecisionConnectionError =
-  "invalid_source" | "invalid_url" | "needs_relinking" | "missing_key" | "missing_model";
+type DecisionConnectionError = "invalid_source" | "invalid_url" | "needs_relinking" | "missing_key" | "missing_model";
 
 /**
  * The chat completions URL for a chat-model Decision connection.

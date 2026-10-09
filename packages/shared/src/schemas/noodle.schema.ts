@@ -269,8 +269,6 @@ const noodleAccountProfileUpdateSchema = z
   .object({ ...noodleAccountIdentityUpdateShape, profile: noodleAccountProfileSettingsSchema })
   .strict();
 
-
-
 const noodleStageProfileShape = {
   displayName: z.string().trim().min(1, "Enter a stage name.").max(120),
   handle: z.string().trim().min(1, "Enter a stage handle.").max(40),
@@ -280,9 +278,6 @@ const noodleStageProfileShape = {
 };
 
 const noodleStageProfileSchema = z.object(noodleStageProfileShape).strict();
-
-
-
 
 export const noodlePollInputSchema = z
   .object({
@@ -409,9 +404,6 @@ const noodlerPostTitleUpdateSchema = noodlerPostTitleValueSchema
   .optional()
   .transform((value) => (value === undefined ? undefined : value?.trim() || null));
 
-
-
-
 const noodlerPostUpdateSchema = z
   .object({
     title: noodlerPostTitleUpdateSchema,
@@ -490,16 +482,6 @@ const noodleRemoveInteractionSchema = z
     }
   });
 
-
-
-
-
-
-
-
-
-
-
 const noodleGeneratedPostSchema = z.object({
   tempId: z.string().min(1).optional(),
   authorHandle: z.string().min(1),
@@ -554,7 +536,6 @@ const noodleGeneratedInteractionSchema = z
     }
   });
 
-
 const noodleGeneratedFollowSchema = z.object({
   actorHandle: z.string().min(1),
   targetHandle: z.string().min(1),
@@ -565,15 +546,12 @@ const noodleGeneratedDigestSchema = z.object({
   content: z.string().min(1).max(1200),
 });
 
-
-
 export const noodleGeneratedRefreshSchema = z.object({
   posts: z.array(noodleGeneratedPostSchema).default([]),
   interactions: z.array(noodleGeneratedInteractionSchema).default([]),
   follows: z.array(noodleGeneratedFollowSchema).default([]),
   digests: z.array(noodleGeneratedDigestSchema).default([]),
 });
-
 
 export type NoodleSettingsUpdateInput = z.infer<typeof noodleSettingsUpdateSchema>;
 export type NoodleAccountUpdateInput = z.infer<typeof noodleAccountUpdateSchema>;

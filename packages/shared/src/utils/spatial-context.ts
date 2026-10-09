@@ -1,4 +1,3 @@
-
 export const SPATIAL_CONTEXT_LIMITS = {
   maxLocations: 5_000,
   maxDepth: 20,
@@ -15,12 +14,3 @@ export const SPATIAL_CONTEXT_LIMITS = {
   /** Maximum number of destination IDs returned for one routed transition. */
   maxRouteLocations: 64,
 } as const;
-
-
-
-
-
-
-
-
-

@@ -30,14 +30,6 @@
 // holds and one that only looks like it does.
 // ──────────────────────────────────────────────
 
-
-
-
-
-
-
-
-
 /**
  * One substituted placeholder: what was rolled, and where the number landed.
  *
@@ -63,15 +55,3 @@ export interface GameDicePlaceholderRecord {
   /** Character offset of `text` in the substituted content. */
   index: number;
 }
-
-
-
-
-
-
-
-
-
-
-
-

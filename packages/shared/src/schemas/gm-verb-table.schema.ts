@@ -121,10 +121,6 @@ const RESERVED_GM_TAG_NAMES = Object.freeze([
 
 const reservedGmTagNames = new Set<string>(RESERVED_GM_TAG_NAMES);
 
-
-
-
-
 const gmVerbEffectSchema = z.enum(["state", "event"]);
 
 const gmVerbArgBaseSchema = z
@@ -281,10 +277,4 @@ function refineGmVerb(verb: z.infer<typeof gmVerbBaseSchema>, ctx: z.RefinementC
 /** One verb, checked for everything that does not depend on who declared it. */
 const gmVerbSchema = gmVerbBaseSchema.superRefine(refineGmVerb);
 
-
-
 export type GmVerb = z.infer<typeof gmVerbSchema>;
-
-
-
-

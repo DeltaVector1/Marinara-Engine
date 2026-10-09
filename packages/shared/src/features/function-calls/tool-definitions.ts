@@ -36,7 +36,6 @@ export interface ToolDefinition {
   parameters: ToolParameterSchema;
 }
 
-
 /** Extended AgentConfig with tool definitions. */
 export interface AgentToolConfig {
   /** Tools this agent can use */

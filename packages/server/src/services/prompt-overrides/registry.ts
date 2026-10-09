@@ -32,7 +32,6 @@ import {
   CONVERSATION_CALL_VIDEO_PROMPT_BY_KIND,
   CONVERSATION_CALL_VIDEO_PROMPTS,
 } from "./registry/conversation-call-videos.js";
-import { NOODLE_IMAGE_POST, NOODLE_TIMELINE_BASE, NOODLE_TIMELINE_VOICE } from "./registry/noodle.js";
 
 export const PROMPT_OVERRIDE_REGISTRY = [
   CHARACTERS_REFERENCE_SHEET,
@@ -52,9 +51,6 @@ export const PROMPT_OVERRIDE_REGISTRY = [
   ...CONVERSATION_CALL_VIDEO_PROMPTS,
   CONVERSATION_CALL_CUSTOM_VIDEO_PROMPT,
   CONVERSATION_SELFIE,
-  NOODLE_IMAGE_POST,
-  NOODLE_TIMELINE_BASE,
-  NOODLE_TIMELINE_VOICE,
 ] as const;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,9 +97,6 @@ export {
   CONVERSATION_CALL_VIDEO_CLIP_INSTRUCTION_BY_KIND,
   CONVERSATION_CALL_VIDEO_CLIP_LABEL_BY_KIND,
   CONVERSATION_SELFIE,
-  NOODLE_IMAGE_POST,
-  NOODLE_TIMELINE_BASE,
-  NOODLE_TIMELINE_VOICE,
 };
 export type { CharactersReferenceSheetCtx } from "./registry/characters.js";
 export type {
@@ -128,5 +121,4 @@ export type {
   ConversationCallVideoClipCtx,
 } from "./registry/conversation-call-videos.js";
 export type { ConversationSelfieCtx } from "./registry/conversation.js";
-export type { NoodleImagePostCtx, NoodleTimelineBaseCtx, NoodleTimelineVoiceCtx } from "./registry/noodle.js";
 export type { PromptOverrideKeyDef, PromptVariable } from "./types.js";

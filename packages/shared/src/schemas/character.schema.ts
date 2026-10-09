@@ -119,7 +119,6 @@ export const characterDataSchema = z
   })
   .passthrough();
 
-
 export const createCharacterSchema = z.object({
   data: characterDataSchema,
 });

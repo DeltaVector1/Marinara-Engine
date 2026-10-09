@@ -33,7 +33,6 @@ interface ProjectionService {
 
 const service = () => getCapabilityService<ProjectionService>("hierarchical-maps:projection");
 
-
 export async function resolveOwnerSpatialProjection(
   chatId: string,
   options: ResolveSpatialStateOptions,
@@ -42,8 +41,6 @@ export async function resolveOwnerSpatialProjection(
   if (!isHierarchicalMapsEnabledForChat(chatMetadata)) return null;
   return service()?.resolveOwnerSpatialProjection(chatId, options) ?? null;
 }
-
-
 
 export function injectOwnerSpatialPrompt<T extends { role: "system" | "user" | "assistant"; content: string }>(
   messages: T[],

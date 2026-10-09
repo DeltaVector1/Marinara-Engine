@@ -89,7 +89,6 @@ export function filterEnabledConversationCommands(
   });
 }
 
-
 export async function buildConversationCommandsReminder(args: {
   enabled: boolean;
   chatMode: ChatMode;

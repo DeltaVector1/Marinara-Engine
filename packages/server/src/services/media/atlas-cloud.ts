@@ -169,10 +169,7 @@ const ATLAS_CLOUD_CATALOG_CATEGORIES: Record<AtlasCloudGenerationKind, readonly 
   image: ["TEXT-TO-IMAGE", "IMAGE-TO-IMAGE"],
 };
 
-function parseAtlasCloudCatalog(
-  value: unknown,
-  kind: AtlasCloudGenerationKind,
-): Array<{ id: string; name: string }> {
+function parseAtlasCloudCatalog(value: unknown, kind: AtlasCloudGenerationKind): Array<{ id: string; name: string }> {
   const entries = isRecord(value) && Array.isArray(value.data) ? value.data : Array.isArray(value) ? value : [];
   const wanted = ATLAS_CLOUD_CATALOG_CATEGORIES[kind];
   const models: Array<{ id: string; name: string; rank: number }> = [];

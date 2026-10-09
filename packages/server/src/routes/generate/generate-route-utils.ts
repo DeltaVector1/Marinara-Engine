@@ -240,7 +240,6 @@ const INVENTORY_TRACKER_PLAYER_STATS_FIELDS = [
 
 type InventoryTrackerPlayerStatsField = (typeof INVENTORY_TRACKER_PLAYER_STATS_FIELDS)[number];
 
-
 // `clampInventoryTrackerQty` and `normalizeInventoryTrackerRows` now live in
 // `@marinara-engine/shared` so the hand-edit paths (tracker panel, HUD popover,
 // Agent Suite editor, chat game-state route) apply the same rules this route
@@ -1556,7 +1555,6 @@ function getExplicitNameAliases(value: unknown): string[] {
   }
   return [...aliases];
 }
-
 
 function resolveExplicitCanonicalName(value: unknown, namesByKey: Map<string, string>): string | null {
   const exactName = namesByKey.get(normalizeTextForMatch(value));

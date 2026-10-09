@@ -60,7 +60,6 @@ export async function loadFeatureSettings(storage: { get(key: string): Promise<s
   return applyFeatureSettingsValue(await storage.get(FEATURE_SETTINGS_KEY));
 }
 
-
 function getFeatureSettings(): FeatureSettings {
   return cached;
 }

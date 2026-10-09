@@ -37,7 +37,6 @@ import { createChatsStorage } from "../services/storage/chats.storage.js";
 import { createGameSceneVideosStorage } from "../services/storage/game-scene-videos.storage.js";
 import { createConnectionsStorage } from "../services/storage/connections.storage.js";
 import { createLorebooksStorage } from "../services/storage/lorebooks.storage.js";
-import { createNoodleStorage } from "../services/storage/noodle.storage.js";
 import { createPromptOverridesStorage } from "../services/storage/prompt-overrides.storage.js";
 import { CHARACTERS_REFERENCE_SHEET, loadPrompt } from "../services/prompt-overrides/index.js";
 import { generateImage } from "../services/image/image-generation.js";
@@ -1589,13 +1588,6 @@ export async function charactersRoutes(app: FastifyInstance) {
       collectAvatarPaths: () => collectCharacterAvatarPaths(app.db, [id]),
       mutateReferences: () => storage.remove(id),
     });
-    // Cascade the character's Noodle presence, otherwise its account and posts stay
-    // in the timeline forever as a ghost (issue #4295).
-    try {
-      await createNoodleStorage(app.db).deleteAccountByEntity("character", id);
-    } catch (err) {
-      logger.error(err, "Failed to clean up Noodle account for deleted character %s", id);
-    }
     for (const image of galleryImages) {
       await unlinkGalleryFileIfUnreferenced({ db: app.db, filePath: image.filePath });
     }

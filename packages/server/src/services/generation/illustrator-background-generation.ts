@@ -1,7 +1,4 @@
-import {
-  findImageStyleProfile,
-  type ImageStyleProfileSettings,
-} from "@marinara-engine/shared";
+import { findImageStyleProfile, type ImageStyleProfileSettings } from "@marinara-engine/shared";
 import type { DB } from "../../db/connection.js";
 import type { ResolvedAgent } from "../agents/agent-pipeline.js";
 import {
@@ -13,10 +10,7 @@ import { resolveConnectionImageDefaults } from "../image/image-generation-defaul
 import { loadImageGenerationUserSettings } from "../image/image-generation-settings.js";
 import { createConnectionsStorage } from "../storage/connections.storage.js";
 
-
 type ConnectionsStorage = ReturnType<typeof createConnectionsStorage>;
-
-
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -26,20 +20,11 @@ function readTrimmedString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-
-
-
-
-
 export function resolveIllustratorImageConnectionId(
   chatMetadata: Record<string, unknown>,
   agentImageConnectionId: unknown,
 ): string {
-  return (
-    readTrimmedString(
-      chatMetadata.illustratorImageConnectionId,
-    ) || readTrimmedString(agentImageConnectionId)
-  );
+  return readTrimmedString(chatMetadata.illustratorImageConnectionId) || readTrimmedString(agentImageConnectionId);
 }
 
 /** Resolve the shared Illustrator style precedence used by manual illustrations and scene backgrounds. */
@@ -109,4 +94,3 @@ export async function resolveIllustratorCharacterPromptInstruction(args: {
   const limit = resolveNovelAiCharacterPromptLimit(String(imageConnection.model ?? ""));
   return { instruction: buildIllustratorCharacterPromptInstruction(limit), limit };
 }
-

@@ -462,7 +462,6 @@ export function getCsrfTrustedOrigins() {
   return parseCsv(process.env.CSRF_TRUSTED_ORIGINS).filter((origin) => origin.toLowerCase() !== "null");
 }
 
-
 export function isProviderLocalUrlsEnabled() {
   if (process.platform === "android" && normalizeEnvValue(process.env.PROVIDER_LOCAL_URLS_ENABLED) === null) {
     return true;
@@ -567,10 +566,7 @@ const CONSTRAINED_PLATFORM_DEFAULT_MAX_RESIDENT_CHATS = 8;
 let cachedSteamOsDetection: boolean | null = null;
 
 /** Exported for the regression lane; production goes through the cached path. */
-function detectSteamOs(
-  osReleasePath = "/etc/os-release",
-  platform: NodeJS.Platform = process.platform,
-): boolean {
+function detectSteamOs(osReleasePath = "/etc/os-release", platform: NodeJS.Platform = process.platform): boolean {
   if (platform !== "linux") return false;
   try {
     return /^ID=["']?steamos["']?\s*$/mu.test(readFileSync(osReleasePath, "utf8"));

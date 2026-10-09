@@ -43,10 +43,7 @@ export interface AgentInjection {
   text: string;
 }
 
-type AgentContextResolver = (
-  agent: AgentExecConfig,
-  context: AgentContext,
-) => AgentContext | Promise<AgentContext>;
+type AgentContextResolver = (agent: AgentExecConfig, context: AgentContext) => AgentContext | Promise<AgentContext>;
 
 type AgentPhaseContextPreparer = (
   agents: AgentExecConfig[],

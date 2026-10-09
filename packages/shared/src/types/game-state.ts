@@ -47,7 +47,6 @@ export interface GameState {
   /** JSON object of tracker field keys hidden from the UI. */
   hiddenTrackerFields?: TrackerHiddenFields | null;
 
-
   createdAt: string;
 }
 

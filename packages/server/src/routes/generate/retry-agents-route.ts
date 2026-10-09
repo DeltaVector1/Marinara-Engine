@@ -597,7 +597,8 @@ async function executeManualIllustratorPromptRequest(args: {
             conns: args.conns,
             illustratorAgent: args.illustratorEntry.resolved,
           });
-    const imageConnectionId = resolveIllustratorImageConnectionId(args.chatMeta,
+    const imageConnectionId = resolveIllustratorImageConnectionId(
+      args.chatMeta,
       args.illustratorEntry.resolved.settings.imageConnectionId,
     );
     let imageConnection = imageConnectionId ? await args.conns.getById(imageConnectionId).catch(() => null) : null;
@@ -2401,9 +2402,7 @@ async function resolveRetryImagePromptContext(args: {
 
   const imageConnectionId =
     args.entry.resolved.type === "illustrator"
-      ? resolveIllustratorImageConnectionId(args.chatMeta,
-          args.entry.resolved.settings.imageConnectionId,
-        )
+      ? resolveIllustratorImageConnectionId(args.chatMeta, args.entry.resolved.settings.imageConnectionId)
       : typeof args.entry.resolved.settings.imageConnectionId === "string"
         ? args.entry.resolved.settings.imageConnectionId.trim()
         : "";
@@ -3069,7 +3068,6 @@ async function applyRetryResultEffects(args: {
           assertRetryActive();
         }
 
-
         assertRetryActive();
         sendSseEvent(reply, {
           type: "game_state_patch",
@@ -3520,9 +3518,7 @@ async function applyRetryResultEffects(args: {
           const imagePositivePrompt = typeof rawImagePositivePrompt === "string" ? rawImagePositivePrompt.trim() : "";
           const savedNegativePrompt = typeof rawSavedNegativePrompt === "string" ? rawSavedNegativePrompt.trim() : "";
           const imageConnectionOverride = usesChatIllustratorSettings
-            ? resolveIllustratorImageConnectionId(chatMeta,
-                imagePromptAgent?.resolved.settings?.imageConnectionId,
-              )
+            ? resolveIllustratorImageConnectionId(chatMeta, imagePromptAgent?.resolved.settings?.imageConnectionId)
             : typeof imagePromptAgent?.resolved.settings?.imageConnectionId === "string"
               ? imagePromptAgent.resolved.settings.imageConnectionId.trim()
               : "";

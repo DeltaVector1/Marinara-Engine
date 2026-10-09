@@ -1,5 +1,3 @@
-
-
 /** Core character data (V2 spec). */
 export interface CharacterData {
   name: string;

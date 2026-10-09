@@ -872,7 +872,6 @@ export function replaceBuiltInAgentDefinitions(manifests: readonly BuiltInAgentM
   }
 }
 
-
 /**
  * Single proposed edit to a character card field.
  *

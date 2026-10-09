@@ -181,7 +181,6 @@ export type SpatialTransitionErrorCode =
   | "spatial_destination_missing"
   | "spatial_destination_unreachable";
 
-
 export interface SpatialContextResponse {
   definition: SpatialContextDefinition | null;
   currentLocationId: string | null;

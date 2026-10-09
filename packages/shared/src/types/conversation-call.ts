@@ -1,4 +1,3 @@
-
 type ConversationCallStatus = "ringing" | "active" | "ended" | "declined" | "missed";
 type ConversationCallMode = "audio" | "video";
 type ConversationCallInitiator = "user" | "character";
@@ -28,8 +27,6 @@ export interface ConversationCallSession {
   createdAt: string;
   updatedAt: string;
 }
-
-
 
 interface ConversationCallCharacterVideoClip {
   kind: ConversationCallCharacterVideoClipKind;

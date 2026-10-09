@@ -1,7 +1,5 @@
 import type { SkillCheckResult } from "../types/game.js";
 
-
-
 /**
  * Whether the dice literally sum to the total, so a "a + b + c = total"
  * breakdown is a true statement.

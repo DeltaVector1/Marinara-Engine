@@ -130,8 +130,6 @@ export async function getConversationCallCharacterVideoManifest(
   );
 }
 
-
-
 export function uploadConversationCallCharacterVideoClip(
   input: BaseVideoInput & {
     buffer: Buffer;
@@ -167,5 +165,3 @@ export function deleteConversationCallCharacterVideoClip(
 export function deleteConversationCallCustomVideoClip(input: BaseVideoInput & { clipId: string }) {
   return requireProvider().deleteConversationCallCustomVideoClip(input);
 }
-
-

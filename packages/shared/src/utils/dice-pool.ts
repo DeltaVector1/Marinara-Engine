@@ -70,11 +70,6 @@ export const MAX_GAME_DICE_POOL_WINDOW = 6;
 /** The longest idle clock worth offering. Past this the latch is effectively unbounded. */
 export const MAX_GAME_DICE_POOL_AGE_TURNS = 20;
 
-
-
-
-
-
 /**
  * Read a `pool=` value the model wrote.
  *

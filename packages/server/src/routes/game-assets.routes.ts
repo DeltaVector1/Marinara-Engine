@@ -3,7 +3,22 @@
 // ──────────────────────────────────────────────
 import type { FastifyInstance } from "fastify";
 import { logger } from "../lib/logger.js";
-import { existsSync, mkdirSync, writeFileSync, createReadStream, createWriteStream, readdirSync, statSync, rmdirSync, renameSync, copyFileSync, readFileSync, realpathSync, rmSync, unlinkSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  createReadStream,
+  createWriteStream,
+  readdirSync,
+  statSync,
+  rmdirSync,
+  renameSync,
+  copyFileSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  unlinkSync,
+} from "fs";
 import { join, extname, basename, dirname, resolve, sep } from "path";
 import { execFile } from "child_process";
 import { platform } from "os";
@@ -276,13 +291,7 @@ function prepareAssetTarget(category: string, subcategory: string, filename: str
   if (category === "music") {
     const parts = subcategory.split("/").filter(Boolean);
     const [state, genre, intensity] = parts;
-    if (
-      parts.length !== 3 ||
-      !state ||
-      !genre ||
-      !intensity ||
-      !MUSIC_STATE_SET.has(state)
-    ) {
+    if (parts.length !== 3 || !state || !genre || !intensity || !MUSIC_STATE_SET.has(state)) {
       throw new Error("Music folder must be state/genre/intensity, e.g. exploration/fantasy/calm");
     }
   }

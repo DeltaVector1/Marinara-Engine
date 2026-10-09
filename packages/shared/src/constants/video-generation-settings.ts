@@ -1,6 +1,4 @@
-import {
-  CONVERSATION_CALL_CHARACTER_VIDEO_CLIP_KINDS,
-} from "../types/conversation-call.js";
+import { CONVERSATION_CALL_CHARACTER_VIDEO_CLIP_KINDS } from "../types/conversation-call.js";
 import type {
   ConversationCallVideoClipDurations,
   VideoGenerationUserSettings,

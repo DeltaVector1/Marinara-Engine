@@ -25,10 +25,7 @@ export interface SemanticLorebookMatch {
   similarity: number;
 }
 
-function selectLorebookVectorQueryText(
-  messages: Array<{ content: string; role?: string }>,
-  depth: number,
-): string {
+function selectLorebookVectorQueryText(messages: Array<{ content: string; role?: string }>, depth: number): string {
   // Opening and assistant prose can dwarf a short, exact user query. Retrieval
   // should follow what the user is asking about now, while still allowing a
   // configurable history of earlier user turns.

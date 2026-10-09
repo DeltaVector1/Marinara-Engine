@@ -16,12 +16,7 @@ import { DATA_DIR } from "../../utils/data-dir.js";
 import { generateImage, type ImageGenRequest, type ImageGenResult } from "../image/image-generation.js";
 import { buildAssetManifest, GAME_ASSETS_DIR } from "./asset-manifest.service.js";
 import type { PromptOverridesStorage } from "../storage/prompt-overrides.storage.js";
-import {
-  loadPrompt,
-  GAME_NPC_PORTRAIT,
-  GAME_BACKGROUND,
-  MAPS_LOCATION_ARTWORK,
-} from "../prompt-overrides/index.js";
+import { loadPrompt, GAME_NPC_PORTRAIT, GAME_BACKGROUND, MAPS_LOCATION_ARTWORK } from "../prompt-overrides/index.js";
 import {
   type ImageGenerationDefaultsProfile,
   type ImageGenerationQuality,
@@ -71,7 +66,6 @@ type GameBackgroundImage = {
   ext: string;
 };
 
-
 function atomicWriteBuffer(filePath: string, buffer: Buffer): void {
   const tmpPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
   try {
@@ -86,11 +80,6 @@ function atomicWriteBuffer(filePath: string, buffer: Buffer): void {
     throw err;
   }
 }
-
-
-
-
-
 
 /** Return the extension implied by known image file signatures. */
 function detectImageExt(buffer: Buffer): string | null {
@@ -184,9 +173,6 @@ function isUsableGeneratedImagePath(filePath: string): boolean {
     return false;
   }
 }
-
-
-
 
 export function readAvatarBase64(avatarPath: string | null | undefined): string | undefined {
   if (!avatarPath) return undefined;
@@ -438,9 +424,7 @@ type GameDynamicImagePromptRequest = {
   maxCharacters: number;
 };
 
-type GameDynamicImagePromptGenerator = (
-  request: GameDynamicImagePromptRequest,
-) => Promise<string | null | undefined>;
+type GameDynamicImagePromptGenerator = (request: GameDynamicImagePromptRequest) => Promise<string | null | undefined>;
 
 async function buildNpcPortraitRawPrompt(req: NpcPortraitRequest): Promise<string> {
   const vars = npcPortraitVariables(req);
@@ -783,7 +767,6 @@ interface MapsLocationArtworkContext {
   imageInstructions: string;
 }
 
-
 interface SceneIllustrationGenRequest {
   chatId: string;
   title?: string;
@@ -955,14 +938,6 @@ export async function buildBackgroundProviderPrompt(req: BackgroundGenRequest): 
     GAME_BACKGROUND_NEGATIVE_PROMPT,
   );
 }
-
-
-
-
-
-
-
-
 
 /**
  * Generate a background image for a game location and add it to the

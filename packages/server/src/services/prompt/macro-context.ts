@@ -1033,9 +1033,7 @@ export async function collectCharacterAdvancedPromptEntries(
   return [...depthEntries, ...postHistoryEntries];
 }
 
-export function resolveCharacterAdvancedPromptIds(
-  characterIds: string[],
-): string[] {
+export function resolveCharacterAdvancedPromptIds(characterIds: string[]): string[] {
   const resolved = new Set(characterIds.filter((id) => id && !id.startsWith("npc:")));
   return [...resolved];
 }

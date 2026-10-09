@@ -1,7 +1,4 @@
-import {
-  type GmVerb,
-} from "@marinara-engine/shared";
-
+import { type GmVerb } from "@marinara-engine/shared";
 
 type GmVerbArgValue = string | number | boolean;
 type GmVerbArgs = Record<string, GmVerbArgValue>;
@@ -11,14 +8,3 @@ export type GmVerbCall = {
   verb: GmVerb;
   args: GmVerbArgs;
 };
-
-
-
-
-
-
-
-
-
-
-

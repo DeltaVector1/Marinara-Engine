@@ -130,7 +130,6 @@ function parseEmbeddedJson(raw: string): unknown | undefined {
   return undefined;
 }
 
-
 function scanJsonishStructure(raw: string): {
   started: boolean;
   mismatched: boolean;

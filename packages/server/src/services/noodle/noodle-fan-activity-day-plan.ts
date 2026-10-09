@@ -4,8 +4,7 @@ const NOODLE_FAN_ACTIVITY_MAX_MANUAL_RUNS = 24 as const;
 const NOODLE_FAN_ACTIVITY_MAX_CREATORS_PER_RUN = 12 as const;
 export const NOODLE_FAN_ACTIVITY_MAX_ACTIVITIES_PER_CREATOR = 4 as const;
 
-type NoodleFanActivityRunStatus =
-  "scheduled" | "generating" | "applying" | "completed" | "skipped" | "abandoned";
+type NoodleFanActivityRunStatus = "scheduled" | "generating" | "applying" | "completed" | "skipped" | "abandoned";
 
 interface NoodleFanAcceptedActivity {
   id: string;
@@ -37,7 +36,6 @@ interface PersistedNoodleFanActivityDayPlan {
   nextCreatorOffset: number;
 }
 
-
 function isTimestamp(value: unknown): value is string {
   return typeof value === "string" && Number.isFinite(Date.parse(value));
 }
@@ -52,9 +50,6 @@ function isStatus(value: unknown): value is NoodleFanActivityRunStatus {
     value === "abandoned"
   );
 }
-
-
-
 
 function validActivity(value: unknown): value is NoodleFanAcceptedActivity {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
@@ -123,6 +118,5 @@ export function parsePersistedNoodleFanActivityDayPlan(value: unknown): Persiste
     nextCreatorOffset: row.nextCreatorOffset,
   };
 }
-
 
 import type { NoodleAuthorSnapshot } from "@marinara-engine/shared";

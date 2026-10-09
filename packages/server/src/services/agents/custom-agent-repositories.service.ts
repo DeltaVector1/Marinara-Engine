@@ -4,7 +4,19 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import AdmZip from "adm-zip";
 import { z } from "zod";
-import { APP_VERSION, CUSTOM_AGENT_IMPORT_SOURCE_SETTING, CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING, normalizeCustomAgentCapabilities, packagedAgentDefinitionsSchema, parseAgentSettingsRecord, type CreateAgentConfigInput, type CustomAgentRepository, type CustomAgentRepositoryChange, type CustomAgentRepositoryPreview, type PackagedAgentDefinition } from "@marinara-engine/shared";
+import {
+  APP_VERSION,
+  CUSTOM_AGENT_IMPORT_SOURCE_SETTING,
+  CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING,
+  normalizeCustomAgentCapabilities,
+  packagedAgentDefinitionsSchema,
+  parseAgentSettingsRecord,
+  type CreateAgentConfigInput,
+  type CustomAgentRepository,
+  type CustomAgentRepositoryChange,
+  type CustomAgentRepositoryPreview,
+  type PackagedAgentDefinition,
+} from "@marinara-engine/shared";
 import type { DB } from "../../db/connection.js";
 import { logger } from "../../lib/logger.js";
 import { DATA_DIR } from "../../utils/data-dir.js";
@@ -350,7 +362,6 @@ export function createCustomAgentRepositoriesService(db: DB) {
     }
   }
 
-
   return {
     async list() {
       return (await readRegistry()).repositories;
@@ -383,11 +394,7 @@ export function createCustomAgentRepositoriesService(db: DB) {
           agentCount: snapshot.definitions.length,
         };
         await writeRegistry([...registry.repositories, repository]);
-        logger.info(
-          "Added custom agent repository %s with %d agents",
-          repository.url,
-          repository.agentCount,
-        );
+        logger.info("Added custom agent repository %s with %d agents", repository.url, repository.agentCount);
         return repository;
       });
     },
@@ -414,11 +421,7 @@ export function createCustomAgentRepositoriesService(db: DB) {
           agentCount: snapshot.definitions.length,
         };
         await writeRegistry(registry.repositories.map((entry) => (entry.id === repositoryId ? repository : entry)));
-        logger.info(
-          "Synced custom agent repository %s with %d agents",
-          repository.url,
-          repository.agentCount,
-        );
+        logger.info("Synced custom agent repository %s with %d agents", repository.url, repository.agentCount);
         return repository;
       });
     },

@@ -86,7 +86,6 @@ export function assertInsideDir(rootDir: string, candidatePath: string): string 
   throw new Error("Path escapes the allowed directory");
 }
 
-
 export function isAllowedImageBuffer(buffer: Buffer, _expectedExt?: string): { ext: string; mimeType: string } | null {
   if (
     buffer.length >= 8 &&

@@ -12,12 +12,10 @@ const GALLERY_DIR = join(DATA_DIR, "gallery");
 // while NoodleR is in alpha; if that stops being true, migrate rather than rename again.
 const NOODLER_MEDIA_PREFIX = "noodler-media/";
 
-
 /** Access-checked serving URL for a NoodleR post's generated image. */
 export function noodlerPostMediaUrl(postId: string): string {
   return `/api/noodle/noodler/posts/${encodeURIComponent(postId)}/media`;
 }
-
 
 // A locked post shows a blurred teaser, not a grey frame — that is what the onboarding
 // wizard teaches users to recognise. The blur has to happen server-side: shipping the

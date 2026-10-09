@@ -7,7 +7,15 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync 
 import { writeFile } from "fs/promises";
 import { basename, extname, join } from "path";
 import { z } from "zod";
-import { findImageStyleProfile, LOCAL_SIDECAR_CONNECTION_ID, readImageAppearanceOverride, VIDEO_GENERATION_SETTINGS_KEY, normalizeVideoGenerationUserSettings, type GameSceneVideoAspectRatio, type GeneratedSceneVideo } from "@marinara-engine/shared";
+import {
+  findImageStyleProfile,
+  LOCAL_SIDECAR_CONNECTION_ID,
+  readImageAppearanceOverride,
+  VIDEO_GENERATION_SETTINGS_KEY,
+  normalizeVideoGenerationUserSettings,
+  type GameSceneVideoAspectRatio,
+  type GeneratedSceneVideo,
+} from "@marinara-engine/shared";
 import { createGalleryStorage } from "../services/storage/gallery.storage.js";
 import { createChatsStorage } from "../services/storage/chats.storage.js";
 import { createCharactersStorage } from "../services/storage/characters.storage.js";
@@ -18,36 +26,73 @@ import { createAgentsStorage } from "../services/storage/agents.storage.js";
 import { createGameSceneVideosStorage } from "../services/storage/game-scene-videos.storage.js";
 import { createPromptOverridesStorage } from "../services/storage/prompt-overrides.storage.js";
 import { createAppSettingsStorage } from "../services/storage/app-settings.storage.js";
-import { generateVideo, removeSavedVideoFromDisk, saveVideoToDisk, type VideoReferenceImage } from "../services/video/video-generation.js";
+import {
+  generateVideo,
+  removeSavedVideoFromDisk,
+  saveVideoToDisk,
+  type VideoReferenceImage,
+} from "../services/video/video-generation.js";
 import { resolveGameVideoRuntime } from "../services/video/game-video-runtime.js";
 import { loadGameVideoPrompt } from "../services/video/game-video-prompt.js";
 import { buildBackgroundProviderPrompt } from "../services/game/game-asset-generation.js";
 import { generateImage, removeSavedImageFromDisk, saveImageToDisk } from "../services/image/image-generation.js";
 import { resolveGalleryImagePath } from "../services/image/gallery-image-path.js";
 import { parseThumbnailWidth, resolveThumbPath } from "../services/image/image-thumbnail.js";
-import { resolveConnectionImageDefaults, resolveConnectionImageQuality } from "../services/image/image-generation-defaults.js";
+import {
+  resolveConnectionImageDefaults,
+  resolveConnectionImageQuality,
+} from "../services/image/image-generation-defaults.js";
 import { loadImageGenerationUserSettings } from "../services/image/image-generation-settings.js";
-import { compileImagePrompt, formatImageStylePromptGuidance, resolveImageStyleGuidanceText } from "../services/image/image-prompt-compiler.js";
-import { resolveImagePromptReviewSize, resolveReviewedImagePromptSubmission } from "../services/image/image-prompt-review.js";
+import {
+  compileImagePrompt,
+  formatImageStylePromptGuidance,
+  resolveImageStyleGuidanceText,
+} from "../services/image/image-prompt-compiler.js";
+import {
+  resolveImagePromptReviewSize,
+  resolveReviewedImagePromptSubmission,
+} from "../services/image/image-prompt-review.js";
 import { runImageGenerationRequest } from "../services/image/image-generation-queue.js";
 import { generateIllustratorImageVariants } from "../services/image/illustrator-image-variants.js";
 import { persistGeneratedImageToEntityGalleries } from "../services/image/generated-image-entity-gallery.js";
 import { deleteChatGalleryImageEverywhere } from "../services/image/chat-gallery-cascade-deletion.js";
-import { findGalleryRowByFilename, resolveStoredGalleryFile, storedGalleryFilename } from "../services/image/gallery-file-lifecycle.js";
-import { resolveImageConnectionFallback, resolveVideoConnectionFallback } from "../services/generation/media-connection-fallback.js";
+import {
+  findGalleryRowByFilename,
+  resolveStoredGalleryFile,
+  storedGalleryFilename,
+} from "../services/image/gallery-file-lifecycle.js";
+import {
+  resolveImageConnectionFallback,
+  resolveVideoConnectionFallback,
+} from "../services/generation/media-connection-fallback.js";
 import { resolveIllustratorPromptRuntime } from "../services/generation/illustrator-prompt-runtime.js";
 import { resolveConversationSelfieSystemPrompt } from "../services/conversation/selfie-prompt.js";
 import { appendImagePromptInstructions } from "../services/generation/image-prompt-instructions.js";
-import { suppressesReferencePromptLine, resolveIllustratorCharacterReferences } from "./generate/illustrator-references.js";
+import {
+  suppressesReferencePromptLine,
+  resolveIllustratorCharacterReferences,
+} from "./generate/illustrator-references.js";
 import { resolveBaseUrl } from "./generate/generate-route-utils.js";
-import { compactVideoPromptText, excerptIllustrationPromptForVideo, resolveGalleryVideoNarrationSummary, resolveGalleryVideoSourceExchange } from "../services/video/prompt-context.js";
+import {
+  compactVideoPromptText,
+  excerptIllustrationPromptForVideo,
+  resolveGalleryVideoNarrationSummary,
+  resolveGalleryVideoSourceExchange,
+} from "../services/video/prompt-context.js";
 import { resolveSceneVideoPrompt, SceneVideoPromptReviewError } from "../services/video/scene-video-prompt-review.js";
-import { buildRoleplayVideoDirectionMessages, resolveRoleplayVideoDirection } from "../services/video/roleplay-video-direction.js";
+import {
+  buildRoleplayVideoDirectionMessages,
+  resolveRoleplayVideoDirection,
+} from "../services/video/roleplay-video-direction.js";
 import { isDebugAgentsEnabled } from "../config/runtime-config.js";
 import { newId } from "../utils/id-generator.js";
 import { DATA_DIR } from "../utils/data-dir.js";
 import { assertInsideDir, isAllowedImageBuffer } from "../utils/security.js";
-import { sendValidatedMediaFile, validateImageAssetFile, validateVideoAssetFile } from "../utils/media-file-security.js";
+import {
+  sendValidatedMediaFile,
+  validateImageAssetFile,
+  validateVideoAssetFile,
+} from "../utils/media-file-security.js";
 import { logger, logDebugOverride } from "../lib/logger.js";
 
 const GALLERY_DIR = join(DATA_DIR, "gallery");
@@ -279,17 +324,15 @@ function readTrimmedString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
-async function resolveGalleryImageConnection(
-  app: FastifyInstance,
-  metadata: Record<string, unknown>,
-) {
+async function resolveGalleryImageConnection(app: FastifyInstance, metadata: Record<string, unknown>) {
   const agents = createAgentsStorage(app.db);
   const connections = createConnectionsStorage(app.db);
   const illustrator = await agents.getByType("illustrator").catch((err) => {
     logger.warn(err, "[gallery/generate-image] Failed to read Illustrator settings");
     return null;
   });
-  const configuredId = resolveIllustratorImageConnectionId(metadata,
+  const configuredId = resolveIllustratorImageConnectionId(
+    metadata,
     parseJsonRecord(illustrator?.settings).imageConnectionId,
   );
   let connection = configuredId ? await connections.getWithKey(configuredId) : null;

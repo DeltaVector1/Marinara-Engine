@@ -190,9 +190,7 @@ async function chatBackend(
 }
 
 /** Read the local entry the user picked, if any, ignoring one this build cannot serve. */
-async function readDecisionLocalSlot(
-  getLocalDefault: () => Promise<string | null>,
-): Promise<DecisionLocalSlot | null> {
+async function readDecisionLocalSlot(getLocalDefault: () => Promise<string | null>): Promise<DecisionLocalSlot | null> {
   const slot = decisionLocalSlotForId(await getLocalDefault());
   // Whether the slot can actually serve is `resolveDecisionSlot`'s answer, not a
   // property of the id: a slot with no model is still a real slot.

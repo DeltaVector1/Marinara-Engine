@@ -10,7 +10,13 @@ import { createLorebooksStorage } from "../storage/lorebooks.storage.js";
 import { createRegexScriptsStorage } from "../storage/regex-scripts.storage.js";
 import { importSTLorebook } from "./st-lorebook.importer.js";
 import { containsDecisionStatements, isPatternSafe } from "@marinara-engine/shared";
-import type { CharacterBookEntryPosition, CharacterBookEntryRole, CharacterData, CreateRegexScriptInput, RegexPlacement } from "@marinara-engine/shared";
+import type {
+  CharacterBookEntryPosition,
+  CharacterBookEntryRole,
+  CharacterData,
+  CreateRegexScriptInput,
+  RegexPlacement,
+} from "@marinara-engine/shared";
 import { existsSync, mkdirSync } from "fs";
 import { unlink, writeFile } from "fs/promises";
 import { join } from "path";
@@ -202,14 +208,12 @@ export async function importSTCharacter(raw: Record<string, unknown>, db: DB, op
   const avatarDataUrl = raw._avatarDataUrl as string | null;
   delete raw._avatarDataUrl;
 
-
   const data = normalizeCharacterData(raw);
   const rawEmbeddedLorebook = extractRawCharacterBook(raw) ?? data.character_book;
   if (rawEmbeddedLorebook) {
     data.character_book = normalizeCharacterBook(rawEmbeddedLorebook);
   }
   data.tags = await filterImportedTags(data.tags, db, tagImportMode, options?.existingTagKeys);
-
 
   const existingImportMetadata =
     data.extensions[IMPORT_METADATA_KEY] && typeof data.extensions[IMPORT_METADATA_KEY] === "object"

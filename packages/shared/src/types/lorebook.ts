@@ -313,7 +313,6 @@ export interface LorebookEntryTimingState {
   delayRemaining: number;
 }
 
-
 /** An objective within a quest stage. */
 export interface QuestObjective {
   text: string;

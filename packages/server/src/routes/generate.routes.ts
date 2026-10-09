@@ -437,9 +437,7 @@ import {
   waitForConversationPresenceDelay,
 } from "./generate/conversation-presence-runtime.js";
 import { injectCapabilityContexts } from "../services/generation/capability-prompt-runtime.js";
-import {
-  type GmVerbCall,
-} from "../services/capability-packages/capability-gm-verb-runtime.service.js";
+import { type GmVerbCall } from "../services/capability-packages/capability-gm-verb-runtime.service.js";
 import {
   appendToFirstSystemMessage,
   CONVERSATION_NO_REPEAT_INSTRUCTION,
@@ -502,7 +500,6 @@ import {
   shouldSuppressAssistantSpatialMutation,
   validateSpatialGenerationRequest,
 } from "./generate/spatial-transition-request.js";
-import { getCapabilityService } from "../services/capability-packages/capability-service-registry.service.js";
 import { normalizeContextInjections } from "./generate/agent-normalizers.js";
 import {
   buildGenerationPromptPresetCandidates,
@@ -3701,39 +3698,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           chats,
           finalMessages,
         });
-
-        const noodlePromptContext = getCapabilityService<{
-          build(input: {
-            db: typeof app.db;
-            chatMode: typeof chatMode;
-            characterIds: string[];
-            personaId: string | null;
-            wrapFormat: typeof wrapFormat;
-          }): Promise<string | null>;
-        }>("noodle:prompt-context");
-        let recentSocialMediaActivityBlock: string | null = null;
-        if (noodlePromptContext) {
-          try {
-            recentSocialMediaActivityBlock = await noodlePromptContext.build({
-              db: app.db,
-              chatMode,
-              characterIds: promptCharacterIds,
-              personaId,
-              wrapFormat,
-            });
-          } catch (err) {
-            logger.warn(err, "Optional Noodle prompt context failed; continuing without social activity");
-          }
-        }
-        if (recentSocialMediaActivityBlock) {
-          const firstUserIdx = finalMessages.findIndex((m) => m.role === "user" || m.role === "assistant");
-          const insertAt = firstUserIdx >= 0 ? firstUserIdx : finalMessages.length;
-          finalMessages.splice(insertAt, 0, {
-            role: "system" as const,
-            content: recentSocialMediaActivityBlock,
-            contextKind: "injection",
-          });
-        }
 
         let generationProviderOrigin: { model: string; provider: string } = {
           model: conn.model,
@@ -10408,8 +10372,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 };
                 logger.debug("[game_state_patch] world-state: %j", worldStatePatch);
                 sendSseEvent(reply, { type: "game_state_patch", data: worldStatePatch });
-
-
               } catch (err) {
                 logger.error(err, "[generate] Failed to apply world-state tracker update");
               }
@@ -10893,7 +10855,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                     }
                     logger.debug("[game_state_patch] quests: %j", questTrackerPatch.values);
                     sendSseEvent(reply, { type: "game_state_patch", data: questTrackerPatch.patch });
-
                   }
                 }
               } catch (err) {
@@ -11074,9 +11035,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 const imagePositivePrompt = ((imagePromptAgent?.settings?.imagePositivePrompt as string) ?? "").trim();
                 const savedNegativePrompt = ((imagePromptAgent?.settings?.imageNegativePrompt as string) ?? "").trim();
                 const imageConnectionOverride = usesChatIllustratorSettings
-                  ? resolveIllustratorImageConnectionId(chatMeta,
-                      imagePromptAgent?.settings?.imageConnectionId,
-                    )
+                  ? resolveIllustratorImageConnectionId(chatMeta, imagePromptAgent?.settings?.imageConnectionId)
                   : typeof imagePromptAgent?.settings?.imageConnectionId === "string"
                     ? imagePromptAgent.settings.imageConnectionId.trim()
                     : "";
@@ -11933,9 +11892,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       // Keep the SSE stream open for visual jobs and Advanced Recall activity.
       if (pendingIllustration || pendingAdvancedMemory || pendingRoleplayMedia.length) {
         await Promise.allSettled(
-          [pendingIllustration, pendingAdvancedMemory, ...pendingRoleplayMedia].filter(
-            Boolean,
-          ) as Promise<void>[],
+          [pendingIllustration, pendingAdvancedMemory, ...pendingRoleplayMedia].filter(Boolean) as Promise<void>[],
         );
       }
     } catch (err) {

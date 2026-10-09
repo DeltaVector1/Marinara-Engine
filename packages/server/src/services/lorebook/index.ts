@@ -34,11 +34,7 @@ import {
   updateTimingStatesForScan,
 } from "./keyword-scanner.js";
 import type { LorebookImageEntry } from "../generation/lorebook-image-prompt.js";
-import {
-  estimateLorebookEntryTokens,
-  fitLorebookEntryToBudget,
-  processActivatedEntries,
-} from "./prompt-injector.js";
+import { estimateLorebookEntryTokens, fitLorebookEntryToBudget, processActivatedEntries } from "./prompt-injector.js";
 
 export interface LorebookScanResult {
   worldInfoBefore: string;
@@ -442,9 +438,7 @@ function hasSerializedTimingStates(states?: Record<string, LorebookEntryTimingSt
   return states !== undefined && Object.keys(states).length > 0;
 }
 
-function serializeTimingStateMap(
-  states: Map<string, EntryTimingState>,
-): Record<string, LorebookEntryTimingState> {
+function serializeTimingStateMap(states: Map<string, EntryTimingState>): Record<string, LorebookEntryTimingState> {
   const record: Record<string, LorebookEntryTimingState> = {};
   for (const [entryId, state] of states) {
     record[entryId] = {

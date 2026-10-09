@@ -174,8 +174,6 @@ interface StateResolutionService {
 
 const service = () => getCapabilityService<StateResolutionService>("hierarchical-maps:state-resolution");
 
-
-
 export async function materializeAssistantSpatialState(
   input: {
     chatId: string;

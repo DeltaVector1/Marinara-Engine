@@ -25,4 +25,3 @@ export function stripSurroundingDialogueQuotes(content: string): string {
 
   return content;
 }
-

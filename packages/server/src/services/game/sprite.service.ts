@@ -24,7 +24,6 @@ const AUTOMATIC_FULL_BODY_POSES = new Set([
   "point",
 ]);
 
-
 interface FullBodySpriteReference {
   expression: string;
   filename: string;

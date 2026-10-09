@@ -18,4 +18,3 @@ function readNoodlePoll(value: unknown): NoodlePoll | null {
 export function readNoodlePollFromMetadata(metadata: Record<string, unknown> | null | undefined): NoodlePoll | null {
   return readNoodlePoll(metadata?.poll);
 }
-

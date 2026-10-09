@@ -138,10 +138,7 @@ type ResolvedGenerationTools = {
   finalizeLorebookWrites: () => Promise<void>;
 };
 
-function resolveToolLorebookCharacterIds(
-  promptCharacterIds: string[],
-  lorebookCharacterIds?: string[],
-): string[] {
+function resolveToolLorebookCharacterIds(promptCharacterIds: string[], lorebookCharacterIds?: string[]): string[] {
   return lorebookCharacterIds ?? promptCharacterIds;
 }
 

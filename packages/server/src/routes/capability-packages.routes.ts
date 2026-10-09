@@ -2,7 +2,10 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { BUILT_IN_AGENT_MANIFESTS } from "@marinara-engine/shared";
 import { requirePrivilegedAccess } from "../middleware/privileged-gate.js";
-import { capabilityPackageManager, CapabilityPackageVersionMismatchError } from "../services/capability-packages/package-manager.service.js";
+import {
+  capabilityPackageManager,
+  CapabilityPackageVersionMismatchError,
+} from "../services/capability-packages/package-manager.service.js";
 import { capabilityModuleRuntime } from "../services/capability-packages/capability-module-runtime.service.js";
 import { refreshCapabilityAgentRegistry } from "../services/capability-packages/capability-agent-registry.service.js";
 import { createChatsStorage } from "../services/storage/chats.storage.js";

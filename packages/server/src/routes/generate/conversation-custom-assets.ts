@@ -72,11 +72,7 @@ async function rankEmojiNamesBySemantic(names: string[], query: string): Promise
 }
 
 /** Order a pool of emoji names per the selection mode (does NOT cap; the formatter slices to maxCount). */
-async function orderEmojiNames(
-  names: string[],
-  prefs: CustomEmojiSelectionPrefs,
-  query: string,
-): Promise<string[]> {
+async function orderEmojiNames(names: string[], prefs: CustomEmojiSelectionPrefs, query: string): Promise<string[]> {
   if (names.length <= 1) return names;
   // Reached for random/semantic, and as the tool-call fallback path: rank semantically when possible.
   if (prefs.mode === "semantic" || prefs.mode === "tool-call") {

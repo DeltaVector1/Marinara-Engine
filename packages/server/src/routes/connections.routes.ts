@@ -1896,9 +1896,7 @@ const OPENROUTER_PARAMETER_FIELDS: Record<string, GenerationParameterKey> = {
   verbosity: "verbosity",
 };
 
-function readOpenRouterModelCapabilities(
-  model: Record<string, unknown>,
-): ModelParameterCapabilities | undefined {
+function readOpenRouterModelCapabilities(model: Record<string, unknown>): ModelParameterCapabilities | undefined {
   const fields = Array.isArray(model.supported_parameters) ? model.supported_parameters : [];
   const keys = new Set<GenerationParameterKey>();
   for (const field of fields) {

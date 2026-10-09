@@ -184,7 +184,6 @@ export interface ConnectionFolder {
   updatedAt: string;
 }
 
-
 /** Test result for a connection. */
 export interface ConnectionTestResult {
   success: boolean;

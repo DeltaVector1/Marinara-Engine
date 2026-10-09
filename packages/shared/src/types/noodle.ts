@@ -20,8 +20,7 @@ export type NoodleCarryoverTarget = "conversation" | "roleplay" | "game";
 type NoodleParticipantSelectionMode = "all" | "random_range" | "exact";
 type NoodleIdentityDisclosure = "open" | "hinted" | "secret";
 type NoodlerOnboardingState = "incomplete" | "zero" | "completed";
-type NoodlerFanArchetype =
-  "ordinary" | "eccentric" | "crossFandom" | "raider" | "organicDiscovery" | "freeResource";
+type NoodlerFanArchetype = "ordinary" | "eccentric" | "crossFandom" | "raider" | "organicDiscovery" | "freeResource";
 
 export interface NoodlerSourceSnapshot {
   publicDisplayName: string;
@@ -271,8 +270,6 @@ export interface NoodlePostUnlock {
   postId: string;
   createdAt: string;
 }
-
-
 
 export interface NoodleInteraction {
   id: string;

@@ -682,7 +682,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     return chats.map(normalizeChatForResponse);
   });
 
-
   // Lightweight candidate ids for the background-autonomous poller (#4704):
   // the poller only needs ids, so skip the full-list materialization,
   // metadata serialization, and DM-cleanup scans the / route performs.
@@ -1080,12 +1079,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     }
     if (Object.prototype.hasOwnProperty.call(incoming, "summaryMaxTokens")) {
       incoming.summaryMaxTokens = clampRoleplaySummaryMaxTokens(incoming.summaryMaxTokens);
-    }
-    if (
-      Object.prototype.hasOwnProperty.call(incoming, "noodleTimelineContextEnabled") &&
-      typeof incoming.noodleTimelineContextEnabled !== "boolean"
-    ) {
-      return reply.status(400).send({ error: "noodleTimelineContextEnabled must be a boolean" });
     }
     if (
       Object.prototype.hasOwnProperty.call(incoming, "slurp2ActivityContextEnabled") &&

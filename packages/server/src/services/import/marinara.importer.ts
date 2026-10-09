@@ -1,10 +1,37 @@
-import { decodeLorebookImages, saveDecodedLorebookImages, discardImportedLorebookImages } from "../lorebook/lorebook-images.js";
+import {
+  decodeLorebookImages,
+  saveDecodedLorebookImages,
+  discardImportedLorebookImages,
+} from "../lorebook/lorebook-images.js";
 // ──────────────────────────────────────────────
 // Import: Marinara Engine native format (.marinara.json)
 // ──────────────────────────────────────────────
 import type { DB } from "../../db/connection.js";
-import { canReparentFolder, getFolderImportEntries, getFolderManifestConfig, isJsonRecord, characterDataSchema, canonicalizeLegacyPersonaInput, normalizeAvatarCrop, normalizeConvoBehavior, normalizePersonaStats, normalizePersonaStringArray, normalizeTrackerCardColorConfig, resolveScopedRegexMode, personaCreateInputSchema, lorebookFilterModeSchema, MAX_FILE_SIZES, parseLorebookDecisionActivation } from "@marinara-engine/shared";
-import type { CharacterData, ExportEnvelope, ExportType, LorebookFilterMode, LorebookMatchingSource } from "@marinara-engine/shared";
+import {
+  canReparentFolder,
+  getFolderImportEntries,
+  getFolderManifestConfig,
+  isJsonRecord,
+  characterDataSchema,
+  canonicalizeLegacyPersonaInput,
+  normalizeAvatarCrop,
+  normalizeConvoBehavior,
+  normalizePersonaStats,
+  normalizePersonaStringArray,
+  normalizeTrackerCardColorConfig,
+  resolveScopedRegexMode,
+  personaCreateInputSchema,
+  lorebookFilterModeSchema,
+  MAX_FILE_SIZES,
+  parseLorebookDecisionActivation,
+} from "@marinara-engine/shared";
+import type {
+  CharacterData,
+  ExportEnvelope,
+  ExportType,
+  LorebookFilterMode,
+  LorebookMatchingSource,
+} from "@marinara-engine/shared";
 import { createCharactersStorage } from "../storage/characters.storage.js";
 import { createCharacterGalleryStorage } from "../storage/character-gallery.storage.js";
 import { createPersonaGalleryStorage } from "../storage/persona-gallery.storage.js";

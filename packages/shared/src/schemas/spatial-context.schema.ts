@@ -10,10 +10,6 @@ const spatialIdSchema = z
 
 const spatialTravelModeSchema = z.enum(["step_by_step", "travel_now"]);
 
-
-
-
-
 export const pendingSpatialTransitionSchema = z
   .object({
     destinationId: spatialIdSchema,
@@ -23,6 +19,3 @@ export const pendingSpatialTransitionSchema = z
     commandId: z.string().trim().min(1).max(SPATIAL_CONTEXT_LIMITS.maxCommandIdLength),
   })
   .strict();
-
-
-

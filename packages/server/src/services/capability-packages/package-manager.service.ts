@@ -4,7 +4,30 @@ import { lstat, mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs
 import { dirname, extname, join, resolve, sep } from "node:path";
 import AdmZip from "adm-zip";
 import { z } from "zod";
-import { APP_VERSION, containsDecisionStatements, parseCapabilityCatalogWithCompat, capabilityPackageManifestSchema, compareCapabilityPackageVersions, getCapabilityApiCompatibilityIssue, GM_VERB_TABLE_ASSET_PATH, GM_VERB_TABLE_MAX_BYTES, isInstalledCapabilityReady, installedCapabilityRegistrySchema, installedCapabilityPackageSchema, packagedAgentDefinitionsSchema, capabilityReleaseNotesSchema, type CapabilityCatalog, type CapabilityCatalogPackage, type StampedCapabilityCatalog, type StampedCapabilityCatalogPackage, type PackagedAgentDefinition, type CapabilityPackageUpdate, type CapabilityPackageVersionNote, type CapabilityReleaseNotes, type InstalledCapabilityPackage } from "@marinara-engine/shared";
+import {
+  APP_VERSION,
+  containsDecisionStatements,
+  parseCapabilityCatalogWithCompat,
+  capabilityPackageManifestSchema,
+  compareCapabilityPackageVersions,
+  getCapabilityApiCompatibilityIssue,
+  GM_VERB_TABLE_ASSET_PATH,
+  GM_VERB_TABLE_MAX_BYTES,
+  isInstalledCapabilityReady,
+  installedCapabilityRegistrySchema,
+  installedCapabilityPackageSchema,
+  packagedAgentDefinitionsSchema,
+  capabilityReleaseNotesSchema,
+  type CapabilityCatalog,
+  type CapabilityCatalogPackage,
+  type StampedCapabilityCatalog,
+  type StampedCapabilityCatalogPackage,
+  type PackagedAgentDefinition,
+  type CapabilityPackageUpdate,
+  type CapabilityPackageVersionNote,
+  type CapabilityReleaseNotes,
+  type InstalledCapabilityPackage,
+} from "@marinara-engine/shared";
 import { DATA_DIR } from "../../utils/data-dir.js";
 import { safeFetch } from "../../utils/security.js";
 import { logger } from "../../lib/logger.js";
@@ -16,7 +39,6 @@ const VERSIONS = join(ROOT, "versions");
 const REGISTRY = join(ROOT, "installed.json");
 const UPDATE_DECISIONS = join(ROOT, "update-decisions-v1.json");
 const AVAILABILITY_MIGRATION = join(ROOT, "availability-migration-v1.json");
-const NOODLE_EXTRACTION_MIGRATION = join(ROOT, "noodle-extraction-migration-v1.json");
 const HIERARCHICAL_MAPS_SELECTION_CORRECTION = join(ROOT, "hierarchical-maps-selection-correction-v1.json");
 const NON_DOWNLOADABLE_CORE_PACKAGE_IDS = new Set(["about-me-keeper"]);
 const OFFICIAL_AGENT_RAW_ROOT = "https://raw.githubusercontent.com/Pasta-Devs/Marinara-Agents";
@@ -403,30 +425,6 @@ async function readAvailabilityMigrationKind(): Promise<"fresh" | "legacy" | nul
   } catch {
     return null;
   }
-}
-
-async function readNoodleExtractionMigrationKind(): Promise<"fresh" | "legacy" | null> {
-  try {
-    const parsed = JSON.parse(await readFile(NOODLE_EXTRACTION_MIGRATION, "utf8")) as Record<string, unknown>;
-    return parsed.schemaVersion === 1 &&
-      (parsed.kind === "fresh" || parsed.kind === "legacy") &&
-      hasValidCompletionTimestamp(parsed.completedAt)
-      ? parsed.kind
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-async function writeNoodleExtractionMigration(kind: "fresh" | "legacy") {
-  await mkdir(ROOT, { recursive: true });
-  const temporary = `${NOODLE_EXTRACTION_MIGRATION}.tmp-${process.pid}-${Date.now()}`;
-  await writeFile(
-    temporary,
-    JSON.stringify({ schemaVersion: 1, kind, completedAt: new Date().toISOString() }, null, 2),
-    { mode: 0o600 },
-  );
-  await rename(temporary, NOODLE_EXTRACTION_MIGRATION);
 }
 
 async function writeHierarchicalMapsSelectionCorrection() {
@@ -1226,7 +1224,6 @@ export const capabilityPackageManager = {
     }
   },
 
-
   async markRuntimeStatus(
     packageId: string,
     status: InstalledCapabilityPackage["status"],
@@ -1316,35 +1313,6 @@ export const capabilityPackageManager = {
 
   async completeLegacyAvailabilityMigration() {
     await writeAvailabilityMigration("legacy");
-  },
-
-  /** Keep the formerly built-in social timelines available only to upgraded profiles. */
-  async migrateExtractedNoodleAvailability(existingProfile: boolean) {
-    const completedKind = await readNoodleExtractionMigrationKind();
-    if (completedKind) return { migrated: false, legacy: completedKind === "legacy" };
-    if (!existingProfile) {
-      await writeNoodleExtractionMigration("fresh");
-      return { migrated: false, legacy: false };
-    }
-
-    const alreadyInstalled = (await this.installed()).some((item) => item.id === "noodle");
-    if (!alreadyInstalled) {
-      // Published lanes only, for the same reason as migrateLegacyAvailability:
-      // this path auto-installs what it finds without asking.
-      const catalog = await this.catalog(safeFetch, null);
-      const entry = catalog.packages.find((candidate) => candidate.manifest.id === "noodle");
-      if (!entry) {
-        // Engine and Agents are published independently. Do not turn the short
-        // catalog propagation window into a startup warning or mark migration
-        // complete: a later startup must still install Noodle once it appears.
-        return { migrated: false, legacy: true, pending: true as const };
-      }
-      await installCatalogPackage(entry, true);
-    }
-    // This marker also records the user's right to uninstall without the next
-    // startup treating that choice as an incomplete upgrade.
-    await writeNoodleExtractionMigration("legacy");
-    return { migrated: !alreadyInstalled, legacy: true };
   },
 
   async isHierarchicalMapsSelectionCorrectionComplete() {
