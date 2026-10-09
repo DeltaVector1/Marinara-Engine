@@ -8,12 +8,8 @@ import {
   type WrapFormat,
 } from "@marinara-engine/shared";
 
-import { logger } from "../../lib/logger.js";
 import type { CharacterCommand } from "../conversation/character-commands.js";
 import { wrapContent } from "../prompt/format-engine.js";
-import { resolveSpotifyCredentials, spotifyHasScope } from "../spotify/spotify.service.js";
-import { getActiveTurnGame } from "../turn-games/turn-game-runner.service.js";
-import { describeHapticDeviceType, getChatHapticIntifaceUrl } from "./haptic-runtime.js";
 import { listCapabilityConversationCommandInstructions } from "../capability-packages/capability-command-registry.service.js";
 
 type ChatRowForCommands = {
@@ -138,12 +134,8 @@ export async function buildConversationCommandsReminder(args: {
   characterIds: string[];
   personaName: string;
   chatId: string;
-  musicPlayerEnabled?: boolean;
-  musicPlayerSource?: string | null;
   chats: ConversationCommandsChatsStore;
   chars: ConversationCommandsCharactersStore;
-  agentsStore: Parameters<typeof resolveSpotifyCredentials>[0];
-  db: Parameters<typeof getActiveTurnGame>[0];
   wrapFormat: WrapFormat;
   resolvePromptMacros: (value: string) => string;
 }): Promise<string | null> {
@@ -157,16 +149,6 @@ export async function buildConversationCommandsReminder(args: {
   const sceneCommandEnabled = isConversationCommandEnabled(chatMeta, "scene");
   const reactCommandEnabled = isConversationCommandEnabled(chatMeta, "react");
   const callCommandEnabled = isConversationCommandAvailable("call") && isConversationCommandEnabled(chatMeta, "call");
-  const musicCommandEnabled =
-    isConversationCommandAvailable("music") && isConversationCommandEnabled(chatMeta, "music");
-  const hapticCommandEnabled =
-    isConversationCommandAvailable("haptic") && isConversationCommandEnabled(chatMeta, "haptic");
-  const activeMusicCommandSource =
-    args.musicPlayerEnabled === false
-      ? null
-      : args.musicPlayerSource === "youtube" || args.musicPlayerSource === "custom"
-        ? args.musicPlayerSource
-        : "spotify";
 
   // Discover other chats this character is in (for cross_post targets + memory targets)
   const allChatsForCrossPost = currentRoomGeneration() ? [] : await args.chats.list();
@@ -203,27 +185,6 @@ export async function buildConversationCommandsReminder(args: {
 
   // Check if selfie is enabled for this chat (user picked an image gen connection)
   const hasImageGen = !!chatMeta.imageGenConnectionId;
-  let conversationSpotifyCommandsAvailable = false;
-  let conversationYoutubeCommandsAvailable = false;
-  if (chatMode === "conversation" && musicCommandEnabled && activeMusicCommandSource === "spotify") {
-    try {
-      const spotifyCredentials = await resolveSpotifyCredentials(args.agentsStore, { refreshSkewMs: 60_000 });
-      if (
-        "accessToken" in spotifyCredentials &&
-        spotifyHasScope(spotifyCredentials.scopes, "user-modify-playback-state")
-      ) {
-        conversationSpotifyCommandsAvailable = true;
-      } else {
-        const spotifyReason =
-          "error" in spotifyCredentials ? spotifyCredentials.error : "missing user-modify-playback-state scope";
-        logger.debug("[spotify/conversation] Song command unavailable: %s", spotifyReason);
-      }
-    } catch (err) {
-      logger.debug(err, "[spotify/conversation] Failed to check Spotify command availability");
-    }
-  } else if (chatMode === "conversation" && musicCommandEnabled && activeMusicCommandSource === "youtube") {
-    conversationYoutubeCommandsAvailable = await isConversationYoutubeCommandAvailable(args.agentsStore);
-  }
 
   const commandLines: string[] = [
     `Here are your optional, hidden commands you may use if you wish to, but only when they genuinely fit the conversation:`,
@@ -288,129 +249,8 @@ export async function buildConversationCommandsReminder(args: {
     );
   }
 
-  // Turn-games: conversation mode only, when no game is running yet and at least one other character is present.
-  const unoAdvertisable =
-    isConversationCommandAvailable("uno") &&
-    chatMode === "conversation" &&
-    isConversationCommandEnabled(chatMeta, "uno") &&
-    characterIds.length >= 1;
-  const chessAdvertisable =
-    isConversationCommandAvailable("chess") &&
-    chatMode === "conversation" &&
-    isConversationCommandEnabled(chatMeta, "chess") &&
-    characterIds.length >= 1;
-  const pokerAdvertisable =
-    isConversationCommandAvailable("poker") &&
-    chatMode === "conversation" &&
-    isConversationCommandEnabled(chatMeta, "poker") &&
-    characterIds.length >= 1;
-  const eightballAdvertisable =
-    isConversationCommandAvailable("eightball") &&
-    chatMode === "conversation" &&
-    isConversationCommandEnabled(chatMeta, "eightball") &&
-    characterIds.length >= 1;
-  const ticTacToeAdvertisable =
-    isConversationCommandAvailable("tic_tac_toe") &&
-    chatMode === "conversation" &&
-    isConversationCommandEnabled(chatMeta, "tic_tac_toe") &&
-    characterIds.length >= 1;
-  const rpsAdvertisable =
-    isConversationCommandAvailable("rock_paper_scissors") &&
-    chatMode === "conversation" &&
-    isConversationCommandEnabled(chatMeta, "rock_paper_scissors") &&
-    characterIds.length >= 1;
-  const noActiveTurnGame =
-    (unoAdvertisable ||
-      chessAdvertisable ||
-      pokerAdvertisable ||
-      eightballAdvertisable ||
-      ticTacToeAdvertisable ||
-      rpsAdvertisable) &&
-    !(await getActiveTurnGame(args.db, args.chatId));
-  if (unoAdvertisable && noActiveTurnGame) {
-    addCommandLines(
-      `- [uno] - start a game of UNO at the table. Include this ONLY when ${personaName} proposes playing UNO (or cards) and you are willing to play right now. The system deals the cards and runs the game — you do NOT narrate dealing or describe the hands.`,
-      `   If you are busy, tired, or simply don't feel like it, just say so in character and do NOT include [uno]. Agreeing to play IS including [uno].`,
-      `   Example: ${personaName} says "anyone up for a round of uno?" and you're in → "Oh, you're SO on. [uno]"`,
-    );
-  }
-  if (chessAdvertisable && noActiveTurnGame) {
-    addCommandLines(
-      `- [chess] - start a one-on-one chess game against ${personaName}. Include this ONLY when ${personaName} proposes playing chess and YOU are willing to play right now. Chess seats exactly two players: ${personaName} and you — whichever character includes [chess] takes the opponent's seat. The system sets up the board and runs the game — you do NOT describe the board or narrate setup.`,
-      `   If you'd rather not play, say so in character and do NOT include [chess]. Agreeing to play IS including [chess].`,
-      `   Example: ${personaName} says "up for a game of chess?" and you're in → "Prepare to lose your queen. [chess]"`,
-    );
-  }
-  if (pokerAdvertisable && noActiveTurnGame) {
-    addCommandLines(
-      `- [poker] - start a game of Texas Hold'em poker at the table. Include this ONLY when ${personaName} proposes playing poker and you are willing to play right now. The system seats ${personaName} plus every willing character at the table and runs the game — you do NOT narrate dealing, blinds, or describe anyone's cards.`,
-      `   If you are busy, tired, or simply don't feel like it, just say so in character and do NOT include [poker]. Agreeing to play IS including [poker].`,
-      `   Example: ${personaName} says "who's up for some poker?" and you're in → "Deal me in. [poker]"`,
-    );
-  }
-  if (eightballAdvertisable && noActiveTurnGame) {
-    addCommandLines(
-      `- [eightball] - start a one-on-one game of 8-ball pool against ${personaName}. Include this ONLY when ${personaName} proposes playing pool/8-ball and YOU are willing to play right now. 8-ball seats exactly two players: ${personaName} and you — whichever character includes [eightball] takes the opponent's seat. The system racks the table and runs the game — you do NOT describe the table or narrate shots.`,
-      `   If you'd rather not play, say so in character and do NOT include [eightball]. Agreeing to play IS including [eightball].`,
-      `   Example: ${personaName} says "rack 'em up?" and you're in → "You're breaking. [eightball]"`,
-    );
-  }
-  if (ticTacToeAdvertisable && noActiveTurnGame) {
-    addCommandLines(
-      `- [tic_tac_toe] - start a one-on-one tic-tac-toe game against ${personaName}. Include this ONLY when ${personaName} proposes playing tic-tac-toe (or noughts and crosses) and YOU are willing to play right now. Tic-tac-toe seats exactly two players: ${personaName} and you — whichever character includes [tic_tac_toe] takes the opponent's seat. The system sets up the board and runs the game — you do NOT describe the board or narrate moves.`,
-      `   If you'd rather not play, say so in character and do NOT include [tic_tac_toe]. Agreeing to play IS including [tic_tac_toe].`,
-      `   Example: ${personaName} says "tic-tac-toe?" and you're in → "You're on. [tic_tac_toe]"`,
-    );
-  }
-  if (rpsAdvertisable && noActiveTurnGame) {
-    addCommandLines(
-      `- [rock_paper_scissors] - start a one-on-one rock-paper-scissors match against ${personaName}. Include this ONLY when ${personaName} proposes playing rock-paper-scissors (or "rps") and YOU are willing to play right now. Rock-paper-scissors seats exactly two players: ${personaName} and you — whichever character includes [rock_paper_scissors] takes the opponent's seat. The system runs the match — you do NOT narrate throws or reveal your choice in advance.`,
-      `   If you'd rather not play, say so in character and do NOT include [rock_paper_scissors]. Agreeing to play IS including [rock_paper_scissors].`,
-      `   Example: ${personaName} says "rock paper scissors, best of three?" and you're in → "Bring it on. [rock_paper_scissors]"`,
-    );
-  }
-
-  if (conversationSpotifyCommandsAvailable) {
-    addCommandLines(
-      `- [spotify: title="Song title", artist="Artist"] - only if you want to play a selected song on the user's active Spotify player. Use this sparingly, when the song choice genuinely fits the moment.`,
-    );
-  }
-
-  if (conversationYoutubeCommandsAvailable) {
-    addCommandLines(
-      `- [youtube: query="Song title Artist"] - only if you want to play a selected song on the user's active YouTube player. Use this sparingly, when the song choice genuinely fits the moment.`,
-    );
-  }
-
   const capabilityCommandLines = listCapabilityConversationCommandInstructions();
   if (capabilityCommandLines.length > 0) addCommandLines(...capabilityCommandLines);
-
-  // Haptic command: only when devices are connected and haptic feedback is enabled
-  const hapticEnabled = chatMeta.enableHapticFeedback === true;
-  if (hapticCommandEnabled && hapticEnabled) {
-    const { hapticService } = await import("../haptic/buttplug-service.js");
-    // Auto-connect to Intiface Central if not already connected
-    if (!hapticService.connected) {
-      try {
-        await hapticService.connect(getChatHapticIntifaceUrl(chatMeta));
-      } catch {
-        logger.warn("[haptic] Auto-connect to Intiface Central failed — is the server running?");
-      }
-    }
-    if (hapticService.connected && hapticService.devices.length > 0) {
-      const deviceDescriptions = hapticService.devices
-        .map(
-          (device) =>
-            `${device.name} (index ${device.index}; ${device.type ?? describeHapticDeviceType(device.capabilities)}; actions: ${device.capabilities.join("|")})`,
-        )
-        .join(", ");
-      addCommandLines(
-        `- [haptic: action="supported action", intensity=0.0-1.0, duration=seconds, pattern="steady|tap|pulse|wave|ramp|impact"] or [haptic: action="stop"] - control or stop the user's connected intimate device(s): ${deviceDescriptions}.`,
-        `   Match the action to the device and scene. Position controls linear stroking, thrusting, or pumping; inflate controls air-pressure pumping; constrict controls squeezing. Every named pattern works with scalar and position actions. Use the full intensity range when appropriate.`,
-        `   Example: *sets a firm, rhythmic pace* [haptic: action="position", intensity=1, duration=3, pattern="pulse"]`,
-      );
-    }
-  }
 
   if (availableCommandCount === 0) return null;
   commandLines.push(

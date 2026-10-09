@@ -12,14 +12,12 @@ import { capabilityToolDefs } from "../capability-packages/capability-tool-regis
 import {
   createCustomToolArgumentsValidator,
   executeToolCallForModel,
-  executeToolCalls,
   type CustomToolDef,
   type CustomToolHiddenContext,
   type MetadataPatch,
   type MetadataPatchInput,
   type ToolExecutionContext,
 } from "../tools/tool-executor.js";
-import { resolveSpotifyCredentials, spotifyHasScope } from "../spotify/spotify.service.js";
 import { logger } from "../../lib/logger.js";
 import { semanticShortlistLorebookEntries, type LorebookEmbeddingOptions } from "../lorebook/embeddings.js";
 import {
@@ -34,7 +32,6 @@ import {
   rememberSpotifyCandidateTracks,
   type SpotifyRuntimeAgent,
 } from "./spotify-agent-runtime.js";
-import { resolveSpotifyToolAvailabilityRequest } from "./spotify-tool-availability.js";
 import { shouldAttachSummariesToAgents } from "./roleplay-summary-retrieval.js";
 import {
   formatZonedConversationTime,
@@ -816,35 +813,6 @@ function resetSpotifyAgentRuntime(agent: ResolvedAgent): void {
   spotifyAgent.__spotifyDevice = null;
 }
 
-async function attachSpotifyCurrentPlaybackContext(args: {
-  agentContext: AgentContext;
-  resolvedAgents: ResolvedAgent[];
-  spotify: { accessToken: string } | undefined;
-}): Promise<void> {
-  delete args.agentContext.memory._spotifyDjCurrentPlayback;
-  if (!args.spotify || !args.resolvedAgents.some(isSpotifyMusicAgent)) return;
-  try {
-    const results = await executeToolCalls(
-      [
-        {
-          id: "spotify-dj-current-playback",
-          type: "function",
-          function: { name: "spotify_get_current_playback", arguments: "{}" },
-        },
-      ],
-      { spotify: args.spotify },
-    );
-    const raw = results[0]?.result;
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      args.agentContext.memory._spotifyDjCurrentPlayback = parsed;
-    }
-  } catch (error) {
-    logger.debug(error, "[spotify] Failed to preload Music DJ current playback context");
-  }
-}
-
 async function resolveToolRuntime(
   {
     requestBody,
@@ -855,7 +823,6 @@ async function resolveToolRuntime(
     customToolsStore,
     lorebooksStore,
     resolvedAgents,
-    enabledConfigs,
     promptCharacterIds,
     lorebookCharacterIds,
     personaId,
@@ -863,7 +830,6 @@ async function resolveToolRuntime(
     excludedLorebookIds,
     excludedSourceAgentIds,
     gameState,
-    gameSpotifyMusicEnabled,
     agentContext,
     emitMetadataPatch,
     observeSpotifyPlaybackBeforePlay,
@@ -916,46 +882,12 @@ async function resolveToolRuntime(
     toolDefs = toolDefs.filter((toolDef) => toolDef.function.name !== "search_lorebook");
   }
 
-  const resolvedToolNames = new Set(allToolDefs.map((toolDef) => toolDef.function.name));
   let chatResolvedToolNames = new Set((toolDefs ?? []).map((toolDef) => toolDef.function.name));
-  const agentResolvedSpotifyToolGroups = resolvedAgents.map((agent) => {
-    const agentSettings = parseSettings(agent.settings);
-    const agentEnabledNames = Array.isArray(agentSettings.enabledTools) ? (agentSettings.enabledTools as string[]) : [];
-    return agentEnabledNames.filter((name) => resolvedToolNames.has(name));
-  });
-  const spotifyAvailabilityRequest = resolveSpotifyToolAvailabilityRequest({
-    enableChatTools,
-    hasChatToolFilter: activeToolIds.length > 0,
-    chatResolvedToolNames,
-    agentResolvedToolNameGroups: agentResolvedSpotifyToolGroups,
-    spotifyToolNames,
-  });
-  const spotifyAgentId =
-    resolvedAgents.find((agent) => agent.type === "spotify" && !agent.id.startsWith("builtin:"))?.id ??
-    enabledConfigs.find((cfg: any) => cfg.type === "spotify")?.id ??
-    null;
-  const spotifyCredentials = spotifyAvailabilityRequest.needsSpotifyCredentials
-    ? await resolveSpotifyCredentials(agentsStore as any, { agentId: spotifyAgentId, refreshSkewMs: 60_000 })
-    : null;
-  if (spotifyCredentials && !("accessToken" in spotifyCredentials)) {
-    logger.debug("[spotify] credentials unavailable for tool execution: %s", spotifyCredentials.error);
-  }
-  const spotifyCreds =
-    spotifyCredentials && "accessToken" in spotifyCredentials
-      ? { accessToken: spotifyCredentials.accessToken }
-      : undefined;
-  const spotifyToolsAvailable = Boolean(
-    spotifyCredentials &&
-    "accessToken" in spotifyCredentials &&
-    spotifyHasScope(spotifyCredentials.scopes, "user-modify-playback-state"),
-  );
-  if (!spotifyToolsAvailable && toolDefs) {
-    const beforeCount = toolDefs.length;
+  // ponytail: Spotify playback was removed with the music player, but the Music DJ agent type and its
+  // tool manifests still exist in shared. Never offer those tools until that agent is removed as well.
+  if (toolDefs) {
     toolDefs = toolDefs.filter((toolDef) => !spotifyToolNames.has(toolDef.function.name));
-    chatResolvedToolNames = new Set((toolDefs ?? []).map((toolDef) => toolDef.function.name));
-    if (beforeCount !== toolDefs.length && spotifyAvailabilityRequest.shouldLogUnavailableToolOmission) {
-      logger.debug("[spotify] Omitted unavailable Spotify tools from main generation");
-    }
+    chatResolvedToolNames = new Set(toolDefs.map((toolDef) => toolDef.function.name));
   }
 
   const searchLorebookForTools = async (query: string, category?: string | null, requireVectors = false) => {
@@ -1087,20 +1019,10 @@ async function resolveToolRuntime(
       gameState,
     }),
     customTools: customToolDefs,
-    spotify: spotifyCreds,
-    spotifyRepeatAfterPlay: gameSpotifyMusicEnabled ? "track" : undefined,
     searchLorebook: (query, category) => searchLorebookForTools(query, category, agentContext.chatMode === "game"),
     chatMeta: chatMetadata,
     onUpdateMetadata: updateChatMetadataForTools,
   };
-
-  if (options.preloadSpotifyPlayback) {
-    await attachSpotifyCurrentPlaybackContext({
-      agentContext,
-      resolvedAgents,
-      spotify: spotifyCreds,
-    });
-  }
 
   const pendingLorebookWrites = new Map<string, () => Promise<unknown>>();
   for (const agent of resolvedAgents) {
@@ -1114,13 +1036,12 @@ async function resolveToolRuntime(
     const mayPublishWidget = widgetDefinitions?.success && widgetDefinitions.data.length > 0;
     if (agentEnabledNames.length === 0 && !mayPublishWidget) continue;
 
-    const allowSpotifyAgentTools = agent.type === "spotify";
     const agentTools: LLMToolDefinition[] = allToolDefs.filter(
       (toolDef) =>
         (!mayPublishWidget || toolDef.function.name !== HOME_WIDGET_PUBLISH_TOOL_NAME) &&
         agentEnabledNames.includes(toolDef.function.name) &&
         (toolDef.function.name !== "edit_chat_message" || customAgentHasCapability(agentSettings, "edit_messages")) &&
-        (spotifyToolsAvailable || !spotifyToolNames.has(toolDef.function.name) || allowSpotifyAgentTools),
+        !spotifyToolNames.has(toolDef.function.name),
     );
     if (mayPublishWidget) {
       agentTools.push({

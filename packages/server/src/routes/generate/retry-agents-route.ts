@@ -83,7 +83,6 @@ import {
   readImageAppearanceOverride,
   UTILITY_SIDECAR_CONNECTION_ID,
 } from "@marinara-engine/shared";
-import { buildSpotifyDjConstraints } from "../../services/spotify/spotify-dj-constraints.js";
 import { fingerprintChatSummary } from "../../services/prompt/chat-summary-fingerprint.js";
 import {
   buildPromptMacroContext,
@@ -1519,22 +1518,6 @@ async function buildRetryAgentContext(args: {
         mode === "game"
           ? "This is a manual Music DJ Custom retry from game mode. Pick a fresh fitting local track path now with action 'play'; do not keep the current track merely because it still fits."
           : "This is a manual Music DJ Custom retry. Pick a fresh fitting local track path now with action 'play'.",
-    };
-  }
-
-  if (contextPolicy.musicPlayerSource === "spotify") {
-    const mode = ((chat as any).mode ?? "conversation") as string;
-    agentContext.memory._spotifyDjConstraints = {
-      ...buildSpotifyDjConstraints({
-        chatMode: mode,
-        chatMeta,
-        manualRetry: true,
-        forceFreshPick: true,
-      }),
-      retryNote:
-        mode === "game"
-          ? "This is a manual Music DJ Spotify retry from game mode. Pick a fresh fitting track now and call spotify_play unless Spotify playback is unavailable; do not keep the current track merely because it still fits."
-          : "This is a manual Music DJ Spotify retry from roleplay. Pick a fresh fitting queue now and call spotify_play unless Spotify playback is unavailable.",
     };
   }
 

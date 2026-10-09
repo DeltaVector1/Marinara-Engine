@@ -11,7 +11,6 @@ import {
   type WeekSchedule,
 } from "../../services/conversation/schedule.service.js";
 import type { GenerationPromptMessage } from "../../services/generation/prompt-message-scope.js";
-import { getActiveTurnGame } from "../../services/turn-games/turn-game-runner.service.js";
 import { resolveSceneBusyCharacterIds } from "../../services/generation/scene-context-runtime.js";
 import { isMessageHiddenFromAI, parseExtra } from "./generate-route-utils.js";
 
@@ -166,13 +165,8 @@ export async function resolveConversationPresenceRuntime(args: {
 
   const requestedResponderNames = respondingConvoCharInfo.map((character) => character.displayName);
   const sceneBusyCharIds = new Set(await resolveSceneBusyCharacterIds(args.chats, args.chatId, args.chatMeta));
-  const seatedGameCharIds = await resolveSeatedTurnGameCharacterIds(args.db, args.chatId);
   const effectiveStatus = (character: { charId: string; status: string }): string =>
-    sceneBusyCharIds.has(character.charId)
-      ? "offline"
-      : seatedGameCharIds.has(character.charId)
-        ? "online"
-        : character.status;
+    sceneBusyCharIds.has(character.charId) ? "offline" : character.status;
 
   if (!args.regenerateMessageId && !args.impersonate) {
     respondingConvoCharInfo = respondingConvoCharInfo.filter((character) => effectiveStatus(character) !== "offline");
@@ -398,14 +392,6 @@ function persistConversationPresenceState(
       { touchUpdatedAt: false },
     )
     .catch(() => {});
-}
-
-async function resolveSeatedTurnGameCharacterIds(db: DB, chatId: string): Promise<Set<string>> {
-  const activeGameForSchedule = await getActiveTurnGame(db, chatId);
-  const seatOrder = activeGameForSchedule?.state?.seatOrder;
-  return Array.isArray(seatOrder)
-    ? new Set(seatOrder.filter((value: unknown): value is string => typeof value === "string"))
-    : new Set<string>();
 }
 
 export async function waitForConversationPresenceDelay(delayMs: number, abortSignal: AbortSignal): Promise<void> {

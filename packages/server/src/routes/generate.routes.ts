@@ -71,7 +71,6 @@ import { registerParameterPreviewRoute } from "./generate/parameter-preview-rout
 // ──────────────────────────────────────────────
 import type { FastifyInstance } from "fastify";
 import type { input as SchemaInput } from "zod";
-import { translateGeneratedMessage } from "../services/translation.service.js";
 import { randomInt, randomUUID } from "crypto";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
@@ -80,7 +79,6 @@ import {
   parseDecisionPromptQuestionLimit,
   type MacroDecisionAnswers,
   generateRequestSchema,
-  getChatTranslationConfig,
   normalizeAdvancedMemorySettings,
   type AdvancedMemoryReceipt,
   BUILT_IN_AGENTS,
@@ -145,7 +143,6 @@ import type {
   SourceMessageRef,
   AgentCallDebugEvent,
   AgentResult,
-  HapticDeviceCommand,
   PlayerStats,
   LorebookEntryTimingState,
   ChatSummaryEntry,
@@ -303,7 +300,6 @@ import {
   supportsNovelAiCharacterPrompts,
 } from "../services/image/character-prompts.js";
 import { resolveCustomAgentStyleProfileId } from "../services/generation/custom-agent-image-settings.js";
-import { buildSpotifyDjConstraints } from "../services/spotify/spotify-dj-constraints.js";
 import {
   assemblePrompt,
   appendFallbackChatSummaryToSystemPrompt,
@@ -397,7 +393,7 @@ import { executeKnowledgeRouter } from "../services/agents/knowledge-router.js";
 import { extractFileText, getSourceFilePath } from "./knowledge-sources.routes.js";
 import { gameStateSnapshots as gameStateSnapshotsTable } from "../db/schema/index.js";
 import { and, eq } from "../db/file-query.js";
-import { messageReplySchema, PROFESSOR_MARI_ID, type GenerationParameterSendMap } from "@marinara-engine/shared";
+import { messageReplySchema, type GenerationParameterSendMap } from "@marinara-engine/shared";
 import { chunkAndEmbedMessages } from "../services/memory-recall.js";
 import {
   isMemoryRecallVectorizerAvailable,
@@ -502,7 +498,6 @@ import {
   type ConversationResponderDelay,
   waitForConversationPresenceDelay,
 } from "./generate/conversation-presence-runtime.js";
-import { resolveProfessorMariPromptContext } from "./generate/professor-mari-prompt-context.js";
 import { injectCapabilityContexts } from "../services/generation/capability-prompt-runtime.js";
 import {
   executeGmVerbCalls,
@@ -574,8 +569,6 @@ import {
   shouldSuppressAssistantSpatialMutation,
   validateSpatialGenerationRequest,
 } from "./generate/spatial-transition-request.js";
-import { runTurnGameBotTurns } from "../services/turn-games/turn-game-bot-runner.service.js";
-import { getTurnGameContextBuilder } from "../services/turn-games/turn-game-runner.service.js";
 import { getCapabilityService } from "../services/capability-packages/capability-service-registry.service.js";
 import { normalizeContextInjections } from "./generate/agent-normalizers.js";
 import {
@@ -588,14 +581,6 @@ import {
   buildGenerationReplay,
   normalizeGenerationReplay,
 } from "./generate/generation-replay.js";
-import {
-  MAX_AGENT_HAPTIC_COMMANDS,
-  formatHapticSettingsForPrompt,
-  getChatHapticIntifaceUrl,
-  getChatHapticSettings,
-  normalizeHapticAgentCommand,
-  normalizeHapticAgentCommands,
-} from "../services/generation/haptic-runtime.js";
 import {
   buildConversationCommandsReminder,
   filterEnabledConversationCommands,
@@ -616,21 +601,14 @@ import { applyPromptPatchOperations } from "../services/generation/prompt-patch-
 import { resolveGenerationProviderRuntime } from "../services/generation/provider-generation-runtime.js";
 import { applyContextMessageLimitWithPins, supportsNativeToolCalls } from "@marinara-engine/shared";
 import { planGameToolCalls } from "../services/generation/game-tool-planning.js";
-import {
-  countProfessorMariCommands,
-  handleProfessorMariCommand,
-} from "../services/generation/professor-mari-command-runtime.js";
-import { handleTurnGameCommand } from "../services/generation/turn-game-command-runtime.js";
 import { dispatchCapabilityConversationAction } from "../services/capability-packages/capability-command-registry.service.js";
 import { handleConversationSideEffectCommand } from "../services/generation/conversation-side-effect-command-runtime.js";
 import { handleConversationCallCommand } from "../services/generation/conversation-call-command-runtime.js";
-import { handleConversationMusicCommand } from "../services/generation/conversation-music-command-runtime.js";
 import { handleConversationReactCommand } from "../services/generation/conversation-react-command-runtime.js";
 import { withLatestMessageReply } from "../services/generation/message-reply.js";
 import { handleRoleplayDmCommand } from "../services/generation/roleplay-dm-command-runtime.js";
 import { handleConversationScheduleCommand } from "../services/generation/conversation-schedule-command-runtime.js";
 import { handleConversationCrossPostCommand } from "../services/generation/conversation-cross-post-command-runtime.js";
-import { handleHapticCommand } from "../services/generation/haptic-command-runtime.js";
 import { handleConversationSelfieCommand } from "../services/generation/conversation-selfie-command-runtime.js";
 import {
   CONTINUE_ASSISTANT_MESSAGE_PROMPT,
@@ -1026,7 +1004,6 @@ export interface GenerateRouteOptions {
 }
 
 export async function generateRoutes(app: FastifyInstance, options: GenerateRouteOptions = {}) {
-  const pendingTranslations = new Map<string, number>();
   registerSequentialGameTasks(app, ["/", "/retry-agents"]);
   const isDebug = logger.isLevelEnabled("debug");
 
@@ -1063,9 +1040,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
     const requestDebug = input.debugMode === true;
     const debugLog = (message: string, ...args: any[]) => {
       logDebugOverride(requestDebug, message, ...args);
-    };
-    const turnGameDebugLog = (message: string, ...args: any[]) => {
-      logDebugOverride(requestDebug || isDebugAgentsEnabled(), message, ...args);
     };
 
     // Resolve the chat
@@ -1635,66 +1609,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       sendSseEvent(reply, { type: "progress", data: { phase } });
     };
 
-    const translationMessages = new Map<string, number>();
-    const outputTranslationConfig =
-      chatMeta.autoTranslate === true ? getChatTranslationConfig(input.chatId, chatMeta) : null;
-    let translationAfterFailure = false;
-    const dispatchAutomaticTranslations = (afterGenerationFailure = false) => {
-      // Translation survives a passive disconnect but owns no SSE or generation
-      // lock: a slow translation must not prevent the user from sending again.
-      if (
-        !outputTranslationConfig ||
-        (!afterGenerationFailure && generationSignal.aborted) ||
-        translationMessages.size === 0
-      )
-        return;
-      const messagesToTranslate = [...translationMessages];
-      translationMessages.clear();
-      pendingTranslations.set(input.chatId, (pendingTranslations.get(input.chatId) ?? 0) + 1);
-      void (async () => {
-        try {
-          for (const [messageId, swipeIndex] of messagesToTranslate) {
-            if (!afterGenerationFailure && generationSignal.aborted) break;
-            try {
-              await translateGeneratedMessage(app.db, {
-                chatId: input.chatId,
-                messageId,
-                swipeIndex,
-                mode: requestChatMode,
-                config: outputTranslationConfig,
-                debugMode: requestDebug,
-              });
-            } catch (error) {
-              logger.warn(error, "[translate] Automatic translation failed for message %s", messageId);
-            }
-          }
-        } finally {
-          const remaining = (pendingTranslations.get(input.chatId) ?? 1) - 1;
-          if (remaining > 0) pendingTranslations.set(input.chatId, remaining);
-          else pendingTranslations.delete(input.chatId);
-        }
-      })();
-    };
-
     try {
-      // ── Turn-game bot seats (UNO, etc.): drive the active game's bot players and
-      //    short-circuit the normal conversation pipeline. Gated by an explicit
-      //    flag so it can never affect a regular chat/roleplay generation. ──
-      if (input.turnGameBots && requestChatMode === "conversation") {
-        await runTurnGameBotTurns({
-          db: app.db,
-          chatId: input.chatId,
-          conn,
-          baseUrl,
-          reply,
-          signal: generationSignal,
-          debugLog: turnGameDebugLog,
-        });
-        generationComplete = true;
-        sendSseEvent(reply, { type: "done", data: "" });
-        return;
-      }
-
       // A reroll must see the complete input, even when its old swipe interrupted it.
       if (requestChatMode === "roleplay" && !input.impersonate && input.regenerateMessageId) {
         const previous = await chats.getMessage(input.regenerateMessageId);
@@ -2132,8 +2047,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         mode: chatMode,
         allowEmpty: true,
       });
-      const isHomeProfessorMariAssistantChat =
-        chatMeta.internalAssistant === PROFESSOR_MARI_INTERNAL_CHAT_MARKER && characterIds.includes(PROFESSOR_MARI_ID);
 
       // Resolve only the Persona or character identity selected for this chat.
       let personaId: string | null = null;
@@ -2509,7 +2422,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       // the previous pass, so Mari can speak to the data she just pulled.
       let runningMessagesForFollowUp: GenerationPromptMessage[] = [...mappedMessages];
       let followUpIteration = 0;
-      const MAX_FOLLOW_UP_ITERATIONS = 2;
       const savedMacroVariables = normalizeChatMacroVariables(chatMeta.macroVariables);
       // A swipe starts from the values in place before its reply: undo what the reply's swipes changed.
       const chatMacroVariables = input.regenerateMessageId
@@ -2571,7 +2483,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       const collectedOocMessages: string[] = [];
       // Embed the Mari relevance-ranking query once per turn, not once per
       // follow-up iteration (the query is invariant across the turn's passes).
-      const mariQueryEmbeddingCache = new Map<string, number[] | null>();
       // Package-declared GM verbs (#5798), resolved at most ONCE per turn and threaded to both the
       // prompt render and the post-save parse. Two resolutions could disagree — a package updated
       // mid-turn, a table that stops verifying — and the prompt would then advertise a verb the
@@ -2598,11 +2509,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        // Per-iteration flag: set when a Mari [fetch:] command actually returned
-        // data AND persisted mariContext. The follow-up branch at the bottom of
-        // the loop body gates on this so a fetch that found nothing or threw
-        // doesn't burn an extra generation pass with no new context to read.
-        let mariFetchSucceededThisIteration = false;
         let currentIterationSavedMsg: typeof lastSavedMsg = null;
         let recoveredAlreadyAppliedOwnerTurn = false;
         let finalMessages: GenerationPromptMessage[] = [...runningMessagesForFollowUp];
@@ -3699,42 +3605,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             characterIds,
             personaName,
             chatId: input.chatId,
-            musicPlayerEnabled: input.musicPlayerEnabled,
-            musicPlayerSource: input.musicPlayerSource,
             chats,
             chars,
-            agentsStore,
-            db: app.db,
             wrapFormat,
             resolvePromptMacros,
           });
-
-          // ── Home Professor Mari: inject assistant knowledge & commands ──
-          // The instruction half (stablePrompt) rides the system message so it
-          // stays a static, cacheable prefix; the volatile half (name lists +
-          // fetched data) is injected as a tail user message below so a library
-          // change or a [fetch:] no longer invalidates that prefix (#4768).
-          let professorMariVolatileContext = "";
-          if (isHomeProfessorMariAssistantChat) {
-            const { stablePrompt, volatileContext } = await resolveProfessorMariPromptContext({
-              chatMeta,
-              chars,
-              lorebooksStore,
-              chats,
-              presets,
-              // Rank the name lists by relevance to the current message (#4768 ph3);
-              // degrades to the alphabetical list when the embedder is unavailable.
-              // Use the effective current input so a regeneration (no input.userMessage)
-              // still ranks against the preserved original text.
-              db: app.db,
-              queryText: currentUserInputContent() ?? "",
-              embeddingSource: memoryRecallEmbeddingSource,
-              vectorizerAvailable: memoryRecallVectorizerAvailable,
-              queryEmbeddingCache: mariQueryEmbeddingCache,
-            });
-            conversationSystemPrompt += "\n\n" + stablePrompt;
-            professorMariVolatileContext = volatileContext;
-          }
 
           // Build the context injection (last user-role message before generation)
           const contextBlock = buildConversationCurrentContextBlock({
@@ -3847,15 +3722,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             // targets contextKind "history"); it is preferentially retained and
             // only yields in the last-resort fitMessagesToContext passes once all
             // history is gone — matching the recentSocialMediaActivityBlock pattern.
-            ...(professorMariVolatileContext.trim().length > 0
-              ? [
-                  {
-                    role: "user" as const,
-                    content: professorMariVolatileContext,
-                    contextKind: "injection" as const,
-                  },
-                ]
-              : []),
           ];
           if (conversationContextMacroSlots.context) {
             // The preset references {{context}} — as a literal placeholder or a
@@ -5645,50 +5511,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           agentContext.memory._currentBackground = currentBackground;
         }
 
-        const spotifyMusicAgents = resolvedAgents.filter(
-          (agent) =>
-            agent.type === "spotify" &&
-            agent.settings?.musicProvider !== "youtube" &&
-            agent.settings?.musicPlayerSource !== "youtube" &&
-            agent.settings?.musicProvider !== "custom" &&
-            agent.settings?.musicPlayerSource !== "custom",
-        );
-        if (spotifyMusicAgents.length > 0) {
-          agentContext.memory._spotifyDjConstraints = buildSpotifyDjConstraints({ chatMode, chatMeta });
-        }
-
-        // If the haptic agent is enabled, inject connected device info (names + capabilities) into context
-        if (resolvedAgents.some((a) => a.type === "haptic")) {
-          try {
-            const { hapticService } = await import("../services/haptic/buttplug-service.js");
-            const hapticSettings = getChatHapticSettings(chatMeta);
-            agentContext.memory._hapticSettings = formatHapticSettingsForPrompt(hapticSettings);
-            // Auto-connect to Intiface Central if not already connected
-            if (!hapticService.connected) {
-              try {
-                await hapticService.connect(getChatHapticIntifaceUrl(chatMeta));
-              } catch {
-                logger.warn("[haptic] Auto-connect to Intiface Central failed — is the server running?");
-              }
-            }
-            if (hapticService.connected && hapticService.devices.length > 0) {
-              agentContext.memory._connectedDevices = hapticService.devices.map((d) => ({
-                name: d.name,
-                type: d.type,
-                index: d.index,
-                capabilities: d.capabilities,
-              }));
-              logger.debug(`[haptic] Injected ${hapticService.devices.length} device(s) into agent context`);
-            } else if (!hapticService.connected) {
-              logger.warn("[haptic] Agent enabled but Intiface Central is not connected — skipping device injection");
-            } else {
-              logger.warn("[haptic] Agent enabled and connected, but no devices found — did you scan for devices?");
-            }
-          } catch (err) {
-            logger.error(err, "[haptic] Failed to inject device info");
-          }
-        }
-
         // If the CYOA agent is enabled, inject previous choices for anti-repetition
         if (resolvedAgents.some((a) => a.type === "cyoa")) {
           const lastAssistantMsg = chatMessages.filter((m: any) => m.role === "assistant").at(-1);
@@ -7355,14 +7177,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           return;
         }
 
-        // Turn-game board awareness is injected per responding character inside
-        // generateForCharacter (seat-aware: a seated character sees their own
-        // hand / color / last move; everyone else gets the spectator view).
-        // The game itself is loaded ONCE here — the builder closes over the
-        // loaded state so each character only pays for its own summary text.
-        const turnGameContextForSeat =
-          chatMode === "conversation" ? await getTurnGameContextBuilder(app.db, input.chatId) : null;
-
         // Manual mode with forCharacterId: only generate for the specified character.
         // Sequential: all available characters respond. Smart: generate the selected queue in order.
         let respondingCharIds = useIndividualLoop
@@ -7547,19 +7361,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 role: "system",
                 content: responderAwarenessBlock,
               });
-            }
-          }
-          if (turnGameContextForSeat) {
-            const viewerSeatId = input.impersonate
-              ? chat.personaId || "human"
-              : speaksOnlyTargetCharacter
-                ? targetCharId
-                : null;
-            const turnGameContext = turnGameContextForSeat(viewerSeatId);
-            if (turnGameContext) {
-              gameAwareMessagesForGen = injectAtDepth(gameAwareMessagesForGen, [
-                { content: turnGameContext, role: "system", depth: 0 },
-              ]);
             }
           }
           const audienceCharacterIds = input.impersonate
@@ -10102,18 +9903,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             }
           }
 
-          if (savedMsg?.id && savedSwipeIndex !== null && outputTranslationConfig && !input.impersonate) {
-            translationMessages.set(savedMsg.id, savedSwipeIndex);
-            // Persist ownership before message_saved can trigger Game's legacy
-            // browser backfill, which also runs when navigating between chats.
-            savedMsg =
-              (await chats.updateMessageExtraForSwipe(
-                savedMsg.id,
-                savedSwipeIndex,
-                { automaticTranslationSource: savedMsg.content },
-                savedMsg.content,
-              )) ?? savedMsg;
-          }
           await executeCollectedGmVerbCalls({ messageId: savedMsg?.id ?? "", swipeIndex: savedSwipeIndex ?? 0 });
           await persistGameStateToolCalls(savedMsg?.id ?? "", savedSwipeIndex ?? 0);
 
@@ -12819,69 +12608,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               }
             }
 
-            // ── Haptic agent: execute device commands from agent output ──
-            if (result.success && result.type === "haptic_command" && result.data && typeof result.data === "object") {
-              try {
-                const hData = result.data as Record<string, unknown>;
-                if (hData.parseError) {
-                  logger.warn(
-                    "[haptic] Agent output could not be parsed as JSON: %s",
-                    (hData.raw as string)?.slice(0, 200),
-                  );
-                } else {
-                  const cmds = normalizeHapticAgentCommands(hData).slice(0, MAX_AGENT_HAPTIC_COMMANDS);
-                  if (cmds.length > 0) {
-                    const hapticSettings = getChatHapticSettings(chatMeta);
-                    const { hapticService } = await import("../services/haptic/buttplug-service.js");
-                    if (hapticService.connected) {
-                      const executedCommands: HapticDeviceCommand[] = [];
-                      for (const cmd of cmds) {
-                        const hapticCommand = normalizeHapticAgentCommand(cmd, hapticSettings);
-                        if (!hapticCommand) {
-                          logger.warn("[haptic] Agent produced unsupported command action: %s", String(cmd.action));
-                          continue;
-                        }
-
-                        try {
-                          await hapticService.executeCommand(hapticCommand);
-                          executedCommands.push(hapticCommand);
-                        } catch (commandErr) {
-                          logger.warn(commandErr, "[haptic] Agent command %s skipped", hapticCommand.action);
-                        }
-                      }
-                      if (executedCommands.length > 0) {
-                        sendSseEvent(reply, {
-                          type: "haptic_command",
-                          data: { commands: executedCommands, reasoning: hData.reasoning },
-                        });
-                        logger.info(
-                          "[haptic] Agent executed %d command(s): %s",
-                          executedCommands.length,
-                          hData.reasoning ?? "",
-                        );
-                      } else {
-                        logger.warn(
-                          "[haptic] Agent produced %d command(s), but none could be executed: %s",
-                          cmds.length,
-                          hData.reasoning ?? "",
-                        );
-                      }
-                    } else {
-                      logger.warn(
-                        `[haptic] Agent produced ${cmds.length} command(s) but Intiface Central is disconnected — commands dropped`,
-                      );
-                    }
-                  } else {
-                    logger.debug(
-                      `[haptic] Agent returned no commands (reasoning: ${(hData.reasoning as string) ?? "none"})`,
-                    );
-                  }
-                }
-              } catch (hapErr) {
-                logger.error(hapErr, "[haptic] Agent command execution failed");
-              }
-            }
-
             // ── ILLUSTRATOR HANDLER: generate image from agent prompt ──
             if (
               result.success &&
@@ -13648,10 +13374,9 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         // Character Command Execution (Conversation mode)
         // ────────────────────────────────────────
         if (collectedCommands.length > 0 && !generationSignal.aborted) {
-          const professorMariCommandCount = countProfessorMariCommands(collectedCommands);
           sendSseEvent(reply, {
             type: "assistant_commands_start",
-            data: { count: collectedCommands.length, professorMariCommandCount },
+            data: { count: collectedCommands.length },
           });
           // React target resolution needs the FULL chat-member list (disabled
           // members included — the client segments with them). Built lazily once
@@ -13766,16 +13491,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   chats,
                 });
 
-                await handleConversationMusicCommand({
-                  command,
-                  chatId: input.chatId,
-                  chatMode,
-                  agentsStore,
-                  sendEvent: (event) => {
-                    sendSseEvent(reply, event);
-                  },
-                });
-
                 await handleConversationReactCommand({
                   command,
                   characterId,
@@ -13803,27 +13518,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   },
                 });
 
-                await handleHapticCommand({
-                  command,
-                  sendEvent: (data) => {
-                    sendSseEvent(reply, { type: "haptic_command", data });
-                  },
-                });
-
-                await handleTurnGameCommand({
-                  commandType: command.type === "capability" ? command.commandType : command.type,
-                  characterId,
-                  chatId: input.chatId,
-                  chatMeta,
-                  db: app.db,
-                  chats,
-                  conn,
-                  baseUrl,
-                  reply,
-                  signal: generationSignal,
-                  debugLog: turnGameDebugLog,
-                });
-
                 if (command.type === "capability") {
                   await dispatchCapabilityConversationAction(
                     {
@@ -13848,24 +13542,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                       ),
                   );
                 }
-
-                const professorMariResult = await handleProfessorMariCommand({
-                  command,
-                  characterId,
-                  chatId: input.chatId,
-                  sourceChatMetadata: chat.metadata,
-                  isHomeProfessorMariAssistantChat,
-                  db: app.db,
-                  stores: { chars, chats, lorebooksStore, presets },
-                  embeddingSource: memoryRecallEmbeddingSource,
-                  vectorizerAvailable: memoryRecallVectorizerAvailable,
-                  sendAssistantAction: (data) => {
-                    sendSseEvent(reply, { type: "assistant_action", data });
-                  },
-                });
-                if (professorMariResult.fetchSucceeded) {
-                  mariFetchSucceededThisIteration = true;
-                }
               } catch (cmdErr) {
                 logger.error(cmdErr, `[commands] Error processing ${command.type} command`);
               }
@@ -13876,63 +13552,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               data: {},
             });
           }
-        }
-
-        // ── Trigger follow-up generation if Professor Mari's fetch landed ──
-        // Mari's fetched payload was persisted to chatMeta.mariContext by the
-        // fetch handler above, but mariContext is only read into the prompt at
-        // the start of a generation pass — without a follow-up turn Mari would
-        // go silent right after the fetch snackbar. Gating on the success flag
-        // (rather than just the presence of a parsed [fetch:]) avoids burning
-        // an extra pass when the fetch handler found nothing or threw.
-        if (
-          mariFetchSucceededThisIteration &&
-          chatMode === "conversation" &&
-          !input.impersonate &&
-          !input.regenerateMessageId &&
-          !generationSignal.aborted &&
-          followUpIteration < MAX_FOLLOW_UP_ITERATIONS
-        ) {
-          followUpIteration++;
-          logger.info(
-            "[generate] Professor Mari fetch succeeded; triggering follow-up generation (iteration %d)",
-            followUpIteration,
-          );
-
-          // Carry the just-streamed assistant turn into the next prompt so
-          // Mari sees her own prior message before speaking again. Apply the
-          // same regex-script + blank-line compaction transforms here, since
-          // the iteration-0 block above only runs on the original history.
-          const lastResponseText = allResponses.join("\n\n");
-          if (lastResponseText) {
-            const newMariMsg: GenerationPromptMessage = {
-              role: "assistant",
-              content: lastResponseText,
-              characterId: null,
-            };
-            applyRegexScriptsToPromptMessages([newMariMsg], await regexScriptsStore.list(), {
-              resolveMacros: (value, randomSeed) =>
-                resolveMacros(value, promptMacroContext, { trimResult: false, randomSeed }),
-              targetPromptPresetId: presetId ?? null,
-            });
-            newMariMsg.content = newMariMsg.content.replace(/\n([ \t]*\n){2,}/g, "\n\n");
-            runningMessagesForFollowUp.push(resolveHistoryMessageMacros([newMariMsg])[0] ?? newMariMsg);
-          }
-
-          // Re-read chat metadata so the freshly-persisted mariContext is
-          // visible to the next pass.
-          const freshChat = await chats.getById(input.chatId);
-          if (freshChat) {
-            chatMeta = roomGenerationMetadata(parseExtra(freshChat.metadata));
-          }
-
-          // Reset hoisted per-iteration accumulators before continuing.
-          // (firstSavedMsg stays — it's "first across the whole turn".
-          //  lastSavedMsg, pendingIllustration are overwritten naturally.)
-          collectedCommands.length = 0;
-          collectedOocMessages.length = 0;
-
-          continue;
         }
 
         // ── Background: chunk & embed new messages for memory recall ──
@@ -14007,31 +13626,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         }
       }
 
-      // A normal chat send can claim the client's per-chat generation lock at
-      // the same moment a turn-game requests its bot loop. The bot request is
-      // then intentionally skipped, so resume any pending bot seat before this
-      // Conversation stream releases the lock. Human turns and chats without an
-      // active game are cheap no-ops inside the shared runner.
-      if (chatMode === "conversation" && !input.impersonate && !generationSignal.aborted) {
-        try {
-          await runTurnGameBotTurns({
-            db: app.db,
-            chatId: input.chatId,
-            conn,
-            baseUrl,
-            reply,
-            signal: generationSignal,
-            debugLog: turnGameDebugLog,
-          });
-        } catch (turnGameErr) {
-          if (generationSignal.aborted || isAbortLikeError(turnGameErr)) return;
-          logger.warn(turnGameErr, "[turn-game] Failed to resume pending bot turns after Conversation reply");
-        }
-        if (generationSignal.aborted) return;
-      }
-
-      dispatchAutomaticTranslations();
-
       // Signal completion before the slow illustration tail. The client keeps
       // listening until the HTTP stream closes, so late illustration events can
       // still arrive without holding the chat's generation lock hostage.
@@ -14056,8 +13650,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       }
       // The one server line for a failed generation; the client gets the message over SSE.
       logger.error({ err, chatId: input.chatId }, "[generate] Generation failed");
-      // A later error cancels remaining generation work, not an already saved reply's translation.
-      translationAfterFailure = true;
       if (!generationSignal.aborted) {
         abortController.abort();
       }
@@ -14069,7 +13661,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           : "Generation failed";
       sendSseEvent(reply, { type: "error", data: message });
     } finally {
-      dispatchAutomaticTranslations(translationAfterFailure);
       if (restoredRoleplayInterruption && input.regenerateMessageId) {
         try {
           const reconciled = await chats.reconcileRoleplayInterruption(input.regenerateMessageId);
@@ -14134,7 +13725,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
    */
   app.get<{ Params: { chatId: string } }>("/status/:chatId", async (req) => ({
     active: activeGenerations.has(req.params.chatId) || (activeAgentRuns.get(req.params.chatId)?.size ?? 0) > 0,
-    translating: pendingTranslations.has(req.params.chatId),
   }));
 
   /**

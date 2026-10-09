@@ -4,12 +4,10 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import { z } from "zod";
 import { logger } from "../lib/logger.js";
-import { getMariDbService } from "../services/mari-db/mari-db.service.js";
 import { cardPromptText } from "../services/prompt/card-text.js";
 import {
   DECISION_PROMPT_QUESTION_LIMIT_SETTINGS_KEY,
   parseDecisionPromptQuestionLimit,
-  PROFESSOR_MARI_ID,
   CHAT_VARIABLE_STORED_NAME_RE,
   MAX_CHAT_VARIABLES,
   MAX_CHAT_VARIABLE_VALUE_LENGTH,
@@ -219,7 +217,6 @@ type TrackerWrapFormat = "xml" | "markdown" | "none";
 type EntryStateOverrides = Record<string, { ephemeral?: number | null; enabled?: boolean }>;
 const MEMORY_RECALL_IMPORT_BODY_LIMIT_BYTES = 25 * 1024 * 1024;
 const MEMORY_RECALL_IMPORT_BATCH_SIZE = 500;
-const PROFESSOR_MARI_INTERNAL_CHAT_MARKER = "professor-mari";
 const SUMMARY_COMBINE_DEFAULT_CONTEXT_TOKENS = 32_768;
 const SUMMARY_COMBINE_MESSAGE_OVERHEAD_TOKENS = 64;
 
@@ -315,44 +312,6 @@ function parseChatMetadata(raw: unknown): Record<string, unknown> {
     }
   }
   return isRecord(raw) ? raw : {};
-}
-
-function isHomeProfessorMariChat(chat: { metadata?: unknown }) {
-  return parseChatMetadata(chat.metadata).internalAssistant === PROFESSOR_MARI_INTERNAL_CHAT_MARKER;
-}
-
-function isActiveHomeProfessorMariChat(chat: { metadata?: unknown }) {
-  const metadata = parseChatMetadata(chat.metadata);
-  return (
-    metadata.internalAssistant === PROFESSOR_MARI_INTERNAL_CHAT_MARKER &&
-    metadata.professorMariArchived !== true &&
-    metadata.professorMariActive !== false
-  );
-}
-
-function sortProfessorMariChats<T extends { updatedAt?: string | null; createdAt?: string | null }>(items: T[]) {
-  return [...items].sort((a, b) => {
-    const left = Date.parse(a.updatedAt ?? a.createdAt ?? "") || 0;
-    const right = Date.parse(b.updatedAt ?? b.createdAt ?? "") || 0;
-    return right - left;
-  });
-}
-
-function formatProfessorMariStashName(date = new Date()) {
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, "0");
-  const dd = String(date.getDate()).padStart(2, "0");
-  const hh = String(date.getHours()).padStart(2, "0");
-  const min = String(date.getMinutes()).padStart(2, "0");
-  return `Chat from ${yyyy}-${mm}-${dd} ${hh}:${min}`;
-}
-
-function hasProfessorMariCharacter(chat: { characterIds?: unknown }) {
-  return resolveChatCharacterIds(chat.characterIds).includes(PROFESSOR_MARI_ID);
-}
-
-function shouldHideProfessorMariChat(chat: { metadata?: unknown }) {
-  return isHomeProfessorMariChat(chat);
 }
 
 function isUsableTimestamp(value: unknown): value is string {
@@ -741,7 +700,7 @@ export async function chatsRoutes(app: FastifyInstance) {
   app.get("/", async () => {
     await cleanupEmptyRoleplayDmChats();
     const chats = await storage.list();
-    return chats.filter((chat) => !shouldHideProfessorMariChat(chat)).map(normalizeChatForResponse);
+    return chats.map(normalizeChatForResponse);
   });
 
   // Bounded Home data. This deliberately returns one short visible-message
@@ -755,7 +714,7 @@ export async function chatsRoutes(app: FastifyInstance) {
       const page = await storage.listRecent(pageSize, offset);
       if (page.length === 0) break;
       for (const chat of page) {
-        if (!shouldHideProfessorMariChat(chat) && !seenRecentChatIds.has(chat.id)) {
+        if (!seenRecentChatIds.has(chat.id)) {
           seenRecentChatIds.add(chat.id);
           recentChats.push(chat);
         }
@@ -870,205 +829,16 @@ export async function chatsRoutes(app: FastifyInstance) {
     return eligible;
   });
 
-  app.get("/internal/professor-mari/chats", async () => {
-    const allChats = sortProfessorMariChats((await storage.list()).filter(isHomeProfessorMariChat));
-    return Promise.all(
-      allChats.map(async (chat) => {
-        const metadata = parseChatMetadata(chat.metadata);
-        return normalizeChatForResponse({
-          ...chat,
-          metadata,
-          messageCount: await storage.countMessages(chat.id),
-        });
-      }),
-    );
-  });
-
-  app.get<{ Querystring: { connectionId?: string; personaId?: string } }>("/internal/professor-mari", async (req) => {
-    const professorChats = sortProfessorMariChats((await storage.list()).filter(isHomeProfessorMariChat));
-    const existing = professorChats.find(isActiveHomeProfessorMariChat) ?? professorChats[0] ?? null;
-    const hasConnectionOverride = "connectionId" in req.query;
-    const hasPersonaOverride = "personaId" in req.query;
-    const connectionId =
-      typeof req.query.connectionId === "string" && req.query.connectionId ? req.query.connectionId : null;
-    const personaId = typeof req.query.personaId === "string" && req.query.personaId ? req.query.personaId : null;
-
-    if (existing) {
-      const nextConnectionId = hasConnectionOverride ? connectionId : (existing.connectionId ?? null);
-      const nextPersonaId = hasPersonaOverride ? personaId : (existing.personaId ?? null);
-      await storage.update(existing.id, {
-        characterIds: [PROFESSOR_MARI_ID],
-        connectionId: nextConnectionId,
-        personaId: nextPersonaId,
-        promptPresetId: null,
-      });
-      const updated = await storage.patchMetadata(existing.id, {
-        internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
-        professorMariActive: true,
-        professorMariArchived: false,
-        enableAgents: false,
-        autonomousMessages: false,
-        characterExchanges: false,
-        tags: ["internal"],
-      });
-      return normalizeChatForResponse(updated ?? existing);
-    }
-
-    const created = await storage.create({
-      name: "Professor Mari",
-      mode: "conversation",
-      characterIds: [PROFESSOR_MARI_ID],
-      groupId: null,
-      personaId,
-      promptPresetId: null,
-      connectionId,
-    });
-    if (!created) return created;
-    const updated = await storage.patchMetadata(created.id, {
-      internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
-      professorMariActive: true,
-      professorMariArchived: false,
-      enableAgents: false,
-      autonomousMessages: false,
-      characterExchanges: false,
-      tags: ["internal"],
-    });
-    return normalizeChatForResponse(updated ?? created);
-  });
-
-  app.post<{ Querystring: { connectionId?: string; personaId?: string } }>(
-    "/internal/professor-mari/restart",
-    async (req) => {
-      const professorChats = sortProfessorMariChats((await storage.list()).filter(isHomeProfessorMariChat));
-      const active = professorChats.find(isActiveHomeProfessorMariChat) ?? professorChats[0] ?? null;
-      const connectionId =
-        typeof req.query.connectionId === "string" && req.query.connectionId
-          ? req.query.connectionId
-          : (active?.connectionId ?? null);
-      const personaId =
-        typeof req.query.personaId === "string" && req.query.personaId
-          ? req.query.personaId
-          : (active?.personaId ?? null);
-
-      if (active && (await storage.countMessages(active.id)) > 0) {
-        const metadata = parseChatMetadata(active.metadata);
-        const currentName = typeof active.name === "string" && active.name.trim() ? active.name.trim() : "";
-        const shouldRename = currentName === "Professor Mari";
-        await storage.update(active.id, {
-          name: shouldRename ? formatProfessorMariStashName() : active.name,
-          characterIds: [PROFESSOR_MARI_ID],
-          connectionId: active.connectionId ?? null,
-          personaId: active.personaId ?? null,
-          promptPresetId: null,
-        });
-        await storage.patchMetadata(active.id, {
-          ...metadata,
-          internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
-          professorMariActive: false,
-          professorMariArchived: true,
-          enableAgents: false,
-          autonomousMessages: false,
-          characterExchanges: false,
-          tags: ["internal"],
-        });
-      } else if (active) {
-        await storage.patchMetadata(active.id, {
-          internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
-          professorMariActive: false,
-          professorMariArchived: true,
-        });
-      }
-
-      const created = await storage.create({
-        name: "Professor Mari",
-        mode: "conversation",
-        characterIds: [PROFESSOR_MARI_ID],
-        groupId: null,
-        personaId,
-        promptPresetId: null,
-        connectionId,
-      });
-      if (!created) return created;
-      const updated = await storage.patchMetadata(created.id, {
-        internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
-        professorMariActive: true,
-        professorMariArchived: false,
-        enableAgents: false,
-        autonomousMessages: false,
-        characterExchanges: false,
-        tags: ["internal"],
-      });
-      return normalizeChatForResponse(updated ?? created);
-    },
-  );
-
-  app.post<{ Params: { id: string } }>("/internal/professor-mari/chats/:id/activate", async (req, reply) => {
-    const professorChats = (await storage.list()).filter(isHomeProfessorMariChat);
-    const target = professorChats.find((chat) => chat.id === req.params.id);
-    if (!target) return reply.status(404).send({ error: "Professor Mari chat not found" });
-
-    for (const chat of professorChats) {
-      await storage.patchMetadata(chat.id, {
-        internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
-        professorMariActive: chat.id === target.id,
-        professorMariArchived: chat.id === target.id ? false : true,
-        enableAgents: false,
-        autonomousMessages: false,
-        characterExchanges: false,
-        tags: ["internal"],
-      });
-    }
-    const updated = await storage.update(target.id, {
-      characterIds: [PROFESSOR_MARI_ID],
-      promptPresetId: null,
-    });
-    return normalizeChatForResponse(updated ?? target);
-  });
-
-  app.patch<{ Params: { id: string }; Body: { name?: unknown } }>(
-    "/internal/professor-mari/chats/:id",
-    async (req, reply) => {
-      const target = (await storage.list()).find((chat) => chat.id === req.params.id && isHomeProfessorMariChat(chat));
-      if (!target) return reply.status(404).send({ error: "Professor Mari chat not found" });
-      const name = typeof req.body?.name === "string" ? req.body.name.trim() : "";
-      if (!name) return reply.status(400).send({ error: "Name is required" });
-      const updated = await storage.update(target.id, { name });
-      return normalizeChatForResponse(updated ?? target);
-    },
-  );
-
-  app.delete<{ Params: { id: string } }>("/internal/professor-mari/chats/:id", async (req, reply) => {
-    const professorChats = (await storage.list()).filter(isHomeProfessorMariChat);
-    const target = professorChats.find((chat) => chat.id === req.params.id);
-    if (!target) return reply.status(404).send({ error: "Professor Mari chat not found" });
-    const wasActive = isActiveHomeProfessorMariChat(target);
-    await storage.remove(target.id);
-    // #6842: the chat's Keep/Restore cards go with it. Its changes stay applied.
-    await getMariDbService(app.db).keepReviewsForChat(target.id);
-    if (wasActive) {
-      const remaining = sortProfessorMariChats((await storage.list()).filter(isHomeProfessorMariChat));
-      const next = remaining[0];
-      if (next) {
-        await storage.patchMetadata(next.id, {
-          internalAssistant: PROFESSOR_MARI_INTERNAL_CHAT_MARKER,
-          professorMariActive: true,
-          professorMariArchived: false,
-        });
-      }
-    }
-    return reply.status(204).send();
-  });
-
   // List chats by group
   app.get<{ Params: { groupId: string } }>("/group/:groupId", async (req) => {
     const chats = await storage.listByGroup(req.params.groupId);
-    return chats.filter((chat) => !shouldHideProfessorMariChat(chat)).map(normalizeChatForResponse);
+    return chats.map(normalizeChatForResponse);
   });
 
   // Get single chat
   app.get<{ Params: { id: string } }>("/:id", async (req, reply) => {
     const chat = await storage.getById(req.params.id);
-    if (!chat || isHomeProfessorMariChat(chat)) {
+    if (!chat) {
       return reply.status(404).send({ error: "Chat not found" });
     }
     // Schedules and presence overrides live on the character cards; this chat
@@ -1089,9 +859,6 @@ export async function chatsRoutes(app: FastifyInstance) {
   // Create chat
   app.post("/", async (req, reply) => {
     const input = createChatSchema.parse(req.body);
-    if (input.characterIds.includes(PROFESSOR_MARI_ID)) {
-      return reply.status(400).send({ error: "Professor Mari is only available from the Home screen." });
-    }
     if (input.mode === "game" && input.personaCharacterId) {
       return reply.status(400).send({ error: "Character identities are not available in Game chats." });
     }
@@ -1127,11 +894,8 @@ export async function chatsRoutes(app: FastifyInstance) {
   app.patch<{ Params: { id: string } }>("/:id", async (req, reply) => {
     const data = createChatSchema.partial().parse(req.body);
     const existing = await storage.getById(req.params.id);
-    if (!existing || isHomeProfessorMariChat(existing)) {
+    if (!existing) {
       return reply.status(404).send({ error: "Chat not found" });
-    }
-    if (data.characterIds?.includes(PROFESSOR_MARI_ID) && !hasProfessorMariCharacter(existing)) {
-      return reply.status(400).send({ error: "Professor Mari is only available from the Home screen." });
     }
     if (data.characterIds !== undefined) {
       // A hosted room's AI roster lives in the room. Changing it here would leave the room's
@@ -1300,7 +1064,7 @@ export async function chatsRoutes(app: FastifyInstance) {
 
   app.post<{ Params: { id: string } }>("/:id/touch", async (req, reply) => {
     const chat = await storage.getById(req.params.id);
-    if (!chat || isHomeProfessorMariChat(chat)) {
+    if (!chat) {
       return reply.status(404).send({ error: "Chat not found" });
     }
     const updated = await storage.touch(req.params.id);
@@ -2795,7 +2559,7 @@ export async function chatsRoutes(app: FastifyInstance) {
       const chatCharIds: string[] = (() => {
         try {
           const parsed = JSON.parse((chat?.characterIds as string) ?? "[]");
-          return Array.isArray(parsed) ? parsed.filter((id) => id !== PROFESSOR_MARI_ID) : [];
+          return Array.isArray(parsed) ? parsed : [];
         } catch {
           return [];
         }
@@ -4631,11 +4395,11 @@ export async function chatsRoutes(app: FastifyInstance) {
 
     let chatsToExport: ChatRow[];
     if (scope === "all") {
-      chatsToExport = ((await storage.list()) as ChatRow[]).filter((chat) => !shouldHideProfessorMariChat(chat));
+      chatsToExport = (await storage.list()) as ChatRow[];
     } else {
       if (uniqueIds.length === 0) return reply.status(400).send({ error: "No chats selected for export" });
       const rows = await Promise.all(uniqueIds.map((id) => storage.getById(id)));
-      chatsToExport = rows.filter((chat): chat is ChatRow => chat !== null && !shouldHideProfessorMariChat(chat));
+      chatsToExport = rows.filter((chat): chat is ChatRow => chat !== null);
     }
 
     if (chatsToExport.length === 0) return reply.status(404).send({ error: "No chats found to export" });

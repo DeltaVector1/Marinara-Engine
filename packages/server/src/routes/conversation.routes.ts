@@ -42,7 +42,6 @@ import {
   clearGenerationInProgress,
   initializeActivityFromMessages,
 } from "../services/conversation/autonomous.service.js";
-import { getActiveTurnGame } from "../services/turn-games/turn-game-runner.service.js";
 import {
   normalizePromptTimeZone,
   resolveConversationTimeZone,
@@ -1100,17 +1099,6 @@ export async function conversationRoutes(app: FastifyInstance) {
       return reply.send({ shouldTrigger: false, characterIds: [], reason: "scene_active", inactivityMs: 0 });
     }
 
-    // Turn-game guard (UNO, etc.): an autonomous message would seize the
-    // chat's single generation lock and 409 the next bot-turn request,
-    // stalling the game. Checked LAZILY at the trigger points below instead
-    // of on every idle tick — the gameEngineState read loads the chat's
-    // storage unit, and an idle check must stay storage-free (#5592 PR-B).
-    // Only observable difference: an idle check during an active game now
-    // reports the ordinary not-due reason instead of "turn_game_active".
-    const turnGameBlocks = async () => Boolean(await getActiveTurnGame(app.db, chatId));
-    const turnGameActiveResponse = () =>
-      reply.send({ shouldTrigger: false, characterIds: [], reason: "turn_game_active", inactivityMs: 0 });
-
     const result = checkAutonomousMessaging(chatId, filteredSchedules, isGroup, {
       maxFollowups: req.body.maxFollowups,
       statusOverrides,
@@ -1121,7 +1109,6 @@ export async function conversationRoutes(app: FastifyInstance) {
     if (result.reason === "generation_in_progress") return reply.send(result);
 
     if (result.shouldTrigger) {
-      if (await turnGameBlocks()) return turnGameActiveResponse();
       let blockedReason: "daily_budget_exhausted" | "intent_cooldown" | null = null;
       // With a shared limit, whoever has checked in least today goes first.
       const todayCounts = getAutonomousDailyBudget(meta).counts;
@@ -1156,7 +1143,6 @@ export async function conversationRoutes(app: FastifyInstance) {
     );
     if (longAbsence) {
       if ("blockedReason" in longAbsence) return reply.send(blockedAutonomousResponse(longAbsence.blockedReason));
-      if (await turnGameBlocks()) return turnGameActiveResponse();
       const state = getActivityState(chatId);
       const generationStartedAt = markGenerationInProgress(chatId);
       return reply.send({
@@ -1193,7 +1179,6 @@ export async function conversationRoutes(app: FastifyInstance) {
       // in that corner and the idle path stays storage-free.
       if (onlineCharIds.length > 0) {
         if (getActivityState(chatId)?.lastMessageRole === "user") {
-          if (await turnGameBlocks()) return turnGameActiveResponse();
           let blockedReason: "daily_budget_exhausted" | "intent_cooldown" | null = null;
           for (const catchUpCharacterId of onlineCharIds) {
             const evaluation = evaluateAutonomousCandidate(

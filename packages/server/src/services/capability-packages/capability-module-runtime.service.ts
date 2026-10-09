@@ -27,7 +27,6 @@ import {
 } from "./capability-command-registry.service.js";
 import { registerCapabilityService } from "./capability-service-registry.service.js";
 import { assertCapabilityAgentRuntimeServiceRegistration } from "./capability-agent-runtime.service.js";
-import { assertCapabilityMariActionsServiceRegistration } from "./capability-mari-actions.service.js";
 import { createCapabilityIntegrationHost } from "./capability-integrations.service.js";
 import { createCapabilityLanguageModelHost } from "./capability-language-model.service.js";
 import { linkCapabilityNativeDependencies } from "./capability-native-dependencies.service.js";
@@ -289,7 +288,6 @@ class CapabilityModuleRuntime {
           },
           registerService: (key, service) => {
             assertCapabilityAgentRuntimeServiceRegistration(installed.id, installed.manifest.permissions ?? [], key);
-            assertCapabilityMariActionsServiceRegistration(installed.id, installed.manifest.permissions ?? [], key);
             return trackCleanup(registerCapabilityService(key, service));
           },
           // Gated on the permission the manifest already declares, so a package can't reach the prompt
