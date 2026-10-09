@@ -14,8 +14,8 @@ test("chat shell opens settings and switches between retained modes", { tag: "@s
   try {
     await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chats[0]!.id);
     await page.goto("/");
-    await page.locator('[data-tour="sidebar-toggle"]').click();
     const sidebar = page.locator('[data-component="ChatSidebar"]');
+    if (!(await sidebar.isVisible())) await page.locator('[data-tour="sidebar-toggle"]').click();
     await expect(sidebar).toBeVisible();
     for (const mode of ["conversation", "roleplay"] as const) {
       await page.locator(`[data-tour="chat-mode-${mode}"]`).click();
@@ -30,69 +30,87 @@ test("chat shell opens settings and switches between retained modes", { tag: "@s
 });
 
 test("Conversation and Roleplay render a completed generated reply", { tag: "@smoke" }, async ({ page }) => {
-  const connectionResponse = await page.request.post("/api/connections", {
-    data: {
-      name: `Generation smoke provider ${Date.now()}`,
-      provider: "custom",
-      baseUrl: "http://127.0.0.1:1/v1",
-      apiKey: "smoke-key",
-      model: "smoke-model",
-      maxContext: 32768,
-    },
+  const replies = ["A generated Conversation reply.", "A generated Roleplay reply."];
+  let providerRequestCount = 0;
+  const provider = createServer((incoming, outgoing) => {
+    if (incoming.method !== "POST" || incoming.url !== "/v1/chat/completions") {
+      outgoing.writeHead(200, { "content-type": "application/json" });
+      outgoing.end(JSON.stringify({ data: [{ id: "smoke-model" }] }));
+      return;
+    }
+    const chunks: Buffer[] = [];
+    incoming.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+    incoming.on("end", () => {
+      const request = JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<string, unknown>;
+      expect(request.messages).toBeTruthy();
+      const reply = replies[providerRequestCount++];
+      if (!reply) {
+        outgoing.writeHead(500, { "content-type": "application/json" });
+        outgoing.end(JSON.stringify({ error: { message: "Unexpected extra generation request" } }));
+        return;
+      }
+      const events = [
+        { choices: [{ index: 0, delta: { content: reply }, finish_reason: null }] },
+        { choices: [{ index: 0, delta: {}, finish_reason: "stop" }] },
+      ];
+      outgoing.writeHead(200, { "content-type": "text/event-stream", connection: "keep-alive" });
+      outgoing.end(`${events.map((event) => `data: ${JSON.stringify(event)}\n\n`).join("")}data: [DONE]\n\n`);
+    });
   });
-  expect(connectionResponse.ok()).toBeTruthy();
-  const connectionId = ((await connectionResponse.json()) as { id: string }).id;
+  await new Promise<void>((resolve) => provider.listen(0, "127.0.0.1", resolve));
+  let connectionId = "";
+  let characterId = "";
   try {
+    const address = provider.address();
+    if (!address || typeof address === "string") throw new Error("Generation smoke provider did not bind");
+    const connectionResponse = await page.request.post("/api/connections", {
+      data: {
+        name: `Generation smoke provider ${Date.now()}`,
+        provider: "custom",
+        baseUrl: `http://127.0.0.1:${address.port}/v1`,
+        apiKey: "smoke-key",
+        model: "smoke-model",
+        maxContext: 32768,
+      },
+    });
+    expect(connectionResponse.ok()).toBeTruthy();
+    connectionId = ((await connectionResponse.json()) as { id: string }).id;
+    const characterResponse = await page.request.post("/api/characters", {
+      data: { data: { name: `Generation smoke character ${Date.now()}`, first_mes: "" } },
+    });
+    expect(characterResponse.ok()).toBeTruthy();
+    characterId = ((await characterResponse.json()) as { id: string }).id;
     for (const mode of ["conversation", "roleplay"] as const) {
       const response = await page.request.post("/api/chats", {
         data: {
           name: `Generation ${mode} ${Date.now()}`,
           mode,
-          characterIds: [],
+          characterIds: [characterId],
           connectionId,
         },
       });
       expect(response.ok()).toBeTruthy();
       const chat = (await response.json()) as { id: string };
       try {
-        const reply = `A generated ${mode} reply.`;
-        await page.route("**/api/generate", async (route) => {
-          await route.fulfill({
-            status: 200,
-            contentType: "text/event-stream",
-            body: [
-              { type: "token", data: reply },
-              {
-                type: "message_saved",
-                data: {
-                  id: `smoke-${mode}-reply`,
-                  chatId: chat.id,
-                  role: "assistant",
-                  characterId: null,
-                  content: reply,
-                  activeSwipeIndex: 0,
-                  extra: {},
-                  createdAt: new Date().toISOString(),
-                },
-              },
-              { type: "done", data: {} },
-            ]
-              .map((event) => `data: ${JSON.stringify(event)}\n\n`)
-              .join(""),
-          });
+        const reply = replies[providerRequestCount];
+        expect(reply).toBeTruthy();
+        await page.request.patch(`/api/chats/${chat.id}/metadata`, {
+          data: { enableAgents: false, enableTools: false, enableMemoryRecall: false, conversationSetupComplete: true },
         });
         await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chat.id);
         await page.goto("/");
         await page.locator("textarea.mari-chat-input-textarea").fill(`Reply in ${mode}`);
         await page.locator("button.mari-chat-send-btn").click();
-        await expect(page.locator(`[data-message-id="smoke-${mode}-reply"]`)).toContainText(reply);
-        await page.unroute("**/api/generate");
+        await expect(page.getByText(reply!, { exact: true })).toBeVisible();
+        await expect.poll(() => providerRequestCount).toBe(mode === "conversation" ? 1 : 2);
       } finally {
         await page.request.delete(`/api/chats/${chat.id}?force=true`);
       }
     }
   } finally {
-    await page.request.delete(`/api/connections/${connectionId}`);
+    if (characterId) await page.request.delete(`/api/characters/${characterId}`);
+    if (connectionId) await page.request.delete(`/api/connections/${connectionId}`);
+    await new Promise<void>((resolve, reject) => provider.close((error) => (error ? reject(error) : resolve())));
   }
 });
 
@@ -103,6 +121,11 @@ test(
     const requests: unknown[] = [];
     const openResponses = new Set<import("node:http").ServerResponse>();
     const provider = createServer((incoming, response) => {
+      if (incoming.method !== "POST" || incoming.url !== "/v1/chat/completions") {
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(JSON.stringify({ data: [{ id: "smoke-model" }] }));
+        return;
+      }
       const chunks: Buffer[] = [];
       incoming.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
       incoming.on("end", () => {
