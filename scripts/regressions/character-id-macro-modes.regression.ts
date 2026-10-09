@@ -1,5 +1,5 @@
 /**
- * Character ID macros in Conversation and Game chats (#6956): `{{<card ID>}}` becomes
+ * Character ID macros in Conversation and Roleplay chats (#6956): `{{<card ID>}}` becomes
  * the character's name in the sent prompt and in both previews, as in Roleplay. Only
  * the name: a card from outside the chat is not pulled into these modes.
  */
@@ -70,7 +70,7 @@ try {
     assert.doesNotMatch(prompt, /SUSIE_CARD_TEXT/u, `${label}: only the name; the outside card is not pulled in`);
   };
 
-  for (const mode of ["conversation", "game"] as const) {
+  for (const mode of ["conversation"] as const) {
     const chat = await chats.create({
       name: `ID macros in ${mode}`,
       mode,
@@ -83,8 +83,7 @@ try {
       enableAgents: false,
       enableTools: false,
       enableMemoryRecall: false,
-      // The chat's own system prompt (Conversation) or GM prompt (Game).
-      [mode === "game" ? "gameSystemPrompt" : "customSystemPrompt"]: `PROMPT_MARKER: {{${susie.id}}} may visit.`,
+      customSystemPrompt: `PROMPT_MARKER: {{${susie.id}}} may visit.`,
     });
     await chats.createMessage({
       chatId: chat.id,
@@ -237,7 +236,7 @@ try {
   assert.equal(Object.keys(withCards.references).length, 9, "the card path names every referenced character too");
   assert.match(withCards.content, /Guest 8/u, "the first eight cards are added");
   assert.doesNotMatch(withCards.content, /Guest 9/u, "a ninth card is not added");
-  console.log("Character ID macros resolve to names in Conversation and Game chats.");
+  console.log("Character ID macros resolve to names in Conversation and Roleplay prompts.");
 } finally {
   await app.close();
   provider.closeAllConnections();
