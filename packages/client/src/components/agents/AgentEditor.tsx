@@ -66,7 +66,6 @@ import {
 import { cn } from "../../lib/utils";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { formatEstimatedTokens } from "../../lib/character-token-count";
-import { StoryboardAgentSettingsPanel } from "./StoryboardAgentSettingsPanel";
 import {
   getAgentRunIntervalMeta,
   getCadenceInputValue,
@@ -1940,7 +1939,6 @@ export function AgentEditor() {
   );
 
   const currentAgentType = dbConfig?.type ?? builtIn?.id ?? agentDetailId ?? "";
-  const storyboardDefaultSettings = normalizeStoryboardAgentSettings(getDefaultBuiltInAgentSettings("storyboard"));
   const defaultPromptTemplateById = useMemo(() => {
     const defaultSettings = getDefaultBuiltInAgentSettings(currentAgentType);
     return new Map(
@@ -4238,27 +4236,6 @@ export function AgentEditor() {
                   </p>
                 )}
               </div>
-            </FieldGroup>
-          )}
-
-          {isStoryboardAgent && (
-            <FieldGroup
-              label={localizeUi("ui.agents.storyboard.settings")}
-              icon={<ImageIcon size="0.875rem" className="text-[var(--primary)]" />}
-              help={localizeUi("ui.agents.storyboard.settingsDescription")}
-            >
-              <StoryboardAgentSettingsPanel
-                settings={localStoryboardSettings}
-                defaults={storyboardDefaultSettings}
-                plannerPrompt={localPrompt}
-                defaultPlannerPrompt={defaultPrompt ?? ""}
-                plannerTemplates={localPromptTemplates}
-                connections={allConnections}
-                onChange={setLocalStoryboardSettings}
-                onPlannerPromptChange={setLocalPrompt}
-                onPlannerTemplatesChange={setLocalPromptTemplates}
-                onDirty={markDirty}
-              />
             </FieldGroup>
           )}
 

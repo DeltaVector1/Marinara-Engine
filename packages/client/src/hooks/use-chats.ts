@@ -17,7 +17,6 @@ import { translate } from "../localization/i18n";
 import { useChatStore } from "../stores/chat.store";
 import { useAgentStore } from "../stores/agent.store";
 import { useGameStateStore } from "../stores/game-state.store";
-import { useEncounterStore } from "../stores/encounter.store";
 import { useUIStore } from "../stores/ui.store";
 import { clearBrowserRuntimeCaches } from "../lib/browser-runtime";
 import { shouldRefetchMessagesOnReconnect } from "../lib/message-page-cache";
@@ -239,7 +238,6 @@ async function resetClientAfterExpunge(qc: ReturnType<typeof useQueryClient>) {
   useChatStore.getState().reset();
   useAgentStore.getState().reset();
   useGameStateStore.getState().reset();
-  useEncounterStore.getState().reset();
   const ui = useUIStore.getState();
   ui.closeModal();
   ui.closeAllDetails();

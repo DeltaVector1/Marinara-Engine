@@ -35,21 +35,12 @@ import {
 
 import { getCurrentInputSnapshot, useChatStore } from "../../stores/chat.store";
 import { hasActiveTextSelection } from "../../lib/text-selection";
-import { readChatMetadata } from "../../lib/chat-wizard-defaults";
 import { useChatWindowLayout } from "../../hooks/use-chat-window-layout";
 import { ChatSettingsBubble } from "./ChatSettingsBubble";
 import { ChatWindowWelcomeModal } from "../modals/ChatWindowWelcomeModal";
-import { useGameModeStore } from "../../stores/game-mode.store";
 import { useGenerate } from "../../hooks/use-generate";
 import { useGenerateGallerySelfie } from "../../hooks/use-gallery";
-import {
-  characterKeys,
-  spriteKeys,
-  useCharacters,
-  usePersona,
-  useUpdateCharacter,
-  type SpriteInfo,
-} from "../../hooks/use-characters";
+import { characterKeys, spriteKeys, usePersona, useUpdateCharacter, type SpriteInfo } from "../../hooks/use-characters";
 import { usePageActivity } from "../../hooks/use-page-activity";
 import { useRenderTimer, useWhyRender } from "../../lib/perf-diagnostics";
 import { usePresenceClock } from "../../hooks/use-presence-clock";
@@ -59,7 +50,6 @@ import { api, ApiError, isRequestTimeoutError } from "../../lib/api-client";
 import { getChatDisplayName, getConnectedChatDisplayName, parseChatMetadata } from "../../lib/chat-display";
 import { getChatCharacterIds } from "../../lib/chat-macros";
 import { resolveSpriteExpression } from "../../lib/sprite-expression-match";
-import { parseCharacterDisplayData } from "../../lib/character-display";
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { parseMessageExtraRecord } from "../../lib/chat-message-extra";
 import { trimInactiveMessagePageCaches } from "../../lib/message-page-cache";
@@ -89,9 +79,7 @@ import { useUIStore } from "../../stores/ui.store";
 import { useAgentStore, EMPTY_AGENT_TYPES } from "../../stores/agent.store";
 import { isBuiltInTrackerAgentType, resolveTrackerRerunTypes } from "../../lib/tracker-agents";
 import { Modal } from "../ui/Modal";
-import { useEncounter } from "../../hooks/use-encounter";
 import { useScene } from "../../hooks/use-scene";
-import { useEncounterStore } from "../../stores/encounter.store";
 import { useTranslationStore } from "../../stores/translation.store";
 import { getChatTranslationConfig, type ChatMode } from "@marinara-engine/shared";
 import { ttsService } from "../../lib/tts-service";
@@ -151,7 +139,7 @@ import type {
 import { HomeCreditsModal } from "./HomeCreditsModal";
 import { HomeBrowserHub } from "./HomeBrowserHub";
 import { NewChatConnectionGate } from "./NewChatConnectionGate";
-import { ChatCommonOverlays, preloadChatSettingsDrawer, type ChatSettingsInitialSection } from "./ChatCommonOverlays";
+import { preloadChatSettingsDrawer, type ChatSettingsInitialSection } from "./ChatCommonOverlays";
 import { ADVANCED_MEMORY_SETTINGS_EVENT } from "../../hooks/use-advanced-memory";
 import { CreatorNotesCssInjector, type CardCssMode, type PersonaCssRow } from "./CreatorNotesCssInjector";
 import type { ChatModeFilter } from "../../lib/card-css";
@@ -446,11 +434,6 @@ const ChatRoleplaySurface = lazy(async () => {
   return { default: module.ChatRoleplaySurface };
 });
 
-const GameSurface = lazy(async () => {
-  const module = await import("../game/GameSurface");
-  return { default: module.GameSurface };
-});
-
 const loadCharacterScheduleEditorModal = async () => {
   const module = await import("./CharacterScheduleEditorModal");
   return { default: module.CharacterScheduleEditorModal };
@@ -542,10 +525,6 @@ function ChatOpeningState({
   );
 }
 
-const MultiplayerChat = lazy(() =>
-  import("../../features/multiplayer/MultiplayerChat").then((module) => ({ default: module.MultiplayerChat })),
-);
-
 interface ChatWindowIntroProps {
   chatWindowIntroAllowed?: boolean;
   onChatWindowIntroOpenChange?: (open: boolean) => void;
@@ -557,10 +536,7 @@ export const ChatArea = memo(function ChatArea({
 }: ChatWindowIntroProps) {
   const activeChatId = useChatStore((state) => state.activeChatId);
   const { data: chat, error, refetch } = useChat(activeChatId);
-  const metadata = chat ? readChatMetadata(chat) : {};
-  // Keep the local host registered while the next chat loads. Multiplayer registers its own host
-  // once the room is ready; its setup screen must not offer Chat Settings.
-  const hostsChatSettings = Boolean(activeChatId && !(metadata.multiplayerSetup === true || metadata.multiplayer));
+  const hostsChatSettings = Boolean(activeChatId);
   useEffect(() => {
     if (!hostsChatSettings) return;
     return useFloatingWindowStore.getState().registerHost(CHAT_SETTINGS_WINDOW_ID);
@@ -580,14 +556,6 @@ export const ChatArea = memo(function ChatArea({
     );
   const chatSettingsButton =
     chat && chatSettingsHosted ? <ChatSettingsBubble chatId={chat.id} mode={readChatMode(chat)} /> : null;
-  if (chat && (metadata.multiplayerSetup === true || metadata.multiplayer)) {
-    return (
-      <Suspense fallback={null}>
-        <MultiplayerChat key={chat.id} chat={chat} />
-        {chatSettingsButton}
-      </Suspense>
-    );
-  }
   return (
     <>
       <LocalChatArea
@@ -626,8 +594,6 @@ const LocalChatArea = memo(function LocalChatArea({
   const regenerateMessageId = useChatStore((s) => s.regenerateMessageId);
   const chatBackground = useUIStore((s) => s.chatBackground);
   const chatWindowIntroDismissed = useUIStore((s) => s.chatWindowIntroDismissed);
-  const gameSetupActive = useGameModeStore((state) => state.isSetupActive);
-  const weatherEffects = useUIStore((s) => s.weatherEffects);
   const messagesPerPage = useUIStore((s) => s.messagesPerPage);
   const centerCompact = useUIStore((s) => s.centerCompact);
   const guideGenerations = useUIStore((s) => s.guideGenerations);
@@ -838,10 +804,6 @@ const LocalChatArea = memo(function LocalChatArea({
     });
     return map;
   }, [messageOffset, messages]);
-  const { data: gameLibraryCharacters } = useCharacters({
-    enabled: !!chat?.id && chat.id === activeChatId && isGameChat,
-    includeBuiltIn: true,
-  });
   // Only the selected identity card is needed here, so fetch that one row
   // instead of the whole character library. [PR #5583]
   const identityCharacterId = isGameChat ? null : (chat?.personaCharacterId ?? null);
@@ -1133,44 +1095,12 @@ const LocalChatArea = memo(function LocalChatArea({
     agentProcessing,
     failedAgentTypes,
     chatBackground,
-    weatherEffects,
     messagesPerPage,
     regenerateMessageId,
     streamingChatId,
     isPageActive,
     pendingNewChatMode,
   }));
-
-  const gameCharacters = useMemo(() => {
-    if (!isGameChat || !gameLibraryCharacters) return [];
-    return (
-      gameLibraryCharacters as Array<{ id: string; data: string; comment?: string | null; avatarPath: string | null }>
-    ).flatMap((c) => {
-      if (c.id === PROFESSOR_MARI_ID) return [];
-      try {
-        const parsed = typeof c.data === "string" ? JSON.parse(c.data) : c.data;
-        const display = parseCharacterDisplayData({ data: parsed, comment: c.comment });
-        return [
-          {
-            id: c.id,
-            name: display.name,
-            comment: display.comment,
-            avatarUrl: c.avatarPath ?? undefined,
-            avatarCrop: display.avatarCrop ?? null,
-            nameColor: parsed.extensions?.nameColor || undefined,
-            dialogueColor: parsed.extensions?.dialogueColor || undefined,
-            description: parsed.description ?? "",
-            personality: parsed.personality ?? "",
-            backstory: parsed.extensions?.backstory ?? "",
-            appearance: parsed.extensions?.appearance ?? "",
-            tags: parsed.tags ?? [],
-          },
-        ];
-      } catch {
-        return [{ id: c.id, name: "Unknown" }];
-      }
-    });
-  }, [gameLibraryCharacters, isGameChat]);
 
   // Chat persona info (for user message styling: name, avatar, colors)
   const personaInfo = useMemo(() => {
@@ -1235,9 +1165,7 @@ const LocalChatArea = memo(function LocalChatArea({
     };
   }, [chat, chatPersona, identityCharacterRow]);
 
-  const { startEncounter } = useEncounter();
   const { concludeScene, abandonScene, forkScene, isForking } = useScene();
-  const encounterActive = useEncounterStore((s) => s.active || s.showConfigModal);
   const roleplaySpriteScale = useUIStore((s) => s.roleplaySpriteScale);
   const [localSpriteVisualSettings, setLocalSpriteVisualSettings] = useState<LocalSpriteVisualSettings>(() =>
     loadLocalSpriteVisualSettings(chat?.id),
@@ -1883,7 +1811,6 @@ const LocalChatArea = memo(function LocalChatArea({
   }, [chatMeta.manualTrackers, enabledAgentTypes, manualTrackerAgentTypes]);
   const hasManualTrackerAgents = manualTrackerTypes.size > 0;
 
-  const combatAgentEnabled = enabledAgentTypes.has("combat");
   const expressionAgentEnabled = enabledAgentTypes.has("expression");
   const expressionAvatarsPreferenceEnabled =
     (localSpriteVisualSettings.expressionAvatarsEnabled ?? chatMeta.expressionAvatarsEnabled) === true;
@@ -2441,8 +2368,7 @@ const LocalChatArea = memo(function LocalChatArea({
     spriteArrangeMode ||
     multiSelectMode ||
     Boolean(deleteDialogMessageId) ||
-    Boolean(peekPromptData) ||
-    encounterActive;
+    Boolean(peekPromptData);
 
   const navigateLatestSwipe = useCallback(
     (direction: -1 | 1) => {
@@ -3032,14 +2958,6 @@ const LocalChatArea = memo(function LocalChatArea({
     // chat detail cached. Wait until the selected chat's own detail is loaded
     // before choosing the game-specific behavior.
     if (!chatDetailFetched || !chat || chat.id !== activeChatId) return;
-    if (chat.mode === "game") {
-      // The Game surface shows one narration beat at a time and has no
-      // per-message anchors, so paging the whole history in would only end in
-      // a silent no-op. Open the game and say where earlier turns live.
-      toast.info(localizeUi("chatInsights.gotoUnavailableInGame"));
-      useChatStore.getState().clearGotoRequest();
-      return;
-    }
     if (!messages) return;
 
     const targetNumber = gotoRequest.messageNumber;
@@ -3217,9 +3135,7 @@ const LocalChatArea = memo(function LocalChatArea({
         !agentInjectionReview &&
         !illustratorPromptReview &&
         conversationSelfieReviewItems.length === 0 &&
-        roleplayVideoReviewItems.length === 0 &&
-        (chatMode !== "game" ||
-          (!gameSetupActive && Boolean(chatMeta.gameId) && chatMeta.gameSessionStatus !== "setup"))
+        roleplayVideoReviewItems.length === 0
       }
       onOpenChange={onChatWindowIntroOpenChange}
     />
@@ -3241,84 +3157,6 @@ const LocalChatArea = memo(function LocalChatArea({
         }
       />
     ) : null;
-
-  // ═══════════════════════════════════════════════
-  // Game mode — RPG surface with GM narration, map, party chat
-  // ═══════════════════════════════════════════════
-  if (chatMode === "game") {
-    if (!chat) return surfaceFallback;
-
-    return (
-      <Suspense fallback={surfaceFallback}>
-        <>
-          {cardCssInjector}
-          {scheduleModal}
-          {resourceDropOverlay}
-          <GameSurface
-            activeChatId={activeChatId}
-            chat={chat!}
-            chatMeta={chatMeta}
-            messages={messages ?? []}
-            isStreaming={isStreaming}
-            isMessagesLoading={isLoading}
-            characterMap={characterMap}
-            characters={gameCharacters}
-            personaInfo={personaInfo}
-            chatBackground={chatBackground}
-            connectedChatName={connectedChatName}
-            onCloseSettings={handleCloseSettingsPanel}
-            onSwitchChat={chat.connectedChatId ? () => setActiveChatId(chat.connectedChatId!) : undefined}
-            onDeleteMessage={handleDelete}
-            onPeekPrompt={handlePeekPrompt}
-            multiSelectMode={multiSelectMode}
-            selectedMessageIds={selectedMessageIds}
-          />
-
-          <ChatCommonOverlays
-            chat={chat}
-            settingsOpen={settingsOpen}
-            settingsAnchor={settingsAnchor}
-            wizardOpen={wizardOpen}
-            peekPromptData={peekPromptData}
-            deleteDialogMessageId={deleteDialogMessageId}
-            deleteDialogCanDeleteSwipe={deleteDialogCanDeleteSwipe}
-            deleteDialogCanDeleteOtherSwipes={deleteDialogCanDeleteOtherSwipes}
-            deleteDialogActiveSwipeIndex={deleteDialogActiveSwipeIndex}
-            deleteDialogSwipeCount={deleteDialogSwipeCount}
-            multiSelectMode={multiSelectMode}
-            selectedMessageCount={selectedMessageIds.size}
-            sceneSettings={{
-              spriteArrangeMode,
-              onToggleSpriteArrange: () => setSpriteArrangeMode((prev) => !prev),
-              onResetSpritePlacements: handleResetSpritePlacements,
-              onSpriteSideChange: handleSetSpritePosition,
-              spriteVisualSettings: effectiveSpriteVisualSettings,
-              onSpriteVisualSettingsChange: patchLocalSpriteVisualSettings,
-            }}
-            onCloseSettings={handleCloseSettingsPanel}
-            onOpenScheduleEditor={handleOpenScheduleEditor}
-            onWizardFinish={() => {
-              setWizardOpen(false);
-              handleOpenSettingsPanel();
-            }}
-            onClosePeekPrompt={() => setPeekPromptData(null)}
-            onDeleteConfirm={handleDeleteConfirm}
-            onDeleteSwipe={handleDeleteSwipe}
-            onDeleteOtherSwipes={handleDeleteOtherSwipes}
-            onDeleteMore={handleDeleteMore}
-            onCloseDeleteDialog={() => setDeleteDialogMessageId(null)}
-            onBulkDelete={handleBulkDelete}
-            onCancelMultiSelect={handleCancelMultiSelect}
-            onUnselectAllMessages={handleUnselectAllMessages}
-            onSelectAllAboveSelection={handleSelectAllAboveSelection}
-            onSelectAllBelowSelection={handleSelectAllBelowSelection}
-          />
-          {chatHelpOverlay}
-          {chatWindowIntro}
-        </>
-      </Suspense>
-    );
-  }
 
   // ═══════════════════════════════════════════════
   // Conversation mode — Discord-style layout
@@ -3439,10 +3277,7 @@ const LocalChatArea = memo(function LocalChatArea({
           isRoleplay={isRoleplay}
           centerCompact={centerCompact}
           chatBackground={chatBackground}
-          weatherEffects={weatherEffects}
           expressionAgentEnabled={expressionAgentEnabled}
-          combatAgentEnabled={combatAgentEnabled}
-          encounterActive={encounterActive}
           spritePosition={spritePosition}
           spriteCharacterIds={spriteCharacterIds}
           spriteDisplayModes={visibleSpriteDisplayModes}
@@ -3507,7 +3342,6 @@ const LocalChatArea = memo(function LocalChatArea({
           onToggleSelectMessage={handleToggleSelectMessage}
           onRerunTrackers={handleRerunTrackers}
           onRerunSingleTracker={handleRerunSingleTracker}
-          onStartEncounter={() => startEncounter()}
           onConcludeScene={() => concludeScene(activeChatId)}
           onAbandonScene={() => abandonScene(activeChatId)}
           onForkScene={forkScene}

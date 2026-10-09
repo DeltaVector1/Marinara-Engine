@@ -2,7 +2,6 @@
 // React Query: Generation (streaming + agent pipeline)
 // ──────────────────────────────────────────────
 import { useCallback, useRef } from "react";
-import { audioManager } from "../lib/game-audio";
 import { normalizeEchoChamberMessages } from "../lib/echo-chamber-queue";
 import { characterDataSchema, normalizeAvatarCrop, type AvatarCrop } from "@marinara-engine/shared";
 import { useQueryClient, type InfiniteData, type QueryClient } from "@tanstack/react-query";
@@ -627,8 +626,6 @@ function createGenerationSubmissionId(): string {
 import { useChatStore } from "../stores/chat.store";
 import { useAgentStore } from "../stores/agent.store";
 import { agentResultMatchesVisibleSwipe } from "../lib/agent-result-ownership";
-import { isDiceRollResult } from "../lib/dice-roll-result";
-import { useGameModeStore } from "../stores/game-mode.store";
 import { useGameStateStore } from "../stores/game-state.store";
 import { useUIStore } from "../stores/ui.store";
 import {
@@ -1140,7 +1137,6 @@ function applyGameMapUpdate(qc: QueryClient, chatId: string, map: GameMap) {
       ...chatStore.activeChat,
       metadata: metadata as Chat["metadata"],
     });
-    useGameModeStore.getState().upsertMap(map, true);
   }
 }
 
@@ -2310,12 +2306,6 @@ export function useGenerate() {
                   },
                 );
               }
-              // A dice roll the GM asked for is something the player is meant to see, so it
-              // escapes the debug-only gate and drives the same card /roll shows.
-              if (isDiceRollResult(data.diceRollResult) && isActiveChat()) {
-                // Roleplay keeps the result inside its collapsed command notice.
-                if (data.mode !== "roleplay") useGameModeStore.getState().setDiceRollResult(data.diceRollResult);
-              }
               if (!debugMode) break;
               addDebugEntry({
                 phase: "tool_result",
@@ -2862,7 +2852,7 @@ export function useGenerate() {
               const data = event.data as { url?: string };
               qc.invalidateQueries({ queryKey: chatKeys.messages(params.chatId) });
               if (isActiveChat() && data.url?.startsWith("/api/game-assets/file/sfx/")) {
-                audioManager.playSfx(decodeURIComponent(data.url.slice("/api/game-assets/file/".length)));
+                void new Audio(data.url).play().catch(() => undefined);
               }
               break;
             }

@@ -11,7 +11,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Phone, PhoneIncoming, PhoneOff, X, MessageCircle } from "lucide-react";
 import { useChatStore } from "../../stores/chat.store";
-import { useGameModeStore } from "../../stores/game-mode.store";
 import { useUIStore } from "../../stores/ui.store";
 import { api } from "../../lib/api-client";
 import type { AvatarCrop } from "@marinara-engine/shared";
@@ -41,7 +40,6 @@ export function ChatNotificationBubbles() {
   const setShouldOpenWizard = useChatStore((s) => s.setShouldOpenWizard);
   const setShouldOpenWizardInShortcutMode = useChatStore((s) => s.setShouldOpenWizardInShortcutMode);
   const setPendingNewChatMode = useChatStore((s) => s.setPendingNewChatMode);
-  const setSetupActive = useGameModeStore((s) => s.setSetupActive);
   const closeAllDetails = useUIStore((s) => s.closeAllDetails);
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const [pendingCallAction, setPendingCallAction] = useState<string | null>(null);
@@ -53,7 +51,6 @@ export function ChatNotificationBubbles() {
     setShouldOpenSettings(false);
     setShouldOpenWizard(false);
     setShouldOpenWizardInShortcutMode(false);
-    setSetupActive(false);
     setActiveChatId(chatId);
   };
 

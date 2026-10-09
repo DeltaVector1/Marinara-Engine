@@ -80,7 +80,6 @@ import {
   getChatActivityTime,
 } from "../../lib/chat-recency";
 import { sortPanelFolders } from "../../lib/panel-sort";
-import { getCurrentGameGroupRepresentative } from "../../lib/game-session-resolution";
 import { api } from "../../lib/api-client";
 import { EXPORT_FAILED_TOAST_ID } from "../../lib/file-download";
 import { SelectionActionBar } from "../ui/SelectionActionBar";
@@ -457,7 +456,7 @@ export function ChatSidebar() {
         if (seenGroups.has(chat.groupId)) continue;
         seenGroups.add(chat.groupId);
         result.push({
-          chat: getCurrentGameGroupRepresentative(chat, chats ?? filtered),
+          chat,
           branchCount: totalGroupSizes.get(chat.groupId) ?? 1,
         });
       } else {

@@ -15,7 +15,6 @@ import {
   FileText,
   Sparkles,
   WandSparkles,
-  Swords,
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -202,8 +201,6 @@ interface ChatInputProps {
   ) => void | Promise<void>;
   onPeekPrompt?: () => void;
   onIllustrate?: (prompt?: string, messageRange?: [string, string]) => void | Promise<void>;
-  combatAgentEnabled?: boolean;
-  onStartEncounter?: () => void;
   interactionsLocked?: boolean;
 }
 
@@ -215,8 +212,6 @@ export const ChatInput = memo(function ChatInput({
   onExpressionChange,
   onPeekPrompt,
   onIllustrate,
-  combatAgentEnabled,
-  onStartEncounter,
   interactionsLocked = false,
 }: ChatInputProps) {
   const { t: localizeUi } = useUiTranslation();
@@ -356,9 +351,7 @@ export const ChatInput = memo(function ChatInput({
     mode === "roleplay" && chatMetadata.enableAgents === true && activeAgentIds.includes("director");
   const hierarchicalMapsActive =
     mode === "roleplay" && chatMetadata.enableAgents === true && activeAgentIds.includes("hierarchical-maps");
-  const combatActionActive =
-    mode === "roleplay" && combatAgentEnabled === true && typeof onStartEncounter === "function";
-  const showRoleplayAgentActions = narrativeDirectorActive || combatActionActive;
+  const showRoleplayAgentActions = narrativeDirectorActive;
   const consumeNarrativeDirectorMode = useCallback((): NarrativeDirectorMode | undefined => {
     if (!pushStoryMode || !narrativeDirectorActive) return undefined;
     setPushStoryMode(null);
@@ -1974,21 +1967,6 @@ export const ChatInput = memo(function ChatInput({
                 </div>
               )}
             </div>
-          )}
-          {combatActionActive && (
-            <button
-              type="button"
-              onClick={() => onStartEncounter?.()}
-              disabled={isInputBusy}
-              className={cn(
-                ROLEPLAY_AGENT_ACTION_BUTTON_CLASS,
-                "text-foreground/50 hover:bg-foreground/10 hover:text-foreground/80 disabled:hover:bg-transparent disabled:hover:text-foreground/50",
-              )}
-              title={localizeUi("ui.chat.chatinput.startCombatEncounter")}
-            >
-              <Swords size="0.875rem" />
-              <span>{localizeUi("ui.chat.chatinput.encounter")}</span>
-            </button>
           )}
         </div>
       )}

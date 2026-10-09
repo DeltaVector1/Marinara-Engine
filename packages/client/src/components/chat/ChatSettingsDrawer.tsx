@@ -68,7 +68,6 @@ import {
   ScrollText,
   PenLine,
   Images,
-  LayoutDashboard,
   Link2,
   MessagesSquare,
   ScanText,
@@ -88,8 +87,6 @@ import { AdvancedParametersSection } from "../../features/chat-settings/sections
 import { ChatNameSection } from "../../features/chat-settings/sections/ChatNameSection";
 import { ChatVariablesSection } from "../../features/chat-settings/sections/ChatVariablesSection";
 import { CombatStyleSection } from "../../features/chat-settings/sections/CombatStyleSection";
-import { useGameRuleset } from "../../hooks/use-game-ruleset";
-import { isRulesetCombatFight } from "../../lib/ruleset-combat-bridge";
 import { ConnectionSection, type ChatConnectionOption } from "../../features/chat-settings/sections/ConnectionSection";
 import { ConversationPromptSection } from "../../features/chat-settings/sections/ConversationPromptSection";
 import { DiscordMirrorControls } from "../../features/chat-settings/sections/DiscordMirrorSection";
@@ -101,7 +98,7 @@ import { PromptPresetSection } from "../../features/chat-settings/sections/Promp
 import { SceneInstructionsSection } from "../../features/chat-settings/sections/SceneInstructionsSection";
 import { TranslationSection } from "../../features/chat-settings/sections/TranslationSection";
 import { CapabilityElement } from "../capabilities/CapabilityElement";
-import type { AvatarCrop, MultiplayerHostAction } from "@marinara-engine/shared";
+import type { AvatarCrop } from "@marinara-engine/shared";
 import {
   DEFAULT_GAME_DICE_POOL_AGE_TURNS as DEFAULT_DICE_POOL_AGE_TURNS,
   DEFAULT_GAME_DICE_POOL_WINDOW as DEFAULT_DICE_POOL_WINDOW,
@@ -184,7 +181,6 @@ import {
   useChatGroup,
   chatKeys,
 } from "../../hooks/use-chats";
-import { useUpdateGameWidgets } from "../../hooks/use-game";
 import { useRegexScripts, useUpdateRegexScript, type RegexScriptRow } from "../../hooks/use-regex-scripts";
 import { api } from "../../lib/api-client";
 import { EXPORT_FAILED_TOAST_ID } from "../../lib/file-download";
@@ -251,7 +247,6 @@ import type {
   ConversationNote,
   ExportEnvelope,
   HapticFeedbackSensitivity,
-  HudWidget,
   KnowledgeAgentSourceSettings,
   Message,
   PromptPreset,
@@ -352,13 +347,6 @@ import {
   takePendingChatAgentSetupIds,
   takePendingChatResourcePanelRestore,
 } from "../../lib/chat-resource-drag";
-import { GameWidgetFileControls, GameWidgetSetupEditor, normalizeGameHudWidgets } from "../game/GameWidgetSetupEditor";
-import {
-  MultiplayerPlayersSection,
-  type MultiplayerGameStart,
-} from "../../features/multiplayer/MultiplayerHostControls";
-import { multiplayerGuestErrorLabelKey } from "../../features/multiplayer/multiplayer-guest-labels";
-import { multiplayerActionError, useMultiplayerMutation } from "../../hooks/use-multiplayer";
 
 const QuickPresetSectionsEditor = lazy(() =>
   import("../presets/PresetEditor").then((module) => ({ default: module.QuickPresetSectionsEditor })),
@@ -373,7 +361,6 @@ const InlineLorebookEntriesEditor = lazy(() =>
     default: module.InlineLorebookEntriesEditor,
   })),
 );
-const StoryboardChatSettingsPanel = lazy(() => import("./StoryboardChatSettingsPanel"));
 const ChatGalleryPanel = lazy(() =>
   import("./ChatGalleryPanel").then((module) => ({ default: module.ChatGalleryPanel })),
 );
@@ -403,13 +390,12 @@ interface ChatSettingsDrawerProps {
   anchor?: ChatToolbarFloatingPanelAnchor;
   /** Show the Help Layout button beside the title (chats that mount the Help overlay). */
   showHelpLayout?: boolean;
-  initialSection?: "autonomous" | "memory-recall" | "multiplayer" | "summary" | null;
+  initialSection?: "autonomous" | "memory-recall" | "summary" | null;
   /**
    * Chat Branches, Search, Active Context, Gallery and the drawers in `ChatSettingsTools`. Regular chats
    * pass it; multiplayer hosting does not.
    */
   chatTools?: ChatSettingsTools;
-  multiplayerGameStart?: MultiplayerGameStart;
   spriteArrangeMode?: boolean;
   onToggleSpriteArrange?: () => void;
   onResetSpritePlacements?: () => void;
@@ -907,7 +893,6 @@ export function ChatSettingsDrawer({
   showHelpLayout = false,
   initialSection,
   chatTools,
-  multiplayerGameStart,
   spriteArrangeMode = false,
   onToggleSpriteArrange,
   onResetSpritePlacements,
@@ -932,7 +917,6 @@ export function ChatSettingsDrawer({
   const agentSuiteCloseGuardRef = useRef<(() => Promise<boolean>) | null>(null);
   const drawerClosingRef = useRef(false);
   const updateChat = useUpdateChat();
-  const roomRoster = useMultiplayerMutation<unknown, MultiplayerHostAction>("/multiplayer/host/actions");
   const updateMeta = useUpdateChatMetadata();
   const updateTranslationMeta = useUpdateChatMetadata({ serialize: true });
   // Generation waits for queued saves, so the next reply uses the narration mode shown here (#6959).
@@ -953,7 +937,6 @@ export function ChatSettingsDrawer({
     patch: Partial<Record<string, CustomAgentImageSetting | null>>;
   } | null>(null);
   updateMetaMutateAsyncRef.current = updateMeta.mutateAsync;
-  const updateGameWidgets = useUpdateGameWidgets();
   const { data: regexScripts } = useRegexScripts();
   const updateRegexScript = useUpdateRegexScript();
   const updateAgentConfig = useUpdateAgent();
@@ -1214,25 +1197,6 @@ export function ChatSettingsDrawer({
     [chat.characterIds],
   );
 
-  const gameWidgetSource = useMemo<HudWidget[]>(() => {
-    const persistedWidgets = normalizeGameHudWidgets(metadata.gameWidgetState);
-    if (persistedWidgets.length > 0 || Array.isArray(metadata.gameWidgetState)) return persistedWidgets;
-
-    const blueprint =
-      metadata.gameBlueprint && typeof metadata.gameBlueprint === "object" && !Array.isArray(metadata.gameBlueprint)
-        ? (metadata.gameBlueprint as { hudWidgets?: unknown })
-        : null;
-    return normalizeGameHudWidgets(blueprint?.hudWidgets);
-  }, [metadata.gameBlueprint, metadata.gameWidgetState]);
-  const gameWidgetSourceSignature = useMemo(() => JSON.stringify(gameWidgetSource), [gameWidgetSource]);
-  const [gameWidgetDrafts, setGameWidgetDrafts] = useState<HudWidget[]>(() => gameWidgetSource);
-  const gameWidgetDraftSignature = useMemo(() => JSON.stringify(gameWidgetDrafts), [gameWidgetDrafts]);
-  const gameWidgetsChanged = gameWidgetDraftSignature !== gameWidgetSourceSignature;
-
-  useEffect(() => {
-    setGameWidgetDrafts(gameWidgetSource);
-  }, [chat.id, gameWidgetSource]);
-
   // Creator-notes card CSS: the current per-chat mode (default "chat"), and
   // whether any active character actually ships CSS — the Card Theming control
   // only appears when one does, so it never clutters chats it can't affect.
@@ -1377,13 +1341,6 @@ export function ChatSettingsDrawer({
     );
     return () => window.cancelAnimationFrame(frame);
   }, [chatMode, initialSection, open]);
-  useEffect(() => {
-    if (!open || initialSection !== "multiplayer") return;
-    const frame = window.requestAnimationFrame(() =>
-      panelRef.current?.querySelector('[data-chat-settings-section="multiplayer"]')?.scrollIntoView({ block: "start" }),
-    );
-    return () => window.cancelAnimationFrame(frame);
-  }, [initialSection, open]);
   const hasGeneratedConversationSchedules =
     !!metadata.characterSchedules &&
     typeof metadata.characterSchedules === "object" &&
@@ -2011,23 +1968,6 @@ export function ChatSettingsDrawer({
     (metadata.gameCombatStyle as GameCombatStyle | undefined) ??
     (metadata.gameSetupConfig?.combatStyle as GameCombatStyle | undefined) ??
     "classic";
-  // Whether this game's battles are the ruleset's own. Read from the block the file declares and
-  // from the director being on, never from the coverage flag the file claims.
-  const gameRuleset = useGameRuleset(isGame ? metadata : null);
-  const rulesetResolvesFights =
-    gameRuleset.status === "ok" &&
-    isRulesetCombatFight({
-      combatDirector: (metadata.gameSetupConfig as Record<string, unknown> | undefined)?.combatDirector === true,
-      definition: gameRuleset.definition,
-      // The preference is settled before any fight, so there is no anchor to read here: what this
-      // line says is what will happen the next time a battle starts.
-      anchor: "settings",
-    });
-  // And whether that ruleset says what one cell of a board is worth, which is what turns the
-  // preference below from a kept-and-unused choice into the one that decides whether the fight has
-  // positions.
-  const rulesetHasPositions =
-    rulesetResolvesFights && gameRuleset.status === "ok" && !!gameRuleset.definition.combat?.distance;
   const gameSceneVideosEnabled =
     metadata.gameSceneVideosEnabled === true ||
     (metadata.gameSceneVideosEnabled !== false &&
@@ -2339,7 +2279,6 @@ export function ChatSettingsDrawer({
   );
   const mapsAgent = availableAgents.find((agent) => agent.id === mapsPackage?.id);
   const ltmAgent = availableAgents.find((agent) => agent.id === ltmPackage?.id);
-  const storyboardAgent = availableAgents.find((agent) => agent.id === STORYBOARD_AGENT_ID);
   const beholderAgent = availableAgents.find((agent) => agent.id === "beholder");
   const standaloneRoleplayAgents = useMemo(
     () =>
@@ -2400,9 +2339,6 @@ export function ChatSettingsDrawer({
     addLink("haptic", hapticActive, hapticAgentMeta.name);
     if (ltmAgent && ltmPackage) {
       addLink(ltmPackage.id, metadata.enableAgents === true && activeAgentIds.includes(ltmPackage.id), ltmAgent.name);
-    }
-    if (storyboardAgent) {
-      addLink(STORYBOARD_AGENT_ID, activeAgentIds.includes(STORYBOARD_AGENT_ID), storyboardAgent.name);
     }
     if (beholderAgent) addLink("beholder", activeAgentIds.includes("beholder"), beholderAgent.name);
     if (mapsAgent && mapsPackage) addLink(mapsPackage.id, mapsPackageEnabledForChat, mapsAgent.name);
@@ -2470,7 +2406,6 @@ export function ChatSettingsDrawer({
     proseGuardianActive,
     proseGuardianAgentMeta.name,
     spotifyActive,
-    storyboardAgent,
   ]);
   const focusAgentMenu = useCallback((targetId: string) => {
     const target = document.getElementById(targetId);
@@ -2820,28 +2755,7 @@ export function ChatSettingsDrawer({
     }
   };
 
-  // A hosted room keeps its AI roster in the room, so roster changes go through the room and replies keep working.
-  const hostedRoom = metadata.multiplayer?.role === "host";
-  const changeRoomCharacters = async (add: string[], remove: string[]) => {
-    try {
-      for (const characterId of remove) {
-        await roomRoster.mutateAsync({ type: "remove-character", characterId });
-        clearRemovedCharacterMetadata(characterId);
-      }
-      for (const characterId of add)
-        await roomRoster.mutateAsync({ type: "add-character", characterId, role: "character" });
-    } catch (error) {
-      const code = multiplayerActionError(error);
-      toast.error(t(code === "identity-conflict" ? multiplayerGuestErrorLabelKey(code) : "multiplayer.actionFailed"));
-    }
-  };
-
   const toggleCharacter = (charId: string) => {
-    if (hostedRoom) {
-      const removing = chatCharIds.includes(charId);
-      void changeRoomCharacters(removing ? [] : [charId], removing ? [charId] : []);
-      return;
-    }
     const current = [...chatCharIds];
     const idx = current.indexOf(charId);
     if (idx >= 0) {
@@ -3356,17 +3270,6 @@ export function ChatSettingsDrawer({
           }}
           className="block overflow-hidden"
         />
-      );
-    } else if (agent.id === STORYBOARD_AGENT_ID) {
-      settings = (
-        <Suspense fallback={null}>
-          <StoryboardChatSettingsPanel
-            chatId={chat.id}
-            metadata={metadata as Record<string, unknown>}
-            onClose={onClose}
-            ownerMode="roleplay"
-          />
-        </Suspense>
       );
     } else if (agent.id === "beholder") {
       settings = (
@@ -4359,16 +4262,6 @@ export function ChatSettingsDrawer({
     updateMeta,
   ]);
 
-  const saveGameWidgets = useCallback(async () => {
-    const widgets = normalizeGameHudWidgets(gameWidgetDrafts);
-    try {
-      await updateGameWidgets.mutateAsync({ chatId: chat.id, widgets });
-      toast.success(localizeUi("ui.chat.chatsettingsdrawer.gameWidgetsUpdated"));
-    } catch {
-      toast.error(localizeUi("ui.chat.chatsettingsdrawer.failedToUpdateGameWidgets"));
-    }
-  }, [chat.id, gameWidgetDrafts, updateGameWidgets, localizeUi]);
-
   const toggleGameLorebookKeeper = useCallback(() => {
     const latestActiveAgentIds = readLatestActiveAgentIds();
     const nextActiveAgentIds = latestActiveAgentIds.filter((id) => id !== "lorebook-keeper");
@@ -5052,13 +4945,6 @@ export function ChatSettingsDrawer({
         >
           {/* Settings profile bar — hidden in Game Mode. Scene chats keep it, but scene instructions stay chat-owned. */}
           <div ref={setControlDockHost} data-chat-control-dock style={{ order: CHAT_SETTINGS_ORDER.search + 1 }} />
-          {metadata.multiplayer && (
-            <MultiplayerPlayersSection
-              chatId={chat.id}
-              forceOpen={initialSection === "multiplayer"}
-              gameStart={multiplayerGameStart}
-            />
-          )}
           {modeSettingsSurfaces.showSettingsProfiles && (
             <div
               style={{ order: CHAT_SETTINGS_ORDER.settingsPresets }}
@@ -5342,8 +5228,8 @@ export function ChatSettingsDrawer({
             <CombatStyleSection
               style={{ order: CHAT_SETTINGS_ORDER.combatStyle }}
               combatStyle={effectiveCombatStyle}
-              rulesetResolvesFights={rulesetResolvesFights}
-              rulesetHasPositions={rulesetHasPositions}
+              rulesetResolvesFights={false}
+              rulesetHasPositions={false}
               onCombatStyleChange={(gameCombatStyle) => updateMeta.mutate({ id: chat.id, gameCombatStyle })}
             />
           )}
@@ -6201,8 +6087,7 @@ export function ChatSettingsDrawer({
                         <button
                           key={group.id}
                           onClick={() => {
-                            if (newIds.length > 0 && hostedRoom) void changeRoomCharacters(newIds, []);
-                            else if (newIds.length > 0) {
+                            if (newIds.length > 0) {
                               updateChat.mutate({ id: chat.id, characterIds: [...chatCharIds, ...newIds] });
                             }
                             setShowGroupPicker(false);
@@ -9215,26 +9100,6 @@ export function ChatSettingsDrawer({
                                     </div>
                                   );
                                 }
-                                if (active && agent.id === STORYBOARD_AGENT_ID) {
-                                  return (
-                                    <div key={agent.id} data-chat-agent-entry={agent.id} className="space-y-1.5">
-                                      <AgentSettingsCard
-                                        icon={renderRoleplayAgentMenuIcon(agent.id)}
-                                        title={agent.name}
-                                        description={getActiveAgentMenuDescription(agent.description)}
-                                      >
-                                        <Suspense fallback={null}>
-                                          <StoryboardChatSettingsPanel
-                                            chatId={chat.id}
-                                            metadata={metadata as Record<string, unknown>}
-                                            onClose={onClose}
-                                            ownerMode="game"
-                                          />
-                                        </Suspense>
-                                      </AgentSettingsCard>
-                                    </div>
-                                  );
-                                }
                                 return (
                                   <div key={agent.id} data-chat-agent-entry={agent.id} className="space-y-1.5">
                                     <SettingsSwitch
@@ -9549,57 +9414,6 @@ export function ChatSettingsDrawer({
               help={localizeUi("chat.settings.backgroundHelp")}
             >
               <ActiveChatBackgroundPicker game={isGame} />
-            </Section>
-          )}
-
-          {isGame && (
-            <Section
-              id="game-widgets"
-              style={{ order: CHAT_SETTINGS_ORDER.widgets }}
-              label={localizeUi("ui.chat.chatsettingsdrawer.widgets")}
-              icon={<LayoutDashboard size="0.875rem" />}
-              count={gameWidgetDrafts.length}
-              help={localizeUi("ui.chat.chatsettingsdrawer.configureTheVisibleGameModeHudWidgetsTheGm")}
-            >
-              <div className="space-y-3">
-                <GameWidgetSetupEditor
-                  widgets={gameWidgetDrafts}
-                  onChange={(widgets) => setGameWidgetDrafts(normalizeGameHudWidgets(widgets, { mode: "draft" }))}
-                  disabled={updateGameWidgets.isPending}
-                  containerQueries
-                />
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  <AgentSettingsActionButton
-                    type="button"
-                    onClick={() => setGameWidgetDrafts(gameWidgetSource)}
-                    disabled={!gameWidgetsChanged || updateGameWidgets.isPending}
-                  >
-                    {localizeUi("ui.characters.charactercliptrimmodal.reset")}
-                  </AgentSettingsActionButton>
-                  <AgentSettingsActionButton
-                    type="button"
-                    variant="primary"
-                    onClick={() => void saveGameWidgets()}
-                    disabled={!gameWidgetsChanged || updateGameWidgets.isPending}
-                  >
-                    {updateGameWidgets.isPending && <Loader2 size="0.75rem" className="animate-spin" />}
-                    <span>
-                      {updateGameWidgets.isPending
-                        ? localizeUi("ui.noodle.stageprofileform.saving")
-                        : localizeUi("ui.chat.chatsettingsdrawer.saveWidgets")}
-                    </span>
-                  </AgentSettingsActionButton>
-                </div>
-                <GameWidgetFileControls
-                  widgets={gameWidgetDrafts}
-                  onImport={(widgets) => setGameWidgetDrafts(normalizeGameHudWidgets(widgets))}
-                  disabled={updateGameWidgets.isPending}
-                  exportFilename={`${chat.name || "game"}-widgets`}
-                  importSuccessMessage={(count) =>
-                    `Imported ${count === 1 ? "1 widget" : `${count} widgets`}. Save Widgets to apply them.`
-                  }
-                />
-              </div>
             </Section>
           )}
 

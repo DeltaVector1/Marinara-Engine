@@ -1,7 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 import { normalizeSemanticSummaryRetrievalSettings } from "@marinara-engine/shared";
-import { toast } from "sonner";
 import {
   Suspense,
   lazy,
@@ -24,8 +22,6 @@ import { usePageActivity } from "../../hooks/use-page-activity";
 import {
   appendContinuationMessageContent,
   isLongTermMemoryChatSummaryPromptAllowed,
-  STORYBOARD_AGENT_ID,
-  type GameTurnStoryboard,
   type ChatSummaryEntry,
   type AdvancedMemoryJob,
   type MarkerConfig,
@@ -61,7 +57,6 @@ import {
 } from "../../lib/transcript-render-window";
 import { useUIStore } from "../../stores/ui.store";
 import { useChatStore } from "../../stores/chat.store";
-import { useGameStateStore } from "../../stores/game-state.store";
 import { useChatComposerFocused, useChatKeyboardOpen } from "../../hooks/use-visual-viewport-chat-bottom";
 import { useActiveLorebookEntries, useLorebooks } from "../../hooks/use-lorebooks";
 import { usePresetFull, usePresets } from "../../hooks/use-presets";
@@ -90,11 +85,6 @@ import type {
   PersonaInfo,
 } from "./chat-area.types";
 import type { ChatImage } from "../../hooks/use-gallery";
-import {
-  gameStoryboardKeys,
-  useGameChatStoryboards,
-  useGenerateGameTurnStoryboard,
-} from "../../hooks/use-game-storyboards";
 
 type ChatData = ComponentProps<typeof ChatCommonOverlays>["chat"];
 
@@ -107,11 +97,6 @@ const RoleplayHUD = lazy(async () => {
   return { default: module.RoleplayHUD };
 });
 
-const WeatherEffects = lazy(async () => {
-  const module = await import("./WeatherEffects");
-  return { default: module.WeatherEffects };
-});
-
 const SpriteOverlay = lazy(async () => {
   const module = await import("./SpriteOverlay");
   return { default: module.SpriteOverlay };
@@ -120,11 +105,6 @@ const SpriteOverlay = lazy(async () => {
 const EchoChamberPanel = lazy(async () => {
   const module = await import("./EchoChamberPanel");
   return { default: module.EchoChamberPanel };
-});
-
-const EncounterModal = lazy(async () => {
-  const module = await import("./EncounterModal");
-  return { default: module.EncounterModal };
 });
 
 const ChatSummaryPanel = lazy(async () => {
@@ -161,16 +141,6 @@ function useIsMobileToolbarViewport() {
   }, []);
 
   return isMobileViewport;
-}
-
-function WeatherEffectsConnected({ paused }: { paused: boolean }) {
-  const weather = useGameStateStore((s) => s.current?.weather ?? null);
-  const timeOfDay = useGameStateStore((s) => s.current?.time ?? null);
-  return (
-    <Suspense fallback={null}>
-      <WeatherEffects weather={weather} timeOfDay={timeOfDay} paused={paused} />
-    </Suspense>
-  );
 }
 
 function getBackgroundBlurStyle(blurPx: number): Pick<CSSProperties, "filter" | "transform"> {
@@ -484,8 +454,6 @@ function RegeneratingMessageContent({
         />
       )}
       {...rest}
-      storyboard={isContinuation ? rest.storyboard : null}
-      storyboardGenerating={isContinuation ? rest.storyboardGenerating : false}
     />
   );
 }
@@ -703,10 +671,7 @@ type RoleplaySurfaceProps = {
   isRoleplay: boolean;
   centerCompact: boolean;
   chatBackground: string | null;
-  weatherEffects: boolean;
   expressionAgentEnabled: boolean;
-  combatAgentEnabled: boolean;
-  encounterActive: boolean;
   spritePosition: SpriteSide;
   spriteCharacterIds: string[];
   spriteDisplayModes: SpriteDisplayMode[];
@@ -773,7 +738,6 @@ type RoleplaySurfaceProps = {
   onToggleSelectMessage: (toggle: MessageSelectionToggle) => void;
   onRerunTrackers: () => void;
   onRerunSingleTracker: (agentType: string) => void;
-  onStartEncounter: () => void;
   onConcludeScene: () => void;
   onAbandonScene: () => void;
   onForkScene: (sceneChatId: string, mode: SceneForkMode) => void;
@@ -820,10 +784,7 @@ export function ChatRoleplaySurface({
   isRoleplay,
   centerCompact,
   chatBackground,
-  weatherEffects,
   expressionAgentEnabled,
-  combatAgentEnabled,
-  encounterActive,
   spritePosition,
   spriteCharacterIds,
   spriteDisplayModes,
@@ -886,7 +847,6 @@ export function ChatRoleplaySurface({
   onToggleSelectMessage,
   onRerunTrackers,
   onRerunSingleTracker,
-  onStartEncounter,
   onConcludeScene,
   onAbandonScene,
   onForkScene,
@@ -1137,8 +1097,6 @@ export function ChatRoleplaySurface({
     visibleVnMessages,
     vnParagraphCount,
   ]);
-  const queryClient = useQueryClient();
-  const automaticStoryboardMessageRef = useRef<string | undefined>(undefined);
   const initialLoadSettledRef = useRef(false);
   const prevMessageKeysRef = useRef<Set<string>>(new Set());
   const seenMessageKeysRef = useRef(roleplayNotificationSeenKeys);
@@ -1187,7 +1145,6 @@ export function ChatRoleplaySurface({
   const mobileComposerActive = isMobileToolbarViewport && composerFocused;
   const ambientVisualsPaused =
     generationVisualsPaused || (isMobileToolbarViewport && (keyboardOpen || composerFocused || hasMobileDraftInput));
-  const weatherEffectsPaused = isMobileToolbarViewport && (keyboardOpen || composerFocused || hasMobileDraftInput);
   const hideEchoChamberOnMobile = sidebarOpen || rightPanelOpen || settingsOpen || wizardOpen;
   const showSpriteOverlay = expressionAgentEnabled && spriteCharacterIds.length > 0 && spriteDisplayModes.length > 0;
 
@@ -1233,7 +1190,6 @@ export function ChatRoleplaySurface({
     phoneLayout,
     chatMeta.enableAgents,
     chatMeta.sceneStatus,
-    combatAgentEnabled,
     scrollRef,
     visualNovel,
     vnHistoryOpen,
@@ -1489,131 +1445,15 @@ export function ChatRoleplaySurface({
     typeof chatMeta.summaryTailMessages === "number" && Number.isFinite(chatMeta.summaryTailMessages)
       ? chatMeta.summaryTailMessages
       : undefined;
-  const storyboardAgentActive = chatMeta.enableAgents === true && summaryActiveAgentIds.includes(STORYBOARD_AGENT_ID);
-  const roleplayStoryboardAutoMode =
-    chatMeta.roleplayStoryboardAutoGenerateMode === "manual" ||
-    chatMeta.roleplayStoryboardAutoGenerateMode === "illustration" ||
-    chatMeta.roleplayStoryboardAutoGenerateMode === "animation"
-      ? chatMeta.roleplayStoryboardAutoGenerateMode
-      : null;
-  const latestStoryboardMessage = useMemo(
-    () => messages?.find((message) => message.id === lastAssistantMessageId) ?? null,
-    [lastAssistantMessageId, messages],
-  );
-  const roleplayStoryboardsQuery = useGameChatStoryboards(activeChatId, storyboardAgentActive);
-  const generateRoleplayStoryboard = useGenerateGameTurnStoryboard();
-  const roleplayStoryboardByTurn = useMemo(() => {
-    const byTurn = new Map<string, GameTurnStoryboard>();
-    for (const storyboard of roleplayStoryboardsQuery.data ?? []) {
-      const key = `${storyboard.messageId}:${storyboard.swipeIndex}`;
-      const existing = byTurn.get(key);
-      if (!existing || storyboard.createdAt > existing.createdAt) byTurn.set(key, storyboard);
-    }
-    return byTurn;
-  }, [roleplayStoryboardsQuery.data]);
-  const storeGeneratedStoryboard = useCallback(
-    (storyboard: GameTurnStoryboard) => {
-      queryClient.setQueryData<GameTurnStoryboard[]>(gameStoryboardKeys.list(activeChatId), (current) => [
-        storyboard,
-        ...(current ?? []).filter((row) => row.id !== storyboard.id),
-      ]);
-      queryClient.setQueryData<GameTurnStoryboard[]>(
-        gameStoryboardKeys.turn(activeChatId, storyboard.messageId, storyboard.swipeIndex),
-        (current) => [storyboard, ...(current ?? []).filter((row) => row.id !== storyboard.id)],
-      );
-      void queryClient.invalidateQueries({ queryKey: ["gallery", activeChatId] });
-      void queryClient.invalidateQueries({ queryKey: ["gallery", "assets", activeChatId] });
-    },
-    [activeChatId, queryClient],
-  );
-  const handleGenerateRoleplayStoryboard = useCallback(async () => {
-    if (!latestStoryboardMessage) return;
-    try {
-      const result = await generateRoleplayStoryboard.mutateAsync({
-        chatId: activeChatId,
-        messageId: latestStoryboardMessage.id,
-        swipeIndex: latestStoryboardMessage.activeSwipeIndex ?? 0,
-        automatic: false,
-        debugMode: useUIStore.getState().debugMode,
-      });
-      if ("storyboard" in result) storeGeneratedStoryboard(result.storyboard);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : localizeUi("ui.chat.chatgallery.storyboardGenerationFailed"),
-      );
-    }
-  }, [activeChatId, generateRoleplayStoryboard, latestStoryboardMessage, localizeUi, storeGeneratedStoryboard]);
-
-  useEffect(() => {
-    automaticStoryboardMessageRef.current = undefined;
-  }, [activeChatId]);
-
-  useEffect(() => {
-    const messageId = latestStoryboardMessage?.id;
-    if (!messageId) return;
-    if (automaticStoryboardMessageRef.current === undefined) {
-      automaticStoryboardMessageRef.current = messageId;
-      return;
-    }
-    if (automaticStoryboardMessageRef.current === messageId) return;
-    if (!storyboardAgentActive || roleplayStoryboardAutoMode === "manual") {
-      automaticStoryboardMessageRef.current = messageId;
-      return;
-    }
-    if (
-      isStreaming ||
-      agentProcessing ||
-      messageHasPendingPostProcessing(latestStoryboardMessage) ||
-      generateRoleplayStoryboard.isPending
-    ) {
-      return;
-    }
-
-    automaticStoryboardMessageRef.current = messageId;
-    void generateRoleplayStoryboard
-      .mutateAsync({
-        chatId: activeChatId,
-        messageId,
-        swipeIndex: latestStoryboardMessage.activeSwipeIndex ?? 0,
-        automatic: true,
-        ...(roleplayStoryboardAutoMode ? { generateVideos: roleplayStoryboardAutoMode === "animation" } : {}),
-        debugMode: useUIStore.getState().debugMode,
-      })
-      .then((result) => {
-        if ("storyboard" in result) storeGeneratedStoryboard(result.storyboard);
-      })
-      .catch(() => undefined);
-  }, [
-    activeChatId,
-    agentProcessing,
-    generateRoleplayStoryboard,
-    isStreaming,
-    latestStoryboardMessage,
-    roleplayStoryboardAutoMode,
-    storyboardAgentActive,
-    storeGeneratedStoryboard,
-  ]);
-
-  const canGenerateRoleplayStoryboard =
-    storyboardAgentActive && !!latestStoryboardMessage && !generateRoleplayStoryboard.isPending;
   const galleryActions = useMemo(
     () => ({
       onIllustrate,
       onIllustrateWithAgent,
-      onGenerateStoryboard: canGenerateRoleplayStoryboard ? handleGenerateRoleplayStoryboard : undefined,
       onGenerateVideo,
       onAnimateImage,
       onGenerateBackground,
     }),
-    [
-      canGenerateRoleplayStoryboard,
-      handleGenerateRoleplayStoryboard,
-      onAnimateImage,
-      onGenerateBackground,
-      onGenerateVideo,
-      onIllustrate,
-      onIllustrateWithAgent,
-    ],
+    [onAnimateImage, onGenerateBackground, onGenerateVideo, onIllustrate, onIllustrateWithAgent],
   );
   useProvideChatGalleryActions(activeChatId, galleryActions);
   const chatTools: ChatSettingsTools = chat
@@ -1696,7 +1536,6 @@ export function ChatRoleplaySurface({
         <CrossfadeBackground url={chatBackground} blurPx={chatBackgroundBlur} />
         <div className="rpg-overlay absolute inset-0" />
         <div className="rpg-vignette pointer-events-none absolute inset-0" />
-        {weatherEffects && <WeatherEffectsConnected paused={weatherEffectsPaused} />}
         {visualNovel && !vnHistoryOpen && (
           <div
             ref={setVnMediaTarget}
@@ -1811,12 +1650,6 @@ export function ChatRoleplaySurface({
               </div>
             </div>
 
-            {encounterActive && (
-              <Suspense fallback={null}>
-                <EncounterModal />
-              </Suspense>
-            )}
-
             <div
               data-chat-resource-drop-surface
               className={cn(
@@ -1894,14 +1727,6 @@ export function ChatRoleplaySurface({
                   const messageDepth = (messages?.length ?? 0) - 1 - sourceIndex;
                   const messageOrderIndex = loadedMessageOffset + sourceIndex;
                   const isRegenerating = hasLiveStream && inlineStreamingMessageId === msg.id;
-                  const inlineStoryboard =
-                    roleplayStoryboardByTurn.get(`${msg.id}:${msg.activeSwipeIndex ?? 0}`) ?? null;
-                  const inlineStoryboardGenerating =
-                    msg.id === generateRoleplayStoryboard.variables?.messageId &&
-                    generateRoleplayStoryboard.isPending &&
-                    (generateRoleplayStoryboard.variables?.automatic !== true ||
-                      roleplayStoryboardAutoMode === "illustration" ||
-                      roleplayStoryboardAutoMode === "animation");
                   return (
                     <div
                       key={msg.id}
@@ -1940,8 +1765,6 @@ export function ChatRoleplaySurface({
                           multiSelectMode={multiSelectMode}
                           isSelected={selectedMessageIds.has(msg.id)}
                           onToggleSelect={onToggleSelectMessage}
-                          storyboard={inlineStoryboard}
-                          storyboardGenerating={inlineStoryboardGenerating}
                           memoryStartCharacterIds={memoryContextStarts.get(msg.id)}
                         />
                       ) : (
@@ -1974,8 +1797,6 @@ export function ChatRoleplaySurface({
                           multiSelectMode={multiSelectMode}
                           isSelected={selectedMessageIds.has(msg.id)}
                           onToggleSelect={onToggleSelectMessage}
-                          storyboard={inlineStoryboard}
-                          storyboardGenerating={inlineStoryboardGenerating}
                           memoryStartCharacterIds={memoryContextStarts.get(msg.id)}
                         />
                       )}
@@ -2163,8 +1984,6 @@ export function ChatRoleplaySurface({
                 <ChatInput
                   key={activeChatId}
                   mode={isRoleplay ? "roleplay" : "conversation"}
-                  combatAgentEnabled={combatAgentEnabled}
-                  onStartEncounter={onStartEncounter}
                   characterNames={characterNames}
                   groupResponseOrder={
                     chatCharIds.length > 1 && groupChatMode === "individual"

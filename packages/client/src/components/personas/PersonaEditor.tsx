@@ -75,7 +75,6 @@ import { formatCardVersionTimestamp, getCardVersionTitle } from "../../lib/card-
 import { dataImageUrlToFile } from "../../lib/data-image-file";
 import { extractColorsFromImage } from "../../lib/avatar-color-extraction";
 import { HelpTooltip } from "../ui/HelpTooltip";
-import { RulesetSheetsSection } from "../rulesets/RulesetSheetsSection";
 import { ColorPicker } from "../ui/ColorPicker";
 import { StatIconPicker } from "../ui/StatIconPicker";
 import { MacroTextarea } from "../ui/MacroTextarea";
@@ -3501,14 +3500,6 @@ function PersonaStatsTab({
           </>
         )}
       </div>
-
-      <RulesetSheetsSection
-        sheets={parsed.rulesetSheets}
-        onChange={(rulesetSheets) => {
-          const { rulesetSheets: _previous, ...rest } = parsed;
-          save(rulesetSheets ? { ...rest, rulesetSheets } : rest);
-        }}
-      />
     </div>
   );
 }

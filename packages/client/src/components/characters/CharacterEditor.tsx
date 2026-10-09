@@ -63,7 +63,6 @@ import { useUIStore } from "../../stores/ui.store";
 import { lorebookKeys, useLorebook, useUpdateLorebook } from "../../hooks/use-lorebooks";
 import { useConnections } from "../../hooks/use-connections";
 import { isCapabilityPackageAvailable, useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
-import { RulesetSheetsSection } from "../rulesets/RulesetSheetsSection";
 import { showConfirmDialog, showPromptDialog } from "../../lib/app-dialogs";
 import { formatCardVersionTimestamp, getCardVersionTitle } from "../../lib/card-version-history";
 import { dataImageUrlToFile } from "../../lib/data-image-file";
@@ -5399,11 +5398,6 @@ function StatsTab({
           </div>
         )}
       </div>
-
-      <RulesetSheetsSection
-        sheets={formData.extensions.rulesetSheets as Record<string, unknown> | undefined}
-        onChange={(sheets) => updateExtension("rulesetSheets", sheets)}
-      />
     </div>
   );
 }

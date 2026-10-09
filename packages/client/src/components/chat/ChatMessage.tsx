@@ -67,7 +67,7 @@ import {
   Shield,
 } from "lucide-react";
 import { decodeEncodedSpeakerTags, formatTextQuotes, type Message, type QuoteFormat } from "@marinara-engine/shared";
-import type { GameTurnStoryboard, GameTurnStoryboardKeyframe } from "@marinara-engine/shared";
+import type { GameTurnStoryboard } from "@marinara-engine/shared";
 import {
   memo,
   useState,
@@ -126,7 +126,6 @@ import { toast } from "sonner";
 import { MessageThinkingModal } from "./MessageThinkingModal";
 import { MESSAGE_ACTION_ICON_SIZE, MessageActionButton } from "./MessageActionButton";
 import { MessageMarkIndicators, MessageMarksAction, type MessageNoteSharing } from "./MessageMarks";
-import { RoleplayStoryboardMessageMedia } from "./RoleplayStoryboardMessageMedia";
 
 const MESSAGE_DOUBLE_TAP_MS = 320;
 const MESSAGE_DOUBLE_TAP_DISTANCE_PX = 26;
@@ -1885,8 +1884,6 @@ export const ChatMessage = memo(function ChatMessage({
   multiSelectMode,
   isSelected,
   onToggleSelect,
-  storyboard,
-  storyboardGenerating,
 }: ChatMessageProps) {
   const { t: localizeUi } = useUiTranslation();
   const { t } = useTranslation();
@@ -2031,30 +2028,6 @@ export const ChatMessage = memo(function ChatMessage({
       });
     },
     [message],
-  );
-  const openStoryboardImageLightbox = useCallback(
-    (frame: GameTurnStoryboardKeyframe) => {
-      if (!frame.image) return;
-      setImageLightbox({
-        image: buildChatMessageImage({
-          id: frame.image.id,
-          chatId: message.chatId,
-          url: frame.image.url,
-          prompt: frame.image.prompt,
-          provider: frame.image.provider,
-          model: frame.image.model,
-          createdAt: frame.image.createdAt,
-        }),
-        alt:
-          frame.title ||
-          localizeUi("game.storyboard.keyframeAlt", {
-            index: frame.index + 1,
-          }),
-        pinEnabled: true,
-        downloadEnabled: true,
-      });
-    },
-    [localizeUi, message.chatId],
   );
   const closeImageLightbox = useCallback(() => {
     setImageLightbox(null);
@@ -3715,15 +3688,6 @@ export const ChatMessage = memo(function ChatMessage({
                 )}
               </div>
             </div>
-            {!editing && (storyboard || storyboardGenerating) ? (
-              <div className="mx-auto mt-2 w-full max-w-3xl">
-                <RoleplayStoryboardMessageMedia
-                  storyboard={storyboard ?? null}
-                  generating={storyboardGenerating}
-                  onOpenImage={openStoryboardImageLightbox}
-                />
-              </div>
-            ) : null}
           </div>
           {imageLightbox && (
             <ChatImageLightbox
@@ -4060,14 +4024,6 @@ export const ChatMessage = memo(function ChatMessage({
             </div>
 
             {roleplayAttachments}
-
-            {!editing && !isUser && (storyboard || storyboardGenerating) ? (
-              <RoleplayStoryboardMessageMedia
-                storyboard={storyboard ?? null}
-                generating={storyboardGenerating}
-                onOpenImage={openStoryboardImageLightbox}
-              />
-            ) : null}
 
             {/* Swipes */}
             {(hasSwipes || canCreateNextSwipe) && (

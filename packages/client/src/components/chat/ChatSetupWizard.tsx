@@ -109,7 +109,6 @@ import {
 import { ConversationTimeZoneSelect } from "./ConversationTimeZoneSelect";
 import { AdvancedMemorySettings } from "./AdvancedMemorySettings";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { MultiplayerPrepareButton } from "../../features/multiplayer/MultiplayerPrepareButton";
 
 // ─── Step definitions ─────────────────────────
 
@@ -1483,7 +1482,6 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
 
   const renderConnectionStep = () => (
     <div className="space-y-4">
-      <MultiplayerPrepareButton chatId={chat.id} prepared={metadata.multiplayerSetup === true} />
       <div className="space-y-1.5">
         <label className={WIZARD_FIELD_LABEL}>{localizeUi("ui.characters.metadatatab.name")}</label>
         <input
@@ -2721,7 +2719,6 @@ function RoleplaySetupWizard({ chat, onFinish, defaultsApplied, defaultsAction }
   function renderConnection() {
     return (
       <div className="space-y-4">
-        <MultiplayerPrepareButton chatId={chat.id} prepared={metadata.multiplayerSetup === true} />
         <fieldset className="space-y-2">
           <legend className={WIZARD_FIELD_LABEL}>{localizeUi("chat.roleplayVn.displayStyle")}</legend>
           <div className="grid grid-cols-2 gap-2">
