@@ -2,7 +2,7 @@
 // Chat: Settings Drawer — per-chat configuration
 // ──────────────────────────────────────────────
 import { lazy, Suspense, useState, useRef, useEffect, useMemo, useCallback, type ReactNode } from "react";
-import { useQuery, useQueryClient, useQueries } from "@tanstack/react-query";
+import { useQueryClient, useQueries } from "@tanstack/react-query";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { RoleplayCommandsSettings } from "./RoleplayCommandsSettings";
@@ -41,7 +41,6 @@ import {
   Archive,
   Unlink,
   Brain,
-  Vibrate,
   Feather,
   Paintbrush,
   Regex,
@@ -58,7 +57,6 @@ import {
   StickyNote,
   Eye,
   EyeOff,
-  Music2,
   ShieldCheck,
   Loader2,
   Wrench,
@@ -117,7 +115,6 @@ import {
   AgentDefaultStatus,
   AgentSettingsActionButton,
   AgentSettingsCard,
-  AgentSettingsSegmentedControl,
   AgentSettingsSubsection,
   AgentSettingsTextarea,
   AgentSettingsToggle,
@@ -125,7 +122,6 @@ import {
 } from "./AgentSettingsControls";
 import { ExpressionSpriteSettings } from "./ExpressionSpriteSettings";
 import { AgentPromptTemplateSelect } from "./AgentPromptTemplateSelect";
-import { HAPTIC_SENSITIVITY_OPTIONS } from "./haptic-sensitivity-options";
 import { ChatModeIcon } from "./ChatModeIcon";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
 import { ChoiceSelectionModal } from "../presets/ChoiceSelectionModal";
@@ -312,12 +308,8 @@ import {
   applyAgentAddSetupToAgentSettings,
   buildAgentAddMetadataPatch,
   buildInitialAgentAddSetupState,
-  normalizeCustomMusicExternalFolder,
-  normalizeCustomMusicSource,
   type AgentAddSetupState,
   type AgentAddSpriteSubject,
-  type CustomMusicSource,
-  type MusicProvider,
 } from "./AgentAddSetupFields";
 import {
   CHAT_RESOURCE_AGENT_SETUP_EVENT,
@@ -383,28 +375,6 @@ interface ChatSettingsDrawerProps {
   onOpenScheduleEditor?: (characterId: string, options?: { initialDay?: string | null }) => void;
 }
 
-const SPOTIFY_SOURCE_OPTIONS: Array<{ id: SpotifySourceType; label: string; description: string }> = [
-  { id: "liked", label: "Liked Songs", description: "Pick from the user's saved tracks first." },
-  { id: "playlist", label: "Playlist", description: "Keep choices inside one Spotify playlist." },
-  { id: "artist", label: "Artist", description: "Search only around a named artist, like HOYO-MiX." },
-  { id: "any", label: "Any Spotify", description: "Let the DJ use Spotify search when it fits." },
-];
-
-function getMusicProviderLabel(provider: MusicProvider): string {
-  return provider === "spotify" ? "Spotify" : provider === "youtube" ? "YouTube" : "Custom";
-}
-
-function normalizeCustomMusicFolder(value: unknown): string {
-  const raw = typeof value === "string" ? value.trim().replace(/\\/g, "/") : "";
-  let start = 0;
-  let end = raw.length;
-  while (raw[start] === "/") start++;
-  while (end > start && raw[end - 1] === "/") end--;
-  const normalized = raw.slice(start, end);
-  if (!normalized || normalized.includes("..")) return "music";
-  return normalized.startsWith("music") ? normalized : `music/${normalized}`;
-}
-
 const DEFAULT_PROSE_GUARDIAN_BANNED_WORDS = "ozone";
 const DEFAULT_PROSE_GUARDIAN_AVOID =
   "no repetition of any phrases or sentence structure from the last messages, if the last output started with dialogue line, this one needs to start with narration, no purple prose";
@@ -453,12 +423,6 @@ function renderRoleplayAgentMenuIcon(agentId: string, variant: "card" | "chip" =
       return <MessageCircle size={size} className={className} />;
     case "illustrator":
       return <Paintbrush size={size} className={className} />;
-    case STORYBOARD_AGENT_ID:
-      return <Image size={size} className={className} />;
-    case "spotify":
-      return <Music2 size={size} className={className} />;
-    case "haptic":
-      return <Vibrate size={size} className={className} />;
     case "long-term-memory":
       return <Archive size={size} className={className} />;
     case "memory-nag":
@@ -503,16 +467,6 @@ const CONVERSATION_COMMAND_TOGGLE_OPTIONS: Array<{
     description: "Let characters start an immersive scene from the conversation.",
   },
   {
-    id: "music",
-    label: "Music",
-    description: "Let characters play songs through the active Music Player.",
-  },
-  {
-    id: "haptic",
-    label: "Haptics",
-    description: "Let characters control connected haptic devices.",
-  },
-  {
     id: "influence",
     label: "Influence",
     description: "Let characters send one-shot influence to a connected chat.",
@@ -531,36 +485,6 @@ const CONVERSATION_COMMAND_TOGGLE_OPTIONS: Array<{
     id: "react",
     label: "Reactions",
     description: "Let characters react to messages with emoji badges.",
-  },
-  {
-    id: "uno",
-    label: "UNO",
-    description: "Let characters start a game of UNO at the table when you agree to play.",
-  },
-  {
-    id: "chess",
-    label: "Chess",
-    description: "Let characters accept a one-on-one chess challenge at the table.",
-  },
-  {
-    id: "poker",
-    label: "Poker",
-    description: "Let characters sit down for a game of Texas Hold'em poker at the table.",
-  },
-  {
-    id: "eightball",
-    label: "8-Ball Pool",
-    description: "Let characters rack up a game of 8-ball pool at the table.",
-  },
-  {
-    id: "tic_tac_toe",
-    label: "Tic-Tac-Toe",
-    description: "Let characters accept a one-on-one tic-tac-toe challenge at the table.",
-  },
-  {
-    id: "rock_paper_scissors",
-    label: "Rock-Paper-Scissors",
-    description: "Let characters accept a one-on-one rock-paper-scissors match at the table.",
   },
 ];
 
@@ -879,8 +803,6 @@ export function ChatSettingsDrawer({
   const openRightPanel = useUIStore((s) => s.openRightPanel);
   const openAgentCatalog = useUIStore((s) => s.openAgentCatalog);
   const setSettingsTab = useUIStore((s) => s.setSettingsTab);
-  const musicPlayerSource = useUIStore((s) => s.musicPlayerSource);
-  const setMusicPlayerSource = useUIStore((s) => s.setMusicPlayerSource);
   const openToolDetail = useUIStore((s) => s.openToolDetail);
   const debugMode = useUIStore((s) => s.debugMode);
   const setEditorDirty = useUIStore((s) => s.setEditorDirty);
@@ -1412,20 +1334,6 @@ export function ChatSettingsDrawer({
     [chat.id, ltmPackageId, readLatestActiveAgentIds, updateMeta],
   );
   const activeToolIds: string[] = metadata.activeToolIds ?? [];
-  const spotifyActive = activeAgentIds.includes("spotify");
-  const spotifySourceType = normalizeSpotifySourceType(metadata.spotifySourceType);
-  const spotifyPlaylistId = typeof metadata.spotifyPlaylistId === "string" ? metadata.spotifyPlaylistId : "";
-  const spotifyArtist = typeof metadata.spotifyArtist === "string" ? metadata.spotifyArtist : "";
-  const gameUseSpotifyMusic = metadata.gameUseSpotifyMusic === true;
-  const gameSpotifyArtist = typeof metadata.gameSpotifyArtist === "string" ? metadata.gameSpotifyArtist : "";
-  const musicDjSettings = mergeBuiltInAgentSettings("spotify", agentConfigsByType.get("spotify")?.settings);
-  const customMusicSource = normalizeCustomMusicSource(musicDjSettings);
-  const customMusicFolder = normalizeCustomMusicFolder(metadata.customMusicFolder ?? musicDjSettings.customMusicFolder);
-  const customMusicExternalFolder = normalizeCustomMusicExternalFolder(
-    musicDjSettings.customMusicExternalFolder ?? musicDjSettings.localMusicExternalFolder,
-  );
-  const gameMusicDjEnabled =
-    metadata.gameUseMusicDj === true || gameUseSpotifyMusic || activeAgentIds.includes("youtube");
   const spriteCharacterIds = useMemo<string[]>(
     () => (Array.isArray(metadata.spriteCharacterIds) ? metadata.spriteCharacterIds : []),
     [metadata.spriteCharacterIds],
@@ -1513,28 +1421,6 @@ export function ChatSettingsDrawer({
     ? spriteVisualSettings?.spritePlacements
     : metadata.spritePlacements;
   const hasCustomSpritePlacements = Object.keys(normalizeSpritePlacements(spritePlacementSource)).length > 0;
-  const spotifyPlaylistsQuery = useQuery({
-    queryKey: ["spotify", "playlists", 50],
-    queryFn: () =>
-      api.get<{
-        playlists: Array<{
-          id: string;
-          name: string;
-          uri: string;
-          trackCount: number | null;
-          owned: boolean | null;
-        }>;
-      }>("/spotify/playlists?limit=50"),
-    enabled:
-      open &&
-      isRoleplayMode &&
-      metadata.enableAgents &&
-      spotifyActive &&
-      musicPlayerSource === "spotify" &&
-      spotifySourceType === "playlist",
-    staleTime: 60_000,
-    retry: false,
-  });
 
   useEffect(() => {
     setExpressionSpriteScalePercent(Math.round(editedExpressionSpriteScale * 100));
@@ -1719,10 +1605,7 @@ export function ChatSettingsDrawer({
     name: "Echo Chamber",
     description: "Shows a live stream-style chat reacting to your roleplay.",
   });
-  const musicDjAgentMeta = getAgentDisplayMeta("spotify", {
-    name: "Music DJ",
-    description: "Plays music that fits the mood of the story, from Spotify, YouTube, or your own Game Assets music.",
-  });
+
   const knowledgeRetrievalAgentMeta = getAgentDisplayMeta("knowledge-retrieval", {
     name: "Knowledge Retrieval",
     description: "Finds facts in your lorebooks and files that matter for the current scene.",
@@ -1730,10 +1613,6 @@ export function ChatSettingsDrawer({
   const knowledgeRouterAgentMeta = getAgentDisplayMeta("knowledge-router", {
     name: "Knowledge Router",
     description: "Picks the lorebook entries that fit the scene and gives them to the AI.",
-  });
-  const hapticAgentMeta = getAgentDisplayMeta("haptic", {
-    name: "Haptic Feedback",
-    description: "Controls connected intimate toys to match what happens in the story.",
   });
 
   // Estimate the per-turn cost of the active agent loadout — feeds the readout
@@ -1778,11 +1657,6 @@ export function ChatSettingsDrawer({
   const continuityActive = activeAgentIds.includes("continuity");
   const htmlActive = activeAgentIds.includes("html");
   const directorActive = activeAgentIds.includes("director");
-  const hapticActive = activeAgentIds.includes("haptic");
-  const hapticSensitivity: HapticFeedbackSensitivity =
-    metadata.hapticSensitivity === "subtle" || metadata.hapticSensitivity === "intense"
-      ? metadata.hapticSensitivity
-      : "standard";
   const agentWriteApprovalRequired = metadata.agentWriteApprovalRequired === true;
   const knowledgeRetrievalActive = activeAgentIds.includes("knowledge-retrieval");
   const knowledgeRouterActive = activeAgentIds.includes("knowledge-router");
@@ -2139,7 +2013,7 @@ export function ChatSettingsDrawer({
             if (!activeAgentIds.includes(agent.id) || !hasStandaloneRoleplayAgentSettings(agent.id)) return false;
             if (agent.id === "hierarchical-maps") return Boolean(mapsPackage);
             if (agent.id === "long-term-memory") return Boolean(ltmPackage);
-            if (agent.id === STORYBOARD_AGENT_ID || agent.id === "beholder") return true;
+            if (agent.id === "beholder") return true;
             return chatSettingsPackageByAgentId.has(agent.id);
           })
         : [],
@@ -2187,8 +2061,6 @@ export function ChatSettingsDrawer({
     addLink("expression", expressionActive, expressionAgentMeta.name);
     addLink("echo-chamber", echoChamberActive, echoChamberAgentMeta.name);
     addLink("illustrator", illustratorActive, illustratorAgentMeta.name);
-    addLink("spotify", spotifyActive, musicDjAgentMeta.name);
-    addLink("haptic", hapticActive, hapticAgentMeta.name);
     if (ltmAgent && ltmPackage) {
       addLink(ltmPackage.id, metadata.enableAgents === true && activeAgentIds.includes(ltmPackage.id), ltmAgent.name);
     }
@@ -2233,8 +2105,6 @@ export function ChatSettingsDrawer({
     echoChamberAgentMeta.name,
     expressionActive,
     expressionAgentMeta.name,
-    hapticActive,
-    hapticAgentMeta.name,
     htmlActive,
     htmlAgentMeta.name,
     illustratorActive,
@@ -2254,10 +2124,8 @@ export function ChatSettingsDrawer({
     mapsPackage,
     mapsPackageEnabledForChat,
     metadata.enableAgents,
-    musicDjAgentMeta.name,
     proseGuardianActive,
     proseGuardianAgentMeta.name,
-    spotifyActive,
   ]);
   const focusAgentMenu = useCallback((targetId: string) => {
     const target = document.getElementById(targetId);
@@ -2561,10 +2429,6 @@ export function ChatSettingsDrawer({
   }, [firstMesConfirm, createMessage, chat.id, qc, localizeUi]);
 
   // ── Mutations ──
-  const syncGamePartyMetadata = () => {
-    return;
-  };
-
   // A removed character also leaves the chat's sprite and inactive-character lists.
   const clearRemovedCharacterMetadata = (charId: string) => {
     if (spriteCharacterIds.includes(charId)) {
@@ -2586,42 +2450,30 @@ export function ChatSettingsDrawer({
     }
   };
 
-  const toggleCharacter = (charId: string) => {
+  const toggleCharacter = async (charId: string) => {
     const current = [...chatCharIds];
     const idx = current.indexOf(charId);
     if (idx >= 0) {
       current.splice(idx, 1);
-      updateChat.mutate(
-        { id: chat.id, characterIds: current },
-        {
-          onSuccess: () => syncGamePartyMetadata(current),
-        },
-      );
+      await updateChat.mutateAsync({ id: chat.id, characterIds: current });
       clearRemovedCharacterMetadata(charId);
-    } else {
-      current.push(charId);
-      updateChat.mutate(
-        { id: chat.id, characterIds: current },
-        {
-          onSuccess: () => {
-            syncGamePartyMetadata(current);
-            // Skip auto-greeting for conversation mode
-            if (isConversation) return;
-            const char = characters.find((c) => c.id === charId);
-            if (!char) return;
-            const { greetings, dialogueColor } = readCharacterGreetings(char.data);
-            if (greetings.length > 0) {
-              setFirstMesConfirm({
-                charId,
-                charName: charName(char),
-                dialogueColor,
-                greetings,
-                selectedIndex: 0,
-              });
-            }
-          },
-        },
-      );
+      return;
+    }
+
+    current.push(charId);
+    await updateChat.mutateAsync({ id: chat.id, characterIds: current });
+    if (isConversation) return;
+    const char = characters.find((candidate) => candidate.id === charId);
+    if (!char) return;
+    const { greetings, dialogueColor } = readCharacterGreetings(char.data);
+    if (greetings.length > 0) {
+      setFirstMesConfirm({
+        charId,
+        charName: charName(char),
+        dialogueColor,
+        greetings,
+        selectedIndex: 0,
+      });
     }
   };
 
@@ -3576,20 +3428,6 @@ export function ChatSettingsDrawer({
   const [scenePromptExpanded, setScenePromptExpanded] = useState(false);
   const [scenePromptDraft, setScenePromptDraft] = useState(metadata.sceneSystemPrompt ?? "");
   const [groupScenarioDraft, setGroupScenarioDraft] = useState((metadata.groupScenarioText as string) ?? "");
-  const [gameSpecialInstructionsDraft, setGameSpecialInstructionsDraft] = useState(
-    (metadata.gameSpecialInstructions as string) ?? "",
-  );
-  const [gameImagePromptInstructionsDraft, setGameImagePromptInstructionsDraft] = useState(
-    (metadata.gameImagePromptInstructions as string) ?? "",
-  );
-  const gameSetupConfig =
-    metadata.gameSetupConfig && typeof metadata.gameSetupConfig === "object"
-      ? (metadata.gameSetupConfig as Record<string, unknown>)
-      : {};
-  const campaignArtStyle = typeof gameSetupConfig.artStylePrompt === "string" ? gameSetupConfig.artStylePrompt : "";
-  const [campaignArtStyleDraft, setCampaignArtStyleDraft] = useState(campaignArtStyle);
-  const [spotifyArtistDraft, setSpotifyArtistDraft] = useState(spotifyArtist);
-  const [gameSpotifyArtistDraft, setGameSpotifyArtistDraft] = useState(gameSpotifyArtist);
 
   // ── Chat settings profiles (legacy API/type names still use "chat preset") ──
   const presetMode = chatMode;
@@ -3625,14 +3463,6 @@ export function ChatSettingsDrawer({
   }, [open]);
 
   useEffect(() => {
-    setGameImagePromptInstructionsDraft((metadata.gameImagePromptInstructions as string) ?? "");
-  }, [chat.id, metadata.gameImagePromptInstructions]);
-
-  useEffect(() => {
-    setCampaignArtStyleDraft(campaignArtStyle);
-  }, [campaignArtStyle, chat.id]);
-
-  useEffect(() => {
     modePromptDefaultAppliedRef.current = null;
   }, [chat.id]);
 
@@ -3644,18 +3474,6 @@ export function ChatSettingsDrawer({
     modePromptDefaultAppliedRef.current = fallbackKey;
     updateChat.mutate({ id: chat.id, promptPresetId: fallbackPromptPreset.id });
   }, [chat.id, chat.promptPresetId, fallbackPromptPreset?.id, windowOpen, shouldApplyModePromptDefault, updateChat]);
-
-  useEffect(() => {
-    setGameSpecialInstructionsDraft((metadata.gameSpecialInstructions as string) ?? "");
-  }, [chat.id, metadata.gameSpecialInstructions]);
-
-  useEffect(() => {
-    setGameSpotifyArtistDraft(gameSpotifyArtist);
-  }, [chat.id, gameSpotifyArtist]);
-
-  useEffect(() => {
-    setSpotifyArtistDraft(spotifyArtist);
-  }, [chat.id, spotifyArtist]);
 
   const handleModePromptPresetChange = useCallback(
     (promptPresetId: string | null) => {
@@ -3693,13 +3511,12 @@ export function ChatSettingsDrawer({
           agentId: agent.id,
           settings: mergedSettings,
           metadata,
-          musicPlayerSource,
           roleplaySpriteScale,
           allowSecretPlot: supportsNarrativeDirectorSecretPlot,
         }),
       });
     },
-    [agentConfigsByType, metadata, musicPlayerSource, roleplaySpriteScale, supportsNarrativeDirectorSecretPlot],
+    [agentConfigsByType, metadata, roleplaySpriteScale, supportsNarrativeDirectorSecretPlot],
   );
 
   useEffect(() => {
@@ -3817,185 +3634,6 @@ export function ChatSettingsDrawer({
       setAddingAgentToChat(false);
     }
   };
-
-  const ensureMusicDjAgent = useCallback(
-    async (provider: MusicProvider) => {
-      const builtInMeta = installedAgentManifests.find((entry) => entry.id === "spotify");
-      if (!builtInMeta) throw new Error("Music DJ agent metadata is missing.");
-      const config = agentConfigsByType.get("spotify") ?? null;
-      const nextSettings: Record<string, unknown> = {
-        ...mergeBuiltInAgentSettings("spotify", config?.settings),
-        musicProvider: provider,
-        musicPlayerSource: provider,
-        customMusicSource,
-        customMusicFolder,
-        customMusicExternalFolder,
-        enabledTools: provider === "spotify" ? (DEFAULT_AGENT_TOOLS.spotify ?? []) : [],
-      };
-
-      if (config) {
-        await updateAgentConfig.mutateAsync({ id: config.id, settings: nextSettings });
-        return;
-      }
-
-      await createAgent.mutateAsync({
-        type: builtInMeta.id,
-        name: builtInMeta.name,
-        description: builtInMeta.description,
-        phase: normalizeAgentPhaseForType(builtInMeta.id, builtInMeta.phase),
-        connectionId: null,
-        promptTemplate: "",
-        settings: nextSettings,
-      });
-    },
-    [
-      agentConfigsByType,
-      createAgent,
-      customMusicExternalFolder,
-      customMusicFolder,
-      customMusicSource,
-      installedAgentManifests,
-      updateAgentConfig,
-    ],
-  );
-
-  const changeMusicDjProvider = useCallback(
-    async (provider: MusicProvider) => {
-      setMusicPlayerSource(provider);
-      const musicDjActive = gameMusicDjEnabled || activeAgentIds.includes("spotify");
-      if (!musicDjActive) return;
-      try {
-        await ensureMusicDjAgent(provider);
-      } catch (error) {
-        await showAlertDialog({
-          title: "Couldn't Update Music DJ",
-          message: error instanceof Error ? error.message : "Music DJ provider could not be updated.",
-        });
-      }
-    },
-    [activeAgentIds, chat.id, ensureMusicDjAgent, gameMusicDjEnabled, false, setMusicPlayerSource, updateMeta],
-  );
-
-  const saveCustomMusicFolder = useCallback(
-    async (value: string) => {
-      const folder = normalizeCustomMusicFolder(value);
-      updateMeta.mutate({ id: chat.id, customMusicFolder: folder });
-      const config = agentConfigsByType.get("spotify") ?? null;
-      if (!config) return;
-      const nextSettings = {
-        ...mergeBuiltInAgentSettings("spotify", config.settings),
-        customMusicFolder: folder,
-      };
-      await updateAgentConfig.mutateAsync({ id: config.id, settings: nextSettings });
-    },
-    [agentConfigsByType, chat.id, updateAgentConfig, updateMeta],
-  );
-
-  const updateCustomMusicLibrary = useCallback(
-    async (patch: { customMusicSource?: CustomMusicSource; customMusicExternalFolder?: string }) => {
-      try {
-        const config = agentConfigsByType.get("spotify") ?? null;
-        if (!config) throw new Error("Music DJ agent settings are missing.");
-        const nextSettings = {
-          ...mergeBuiltInAgentSettings("spotify", config.settings),
-          ...patch,
-        };
-        await updateAgentConfig.mutateAsync({ id: config.id, settings: nextSettings });
-      } catch (error) {
-        await showAlertDialog({
-          title: "Couldn't Update Music Folder",
-          message: error instanceof Error ? error.message : "The custom music folder could not be updated.",
-        });
-      }
-    },
-    [agentConfigsByType, updateAgentConfig],
-  );
-
-  const selectCustomMusicExternalFolder = useCallback(async () => {
-    try {
-      const data = await api.post<{ success: boolean; path: string }>("/game-assets/pick-local-music-folder");
-      if (data.success !== true || !data.path) throw new Error("No folder selected.");
-      await updateCustomMusicLibrary({
-        customMusicSource: "folder",
-        customMusicExternalFolder: data.path,
-      });
-    } catch (error) {
-      await showAlertDialog({
-        title: "Couldn't Select Music Folder",
-        message: error instanceof Error ? error.message : "The music folder could not be selected.",
-      });
-    }
-  }, [updateCustomMusicLibrary]);
-
-  const renderCustomMusicLibrarySettings = (surface: "game" | "roleplay") => (
-    <div className="space-y-2">
-      <label className="flex flex-col gap-1">
-        <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-          {localizeUi("ui.chat.chatsettingsdrawer.customMusicSource")}
-        </span>
-        <select
-          value={customMusicSource}
-          onChange={(event) =>
-            void updateCustomMusicLibrary({ customMusicSource: event.target.value as CustomMusicSource })
-          }
-          className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)]"
-        >
-          <option value="game-assets">{localizeUi("game.toolbar.assets")}</option>
-          <option value="folder">{localizeUi("ui.chat.musicdjsetupfields.folderOnThisDevice")}</option>
-        </select>
-      </label>
-
-      {customMusicSource === "folder" ? (
-        <div className="flex flex-col gap-1">
-          <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-            {localizeUi("ui.agents.agenteditor.musicFolderOnThisDevice")}
-          </span>
-          <div className="flex flex-col gap-2 @lg:flex-row">
-            <input
-              key={`${chat.id}-${surface}-custom-music-folder-${customMusicExternalFolder}`}
-              defaultValue={customMusicExternalFolder}
-              onBlur={(event) =>
-                void updateCustomMusicLibrary({
-                  customMusicSource: "folder",
-                  customMusicExternalFolder: normalizeCustomMusicExternalFolder(event.target.value),
-                })
-              }
-              placeholder={localizeUi("ui.agents.agenteditor.noFolderSelected")}
-              className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 font-mono text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50"
-            />
-            <button
-              type="button"
-              onClick={() => void selectCustomMusicExternalFolder()}
-              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 text-xs font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]"
-            >
-              <FolderOpen size="0.75rem" />
-              {localizeUi("ui.chat.musicdjsetupfields.chooseFolder")}
-            </button>
-          </div>
-          <span className="text-[0.5625rem] text-[var(--muted-foreground)]">
-            {localizeUi("ui.chat.musicdjsetupfields.musicDjWillChooseFromAudioFilesInThis")}
-          </span>
-        </div>
-      ) : (
-        <label className="flex flex-col gap-1">
-          <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-            {localizeUi("ui.agents.agenteditor.gameAssetsMusicFolder")}
-          </span>
-          <input
-            key={`${chat.id}-${surface}-custom-music-${customMusicFolder}`}
-            defaultValue={customMusicFolder}
-            onBlur={(event) => void saveCustomMusicFolder(event.target.value)}
-            placeholder={localizeUi("ui.agents.agenteditor.music")}
-            className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 font-mono text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50"
-          />
-          <span className="text-[0.5625rem] text-[var(--muted-foreground)]">
-            {localizeUi("ui.chat.musicdjsetupfields.readsLocalAudioFromGameAssetsForExample")} <code>music</code>{" "}
-            {localizeUi("ui.noodle.noodlehome.or")} <code>music/combat</code>.
-          </span>
-        </label>
-      )}
-    </div>
-  );
 
   const agentAddIntervalMeta = agentAddPreview
     ? getAgentRunIntervalMeta(agentAddPreview.agent.id, agentAddPreview.agent.builtIn)
@@ -4461,63 +4099,6 @@ export function ChatSettingsDrawer({
             );
           })}
         </div>
-      </AgentSettingsCard>
-    );
-  };
-
-  const renderHapticSettingsCard = () => {
-    if (!metadata.enableAgents || !hapticActive) return null;
-
-    return (
-      <AgentSettingsCard
-        id={getAgentSettingsMenuId(chat.id, "haptic")}
-        icon={renderRoleplayAgentMenuIcon("haptic")}
-        title={hapticAgentMeta.name}
-        description={hapticAgentMeta.description}
-        order={getRoleplayAgentSettingsOrder("haptic")}
-        onRemove={getRoleplayAgentMenuRemoveHandler("haptic", hapticAgentMeta.name)}
-      >
-        <AgentSettingsToggle
-          label={localizeUi("ui.chat.hapticsetupfields.hapticFeedback")}
-          description={
-            metadata.enableHapticFeedback
-              ? localizeUi("ui.chat.hapticsetupfields.touchCuesAreEnabledForThisChat")
-              : localizeUi("ui.chat.hapticsetupfields.allowThisAgentToSendTouchCuesDuringThe")
-          }
-          enabled={metadata.enableHapticFeedback}
-          onToggle={() => updateMeta.mutate({ id: chat.id, enableHapticFeedback: !metadata.enableHapticFeedback })}
-        />
-        {metadata.enableHapticFeedback && (
-          <>
-            <div className="space-y-2 rounded-lg bg-[var(--background)]/75 p-2.5 ring-1 ring-[var(--border)]">
-              <div className="space-y-1">
-                <span className="text-[0.6875rem] font-semibold text-[var(--foreground)]">
-                  {localizeUi("ui.chat.chatsettingsdrawer.touchSensitivity")}
-                </span>
-                <AgentSettingsSegmentedControl<HapticFeedbackSensitivity>
-                  value={hapticSensitivity}
-                  columns={3}
-                  options={HAPTIC_SENSITIVITY_OPTIONS.map((option) => ({
-                    id: option.id,
-                    label: localizeUi(option.labelKey),
-                  }))}
-                  onChange={(hapticSensitivity) => updateMeta.mutate({ id: chat.id, hapticSensitivity })}
-                />
-              </div>
-              <AgentSettingsToggle
-                label={localizeUi("ui.chat.chatsettingsdrawer.incidentalContact")}
-                description={localizeUi("ui.chat.hapticsetupfields.tinyTapsForAccidentalBrushesAndBumps")}
-                enabled={metadata.hapticIncidentalContact === true}
-                onToggle={() =>
-                  updateMeta.mutate({
-                    id: chat.id,
-                    hapticIncidentalContact: metadata.hapticIncidentalContact !== true,
-                  })
-                }
-              />
-            </div>
-          </>
-        )}
       </AgentSettingsCard>
     );
   };
@@ -6429,7 +6010,6 @@ export function ChatSettingsDrawer({
                 )}
                 {renderCustomAgentPicker()}
                 {renderActiveCustomAgentSettingsCard()}
-                {renderHapticSettingsCard()}
               </div>
             </Section>
           )}
@@ -7602,167 +7182,8 @@ export function ChatSettingsDrawer({
                       </AgentSettingsCard>
                     )}
 
-                    {metadata.enableAgents && isRoleplayMode && spotifyActive && (
-                      <AgentSettingsCard
-                        id={getAgentSettingsMenuId(chat.id, "spotify")}
-                        icon={renderRoleplayAgentMenuIcon("spotify")}
-                        title={musicDjAgentMeta.name}
-                        description={musicDjAgentMeta.description}
-                        order={getRoleplayAgentSettingsOrder("spotify")}
-                        onRemove={getRoleplayAgentMenuRemoveHandler("spotify", musicDjAgentMeta.name)}
-                      >
-                        <p className="text-[0.55rem] text-[var(--muted-foreground)]/80">
-                          {localizeUi("ui.chat.musicdjsetupfields.activePlayer")}{" "}
-                          {getMusicProviderLabel(musicPlayerSource)}.
-                        </p>
-
-                        <AgentSettingsSegmentedControl<MusicProvider>
-                          value={musicPlayerSource}
-                          columns={3}
-                          options={(["spotify", "youtube", "custom"] as const).map((provider) => ({
-                            id: provider,
-                            label: getMusicProviderLabel(provider),
-                          }))}
-                          onChange={(provider) => void changeMusicDjProvider(provider)}
-                        />
-
-                        {musicPlayerSource === "spotify" && (
-                          <>
-                            <label className="flex flex-col gap-1">
-                              <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-                                {localizeUi("ui.chat.chatsettingsdrawer.spotifySource")}
-                              </span>
-                              <select
-                                value={spotifySourceType}
-                                onChange={(event) => {
-                                  const next = normalizeSpotifySourceType(event.target.value);
-                                  updateMeta.mutate({
-                                    id: chat.id,
-                                    spotifySourceType: next,
-                                    spotifyPlaylistId: next === "playlist" ? spotifyPlaylistId || null : null,
-                                    spotifyPlaylistName:
-                                      next === "playlist" ? (metadata.spotifyPlaylistName as string) || null : null,
-                                    spotifyArtist: next === "artist" ? spotifyArtistDraft.trim() || null : null,
-                                  });
-                                }}
-                                className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)]"
-                              >
-                                {SPOTIFY_SOURCE_OPTIONS.map((option) => (
-                                  <option key={option.id} value={option.id}>
-                                    {option.label}
-                                  </option>
-                                ))}
-                              </select>
-                              <span className="text-[0.5625rem] text-[var(--muted-foreground)]">
-                                {SPOTIFY_SOURCE_OPTIONS.find((option) => option.id === spotifySourceType)
-                                  ?.description ?? ""}
-                              </span>
-                            </label>
-
-                            {spotifySourceType === "playlist" && (
-                              <label className="flex flex-col gap-1">
-                                <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-                                  {localizeUi("ui.chat.musicdjsetupfields.playlist")}
-                                </span>
-                                {spotifyPlaylistsQuery.data?.playlists.length ? (
-                                  <select
-                                    value={spotifyPlaylistId}
-                                    onChange={(event) => {
-                                      const playlist = spotifyPlaylistsQuery.data?.playlists.find(
-                                        (entry) => entry.id === event.target.value,
-                                      );
-                                      updateMeta.mutate({
-                                        id: chat.id,
-                                        spotifyPlaylistId: event.target.value || null,
-                                        spotifyPlaylistName: playlist?.name ?? null,
-                                      });
-                                    }}
-                                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)]"
-                                  >
-                                    <option value="">{localizeUi("ui.chat.musicdjsetupfields.choosePlaylist")}</option>
-                                    {spotifyPlaylistsQuery.data.playlists.map((playlist) => {
-                                      const suffix =
-                                        typeof playlist.trackCount === "number"
-                                          ? ` (${playlist.trackCount})`
-                                          : playlist.owned === false
-                                            ? " (followed, unavailable)"
-                                            : "";
-                                      return (
-                                        <option key={playlist.id} value={playlist.id}>
-                                          {playlist.name}
-                                          {suffix}
-                                        </option>
-                                      );
-                                    })}
-                                  </select>
-                                ) : (
-                                  <input
-                                    key={`${chat.id}-${spotifyPlaylistId}`}
-                                    defaultValue={spotifyPlaylistId}
-                                    onBlur={(event) =>
-                                      updateMeta.mutate({
-                                        id: chat.id,
-                                        spotifyPlaylistId: event.target.value.trim() || null,
-                                        spotifyPlaylistName: null,
-                                      })
-                                    }
-                                    placeholder={
-                                      spotifyPlaylistsQuery.isFetching
-                                        ? localizeUi("ui.chat.musicdjsetupfields.loadingPlaylists")
-                                        : localizeUi("ui.chat.musicdjsetupfields.pastePlaylistId")
-                                    }
-                                    className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50"
-                                  />
-                                )}
-                                {spotifyPlaylistsQuery.isError && (
-                                  <span className="text-[0.5625rem] text-amber-400/90">
-                                    {localizeUi("ui.chat.musicdjsetupfields.connectSpotifyInTheMusicDjAgentToLoad")}
-                                  </span>
-                                )}
-                              </label>
-                            )}
-
-                            {spotifySourceType === "artist" && (
-                              <label className="flex flex-col gap-1">
-                                <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-                                  {localizeUi("ui.chat.musicdjsetupfields.artist")}
-                                </span>
-                                <input
-                                  value={spotifyArtistDraft}
-                                  onChange={(event) => setSpotifyArtistDraft(event.target.value)}
-                                  onBlur={() =>
-                                    updateMeta.mutate({
-                                      id: chat.id,
-                                      spotifyArtist: spotifyArtistDraft.trim() || null,
-                                    })
-                                  }
-                                  placeholder={localizeUi("ui.chat.musicdjsetupfields.hoyoMix")}
-                                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50"
-                                />
-                              </label>
-                            )}
-                          </>
-                        )}
-
-                        {musicPlayerSource === "custom" && renderCustomMusicLibrarySettings("roleplay")}
-
-                        <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-                          {musicPlayerSource === "spotify"
-                            ? localizeUi("ui.chat.chatsettingsdrawer.roleplayDjQueuesSeveralFittingTracksWhenItChanges")
-                            : musicPlayerSource === "youtube"
-                              ? localizeUi("ui.chat.chatsettingsdrawer.youtubeModeUsesTheMusicDjAgentSYoutube")
-                              : customMusicSource === "folder"
-                                ? localizeUi("ui.chat.chatsettingsdrawer.customModePicksFromTheSelectedDeviceFolderAnd")
-                                : localizeUi("ui.chat.chatsettingsdrawer.customModePicksFromLocalGameAssetsMusicAnd")}
-                        </p>
-                      </AgentSettingsCard>
-                    )}
-
                     {renderActiveCustomAgentSettingsCard()}
                   </div>
-
-                  {/* Haptic Feedback */}
-                  {renderHapticSettingsCard()}
 
                   {/* Illustrator — game mode only */}
 

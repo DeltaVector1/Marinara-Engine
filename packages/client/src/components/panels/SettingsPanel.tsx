@@ -1919,7 +1919,6 @@ const CHAT_LIST_BACKGROUND_OPTIONS: Array<{ id: ChatListBackgroundMode; label: s
   { id: "off", label: "Off", desc: "No banners. Chat rows keep the plain sidebar background." },
 ];
 
-
 const TRACKER_THOUGHT_BUBBLE_DISPLAY_OPTIONS: Array<{
   id: TrackerThoughtBubbleDisplay;
   label: string;
@@ -4811,8 +4810,6 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
       : roleplayDisplayStyle;
   const chatListBackgrounds = useUIStore((s) => s.chatListBackgrounds);
   const setChatListBackgrounds = useUIStore((s) => s.setChatListBackgrounds);
-  const gameAvatarScale = useUIStore((s) => s.gameAvatarScale);
-  const gameFullBodySpriteScale = useUIStore((s) => s.gameFullBodySpriteScale);
   const textStrokeWidth = useUIStore((s) => s.textStrokeWidth);
   const setTextStrokeWidth = useUIStore((s) => s.setTextStrokeWidth);
   const textStrokeColor = useUIStore((s) => s.textStrokeColor);
@@ -4876,18 +4873,6 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
   ]);
   const roleplayAvatarPreview = roleplayAvatarPreviewSize ?? roleplayAvatarPreviewBase;
   const roleplaySpritePreview = roleplaySpritePreviewSize ?? roleplaySpritePreviewBase;
-  const gameAvatarPreviewBase: SettingsArtPreviewSize = {
-    width: 2.25 * gameAvatarScale,
-    height: 2.6 * gameAvatarScale,
-  };
-  const gameFullBodyPreviewBase: SettingsArtPreviewSize = {
-    width: 0.9 * gameFullBodySpriteScale,
-    height: 3.4 * gameFullBodySpriteScale,
-  };
-  const [gameAvatarPreviewSize, gameFullBodyPreviewSize] = fitSettingsArtPreviewSizes([
-    gameAvatarPreviewBase,
-    gameFullBodyPreviewBase,
-  ]);
 
   return (
     <div className="flex flex-col gap-3">

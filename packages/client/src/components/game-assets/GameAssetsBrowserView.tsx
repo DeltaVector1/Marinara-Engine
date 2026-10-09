@@ -40,19 +40,14 @@ import { useUIStore } from "../../stores/ui.store";
 import { useChatStore } from "../../stores/chat.store";
 import { useChat } from "../../hooks/use-chats";
 import { parseChatMetadata } from "../../lib/chat-display";
-import {
-  getGameAssetFolderSelectionStatus,
-  parseGameAssetExcludedFolders,
-} from "../../lib/game-asset-selection";
+import { getGameAssetFolderSelectionStatus, parseGameAssetExcludedFolders } from "../../lib/game-asset-selection";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
 const PROTECTED_PATHS = new Set(["", "music", "sfx", "ambient", "sprites", "backgrounds"]);
 
-
 function sameFolderSelection(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((folder, index) => folder === b[index]);
 }
-
 
 /**
  * Browser for previewing and managing game assets.
@@ -70,11 +65,9 @@ function sameFolderSelection(a: readonly string[], b: readonly string[]): boolea
 export function GameAssetsBrowserView({
   embedded = false,
   onClose,
-  selectFoldersByDefault = false,
 }: {
   embedded?: boolean;
   onClose?: () => void;
-  selectFoldersByDefault?: boolean;
 } = {}) {
   const { t: localizeUi } = useUiTranslation();
   const { data: tree, isLoading } = useGameAssetTree();
@@ -103,7 +96,6 @@ export function GameAssetsBrowserView({
   const [imageInfoNode, setImageInfoNode] = useState<TreeNode | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [listColumns, setListColumns] = useState({ size: true, modified: false });
-  const [assetSelectionMode, setAssetSelectionMode] = useState(selectFoldersByDefault);
   const [optimisticAssetExcludedFolders, setOptimisticAssetExcludedFolders] = useState<string[] | null>(null);
   const [folderSelectionMenu, setFolderSelectionMenu] = useState<{
     node: TreeNode;
@@ -140,7 +132,6 @@ export function GameAssetsBrowserView({
   const gameAssetExcludedFolders = optimisticAssetExcludedFolders ?? persistedGameAssetExcludedFolders;
   const folderSelectionMenuRef = useRef<HTMLDivElement>(null);
 
-
   const getFolderSelectionStatus = useCallback(
     (node: TreeNode) => getGameAssetFolderSelectionStatus(node.path, gameAssetExcludedFolders),
     [gameAssetExcludedFolders],
@@ -154,16 +145,6 @@ export function GameAssetsBrowserView({
       y: Math.max(8, Math.min(rect.bottom + 6, window.innerHeight - 360)),
     });
   }, []);
-
-
-
-
-
-  useEffect(() => {
-    setAssetSelectionMode(false);
-    setFolderSelectionMenu(null);
-    return;
-  }, [false, selectFoldersByDefault]);
 
   useEffect(() => {
     setOptimisticAssetExcludedFolders(null);

@@ -11,23 +11,117 @@ import { useUIStore } from "../../stores/ui.store";
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { api, getPrivilegedActionErrorMessage } from "../../lib/api-client";
 import { HostDeviceFileManagerError } from "../../lib/host-device";
-import { agentKeys, useAgentConfigs, useUpdateAgent, useCreateAgent, type AgentConfigRow } from "../../hooks/use-agents";
+import {
+  agentKeys,
+  useAgentConfigs,
+  useUpdateAgent,
+  useCreateAgent,
+  type AgentConfigRow,
+} from "../../hooks/use-agents";
 import { useConnections } from "../../hooks/use-connections";
 import { useOpenGameAssetsFolder } from "../../hooks/use-game-assets";
-import { isCustomToolSelectable, useCustomToolCapabilities, useCustomTools, type CustomToolRow } from "../../hooks/use-custom-tools";
-import { Activity, ArrowLeft, Save, Sparkles, Check, AlertCircle, X, Zap, Link2, FileText, RotateCcw, Clock, Info, Wrench, Trash2, Plus, Layers, Music, ChevronDown, ChevronUp, ExternalLink, BookOpen, FolderOpen, Upload, Loader2, ImageIcon, Shield, ShieldCheck } from "lucide-react";
+import {
+  isCustomToolSelectable,
+  useCustomToolCapabilities,
+  useCustomTools,
+  type CustomToolRow,
+} from "../../hooks/use-custom-tools";
+import {
+  Activity,
+  ArrowLeft,
+  Save,
+  Sparkles,
+  Check,
+  AlertCircle,
+  X,
+  Zap,
+  Link2,
+  FileText,
+  RotateCcw,
+  Clock,
+  Info,
+  Wrench,
+  Trash2,
+  Plus,
+  Layers,
+  Music,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  BookOpen,
+  FolderOpen,
+  Upload,
+  Loader2,
+  ImageIcon,
+  Shield,
+  ShieldCheck,
+} from "lucide-react";
 import { useDeleteAgent } from "../../hooks/use-agents";
 import { useLorebooks, useEntriesAcrossLorebooks } from "../../hooks/use-lorebooks";
-import { useKnowledgeSources, useUploadKnowledgeSource, useDeleteKnowledgeSource } from "../../hooks/use-knowledge-sources";
+import {
+  useKnowledgeSources,
+  useUploadKnowledgeSource,
+  useDeleteKnowledgeSource,
+} from "../../hooks/use-knowledge-sources";
 import { cn } from "../../lib/utils";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { formatEstimatedTokens } from "../../lib/character-token-count";
-import { getAgentRunIntervalMeta, getCadenceInputValue, parseOptionalCadenceInputValue, stepCadenceValue } from "../../lib/agent-cadence";
-import { DEFAULT_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS, MAX_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS, MIN_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS, normalizeEchoChamberMessageDelaySeconds } from "../../lib/echo-chamber-queue";
+import {
+  getAgentRunIntervalMeta,
+  getCadenceInputValue,
+  parseOptionalCadenceInputValue,
+  stepCadenceValue,
+} from "../../lib/agent-cadence";
+import {
+  DEFAULT_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS,
+  MAX_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS,
+  MIN_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS,
+  normalizeEchoChamberMessageDelaySeconds,
+} from "../../lib/echo-chamber-queue";
 import { HelpTooltip } from "../ui/HelpTooltip";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
-import { BUILT_IN_AGENTS, estimateTextTokens, BUILT_IN_TOOLS, DEFAULT_AGENT_CONTEXT_SIZE, DEFAULT_AGENT_TOOLS, DEFAULT_AGENT_MAX_TOKENS, DEFAULT_AGENT_AUTHOR, CUSTOM_AGENT_CAPABILITY_IDS, DEFAULT_CUSTOM_AGENT_CONTEXT_SOURCES, CUSTOM_AGENT_IMPORT_SOURCE_SETTING, CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING, DEFAULT_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH, LOCAL_SIDECAR_CONNECTION_ID, UTILITY_SIDECAR_CONNECTION_ID, MAX_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH, MIN_AGENT_MAX_TOKENS, getDefaultBuiltInAgentSettings, getDefaultAgentPrompt, isAgentConfigDeleted, mergeBuiltInAgentSettings, normalizeAgentPhaseForType, normalizeCustomAgentCapabilities, getAgentContextSources, normalizeAgentPromptTemplateOptions, parseAgentSettingsRecord, homeAgentWidgetsSchema, type HomeAgentWidgetDefinition, CUSTOM_AGENT_CONTEXT_SOURCE_IDS, type AgentPhase, type AgentPromptTemplateOption, type CustomAgentCapability, type CustomAgentCapabilityMap, type CustomAgentContextSource, type CustomAgentContextSources, type ToolDefinition } from "@marinara-engine/shared";
-import { createAgentFolderPackageFilename, createAgentFolderPackageFiles, sanitizeAgentSettingsForTransfer } from "../../lib/agent-transfer";
+import {
+  BUILT_IN_AGENTS,
+  estimateTextTokens,
+  BUILT_IN_TOOLS,
+  DEFAULT_AGENT_CONTEXT_SIZE,
+  DEFAULT_AGENT_TOOLS,
+  DEFAULT_AGENT_MAX_TOKENS,
+  DEFAULT_AGENT_AUTHOR,
+  CUSTOM_AGENT_CAPABILITY_IDS,
+  DEFAULT_CUSTOM_AGENT_CONTEXT_SOURCES,
+  CUSTOM_AGENT_IMPORT_SOURCE_SETTING,
+  CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING,
+  DEFAULT_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH,
+  LOCAL_SIDECAR_CONNECTION_ID,
+  UTILITY_SIDECAR_CONNECTION_ID,
+  MAX_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH,
+  MIN_AGENT_MAX_TOKENS,
+  getDefaultBuiltInAgentSettings,
+  getDefaultAgentPrompt,
+  isAgentConfigDeleted,
+  mergeBuiltInAgentSettings,
+  normalizeAgentPhaseForType,
+  normalizeCustomAgentCapabilities,
+  getAgentContextSources,
+  normalizeAgentPromptTemplateOptions,
+  parseAgentSettingsRecord,
+  homeAgentWidgetsSchema,
+  type HomeAgentWidgetDefinition,
+  CUSTOM_AGENT_CONTEXT_SOURCE_IDS,
+  type AgentPhase,
+  type AgentPromptTemplateOption,
+  type CustomAgentCapability,
+  type CustomAgentCapabilityMap,
+  type CustomAgentContextSource,
+  type CustomAgentContextSources,
+  type ToolDefinition,
+} from "@marinara-engine/shared";
+import {
+  createAgentFolderPackageFilename,
+  createAgentFolderPackageFiles,
+  sanitizeAgentSettingsForTransfer,
+} from "../../lib/agent-transfer";
 import { CUSTOM_AGENT_RESULT_EXAMPLES, type CustomAgentResultType } from "../../lib/custom-agent-result-examples";
 import { downloadZipFile } from "../../lib/download-zip";
 import { useSidecarStore } from "../../stores/sidecar.store";
@@ -528,41 +622,6 @@ function normalizeStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === "string") : [];
 }
 
-function storyboardSettingsForStorage(settings: StoryboardAgentSettings): Record<string, unknown> {
-  return {
-    illustrationPlannerTemplateIds: settings.illustrationPlannerTemplateIds,
-    animationPlannerTemplateIds: settings.animationPlannerTemplateIds,
-    illustrationTemplates: settings.illustrationTemplates,
-    videoTemplates: settings.videoTemplates,
-    animationRefinementTemplates: settings.animationRefinementTemplates,
-    roleplayEpisodeTemplates: settings.roleplayEpisodeTemplates,
-    roleplayStyleTemplates: settings.roleplayStyleTemplates,
-    roleplayAnimationTemplates: settings.roleplayAnimationTemplates,
-    roleplayOutputTemplates: settings.roleplayOutputTemplates,
-    illustrationPlannerTemplateId: settings.illustrationPlannerTemplateId,
-    animationPlannerTemplateId: settings.animationPlannerTemplateId,
-    illustrationTemplateId: settings.illustrationTemplateId,
-    videoTemplateId: settings.videoTemplateId,
-    animationRefinementTemplateId: settings.animationRefinementTemplateId,
-    roleplayEpisodeTemplateId: settings.roleplayEpisodeTemplateId,
-    roleplayStyleTemplateId: settings.roleplayStyleTemplateId,
-    roleplayAnimationTemplateId: settings.roleplayAnimationTemplateId,
-    roleplayOutputTemplateId: settings.roleplayOutputTemplateId,
-    imageConnectionId: settings.imageConnectionId,
-    videoConnectionId: settings.videoConnectionId,
-    autoGenerateMode: settings.autoGenerateMode,
-    keyframeCount: settings.keyframeCount,
-    animationDurationSeconds: settings.animationDurationSeconds,
-    viewerDisplayMode: settings.viewerDisplayMode,
-    includeCharacterAppearance: settings.includeCharacterAppearance,
-    useAvatarReferences: settings.useAvatarReferences,
-    useNovelAiCharacterPrompts: settings.useNovelAiCharacterPrompts,
-    usePromptTemplate: settings.usePromptTemplate,
-    imageAwareShotPlanningEnabled: settings.imageAwareShotPlanningEnabled,
-    runInterval: settings.runInterval,
-  };
-}
-
 // ═══════════════════════════════════════════════
 //  Main Editor
 // ═══════════════════════════════════════════════
@@ -720,9 +779,6 @@ export function AgentEditor() {
   const [localIncludeCharacterAppearance, setLocalIncludeCharacterAppearance] = useState(false);
   const [localImagePositivePrompt, setLocalImagePositivePrompt] = useState("");
   const [localImageNegativePrompt, setLocalImageNegativePrompt] = useState("");
-  const [localStoryboardSettings, setLocalStoryboardSettings] = useState<StoryboardAgentSettings>(() =>
-    normalizeStoryboardAgentSettings({}),
-  );
   const [localHomeWidgets, setLocalHomeWidgets] = useState<HomeAgentWidgetDefinition[]>([]);
   const [localProseGuardianBanned, setLocalProseGuardianBanned] = useState(DEFAULT_PROSE_GUARDIAN_BANNED_WORDS);
   const [localProseGuardianAvoid, setLocalProseGuardianAvoid] = useState(DEFAULT_PROSE_GUARDIAN_AVOID);
@@ -796,7 +852,6 @@ export function AgentEditor() {
       const settings = mergeBuiltInAgentSettings(agentType, dbConfig.settings);
       const homeWidgets = homeAgentWidgetsSchema.safeParse(settings.homeWidgets ?? []);
       setLocalHomeWidgets(!builtIn && homeWidgets.success ? homeWidgets.data : []);
-      setLocalStoryboardSettings(normalizeStoryboardAgentSettings(settings));
       const promptTemplateSource = settings.promptTemplates ?? defaultSettings.promptTemplates;
       setLocalAuthor(
         normalizeAuthor(settings.author, builtIn?.author ?? (isCustomAgent ? "Unknown" : DEFAULT_AGENT_AUTHOR)),
@@ -924,7 +979,6 @@ export function AgentEditor() {
       setLocalDescription(builtIn.description);
       setLocalAuthor(builtIn.author ?? DEFAULT_AGENT_AUTHOR);
       setLocalPromptTemplates(normalizeAgentPromptTemplateOptions(defaultSettings.promptTemplates));
-      setLocalStoryboardSettings(normalizeStoryboardAgentSettings(defaultSettings));
       setLocalPhase(normalizeAgentPhaseForType(builtIn.id, builtIn.phase));
       setLocalConnectionId("");
       setLocalImageConnectionId("");
@@ -992,7 +1046,6 @@ export function AgentEditor() {
       setLocalDescription("");
       setLocalAuthor("");
       setLocalPromptTemplates([]);
-      setLocalStoryboardSettings(normalizeStoryboardAgentSettings({}));
       setLocalPhase("post_processing");
       setLocalConnectionId("");
       setLocalImageConnectionId("");
@@ -1442,7 +1495,6 @@ export function AgentEditor() {
               includeCharacterAppearance: localIncludeCharacterAppearance,
             }
           : {}),
-        ...(isStoryboardAgent ? storyboardSettingsForStorage(localStoryboardSettings) : {}),
         ...(isProseGuardianAgent
           ? {
               banned: localProseGuardianBanned.trim() || DEFAULT_PROSE_GUARDIAN_BANNED_WORDS,
@@ -1542,7 +1594,6 @@ export function AgentEditor() {
     localSecretPlotRunInterval,
     localImagePositivePrompt,
     localImageNegativePrompt,
-    localStoryboardSettings,
     dbConfig,
     builtIn,
     isCustomAgent,
@@ -1681,7 +1732,6 @@ export function AgentEditor() {
             includeCharacterAppearance: localIncludeCharacterAppearance,
           }
         : {}),
-      ...(isStoryboardAgent ? storyboardSettingsForStorage(localStoryboardSettings) : {}),
       ...(isProseGuardianAgent
         ? {
             banned: localProseGuardianBanned.trim() || DEFAULT_PROSE_GUARDIAN_BANNED_WORDS,
@@ -1804,14 +1854,8 @@ export function AgentEditor() {
   const handleAddPromptTemplate = useCallback(() => {
     const option = createBlankPromptOption(localPromptTemplates);
     setLocalPromptTemplates((options) => [...options, option]);
-    if (isStoryboardAgent) {
-      setLocalStoryboardSettings((settings) => ({
-        ...settings,
-        illustrationPlannerTemplateIds: [...settings.illustrationPlannerTemplateIds, option.id],
-      }));
-    }
     markDirty();
-  }, [isStoryboardAgent, localPromptTemplates, markDirty]);
+  }, [localPromptTemplates, markDirty]);
 
   const handleUpdatePromptTemplate = useCallback(
     (id: string, patch: Partial<Pick<AgentPromptTemplateOption, "name" | "promptTemplate" | "description">>) => {
@@ -1826,20 +1870,9 @@ export function AgentEditor() {
   const handleRemovePromptTemplate = useCallback(
     (id: string) => {
       setLocalPromptTemplates((options) => options.filter((option) => option.id !== id));
-      if (isStoryboardAgent) {
-        setLocalStoryboardSettings((settings) => ({
-          ...settings,
-          illustrationPlannerTemplateIds: settings.illustrationPlannerTemplateIds.filter((entry) => entry !== id),
-          animationPlannerTemplateIds: settings.animationPlannerTemplateIds.filter((entry) => entry !== id),
-          illustrationPlannerTemplateId:
-            settings.illustrationPlannerTemplateId === id ? null : settings.illustrationPlannerTemplateId,
-          animationPlannerTemplateId:
-            settings.animationPlannerTemplateId === id ? null : settings.animationPlannerTemplateId,
-        }));
-      }
       markDirty();
     },
-    [isStoryboardAgent, markDirty],
+    [markDirty],
   );
 
   const currentAgentType = dbConfig?.type ?? builtIn?.id ?? agentDetailId ?? "";

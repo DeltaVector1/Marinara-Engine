@@ -1,19 +1,37 @@
 import { useRef, type ReactNode } from "react";
-import { Check, FolderOpen, Loader2, Upload } from "lucide-react";
-import { useQueries, useQuery } from "@tanstack/react-query";
-import { DEFAULT_AGENT_PROMPT_TEMPLATE_ID, getDefaultBuiltInAgentSettings, normalizeAgentPromptTemplateSelectionMap, resolveDefaultAgentPromptTemplateId, type AgentPromptTemplateOption, type KnowledgeAgentSourceSettings, type Lorebook } from "@marinara-engine/shared";
+import { Check, Loader2, Upload } from "lucide-react";
+import { useQueries } from "@tanstack/react-query";
+import {
+  DEFAULT_AGENT_PROMPT_TEMPLATE_ID,
+  getDefaultBuiltInAgentSettings,
+  normalizeAgentPromptTemplateSelectionMap,
+  resolveDefaultAgentPromptTemplateId,
+  type AgentPromptTemplateOption,
+  type KnowledgeAgentSourceSettings,
+  type Lorebook,
+} from "@marinara-engine/shared";
 import { useKnowledgeSources, useUploadKnowledgeSource } from "../../hooks/use-knowledge-sources";
 import { api } from "../../lib/api-client";
 import { showAlertDialog } from "../../lib/app-dialogs";
 import { cn } from "../../lib/utils";
-import { DEFAULT_SPRITE_DISPLAY_MODES, SPRITE_DISPLAY_OPACITY_MAX, SPRITE_DISPLAY_OPACITY_MIN, SPRITE_DISPLAY_OPACITY_PERCENT_MAX, SPRITE_DISPLAY_OPACITY_PERCENT_MIN, SPRITE_DISPLAY_SCALE_MAX, SPRITE_DISPLAY_SCALE_MIN, SPRITE_DISPLAY_SCALE_PERCENT_MAX, SPRITE_DISPLAY_SCALE_PERCENT_MIN, hasSpriteDisplayMode, normalizeSpriteDisplayModes, type SpriteDisplayMode } from "./sprite-display-modes";
-import { HAPTIC_SENSITIVITY_OPTIONS } from "./haptic-sensitivity-options";
+import {
+  DEFAULT_SPRITE_DISPLAY_MODES,
+  SPRITE_DISPLAY_OPACITY_MAX,
+  SPRITE_DISPLAY_OPACITY_MIN,
+  SPRITE_DISPLAY_OPACITY_PERCENT_MAX,
+  SPRITE_DISPLAY_OPACITY_PERCENT_MIN,
+  SPRITE_DISPLAY_SCALE_MAX,
+  SPRITE_DISPLAY_SCALE_MIN,
+  SPRITE_DISPLAY_SCALE_PERCENT_MAX,
+  SPRITE_DISPLAY_SCALE_PERCENT_MIN,
+  hasSpriteDisplayMode,
+  normalizeSpriteDisplayModes,
+  type SpriteDisplayMode,
+} from "./sprite-display-modes";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
 export type KnowledgeAgentType = "knowledge-retrieval" | "knowledge-router";
-export type MusicProvider = "spotify" | "youtube" | "custom";
-export type CustomMusicSource = "game-assets" | "folder";
 
 export type AgentAddSetupState = {
   secretPlotEnabled: boolean;
@@ -38,18 +56,6 @@ export type AgentAddSetupState = {
   spriteOpacity: number;
   expressionSpriteOpacity: number;
   fullBodySpriteOpacity: number;
-  spotifySourceType: SpotifySourceType;
-  spotifyPlaylistId: string;
-  spotifyPlaylistName: string | null;
-  spotifyArtist: string;
-  musicProvider: MusicProvider;
-  customMusicSource: CustomMusicSource;
-  customMusicFolder: string;
-  customMusicExternalFolder: string;
-  hapticFeedbackEnabled: boolean;
-  hapticSensitivity: HapticFeedbackSensitivity;
-  hapticIncidentalContact: boolean;
-  hapticIntifaceUrl: string;
 };
 
 export type AgentAddSpriteSubject = {
@@ -62,13 +68,6 @@ export type AgentAddSpriteSubject = {
 export const DEFAULT_PROSE_GUARDIAN_BANNED_WORDS = "ozone";
 export const DEFAULT_PROSE_GUARDIAN_AVOID =
   "no repetition of any phrases or sentence structure from the last messages, if the last output started with dialogue line, this one needs to start with narration, no purple prose";
-
-const SPOTIFY_SOURCE_OPTIONS: Array<{ id: SpotifySourceType; label: string; description: string }> = [
-  { id: "liked", label: "Liked Songs", description: "Pick from the user's saved tracks first." },
-  { id: "playlist", label: "Playlist", description: "Keep choices inside one Spotify playlist." },
-  { id: "artist", label: "Artist", description: "Search only around a named artist, like HOYO-MiX." },
-  { id: "any", label: "Any Spotify", description: "Let the DJ use Spotify search when it fits." },
-];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -94,34 +93,6 @@ function normalizeStringArray(value: unknown): string[] {
 
 function readString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
-}
-
-function normalizeMusicProvider(value: unknown, fallback: MusicProvider): MusicProvider {
-  return value === "spotify" || value === "youtube" || value === "custom" ? value : fallback;
-}
-
-function normalizeCustomMusicFolder(value: unknown): string {
-  const raw = typeof value === "string" ? value.trim().replace(/\\/g, "/") : "";
-  let start = 0;
-  let end = raw.length;
-  while (raw[start] === "/") start++;
-  while (end > start && raw[end - 1] === "/") end--;
-  const normalized = raw.slice(start, end);
-  if (!normalized || normalized.includes("..")) return "music";
-  return normalized.startsWith("music") ? normalized : `music/${normalized}`;
-}
-
-export function normalizeCustomMusicSource(settings: Record<string, unknown>): CustomMusicSource {
-  const source = settings.customMusicSource ?? settings.localMusicSource;
-  return source === "folder" ? "folder" : "game-assets";
-}
-
-export function normalizeCustomMusicExternalFolder(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function normalizeHapticSensitivity(value: unknown): HapticFeedbackSensitivity {
-  return value === "subtle" || value === "intense" ? value : "standard";
 }
 
 function normalizeNonNegativeInteger(value: unknown, fallback: number, max: number): number {
@@ -200,21 +171,17 @@ export function buildInitialAgentAddSetupState({
   agentId,
   settings,
   metadata,
-  musicPlayerSource,
   roleplaySpriteScale,
   allowSecretPlot = true,
 }: {
   agentId: string;
   settings: Record<string, unknown>;
   metadata: Record<string, unknown>;
-  musicPlayerSource: MusicProvider;
   roleplaySpriteScale: number;
   allowSecretPlot?: boolean;
 }): AgentAddSetupState {
   const proseBanned = readString(settings.banned, DEFAULT_PROSE_GUARDIAN_BANNED_WORDS);
   const proseAvoid = readString(settings.avoid, DEFAULT_PROSE_GUARDIAN_AVOID);
-  const spotifySourceType = normalizeSpotifySourceType(metadata.spotifySourceType);
-  const musicProvider = normalizeMusicProvider(settings.musicProvider ?? settings.musicPlayerSource, musicPlayerSource);
   const spriteScale = normalizeSpriteDisplayValue(
     metadata.spriteScale,
     roleplaySpriteScale,
@@ -296,20 +263,6 @@ export function buildInitialAgentAddSetupState({
       SPRITE_DISPLAY_OPACITY_MIN,
       SPRITE_DISPLAY_OPACITY_MAX,
     ),
-    spotifySourceType,
-    spotifyPlaylistId: readString(metadata.spotifyPlaylistId),
-    spotifyPlaylistName: readString(metadata.spotifyPlaylistName) || null,
-    spotifyArtist: readString(metadata.spotifyArtist),
-    musicProvider,
-    customMusicSource: normalizeCustomMusicSource(settings),
-    customMusicFolder: normalizeCustomMusicFolder(settings.customMusicFolder ?? metadata.customMusicFolder),
-    customMusicExternalFolder: normalizeCustomMusicExternalFolder(
-      settings.customMusicExternalFolder ?? settings.localMusicExternalFolder,
-    ),
-    hapticFeedbackEnabled: metadata.enableHapticFeedback === true,
-    hapticSensitivity: normalizeHapticSensitivity(metadata.hapticSensitivity),
-    hapticIncidentalContact: metadata.hapticIncidentalContact === true,
-    hapticIntifaceUrl: readString(metadata.hapticIntifaceUrl),
   };
 }
 
@@ -342,13 +295,6 @@ export function applyAgentAddSetupToAgentSettings(
     } else {
       delete next.sourceFileIds;
     }
-  }
-  if (agentId === "spotify") {
-    next.musicProvider = setup.musicProvider;
-    next.customMusicSource = setup.customMusicSource;
-    next.customMusicFolder = normalizeCustomMusicFolder(setup.customMusicFolder);
-    next.customMusicExternalFolder = normalizeCustomMusicExternalFolder(setup.customMusicExternalFolder);
-    next.enabledTools = setup.musicProvider === "spotify" ? next.enabledTools : [];
   }
   if (agentId === "illustrator") {
     next.includeCharacterAppearance = setup.includeCharacterAppearance;
@@ -407,9 +353,6 @@ export function buildAgentAddMetadataPatch(
     patch.lorebookKeeperTargetLorebookId = setup.lorebookKeeperTargetLorebookId || null;
     patch.lorebookKeeperReadBehindMessages = setup.lorebookKeeperReadBehindMessages;
   }
-  if (agentId === "spotify") {
-    patch.customMusicFolder = normalizeCustomMusicFolder(setup.customMusicFolder);
-  }
   if (agentId === "expression") {
     patch.spriteDisplayModes = setup.spriteDisplayModes;
     patch.expressionAvatarsEnabled = setup.expressionAvatarsEnabled;
@@ -421,12 +364,6 @@ export function buildAgentAddMetadataPatch(
     patch.spriteOpacity = setup.expressionSpriteOpacity;
     patch.expressionSpriteOpacity = setup.expressionSpriteOpacity;
     patch.fullBodySpriteOpacity = setup.fullBodySpriteOpacity;
-  }
-  if (agentId === "spotify") {
-    patch.spotifySourceType = setup.spotifySourceType;
-    patch.spotifyPlaylistId = setup.spotifySourceType === "playlist" ? setup.spotifyPlaylistId || null : null;
-    patch.spotifyPlaylistName = setup.spotifySourceType === "playlist" ? setup.spotifyPlaylistName || null : null;
-    patch.spotifyArtist = setup.spotifySourceType === "artist" ? setup.spotifyArtist.trim() || null : null;
   }
   if (agentId === "illustrator") {
     const defaults = options?.illustratorDefaults;
@@ -444,12 +381,6 @@ export function buildAgentAddMetadataPatch(
       defaults?.includeCharacterAppearance,
     );
     applyIllustratorDefault("illustratorUseAvatarReferences", setup.useAvatarReferences, defaults?.useAvatarReferences);
-  }
-  if (agentId === "haptic") {
-    patch.enableHapticFeedback = setup.hapticFeedbackEnabled;
-    patch.hapticSensitivity = setup.hapticSensitivity;
-    patch.hapticIncidentalContact = setup.hapticIncidentalContact;
-    patch.hapticIntifaceUrl = setup.hapticIntifaceUrl.trim() || null;
   }
 
   return patch;
@@ -1036,296 +967,6 @@ function ExpressionSetupFields({
   );
 }
 
-function MusicDjSetupFields({
-  value,
-  disabled,
-  onChange,
-}: {
-  value: AgentAddSetupState;
-  disabled?: boolean;
-  onChange: (patch: Partial<AgentAddSetupState>) => void;
-}) {
-  const { t: localizeUi } = useUiTranslation();
-  const spotifyPlaylistsQuery = useQuery({
-    queryKey: ["spotify", "playlists", 50],
-    queryFn: () =>
-      api.get<{
-        playlists: Array<{
-          id: string;
-          name: string;
-          uri: string;
-          trackCount: number | null;
-          owned: boolean | null;
-        }>;
-      }>("/spotify/playlists?limit=50"),
-    enabled: value.musicProvider === "spotify" && value.spotifySourceType === "playlist",
-    staleTime: 60_000,
-    retry: false,
-  });
-
-  const selectCustomMusicFolder = async () => {
-    try {
-      const data = await api.post<{ success: boolean; path: string }>("/game-assets/pick-local-music-folder");
-      if (data.success !== true || !data.path) throw new Error("No folder selected.");
-      onChange({ customMusicSource: "folder", customMusicExternalFolder: data.path });
-    } catch (error) {
-      await showAlertDialog({
-        title: "Couldn't Select Music Folder",
-        message: error instanceof Error ? error.message : "The music folder could not be selected.",
-      });
-    }
-  };
-
-  return (
-    <div className="space-y-2.5 rounded-lg bg-[var(--background)]/65 px-3 py-2.5 ring-1 ring-[var(--border)]">
-      <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-        {localizeUi("ui.chat.musicdjsetupfields.activePlayer")}{" "}
-        {value.musicProvider === "spotify"
-          ? localizeUi("ui.agents.agenteditor.spotify")
-          : value.musicProvider === "youtube"
-            ? localizeUi("ui.chat.youtubeplayer.youtube")
-            : localizeUi("settings.notifications.customSound.status.custom")}
-        .
-      </p>
-      {value.musicProvider === "spotify" ? (
-        <>
-          <label className="flex flex-col gap-1">
-            <SetupLabel>{localizeUi("ui.chat.musicdjsetupfields.spotifySource")}</SetupLabel>
-            <select
-              value={value.spotifySourceType}
-              disabled={disabled}
-              onChange={(event) => {
-                const next = normalizeSpotifySourceType(event.target.value);
-                onChange({
-                  spotifySourceType: next,
-                  spotifyPlaylistId: next === "playlist" ? value.spotifyPlaylistId : "",
-                  spotifyPlaylistName: next === "playlist" ? value.spotifyPlaylistName : null,
-                  spotifyArtist: next === "artist" ? value.spotifyArtist : "",
-                });
-              }}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {SPOTIFY_SOURCE_OPTIONS.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <span className="text-[0.5625rem] text-[var(--muted-foreground)]">
-              {SPOTIFY_SOURCE_OPTIONS.find((option) => option.id === value.spotifySourceType)?.description ?? ""}
-            </span>
-          </label>
-
-          {value.spotifySourceType === "playlist" && (
-            <label className="flex flex-col gap-1">
-              <SetupLabel>{localizeUi("ui.chat.musicdjsetupfields.playlist")}</SetupLabel>
-              {spotifyPlaylistsQuery.data?.playlists.length ? (
-                <select
-                  value={value.spotifyPlaylistId}
-                  disabled={disabled}
-                  onChange={(event) => {
-                    const playlist = spotifyPlaylistsQuery.data?.playlists.find(
-                      (entry) => entry.id === event.target.value,
-                    );
-                    onChange({
-                      spotifyPlaylistId: event.target.value || "",
-                      spotifyPlaylistName: playlist?.name ?? null,
-                    });
-                  }}
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <option value="">{localizeUi("ui.chat.musicdjsetupfields.choosePlaylist")}</option>
-                  {spotifyPlaylistsQuery.data.playlists.map((playlist) => {
-                    const suffix =
-                      typeof playlist.trackCount === "number"
-                        ? ` (${playlist.trackCount})`
-                        : playlist.owned === false
-                          ? " (followed, unavailable)"
-                          : "";
-                    return (
-                      <option key={playlist.id} value={playlist.id}>
-                        {playlist.name}
-                        {suffix}
-                      </option>
-                    );
-                  })}
-                </select>
-              ) : (
-                <input
-                  value={value.spotifyPlaylistId}
-                  disabled={disabled}
-                  onChange={(event) => onChange({ spotifyPlaylistId: event.target.value, spotifyPlaylistName: null })}
-                  placeholder={
-                    spotifyPlaylistsQuery.isFetching
-                      ? localizeUi("ui.chat.musicdjsetupfields.loadingPlaylists")
-                      : localizeUi("ui.chat.musicdjsetupfields.pastePlaylistId")
-                  }
-                  className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50 disabled:cursor-not-allowed disabled:opacity-60"
-                />
-              )}
-              {spotifyPlaylistsQuery.isError && (
-                <span className="text-[0.5625rem] text-[var(--primary)]">
-                  {localizeUi("ui.chat.musicdjsetupfields.connectSpotifyInTheMusicDjAgentToLoad")}
-                </span>
-              )}
-            </label>
-          )}
-
-          {value.spotifySourceType === "artist" && (
-            <label className="flex flex-col gap-1">
-              <SetupLabel>{localizeUi("ui.chat.musicdjsetupfields.artist")}</SetupLabel>
-              <input
-                value={value.spotifyArtist}
-                disabled={disabled}
-                onChange={(event) => onChange({ spotifyArtist: event.target.value })}
-                placeholder={localizeUi("ui.chat.musicdjsetupfields.hoyoMix")}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </label>
-          )}
-        </>
-      ) : value.musicProvider === "youtube" ? (
-        <p className="rounded-lg bg-[var(--background)]/75 px-3 py-2 text-[0.625rem] text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
-          {localizeUi("ui.chat.musicdjsetupfields.youtubeModeUsesTheMusicDjAgentSSaved")}
-        </p>
-      ) : (
-        <div className="space-y-2 rounded-lg bg-[var(--background)]/75 px-3 py-2 ring-1 ring-[var(--border)]">
-          <label className="flex flex-col gap-1">
-            <SetupLabel>{localizeUi("ui.chat.musicdjsetupfields.customMusicSource")}</SetupLabel>
-            <select
-              value={value.customMusicSource}
-              disabled={disabled}
-              onChange={(event) => onChange({ customMusicSource: event.target.value as CustomMusicSource })}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <option value="game-assets">{localizeUi("game.toolbar.assets")}</option>
-              <option value="folder">{localizeUi("ui.chat.musicdjsetupfields.folderOnThisDevice")}</option>
-            </select>
-          </label>
-
-          {value.customMusicSource === "folder" ? (
-            <div className="flex flex-col gap-1">
-              <SetupLabel>{localizeUi("ui.chat.musicdjsetupfields.musicFolderOnThisDevice")}</SetupLabel>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  value={value.customMusicExternalFolder}
-                  disabled={disabled}
-                  onChange={(event) => onChange({ customMusicExternalFolder: event.target.value })}
-                  onBlur={() =>
-                    onChange({
-                      customMusicExternalFolder: normalizeCustomMusicExternalFolder(value.customMusicExternalFolder),
-                    })
-                  }
-                  placeholder={localizeUi("ui.agents.agenteditor.noFolderSelected")}
-                  className="min-w-0 flex-1 rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 font-mono text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50 disabled:cursor-not-allowed disabled:opacity-60"
-                />
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => void selectCustomMusicFolder()}
-                  className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--muted)] px-3 text-xs font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <FolderOpen size="0.75rem" />
-                  {localizeUi("ui.chat.musicdjsetupfields.chooseFolder")}
-                </button>
-              </div>
-              <span className="text-[0.5625rem] text-[var(--muted-foreground)]">
-                {localizeUi("ui.chat.musicdjsetupfields.musicDjWillChooseFromAudioFilesInThis")}
-              </span>
-            </div>
-          ) : (
-            <label className="flex flex-col gap-1">
-              <SetupLabel>{localizeUi("ui.chat.musicdjsetupfields.gameAssetsMusicFolder")}</SetupLabel>
-              <input
-                value={value.customMusicFolder}
-                disabled={disabled}
-                onChange={(event) => onChange({ customMusicFolder: event.target.value })}
-                onBlur={() => onChange({ customMusicFolder: normalizeCustomMusicFolder(value.customMusicFolder) })}
-                placeholder={localizeUi("ui.agents.agenteditor.music")}
-                className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 font-mono text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-              <span className="text-[0.5625rem] text-[var(--muted-foreground)]">
-                {localizeUi("ui.chat.musicdjsetupfields.readsLocalAudioFromGameAssetsForExample")} <code>music</code>{" "}
-                {localizeUi("ui.noodle.noodlehome.or")} <code>music/combat</code>.
-              </span>
-            </label>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function HapticSetupFields({
-  value,
-  disabled,
-  onChange,
-}: {
-  value: AgentAddSetupState;
-  disabled?: boolean;
-  onChange: (patch: Partial<AgentAddSetupState>) => void;
-}) {
-  const { t: localizeUi } = useUiTranslation();
-  return (
-    <div className="space-y-2.5 rounded-lg bg-[var(--background)]/65 px-3 py-2.5 ring-1 ring-[var(--border)]">
-      <SetupToggle
-        label={localizeUi("ui.chat.hapticsetupfields.hapticFeedback")}
-        description={
-          value.hapticFeedbackEnabled
-            ? localizeUi("ui.chat.hapticsetupfields.touchCuesAreEnabledForThisChat")
-            : localizeUi("ui.chat.hapticsetupfields.allowThisAgentToSendTouchCuesDuringThe")
-        }
-        enabled={value.hapticFeedbackEnabled}
-        disabled={disabled}
-        onToggle={() => onChange({ hapticFeedbackEnabled: !value.hapticFeedbackEnabled })}
-      />
-      {value.hapticFeedbackEnabled && (
-        <>
-          <div className="space-y-1">
-            <SetupLabel>{localizeUi("ui.chat.hapticsetupfields.touchSensitivity")}</SetupLabel>
-            <div className="grid grid-cols-3 gap-1 rounded-lg bg-[var(--background)]/35 p-1">
-              {HAPTIC_SENSITIVITY_OPTIONS.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onChange({ hapticSensitivity: option.id })}
-                  className={cn(
-                    "rounded-md px-2 py-1.5 text-[0.625rem] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-                    value.hapticSensitivity === option.id
-                      ? "bg-[var(--accent)] text-[var(--foreground)] ring-1 ring-[var(--border)]"
-                      : "text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)]",
-                  )}
-                  title={localizeUi(option.descriptionKey)}
-                >
-                  {localizeUi(option.labelKey)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <SetupToggle
-            label={localizeUi("ui.chat.hapticsetupfields.incidentalContact")}
-            description={localizeUi("ui.chat.hapticsetupfields.tinyTapsForAccidentalBrushesAndBumps")}
-            enabled={value.hapticIncidentalContact}
-            disabled={disabled}
-            onToggle={() => onChange({ hapticIncidentalContact: !value.hapticIncidentalContact })}
-          />
-          <label className="flex flex-col gap-1">
-            <SetupLabel>{localizeUi("ui.chat.hapticsetupfields.intifaceUrl")}</SetupLabel>
-            <input
-              value={value.hapticIntifaceUrl}
-              disabled={disabled}
-              onChange={(event) => onChange({ hapticIntifaceUrl: event.target.value })}
-              placeholder={localizeUi("ui.chat.hapticsetupfields.ws12700112345")}
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-2 text-xs text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/50 disabled:cursor-not-allowed disabled:opacity-60"
-            />
-          </label>
-        </>
-      )}
-    </div>
-  );
-}
-
 export function AgentAddSetupFields({
   agentId,
   value,
@@ -1357,9 +998,7 @@ export function AgentAddSetupFields({
     agentId === "lorebook-keeper" ||
     knowledgeAgentType ||
     agentId === "illustrator" ||
-    agentId === "expression" ||
-    agentId === "spotify" ||
-    agentId === "haptic";
+    agentId === "expression";
 
   if (!hasSpecificSetup) return null;
 
@@ -1549,10 +1188,6 @@ export function AgentAddSetupFields({
           onChange={onChange}
         />
       )}
-
-      {agentId === "spotify" && <MusicDjSetupFields value={value} disabled={disabled} onChange={onChange} />}
-
-      {agentId === "haptic" && <HapticSetupFields value={value} disabled={disabled} onChange={onChange} />}
     </div>
   );
 }

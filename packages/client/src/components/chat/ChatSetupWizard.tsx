@@ -179,30 +179,10 @@ const CONVERSATION_COMMAND_TOGGLE_OPTIONS: Array<{
   { id: "selfie", label: "Selfies", description: "Let characters request generated selfies." },
   { id: "memory", label: "Memories", description: "Let characters create memories for other characters." },
   { id: "scene", label: "Scenes", description: "Let characters start an immersive scene." },
-  { id: "music", label: "Music", description: "Let characters play songs through the active Music Player." },
-  { id: "haptic", label: "Haptics", description: "Let characters control connected haptic devices." },
   { id: "influence", label: "Influence", description: "Let characters influence a connected chat." },
   { id: "note", label: "Notes", description: "Let characters save durable notes for a connected chat." },
   { id: "call", label: "Calls", description: "Let characters ring you for a Conversation call." },
   { id: "react", label: "Reactions", description: "Let characters react to messages with emoji badges." },
-  { id: "uno", label: "UNO", description: "Let characters start a game of UNO at the table when you agree to play." },
-  { id: "chess", label: "Chess", description: "Let characters accept a one-on-one chess challenge at the table." },
-  {
-    id: "poker",
-    label: "Poker",
-    description: "Let characters sit down for a game of Texas Hold'em poker at the table.",
-  },
-  { id: "eightball", label: "8-Ball Pool", description: "Let characters rack up a game of 8-ball pool at the table." },
-  {
-    id: "tic_tac_toe",
-    label: "Tic-Tac-Toe",
-    description: "Let characters accept a one-on-one tic-tac-toe challenge at the table.",
-  },
-  {
-    id: "rock_paper_scissors",
-    label: "Rock-Paper-Scissors",
-    description: "Let characters accept a one-on-one rock-paper-scissors match at the table.",
-  },
 ];
 
 // ─── Main component ───────────────────────────
@@ -2086,7 +2066,6 @@ function RoleplaySetupWizard({ chat, onFinish, defaultsApplied, defaultsAction }
   const queryClient = useQueryClient();
   const openRightPanel = useUIStore((s) => s.openRightPanel);
   const roleplaySpriteScale = useUIStore((s) => s.roleplaySpriteScale);
-  const musicPlayerSource = useUIStore((s) => s.musicPlayerSource);
 
   // Fetch full preset data to check for choice blocks (variables)
   const { data: presetFull, isLoading: presetFullLoading } = usePresetFull(chat.promptPresetId ?? null);
@@ -2612,13 +2591,12 @@ function RoleplaySetupWizard({ chat, onFinish, defaultsApplied, defaultsAction }
           agentId: agent.id,
           settings: mergedSettings,
           metadata,
-          musicPlayerSource,
           roleplaySpriteScale,
           allowSecretPlot: supportsNarrativeDirectorSecretPlot,
         }),
       });
     },
-    [agentConfigsByType, metadata, musicPlayerSource, roleplaySpriteScale, supportsNarrativeDirectorSecretPlot],
+    [agentConfigsByType, metadata, roleplaySpriteScale, supportsNarrativeDirectorSecretPlot],
   );
 
   const removeAgentFromChat = useCallback(
@@ -2648,11 +2626,7 @@ function RoleplaySetupWizard({ chat, onFinish, defaultsApplied, defaultsAction }
       allowSecretPlot: supportsNarrativeDirectorSecretPlot,
     });
     const nextEnabledTools = nextSettings.enabledTools;
-    if (
-      builtInMeta &&
-      (!Array.isArray(nextEnabledTools) ||
-        (agent.id === "spotify" && nextSettings.musicProvider === "spotify" && nextEnabledTools.length === 0))
-    ) {
+    if (builtInMeta && !Array.isArray(nextEnabledTools)) {
       nextSettings.enabledTools = DEFAULT_AGENT_TOOLS[agent.id] ?? [];
     }
 
