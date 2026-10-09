@@ -155,7 +155,6 @@ export * from "./utils/character-cast.js";
 export * from "./utils/speaker-segments.js";
 export * from "./utils/sprite-labels.js";
 export * from "./utils/managed-generation-parameters.js";
-export * from "./utils/conversation-presence.js";
 export * from "./utils/avatar-crop.js";
 export * from "./utils/persona-normalization.js";
 export * from "./utils/noodle-polls.js";

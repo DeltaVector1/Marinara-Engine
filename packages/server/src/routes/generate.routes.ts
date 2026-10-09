@@ -309,23 +309,13 @@ import {
   illustratorPromptTemplateOwnsComposition,
   resolveIllustratorCharacterReferences,
 } from "./generate/illustrator-references.js";
-import {
-  buildAutonomousDailyBudgetPatch,
-  clearGenerationInProgress,
-  isAutonomousDailyBudgetExhausted,
-  markGenerationInProgress,
-  recordAssistantActivity,
-  recordUserActivity,
-  sharesAutonomousDailyBudget,
-} from "../services/conversation/autonomous.service.js";
-import { buildIntentCooldownPatch, isMessageIntent } from "../services/conversation/intent.service.js";
 import { buildImpersonateInstruction } from "../services/conversation/impersonate-prompt.js";
 import {
   isRepeatedConversationResponse,
   stripConversationPromptTimestamps,
   stripConversationResponseEnvelope,
 } from "../services/conversation/transcript-sanitize.js";
-import { normalizePromptTimeZone, toZonedWallClockDate } from "../services/conversation/timezone.js";
+import { normalizePromptTimeZone } from "../services/conversation/timezone.js";
 import { countConversationMessagesAfterSummaryAnchor } from "../services/conversation/auto-summary.service.js";
 import { shouldAttachSummariesToAgents } from "../services/generation/roleplay-summary-retrieval.js";
 import { executeKnowledgeRetrieval } from "../services/agents/knowledge-retrieval.js";
@@ -429,13 +419,6 @@ import {
   replaceConversationContextBlockForTarget,
 } from "./generate/conversation-context-block.js";
 import { prepareConversationPromptHistory } from "./generate/conversation-history-runtime.js";
-import {
-  orderConversationRespondersByDelay,
-  remainingConversationPresenceDelay,
-  resolveConversationPresenceRuntime,
-  type ConversationResponderDelay,
-  waitForConversationPresenceDelay,
-} from "./generate/conversation-presence-runtime.js";
 import { injectCapabilityContexts } from "../services/generation/capability-prompt-runtime.js";
 import { type GmVerbCall } from "../services/capability-packages/capability-gm-verb-runtime.service.js";
 import {
@@ -537,7 +520,6 @@ import { handleConversationCallCommand } from "../services/generation/conversati
 import { handleConversationReactCommand } from "../services/generation/conversation-react-command-runtime.js";
 import { withLatestMessageReply } from "../services/generation/message-reply.js";
 import { handleRoleplayDmCommand } from "../services/generation/roleplay-dm-command-runtime.js";
-import { handleConversationScheduleCommand } from "../services/generation/conversation-schedule-command-runtime.js";
 import { handleConversationCrossPostCommand } from "../services/generation/conversation-cross-post-command-runtime.js";
 import { handleConversationSelfieCommand } from "../services/generation/conversation-selfie-command-runtime.js";
 import {
@@ -710,7 +692,6 @@ function scopeLorebookPromptMessagesForCharacter(
     .filter((message) => message.content.trim().length > 0);
 }
 
-const PROFESSOR_MARI_INTERNAL_CHAT_MARKER = "professor-mari";
 const INDIVIDUAL_CONVERSATION_LOREBOOK_TOKEN = "__MARINARA_INDIVIDUAL_CONVERSATION_LOREBOOK__";
 type ConversationContextMacroKey =
   "context" | "commands" | "reactRules" | "replyRules" | "memories" | "lorebook" | "aboutMe";
@@ -1014,15 +995,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         input.forCharacterId = continueTargetMessage.characterId;
       }
     }
-    let conversationGenerationStartedAt: number | null = null;
-    let conversationAssistantSaved = false;
     const conversationCustomEmojiUrlByName = new Map<string, string>();
-    const shouldAccountAutonomousGeneration =
-      requestChatMode === "conversation" &&
-      input.autonomous === true &&
-      earlyMeta.internalAssistant !== PROFESSOR_MARI_INTERNAL_CHAT_MARKER &&
-      !input.impersonate &&
-      !input.regenerateMessageId;
 
     // A browser retry can replay the same queued /impersonate movement while
     // the first request is still finishing after its atomic commit. Resolve an
@@ -1232,9 +1205,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       // Every later selector, macro, agent and Discord mirror must use the durable public body.
       if (requestChatMode === "roleplay") input.userMessage = userMsg?.content ?? "";
       currentTurnUserMessageId = userMsg?.id ?? null;
-      if (requestChatMode === "conversation") {
-        recordUserActivity(input.chatId);
-      }
 
       // Spatial owner-turn packages own message creation, so merge the
       // Engine-owned correlation into their durable row before generation.
@@ -1352,10 +1322,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
     let chatMeta = roomGenerationMetadata(parseExtra(chat.metadata));
     const requestTimeZone = normalizePromptTimeZone(input.userTimeZone);
     const storedPromptTimeZone = normalizePromptTimeZone(chatMeta.promptTimeZone);
-    const conversationTimeZone =
-      chat.mode === "conversation" ? normalizePromptTimeZone(chatMeta.conversationTimeZone) : undefined;
-    const promptTimeZone = conversationTimeZone ?? requestTimeZone ?? storedPromptTimeZone;
-    if (!input.autonomous && !conversationTimeZone && requestTimeZone && requestTimeZone !== storedPromptTimeZone) {
+    const promptTimeZone = requestTimeZone ?? storedPromptTimeZone;
+    if (requestTimeZone && requestTimeZone !== storedPromptTimeZone) {
       try {
         const updatedChat = await chats.patchMetadata(
           input.chatId,
@@ -1373,7 +1341,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       typeof currentBackgroundSource === "string" && currentBackgroundSource.trim()
         ? currentBackgroundSource.trim()
         : null;
-    const promptNow = toZonedWallClockDate(new Date(), promptTimeZone);
     const excludePastReasoning = chatMeta.excludePastReasoning !== false;
     let encryptedReasoningItems: unknown[] | undefined;
     const imageCaptioningRuntime: ImageCaptioningRuntime = await resolveImageCaptioningRuntime({
@@ -1454,31 +1421,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       }
     };
     const detachCloseListener = onGenerationOutputClose(reply, onClose);
-    if (requestChatMode === "conversation" && !input.impersonate) {
-      conversationGenerationStartedAt = markGenerationInProgress(input.chatId);
-    }
-
-    const recordSavedAutonomousGeneration = async (characterId: string | null | undefined) => {
-      if (!shouldAccountAutonomousGeneration || !characterId) return;
-      try {
-        const updatedChat = await chats.patchMetadata(
-          input.chatId,
-          (current) => ({
-            ...buildAutonomousDailyBudgetPatch(current, characterId),
-            ...(isMessageIntent(input.autonomousIntentKey)
-              ? buildIntentCooldownPatch(current, characterId, input.autonomousIntentKey)
-              : {}),
-          }),
-          { touchUpdatedAt: false },
-        );
-        if (updatedChat) {
-          chatMeta = roomGenerationMetadata(parseExtra(updatedChat.metadata));
-        }
-      } catch (err) {
-        logger.warn(err, "[generate] Failed to record autonomous accounting for chat %s", input.chatId);
-      }
-    };
-
     // ── SSE progress helper: tells the client what phase we're in ──
     const sendProgress = (phase: string) => {
       sendSseEvent(reply, { type: "progress", data: { phase } });
@@ -1549,7 +1491,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       }
       const startsNewAssistantBubble =
         chatMode === "roleplay" &&
-        !input.autonomous &&
         !input.regenerateMessageId &&
         !input.continueMessageId &&
         !input.impersonate &&
@@ -2364,13 +2305,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         let conversationIsGroup = false;
         let conversationCharacterNames: string[] = [];
         let conversationRespondingCharacterIds: Set<string> | null = null;
-        let conversationCharacterPresenceById = new Map<
-          string,
-          { displayName: string; status: string; activity: string; talkativeness: number }
-        >();
-        let conversationResponderDelays = new Map<string, ConversationResponderDelay>();
-        let conversationMentionResponderDelays = new Map<string, ConversationResponderDelay>();
-        let conversationPresenceDelayStartedAt = Date.now();
         let conversationImportantMemoryBlock: string | null = null;
         // Relocation-macro content captured for the deferred-{{#if}} decode pass
         // (#3448) — set where each is computed, read after all are known.
@@ -3196,60 +3130,23 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         // ── Conversation mode: inject built-in DM-style system prompt ──
         let convoAwarenessBlock: string | null = null;
         if (chatMode === "conversation") {
-          const deferPresenceDelayToResponders = characterIds.length > 1 && groupGenerationMode === "individual";
-          const presenceRuntime = await resolveConversationPresenceRuntime({
-            db: app.db,
-            chatId: input.chatId,
-            chatMeta,
-            characterIds,
-            chars,
-            chats,
-            actualNow: new Date(),
-            promptNow,
-            forCharacterId: input.forCharacterId,
-            mentionedCharacterNames: input.mentionedCharacterNames,
-            shouldAccountAutonomousGeneration,
-            regenerateMessageId: input.regenerateMessageId,
-            impersonate: input.impersonate,
-            skipPresenceDelay: input.skipPresenceDelay,
-            deferPresenceDelayToResponders,
-            supportsHiddenFromAI,
-            contextMessageLimit,
-            chatMessages,
-            finalMessages,
-            abortSignal: generationSignal,
-            writeSse: (payload) => {
-              sendSseEvent(reply, payload as Parameters<typeof sendSseEvent>[1]);
-            },
-            endSse: () => {
-              endGenerationOutput(reply);
-            },
-            mapChatHistoryMessageForPrompt,
-            resolveHistoryMessageMacros,
+          const allCharacters = await chars.list();
+          const convoCharInfo = characterIds.flatMap((charId) => {
+            const character = allCharacters.find((row) => row.id === charId);
+            if (!character) return [];
+            try {
+              const name = JSON.parse(character.data as string)?.name;
+              return typeof name === "string" ? [{ charId, name }] : [];
+            } catch {
+              return [];
+            }
           });
-          if (presenceRuntime.ended || presenceRuntime.aborted) {
-            return;
-          }
-          chatMessages = presenceRuntime.chatMessages;
-          finalMessages = presenceRuntime.finalMessages;
-          const { convoCharInfo, convoCharNames, charNameList, isGroup } = presenceRuntime;
+          const convoCharNames = convoCharInfo.map((character) => character.name);
+          const charNameList = convoCharNames.join(", ");
+          const isGroup = convoCharInfo.length > 1;
           conversationIsGroup = isGroup;
           conversationCharacterNames = convoCharNames;
-          conversationRespondingCharacterIds = new Set(presenceRuntime.respondingCharacterIds);
-          conversationResponderDelays = new Map(Object.entries(presenceRuntime.responderDelays));
-          conversationMentionResponderDelays = new Map(Object.entries(presenceRuntime.mentionResponderDelays ?? {}));
-          conversationPresenceDelayStartedAt = presenceRuntime.presenceDelayStartedAt;
-          conversationCharacterPresenceById = new Map(
-            convoCharInfo.map((character) => [
-              character.charId,
-              {
-                displayName: character.displayName,
-                status: character.status,
-                activity: character.activity,
-                talkativeness: character.talkativeness,
-              },
-            ]),
-          );
+          conversationRespondingCharacterIds = new Set(characterIds);
 
           const nowInstant = new Date();
           const conversationSummaryFallback = await connections.getFallbackForAgents();
@@ -3443,13 +3340,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             nowInstant,
             promptTimeZone,
             convoCharInfo,
-            finalMessages,
             personaName,
-            userMessage: input.userMessage,
-            userStatus: input.userStatus,
-            userActivity: input.userActivity,
             mentionedCharacterNames: input.mentionedCharacterNames,
-            autonomousIntentKey: input.autonomousIntentKey,
             wrapFormat,
           });
           conversationContextBlockValue = contextBlock ?? "";
@@ -3461,14 +3353,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   nowInstant,
                   promptTimeZone,
                   convoCharInfo,
-                  finalMessages,
                   personaName,
-                  userMessage: input.userMessage,
-                  userStatus: input.userStatus,
-                  userActivity: input.userActivity,
                   mentionedCharacterNames: input.mentionedCharacterNames,
-                  autonomousIntentKey: input.autonomousIntentKey,
-                  primaryCharacterId: character.charId,
                   wrapFormat,
                 }),
               ]),
@@ -3897,9 +3783,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           chatMode !== "conversation" || conversationRespondingCharacterIds?.has(characterId) === true;
         const availableGroupCharacters = charInfo.filter((character) => isAvailableGroupResponder(character.id));
         const groupResponderName = (characterId: string): string =>
-          conversationCharacterPresenceById.get(characterId)?.displayName ??
-          charInfo.find((character) => character.id === characterId)?.name ??
-          "Character";
+          charInfo.find((character) => character.id === characterId)?.name ?? "Character";
 
         await appendConversationCustomAssetAdvertisements({
           chatMode,
@@ -6092,16 +5976,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             : undefined;
           const replyCharacterId = quotedMessage?.role === "assistant" ? quotedMessage.characterId : undefined;
 
-          const candidates =
-            assistantText !== undefined && chatMode === "conversation"
-              ? charInfo.filter((character) => conversationMentionResponderDelays.has(character.id))
-              : availableGroupCharacters;
+          const candidates = availableGroupCharacters;
           return candidates
             .filter((character) => {
               if (character.id === replyCharacterId) return true;
-              const names = [character.name, conversationCharacterPresenceById.get(character.id)?.displayName].filter(
-                (name): name is string => typeof name === "string" && name.trim().length > 0,
-              );
+              const names = [character.name];
               if (names.some((name) => requestedNames.has(normalizeTextForMatch(name)))) return true;
               return names.some((name) => {
                 const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -6140,10 +6019,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           const validIds = new Set(availableGroupCharacters.map((character) => character.id));
           const namesByLower = new Map(
             availableGroupCharacters.flatMap((character) => {
-              const displayName = conversationCharacterPresenceById.get(character.id)?.displayName;
-              return [character.name, displayName]
-                .filter((name): name is string => typeof name === "string" && name.trim().length > 0)
-                .map((name) => [normalizeTextForMatch(name), character.id] as const);
+              return [[normalizeTextForMatch(character.name), character.id] as const];
             }),
           );
           const selected: string[] = [];
@@ -6189,13 +6065,10 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             // pre-generation gate, so a reasoning model defers here on the same terms.
             if (!backend || backend.deferPreGeneration) return null;
             const candidates: SmartOrderCandidate[] = availableGroupCharacters.map((character) => {
-              const presence = conversationCharacterPresenceById.get(character.id);
               return {
                 id: character.id,
-                name: presence?.displayName ?? character.name,
-                status: presence?.status,
-                activity: presence?.activity,
-                talkativeness: presence?.talkativeness ?? Math.round(character.talkativeness * 100),
+                name: character.name,
+                talkativeness: Math.round(character.talkativeness * 100),
                 about: character.personality || character.description || undefined,
               };
             });
@@ -6258,18 +6131,13 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             .join("\n");
 
           const candidates = formatSmartGroupCandidates(
-            availableGroupCharacters.map((character) => {
-              const presence = conversationCharacterPresenceById.get(character.id);
-              return {
-                id: character.id,
-                name: presence?.displayName ?? character.name,
-                talkativeness: presence?.talkativeness ?? Math.round(character.talkativeness * 100),
-                status: presence?.status,
-                activity: presence?.activity,
-                personality: character.personality?.slice(0, 500),
-                description: character.description?.slice(0, 500),
-              };
-            }),
+            availableGroupCharacters.map((character) => ({
+              id: character.id,
+              name: character.name,
+              talkativeness: Math.round(character.talkativeness * 100),
+              personality: character.personality?.slice(0, 500),
+              description: character.description?.slice(0, 500),
+            })),
             chatMode === "conversation",
           );
 
@@ -6277,7 +6145,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             chatMode === "conversation"
               ? [
                   `You are a hidden response orchestrator for a Conversation-mode group chat.`,
-                  `Choose one or more available characters to respond next, based on the latest message, recent conversation, relevance, personality, current schedule status, activity, talkativeness, and who has spoken recently.`,
+                  `Choose one or more available characters to respond next, based on the latest message, recent conversation, relevance, personality, talkativeness, and who has spoken recently.`,
                   `Select every character who has a natural immediate reason to respond. One or several responders are equally valid.`,
                   `In a larger group, do not default to one responder merely because the group is large; include multiple characters when several are directly involved or independently motivated, without forcing uninvolved characters to speak.`,
                   `Prefer an online character over an idle or do-not-disturb character unless the conversation clearly calls for someone else.`,
@@ -6443,7 +6311,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         }
 
         if (chatMode === "conversation" && smartResponseQueue?.length) {
-          smartResponseQueue = orderConversationRespondersByDelay(smartResponseQueue, conversationResponderDelays);
         }
 
         if (smartResponseQueue && smartResponseQueue.length > 0) {
@@ -6487,9 +6354,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                     : []
           : [characterIds[0] ?? null];
         if (chatMode === "conversation" && useIndividualLoop) {
-          respondingCharIds = orderConversationRespondersByDelay(
-            respondingCharIds.filter((characterId): characterId is string => typeof characterId === "string"),
-            conversationResponderDelays,
+          respondingCharIds = respondingCharIds.filter(
+            (characterId): characterId is string => typeof characterId === "string",
           );
         }
 
@@ -8388,15 +8254,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               if (markGenerationCommitted && anchoredMsg?.id) {
                 generationComplete = true;
               }
-              if (chatMode === "conversation" && !input.regenerateMessageId) {
-                recordAssistantActivity(
-                  input.chatId,
-                  input.autonomous ? (targetCharId ?? undefined) : undefined,
-                  anchoredMsg?.createdAt ? new Date(anchoredMsg.createdAt).getTime() : undefined,
-                );
-                conversationAssistantSaved = true;
-              }
-              await recordSavedAutonomousGeneration(targetCharId);
               return {
                 savedMsg: anchoredMsg,
                 savedSwipeIndex:
@@ -8597,15 +8454,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           }
           if (markGenerationCommitted && savedMsg?.id) {
             generationComplete = true;
-          }
-          if (chatMode === "conversation" && !input.impersonate && !input.regenerateMessageId) {
-            recordAssistantActivity(
-              input.chatId,
-              input.autonomous ? (targetCharId ?? undefined) : undefined,
-              savedMsg?.createdAt ? new Date(savedMsg.createdAt).getTime() : undefined,
-            );
-            await recordSavedAutonomousGeneration(targetCharId);
-            conversationAssistantSaved = true;
           }
 
           // Persist thinking/reasoning and generation info
@@ -8934,57 +8782,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             const charName = charInfo.find((c) => c.id === charId)?.name ?? "Character";
 
             if (chatMode === "conversation") {
-              const responderDelay = conversationResponderDelays.get(charId);
-              const remainingDelayMs = responderDelay
-                ? remainingConversationPresenceDelay(responderDelay.delayMs, conversationPresenceDelayStartedAt)
-                : 0;
-              if (responderDelay && remainingDelayMs > 0) {
-                sendSseEvent(reply, {
-                  type: "delayed",
-                  characters: [groupResponderName(charId)],
-                  characterIds: [charId],
-                  characterStatuses: { [charId]: responderDelay.status },
-                  status: responderDelay.status,
-                  delayMs: remainingDelayMs,
-                });
-                await waitForConversationPresenceDelay(remainingDelayMs, generationSignal);
-                if (generationSignal.aborted) break;
-              }
-
-              if (responderDelay) {
-                const refreshedMessages = await chats.listMessages(input.chatId);
-                const latestUserMessageId = [...refreshedMessages]
-                  .reverse()
-                  .find((message) => message.role === "user")?.id;
-                for (const message of refreshedMessages) {
-                  if (message.role !== "user" || (supportsHiddenFromAI && isMessageHiddenFromAI(message))) continue;
-                  const known = knownConversationMessageIds.has(message.id);
-                  const index = runningMessages.findIndex((item) => item.id === message.id);
-                  // Only an older quote needs rebuilding; preserve other already-formatted history.
-                  if (known && (index < 0 || !parseExtra(message.extra).replyTo)) continue;
-                  const mapped = await mapChatHistoryMessageForPrompt(message, latestUserMessageId);
-                  applyRegexScriptsToPromptMessages([mapped], await getPromptRegexScripts(), {
-                    resolveMacros: (value, randomSeed) =>
-                      resolveMacros(value, promptMacroContext, { trimResult: false, randomSeed }),
-                    targetCharacterId: promptTargetCharacterId,
-                    targetPromptPresetId: presetId ?? null,
-                  });
-                  mapped.content = mapped.content.replace(/\n([ \t]*\n){2,}/g, "\n\n");
-                  let resolved = resolveHistoryMessageMacros([mapped])[0] ?? mapped;
-                  if (shouldPrefixGroupHistorySpeakers) {
-                    resolved =
-                      prefixGroupIndividualHistorySpeakers([resolved], {
-                        personaName,
-                        characterNamesById: await getGroupHistoryCharacterNamesById(),
-                      })[0] ?? resolved;
-                  }
-                  if (known) runningMessages[index] = { ...runningMessages[index], ...resolved };
-                  else {
-                    knownConversationMessageIds.add(message.id);
-                    runningMessages.push(resolved);
-                  }
-                }
-              }
               sendSseEvent(reply, { type: "typing", characters: [groupResponderName(charId)] });
             }
 
@@ -9047,34 +8844,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               let mentioned = getExplicitlyMentionedCharacterIds(genResult.response).filter((id) => !visited.has(id));
               let remaining = respondingCharIds.slice(ci + 1).filter((id) => !mentioned.includes(id!));
               let queueChanged = false;
-              if (shouldAccountAutonomousGeneration && mentioned.length > 0) {
-                // Every autonomous reply counts, so handoffs must fit the daily
-                // limit together with the replies already queued (#7055).
-                const { schedules } = await chats.resolveConversationPresenceState(input.chatId);
-                let projectedMeta = chatMeta;
-                const reserve = (id: string) => {
-                  // Like /autonomous/check, a character without a schedule uses its card talkativeness.
-                  const capSchedule = schedules[id] ?? {
-                    talkativeness: Math.round((charInfo.find((c) => c.id === id)?.talkativeness ?? 0.5) * 100),
-                  };
-                  const next = { ...projectedMeta, ...buildAutonomousDailyBudgetPatch(projectedMeta, id) };
-                  // Like /autonomous/exchange, a handoff never takes a shared limit's last check-in.
-                  const capMeta = sharesAutonomousDailyBudget(projectedMeta) ? next : projectedMeta;
-                  if (isAutonomousDailyBudgetExhausted(id, capSchedule, capMeta)) return false;
-                  projectedMeta = next;
-                  return true;
-                };
-                // Queued replies keep their place first; any that no longer fit the limit leave the queue.
-                const kept = remaining.filter((id) => !id || reserve(id));
-                queueChanged = kept.length !== remaining.length;
-                remaining = kept;
-                mentioned = mentioned.filter(reserve);
-              }
               if (mentioned.length > 0 || queueChanged) {
-                for (const id of mentioned) {
-                  const delay = conversationMentionResponderDelays.get(id);
-                  if (delay && !conversationResponderDelays.has(id)) conversationResponderDelays.set(id, delay);
-                }
                 respondingCharIds.splice(ci + 1, respondingCharIds.length, ...mentioned, ...remaining);
                 const pending = respondingCharIds.slice(ci + 1);
                 sendSseEvent(reply, {
@@ -11665,16 +11435,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               )
                 continue;
               try {
-                await handleConversationScheduleCommand({
-                  command,
-                  characterId,
-                  chatId: input.chatId,
-                  chats,
-                  sendUpdated: (data) => {
-                    sendSseEvent(reply, { type: "schedule_updated", data });
-                  },
-                });
-
                 await handleConversationCrossPostCommand({
                   command,
                   characterId,
@@ -11931,9 +11691,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       }
       for (const runKey of customLorebookReadBehindRunKeys) {
         activeCustomLorebookReadBehindRuns.delete(runKey);
-      }
-      if (conversationGenerationStartedAt != null && !conversationAssistantSaved) {
-        clearGenerationInProgress(input.chatId, conversationGenerationStartedAt);
       }
       stopSseKeepalive();
       detachCloseListener();

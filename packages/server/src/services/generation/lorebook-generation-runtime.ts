@@ -33,7 +33,6 @@ export function resolveLorebookGenerationTriggers(
     triggers.add("chat");
   } else if (!input.userMessage?.trim()) {
     triggers.add("continue");
-    triggers.add("autonomous");
   } else {
     triggers.add("chat");
   }

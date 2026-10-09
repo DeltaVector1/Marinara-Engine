@@ -51,19 +51,10 @@ interface CharacterExtensions {
   rulesetSheets?: Record<string, unknown>;
   /** Marinara Engine: per-character Tracker fields copied into each new Roleplay chat. */
   trackerCustomFieldDefaults?: CharacterTrackerCustomFieldDefault[];
-  /** Marinara Engine: Conversation-mode availability status */
-  conversationStatus?: import("./chat.js").ConversationPresenceStatus;
-  /** Marinara Engine (Conversation mode ONLY): manual presence override. Like the
-   *  schedule, it belongs to the character and applies in every Conversation chat;
-   *  `null` means no override. Chats cache a resolved copy in
-   *  `chats.metadata.conversationStatusOverrides`. */
-  conversationStatusOverride?: import("./chat.js").ConversationStatusOverride | null;
-  /** Marinara Engine (Conversation mode ONLY): the character's weekly schedule. The
-   *  character owns it; every conversation chat caches a resolved copy in
-   *  `chats.metadata.characterSchedules`. Per-chat opt-out lives on the chat as
-   *  `conversationSchedulesEnabled`. */
-  conversationSchedule?: import("../utils/conversation-presence.js").WeekSchedule;
-  /** Renew the weekly Conversation schedule when its week ends. Defaults on when a schedule exists. */
+  /** Legacy conversation presence data, retained as inert card metadata. */
+  conversationStatusOverride?: unknown;
+  /** Legacy conversation schedule metadata, retained as inert card data. */
+  conversationSchedule?: unknown;
   conversationScheduleAutoRenew?: boolean;
   /** Marinara Engine: pronunciation override used when sending this character's name to TTS. */
   phoneticName?: string;

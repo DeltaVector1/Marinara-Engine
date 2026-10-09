@@ -63,11 +63,8 @@ import {
   normalizeTimestampOverrides,
   type TimestampOverrides,
 } from "../import/import-timestamps.js";
-import { type CharacterSchedules, type WeekSchedule } from "../conversation/schedule.service.js";
-import type { ConversationStatusOverride } from "@marinara-engine/shared";
 import { MESSAGE_MARK_EXTRA_KEYS, redoChatVariableChanges, undoChatVariableChanges } from "@marinara-engine/shared";
 import { resolveConversationTimeZone } from "../conversation/timezone.js";
-import { parseConversationStatusOverrides } from "../generation/conversation-context-utils.js";
 import { logger } from "../../lib/logger.js";
 import { logRateLimited } from "../../lib/log-rate-limit.js";
 import { isLorebookScanCompactionEnabled } from "../../config/runtime-config.js";
@@ -491,127 +488,6 @@ function applyOrdinalStamp(merged: MetadataPatch, stamp: OrdinalStamp | null): v
   else delete merged[METADATA_WRITE_ORDINALS_KEY];
 }
 
-function readUnreadCount(value: unknown): number {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
-}
-
-function readCharacterIds(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string" && id.trim().length > 0) : [];
-}
-
-function hasConversationSchedules(value: unknown): value is CharacterSchedules {
-  return !!value && typeof value === "object" && Object.keys(value as Record<string, unknown>).length > 0;
-}
-
-/** Reuse character-owned routines unless this chat explicitly disables them. */
-function areConversationSchedulesEnabled(meta: MetadataPatch): boolean {
-  return meta.conversationSchedulesEnabled !== false;
-}
-
-/** Resolved presence state for one chat, read from the character cards it uses. */
-type ConversationPresenceState = {
-  schedules: CharacterSchedules;
-  statusOverrides: Record<string, ConversationStatusOverride>;
-};
-
-/** Cheap structural compare, so a resolve that changes nothing skips the metadata write. */
-function sameOverrides(current: unknown, next: Record<string, ConversationStatusOverride>): boolean {
-  const currentMap = isPlainRecord(current) ? current : {};
-  const keys = Object.keys(next);
-  if (keys.length !== Object.keys(currentMap).length) return false;
-  return keys.every((key) => JSON.stringify(currentMap[key]) === JSON.stringify(next[key]));
-}
-
-function sameSchedules(a: CharacterSchedules, b: CharacterSchedules): boolean {
-  const keys = Object.keys(a);
-  if (keys.length !== Object.keys(b).length) return false;
-  return keys.every((key) => b[key] !== undefined && JSON.stringify(a[key]) === JSON.stringify(b[key]));
-}
-
-/** Read one `extensions` field off a serialized character card. */
-function readCardExtension(rawData: unknown, key: string): unknown {
-  if (typeof rawData !== "string") return undefined;
-  try {
-    const parsed = JSON.parse(rawData) as { extensions?: Record<string, unknown> };
-    return parsed?.extensions?.[key];
-  } catch {
-    return undefined;
-  }
-}
-
-/** Serialize a character card with one `extensions` field replaced. */
-function writeCardExtension(rawData: unknown, key: string, value: unknown): string | null {
-  if (typeof rawData !== "string") return null;
-  try {
-    const parsed: unknown = JSON.parse(rawData);
-    if (!isPlainRecord(parsed)) return null;
-    const rawExtensions = parsed.extensions;
-    if (rawExtensions !== undefined && rawExtensions !== null && !isPlainRecord(rawExtensions)) return null;
-    const extensions = isPlainRecord(rawExtensions) ? rawExtensions : {};
-    return JSON.stringify({ ...parsed, extensions: { ...extensions, [key]: value } });
-  } catch {
-    return null;
-  }
-}
-
-function readCharacterSchedule(rawData: unknown): WeekSchedule | null {
-  const schedule = readCardExtension(rawData, "conversationSchedule");
-  return isValidLegacySchedule(schedule) ? schedule : null;
-}
-
-/**
- * A manual presence override belongs to the character, so it applies in every
- * Conversation chat. `null` on the card means the user cleared it.
- */
-function readCharacterStatusOverride(rawData: unknown): ConversationStatusOverride | null {
-  const override = readCardExtension(rawData, "conversationStatusOverride");
-  if (!override || typeof override !== "object" || Array.isArray(override)) return null;
-  const typed = override as Record<string, unknown>;
-  const validStatus =
-    typed.status === "online" || typed.status === "idle" || typed.status === "dnd" || typed.status === "offline";
-  if (!validStatus || typeof typed.createdAt !== "string" || typed.createdAt.length === 0) return null;
-  return override as ConversationStatusOverride;
-}
-
-function isValidLegacyStatusOverride(value: unknown): value is ConversationStatusOverride {
-  if (!isPlainRecord(value)) return false;
-  const status = value.status;
-  return (
-    (status === "online" || status === "idle" || status === "dnd" || status === "offline") &&
-    typeof value.createdAt === "string" &&
-    value.createdAt.length > 0
-  );
-}
-
-function isValidLegacySchedule(value: unknown): value is WeekSchedule {
-  if (!isPlainRecord(value) || typeof value.weekStart !== "string" || !isPlainRecord(value.days)) return false;
-  if (
-    typeof value.inactivityThresholdMinutes !== "number" ||
-    !Number.isFinite(value.inactivityThresholdMinutes) ||
-    value.inactivityThresholdMinutes < 0 ||
-    typeof value.talkativeness !== "number" ||
-    !Number.isFinite(value.talkativeness) ||
-    value.talkativeness < 0 ||
-    value.talkativeness > 100
-  ) {
-    return false;
-  }
-  return Object.values(value.days).every(
-    (day) =>
-      Array.isArray(day) &&
-      day.every(
-        (block) =>
-          (isPlainRecord(block) &&
-            typeof block.time === "string" &&
-            typeof block.activity === "string" &&
-            block.status === "online") ||
-          block.status === "idle" ||
-          block.status === "dnd" ||
-          block.status === "offline",
-      ),
-  );
-}
-
 function parseCharacterIds(raw: unknown): string[] {
   if (Array.isArray(raw)) return raw.filter((id): id is string => typeof id === "string" && id.length > 0);
   if (typeof raw !== "string") return [];
@@ -621,10 +497,6 @@ function parseCharacterIds(raw: unknown): string[] {
   } catch {
     return [];
   }
-}
-
-function firstScheduleWeekStart(schedules: CharacterSchedules): string | undefined {
-  return Object.values(schedules).find((schedule): schedule is WeekSchedule => !!schedule)?.weekStart;
 }
 
 function resolveTimestamps(overrides?: TimestampOverrides | null) {
@@ -1305,105 +1177,6 @@ export function createChatsStorage(db: DB) {
     await chatLastMessageAtBackfillPromise;
   }
 
-  /**
-   * Read the character-owned schedules for `characterIds`. The character card is
-   * the single source of truth; chats only cache a resolved copy in
-   * `metadata.characterSchedules`.
-   *
-   * Last week's schedule is returned as-is. Days are keyed by weekday, so it
-   * still yields a usable routine, and dropping it here would both blank the
-   * panel and hide the staleness from the `needsRefresh` signal that drives
-   * regeneration — the schedule would then stay empty forever.
-   */
-  async function collectConversationSchedules(characterIds: string[]): Promise<CharacterSchedules> {
-    const wanted = Array.from(new Set(characterIds));
-    const collected: CharacterSchedules = {};
-    if (wanted.length === 0) return collected;
-
-    const rows = await db.select().from(characters).where(inArray(characters.id, wanted));
-    for (const row of rows) {
-      const schedule = readCharacterSchedule(row.data);
-      if (schedule) collected[row.id] = schedule;
-    }
-
-    return collected;
-  }
-
-  /**
-   * Legacy hoist: chats used to own `characterSchedules`. Copy any chat-cached
-   * schedule up to a character that has none yet, so pre-existing routines
-   * survive the move to character-owned storage. One-way and idempotent.
-   */
-  async function hoistLegacyChatSchedules(
-    cachedSchedules: CharacterSchedules,
-    activeCharacterIds: readonly string[],
-  ): Promise<boolean> {
-    const activeIds = new Set(activeCharacterIds);
-    const characterIds = Object.keys(cachedSchedules).filter((characterId) => activeIds.has(characterId));
-    if (characterIds.length === 0) return false;
-
-    let hoisted = false;
-    for (const characterId of characterIds) {
-      const schedule = cachedSchedules[characterId];
-      if (!isValidLegacySchedule(schedule)) continue;
-      const didHoist = await db.transaction(async (tx) => {
-        const rows = await tx.select().from(characters).where(eq(characters.id, characterId));
-        const row = rows[0];
-        if (!row || readCardExtension(row.data, "conversationSchedule") !== undefined) return false;
-        const nextData = writeCardExtension(row.data, "conversationSchedule", schedule);
-        if (!nextData) return false;
-        await tx.update(characters).set({ data: nextData }).where(eq(characters.id, characterId));
-        return true;
-      });
-      hoisted ||= didHoist;
-    }
-    return hoisted;
-  }
-
-  /**
-   * Legacy hoist for manual presence overrides, which used to be chat-scoped.
-   * Only fills a card that has never carried an override, so a cleared override
-   * (`null` on the card) is not resurrected by a stale chat cache.
-   */
-  async function hoistLegacyChatOverrides(
-    cachedOverrides: unknown,
-    activeCharacterIds: readonly string[],
-  ): Promise<void> {
-    if (!isPlainRecord(cachedOverrides)) return;
-    const activeIds = new Set(activeCharacterIds);
-    const characterIds = Object.keys(cachedOverrides).filter((characterId) => activeIds.has(characterId));
-    if (characterIds.length === 0) return;
-
-    for (const characterId of characterIds) {
-      const override = cachedOverrides[characterId];
-      if (!isValidLegacyStatusOverride(override)) continue;
-      await db.transaction(async (tx) => {
-        const rows = await tx.select().from(characters).where(eq(characters.id, characterId));
-        const row = rows[0];
-        if (!row || readCardExtension(row.data, "conversationStatusOverride") !== undefined) return;
-        const nextData = writeCardExtension(row.data, "conversationStatusOverride", override);
-        if (!nextData) return;
-        await tx.update(characters).set({ data: nextData }).where(eq(characters.id, characterId));
-      });
-    }
-  }
-
-  async function collectConversationPresence(
-    characterIds: string[],
-  ): Promise<{ schedules: CharacterSchedules; overrides: Record<string, ConversationStatusOverride | null> }> {
-    const wanted = Array.from(new Set(characterIds));
-    const schedules: CharacterSchedules = {};
-    const overrides: Record<string, ConversationStatusOverride | null> = {};
-    if (wanted.length === 0) return { schedules, overrides };
-    const rows = await db.select().from(characters).where(inArray(characters.id, wanted));
-    for (const row of rows) {
-      const schedule = readCharacterSchedule(row.data);
-      if (schedule) schedules[row.id] = schedule;
-      overrides[row.id] = readCharacterStatusOverride(row.data);
-    }
-    return { schedules, overrides };
-  }
-
   async function cleanupChatGallery(chatId: string): Promise<void> {
     const chatGalleryFiles = await db
       .select({ filePath: chatImages.filePath })
@@ -1535,8 +1308,6 @@ export function createChatsStorage(db: DB) {
       const conversationTimeZone = recentConversation
         ? resolveConversationTimeZone(parseMetadata(recentConversation.metadata))
         : undefined;
-      const inheritedSchedules =
-        input.mode === "conversation" ? await collectConversationSchedules(input.characterIds) : {};
       const appSettings = createAppSettingsStorage(db);
       const windowDefault = parseChatWindowDefault(await appSettings.get(getChatWindowDefaultSettingsKey(input.mode)));
       const metadata: MetadataPatch = {
@@ -1551,12 +1322,6 @@ export function createChatsStorage(db: DB) {
         windowLayout: null,
         ...windowDefault,
       };
-      if (hasConversationSchedules(inheritedSchedules)) {
-        metadata.conversationSchedulesEnabled = true;
-        metadata.characterSchedules = inheritedSchedules;
-        const scheduleWeekStart = firstScheduleWeekStart(inheritedSchedules);
-        if (scheduleWeekStart) metadata.scheduleWeekStart = scheduleWeekStart;
-      }
       if (conversationTimeZone) metadata.conversationTimeZone = conversationTimeZone;
       await db.insert(chats).values({
         id,
@@ -1574,108 +1339,6 @@ export function createChatsStorage(db: DB) {
         updatedAt: timestamp.updatedAt,
       });
       return this.getById(id);
-    },
-
-    /**
-     * Resolve this chat's presence state from the character cards, which own
-     * both the schedule and the manual status override, and refresh the chat's
-     * cached copies. Overrides resolve even when this chat has schedules
-     * switched off — the opt-out is about routines, not manual availability.
-     */
-    async resolveConversationPresenceState(id: string): Promise<ConversationPresenceState> {
-      const chat = await this.getById(id);
-      if (!chat || chat.mode !== "conversation") return { schedules: {}, statusOverrides: {} };
-
-      const meta = parseMetadata(chat.metadata);
-      const characterIds = parseCharacterIds(chat.characterIds);
-
-      if (meta.multiplayer || meta.multiplayerSetup === true) {
-        const overrides = parseConversationStatusOverrides(meta.conversationStatusOverrides);
-        return {
-          schedules: await this.resolveConversationSchedules(id),
-          statusOverrides: Object.fromEntries(Object.entries(overrides).filter(([key]) => characterIds.includes(key))),
-        };
-      }
-
-      // Hoist before the opt-in gate, so a chat that is switched off does not
-      // strand the only copy of a pre-existing schedule in its metadata.
-      if (hasConversationSchedules(meta.characterSchedules)) {
-        await hoistLegacyChatSchedules(meta.characterSchedules, characterIds);
-      }
-      if (isPlainRecord(meta.conversationStatusOverrides) && Object.keys(meta.conversationStatusOverrides).length > 0) {
-        await hoistLegacyChatOverrides(meta.conversationStatusOverrides, characterIds);
-      }
-
-      const presence = await collectConversationPresence(characterIds);
-      const cardOverrides = presence.overrides;
-      const statusOverrides: Record<string, ConversationStatusOverride> = {};
-      for (const [characterId, override] of Object.entries(cardOverrides)) {
-        if (override) statusOverrides[characterId] = override;
-      }
-      const cachedOverrides = isPlainRecord(meta.conversationStatusOverrides)
-        ? Object.fromEntries(Object.entries(meta.conversationStatusOverrides).filter(([, value]) => value != null))
-        : {};
-      if (!sameOverrides(cachedOverrides, statusOverrides)) {
-        const staleKeys = isPlainRecord(meta.conversationStatusOverrides)
-          ? Object.keys(meta.conversationStatusOverrides).filter((key) => !(key in cardOverrides))
-          : [];
-        await this.patchMetadata(
-          id,
-          {
-            conversationStatusOverrides: {
-              ...cardOverrides,
-              ...Object.fromEntries(staleKeys.map((key) => [key, null])),
-            },
-          },
-          { touchUpdatedAt: false },
-        );
-      }
-
-      const schedules = await this.resolveConversationSchedules(id);
-      return { schedules, statusOverrides };
-    },
-
-    /** Schedule half of {@link resolveConversationPresenceState}. */
-    async resolveConversationSchedules(id: string): Promise<CharacterSchedules> {
-      const chat = await this.getById(id);
-      if (!chat || chat.mode !== "conversation") return {};
-
-      const meta = parseMetadata(chat.metadata);
-      if (!areConversationSchedulesEnabled(meta)) return {};
-
-      const characterIds = parseCharacterIds(chat.characterIds);
-      const currentSchedules = hasConversationSchedules(meta.characterSchedules) ? meta.characterSchedules : {};
-
-      // Shared rooms own their cached routines. Resolving one must neither read
-      // a later private-card update nor hoist room changes back into that card.
-      if (meta.multiplayer || meta.multiplayerSetup === true) {
-        return Object.fromEntries(Object.entries(currentSchedules).filter(([key]) => characterIds.includes(key)));
-      }
-
-      // The character card is the source of truth; the chat map is a cache that
-      // can be stale or hold a schedule the character has since replaced.
-      const freshSchedules = await collectConversationSchedules(characterIds);
-      const nextSchedules: CharacterSchedules = {};
-      for (const characterId of characterIds) {
-        const schedule = freshSchedules[characterId];
-        if (schedule) nextSchedules[characterId] = schedule;
-      }
-      if (sameSchedules(currentSchedules, nextSchedules)) return currentSchedules;
-      if (!hasConversationSchedules(nextSchedules)) {
-        await this.patchMetadata(id, { characterSchedules: {}, scheduleWeekStart: null }, { touchUpdatedAt: false });
-        return {};
-      }
-      const scheduleWeekStart = firstScheduleWeekStart(nextSchedules);
-      await this.patchMetadata(
-        id,
-        {
-          characterSchedules: nextSchedules,
-          ...(scheduleWeekStart ? { scheduleWeekStart } : {}),
-        },
-        { touchUpdatedAt: false },
-      );
-
-      return nextSchedules;
     },
 
     async update(
@@ -1961,45 +1624,6 @@ export function createChatsStorage(db: DB) {
           .where(eq(chats.id, id));
         return this.getById(id);
       });
-    },
-
-    async markAutonomousUnread(id: string, input?: { characterId?: string | null; count?: number }) {
-      const timestamp = now();
-      return this.patchMetadata(id, (current) => {
-        const increment = Math.max(1, Math.floor(input?.count ?? 1));
-        const currentCount = readUnreadCount(current.autonomousUnreadCount);
-        const characterIds = new Set(readCharacterIds(current.autonomousUnreadCharacterIds));
-        if (input?.characterId) characterIds.add(input.characterId);
-
-        return {
-          ...current,
-          autonomousUnreadCount: currentCount + increment,
-          autonomousUnreadCharacterIds: Array.from(characterIds),
-          autonomousUnreadAt: timestamp,
-        };
-      });
-    },
-
-    async clearAutonomousUnread(id: string) {
-      return this.patchMetadata(
-        id,
-        (current) => {
-          if (
-            current.autonomousUnreadCount === undefined &&
-            current.autonomousUnreadCharacterIds === undefined &&
-            current.autonomousUnreadAt === undefined
-          ) {
-            return current;
-          }
-
-          return {
-            autonomousUnreadCount: undefined,
-            autonomousUnreadCharacterIds: undefined,
-            autonomousUnreadAt: undefined,
-          };
-        },
-        { touchUpdatedAt: false },
-      );
     },
 
     async pruneLorebookChatMetadata(remove: (tx: DB) => Promise<string[]>, lorebookId?: string) {

@@ -6,7 +6,6 @@
 // the message is shown to the user.
 //
 // Supported commands:
-// - [schedule_update: status="online", activity="free time"]
 // - [cross_post: target="group"] or [cross_post: target="CharName"]
 // - [selfie], [selfie: context="description of the selfie"], [selfie: "description"], or [selfie: description]
 // - [memory: target="CharName", summary="description of the memory"]
@@ -47,13 +46,6 @@ import {
   parseCapabilityConversationCommands,
   stripCapabilityConversationCommands,
 } from "../capability-packages/capability-command-registry.service.js";
-
-export interface ScheduleUpdateCommand {
-  type: "schedule_update";
-  status?: "online" | "idle" | "dnd" | "offline";
-  activity?: string;
-  duration?: string;
-}
 
 export interface CrossPostCommand {
   type: "cross_post";
@@ -378,7 +370,6 @@ type AssistantCommand =
   | PlanCommand;
 
 export type CharacterCommand =
-  | ScheduleUpdateCommand
   | CrossPostCommand
   | SelfieCommand
   | MemoryCommand
@@ -406,7 +397,6 @@ export type CharacterCommand =
 const QUOTED_PARAM_BLOCK = '(?:[^"\\]]|"(?:\\\\.|[^"\\\\])*")*';
 
 /** Regex patterns for each command type */
-const SCHEDULE_UPDATE_RE = new RegExp(`\\[schedule_update:\\s*(${QUOTED_PARAM_BLOCK})\\]`, "gi");
 const CROSS_POST_RE = /\[cross_post:\s*target="([^"]+)"\]/gi;
 const SELFIE_RE = /\[selfie(?::\s*(?:context="([^"]*)"|"([^"]*)"|([^\]\r\n"]+)))?\]/gi;
 const MEMORY_RE = /\[memory:\s*target="([^"]+)"\s*,\s*summary="([^"]+)"\]/gi;
@@ -1102,28 +1092,6 @@ export function parseCharacterCommands(content: string): {
 } {
   const commands: CharacterCommand[] = [];
 
-  // Parse schedule_update commands
-  for (const match of content.matchAll(SCHEDULE_UPDATE_RE)) {
-    const params = match[1]!;
-    const cmd: ScheduleUpdateCommand = { type: "schedule_update" };
-
-    const statusMatch = params.match(/status="([^"]+)"/);
-    if (statusMatch) {
-      const s = statusMatch[1]!.toLowerCase();
-      if (["online", "idle", "dnd", "offline"].includes(s)) {
-        cmd.status = s as ScheduleUpdateCommand["status"];
-      }
-    }
-
-    const activityMatch = params.match(/activity="([^"]+)"/);
-    if (activityMatch) cmd.activity = activityMatch[1]!;
-
-    const durationMatch = params.match(/duration="([^"]+)"/);
-    if (durationMatch) cmd.duration = durationMatch[1]!;
-
-    commands.push(cmd);
-  }
-
   // Parse cross_post commands
   for (const match of content.matchAll(CROSS_POST_RE)) {
     commands.push({ type: "cross_post", target: match[1]! });
@@ -1349,7 +1317,6 @@ export function parseCharacterCommands(content: string): {
 
   // Strip all commands from the visible content
   let cleanContent = stripCapabilityConversationCommands(content)
-    .replace(SCHEDULE_UPDATE_RE, "")
     .replace(CROSS_POST_RE, "")
     .replace(SELFIE_RE, "")
     .replace(MEMORY_RE, "")
@@ -1515,19 +1482,4 @@ export function parseDirectMessageCommands(content: string): {
     .trim();
 
   return { cleanContent, commands };
-}
-
-/**
- * Parse a duration string like "2h", "30m", "1h30m" into minutes.
- * Returns null if unparseable.
- */
-export function parseDuration(duration: string): number | null {
-  const hourMatch = duration.match(/(\d+)\s*h/i);
-  const minMatch = duration.match(/(\d+)\s*m/i);
-
-  let total = 0;
-  if (hourMatch) total += parseInt(hourMatch[1]!) * 60;
-  if (minMatch) total += parseInt(minMatch[1]!);
-
-  return total > 0 ? total : null;
 }

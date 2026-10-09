@@ -37,7 +37,6 @@ export interface KnowledgeAgentSourceSettings {
 }
 
 export const CONVERSATION_COMMAND_KEYS = [
-  "schedule_update",
   "cross_post",
   "selfie",
   "memory",
@@ -57,15 +56,6 @@ export const CONVERSATION_COMMAND_AGENT_IDS: Partial<Record<ConversationCommandK
   selfie: "illustrator",
   call: "conversation-calls",
 };
-
-export type ConversationPresenceStatus = "online" | "idle" | "dnd" | "offline";
-
-export interface ConversationStatusOverride {
-  status: ConversationPresenceStatus;
-  activity?: string | null;
-  createdAt: string;
-  expiresAt?: string | null;
-}
 
 /** Role of a message in the conversation. */
 export type MessageRole = "user" | "assistant" | "system" | "narrator";
@@ -495,9 +485,9 @@ export interface ChatMetadata {
   /** Chat-scoped generated schedules for conversation characters. */
   characterSchedules?: Record<string, unknown>;
   /** Chat-scoped manual status overrides for conversation characters. */
-  conversationStatusOverrides?: Record<string, ConversationStatusOverride>;
+  conversationStatusOverrides?: unknown;
   /** Chat-scoped derived presence status per character, updated each generation. Replaces extensions.conversationStatus to avoid cross-chat bleed. */
-  conversationCharacterStatuses?: Record<string, { status: ConversationPresenceStatus; activity: string }>;
+  conversationCharacterStatuses?: unknown;
   /** Conversation mode ONLY: per-chat "about me" overrides keyed by character id or persona id.
    *  When set, supersedes the card/persona default about-me in the prompt and viewer. */
   conversationAboutMeOverrides?: Record<string, string>;

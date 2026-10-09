@@ -227,7 +227,6 @@ function resolveDryRunLorebookGenerationTriggers(
     triggers.add("regenerate");
   } else if (!input.userMessage?.trim()) {
     triggers.add("continue");
-    triggers.add("autonomous");
   } else {
     triggers.add("chat");
   }
@@ -775,7 +774,6 @@ export async function registerDryRunRoute(app: FastifyInstance) {
       chatMode,
     );
     const promptLastGenerationType = resolvePromptLastGenerationType({
-      autonomous: body.autonomous,
       impersonate,
       generationGuide: body.generationGuide,
       generationGuideSource: body.generationGuideSource,

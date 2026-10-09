@@ -28,7 +28,6 @@ import { galleryRoutes } from "./gallery.routes.js";
 import { globalGalleryRoutes } from "./global-gallery.routes.js";
 import { knowledgeSourcesRoutes } from "./knowledge-sources.routes.js";
 import { gifsRoutes } from "./gifs.routes.js";
-import { conversationRoutes } from "./conversation.routes.js";
 import { backupRoutes } from "./backup.routes.js";
 import { chatFoldersRoutes } from "./chat-folders.routes.js";
 import { connectionFoldersRoutes } from "./connection-folders.routes.js";
@@ -83,7 +82,6 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(globalGalleryRoutes, { prefix: "/api/global-gallery" });
   await app.register(knowledgeSourcesRoutes, { prefix: "/api/knowledge-sources" });
   await app.register(gifsRoutes, { prefix: "/api/gifs" });
-  await app.register(conversationRoutes, { prefix: "/api/conversation" });
   await app.register(backupRoutes, { prefix: "/api/backup" });
   await app.register(uiLanguagesRoutes, { prefix: "/api/ui-languages" });
   await app.register(themesRoutes, { prefix: "/api/themes" });

@@ -110,7 +110,7 @@ const ROOM_TOOLS = new Set([
   "read_chat_variable",
   "write_chat_variable",
 ]);
-const ROOM_CONVERSATION_COMMANDS = new Set(["schedule_update", "memory", "react"]);
+const ROOM_CONVERSATION_COMMANDS = new Set(["memory", "react"]);
 const ROOM_ROLEPLAY_COMMANDS = new Set(["notes", "dismiss_notes", "memory", "dismiss_memory", "roll", "whisper"]);
 const ROOM_AGENT_RESULTS: Record<string, readonly string[]> = {
   "world-state": ["game_state_update"],

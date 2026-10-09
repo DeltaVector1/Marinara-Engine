@@ -23,7 +23,6 @@ import {
   DEFAULT_CONVERSATION_PROMPT,
   estimateChatSummaryTokens,
   getChatSummaryMessageIdsToUnhideAfterDelete,
-  markAutonomousUnreadSchema,
   reassignMessagePersonaSchema,
   nameToXmlTag,
   normalizeChatSummaryEntries,
@@ -119,7 +118,6 @@ import {
   resolveChatSummaryTemperatureOptions,
 } from "../services/chat-summary/connection-resolution.js";
 import { generateMissingConversationSummaries } from "../services/conversation/auto-summary.service.js";
-import { clearChatActivity, recordUserReaction } from "../services/conversation/autonomous.service.js";
 import { rebuildMemoryChunks } from "../services/memory-recall.js";
 import { createAdvancedMemoryService } from "../services/advanced-memory.js";
 import { copyAdvancedMemoryRecords, remapAdvancedMemoryMetadata } from "../services/advanced-memory-transfer.js";
@@ -187,10 +185,6 @@ import {
   parseStoredScenePackageData,
   releaseScenePackageOrigin,
 } from "../services/capability-packages/capability-scene-origin.service.js";
-import {
-  isBackgroundAutonomousCandidate,
-  hasRoleplayDmThreadMarkers,
-} from "../services/conversation/autonomous-candidates.js";
 
 type TrackerWrapFormat = "xml" | "markdown" | "none";
 type EntryStateOverrides = Record<string, { ephemeral?: number | null; enabled?: boolean }>;
@@ -682,32 +676,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     return chats.map(normalizeChatForResponse);
   });
 
-  // Lightweight candidate ids for the background-autonomous poller (#4704):
-  // the poller only needs ids, so skip the full-list materialization,
-  // metadata serialization, and DM-cleanup scans the / route performs.
-  // Static path — Fastify prefers it over GET /:id.
-  app.get("/autonomous-candidates", async () => {
-    const chats = await storage.list();
-    const candidates = chats.filter(isBackgroundAutonomousCandidate);
-    // Exclude EMPTIED Roleplay DM threads: the legacy poll's GET /chats ran
-    // cleanupEmptyRoleplayDmChats as a side effect, and an emptied thread with
-    // stale in-memory activity state could otherwise receive an autonomous
-    // message, permanently exempting it from cleanup. countMessages runs only
-    // for DM-marker candidates, so the scan cost this route avoids stays avoided.
-    const eligible = [];
-    for (const chat of candidates) {
-      if (hasRoleplayDmThreadMarkers(parseChatMetadata(chat.metadata))) {
-        // chats.lastMessageAt is authoritative for emptiness: createMessage
-        // sets it, removeMessage(s) nulls it when the last row goes, and the
-        // list() above backfills legacy rows. Counting messages here would
-        // load the chat's whole storage unit on every 30s poll (#5592 PR-B).
-        if (!isUsableTimestamp(chat.lastMessageAt)) continue;
-      }
-      eligible.push({ id: chat.id });
-    }
-    return eligible;
-  });
-
   // List chats by group
   app.get<{ Params: { groupId: string } }>("/group/:groupId", async (req) => {
     const chats = await storage.listByGroup(req.params.groupId);
@@ -719,18 +687,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     const chat = await storage.getById(req.params.id);
     if (!chat) {
       return reply.status(404).send({ error: "Chat not found" });
-    }
-    // Schedules and presence overrides live on the character cards; this chat
-    // only caches them. Resolve on read so a card edited elsewhere shows up as
-    // soon as the chat is refetched, instead of waiting for the next poll.
-    if (chat.mode === "conversation") {
-      try {
-        await storage.resolveConversationPresenceState(chat.id);
-        const resolved = await storage.getById(chat.id);
-        if (resolved) return normalizeChatForResponse(resolved);
-      } catch (err) {
-        logger.warn(err, "Failed to resolve Conversation presence for chat %s", chat.id);
-      }
     }
     return normalizeChatForResponse(chat);
   });
@@ -1069,14 +1025,6 @@ export async function chatsRoutes(app: FastifyInstance) {
       // Store only a mode generation understands, so the drawer and the prompt never read it differently.
       incoming.groupChatMode = normalizeGroupChatMode(incoming.groupChatMode);
     }
-    if (incoming.conversationSchedulesEnabled === false) {
-      // Chat-scoped only: drop this chat's cached copy, but leave the character
-      // card alone. The schedule belongs to the character and other chats may
-      // still be using it, so resetting the card's presence here would reach
-      // outside this chat.
-      incoming.characterSchedules = undefined;
-      incoming.scheduleWeekStart = undefined;
-    }
     if (Object.prototype.hasOwnProperty.call(incoming, "summaryMaxTokens")) {
       incoming.summaryMaxTokens = clampRoleplaySummaryMaxTokens(incoming.summaryMaxTokens);
     }
@@ -1175,15 +1123,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     return updated ? normalizeChatForResponse(updated) : updated;
   });
 
-  // Mark a chat as having autonomous messages the user has not viewed yet.
-  app.post<{ Params: { id: string } }>("/:id/autonomous-unread", async (req, reply) => {
-    const chat = await storage.getById(req.params.id);
-    if (!chat) return reply.status(404).send({ error: "Chat not found" });
-    const input = markAutonomousUnreadSchema.parse(req.body ?? {});
-    const updated = await storage.markAutonomousUnread(req.params.id, input);
-    return updated ? normalizeChatForResponse(updated) : updated;
-  });
-
   app.patch<{ Params: { id: string; entryId: string } }>("/:id/lorebook-entries/:entryId", async (req, reply) => {
     const parsed = z.object({ enabled: z.boolean() }).strict().safeParse(req.body);
     if (!parsed.success) return reply.status(400).send({ error: "enabled must be a boolean" });
@@ -1230,14 +1169,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     });
     if (!updated) return reply.status(404).send({ error: "Chat not found" });
     return normalizeChatForResponse(updated);
-  });
-
-  // Clear autonomous unread state when the user views the relevant chat.
-  app.delete<{ Params: { id: string } }>("/:id/autonomous-unread", async (req, reply) => {
-    const chat = await storage.getById(req.params.id);
-    if (!chat) return reply.status(404).send({ error: "Chat not found" });
-    const updated = await storage.clearAutonomousUnread(req.params.id);
-    return updated ? normalizeChatForResponse(updated) : updated;
   });
 
   // Update chat summaries (entry-level merge for day/week summaries).
@@ -1735,7 +1666,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     ).activeGenerations;
     activeGenerations?.get(req.params.id)?.abortController?.abort();
     activeGenerations?.delete(req.params.id);
-    clearChatActivity(req.params.id);
     // Disconnect from partner chat before deleting
     await storage.disconnectChat(req.params.id);
     await storage.remove(req.params.id);
@@ -2213,24 +2143,6 @@ export async function chatsRoutes(app: FastifyInstance) {
             ? await storage.updateMessageExtra(req.params.messageId, partial)
             : await storage.updateMessageExtraForSwipe(req.params.messageId, swipeIndex, partial);
         if (!updated) return reply.status(404).send({ error: "Message not found" });
-        // A lone user reaction (no text after it) is a valid turn: feed it to the
-        // autonomous-messaging cadence so a character may notice and respond,
-        // time-gated. Only when this update leaves the user with a reaction here
-        // (so removing one's last reaction doesn't count as fresh activity).
-        if (Object.prototype.hasOwnProperty.call(partial, "reactions")) {
-          const next = partial.reactions;
-          const userReacted =
-            Array.isArray(next) &&
-            next.some(
-              (r) =>
-                !!r &&
-                typeof r === "object" &&
-                Array.isArray((r as { by?: unknown }).by) &&
-                (r as { by: unknown[] }).by.includes("user"),
-            );
-          if (userReacted) recordUserReaction(req.params.chatId);
-        }
-
         if (!syncSharedExtraAtomically && Object.keys(syncAllSwipeExtra).length > 0) {
           // Message-level fields stay stable across swipe changes.
           const swipes = await storage.getSwipes(req.params.messageId);

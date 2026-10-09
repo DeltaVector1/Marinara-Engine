@@ -49,17 +49,12 @@ export const generateRequestSchema = z.object({
   /** When true, this generation drives the active turn-game's bot seats instead of a normal chat reply. */
   turnGameBots: z.boolean().optional().default(false),
   streaming: z.boolean().optional().default(true),
-  userStatus: z.enum(["active", "idle", "dnd", "invisible"]).optional().default("active"),
-  userActivity: z.string().max(120).optional().default(""),
-  autonomous: z.boolean().optional().default(false),
-  autonomousIntentKey: z.string().max(100).optional().default(""),
   userTimeZone: z.string().max(100).optional().default(""),
   currentBackground: z.string().nullable().optional(),
   mentionedCharacterNames: z.array(z.string()).optional().default([]),
   forCharacterId: z.string().nullable().optional().default(null),
   /** Select the next Roleplay group responder for this request without changing the saved order. */
   smartResponse: z.boolean().optional().default(false),
-  skipPresenceDelay: z.boolean().optional().default(false),
   narrativeDirectorMode: z.enum(["natural", "random"]).nullable().optional().default(null),
   generationGuide: z.string().nullable().optional().default(null),
   generationGuideSource: z.enum(["narrator", "guide", "game_start"]).nullable().optional().default(null),
@@ -105,11 +100,6 @@ const summaryEntrySchema = z.object({
 export const summariesPatchSchema = z.object({
   daySummaries: z.record(z.string(), summaryEntrySchema).optional(),
   weekSummaries: z.record(z.string(), summaryEntrySchema).optional(),
-});
-
-export const markAutonomousUnreadSchema = z.object({
-  characterId: z.string().min(1).nullable().optional().default(null),
-  count: z.number().int().positive().max(100).optional().default(1),
 });
 
 export const reassignMessagePersonaSchema = z

@@ -666,7 +666,6 @@ export function resolvePromptIdleDuration(
 }
 
 export function resolvePromptLastGenerationType(input: {
-  autonomous?: unknown;
   attachments?: unknown;
   generationGuide?: unknown;
   generationGuideSource?: unknown;
@@ -678,7 +677,6 @@ export function resolvePromptLastGenerationType(input: {
   if (input.impersonate === true) return "impersonate";
   if (typeof input.regenerateMessageId === "string" && input.regenerateMessageId.trim()) return "regenerate";
   if (input.turnGameBots === true) return "turn_game";
-  if (input.autonomous === true) return "autonomous";
   if (typeof input.generationGuide === "string" && input.generationGuide.trim()) {
     const source =
       typeof input.generationGuideSource === "string" && input.generationGuideSource.trim()

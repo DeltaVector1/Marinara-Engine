@@ -50,8 +50,6 @@ export function isConversationCommandEnabled(metadata: Record<string, unknown>, 
 
 function getConversationCommandKey(command: CharacterCommand): ConversationCommandKey | null {
   switch (command.type) {
-    case "schedule_update":
-      return "schedule_update";
     case "cross_post":
       return "cross_post";
     case "selfie":
@@ -103,7 +101,6 @@ export async function buildConversationCommandsReminder(args: {
 }): Promise<string | null> {
   if (!args.enabled) return null;
   const { chatMeta, chatMode, characterIds, personaName } = args;
-  const scheduleCommandEnabled = isConversationCommandEnabled(chatMeta, "schedule_update");
   const crossPostCommandEnabled = isConversationCommandEnabled(chatMeta, "cross_post");
   const selfieCommandEnabled =
     isConversationCommandAvailable("selfie") && isConversationCommandEnabled(chatMeta, "selfie");
@@ -157,12 +154,6 @@ export async function buildConversationCommandsReminder(args: {
     commandLines.push(...lines, ``);
     availableCommandCount += 1;
   };
-
-  if (scheduleCommandEnabled) {
-    addCommandLines(
-      `- [schedule_update: status="online|idle|dnd|offline", activity="activity name", duration="number of hours (e.g., 1h)"] - only if you change your own status/activity, for example, if the user asks you to stop what you're doing or if you decide to change them yourself.`,
-    );
-  }
 
   if (reactCommandEnabled) {
     addCommandLines(

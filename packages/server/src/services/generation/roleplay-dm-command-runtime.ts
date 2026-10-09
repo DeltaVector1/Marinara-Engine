@@ -1,6 +1,5 @@
 import { logger } from "../../lib/logger.js";
 import { parseExtra, isMessageHiddenFromAI } from "../../routes/generate/generate-route-utils.js";
-import { recordAssistantActivity, recordUserActivity } from "../conversation/autonomous.service.js";
 import type { CharacterCommand, DirectMessageCommand } from "../conversation/character-commands.js";
 import { stripConversationPromptTimestamps } from "../conversation/transcript-sanitize.js";
 import { parseChatCharacterIdsForDm } from "./roleplay-dm-utils.js";
@@ -46,19 +45,8 @@ type ChatsStore = {
   }): Promise<{ id?: unknown; createdAt: string } | null>;
   updateMessageExtra(id: string, partial: Record<string, unknown>): Promise<unknown>;
   patchMetadata(id: string, patch: Record<string, unknown>): Promise<unknown>;
-  markAutonomousUnread(id: string, input: { characterId: string }): Promise<unknown>;
   remove(id: string): Promise<unknown>;
 };
-
-function messageTimestampMsOf(message: unknown): number | undefined {
-  const createdAt = (message as { createdAt?: unknown } | null | undefined)?.createdAt;
-  if (typeof createdAt !== "string" || !createdAt) return undefined;
-  const timestampMs = new Date(createdAt).getTime();
-  // NaN would silently fail the ordering comparison and leave the role on
-  // "user" after an assistant DM; an unparseable timestamp must behave like
-  // an absent one (last-writer-wins).
-  return Number.isFinite(timestampMs) ? timestampMs : undefined;
-}
 
 export async function handleRoleplayDmCommand(args: {
   command: CharacterCommand;
@@ -133,7 +121,6 @@ async function runRoleplayDmCommand(
         roleplayDmTargetCharacterId: targetCharId,
       });
     }
-    recordUserActivity(targetChatId);
     return userMsg;
   };
 
@@ -150,13 +137,6 @@ async function runRoleplayDmCommand(
       characterId: targetCharId,
       content: messageText,
     });
-    recordAssistantActivity(linkedConversationId, targetCharId, messageTimestampMsOf(dmMessage));
-    if (dmMessage) {
-      await args.chats.markAutonomousUnread(linkedConversationId, { characterId: targetCharId }).catch((error) => {
-        logger.warn(error, "[commands] Could not mark Roleplay DM unread for chat %s", linkedConversationId);
-      });
-    }
-
     args.sendAssistantAction({
       action: "dm_posted",
       chatId: linkedConversationId,
@@ -218,12 +198,6 @@ async function runRoleplayDmCommand(
       characterId: targetCharId,
       content: messageText,
     });
-    recordAssistantActivity(targetChat.id, targetCharId, messageTimestampMsOf(dmMessage));
-    if (dmMessage) {
-      await args.chats.markAutonomousUnread(targetChat.id, { characterId: targetCharId }).catch((error) => {
-        logger.warn(error, "[commands] Could not mark Roleplay DM unread for chat %s", targetChat.id);
-      });
-    }
   } catch (dmWriteErr) {
     if (createdNewChat) {
       try {
