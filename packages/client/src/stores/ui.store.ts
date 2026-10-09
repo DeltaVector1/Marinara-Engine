@@ -336,11 +336,6 @@ export function getDefaultAppAccentColor() {
   return MARINARA_GRADIENT_PRESET;
 }
 
-export function getDefaultAppAccentPulseMode() {
-  // Device input, not window width: a narrow desktop window still gets the desktop default.
-  return typeof window !== "undefined" && !window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-}
-
 export function getDefaultAppBackgroundColor(theme: "dark" | "light") {
   return theme === "light" ? DEFAULT_APP_BACKGROUND_LIGHT : DEFAULT_APP_BACKGROUND_DARK;
 }
@@ -1792,9 +1787,9 @@ export const useUIStore = create<UIState>()(
         theme: "dark" as const,
         appBackgroundColor: "",
         appAccentColor: "",
-        appAccentPulseMode: getDefaultAppAccentPulseMode(),
+        appAccentPulseMode: false,
         appAccentRgbMode: false,
-        customCursorEnabled: true,
+        customCursorEnabled: false,
         reduceAmbientEffects: false,
         mariPanelSortMode: "az",
         mariEditViewMode: "easy",
@@ -2799,9 +2794,9 @@ export const useUIStore = create<UIState>()(
             theme: "dark" as const,
             appBackgroundColor: "",
             appAccentColor: "",
-            appAccentPulseMode: getDefaultAppAccentPulseMode(),
+            appAccentPulseMode: false,
             appAccentRgbMode: false,
-            customCursorEnabled: true,
+            customCursorEnabled: false,
             reduceAmbientEffects: false,
             mariPanelSortMode: "az",
             mariEditViewMode: "easy",

@@ -592,14 +592,6 @@ const SETTINGS_SECTION_BY_ID = new Map(SETTINGS_SECTIONS.map((section) => [secti
 
 const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
   {
-    id: "hide-chat-help-button",
-    sectionId: "application",
-    label: "Hide chat Help button",
-    description: "Remove the Help button from Conversation, Roleplay, and Game chats.",
-    aliases: ["help", "guide", "tutorial", "overlay", "question mark"],
-    kind: "Toggle",
-  },
-  {
     id: "language",
     sectionId: "application",
     label: "Language",
@@ -658,46 +650,6 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
     description: "Show the time, battery level, and notification icons in the Android app.",
     aliases: ["android", "battery", "clock", "time", "notifications", "fullscreen"],
     kind: "Toggle",
-  },
-  {
-    id: "achievements",
-    sectionId: "application",
-    label: "Achievements",
-    description: "Show the Home achievements button and unlock notifications.",
-    aliases: ["home", "badges", "unlock"],
-    kind: "Toggle",
-  },
-  {
-    id: "music-player",
-    sectionId: "application",
-    label: "Music Player",
-    description: "Show the compact Music Player.",
-    aliases: ["spotify", "youtube", "music dj"],
-    kind: "Toggle",
-  },
-  {
-    id: "mini-mari",
-    sectionId: "application",
-    label: "Mini Mari surprise visits",
-    description: "Allow rare Chibi Professor Mari messages while scrolling.",
-    aliases: ["chibi", "professor", "surprise"],
-    kind: "Toggle",
-  },
-  {
-    id: "professor-mari-navigation",
-    sectionId: "application",
-    label: "Professor Mari navigation",
-    description: "Show Professor Mari's deterministic navigator on Home.",
-    aliases: ["home", "helper", "navigation", "navigator", "where is", "find"],
-    kind: "Toggle",
-  },
-  {
-    id: "mari-permissions-mode",
-    sectionId: "application",
-    label: "Professor Mari Permissions Mode",
-    description: "When Mari may stage or apply workspace changes: Auto, Manual, Accept edits, Plan, or Bypass.",
-    aliases: ["mari", "permissions", "mode", "plan", "bypass", "accept", "manual", "approve"],
-    kind: "Select",
   },
   {
     id: "notification-position",
@@ -3491,10 +3443,6 @@ function GeneralSettings() {
   const { t: localizeUi } = useUiTranslation();
   const { t, i18n: localization } = useTranslation();
   const localize = useLocalizedUiText();
-  const { data: installedCapabilities = [] } = useInstalledCapabilityPackages();
-  const musicDjInstalled = installedCapabilities.some(
-    (capability) => capability.id === "spotify" && capability.status === "active",
-  );
   const enableStreaming = useUIStore((s) => s.enableStreaming);
   const notificationPosition = useUIStore((s) => s.notificationPosition);
   const setNotificationPosition = useUIStore((s) => s.setNotificationPosition);
@@ -3521,10 +3469,6 @@ function GeneralSettings() {
   const setKeepGuidanceAfterRegenerate = useUIStore((s) => s.setKeepGuidanceAfterRegenerate);
   const confirmBeforeDelete = useUIStore((s) => s.confirmBeforeDelete);
   const setConfirmBeforeDelete = useUIStore((s) => s.setConfirmBeforeDelete);
-  const chatHelpButtonHidden = useUIStore((s) => s.chatHelpButtonHidden ?? false);
-  const setChatHelpButtonHidden = useUIStore((s) => s.setChatHelpButtonHidden);
-  const achievementsEnabled = useUIStore((s) => s.achievementsEnabled);
-  const setAchievementsEnabled = useUIStore((s) => s.setAchievementsEnabled);
   const messagesPerPage = useUIStore((s) => s.messagesPerPage);
   const setMessagesPerPage = useUIStore((s) => s.setMessagesPerPage);
   const boldDialogue = useUIStore((s) => s.boldDialogue);
@@ -3543,10 +3487,6 @@ function GeneralSettings() {
   const setContinueAddsNewline = useUIStore((s) => s.setContinueAddsNewline);
   const speechToTextEnabled = useUIStore((s) => s.speechToTextEnabled);
   const setSpeechToTextEnabled = useUIStore((s) => s.setSpeechToTextEnabled);
-  const chibiProfessorMariEnabled = useUIStore((s) => s.chibiProfessorMariEnabled);
-  const setChibiProfessorMariEnabled = useUIStore((s) => s.setChibiProfessorMariEnabled);
-  const musicPlayerEnabled = useUIStore((s) => s.musicPlayerEnabled);
-  const setMusicPlayerEnabled = useUIStore((s) => s.setMusicPlayerEnabled);
   const intuitiveSwipeNavigation = useUIStore((s) => s.intuitiveSwipeNavigation);
   const setIntuitiveSwipeNavigation = useUIStore((s) => s.setIntuitiveSwipeNavigation);
   const intuitiveSwipeRerollLatest = useUIStore((s) => s.intuitiveSwipeRerollLatest);
@@ -3576,38 +3516,7 @@ function GeneralSettings() {
             onChange={setConfirmBeforeDelete}
             help={localizeUi("settings.controls.confirmBeforeDelete.help")}
           />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("hide-chat-help-button")}
-            label={localizeUi("settings.controls.hideChatHelpButton.label")}
-            checked={chatHelpButtonHidden}
-            onChange={setChatHelpButtonHidden}
-            help={localizeUi("settings.controls.hideChatHelpButton.help")}
-          />
           <AndroidStatusBarSetting />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("achievements")}
-            label={localizeUi("home.achievements.title")}
-            checked={achievementsEnabled}
-            onChange={setAchievementsEnabled}
-            help={localizeUi("settings.controls.achievements.help")}
-          />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("music-player")}
-            label={localizeUi("settings.controls.musicPlayer.label")}
-            checked={musicDjInstalled && musicPlayerEnabled}
-            onChange={setMusicPlayerEnabled}
-            help={localizeUi(
-              musicDjInstalled ? "settings.controls.musicPlayer.help" : "settings.controls.musicPlayer.requiresMusicDj",
-            )}
-            disabled={!musicDjInstalled}
-          />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("mini-mari")}
-            label={localizeUi("settings.controls.miniMari.label")}
-            checked={chibiProfessorMariEnabled}
-            onChange={setChibiProfessorMariEnabled}
-            help={localizeUi("settings.controls.miniMari.help")}
-          />
         </div>
       </SettingsSection>
 
