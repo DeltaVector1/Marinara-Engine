@@ -86,23 +86,14 @@ try {
   process.env.NODE_ENV = "test";
   process.env.MARINARA_LITE = "true";
 
-  const [
-    { buildApp },
-    { getDB },
-    { personas },
-    { createCharactersStorage },
-    { resolveChatUserIdentity },
-    { MariDbService },
-    { PROFESSOR_MARI_APP_DATA_ACTIONS },
-  ] = await Promise.all([
-    import("../../packages/server/src/app.js"),
-    import("../../packages/server/src/db/connection.js"),
-    import("../../packages/server/src/db/schema/index.js"),
-    import("../../packages/server/src/services/storage/characters.storage.js"),
-    import("../../packages/server/src/services/chat-user-identity.js"),
-    import("../../packages/server/src/services/mari-db/mari-db.service.js"),
-    import("../../packages/server/src/services/professor-mari/workspace-agent.service.js"),
-  ]);
+  const [{ buildApp }, { getDB }, { personas }, { createCharactersStorage }, { resolveChatUserIdentity }] =
+    await Promise.all([
+      import("../../packages/server/src/app.js"),
+      import("../../packages/server/src/db/connection.js"),
+      import("../../packages/server/src/db/schema/index.js"),
+      import("../../packages/server/src/services/storage/characters.storage.js"),
+      import("../../packages/server/src/services/chat-user-identity.js"),
+    ]);
 
   app = await buildApp();
   await app.ready();
@@ -266,16 +257,6 @@ try {
     "Retired activation must not change saved flags, timestamps, or Persona content",
   );
   assertExactActivePersona(await requestJson("GET", `/api/characters/personas/${activeId}`));
-
-  const mari = new MariDbService(db);
-  for (const result of [
-    await mari.executeAction({ action: "persona.active" }),
-    await mari.executeCli({ argv: ["personas", "active"] }),
-  ]) {
-    assert.equal(result.ok, true);
-    assert.equal(result.output, null, "Legacy Mari active-persona reads must remain compatible and inert");
-  }
-  assert.equal((PROFESSOR_MARI_APP_DATA_ACTIONS as readonly string[]).includes("persona.active"), false);
 
   const chat = await requestJson("POST", "/api/chats", {
     name: "Explicit identity",

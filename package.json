@@ -36,7 +36,7 @@
     "regression": "pnpm regression:node",
     "regression:node": "pnpm build:shared && node ./scripts/run-regressions.mjs",
     "regression:ui": "playwright test -c playwright.config.ts",
-    "regression:prompt": "pnpm build:shared && node ./scripts/run-regressions.mjs --filter scripts/regressions/prompt.regression.ts && node ./scripts/run-regressions.mjs --filter scripts/regressions/prompt-attachments.regression.ts && node ./scripts/run-regressions.mjs --filter scripts/regressions/context-fit.regression.ts",
+    "regression:prompt": "pnpm build:shared && node ./scripts/run-regressions.mjs --filter prompt && node ./scripts/run-regressions.mjs --filter context-fit && node ./scripts/run-regressions.mjs --filter macro",
     "regression:security": "pnpm build:shared && node ./scripts/run-regressions.mjs --filter security && node ./scripts/run-regressions.mjs --filter runtime-integrity && node ./scripts/run-regressions.mjs --filter extension-ipc && node ./scripts/run-regressions.mjs --filter android-local-auth && node ./scripts/run-regressions.mjs --filter docker-proxy-auth",
     "regression:android-local-auth:run": "pnpm --filter @marinara-engine/server exec tsx ../../scripts/regressions/android-local-auth.regression.ts",
     "regression:android-local-auth": "pnpm build:shared && pnpm regression:android-local-auth:run",

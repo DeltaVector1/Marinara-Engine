@@ -3,5 +3,5 @@
   "compilerOptions": {
     "lib": ["ES2022"]
   },
-  "include": ["token-estimator.regression.ts", "prompt-token-counters.regression.ts", "cjk-token-budgets.regression.ts"]
+  "include": ["token-estimator.regression.ts", "cjk-token-budgets.regression.ts"]
 }

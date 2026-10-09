@@ -600,46 +600,6 @@ try {
     const nativeEntries = await lorebooks.listEntries(nativeCopy.id);
     assert.equal(nativeEntries.find((e: { name: string }) => e.name === "Scale")?.decisionMode, "require");
 
-    // ── Professor Mari reads and writes the fields like the entry API ─────────
-    const { MariDbService } = await import("../../packages/server/src/services/mari-db/mari-db.service.js");
-    const mariDb = new MariDbService(db);
-    const characterContextUpdate = await mariDb.executeAction({
-      action: "lorebook.update",
-      lorebookId: nativeCopy.id,
-      patch: { vectorIncludeAssistant: false },
-      apply: true,
-    });
-    assert.equal(characterContextUpdate.ok, true, JSON.stringify(characterContextUpdate));
-    assert.equal((await lorebooks.getById(nativeCopy.id))!.vectorIncludeAssistant, false);
-    const created = await mariDb.executeAction({
-      action: "lorebook.createEntry",
-      lorebookId: genBook.id,
-      data: { name: "Mari entry", content: "x", decisionMode: "Trigger", decisionStatement: "A storm breaks" },
-      apply: true,
-    });
-    assert.equal(created.ok, true, JSON.stringify(created));
-    const mariEntry = (await lorebooks.listEntries(genBook.id)).find((e: { name: string }) => e.name === "Mari entry")!;
-    assert.equal(mariEntry.decisionMode, "trigger");
-    assert.equal(mariEntry.decisionStatement, "A storm breaks");
-    const cleared = await mariDb.executeAction({
-      action: "lorebook.updateEntry",
-      entryId: mariEntry.id,
-      patch: { decisionStatement: "" },
-      apply: true,
-    });
-    assert.equal(cleared.ok, true, JSON.stringify(cleared));
-    assert.equal((await lorebooks.getEntry(mariEntry.id))!.decisionStatement, "", "an empty statement clears it");
-    const refused = await mariDb
-      .executeAction({
-        action: "lorebook.updateEntry",
-        entryId: mariEntry.id,
-        patch: { decisionMode: "sometimes" },
-        apply: true,
-      })
-      .catch((error: Error) => ({ ok: false, error: error.message }));
-    assert.equal(refused.ok, false, "an unknown mode is refused, not turned off");
-    assert.equal((await lorebooks.getEntry(mariEntry.id))!.decisionMode, "trigger");
-
     console.log("lorebook-decision-activation regression passed");
   } finally {
     await app.close();

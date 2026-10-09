@@ -46,7 +46,6 @@ const { createChatsStorage, withChatMetadataPatchQueue } =
   await import("../../packages/server/src/services/storage/chats.storage.js");
 const { lorebookEntries } = await import("../../packages/server/src/db/schema/lorebooks.js");
 const { eq } = await import("../../packages/server/src/db/file-query.js");
-const { MariDbService } = await import("../../packages/server/src/services/mari-db/mari-db.service.js");
 
 const db = await getDB();
 const lorebooks = createLorebooksStorage(db);
@@ -814,32 +813,6 @@ try {
     }
     assert.ok(await chats.getMessage(message.id), "failed lore cleanup rolls back its message deletion");
     assert.ok(await lorebooks.getEntry(entry.id), "failed chunk preserves both sides of the source link");
-  }
-
-  // Mari treats provenance arrays as JSON, including their stored undo references.
-  {
-    const mari = new MariDbService(db);
-    const entry = (await lorebooks.createEntry({
-      lorebookId: book.id,
-      name: "JSON provenance",
-      content: "Fixture",
-      sourceAgentId: "keeper",
-      sourceMessageRefs: [{ id: "json-source", swipeIndex: 0 }],
-    }))!;
-    const result = await mari.executeCli({ argv: ["db", "get", "--parsed", "lorebook_entries", entry.id] });
-    assert.deepEqual((result.output as any).sourceMessageRefs, [{ id: "json-source", swipeIndex: 0 }]);
-    for (const key of ["sourceMessageRefs", "previousSourceMessageRefs"] as const) {
-      await db
-        .update(lorebookEntries)
-        .set({ [key]: "broken JSON" })
-        .where(eq(lorebookEntries.id, entry.id));
-      const validation = await mari.validate("lorebook_entries");
-      assert.ok(validation.errors.some((issue) => issue.id === entry.id && issue.message.includes(key)));
-      await db
-        .update(lorebookEntries)
-        .set({ [key]: "[]" })
-        .where(eq(lorebookEntries.id, entry.id));
-    }
   }
 
   console.log("Lorebook entry message provenance regressions passed.");

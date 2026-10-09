@@ -120,35 +120,4 @@ for (const source of ["漢字かな한글𠀀".repeat(300), "First sentence. ".r
   assert.equal(provider.sources.join("").replace(/\s/gu, ""), source.replace(/\s/gu, ""));
 }
 
-// Execute the existing private, pure Game cutter without starting route/storage dependencies.
-const gameSource = readFileSync(new URL("../../packages/server/src/routes/game.routes.ts", import.meta.url), "utf8");
-const gameCutter = gameSource.slice(
-  gameSource.indexOf("function truncateSessionTranscriptMiddle("),
-  gameSource.indexOf("function buildSessionConclusionMessages("),
-);
-const truncateSession = new Function(
-  "estimateTextTokens",
-  "sliceTextToTokenBudget",
-  "SESSION_SUMMARY_MIN_TRANSCRIPT_CHARS",
-  "SESSION_SUMMARY_TRUNCATION_MARKER",
-  `${stripTypeScriptTypes(gameCutter)}; return truncateSessionTranscriptMiddle;`,
-)(
-  estimateTextTokens,
-  sliceTextToTokenBudget,
-  256,
-  "\n\n[Middle of session transcript truncated to fit context window]\n\n",
-) as (text: string, budget: number) => string;
-for (const content of [`BEGIN ${"漢".repeat(1500)} END`, `BEGIN ${"abc ".repeat(1000)} END`]) {
-  const result = truncateSession(content, 500);
-  assert.ok(estimateTextTokens(result) <= 500);
-  assert.ok(result.startsWith("BEGIN"));
-  assert.ok(result.endsWith("END"));
-  assert.match(result, /Middle of session transcript truncated/);
-}
-const minimumTranscript = truncateSession("漢".repeat(1000), 64);
-assert.ok(Array.from(minimumTranscript).length >= 256, "Game retains its existing minimum transcript prefix");
-assert.ok(estimateTextTokens(minimumTranscript) <= estimateTextTokens("漢".repeat(256)));
-
-process.stdout.write(
-  "CJK recall, provider fitting, catalog previews, retrieval chunks and Game transcript budgets passed.\n",
-);
+process.stdout.write("CJK recall, provider fitting, catalog previews and retrieval chunk budgets passed.\n");

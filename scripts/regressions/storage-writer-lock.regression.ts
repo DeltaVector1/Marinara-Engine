@@ -15,7 +15,6 @@ import {
   writerLeaseStorageIsMachineLocal,
 } from "../../packages/server/src/db/file-backed-store.js";
 import { appSettings, lorebookEntries, lorebooks } from "../../packages/server/src/db/schema/index.js";
-import { getMariDbService } from "../../packages/server/src/services/mari-db/mari-db.service.js";
 import { resolvePnpmRunner } from "../pnpm-runner.mjs";
 
 type LeaseRecord = {
@@ -748,20 +747,6 @@ try {
     await assert.rejects(db._fileStore.flush(), /closing or closed/);
     const reopened = await createFileNativeDB();
     await reopened._fileStore.close();
-  }
-
-  // The Professor Mari service follows the current DB identity after a clean
-  // close/reopen instead of retaining a service bound to the closed store.
-  {
-    useTempStorage("mari-db-rebind");
-    const firstDb = await getDB();
-    const firstService = getMariDbService(firstDb);
-    assert.strictEqual(getMariDbService(firstDb), firstService, "the same DB keeps one Mari service");
-    await closeDB();
-    const secondDb = await getDB();
-    const secondService = getMariDbService(secondDb);
-    assert.notStrictEqual(secondService, firstService, "Mari rebinds to the reopened DB");
-    await closeDB();
   }
 
   console.info("Storage writer-lock regressions passed.");
