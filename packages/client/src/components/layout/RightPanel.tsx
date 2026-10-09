@@ -11,7 +11,7 @@ import {
   type LazyExoticComponent,
   type ReactNode,
 } from "react";
-import { X, Users, BookOpen, FileText, Link, Sparkles, Settings, VenetianMask, Bot, Puzzle } from "lucide-react";
+import { X, Users, BookOpen, FileText, Link, Sparkles, Settings, VenetianMask, Puzzle } from "lucide-react";
 import { useUIStore } from "../../stores/ui.store";
 import { cn } from "../../lib/utils";
 import { usePersonalExtensionContributions } from "../../lib/personal-extension-contributions";
@@ -40,9 +40,6 @@ const PersonasPanel = lazy(() =>
 const SettingsPanel = lazy(() =>
   import("../panels/SettingsPanel").then((module) => ({ default: module.SettingsPanel })),
 );
-const BotBrowserPanel = lazy(() =>
-  import("../panels/BotBrowserPanel").then((module) => ({ default: module.BotBrowserPanel })),
-);
 const PersonalExtensionPanel = lazy(() =>
   import("../panels/PersonalExtensionPanel").then((module) => ({ default: module.PersonalExtensionPanel })),
 );
@@ -50,11 +47,6 @@ const PersonalExtensionPanel = lazy(() =>
 type PanelConfig = { title: string; icon: ReactNode; gradient?: string; gradientClass?: string; helpKey?: string };
 
 const PANEL_CONFIG: Record<string, PanelConfig> = {
-  "bot-browser": {
-    title: "Browser",
-    icon: <Bot size="0.875rem" />,
-    gradient: "from-lime-400 via-green-500 to-cyan-500",
-  },
   characters: {
     title: "Characters",
     icon: <Users size="0.875rem" />,
@@ -101,7 +93,6 @@ const PANEL_CONFIG: Record<string, PanelConfig> = {
 };
 
 const PANELS: Record<string, LazyExoticComponent<ComponentType>> = {
-  "bot-browser": BotBrowserPanel,
   characters: CharactersPanel,
   lorebooks: LorebooksPanel,
   presets: PresetsPanel,
@@ -113,7 +104,6 @@ const PANELS: Record<string, LazyExoticComponent<ComponentType>> = {
 };
 
 const PANEL_CONTRIBUTION_SURFACES: Partial<Record<string, Exclude<PersonalExtensionContributionSurface, "top-bar">>> = {
-  "bot-browser": "bots",
   characters: "characters",
   personas: "personas",
   lorebooks: "lorebooks",

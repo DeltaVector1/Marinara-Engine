@@ -244,7 +244,6 @@ async function resetClientAfterExpunge(qc: ReturnType<typeof useQueryClient>) {
   ui.closeModal();
   ui.closeAllDetails();
   ui.closeRightPanel();
-  ui.closeBotBrowser();
   ui.setChatBackground(null);
   qc.clear();
 }

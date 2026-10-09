@@ -2524,8 +2524,7 @@ export function HomeBrowserHub({
       return;
     }
     if (target.kind === "surface") {
-      if (target.surface === "card-downloads") ui.openBotBrowser();
-      else if (target.surface === "character-library") ui.openCharacterLibrary();
+      if (target.surface === "character-library") ui.openCharacterLibrary();
       else if (target.surface === "persona-library") ui.openPersonaLibrary();
       else if (target.surface === "agent-catalog") ui.openAgentCatalog();
       else ui.openGameAssetsBrowser();

@@ -94,9 +94,6 @@ const PersonaEditor = lazy(() =>
 const RegexScriptEditor = lazy(() =>
   import("../agents/RegexScriptEditor").then((module) => ({ default: module.RegexScriptEditor })),
 );
-const BotBrowserView = lazy(() =>
-  import("../bot-browser/BotBrowserView").then((module) => ({ default: module.BotBrowserView })),
-);
 const GameAssetsBrowserView = lazy(() =>
   import("../game-assets/GameAssetsBrowserView").then((module) => ({ default: module.GameAssetsBrowserView })),
 );
@@ -614,7 +611,6 @@ export function AppShell({
   const toolDetailId = useUIStore((s) => s.toolDetailId);
   const personaDetailId = useUIStore((s) => s.personaDetailId);
   const regexDetailId = useUIStore((s) => s.regexDetailId);
-  const botBrowserOpen = useUIStore((s) => s.botBrowserOpen);
   const gameAssetsBrowserOpen = useUIStore((s) => s.gameAssetsBrowserOpen);
   const hasCompletedOnboarding = useUIStore((s) => s.hasCompletedOnboarding);
   const activeChatId = useChatStore((s) => s.activeChatId);
@@ -871,17 +867,16 @@ export function AppShell({
     <LorebookEditor />
   ) : null;
 
-  const showAmbientDecor = isPageActive && !activeChatId && !detailView && !botBrowserOpen && !gameAssetsBrowserOpen;
+  const showAmbientDecor = isPageActive && !activeChatId && !detailView && !gameAssetsBrowserOpen;
   const hasDetailView = detailView != null;
   const trackerPanelModeAvailable = activeChat?.mode === "roleplay";
   const trackerPanelActive = trackerPanelEnabled && trackerPanelOpen && trackerPanelSurfaceOpen;
   const trackerPanelDetached = trackerPanelWindowTarget !== null;
   const trackerPanelSurfaceAvailable =
-    trackerPanelModeAvailable && !botBrowserOpen && !gameAssetsBrowserOpen && !hasDetailView;
+    trackerPanelModeAvailable && !gameAssetsBrowserOpen && !hasDetailView;
   // The chat preference chooses the surface; its Trackers button controls visibility.
   const trackerPanelVisible = trackerPanelActive && trackerPanelSurfaceAvailable && !trackerPanelDetached;
   const chatSurfaceActive =
-    !botBrowserOpen &&
     !gameAssetsBrowserOpen &&
     !hasDetailView &&
     (!shellOverlayMode || (!sidebarOpen && !rightPanelOpen && !trackerPanelVisible));
@@ -935,7 +930,6 @@ export function AppShell({
     hasProfessorMariFloatingFollowup() &&
     (Boolean(activeChatId) ||
       hasDetailView ||
-      botBrowserOpen ||
       gameAssetsBrowserOpen ||
       (shellOverlayMode && Boolean(mobileNavigationPanel)));
 
@@ -1058,7 +1052,6 @@ export function AppShell({
   }, [
     activeChat?.mode,
     activeChatId,
-    botBrowserOpen,
     gameAssetsBrowserOpen,
     centerCompact,
     shellOverlayMode,
@@ -1118,7 +1111,6 @@ export function AppShell({
   }, [
     activeChat?.mode,
     activeChatId,
-    botBrowserOpen,
     gameAssetsBrowserOpen,
     centerCompact,
     shellOverlayMode,
@@ -1398,10 +1390,6 @@ export function AppShell({
         <div className="flex-shrink-0 md:hidden h-[env(safe-area-inset-top)] bg-[var(--marinara-page-backing,var(--background))]" />
         <TopBar mobileTopbarNavigation={shellOverlayMode} />
         <div className="mari-app-background-paint relative flex flex-1 flex-col overflow-hidden">
-          {/* Browser — kept mounted once opened so state persists across close/reopen */}
-          <MountOnceWhenOpened open={botBrowserOpen} overlay>
-            <BotBrowserView />
-          </MountOnceWhenOpened>
           {/* Game Assets Browser — kept mounted once opened so state persists across close/reopen */}
           <MountOnceWhenOpened open={gameAssetsBrowserOpen} overlay>
             <GameAssetsBrowserView />
@@ -1411,7 +1399,7 @@ export function AppShell({
             data-chat-covered={chatSurfaceActive ? undefined : "true"}
             className={cn(
               "mari-app-background-paint flex flex-1 flex-col overflow-hidden",
-              (botBrowserOpen || gameAssetsBrowserOpen || (!shellOverlayMode && hasDetailView)) && "hidden",
+              (gameAssetsBrowserOpen || (!shellOverlayMode && hasDetailView)) && "hidden",
             )}
             style={
               {

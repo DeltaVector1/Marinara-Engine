@@ -134,7 +134,6 @@ const DOC_ORDER: Record<string, string[]> = {
     "library-organization.md",
     "colors-and-stats.md",
     "import-export.md",
-    "bot-browser.md",
   ],
   chats: [
     "managing-chats.md",

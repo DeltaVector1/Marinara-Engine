@@ -125,7 +125,6 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
   const toolDetailId = useUIStore((s) => s.toolDetailId);
   const personaDetailId = useUIStore((s) => s.personaDetailId);
   const regexDetailId = useUIStore((s) => s.regexDetailId);
-  const botBrowserOpen = useUIStore((s) => s.botBrowserOpen);
   const gameAssetsBrowserOpen = useUIStore((s) => s.gameAssetsBrowserOpen);
   const characterLibraryOpen = useUIStore((s) => s.characterLibraryOpen);
   const cardLibraryKind = useUIStore((s) => s.cardLibraryKind);
@@ -170,7 +169,6 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     !toolDetailId &&
     !personaDetailId &&
     !regexDetailId &&
-    !botBrowserOpen &&
     !gameAssetsBrowserOpen &&
     !characterLibraryOpen;
 

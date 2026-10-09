@@ -36,7 +36,6 @@ export type Panel =
   | "agents"
   | "personas"
   | "settings"
-  | "bot-browser"
   | "extensions";
 export type ChatModeShortcut = "conversation" | "roleplay" | "game";
 export const CHARACTER_LIBRARY_SORT_OPTIONS = ["name-asc", "name-desc", "newest", "oldest", "favorites"] as const;
@@ -706,7 +705,6 @@ interface UIState {
   /** One-shot tab the persona editor should open to. */
   personaDetailInitialTab: string | null;
   /** When true, the main area shows the browser */
-  botBrowserOpen: boolean;
   /** When true, the main area shows the game assets browser */
   gameAssetsBrowserOpen: boolean;
   /** When true, the main area shows the Noodle social timeline */
@@ -760,7 +758,6 @@ interface UIState {
   /** Whether the compact Lorebooks panel tag/category shelf is expanded */
   lorebookPanelTagsExpanded: boolean;
   /** Sort order for imported characters in the Browser panel */
-  botBrowserPanelSort: ResourcePanelSort;
   /** Sort order for the compact Presets panel */
   presetPanelSort: ResourcePanelSort;
   /** Sort order for the compact Connections panel */
@@ -1132,7 +1129,6 @@ interface UIState {
   setLorebookPanelSort: (sort: LorebookPanelSort) => void;
   setLorebookPanelActiveTag: (tag: string | null) => void;
   setLorebookPanelTagsExpanded: (expanded: boolean) => void;
-  setBotBrowserPanelSort: (sort: ResourcePanelSort) => void;
   setPresetPanelSort: (sort: ResourcePanelSort) => void;
   setConnectionPanelSort: (sort: ConnectionPanelSort) => void;
   setAgentPanelSort: (sort: ResourcePanelSort) => void;
@@ -1169,8 +1165,6 @@ interface UIState {
   closeCharacterLibrary: () => void;
   openAgentCatalog: (packageId?: string) => void;
   closeAgentCatalog: () => void;
-  openBotBrowser: () => void;
-  closeBotBrowser: () => void;
   openGameAssetsBrowser: () => void;
   closeGameAssetsBrowser: () => void;
   openNoodle: () => void;
@@ -1380,7 +1374,6 @@ function normalizePersistedMainSurface(persisted: Record<string, unknown>) {
     "lorebookDetailId",
     "characterLibraryOpen",
     "agentCatalogOpen",
-    "botBrowserOpen",
     "gameAssetsBrowserOpen",
     "noodleOpen",
   ] as const;
@@ -1607,7 +1600,6 @@ export function pickPersistedUIState(state: UIState) {
     personaDetailId: state.personaDetailId,
     regexDetailId: state.regexDetailId,
     spatialMapDetailChatId: state.spatialMapDetailChatId,
-    botBrowserOpen: state.botBrowserOpen,
     gameAssetsBrowserOpen: state.gameAssetsBrowserOpen,
     noodleOpen: state.noodleOpen,
     noodleSelectedPersonaId: state.noodleSelectedPersonaId,
@@ -1626,7 +1618,6 @@ export function pickPersistedUIState(state: UIState) {
     lorebookPanelSort: state.lorebookPanelSort,
     lorebookPanelActiveTag: state.lorebookPanelActiveTag,
     lorebookPanelTagsExpanded: state.lorebookPanelTagsExpanded,
-    botBrowserPanelSort: state.botBrowserPanelSort,
     presetPanelSort: state.presetPanelSort,
     connectionPanelSort: state.connectionPanelSort,
     agentPanelSort: state.agentPanelSort,
@@ -1887,7 +1878,6 @@ export const useUIStore = create<UIState>()(
         lorebookDetailInitialTab: null,
         lorebookDetailInitialEntryId: null,
         personaDetailInitialTab: null,
-        botBrowserOpen: false,
         gameAssetsBrowserOpen: false,
         noodleOpen: false,
         noodleSelectedPersonaId: null,
@@ -1914,7 +1904,6 @@ export const useUIStore = create<UIState>()(
         lorebookPanelSort: "name-asc" as LorebookPanelSort,
         lorebookPanelActiveTag: null,
         lorebookPanelTagsExpanded: false,
-        botBrowserPanelSort: "name-asc" as ResourcePanelSort,
         presetPanelSort: "name-asc" as ResourcePanelSort,
         connectionPanelSort: "name-asc" as ConnectionPanelSort,
         agentPanelSort: "name-asc" as ResourcePanelSort,
@@ -2235,7 +2224,6 @@ export const useUIStore = create<UIState>()(
         setLorebookPanelSort: (sort) => set({ lorebookPanelSort: normalizeLorebookPanelSort(sort) }),
         setLorebookPanelActiveTag: (tag) => set({ lorebookPanelActiveTag: tag ? tag.trim() || null : null }),
         setLorebookPanelTagsExpanded: (expanded) => set({ lorebookPanelTagsExpanded: expanded }),
-        setBotBrowserPanelSort: (sort) => set({ botBrowserPanelSort: normalizeBasicPanelSort(sort) }),
         setPresetPanelSort: (sort) => set({ presetPanelSort: normalizeBasicPanelSort(sort) }),
         setConnectionPanelSort: (sort) => set({ connectionPanelSort: normalizeConnectionPanelSort(sort) }),
         setAgentPanelSort: (sort) => set({ agentPanelSort: normalizeBasicPanelSort(sort) }),
@@ -2257,7 +2245,6 @@ export const useUIStore = create<UIState>()(
               characterLibraryOpen: preserveCharacterLibrary ? s.characterLibraryOpen : false,
               agentCatalogOpen: false,
               characterLibrarySelectedId: preserveCharacterLibrary ? id : s.characterLibrarySelectedId,
-              botBrowserOpen: false,
               gameAssetsBrowserOpen: false,
               noodleOpen: false,
               ...getMobileDetailReturnState(s),
@@ -2277,7 +2264,6 @@ export const useUIStore = create<UIState>()(
             lorebookDetailInitialEntryId: options?.entryId ?? null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             characterDetailId: null,
@@ -2302,7 +2288,6 @@ export const useUIStore = create<UIState>()(
             presetDetailInitialTab: options?.initialTab ?? null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             characterDetailId: null,
@@ -2327,7 +2312,6 @@ export const useUIStore = create<UIState>()(
             connectionDetailId: id,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             characterDetailId: null,
@@ -2351,7 +2335,6 @@ export const useUIStore = create<UIState>()(
             agentDetailId: agentType,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             characterDetailId: null,
@@ -2376,7 +2359,6 @@ export const useUIStore = create<UIState>()(
             agentDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             characterDetailId: null,
@@ -2404,7 +2386,6 @@ export const useUIStore = create<UIState>()(
               characterLibraryOpen: preservePersonaLibrary ? s.characterLibraryOpen : false,
               personaLibrarySelectedId: preservePersonaLibrary ? id : s.personaLibrarySelectedId,
               agentCatalogOpen: false,
-              botBrowserOpen: false,
               gameAssetsBrowserOpen: false,
               noodleOpen: false,
               characterDetailId: null,
@@ -2433,7 +2414,6 @@ export const useUIStore = create<UIState>()(
             personaDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             characterDetailId: null,
@@ -2483,7 +2463,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             ...getMobileDetailReturnState(s),
@@ -2502,7 +2481,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             ...getMobileDetailReturnState(s),
@@ -2532,7 +2510,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             editorDirty: false,
@@ -2554,7 +2531,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             editorDirty: false,
@@ -2577,7 +2553,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             editorDirty: false,
@@ -2585,30 +2560,9 @@ export const useUIStore = create<UIState>()(
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
           })),
         closeAgentCatalog: () => set({ agentCatalogOpen: false, agentCatalogInitialPackageId: null }),
-        openBotBrowser: () =>
-          set({
-            botBrowserOpen: true,
-            gameAssetsBrowserOpen: false,
-            noodleOpen: false,
-            characterLibraryOpen: false,
-            agentCatalogOpen: false,
-            detailReturnRightPanel: null,
-            regexDetailId: null,
-            spatialMapDetailChatId: null,
-            personaDetailId: null,
-            characterDetailId: null,
-            lorebookDetailId: null,
-            presetDetailId: null,
-            connectionDetailId: null,
-            agentDetailId: null,
-            toolDetailId: null,
-            ...(isMobileShellViewport() && { rightPanelOpen: false }),
-          }),
-        closeBotBrowser: () => set({ botBrowserOpen: false }),
         openGameAssetsBrowser: () =>
           set({
             gameAssetsBrowserOpen: true,
-            botBrowserOpen: false,
             noodleOpen: false,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
@@ -2628,7 +2582,6 @@ export const useUIStore = create<UIState>()(
         openNoodle: () =>
           set({
             noodleOpen: true,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
@@ -2663,7 +2616,6 @@ export const useUIStore = create<UIState>()(
             s.spatialMapDetailChatId ||
             s.characterLibraryOpen ||
             s.agentCatalogOpen ||
-            s.botBrowserOpen ||
             s.gameAssetsBrowserOpen ||
             s.noodleOpen
           );
@@ -2681,7 +2633,6 @@ export const useUIStore = create<UIState>()(
             spatialMapDetailChatId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             editorDirty: false,
@@ -2703,7 +2654,6 @@ export const useUIStore = create<UIState>()(
             spatialMapDetailChatId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            botBrowserOpen: false,
             gameAssetsBrowserOpen: false,
             noodleOpen: false,
             editorDirty: false,
@@ -3611,7 +3561,6 @@ export const useUIStore = create<UIState>()(
             ? persisted.lorebookPanelActiveTag.trim()
             : null;
         persisted.lorebookPanelTagsExpanded = persisted.lorebookPanelTagsExpanded === true;
-        persisted.botBrowserPanelSort = normalizeBasicPanelSort(persisted.botBrowserPanelSort);
         persisted.presetPanelSort = normalizeBasicPanelSort(persisted.presetPanelSort);
         persisted.connectionPanelSort = normalizeConnectionPanelSort(persisted.connectionPanelSort);
         persisted.agentPanelSort = normalizeBasicPanelSort(persisted.agentPanelSort);

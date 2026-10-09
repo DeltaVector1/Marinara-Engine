@@ -208,9 +208,6 @@ export async function importSTCharacter(raw: Record<string, unknown>, db: DB, op
   const avatarDataUrl = raw._avatarDataUrl as string | null;
   delete raw._avatarDataUrl;
 
-  // Extract browser source marker if present
-  const botBrowserSource = raw._botBrowserSource as string | null;
-  delete raw._botBrowserSource;
 
   const data = normalizeCharacterData(raw);
   const rawEmbeddedLorebook = extractRawCharacterBook(raw) ?? data.character_book;
@@ -219,10 +216,6 @@ export async function importSTCharacter(raw: Record<string, unknown>, db: DB, op
   }
   data.tags = await filterImportedTags(data.tags, db, tagImportMode, options?.existingTagKeys);
 
-  // Tag with browser source if imported from browser
-  if (botBrowserSource) {
-    data.extensions.botBrowserSource = botBrowserSource;
-  }
 
   const existingImportMetadata =
     data.extensions[IMPORT_METADATA_KEY] && typeof data.extensions[IMPORT_METADATA_KEY] === "object"
