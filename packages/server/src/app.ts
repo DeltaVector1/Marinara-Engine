@@ -41,8 +41,6 @@ import { corsDelegate } from "./config/cors-config.js";
 import { decisionProcessService } from "./services/sidecar/decision-process.service.js";
 import { sidecarProcessService } from "./services/sidecar/sidecar-process.service.js";
 import { utilitySidecarService } from "./services/utility-sidecar/utility-sidecar.service.js";
-import { startServerAutonomousScheduler } from "./services/conversation/server-autonomous-scheduler.service.js";
-import { createMultiplayerAutonomyAdapter, type MultiplayerAutonomyService } from "./services/multiplayer/autonomy.js";
 import { preparePersonalExtensionTrust } from "./services/setup/personal-extension-trust.js";
 import { personalServerExtensionRuntime } from "./services/extensions/personal-server-extension-runtime.js";
 import { runWithGenerationFallbackNotifier } from "./services/generation/fallback-notification.js";
@@ -329,14 +327,6 @@ export async function buildApp(https?: { cert: Buffer; key: Buffer }) {
   // functional readiness. Packages without a server entrypoint remain available
   // as soon as their verified files are installed.
   await startup.phase("capabilities.agents", () => initializeCapabilityAgentRegistry());
-
-  // ── Server-side autonomous conversation scheduler ──
-  startServerAutonomousScheduler(
-    app,
-    createMultiplayerAutonomyAdapter(
-      () => (app as unknown as { multiplayer?: MultiplayerAutonomyService }).multiplayer,
-    ),
-  );
 
   // Expired trash in chats that are never reopened still needs to be removed.
   // Cold trash shards load only when expired; wait for active cleanup before closing the DB.
