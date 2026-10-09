@@ -17,7 +17,6 @@ import {
   X,
   Users,
   Loader2,
-  Bot,
   UserRound,
   Sparkles,
   Feather,
@@ -40,7 +39,6 @@ import { useChatStore } from "../../stores/chat.store";
 import { useSidecarStore } from "../../stores/sidecar.store";
 import { api } from "../../lib/api-client";
 import { appendLocalSidecarConnectionOption, filterLanguageGenerationConnections } from "../../lib/connection-filters";
-import { resolveConversationSelfieSetup } from "../../lib/conversation-selfie-setup";
 import {
   captureChatWizardDefaults,
   readChatMetadata,
@@ -54,8 +52,6 @@ import { addSilentGreetingSwipes } from "../../lib/message-swipes";
 import { ChoiceSelectionModal } from "../presets/ChoiceSelectionModal";
 import { ActiveChatBackgroundPicker } from "../panels/settings/BackgroundPicker";
 import {
-  CONVERSATION_COMMAND_AGENT_IDS,
-  CONVERSATION_COMMAND_KEYS,
   DEFAULT_CONVERSATION_PROMPT,
   DEFAULT_AGENT_CONTEXT_SIZE,
   DEFAULT_AGENT_MAX_TOKENS,
@@ -75,7 +71,6 @@ import {
   type ChatMode,
   type ChatPreset,
   type CharacterGroup,
-  type ConversationCommandKey,
   type AvatarCrop,
   type Lorebook,
   type Message,
@@ -106,7 +101,6 @@ import {
   type AgentAddSetupState,
   type AgentAddSpriteSubject,
 } from "./AgentAddSetupFields";
-import { ConversationTimeZoneSelect } from "./ConversationTimeZoneSelect";
 import { AdvancedMemorySettings } from "./AdvancedMemorySettings";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
@@ -162,27 +156,6 @@ const CONVERSATION_STEPS: WizardStep[] = [
     title: "Persona & Characters",
     body: "Choose your persona and the characters in this private DM or group chat.",
   },
-  {
-    key: "automation",
-    title: "Automation",
-    body: "Decide whether characters can message first, use schedules, and send hidden commands.",
-  },
-];
-
-const CONVERSATION_COMMAND_TOGGLE_OPTIONS: Array<{
-  id: ConversationCommandKey;
-  label: string;
-  description: string;
-}> = [
-  { id: "schedule_update", label: "Schedule Updates", description: "Let characters change their current status." },
-  { id: "cross_post", label: "Cross-Post", description: "Let characters redirect a message into another chat." },
-  { id: "selfie", label: "Selfies", description: "Let characters request generated selfies." },
-  { id: "memory", label: "Memories", description: "Let characters create memories for other characters." },
-  { id: "scene", label: "Scenes", description: "Let characters start an immersive scene." },
-  { id: "influence", label: "Influence", description: "Let characters influence a connected chat." },
-  { id: "note", label: "Notes", description: "Let characters save durable notes for a connected chat." },
-  { id: "call", label: "Calls", description: "Let characters ring you for a Conversation call." },
-  { id: "react", label: "Reactions", description: "Let characters react to messages with emoji badges." },
 ];
 
 // ─── Main component ───────────────────────────
@@ -379,23 +352,6 @@ function readChatActiveAgentIds(chat: Chat): string[] {
   const metadata = readChatMetadata(chat);
   const activeIds = metadata.activeAgentIds;
   return Array.isArray(activeIds) ? activeIds.filter((id): id is string => typeof id === "string") : [];
-}
-
-function readConversationCommandToggles(value: unknown): Partial<Record<ConversationCommandKey, boolean>> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const source = value as Record<string, unknown>;
-  const toggles: Partial<Record<ConversationCommandKey, boolean>> = {};
-  for (const key of CONVERSATION_COMMAND_KEYS) {
-    if (typeof source[key] === "boolean") toggles[key] = source[key] as boolean;
-  }
-  return toggles;
-}
-
-function isConversationCommandToggleEnabled(
-  toggles: Partial<Record<ConversationCommandKey, boolean>>,
-  command: ConversationCommandKey,
-): boolean {
-  return toggles[command] !== false;
 }
 
 function normalizePositiveInteger(value: unknown, fallback: number, max: number, min = 1): number {
@@ -1003,17 +959,10 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
   const { data: allCharacters } = useCharacters();
   const { data: allCharacterGroups } = useCharacterGroups();
   const { data: allPersonas } = usePersonas();
-  const { data: installedAgentManifests = [], isLoading: installedAgentsLoading } = useCapabilityAgentRegistry();
   const updateChat = useUpdateChat();
   const updateMeta = useUpdateChatMetadata();
   const queryClient = useQueryClient();
   const openRightPanel = useUIStore((s) => s.openRightPanel);
-  const openAgentCatalog = useUIStore((s) => s.openAgentCatalog);
-  const [scheduleState, setScheduleState] = useState<"idle" | "generating" | "done">("idle");
-  const [autonomousEnabled, setAutonomousEnabled] = useState(() => readChatMetadata(chat).autonomousMessages !== false);
-  const [generateSchedule, setGenerateSchedule] = useState(
-    () => readChatMetadata(chat).conversationSchedulesEnabled === true,
-  );
   const [promptPresetTouched, setPromptPresetTouched] = useState(defaultsApplied);
   const [customConversationPromptEnabled, setCustomConversationPromptEnabled] = useState(
     () => !!readChatMetadata(chat).customSystemPrompt,
@@ -1027,27 +976,6 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
   const selectedConnectionChatIdRef = useRef(chat.id);
   const latestChatConnectionIdRef = useRef(chat.connectionId);
   const [selectedConnectionId, setSelectedConnectionId] = useState(chat.connectionId ?? "");
-  const installedAgentIds = useMemo(
-    () => new Set(installedAgentManifests.map((agent) => agent.id)),
-    [installedAgentManifests],
-  );
-  const availableConversationCommandOptions = useMemo(() => {
-    return CONVERSATION_COMMAND_TOGGLE_OPTIONS.filter((command) => {
-      const agentId = CONVERSATION_COMMAND_AGENT_IDS[command.id];
-      return !agentId || installedAgentIds.has(agentId);
-    });
-  }, [installedAgentIds]);
-  const availableConversationCommandIds = useMemo(
-    () => new Set(availableConversationCommandOptions.map((command) => command.id)),
-    [availableConversationCommandOptions],
-  );
-  const hasConversationCommands = availableConversationCommandOptions.length > 0;
-  const hasInstalledAgents = installedAgentIds.size > 0;
-  const openDownloadAgents = useCallback(() => {
-    onFinish();
-    openRightPanel("agents");
-    openAgentCatalog();
-  }, [onFinish, openAgentCatalog, openRightPanel]);
 
   useEffect(() => {
     setSelectedPromptPresetId(chat.promptPresetId ?? null);
@@ -1120,12 +1048,6 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
   const metadata = useMemo(() => {
     return readChatMetadata(chat);
   }, [chat]);
-  const [commandsEnabled, setCommandsEnabled] = useState(
-    () => (defaultsApplied || metadata.conversationSetupComplete === true) && metadata.characterCommands !== false,
-  );
-  const [conversationCommandToggles, setConversationCommandToggles] = useState<
-    Partial<Record<ConversationCommandKey, boolean>>
-  >(() => readConversationCommandToggles(metadata.conversationCommandToggles));
   const connectionOptions = useMemo(
     () =>
       appendLocalSidecarConnectionOption(
@@ -1392,70 +1314,26 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
       trimmedConversationSystemPrompt !== baseConversationPromptText
         ? trimmedConversationSystemPrompt
         : null;
-    const selfieCommandEnabled =
-      commandsEnabled &&
-      availableConversationCommandIds.has("selfie") &&
-      isConversationCommandToggleEnabled(conversationCommandToggles, "selfie");
-    const selfieSetup = resolveConversationSelfieSetup({
-      commandToggles: conversationCommandToggles,
-      selfieCommandAvailable: availableConversationCommandIds.has("selfie"),
-      currentConnectionId: metadata.imageGenConnectionId,
-      selfieCommandEnabled,
-      connections: connectionOptions,
-    });
     await updateMeta.mutateAsync({
       id: chat.id,
-      autonomousMessages: autonomousEnabled,
-      conversationSchedulesEnabled: generateSchedule,
-      characterCommands: hasConversationCommands && commandsEnabled,
-      conversationCommandToggles: selfieSetup.conversationCommandToggles,
       conversationSetupComplete: true,
       chatParameters: customizeParameters ? generationParameters : null,
       customSystemPrompt,
-      ...(selfieSetup.imageGenConnectionId ? { imageGenConnectionId: selfieSetup.imageGenConnectionId } : {}),
     });
-    if (autonomousEnabled && generateSchedule && metadata.multiplayerSetup !== true) {
-      setScheduleState("generating");
-      try {
-        const scheduleGenerationPreferences = useUIStore.getState().scheduleGenerationPreferences;
-        const conversationTimeZone = useUIStore.getState().conversationTimeZone;
-        await api.post("/conversation/schedule/generate", {
-          chatId: chat.id,
-          characterIds: chatCharIds,
-          scheduleGenerationPreferences,
-          timeZone: conversationTimeZone,
-        });
-        await queryClient.invalidateQueries({ queryKey: chatKeys.detail(chat.id) });
-        await queryClient.invalidateQueries({ queryKey: ["conversation-status", chat.id] });
-      } catch {
-        // Schedule generation is non-critical — continue anyway
-      }
-      setScheduleState("done");
-      setTimeout(onFinish, 2000);
-    } else {
-      onFinish();
-    }
+    onFinish();
   }, [
     hasConnection,
     hasCharacters,
     chat.id,
     chatCharIds,
     onFinish,
-    autonomousEnabled,
-    generateSchedule,
     updateMeta,
     customizeParameters,
     generationParameters,
-    hasConversationCommands,
-    commandsEnabled,
-    conversationCommandToggles,
     queryClient,
     customConversationPromptEnabled,
     conversationSystemPromptDraft,
     baseConversationPrompt,
-    availableConversationCommandIds,
-    connectionOptions,
-    metadata.imageGenConnectionId,
     metadata.multiplayerSetup,
   ]);
 
@@ -1791,213 +1669,12 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
     </div>
   );
 
-  const renderAutomationStep = () => (
-    <div className="space-y-2">
-      <button
-        onClick={() => setAutonomousEnabled((value) => !value)}
-        className={cn(
-          "mari-chat-option-field flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition-all",
-          autonomousEnabled && "mari-chat-option-field--active",
-        )}
-      >
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <Bot
-            size="0.875rem"
-            className={autonomousEnabled ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}
-          />
-          <div>
-            <span className="text-xs font-medium">{localizeUi("ui.chat.chatsettingsdrawer.autonomousMessages")}</span>
-            <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-              {localizeUi("ui.chat.conversationquicksetup.charactersCanMessageYouFirstWhenYouAreInactive")}
-            </p>
-          </div>
-        </div>
-        <div
-          className={cn(
-            "mari-chat-option-switch h-5 w-9 shrink-0 rounded-full p-0.5 transition-colors",
-            autonomousEnabled && "mari-chat-option-switch--active",
-          )}
-        >
-          <div
-            className={cn(
-              "h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-              autonomousEnabled && "translate-x-3.5",
-            )}
-          />
-        </div>
-      </button>
-
-      {autonomousEnabled && (
-        <button
-          onClick={() => setGenerateSchedule((value) => !value)}
-          className={cn(
-            "mari-chat-option-field flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition-all",
-            generateSchedule && "mari-chat-option-field--active",
-          )}
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Loader2
-              size="0.875rem"
-              className={generateSchedule ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}
-            />
-            <div>
-              <span className="text-xs font-medium">
-                {localizeUi("ui.chat.conversationquicksetup.generateSchedules")}
-              </span>
-              <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-                {localizeUi("ui.chat.conversationquicksetup.optionalRoutinesForAvailabilityAndDelayedReplies")}
-              </p>
-            </div>
-          </div>
-          <div
-            className={cn(
-              "mari-chat-option-switch h-5 w-9 shrink-0 rounded-full p-0.5 transition-colors",
-              generateSchedule && "mari-chat-option-switch--active",
-            )}
-          >
-            <div
-              className={cn(
-                "h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-                generateSchedule && "translate-x-3.5",
-              )}
-            />
-          </div>
-        </button>
-      )}
-
-      {autonomousEnabled && generateSchedule && (
-        <div className="rounded-lg bg-[var(--secondary)]/55 px-3 py-2.5 ring-1 ring-[var(--border)]/80">
-          <ConversationTimeZoneSelect compact />
-        </div>
-      )}
-
-      {hasConversationCommands && (
-        <button
-          onClick={() => setCommandsEnabled((value) => !value)}
-          className={cn(
-            "mari-chat-option-field flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left transition-all",
-            commandsEnabled && "mari-chat-option-field--active",
-          )}
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <Sparkles
-              size="0.875rem"
-              className={commandsEnabled ? "text-[var(--primary)]" : "text-[var(--muted-foreground)]"}
-            />
-            <div>
-              <span className="text-xs font-medium">{localizeUi("ui.chat.chatsettingsdrawer.commands")}</span>
-              <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-                {localizeUi("ui.chat.conversationquicksetup.chooseWhichBuiltInAndInstalledAgentActionsCharacters")}
-              </p>
-            </div>
-          </div>
-          <div
-            className={cn(
-              "mari-chat-option-switch h-5 w-9 shrink-0 rounded-full p-0.5 transition-colors",
-              commandsEnabled && "mari-chat-option-switch--active",
-            )}
-          >
-            <div
-              className={cn(
-                "h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-                commandsEnabled && "translate-x-3.5",
-              )}
-            />
-          </div>
-        </button>
-      )}
-
-      {hasConversationCommands && commandsEnabled && (
-        <div className="grid gap-1.5 pt-1 sm:grid-cols-2">
-          {availableConversationCommandOptions.map((command) => {
-            const enabled = isConversationCommandToggleEnabled(conversationCommandToggles, command.id);
-            return (
-              <button
-                key={command.id}
-                type="button"
-                onClick={() =>
-                  setConversationCommandToggles((current) => ({
-                    ...current,
-                    [command.id]: !enabled,
-                  }))
-                }
-                aria-pressed={enabled}
-                className={cn(
-                  "mari-chat-option-field flex min-h-[4rem] items-start justify-between gap-2 rounded-lg px-3 py-2 text-left transition-all",
-                  enabled && "mari-chat-option-field--active",
-                )}
-              >
-                <div className="min-w-0 flex-1">
-                  <span className="block text-[0.6875rem] font-medium text-[var(--foreground)]">{command.label}</span>
-                  <p className="mt-0.5 text-[0.59375rem] leading-snug text-[var(--muted-foreground)]">
-                    {command.description}
-                  </p>
-                </div>
-                <div
-                  className={cn(
-                    "mari-chat-option-switch mt-0.5 h-4 w-7 shrink-0 rounded-full p-0.5 transition-colors",
-                    enabled && "mari-chat-option-switch--active",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "h-3 w-3 rounded-full bg-white shadow-sm transition-transform",
-                      enabled && "translate-x-3",
-                    )}
-                  />
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {!installedAgentsLoading && !hasInstalledAgents && (
-        <div className="rounded-lg border border-dashed border-[var(--border)] bg-[var(--secondary)]/35 px-4 py-4 text-center">
-          <p className="text-xs font-medium text-[var(--foreground)]">
-            {localizeUi("ui.chat.chatsettingsdrawer.noAgentsDownloadedYet")}
-          </p>
-          <p className="mx-auto mt-1 max-w-sm text-[0.625rem] leading-relaxed text-[var(--muted-foreground)]">
-            {localizeUi("ui.chat.conversationquicksetup.downloadAgentsToAddSelfiesCallsMusicHapticsAnd")}
-          </p>
-          <button
-            type="button"
-            onClick={openDownloadAgents}
-            className={cn(WIZARD_PRIMARY_BUTTON_CLASS, "mx-auto mt-3 gap-2")}
-          >
-            <Sparkles size="0.8125rem" />
-            {localizeUi("ui.agents.agentcatalogview.downloadAgents")}
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   const content =
     currentStep.key === "connection"
       ? renderConnectionStep()
       : currentStep.key === "prompt"
         ? renderPromptStep()
-        : currentStep.key === "participants"
-          ? renderParticipantsStep()
-          : renderAutomationStep();
-  const busyContent =
-    scheduleState === "generating" ? (
-      <div className="flex items-center justify-center gap-2 py-1">
-        <Loader2 size="0.875rem" className="animate-spin text-[var(--primary)]" />
-        <span className="text-xs text-[var(--muted-foreground)]">
-          {localizeUi("ui.chat.conversationquicksetup.generatingSchedule")}
-          {chatCharIds.length > 1 ? localizeUi("ui.noodle.stageprofileview.s") : ""}...
-        </span>
-      </div>
-    ) : scheduleState === "done" ? (
-      <div className="flex items-center justify-center gap-2 py-1">
-        <Check size="0.875rem" className="text-emerald-400" />
-        <span className="text-xs text-emerald-400">
-          {localizeUi("ui.chat.conversationquicksetup.readySayHiToStartTheConversation")}
-        </span>
-      </div>
-    ) : null;
+        : renderParticipantsStep();
 
   return (
     <>
@@ -2018,16 +1695,11 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
         secondaryAction={
           isLast
             ? defaultsAction({
-                autonomousMessages: autonomousEnabled,
-                conversationSchedulesEnabled: generateSchedule,
-                characterCommands: commandsEnabled,
-                conversationCommandToggles,
                 chatParameters: customizeParameters ? generationParameters : null,
                 customSystemPrompt: customConversationPromptEnabled ? conversationSystemPromptDraft : null,
               })
             : undefined
         }
-        busyContent={busyContent}
       >
         {content}
       </SetupWizardShell>

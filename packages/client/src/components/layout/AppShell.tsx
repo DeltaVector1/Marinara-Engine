@@ -18,10 +18,8 @@ import {
 } from "../../stores/ui.store";
 import { useChatStore } from "../../stores/chat.store";
 import { useDialogStore } from "../../stores/dialog.store";
-import { useBackgroundAutonomousPolling } from "../../hooks/use-background-autonomous";
-import { useClearAutonomousUnread, useUpdateChatMetadata } from "../../hooks/use-chats";
+import { useUpdateChatMetadata } from "../../hooks/use-chats";
 import { lorebookKeys } from "../../hooks/use-lorebooks";
-import { useIdleDetection } from "../../hooks/use-idle-detection";
 import { dispatchChatVisualViewportChange } from "../../hooks/use-visual-viewport-chat-bottom";
 import { usePageActivity } from "../../hooks/use-page-activity";
 import { useCapabilityAgentRegistry, useCapabilityClientModules } from "../../hooks/use-capability-packages";
@@ -226,12 +224,6 @@ export function AppShell() {
   const capabilityAgents = useCapabilityAgentRegistry();
   const installedCapabilities = useCapabilityClientModules();
   const updateChatMetadata = useUpdateChatMetadata();
-
-  // Background autonomous polling for inactive conversation chats
-  useBackgroundAutonomousPolling();
-
-  // Auto idle detection (10 min inactivity → idle, activity → active)
-  useIdleDetection();
 
   useEffect(() => {
     const handleGlobalSearchShortcut = (event: KeyboardEvent) => {
@@ -596,14 +588,11 @@ export function AppShell() {
   const gameAssetsBrowserOpen = useUIStore((s) => s.gameAssetsBrowserOpen);
   const activeChatId = useChatStore((s) => s.activeChatId);
   const activeChat = useChatStore((s) => s.activeChat);
-  const clearUnread = useChatStore((s) => s.clearUnread);
-  const { mutate: clearAutonomousUnread, isPending: isClearingAutonomousUnread } = useClearAutonomousUnread();
   const isPageActive = usePageActivity();
   const [trackerPanelTop, setTrackerPanelTop] = useState(TRACKER_PANEL_EDGE_OFFSET);
   const [trackerPanelExitLayoutHold, setTrackerPanelExitLayoutHold] = useState(false);
   const [trackerPanelToggleAnchorY, setTrackerPanelToggleAnchorY] = useState<number | null>(null);
   const trackerPanelWasActiveRef = useRef(false);
-  const lastAutonomousUnreadClearRef = useRef<string | null>(null);
 
   const selectedFeatureAgent = useMemo(
     () =>
@@ -665,22 +654,6 @@ export function AppShell() {
     if (!activeChat || !presetId) return;
     openPresetDetail(presetId, { initialTab: "sections" });
   }, [activeChat, openPresetDetail]);
-
-  useEffect(() => {
-    if (!activeChatId || isClearingAutonomousUnread) return;
-    const metadata = parseChatMetadata(activeChat?.metadata);
-    const unreadCount = typeof metadata.autonomousUnreadCount === "number" ? metadata.autonomousUnreadCount : 0;
-    const persistedUnread = unreadCount > 0;
-    if (!persistedUnread && !useChatStore.getState().unreadCounts.has(activeChatId)) return;
-    const clearKey = `${activeChatId}:${unreadCount}:${metadata.autonomousUnreadAt ?? ""}`;
-    if (lastAutonomousUnreadClearRef.current === clearKey) return;
-    clearUnread(activeChatId);
-    clearAutonomousUnread(activeChatId, {
-      onSuccess: () => {
-        lastAutonomousUnreadClearRef.current = clearKey;
-      },
-    });
-  }, [activeChat?.metadata, activeChatId, clearAutonomousUnread, clearUnread, isClearingAutonomousUnread]);
 
   const startSidebarResize = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {

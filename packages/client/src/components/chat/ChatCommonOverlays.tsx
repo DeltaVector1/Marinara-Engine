@@ -261,7 +261,6 @@ type ChatCommonOverlaysProps = {
   selectedMessageCount: number;
   sceneSettings: SharedSceneSettingsProps;
   onCloseSettings: (options?: { force?: boolean }) => void;
-  onOpenScheduleEditor?: (characterId: string, options?: { initialDay?: string | null }) => void;
   onWizardFinish: () => void;
   onClosePeekPrompt: () => void;
   onDeleteConfirm: () => void;
@@ -293,7 +292,6 @@ export function ChatCommonOverlays({
   selectedMessageCount,
   sceneSettings,
   onCloseSettings,
-  onOpenScheduleEditor,
   onWizardFinish,
   onClosePeekPrompt,
   onDeleteConfirm,
@@ -332,7 +330,6 @@ export function ChatCommonOverlays({
             onSpriteSideChange={sceneSettings.onSpriteSideChange}
             spriteVisualSettings={sceneSettings.spriteVisualSettings}
             onSpriteVisualSettingsChange={sceneSettings.onSpriteVisualSettingsChange}
-            onOpenScheduleEditor={onOpenScheduleEditor}
           />
         </Suspense>
       )}

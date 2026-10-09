@@ -3,8 +3,6 @@
 // ──────────────────────────────────────────────
 import {
   Fragment,
-  Suspense,
-  lazy,
   useRef,
   useEffect,
   useLayoutEffect,
@@ -12,7 +10,6 @@ import {
   useMemo,
   useState,
   type CSSProperties,
-  type MouseEvent as ReactMouseEvent,
 } from "react";
 import { useTranslation, useTranslation as useUiTranslation } from "react-i18next";
 import { Loader2, ChevronUp, Puzzle } from "lucide-react";
@@ -21,7 +18,6 @@ import { ConversationInput } from "./ConversationInput";
 import { SceneBanner, EndSceneBar } from "./SceneBanner";
 import { CHAT_TOOLBAR_OVERFLOW_BUTTON_SIZE_CLASS, getChatToolbarButtonClass } from "./ChatToolbarControls";
 import { CHAT_CONTROL_WINDOW_IDS, ChatControlWindow } from "./ChatControlWindow";
-import { ConversationPresenceCard } from "./ConversationPresenceCard";
 import { PendingTypingDots } from "./PendingTypingDots";
 import { TranscriptWindowControls } from "./TranscriptWindowControls";
 import { PinnedImageOverlay } from "./PinnedImageOverlay";
@@ -59,11 +55,6 @@ import {
   useKeepLatestChatMessageVisible,
 } from "../../hooks/use-visual-viewport-chat-bottom";
 
-const ConversationAutonomousEffects = lazy(async () => {
-  const module = await import("./ConversationAutonomousEffects");
-  return { default: module.ConversationAutonomousEffects };
-});
-
 interface ConversationViewProps {
   chatId: string;
   messages: Message[] | undefined;
@@ -87,8 +78,6 @@ interface ConversationViewProps {
   onIllustrate?: (prompt?: string, messageRange?: [string, string]) => void | Promise<void>;
   onGenerateSelfie?: (characterId?: string) => void | Promise<void>;
   lastAssistantMessageId: string | null;
-  onOpenSettings: (event?: ReactMouseEvent<HTMLElement>, options?: { initialSection?: "autonomous" | null }) => void;
-  onOpenScheduleEditor?: (characterId: string, options?: { initialDay?: string | null }) => void;
   onBranch?: (messageId: string) => void;
   multiSelectMode?: boolean;
   selectedMessageIds?: Set<string>;
@@ -385,8 +374,6 @@ export function ConversationView({
   onIllustrate,
   onGenerateSelfie,
   lastAssistantMessageId,
-  onOpenSettings,
-  onOpenScheduleEditor,
   onBranch,
   multiSelectMode,
   selectedMessageIds,
@@ -503,7 +490,6 @@ export function ConversationView({
     }
     return { background: `linear-gradient(135deg, ${g.from}, ${g.to})` };
   }, [convoGradient, theme]);
-  const hasAutonomousMessaging = !!chatMeta.autonomousMessages || !!chatMeta.characterExchanges;
   const callsPackage = installedCapabilities.find(
     (item) =>
       item.status === "active" && item.manifest.kind.includes("conversation-calls") && item.manifest.entrypoints.client,
@@ -524,15 +510,6 @@ export function ConversationView({
   const renderHeader = () => (
     <div className="pointer-events-none sticky top-0 z-30 flex items-center justify-between px-4 py-2">
       <div data-conversation-header-identity className="pointer-events-auto flex min-w-0 items-center gap-1.5">
-        <ConversationPresenceCard
-          chatId={chatId}
-          chatMeta={chatMeta}
-          chatCharIds={chatCharIds}
-          characterMap={characterMap}
-          messages={messages}
-          onOpenSettings={onOpenSettings}
-          onOpenScheduleEditor={onOpenScheduleEditor}
-        />
         {callsPackage && (
           <span data-chat-help="call" className="contents">
             <CapabilityElement
@@ -1523,19 +1500,6 @@ export function ConversationView({
         <div ref={messagesEndRef} className="h-1" />
       </div>
       <PinnedImageOverlay activeChatId={chatId} />
-
-      {/* ── Autonomous message toast notification ── */}
-      {hasAutonomousMessaging && (
-        <Suspense fallback={null}>
-          <ConversationAutonomousEffects
-            key={chatId}
-            chatId={chatId}
-            messages={messages}
-            characterMap={characterMap}
-            chatMeta={chatMeta}
-          />
-        </Suspense>
-      )}
 
       {/* ── End Scene bar (above input) ── */}
       {sceneInfo?.variant === "scene" && sceneInfo.sceneChatId && onConcludeScene && (

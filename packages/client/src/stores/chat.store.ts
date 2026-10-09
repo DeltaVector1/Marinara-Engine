@@ -150,20 +150,20 @@ export async function abortGenerationForChat(chatId: string, controller?: AbortC
 
 const notificationAutoDismissTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
-type UnreadCountSources = { server: number; client: number };
-type ChatNotificationSources = { server?: ChatNotification; client?: ChatNotification };
+type UnreadCountSources = { client: number };
+type ChatNotificationSources = { client?: ChatNotification };
 
 const unreadCountSources = new Map<string, UnreadCountSources>();
 const chatNotificationSources = new Map<string, ChatNotificationSources>();
 
 function mergedUnreadCount(chatId: string): number {
   const sources = unreadCountSources.get(chatId);
-  return sources ? sources.server + sources.client : 0;
+  return sources?.client ?? 0;
 }
 
 function mergedChatNotification(chatId: string): ChatNotification | undefined {
   const sources = chatNotificationSources.get(chatId);
-  return sources?.client ?? sources?.server;
+  return sources?.client;
 }
 
 function clearNotificationTimer(chatId: string) {
@@ -324,16 +324,6 @@ interface ChatState {
   setCurrentInput: (text: string) => void;
   setCurrentInputPresence: (hasInput: boolean) => void;
   incrementUnread: (chatId: string) => void;
-  hydrateUnread: (
-    unread: Array<{
-      chatId: string;
-      count: number;
-      characterName: string;
-      avatarUrl: string | null;
-      avatarCrop?: NotificationAvatarCrop;
-    }>,
-    knownChatIds?: string[],
-  ) => void;
   clearUnread: (chatId: string) => void;
   addNotification: (
     chatId: string,
@@ -842,78 +832,11 @@ export const useChatStore = create<ChatState>()(
 
     incrementUnread: (chatId: string) =>
       set((state) => {
-        const sources = unreadCountSources.get(chatId) ?? { server: 0, client: 0 };
+        const sources = unreadCountSources.get(chatId) ?? { client: 0 };
         unreadCountSources.set(chatId, { ...sources, client: sources.client + 1 });
         const m = new Map(state.unreadCounts);
         m.set(chatId, mergedUnreadCount(chatId));
         return { unreadCounts: m };
-      }),
-    hydrateUnread: (unread, knownChatIds) =>
-      set((state) => {
-        const unreadCounts = new Map(state.unreadCounts);
-        const chatNotifications = new Map(state.chatNotifications);
-        const serverChatIds = new Set<string>();
-        const known = knownChatIds ? new Set(knownChatIds) : null;
-
-        for (const item of unread) {
-          if (item.count <= 0 || state.activeChatId === item.chatId) continue;
-          serverChatIds.add(item.chatId);
-          const previous = unreadCountSources.get(item.chatId) ?? { server: 0, client: 0 };
-          const acknowledgedClientCount = Math.max(0, item.count - previous.server);
-          unreadCountSources.set(item.chatId, {
-            server: item.count,
-            client: Math.max(0, previous.client - acknowledgedClientCount),
-          });
-          unreadCounts.set(item.chatId, mergedUnreadCount(item.chatId));
-          if (!state.dismissedNotifications.has(item.chatId)) {
-            const sources = chatNotificationSources.get(item.chatId) ?? {};
-            sources.server = {
-              chatId: item.chatId,
-              characterName: item.characterName,
-              avatarUrl: item.avatarUrl,
-              avatarCrop: item.avatarCrop ?? null,
-              kind: "message",
-              count: item.count,
-            };
-            chatNotificationSources.set(item.chatId, sources);
-            chatNotifications.set(item.chatId, mergedChatNotification(item.chatId)!);
-          }
-        }
-
-        if (known) {
-          for (const [chatId, sources] of unreadCountSources) {
-            if (!known.has(chatId)) {
-              unreadCountSources.delete(chatId);
-              unreadCounts.delete(chatId);
-              continue;
-            }
-            if (!serverChatIds.has(chatId)) sources.server = 0;
-            const count = mergedUnreadCount(chatId);
-            if (count > 0) unreadCounts.set(chatId, count);
-            else {
-              unreadCountSources.delete(chatId);
-              unreadCounts.delete(chatId);
-            }
-          }
-
-          for (const [chatId, sources] of chatNotificationSources) {
-            if (!known.has(chatId)) {
-              clearNotificationTimer(chatId);
-              chatNotificationSources.delete(chatId);
-              chatNotifications.delete(chatId);
-              continue;
-            }
-            if (!serverChatIds.has(chatId)) delete sources.server;
-            const notification = mergedChatNotification(chatId);
-            if (notification) chatNotifications.set(chatId, notification);
-            else {
-              chatNotificationSources.delete(chatId);
-              chatNotifications.delete(chatId);
-            }
-          }
-        }
-
-        return { unreadCounts, chatNotifications };
       }),
     clearUnread: (chatId: string) =>
       set((state) => {

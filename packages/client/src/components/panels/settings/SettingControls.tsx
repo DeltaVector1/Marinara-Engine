@@ -110,8 +110,6 @@ export function ConversationSoundSetting() {
   const setConvoNotificationSound = useUIStore((s) => s.setConvoNotificationSound);
   const rpNotificationSound = useUIStore((s) => s.rpNotificationSound);
   const setRpNotificationSound = useUIStore((s) => s.setRpNotificationSound);
-  const gameNotificationSound = useUIStore((s) => s.gameNotificationSound);
-  const setGameNotificationSound = useUIStore((s) => s.setGameNotificationSound);
   const notificationSoundsOnlyWhenUnfocused = useUIStore((s) => s.notificationSoundsOnlyWhenUnfocused);
   const setNotificationSoundsOnlyWhenUnfocused = useUIStore((s) => s.setNotificationSoundsOnlyWhenUnfocused);
   const conversationBrowserNotifications = useUIStore((s) => s.conversationBrowserNotifications);
@@ -255,15 +253,6 @@ export function ConversationSoundSetting() {
         checked={rpNotificationSound}
         onChange={(v) => {
           setRpNotificationSound(v);
-          if (v) playNotificationPing();
-        }}
-      />
-      <ToggleSetting
-        anchorId="settings-control-notification-game-sound"
-        label={localizeUi("settings.notifications.gameMode")}
-        checked={gameNotificationSound}
-        onChange={(v) => {
-          setGameNotificationSound(v);
           if (v) playNotificationPing();
         }}
       />

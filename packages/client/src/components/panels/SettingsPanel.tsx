@@ -126,7 +126,6 @@ import {
   RefreshCw,
   RotateCcw,
   ExternalLink,
-  ScrollText,
   UserCheck,
   WandSparkles,
   Terminal,
@@ -262,7 +261,6 @@ type SettingsSectionId =
   | "responses"
   | "input-editing"
   | "text-rules"
-  | "game-playback"
   | "overall-generations"
   | "image-generation"
   | "video-generation"
@@ -321,8 +319,8 @@ const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     id: "application",
     tab: "general",
     label: "App Behavior",
-    description: "Language, safety confirmations, achievements, music, and playful extras.",
-    aliases: ["language", "delete", "confirm", "music", "achievements", "mini mari", "app"],
+    description: "Language and safety confirmations.",
+    aliases: ["language", "delete", "confirm", "app"],
   },
   {
     id: "notifications",
@@ -364,13 +362,6 @@ const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     label: "Text Rules",
     description: "Formatting applied to chat text.",
     aliases: ["quotes", "bold", "dialogue", "latex", "symbols", "typographic"],
-  },
-  {
-    id: "game-playback",
-    tab: "general",
-    label: "Game Playback",
-    description: "Game mode reading and navigation.",
-    aliases: ["game", "text speed", "auto play", "middle mouse", "navigation", "vn"],
   },
   {
     id: "overall-generations",
@@ -675,14 +666,6 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
     kind: "Toggle",
   },
   {
-    id: "notification-game-sound",
-    sectionId: "notifications",
-    label: "Game mode notification sound",
-    description: "Play a ping for Game replies.",
-    aliases: ["sound", "ping"],
-    kind: "Toggle",
-  },
-  {
     id: "notification-unfocused-only",
     sectionId: "notifications",
     label: "Only when Marinara is unfocused",
@@ -825,38 +808,6 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
     description: "Replace gradient name colors with the brightest solid color inline.",
     aliases: ["gradient", "solid", "names", "readability"],
     kind: "Toggle",
-  },
-  {
-    id: "game-instant-text-reveal",
-    sectionId: "game-playback",
-    label: "Instantly reveal game text",
-    description: "Skip the Game mode narration typewriter effect.",
-    aliases: ["game", "typewriter", "instant"],
-    kind: "Toggle",
-  },
-  {
-    id: "game-middle-mouse-navigation",
-    sectionId: "game-playback",
-    label: "Mouse-wheel + click navigation",
-    description: "Navigate Game mode with mouse wheel and background clicks.",
-    aliases: ["middle mouse", "scroll", "game navigation"],
-    kind: "Toggle",
-  },
-  {
-    id: "game-narration-speed",
-    sectionId: "game-playback",
-    label: "Game narration speed",
-    description: "Tune the Game mode narration typewriter speed.",
-    aliases: ["game", "typewriter", "speed"],
-    kind: "Slider",
-  },
-  {
-    id: "game-auto-play-delay",
-    sectionId: "game-playback",
-    label: "Game auto-play segment delay",
-    description: "Pause between Game mode auto-play narration segments.",
-    aliases: ["autoplay", "game", "delay"],
-    kind: "Slider",
   },
   {
     id: "queue-media-generation",
@@ -3427,7 +3378,7 @@ function CustomQuickRepliesManager() {
 
 function GeneralSettings() {
   const { t: localizeUi } = useUiTranslation();
-  const { t, i18n: localization } = useTranslation();
+  const { t } = useTranslation();
   const localize = useLocalizedUiText();
   const enableStreaming = useUIStore((s) => s.enableStreaming);
   const notificationPosition = useUIStore((s) => s.notificationPosition);
@@ -3435,22 +3386,10 @@ function GeneralSettings() {
   const setEnableStreaming = useUIStore((s) => s.setEnableStreaming);
   const streamingSpeed = useUIStore((s) => s.streamingSpeed);
   const setStreamingSpeed = useUIStore((s) => s.setStreamingSpeed);
-  const gameInstantTextReveal = useUIStore((s) => s.gameInstantTextReveal);
-  const setGameInstantTextReveal = useUIStore((s) => s.setGameInstantTextReveal);
-  const gameMiddleMouseNav = useUIStore((s) => s.gameMiddleMouseNav);
-  const setGameMiddleMouseNav = useUIStore((s) => s.setGameMiddleMouseNav);
-  const gameTextSpeed = useUIStore((s) => s.gameTextSpeed);
-  const setGameTextSpeed = useUIStore((s) => s.setGameTextSpeed);
-  const gameAutoPlayDelay = useUIStore((s) => s.gameAutoPlayDelay);
-  const setGameAutoPlayDelay = useUIStore((s) => s.setGameAutoPlayDelay);
   const enterToSendRP = useUIStore((s) => s.enterToSendRP);
   const setEnterToSendRP = useUIStore((s) => s.setEnterToSendRP);
   const enterToSendConvo = useUIStore((s) => s.enterToSendConvo);
   const setEnterToSendConvo = useUIStore((s) => s.setEnterToSendConvo);
-  const enterToSendGame = useUIStore((s) => s.enterToSendGame);
-  const setEnterToSendGame = useUIStore((s) => s.setEnterToSendGame);
-  const enterToSendProfessorMari = useUIStore((s) => s.enterToSendProfessorMari);
-  const setEnterToSendProfessorMari = useUIStore((s) => s.setEnterToSendProfessorMari);
   const keepGuidanceAfterRegenerate = useUIStore((s) => s.keepGuidanceAfterRegenerate);
   const setKeepGuidanceAfterRegenerate = useUIStore((s) => s.setKeepGuidanceAfterRegenerate);
   const confirmBeforeDelete = useUIStore((s) => s.confirmBeforeDelete);
@@ -3652,32 +3591,6 @@ function GeneralSettings() {
               >
                 {localizeUi("settings.modes.conversations")}
               </button>
-              <button
-                type="button"
-                onClick={() => setEnterToSendGame(!enterToSendGame)}
-                aria-pressed={enterToSendGame}
-                className={cn(
-                  "mari-chrome-tag min-h-9 px-2.5 py-1.5 text-[0.6875rem] font-medium transition-colors",
-                  enterToSendGame
-                    ? "bg-[var(--primary)]/15 text-[var(--primary)] ring-1 ring-[var(--primary)]/30"
-                    : "bg-[var(--secondary)] text-[var(--muted-foreground)] ring-1 ring-[var(--border)] hover:bg-[var(--accent)]",
-                )}
-              >
-                {localizeUi("settings.modes.game")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEnterToSendProfessorMari(!enterToSendProfessorMari)}
-                aria-pressed={enterToSendProfessorMari}
-                className={cn(
-                  "mari-chrome-tag min-h-9 px-2.5 py-1.5 text-[0.6875rem] font-medium transition-colors",
-                  enterToSendProfessorMari
-                    ? "bg-[var(--primary)]/15 text-[var(--primary)] ring-1 ring-[var(--primary)]/30"
-                    : "bg-[var(--secondary)] text-[var(--muted-foreground)] ring-1 ring-[var(--border)] hover:bg-[var(--accent)]",
-                )}
-              >
-                {localizeUi("settings.modes.professorMari")}
-              </button>
             </div>
           </div>
 
@@ -3802,95 +3715,6 @@ function GeneralSettings() {
               })}
             </div>
           </div>
-        </div>
-      </SettingsSection>
-
-      <SettingsSection
-        title={localizeUi("settings.sections.gamePlayback.title")}
-        description={localizeUi("settings.sections.gamePlayback.description")}
-        icon={<ScrollText size="0.875rem" />}
-        {...getSettingsSectionAnchorProps("game-playback")}
-      >
-        <div className="flex flex-col gap-2.5">
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("game-instant-text-reveal")}
-            label={localizeUi("settings.controls.gameInstantText.label")}
-            checked={gameInstantTextReveal}
-            onChange={setGameInstantTextReveal}
-            help={localizeUi("settings.controls.gameInstantText.help")}
-          />
-          <ToggleSetting
-            anchorId={getSettingsControlAnchorId("game-middle-mouse-navigation")}
-            label={localizeUi("settings.controls.gameMouseNavigation.label")}
-            checked={gameMiddleMouseNav}
-            onChange={setGameMiddleMouseNav}
-            help={localizeUi("settings.controls.gameMouseNavigation.help")}
-          />
-
-          {!gameInstantTextReveal && (
-            <label
-              id={getSettingsControlAnchorId("game-narration-speed")}
-              className="flex scroll-mt-3 flex-col gap-1.5 rounded-lg p-1 transition-colors hover:bg-[var(--accent)]/50"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs">{localize("Game narration speed")}</span>
-                <span className="text-xs tabular-nums text-[var(--muted-foreground)]">{gameTextSpeed}</span>
-                <HelpTooltip
-                  text={localize(
-                    "How fast the typewriter effect displays narration text in Game mode. Lower values give a slower cinematic reveal. Higher values show text almost instantly.",
-                  )}
-                />
-              </div>
-              <input
-                type="range"
-                min={1}
-                max={100}
-                step={1}
-                value={gameTextSpeed}
-                onChange={(e) => setGameTextSpeed(Number(e.target.value))}
-                className="w-full accent-[var(--primary)]"
-              />
-              <div className="flex justify-between text-[0.625rem] text-[var(--muted-foreground)]">
-                <span>{localize("Slow")}</span>
-                <span>{localize("Fast")}</span>
-              </div>
-            </label>
-          )}
-
-          <label
-            id={getSettingsControlAnchorId("game-auto-play-delay")}
-            className="flex scroll-mt-3 flex-col gap-1.5 rounded-lg p-1 transition-colors hover:bg-[var(--accent)]/50"
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-xs">{localize("Game auto-play segment delay")}</span>
-              <span className="text-xs tabular-nums text-[var(--muted-foreground)]">
-                {t("settings.units.secondsShort", {
-                  value: new Intl.NumberFormat(localization.resolvedLanguage ?? localization.language, {
-                    minimumFractionDigits: 1,
-                    maximumFractionDigits: 1,
-                  }).format(gameAutoPlayDelay / 1000),
-                })}
-              </span>
-              <HelpTooltip
-                text={localize(
-                  "Pause between each narration segment when auto-play is enabled in Game mode. Enable auto-play via the ▶ button next to Next.",
-                )}
-              />
-            </div>
-            <input
-              type="range"
-              min={200}
-              max={5000}
-              step={100}
-              value={gameAutoPlayDelay}
-              onChange={(e) => setGameAutoPlayDelay(Number(e.target.value))}
-              className="w-full accent-[var(--primary)]"
-            />
-            <div className="flex justify-between text-[0.625rem] text-[var(--muted-foreground)]">
-              <span>{t("settings.common.short")}</span>
-              <span>{t("settings.common.long")}</span>
-            </div>
-          </label>
         </div>
       </SettingsSection>
     </div>

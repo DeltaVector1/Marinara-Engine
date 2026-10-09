@@ -4,13 +4,9 @@
 // These fields only affect Conversation mode; they are never read in RP/VN/Game.
 // ──────────────────────────────────────────────
 import { useEffect, useRef, useState } from "react";
-import { CalendarClock, Loader2, RotateCcw, Smile, Wand2 } from "lucide-react";
+import { Loader2, RotateCcw, Smile, Wand2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  type ConvoBehaviorConfig,
-  type ConvoBehaviorInsertionStrategy,
-  type WeekSchedule,
-} from "@marinara-engine/shared";
+import { type ConvoBehaviorConfig, type ConvoBehaviorInsertionStrategy } from "@marinara-engine/shared";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { EmojiPicker } from "../ui/EmojiPicker";
 import { HelpTooltip } from "../ui/HelpTooltip";
@@ -24,15 +20,6 @@ const STRATEGY_OPTIONS: Array<{ value: ConvoBehaviorInsertionStrategy; label: st
   { value: "post_history_replace", label: "Replace post-history" },
   { value: "macro", label: "Only where {{convo_behavior}} is placed" },
 ];
-
-/** One-line description of the saved schedule for the Convo tab panel. */
-function scheduleSummary(schedule: WeekSchedule | undefined): string {
-  if (!schedule) return "No schedule yet — create one to give this character a routine.";
-  const summary = schedule.routineSummary?.trim();
-  if (summary) return summary;
-  const dayCount = Object.values(schedule.days ?? {}).filter((blocks) => blocks?.length).length;
-  return `${dayCount} of 7 days planned.`;
-}
 
 interface ConvoProfileFieldsProps {
   kind: "character" | "persona";
@@ -53,10 +40,6 @@ interface ConvoProfileFieldsProps {
   onImageInstructionsChange?: (value: string) => void;
   applyImageInstructionsToNoodle?: boolean;
   onApplyImageInstructionsToNoodleChange?: (value: boolean) => void;
-  /** The character's weekly convo schedule, if one has been generated. */
-  schedule?: WeekSchedule;
-  /** Opens the schedule editor. Omit to hide the schedule panel entirely. */
-  onEditSchedule?: () => void;
   generateConvoProfile?: (target: "aboutMe" | "behavior") => Promise<{ text: string } | null>;
 }
 
@@ -76,8 +59,6 @@ export function ConvoProfileFields({
   onImageInstructionsChange,
   applyImageInstructionsToNoodle,
   onApplyImageInstructionsToNoodleChange,
-  schedule,
-  onEditSchedule,
   generateConvoProfile,
 }: ConvoProfileFieldsProps) {
   const { t: localizeUi } = useUiTranslation();
@@ -314,29 +295,6 @@ export function ConvoProfileFields({
               ))}
             </select>
           </label>
-        </div>
-      )}
-
-      {kind === "character" && onEditSchedule && (
-        <div className="mari-editor-panel space-y-3 p-3">
-          <span className="inline-flex items-center gap-1 text-xs font-semibold">
-            <CalendarClock className="h-3.5 w-3.5" />
-            {localizeUi("ui.characters.convoprofilefields.weeklySchedule")}
-            <HelpTooltip
-              wide
-              text={localizeUi("ui.characters.convoprofilefields.thisCharacterSDailyRoutineItDrivesPresenceReply")}
-            />
-          </span>
-          <p className="text-xs leading-relaxed text-[var(--muted-foreground)]">{scheduleSummary(schedule)}</p>
-          <button
-            type="button"
-            onClick={onEditSchedule}
-            className="rounded-lg border border-[var(--border)] bg-[var(--secondary)] px-3 py-1.5 text-xs font-medium transition-colors hover:border-[var(--primary)]/40"
-          >
-            {schedule
-              ? localizeUi("ui.characters.convoprofilefields.editSchedule")
-              : localizeUi("ui.chat.chatsettingsdrawer.createSchedule")}
-          </button>
         </div>
       )}
 

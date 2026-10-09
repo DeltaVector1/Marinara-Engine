@@ -102,11 +102,8 @@ import {
   useCleanupSavedSprites,
   useRestoreSpriteCleanupBackup,
   useSpriteCapabilities,
-  spriteKeys,
   type SpriteInfo,
 } from "../../hooks/use-characters";
-import { useQueryClient } from "@tanstack/react-query";
-import { SpriteGenerationModal } from "../ui/SpriteGenerationModal";
 import { AvatarGenerationModal } from "../ui/AvatarGenerationModal";
 import { AvatarCropWidget } from "../ui/AvatarCropWidget";
 import { AvatarReplaceActions } from "../ui/AvatarReplaceActions";
@@ -2140,8 +2137,6 @@ export function PersonaEditor() {
                 <PersonaSpritesTab
                   personaId={personaId}
                   personaName={formData.name}
-                  defaultAppearance={formData.appearance || formData.description}
-                  defaultAvatarUrl={avatarPreview}
                   characterSheetImageId={formData.characterSheetImageId}
                   useCharacterSheetAsReference={formData.useCharacterSheetAsReference}
                   updateField={updateField}
@@ -2204,8 +2199,6 @@ function sanitizeSpriteExportFolderName(value: string, fallback: string): string
 function PersonaSpritesTab({
   personaId,
   personaName,
-  defaultAppearance,
-  defaultAvatarUrl,
   characterSheetImageId,
   useCharacterSheetAsReference,
   updateField,
@@ -2213,8 +2206,6 @@ function PersonaSpritesTab({
 }: {
   personaId: string;
   personaName?: string;
-  defaultAppearance?: string;
-  defaultAvatarUrl?: string | null;
   characterSheetImageId: string | null;
   useCharacterSheetAsReference: boolean;
   updateField: <K extends keyof PersonaFormData>(key: K, value: PersonaFormData[K]) => void;
@@ -2230,7 +2221,6 @@ function PersonaSpritesTab({
   const exportSprites = useExportSprites();
   const cleanupSavedSprites = useCleanupSavedSprites();
   const restoreSpriteCleanupBackup = useRestoreSpriteCleanupBackup();
-  const queryClient = useQueryClient();
   const [category, setCategory] = useState<SpriteCategory>("expressions");
   const [newExpression, setNewExpression] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -2247,13 +2237,11 @@ function PersonaSpritesTab({
   const [deleteSpriteRequest, setDeleteSpriteRequest] = useState<SpriteInfo | null>(null);
   const [deletingSprites, setDeletingSprites] = useState<"single" | "all" | null>(null);
   const [folderProgress, setFolderProgress] = useState<{ done: number; total: number } | null>(null);
-  const [spriteGenOpen, setSpriteGenOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const pendingExpressionRef = useRef("");
 
   const allSprites = (sprites as SpriteInfo[] | undefined) ?? [];
-  const portraitExpressionSprites = allSprites.filter((s) => !s.expression.toLowerCase().startsWith("full_"));
   const visibleSprites = allSprites.filter((s) =>
     category === "clips"
       ? false
@@ -2265,8 +2253,6 @@ function PersonaSpritesTab({
     visibleSprites.map((s) => (category === "full-body" ? s.expression.replace(/^full_/, "") : s.expression)),
   );
   const suggestedExpressions = DEFAULT_EXPRESSIONS.filter((e) => !existingExpressions.has(e));
-  const spriteGenerationUnavailable = spriteCapabilities?.spriteGenerationAvailable === false;
-  const spriteGenerationReason = spriteCapabilities?.reason ?? "Sprite generation is unavailable on this platform.";
   const backgroundCleanupUnavailable = spriteCapabilities?.backgroundRemovalAvailable === false;
   const backgroundCleanupReason = spriteCapabilities?.reason ?? "Background cleanup is unavailable on this platform.";
 
@@ -2631,20 +2617,6 @@ function PersonaSpritesTab({
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             <button
               type="button"
-              onClick={() => setSpriteGenOpen(true)}
-              disabled={spriteGenerationUnavailable}
-              className="mari-chrome-accent-surface mari-accent-animated flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-center text-[0.6875rem] font-medium leading-tight transition-all disabled:cursor-not-allowed disabled:opacity-40 max-md:flex-1 max-md:basis-[calc(50%-0.25rem)] max-md:px-2.5"
-              title={
-                spriteGenerationUnavailable
-                  ? spriteGenerationReason
-                  : localizeUi("ui.personas.personaspritestab.generateSpritesUsingAiImageGeneration")
-              }
-            >
-              <Wand2 size="0.8125rem" />
-              {localizeUi("ui.personas.personaspritestab.generateSprite")}
-            </button>
-            <button
-              type="button"
               onClick={() => folderInputRef.current?.click()}
               disabled={!!folderProgress}
               className="flex min-w-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--secondary)] px-3 py-1.5 text-center text-[0.6875rem] font-medium leading-tight text-[var(--muted-foreground)] ring-1 ring-[var(--border)] transition-all hover:bg-[var(--accent)] hover:text-[var(--foreground)] disabled:opacity-40 max-md:flex-1 max-md:basis-[calc(50%-0.25rem)] max-md:px-2.5"
@@ -2768,12 +2740,7 @@ function PersonaSpritesTab({
             </button>
           </div>
         )}
-        {spriteGenerationUnavailable && (
-          <div className="rounded-lg bg-[var(--secondary)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
-            {spriteGenerationReason}
-          </div>
-        )}
-        {backgroundCleanupUnavailable && !spriteGenerationUnavailable && (
+        {backgroundCleanupUnavailable && (
           <div className="rounded-lg bg-[var(--secondary)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
             {backgroundCleanupReason}
           </div>
@@ -2988,20 +2955,6 @@ function PersonaSpritesTab({
           </div>
         </Modal>
       )}
-
-      {/* Sprite Generation Modal */}
-      <SpriteGenerationModal
-        open={spriteGenOpen}
-        onClose={() => setSpriteGenOpen(false)}
-        entityId={personaId}
-        initialSpriteType={category === "full-body" ? "full-body" : "expressions"}
-        existingExpressionSprites={portraitExpressionSprites}
-        defaultAppearance={defaultAppearance}
-        defaultAvatarUrl={defaultAvatarUrl}
-        onSpritesGenerated={() => {
-          queryClient.invalidateQueries({ queryKey: spriteKeys.list(personaId) });
-        }}
-      />
     </div>
   );
 }

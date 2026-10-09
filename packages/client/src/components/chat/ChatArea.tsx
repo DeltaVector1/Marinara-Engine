@@ -39,10 +39,9 @@ import { useChatWindowLayout } from "../../hooks/use-chat-window-layout";
 import { ChatSettingsBubble } from "./ChatSettingsBubble";
 import { useGenerate } from "../../hooks/use-generate";
 import { useGenerateGallerySelfie } from "../../hooks/use-gallery";
-import { characterKeys, spriteKeys, usePersona, useUpdateCharacter, type SpriteInfo } from "../../hooks/use-characters";
+import { characterKeys, spriteKeys, usePersona, type SpriteInfo } from "../../hooks/use-characters";
 import { usePageActivity } from "../../hooks/use-page-activity";
 import { useRenderTimer, useWhyRender } from "../../lib/perf-diagnostics";
-import { usePresenceClock } from "../../hooks/use-presence-clock";
 import { useKeepLatestChatMessageVisible } from "../../hooks/use-visual-viewport-chat-bottom";
 import { useChatOpeningScroll } from "../../hooks/use-chat-opening-scroll";
 import { api, ApiError, isRequestTimeoutError } from "../../lib/api-client";
@@ -71,9 +70,7 @@ import {
   type GeneratedSceneVideo,
   type SpritePlacement,
   type SpriteSide,
-  type WeekSchedule,
 } from "@marinara-engine/shared";
-import { resolveLiveConversationStatus } from "../../lib/conversation-presence-status";
 import { useUIStore } from "../../stores/ui.store";
 import { useAgentStore, EMPTY_AGENT_TYPES } from "../../stores/agent.store";
 import { isBuiltInTrackerAgentType, resolveTrackerRerunTypes } from "../../lib/tracker-agents";
@@ -428,20 +425,6 @@ const ChatRoleplaySurface = lazy(async () => {
   const module = await import("./ChatRoleplaySurface");
   return { default: module.ChatRoleplaySurface };
 });
-
-const loadCharacterScheduleEditorModal = async () => {
-  const module = await import("./CharacterScheduleEditorModal");
-  return { default: module.CharacterScheduleEditorModal };
-};
-
-let characterScheduleEditorModalLoadPromise: ReturnType<typeof loadCharacterScheduleEditorModal> | null = null;
-
-function preloadCharacterScheduleEditorModal() {
-  characterScheduleEditorModalLoadPromise ??= loadCharacterScheduleEditorModal();
-  return characterScheduleEditorModalLoadPromise;
-}
-
-const CharacterScheduleEditorModal = lazy(preloadCharacterScheduleEditorModal);
 
 type FloatingPanelAnchor = ReturnType<typeof readChatToolbarFloatingPanelAnchor>;
 type OpenSettingsOptions = { initialSection?: ChatSettingsInitialSection };
@@ -955,8 +938,6 @@ const LocalChatArea = memo(function LocalChatArea() {
 
   // A 60s-cadence clock so schedule/override-derived presence refreshes when time
   // alone changes the effective status (mirrors the presence pill's refetch).
-  const presenceNow = usePresenceClock();
-
   // Build character lookup map from the active chat's characters only. Library
   // panels can load the whole catalog; the chat surface should not.
   const characterMapRef = useRef<CharacterMap>(new Map());
@@ -990,37 +971,6 @@ const LocalChatArea = memo(function LocalChatArea() {
         });
       }
     }
-    // Overlay per-chat presence status so status dots reflect this chat, not the last chat to
-    // generate. Prefer the live override/schedule-derived status (matching the presence pill, via
-    // the shared resolver) over the generation-time snapshot, which only refreshes on generation.
-    const chatStatuses = convoMeta.conversationCharacterStatuses as
-      Record<string, { status?: string; activity?: string }> | undefined;
-    const presenceIds = new Set<string>([
-      ...Object.keys(chatStatuses ?? {}),
-      ...Object.keys((convoMeta.conversationStatusOverrides as Record<string, unknown> | undefined) ?? {}),
-      ...Object.keys((convoMeta.characterSchedules as Record<string, unknown> | undefined) ?? {}),
-      // A chat with schedules off has no cached schedules to key off, but its
-      // characters still need the always-online answer instead of the card's
-      // global status.
-      ...(convoMeta.conversationSchedulesEnabled === false ? chatCharIds : []),
-    ]);
-    for (const id of presenceIds) {
-      const existing = map.get(id);
-      if (!existing) continue;
-      const live = resolveLiveConversationStatus(convoMeta, id, presenceNow);
-      if (live) {
-        map.set(id, { ...existing, conversationStatus: live.status, conversationActivity: live.activity });
-        continue;
-      }
-      const info = chatStatuses?.[id];
-      if (info?.status) {
-        map.set(id, {
-          ...existing,
-          conversationStatus: info.status as any,
-          conversationActivity: info.activity ?? existing.conversationActivity,
-        });
-      }
-    }
     // [#3164] Presence-clock ticks and metadata writes that didn't change any
     // displayed character field must not renew the map identity — a new
     // identity re-runs the regex+macro display pipeline for every mounted
@@ -1028,7 +978,7 @@ const LocalChatArea = memo(function LocalChatArea() {
     if (areCharacterMapsEqual(characterMapRef.current, map)) return characterMapRef.current;
     characterMapRef.current = map;
     return map;
-  }, [chatCharacterRows, chat?.metadata, presenceNow, chatCharIds]);
+  }, [chatCharacterRows, chat?.metadata]);
 
   const characterNames = useMemo(
     () => chatCharIds.map((id) => characterMap.get(id)?.name).filter((n): n is string => !!n),
@@ -1049,7 +999,6 @@ const LocalChatArea = memo(function LocalChatArea() {
     messages,
     messageCountData,
     characterMap,
-    presenceNow,
     agentProcessing,
     failedAgentTypes,
     chatBackground,
@@ -1238,46 +1187,6 @@ const LocalChatArea = memo(function LocalChatArea() {
     chatCharIds.length > 1 ? normalizeGroupChatMode(chatMeta.groupChatMode) : undefined;
 
   const updateMeta = useUpdateChatMetadata();
-  const [scheduleModalCharacterId, setScheduleModalCharacterId] = useState<string | null>(null);
-  const [scheduleModalInitialDay, setScheduleModalInitialDay] = useState<string | null>(null);
-  const handleOpenScheduleEditor = useCallback((characterId: string, options?: { initialDay?: string | null }) => {
-    void preloadCharacterScheduleEditorModal();
-    setScheduleModalInitialDay(options?.initialDay ?? null);
-    setScheduleModalCharacterId(characterId);
-  }, []);
-  const handleCloseScheduleEditor = useCallback(() => {
-    setScheduleModalCharacterId(null);
-    setScheduleModalInitialDay(null);
-  }, []);
-  const updateCharacter = useUpdateCharacter();
-  // The character owns its schedule; the chat's `characterSchedules` map is only
-  // a cache, so write the card and let the server re-resolve the chat copy.
-  const handleSaveCharacterSchedule = useCallback(
-    (savedCharacterId: string, updated: WeekSchedule) => {
-      updateCharacter.mutate(
-        {
-          id: savedCharacterId,
-          data: { extensions: { conversationSchedule: updated } },
-          skipVersionSnapshot: true,
-        },
-        {
-          onSuccess: () => {
-            // Refetching the chat re-resolves its cached copy from the card, so
-            // the new routine shows up here without a second metadata write.
-            void queryClient.invalidateQueries({ queryKey: characterKeys.detail(savedCharacterId) });
-            if (chat?.id) void queryClient.invalidateQueries({ queryKey: chatKeys.detail(chat.id) });
-          },
-          onError: (error) =>
-            toast.error(
-              error instanceof Error
-                ? error.message
-                : localizeUi("ui.chat.characterscheduleeditormodal.failedToSaveSchedule"),
-            ),
-        },
-      );
-    },
-    [chat?.id, localizeUi, queryClient, updateCharacter],
-  );
   const summaryContextSize: number = (chatMeta.summaryContextSize as number) ?? 50;
   const [roleplayVideoReviewItems, setRoleplayVideoReviewItems] = useState<ImagePromptReviewItem[]>([]);
   const [roleplayVideoReviewSubmitting, setRoleplayVideoReviewSubmitting] = useState(false);
@@ -1973,8 +1882,6 @@ const LocalChatArea = memo(function LocalChatArea() {
     setMultiSelectMode(false);
     setSelectedMessageIds(new Set());
     setSelectionAnchorIndex(null);
-    setScheduleModalCharacterId(null);
-    setScheduleModalInitialDay(null);
   }, [activeChatId]);
 
   const handleUnselectAllMessages = useCallback(() => {
@@ -3026,22 +2933,6 @@ const LocalChatArea = memo(function LocalChatArea() {
           }
         : undefined;
   const surfaceFallback = <div className="flex flex-1 overflow-hidden" />;
-  const scheduleModal = scheduleModalCharacterId ? (
-    <Suspense fallback={null}>
-      <CharacterScheduleEditorModal
-        open
-        chatId={activeChatId}
-        characterId={scheduleModalCharacterId}
-        characterName={characterMap.get(scheduleModalCharacterId)?.name ?? "Character"}
-        characterAvatarUrl={characterMap.get(scheduleModalCharacterId)?.avatarUrl ?? null}
-        characterAvatarCrop={characterMap.get(scheduleModalCharacterId)?.avatarCrop ?? null}
-        schedule={(chatMeta.characterSchedules as Record<string, WeekSchedule> | undefined)?.[scheduleModalCharacterId]}
-        initialDay={scheduleModalInitialDay}
-        onClose={handleCloseScheduleEditor}
-        onSave={handleSaveCharacterSchedule}
-      />
-    </Suspense>
-  ) : null;
   const resourceDropOverlay = chat ? <ChatResourceDropOverlay chat={chat} /> : null;
 
   // ═══════════════════════════════════════════════
@@ -3051,7 +2942,6 @@ const LocalChatArea = memo(function LocalChatArea() {
     return (
       <>
         {cardCssInjector}
-        {scheduleModal}
         {resourceDropOverlay}
         <Suspense fallback={surfaceFallback}>
           <ChatConversationSurface
@@ -3095,8 +2985,6 @@ const LocalChatArea = memo(function LocalChatArea() {
             onSwitchChat={chat?.connectedChatId ? () => setActiveChatId(chat.connectedChatId!) : undefined}
             onConcludeScene={chatMeta.sceneStatus === "active" ? () => concludeScene(activeChatId) : undefined}
             onAbandonScene={chatMeta.sceneStatus === "active" ? () => abandonScene(activeChatId) : undefined}
-            onOpenSettings={handleOpenSettingsPanel}
-            onOpenScheduleEditor={handleOpenScheduleEditor}
             onCloseSettings={handleCloseSettingsPanel}
             onIllustrate={handleIllustrate}
             onIllustrateWithAgent={handleIllustrateWithAgent}
@@ -3149,7 +3037,6 @@ const LocalChatArea = memo(function LocalChatArea() {
   return (
     <>
       {cardCssInjector}
-      {scheduleModal}
       {resourceDropOverlay}
       <Suspense fallback={surfaceFallback}>
         <ChatRoleplaySurface
@@ -3231,7 +3118,6 @@ const LocalChatArea = memo(function LocalChatArea() {
           onForkScene={forkScene}
           isForkingScene={isForking || isStreaming}
           onCloseSettings={handleCloseSettingsPanel}
-          onOpenScheduleEditor={handleOpenScheduleEditor}
           onIllustrate={handleIllustrate}
           onIllustrateWithAgent={handleIllustrateWithAgent}
           onGenerateBackground={handleGenerateRoleplayBackground}

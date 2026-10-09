@@ -300,11 +300,6 @@ const CUSTOM_AGENT_CAPABILITY_META: Array<{
     description: "settings.agentImports.capabilities.control_media.description",
   },
   {
-    id: "control_haptics",
-    label: "settings.agentImports.capabilities.control_haptics.label",
-    description: "settings.agentImports.capabilities.control_haptics.description",
-  },
-  {
     id: "edit_about_me",
     label: "settings.agentImports.capabilities.edit_about_me.label",
     description: "settings.agentImports.capabilities.edit_about_me.description",
@@ -507,12 +502,6 @@ const CUSTOM_AGENT_RESULT_TYPE_OPTIONS: Array<{
     label: "settings.agentImports.results.local_music_control.label",
     description: "settings.agentImports.results.local_music_control.description",
     requiredCapability: "control_media",
-  },
-  {
-    id: "haptic_command",
-    label: "settings.agentImports.results.haptic_command.label",
-    description: "settings.agentImports.results.haptic_command.description",
-    requiredCapability: "control_haptics",
   },
   {
     id: "about_me_update",

@@ -742,7 +742,6 @@ type RoleplaySurfaceProps = {
   onAbandonScene: () => void;
   onForkScene: (sceneChatId: string, mode: SceneForkMode) => void;
   isForkingScene?: boolean;
-  onOpenScheduleEditor?: ComponentProps<typeof ChatCommonOverlays>["onOpenScheduleEditor"];
   onCloseSettings: (options?: { force?: boolean }) => void;
   onIllustrate?: (prompt?: string, messageRange?: [string, string]) => void;
   onIllustrateWithAgent?: (agentType: string) => void | Promise<void>;
@@ -851,7 +850,6 @@ export function ChatRoleplaySurface({
   onAbandonScene,
   onForkScene,
   isForkingScene,
-  onOpenScheduleEditor,
   onCloseSettings,
   onIllustrate,
   onIllustrateWithAgent,
@@ -2091,7 +2089,6 @@ export function ChatRoleplaySurface({
           onSpriteVisualSettingsChange,
         }}
         onCloseSettings={onCloseSettings}
-        onOpenScheduleEditor={onOpenScheduleEditor}
         onWizardFinish={onWizardFinish}
         onClosePeekPrompt={onClosePeekPrompt}
         onDeleteConfirm={onDeleteConfirm}

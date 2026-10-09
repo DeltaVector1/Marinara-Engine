@@ -1222,13 +1222,10 @@ export function useGenerate() {
       regenerateMessageId?: string;
       continueMessageId?: string;
       impersonate?: boolean;
-      autonomous?: boolean;
-      autonomousIntentKey?: string;
       attachments?: Array<{ type: string; data: string; filename?: string; name?: string }>;
       mentionedCharacterNames?: string[];
       forCharacterId?: string;
       smartResponse?: boolean;
-      skipPresenceDelay?: boolean;
       narrativeDirectorMode?: "natural" | "random";
       generationGuide?: string;
       generationGuideSource?: "narrator" | "guide" | "game_start";
@@ -1293,8 +1290,7 @@ export function useGenerate() {
       let spriteChangeReceived = false;
 
       // Only touch global streaming UI state if the user is viewing this chat.
-      // Background generations (e.g. autonomous messaging) run silently,
-      // tracked only by abortControllers.
+      // Background generations run silently, tracked only by abortControllers.
       if (isActiveChat()) {
         // Remove any completed response before exposing the next streaming state.
         // Otherwise the old buffer can render beneath the new user message until
@@ -1476,7 +1472,7 @@ export function useGenerate() {
       let pendingText = ""; // Tokens waiting to be typed out
       let receivedContent = false; // Whether any actual message content was received
       let receivedThinking = false; // Whether provider-native thinking chunks were received
-      let gameTurnLoadedSoundPlayed = false;
+      const gameTurnLoadedSoundPlayed = false;
       let sawDoneEvent = false;
       let illustrationQueued = false;
       let illustrationSettled = false;
@@ -1811,16 +1807,8 @@ export function useGenerate() {
       };
 
       try {
-        const {
-          userStatus,
-          userActivity,
-          debugMode,
-          trimIncompleteModelOutput,
-          continueAddsNewline,
-          musicPlayerEnabled,
-          musicPlayerSource,
-        } = useUIStore.getState();
-        const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
+        const { debugMode, trimIncompleteModelOutput, continueAddsNewline, musicPlayerEnabled, musicPlayerSource } =
+          useUIStore.getState();
 
         // Flush any pending game-state widget edits so the server sees them before committing
         const flushPatch = useGameStateStore.getState().flushPatch;
@@ -1835,9 +1823,6 @@ export function useGenerate() {
             ...params,
             submissionId,
             ...(currentBackground !== undefined ? { currentBackground } : {}),
-            userStatus,
-            userActivity,
-            userTimeZone,
             debugMode,
             trimIncompleteModelOutput,
             continueAddsNewline,
@@ -2582,9 +2567,7 @@ export function useGenerate() {
               currentGroupTurnSavedMessage = null;
               receivedContent = latestAssistantMessage(persistedMessages.values()) !== null;
               replaceGeneratedContentWithTypewriter("");
-              if (!params.autonomous) {
-                toast.info("The model repeated its previous message, so it was not posted.");
-              }
+              toast.info("The model repeated its previous message, so it was not posted.");
               break;
             }
 
@@ -2707,10 +2690,6 @@ export function useGenerate() {
                   setDelayedCharacterInfo(null);
                 }
               }
-              break;
-            }
-
-            case "schedule_updated": {
               break;
             }
 
@@ -2932,10 +2911,6 @@ export function useGenerate() {
                   .getState()
                   .setChatBackground(`/api/backgrounds/file/${encodeURIComponent(sceneData.background)}`);
               }
-              break;
-            }
-
-            case "haptic_command": {
               break;
             }
 
@@ -3476,15 +3451,11 @@ export function useGenerate() {
             notifyWhenReady(() => {
               void showLocalMessageNotification({
                 ...notification,
-                enabled: params.autonomous
-                  ? uiState.conversationBrowserNotifications
-                  : uiState.generationBrowserNotifications,
+                enabled: uiState.generationBrowserNotifications,
               });
               showNativeMessageNotification({
                 ...notification,
-                enabled: params.autonomous
-                  ? uiState.conversationMobileNotifications
-                  : uiState.generationMobileNotifications,
+                enabled: uiState.generationMobileNotifications,
               });
             });
           }

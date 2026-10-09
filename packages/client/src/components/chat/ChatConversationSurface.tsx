@@ -61,8 +61,6 @@ type ConversationSurfaceProps = {
   onSwitchChat?: () => void;
   onConcludeScene?: () => void;
   onAbandonScene?: () => void;
-  onOpenSettings: ComponentProps<typeof ConversationView>["onOpenSettings"];
-  onOpenScheduleEditor?: ComponentProps<typeof ConversationView>["onOpenScheduleEditor"];
   onCloseSettings: (options?: { force?: boolean }) => void;
   onIllustrate?: (prompt?: string, messageRange?: [string, string]) => void;
   onIllustrateWithAgent?: (agentType: string) => void | Promise<void>;
@@ -126,8 +124,6 @@ export function ChatConversationSurface({
   onSwitchChat,
   onConcludeScene,
   onAbandonScene,
-  onOpenSettings,
-  onOpenScheduleEditor,
   onCloseSettings,
   onIllustrate,
   onIllustrateWithAgent,
@@ -191,8 +187,6 @@ export function ChatConversationSurface({
           onIllustrate={onIllustrate}
           onGenerateSelfie={onGenerateSelfie}
           lastAssistantMessageId={lastAssistantMessageId}
-          onOpenSettings={onOpenSettings}
-          onOpenScheduleEditor={onOpenScheduleEditor}
           onBranch={onBranch}
           multiSelectMode={multiSelectMode}
           selectedMessageIds={selectedMessageIds}
@@ -234,7 +228,6 @@ export function ChatConversationSurface({
           onSpriteSideChange,
         }}
         onCloseSettings={onCloseSettings}
-        onOpenScheduleEditor={onOpenScheduleEditor}
         onWizardFinish={onWizardFinish}
         onClosePeekPrompt={onClosePeekPrompt}
         onDeleteConfirm={onDeleteConfirm}

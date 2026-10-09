@@ -51,14 +51,12 @@ import {
   useDeleteCharacterVersion,
   useRenameCharacterVersion,
   useResetCharacterVersions,
-  spriteKeys,
   type CharacterCallVideoGenerationInput,
   type CharacterGalleryClip,
   type CharacterGalleryImage,
   type SpriteInfo,
 } from "../../hooks/use-characters";
 import { ConvoProfileFields } from "./ConvoProfileFields";
-import { CharacterScheduleEditorModal } from "../chat/CharacterScheduleEditorModal";
 import { useUIStore } from "../../stores/ui.store";
 import { lorebookKeys, useLorebook, useUpdateLorebook } from "../../hooks/use-lorebooks";
 import { useConnections } from "../../hooks/use-connections";
@@ -68,7 +66,6 @@ import { formatCardVersionTimestamp, getCardVersionTitle } from "../../lib/card-
 import { dataImageUrlToFile } from "../../lib/data-image-file";
 import { mergeEmbeddedCharacterCardFields } from "../../lib/character-import";
 import { parsePngCharacterCard } from "../../lib/png-parser";
-import { SpriteGenerationModal } from "../ui/SpriteGenerationModal";
 import { AvatarGenerationModal } from "../ui/AvatarGenerationModal";
 import { AvatarCropWidget } from "../ui/AvatarCropWidget";
 import { AvatarReplaceActions } from "../ui/AvatarReplaceActions";
@@ -120,7 +117,7 @@ import {
   Volume2,
 } from "lucide-react";
 import { cn, copyToClipboard, generateClientId, getAvatarCropStyle } from "../../lib/utils";
-import { normalizeAvatarCrop, type WeekSchedule } from "@marinara-engine/shared";
+import { normalizeAvatarCrop } from "@marinara-engine/shared";
 import { extractColorsFromImage } from "../../lib/avatar-color-extraction";
 import { buildCardAssetMarkdown } from "../../lib/card-asset-links";
 import { HelpTooltip } from "../ui/HelpTooltip";
@@ -1210,11 +1207,6 @@ export function CharacterEditor() {
                 <SpritesTab
                   characterId={characterId}
                   characterName={formData.name}
-                  defaultAppearance={imageAppearanceGeneratorSeed(
-                    formData.extensions,
-                    (formData.extensions.appearance as string) ?? formData.description,
-                  )}
-                  defaultAvatarUrl={avatarPreview}
                   characterSheetImageId={
                     typeof formData.extensions.characterSheetImageId === "string"
                       ? formData.extensions.characterSheetImageId
@@ -1557,7 +1549,6 @@ function ConvoTab({
   characterId?: string;
 }) {
   const ext = formData.extensions;
-  const { t: localizeUi } = useUiTranslation();
   const generateCharacterConvoProfile = useGenerateCharacterConvoProfile();
   const { data: installedCapabilities = [] } = useInstalledCapabilityPackages(kind === "character");
   const noodleInstalled = isCapabilityPackageAvailable(installedCapabilities, "noodle");
@@ -1573,28 +1564,6 @@ function ConvoTab({
   };
   const currentConvoProfileDraftRef = useRef(currentConvoProfileDraft);
   currentConvoProfileDraftRef.current = currentConvoProfileDraft;
-  const [scheduleOpen, setScheduleOpen] = useState(false);
-  // The schedule is runtime state, not card content, so it saves on its own
-  // rather than through the editor form. Routing it through `updateExtension`
-  // would mark the card dirty and raise a discard prompt for a routine that is
-  // regenerated every week.
-  const updateCharacter = useUpdateCharacter();
-  const savedCharacter = useCharacter(characterId ?? null);
-  const savedData = (() => {
-    const rawData = (savedCharacter.data as { data?: unknown } | undefined)?.data;
-    if (!rawData) return undefined;
-    try {
-      return (typeof rawData === "string" ? JSON.parse(rawData) : rawData) as CharacterData;
-    } catch {
-      return undefined;
-    }
-  })();
-  const savedExtensions = savedData?.extensions;
-  // Read the saved card, not the form: the schedule saves on its own, so the
-  // in-progress form copy goes stale as soon as the editor writes one.
-  const schedule =
-    (savedExtensions?.conversationSchedule as WeekSchedule | undefined) ??
-    (ext.conversationSchedule as WeekSchedule | undefined);
   return (
     // Key by the edited character so transient edit state resets on switch. The
     // editor reuses this component instance while moving between characters.
@@ -1638,34 +1607,6 @@ function ConvoTab({
         applyImageInstructionsToNoodle={ext.applyConversationImageInstructionsToNoodle === true}
         onApplyImageInstructionsToNoodleChange={
           noodleInstalled ? (value) => updateExtension("applyConversationImageInstructionsToNoodle", value) : undefined
-        }
-        schedule={schedule}
-        onEditSchedule={kind === "character" && characterId ? () => setScheduleOpen(true) : undefined}
-      />
-      {/* No chatId: the schedule belongs to the character, so the editor works
-        without a chat open. The draft routes fall back to the default connection. */}
-      <CharacterScheduleEditorModal
-        open={scheduleOpen && !!characterId}
-        characterId={characterId ?? ""}
-        characterName={formData.name}
-        schedule={schedule}
-        onClose={() => setScheduleOpen(false)}
-        onSave={(savedCharacterId, updated) =>
-          updateCharacter.mutate(
-            {
-              id: savedCharacterId,
-              data: { extensions: { conversationSchedule: updated } },
-              skipVersionSnapshot: true,
-            },
-            {
-              onError: (error) =>
-                toast.error(
-                  error instanceof Error
-                    ? error.message
-                    : localizeUi("ui.chat.characterscheduleeditormodal.failedToSaveSchedule"),
-                ),
-            },
-          )
         }
       />
     </>
@@ -4215,8 +4156,6 @@ function sanitizeSpriteExportFolderName(value: string, fallback: string): string
 function SpritesTab({
   characterId,
   characterName,
-  defaultAppearance,
-  defaultAvatarUrl,
   characterSheetImageId,
   useCharacterSheetAsReference,
   updateExtension,
@@ -4224,8 +4163,6 @@ function SpritesTab({
 }: {
   characterId: string;
   characterName?: string;
-  defaultAppearance?: string;
-  defaultAvatarUrl?: string | null;
   characterSheetImageId: string | null;
   useCharacterSheetAsReference: boolean;
   updateExtension: (key: string, value: unknown) => void;
@@ -4246,7 +4183,6 @@ function SpritesTab({
   const exportSprites = useExportSprites();
   const cleanupSavedSprites = useCleanupSavedSprites();
   const restoreSpriteCleanupBackup = useRestoreSpriteCleanupBackup();
-  const queryClient = useQueryClient();
   const [category, setCategory] = useState<SpriteCategory>("expressions");
   const [newExpression, setNewExpression] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -4263,13 +4199,11 @@ function SpritesTab({
   const [deleteSpriteRequest, setDeleteSpriteRequest] = useState<SpriteInfo | null>(null);
   const [deletingSprites, setDeletingSprites] = useState<"single" | "all" | null>(null);
   const [folderProgress, setFolderProgress] = useState<{ done: number; total: number } | null>(null);
-  const [spriteGenOpen, setSpriteGenOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const pendingExpressionRef = useRef("");
 
   const allSprites = (sprites as SpriteInfo[] | undefined) ?? [];
-  const portraitExpressionSprites = allSprites.filter((s) => !s.expression.toLowerCase().startsWith("full_"));
   const visibleSprites = allSprites.filter((s) =>
     category === "clips"
       ? false
@@ -4281,8 +4215,6 @@ function SpritesTab({
     visibleSprites.map((s) => (category === "full-body" ? s.expression.replace(/^full_/, "") : s.expression)),
   );
   const suggestedExpressions = DEFAULT_EXPRESSIONS.filter((e) => !existingExpressions.has(e));
-  const spriteGenerationUnavailable = spriteCapabilities?.spriteGenerationAvailable === false;
-  const spriteGenerationReason = spriteCapabilities?.reason ?? "Sprite generation is unavailable on this platform.";
   const backgroundCleanupUnavailable = spriteCapabilities?.backgroundRemovalAvailable === false;
   const backgroundCleanupReason = spriteCapabilities?.reason ?? "Background cleanup is unavailable on this platform.";
 
@@ -4691,20 +4623,6 @@ function SpritesTab({
           <div className="flex flex-wrap items-center gap-2 md:justify-end">
             <button
               type="button"
-              onClick={() => setSpriteGenOpen(true)}
-              disabled={spriteGenerationUnavailable}
-              className="mari-chrome-accent-surface mari-accent-animated flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-center text-[0.6875rem] font-medium leading-tight transition-all disabled:cursor-not-allowed disabled:opacity-40 max-md:flex-1 max-md:basis-[calc(50%-0.25rem)] max-md:px-2.5"
-              title={
-                spriteGenerationUnavailable
-                  ? spriteGenerationReason
-                  : localizeUi("ui.characters.spritestab.generateSpritesUsingAiImageGeneration")
-              }
-            >
-              <Wand2 size="0.8125rem" />
-              {localizeUi("ui.characters.spritestab.generateSprite")}
-            </button>
-            <button
-              type="button"
               onClick={() => folderInputRef.current?.click()}
               disabled={!!folderProgress}
               className="flex min-w-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--secondary)] px-3 py-1.5 text-center text-[0.6875rem] font-medium leading-tight text-[var(--muted-foreground)] ring-1 ring-[var(--border)] transition-all hover:bg-[var(--accent)] hover:text-[var(--foreground)] disabled:opacity-40 max-md:flex-1 max-md:basis-[calc(50%-0.25rem)] max-md:px-2.5"
@@ -4829,12 +4747,7 @@ function SpritesTab({
             </button>
           </div>
         )}
-        {spriteGenerationUnavailable && (
-          <div className="rounded-lg bg-[var(--secondary)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
-            {spriteGenerationReason}
-          </div>
-        )}
-        {backgroundCleanupUnavailable && !spriteGenerationUnavailable && (
+        {backgroundCleanupUnavailable && (
           <div className="rounded-lg bg-[var(--secondary)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
             {backgroundCleanupReason}
           </div>
@@ -5058,20 +4971,6 @@ function SpritesTab({
           </div>
         </Modal>
       )}
-
-      {/* Sprite Generation Modal */}
-      <SpriteGenerationModal
-        open={spriteGenOpen}
-        onClose={() => setSpriteGenOpen(false)}
-        entityId={characterId}
-        initialSpriteType={category === "full-body" ? "full-body" : "expressions"}
-        existingExpressionSprites={portraitExpressionSprites}
-        defaultAppearance={defaultAppearance}
-        defaultAvatarUrl={defaultAvatarUrl}
-        onSpritesGenerated={() => {
-          queryClient.invalidateQueries({ queryKey: spriteKeys.list(characterId) });
-        }}
-      />
     </div>
   );
 }

@@ -19,7 +19,6 @@ const CUSTOM_AGENT_RESULT_TYPE_IDS = [
   "spotify_control",
   "youtube_control",
   "local_music_control",
-  "haptic_command",
   "about_me_update",
   "cyoa_choices",
 ] as const satisfies readonly AgentResultType[];
@@ -178,18 +177,6 @@ export const CUSTOM_AGENT_RESULT_EXAMPLES: Record<CustomAgentResultType, CustomA
     path: "Exact available asset path",
     trackName: "Display name",
     volume: 50,
-  }),
-  haptic_command: jsonExample({
-    reasoning: "Brief reason for these commands",
-    commands: [
-      {
-        deviceIndex: 0,
-        action: "vibrate|oscillate|rotate|constrict|inflate|position|temperature|spray|led|stop",
-        intensity: 0.5,
-        duration: 2,
-        pattern: "steady|tap|pulse|wave|ramp|impact",
-      },
-    ],
   }),
   about_me_update: jsonExample({
     updates: [

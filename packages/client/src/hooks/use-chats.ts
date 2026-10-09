@@ -1007,29 +1007,6 @@ export function useUpdateChatLorebookEntry() {
   });
 }
 
-export function useClearAutonomousUnread() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (chatId: string) => api.delete<Chat>(`/chats/${chatId}/autonomous-unread`),
-    onMutate: (chatId) => ({ metadataVersion: captureChatMetadataVersion(chatId) }),
-    onSuccess: (data, chatId, context) => {
-      if (data) {
-        const guarded = guardServerChatSnapshot(qc, data, context?.metadataVersion ?? 0);
-        // The server clears unread state by DELETING these keys, so the
-        // response omits them and the merge keeps the cached residue. Nothing
-        // client-side ever PATCHes them, so no field version can legitimately
-        // outrank their deletion — drop them explicitly.
-        const metadata = { ...(normalizeChatMetadataValue(guarded.metadata) as Record<string, unknown>) };
-        delete metadata.autonomousUnreadCount;
-        delete metadata.autonomousUnreadCharacterIds;
-        delete metadata.autonomousUnreadAt;
-        qc.setQueryData(chatKeys.detail(chatId), { ...guarded, metadata: metadata as Chat["metadata"] });
-      }
-      qc.invalidateQueries({ queryKey: chatKeys.list() });
-    },
-  });
-}
-
 /** Patch day/week summaries via entry-level merge (concurrent-edit safe). */
 export function useUpdateChatSummaries() {
   const qc = useQueryClient();

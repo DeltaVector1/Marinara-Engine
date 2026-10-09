@@ -80,7 +80,6 @@ const OFFICIAL_PACKAGE_MODES: Readonly<Record<string, readonly CatalogMode[]>> =
   "conversation-calls": ["conversation"],
   cyoa: ["roleplay"],
   "echo-chamber": ["roleplay"],
-  haptic: ["conversation", "roleplay", "game"],
   illustrator: ["conversation", "roleplay", "game"],
   storyboard: ["roleplay", "game"],
   html: ["roleplay"],
