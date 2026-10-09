@@ -1,5 +1,5 @@
 // ──────────────────────────────────────────────
-// Layout: Top Bar (polished, with hover glow)
+// Layout: top bar
 // ──────────────────────────────────────────────
 import {
   MessageSquareText,
@@ -23,7 +23,6 @@ import {
   useState,
   useSyncExternalStore,
   type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -49,8 +48,6 @@ type RightPanelButtonConfig = {
   panel: RightPanelButtonPanel;
   icon: LucideIcon;
   label: string;
-  gradientClass: string;
-  underlineClass?: string;
 };
 
 const RIGHT_PANEL_BUTTONS: readonly RightPanelButtonConfig[] = [
@@ -58,44 +55,35 @@ const RIGHT_PANEL_BUTTONS: readonly RightPanelButtonConfig[] = [
     panel: "personas" as const,
     icon: VenetianMask,
     label: "Personas",
-    gradientClass: "mari-panel-gradient--personas",
   },
   {
     panel: "lorebooks" as const,
     icon: BookOpen,
     label: "Lorebooks",
-    gradientClass: "mari-panel-gradient--lorebooks",
   },
   {
     panel: "presets" as const,
     icon: FileText,
     label: "Presets",
-    gradientClass: "mari-panel-gradient--presets",
-    underlineClass: "mari-panel-gradient-surface mari-panel-gradient--presets",
   },
   {
     panel: "connections" as const,
     icon: Link,
     label: "Connections",
-    gradientClass: "mari-panel-gradient--connections",
   },
   {
     panel: "agents" as const,
     icon: Sparkles,
     label: "Agents",
-    gradientClass: "mari-panel-gradient--agents",
   },
 ] as const;
 
 const PHONE_TOPBAR_QUERY = "(max-width: 639px)";
 const PHONE_OVERFLOW_HIDDEN_CLASS = "max-sm:hidden";
-const TOPBAR_COARSE_TARGET_CLASS = "[@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9";
-const TOPBAR_BUTTON_CLASS = `mari-topbar-action relative flex h-8 w-8 items-center justify-center rounded-lg p-0 transition-all hover:bg-[var(--accent)] active:scale-95 ${TOPBAR_COARSE_TARGET_CLASS}`;
-const TOPBAR_PANEL_BUTTON_CLASS = `mari-topbar-action relative flex h-8 w-8 items-center justify-center rounded-lg p-0 transition-all duration-200 ${TOPBAR_COARSE_TARGET_CLASS}`;
-const TOPBAR_ACTIVE_BUTTON_CLASS = "bg-[var(--accent)] shadow-sm";
-const TOPBAR_FORCE_HOVER_CLASS = "bg-[var(--accent)]";
-const TOPBAR_ACCENT_ICON_CLASS = "mari-topbar-accent-icon mari-accent-animated";
-const CHAT_TOPBAR_GRADIENT_ID = "mari-topbar-chats-gradient";
+const TOPBAR_BUTTON_CLASS =
+  "mari-topbar-action inline-flex min-h-8 items-center justify-center gap-2 rounded-md px-2 text-sm font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] [@media(pointer:coarse)]:min-h-11";
+const TOPBAR_PANEL_BUTTON_CLASS = `${TOPBAR_BUTTON_CLASS} shrink-0`;
+const TOPBAR_ACTIVE_BUTTON_CLASS = "bg-[var(--accent)] text-[var(--foreground)]";
 
 export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boolean }) {
   const localize = useLocalizedUiText();
@@ -118,13 +106,9 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
   const toolDetailId = useUIStore((s) => s.toolDetailId);
   const personaDetailId = useUIStore((s) => s.personaDetailId);
   const regexDetailId = useUIStore((s) => s.regexDetailId);
-  const gameAssetsBrowserOpen = useUIStore((s) => s.gameAssetsBrowserOpen);
   const characterLibraryOpen = useUIStore((s) => s.characterLibraryOpen);
   const cardLibraryKind = useUIStore((s) => s.cardLibraryKind);
   const headerRef = useRef<HTMLElement | null>(null);
-  const leftControlsRef = useRef<HTMLDivElement | null>(null);
-  const rightNavRef = useRef<HTMLElement | null>(null);
-  const [hoveredTopbarKey, setHoveredTopbarKey] = useState<string | null>(null);
 
   const isCharactersPanelActive =
     (rightPanelOpen && rightPanel === "characters") ||
@@ -156,10 +140,8 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     !toolDetailId &&
     !personaDetailId &&
     !regexDetailId &&
-    !gameAssetsBrowserOpen &&
     !characterLibraryOpen;
 
-  const isTopbarHovered = (key: string) => hoveredTopbarKey === key;
   const phoneTopbar = usePhoneTopbar();
 
   const prepareMobileTopbarNavigation = useCallback(() => {
@@ -189,32 +171,17 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     closeRightPanel();
   }, [closeAllDetails, closeRightPanel, mobileTopbarNavigation, setActiveChatId, setSidebarOpen]);
 
-  const handleTopbarPointerOver = (event: ReactPointerEvent<HTMLElement>) => {
-    if (event.pointerType !== "mouse") return;
-    if (!(event.target instanceof Element)) return;
-    const button = event.target.closest("[data-topbar-hover-key]");
-    if (!(button instanceof HTMLElement) || !event.currentTarget.contains(button)) return;
-
-    const nextKey = button.dataset.topbarHoverKey;
-    if (!nextKey) return;
-    setHoveredTopbarKey((current) => (current === nextKey ? current : nextKey));
-  };
-
-  const clearTopbarHover = useCallback(() => setHoveredTopbarKey(null), []);
-
   const overflowItems: TopbarOverflowItem[] = [
     {
       key: "characters",
       icon: <Users size={16} />,
-      iconClassName: "mari-panel-gradient--characters text-[var(--mari-panel-gradient-start)]",
       label: localize("Characters"),
       active: isCharactersPanelActive,
       onSelect: () => handleRightPanelClick("characters"),
     },
-    ...RIGHT_PANEL_BUTTONS.map(({ panel, icon: Icon, label, gradientClass }) => ({
+    ...RIGHT_PANEL_BUTTONS.map(({ panel, icon: Icon, label }) => ({
       key: panel,
       icon: <Icon size={16} />,
-      iconClassName: cn(gradientClass, "text-[var(--mari-panel-gradient-start)]"),
       label: localize(label),
       active: panelContextActive[panel],
       onSelect: () => handleRightPanelClick(panel),
@@ -232,26 +199,11 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     {
       key: "settings",
       icon: <Settings size={16} />,
-      iconClassName: "mari-panel-gradient--settings text-[var(--mari-panel-gradient-start)]",
       label: localize("Settings"),
       active: rightPanelOpen && rightPanel === "settings",
       onSelect: () => handleRightPanelClick("settings"),
     },
   ];
-
-  useEffect(() => {
-    const clearWhenHidden = () => {
-      if (document.visibilityState !== "visible") clearTopbarHover();
-    };
-
-    window.addEventListener("blur", clearTopbarHover);
-    document.addEventListener("visibilitychange", clearWhenHidden);
-
-    return () => {
-      window.removeEventListener("blur", clearTopbarHover);
-      document.removeEventListener("visibilitychange", clearWhenHidden);
-    };
-  }, [clearTopbarHover]);
 
   const chatsActive = sidebarOpen && (!mobileTopbarNavigation || !rightPanelOpen);
   const chatsButton = (
@@ -259,34 +211,14 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
       key="chats"
       onClick={handleSidebarClick}
       aria-pressed={chatsActive}
+      aria-label={localize("Chats")}
       data-tour="sidebar-toggle"
-      data-topbar-hover-key="chats"
-      className={cn(
-        TOPBAR_BUTTON_CLASS,
-        chatsActive
-          ? cn(TOPBAR_ACTIVE_BUTTON_CLASS, !mobileTopbarNavigation && "mari-topbar-chat-gradient-icon")
-          : cn(
-              "text-[var(--muted-foreground)]",
-              !mobileTopbarNavigation && "mari-topbar-chat-gradient-hover",
-              !mobileTopbarNavigation &&
-                isTopbarHovered("chats") &&
-                cn(TOPBAR_FORCE_HOVER_CLASS, "mari-topbar-chat-gradient-icon"),
-            ),
-      )}
+      data-topbar-key="chats"
+      className={cn(TOPBAR_BUTTON_CLASS, chatsActive && TOPBAR_ACTIVE_BUTTON_CLASS)}
       title={localize("Chats")}
     >
-      <MessageSquareText size={15} className={TOPBAR_ACCENT_ICON_CLASS}>
-        <defs>
-          <linearGradient id={CHAT_TOPBAR_GRADIENT_ID} x1="2" x2="18" y1="3" y2="18" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="var(--mari-logo-cyan)" />
-            <stop offset="48%" stopColor="var(--mari-logo-orange)" />
-            <stop offset="100%" stopColor="var(--mari-logo-pink)" />
-          </linearGradient>
-        </defs>
-      </MessageSquareText>
-      {chatsActive && (
-        <span className="mari-topbar-chat-gradient-underline absolute -bottom-0.5 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full" />
-      )}
+      <MessageSquareText aria-hidden="true" size={16} />
+      <span className="hidden xl:inline">{localize("Chats")}</span>
     </button>
   );
 
@@ -295,23 +227,13 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
       key="home"
       onClick={handleHomeClick}
       aria-pressed={isHomeActive}
-      data-topbar-hover-key="home"
-      className={cn(
-        TOPBAR_BUTTON_CLASS,
-        isHomeActive
-          ? TOPBAR_ACTIVE_BUTTON_CLASS
-          : cn(
-              "text-[var(--muted-foreground)] hover:text-[var(--marinara-chat-chrome-button-text-hover)]",
-              isTopbarHovered("home") &&
-                cn(TOPBAR_FORCE_HOVER_CLASS, "text-[var(--marinara-chat-chrome-button-text-hover)]"),
-            ),
-      )}
+      aria-label={localize("Home")}
+      data-topbar-key="home"
+      className={cn(TOPBAR_BUTTON_CLASS, isHomeActive && TOPBAR_ACTIVE_BUTTON_CLASS)}
       title={localize("Home")}
     >
-      <Home size={15} className={TOPBAR_ACCENT_ICON_CLASS} />
-      {isHomeActive && (
-        <span className="mari-topbar-active-underline absolute -bottom-0.5 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full" />
-      )}
+      <Home aria-hidden="true" size={16} />
+      <span className="hidden xl:inline">{localize("Home")}</span>
     </button>
   );
 
@@ -319,86 +241,55 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     <header
       ref={headerRef}
       data-component="TopBar"
-      onPointerLeave={clearTopbarHover}
-      onPointerOver={handleTopbarPointerOver}
-      className="mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between bg-[var(--marinara-topbar-surface)] px-3 backdrop-blur-sm"
+      className="mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-3"
     >
-      {/* Subtle bottom border only */}
-      <div className="absolute inset-x-0 bottom-0 h-px bg-[var(--marinara-topbar-border)]" />
-
-      {/* Left section: window controls + chat info */}
       <div className="mari-topbar-left flex min-w-0 flex-1 items-center gap-2">
-        <div
-          ref={leftControlsRef}
-          className="mari-topbar-left-controls mari-rgb-icon-scope flex shrink-0 items-center gap-2"
-        >
+        <div className="mari-topbar-left-controls flex shrink-0 items-center gap-1">
           {mobileTopbarNavigation ? [homeButton, chatsButton] : [chatsButton, homeButton]}
         </div>
       </div>
 
-      {/* Right section - Panel toggles */}
       <nav
-        ref={rightNavRef}
         data-tour="panel-buttons"
         aria-label={localize("Panel navigation")}
-        className="mari-topbar-panel-nav mari-rgb-icon-scope flex shrink-0 items-center justify-end gap-0.5 rounded-xl p-1 max-sm:gap-0 max-sm:p-0.5"
+        className="mari-topbar-panel-nav flex shrink-0 items-center justify-end gap-1"
       >
         <button
           onClick={() => handleRightPanelClick("characters")}
           aria-pressed={isCharactersPanelActive}
+          aria-label={localize("Characters")}
           data-tour="panel-characters"
-          data-topbar-hover-key="characters"
+          data-topbar-key="characters"
           className={cn(
             TOPBAR_PANEL_BUTTON_CLASS,
             PHONE_OVERFLOW_HIDDEN_CLASS,
-            isCharactersPanelActive
-              ? TOPBAR_ACTIVE_BUTTON_CLASS
-              : cn(
-                  "text-[var(--muted-foreground)] hover:text-[var(--marinara-chat-chrome-button-text-hover)]",
-                  isTopbarHovered("characters") &&
-                    cn(TOPBAR_FORCE_HOVER_CLASS, "text-[var(--marinara-chat-chrome-button-text-hover)]"),
-                ),
+            isCharactersPanelActive && TOPBAR_ACTIVE_BUTTON_CLASS,
           )}
           title={localize("Characters")}
         >
-          <Users size={15} className={TOPBAR_ACCENT_ICON_CLASS} />
-          {isCharactersPanelActive && (
-            <span
-              data-component="CharactersTopbarUnderline"
-              className="mari-panel-gradient-surface mari-panel-gradient--characters absolute -bottom-0.5 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full"
-            />
-          )}
+          <Users aria-hidden="true" size={16} />
+          <span className="hidden xl:inline">{localize("Characters")}</span>
         </button>
 
-        {RIGHT_PANEL_BUTTONS.map(({ panel, icon: Icon, label, gradientClass, underlineClass }) => {
+        {RIGHT_PANEL_BUTTONS.map(({ panel, icon: Icon, label }) => {
           const isActive = panelContextActive[panel];
-          const isHovered = isTopbarHovered(panel);
           return (
             <button
               key={panel}
               onClick={() => handleRightPanelClick(panel)}
               aria-pressed={isActive}
+              aria-label={localize(label)}
               data-tour={`panel-${panel}`}
-              data-topbar-hover-key={panel}
+              data-topbar-key={panel}
               className={cn(
                 TOPBAR_PANEL_BUTTON_CLASS,
-                "mari-topbar-panel-icon",
                 PHONE_OVERFLOW_HIDDEN_CLASS,
-                gradientClass,
-                isHovered && cn(TOPBAR_FORCE_HOVER_CLASS, "mari-topbar-panel-icon--hovered"),
-                isActive && cn(TOPBAR_ACTIVE_BUTTON_CLASS, "mari-topbar-panel-icon--active"),
+                isActive && TOPBAR_ACTIVE_BUTTON_CLASS,
               )}
               title={localize(label)}
             >
-              <Icon size={15} className={TOPBAR_ACCENT_ICON_CLASS} />
-              {isActive && (
-                <span
-                  className={cn(
-                    "absolute -bottom-0.5 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full",
-                    underlineClass ?? cn("mari-panel-gradient-surface", gradientClass),
-                  )}
-                />
-              )}
+              <Icon aria-hidden="true" size={16} />
+              <span className="hidden xl:inline">{localize(label)}</span>
             </button>
           );
         })}
@@ -406,25 +297,19 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
         {/* Settings */}
         <button
           onClick={() => handleRightPanelClick("settings")}
+          aria-label={localize("Settings")}
           data-tour="panel-settings"
-          data-topbar-hover-key="settings"
+          data-topbar-key="settings"
           aria-pressed={rightPanelOpen && rightPanel === "settings"}
           className={cn(
             TOPBAR_PANEL_BUTTON_CLASS,
             PHONE_OVERFLOW_HIDDEN_CLASS,
-            rightPanelOpen && rightPanel === "settings"
-              ? cn(TOPBAR_ACTIVE_BUTTON_CLASS, "text-gray-300")
-              : cn(
-                  "text-[var(--muted-foreground)] hover:text-gray-300",
-                  isTopbarHovered("settings") && cn(TOPBAR_FORCE_HOVER_CLASS, "text-gray-300"),
-                ),
+            rightPanelOpen && rightPanel === "settings" && TOPBAR_ACTIVE_BUTTON_CLASS,
           )}
           title={localize("Settings")}
         >
-          <Settings size={15} className={TOPBAR_ACCENT_ICON_CLASS} />
-          {rightPanelOpen && rightPanel === "settings" && (
-            <span className="absolute -bottom-0.5 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full bg-gradient-to-r from-gray-400 to-gray-500" />
-          )}
+          <Settings aria-hidden="true" size={16} />
+          <span className="hidden xl:inline">{localize("Settings")}</span>
         </button>
 
         <PersonalExtensionTopbarButtons className={PHONE_OVERFLOW_HIDDEN_CLASS} />
@@ -455,7 +340,6 @@ function usePhoneTopbar() {
 type TopbarOverflowItem = {
   key: string;
   icon: ReactNode;
-  iconClassName?: string;
   label: string;
   hint?: string;
   active?: boolean;
@@ -579,10 +463,8 @@ function TopbarMoreMenu({
       style={{
         top: menuTop + 4,
         maxHeight: `calc(100dvh - ${menuTop + 12}px)`,
-        backgroundColor: "var(--background)",
-        backgroundImage: "linear-gradient(var(--card), var(--card))",
       }}
-      className="mari-chrome-token-scope fixed right-[max(0.5rem,env(safe-area-inset-right))] z-[9000] w-[min(16.5rem,calc(100vw-1rem))] overflow-y-auto overscroll-contain rounded-xl border border-[var(--marinara-chat-chrome-panel-border)] p-1.5 text-[var(--foreground)] shadow-2xl"
+      className="fixed right-[max(0.5rem,env(safe-area-inset-right))] z-[9000] w-[min(16.5rem,calc(100vw-1rem))] overflow-y-auto overscroll-contain rounded-lg border border-[var(--border)] bg-[var(--popover)] p-1.5 text-[var(--popover-foreground)] shadow-lg"
     >
       {items.map((item) => (
         <button
@@ -600,10 +482,7 @@ function TopbarMoreMenu({
         >
           <span
             aria-hidden="true"
-            className={cn(
-              "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--secondary)] text-[var(--marinara-chat-chrome-button-text-active)]",
-              item.iconClassName,
-            )}
+            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--secondary)] text-[var(--muted-foreground)]"
           >
             {item.icon}
           </span>
@@ -632,15 +511,10 @@ function TopbarMoreMenu({
         aria-controls={open ? menuId : undefined}
         aria-label={label}
         title={label}
-        className={cn(
-          TOPBAR_PANEL_BUTTON_CLASS,
-          "ml-auto sm:hidden",
-          open
-            ? TOPBAR_ACTIVE_BUTTON_CLASS
-            : "text-[var(--muted-foreground)] hover:text-[var(--marinara-chat-chrome-button-text-hover)]",
-        )}
+        data-topbar-key="more"
+        className={cn(TOPBAR_PANEL_BUTTON_CLASS, "ml-auto sm:hidden", open && TOPBAR_ACTIVE_BUTTON_CLASS)}
       >
-        <Menu size={15} className={TOPBAR_ACCENT_ICON_CLASS} />
+        <Menu aria-hidden="true" size={16} />
       </button>
       {typeof document === "undefined" ? null : createPortal(menu, document.body)}
     </>

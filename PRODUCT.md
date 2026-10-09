@@ -25,4 +25,8 @@ A person who wants direct control over their chat environment, data, characters,
 
 ## Register
 
-Use direct, practical language for a personal tool. Prefer short labels, clear status, and concise explanations. Avoid marketing copy, game framing, and decorative language that competes with the conversation.
+product
+
+## Voice
+
+Use direct, practical language. Prefer short labels, clear status, and concise explanations. Avoid marketing copy, game framing, and decorative language that competes with the conversation.
