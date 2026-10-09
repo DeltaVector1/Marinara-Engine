@@ -73,11 +73,11 @@ interface GeminiEmbeddingPayload {
 
 type GoogleProviderKind = "google" | "google_vertex";
 
-export function resolveGoogleFunctionCallingMode(toolChoice: ChatOptions["toolChoice"]): "AUTO" | "ANY" {
+function resolveGoogleFunctionCallingMode(toolChoice: ChatOptions["toolChoice"]): "AUTO" | "ANY" {
   return toolChoice === "required" ? "ANY" : "AUTO";
 }
 
-export function applyGoogleFunctionCallingMode(
+function applyGoogleFunctionCallingMode(
   body: Record<string, unknown>,
   toolChoice: ChatOptions["toolChoice"],
 ): void {
@@ -259,7 +259,7 @@ function supportsGeminiThinkingDisable(model: string): boolean {
   );
 }
 
-export function resolveGeminiThinkingConfig(
+function resolveGeminiThinkingConfig(
   model: string,
   options: Pick<ChatOptions, "enableThinking" | "reasoningEffort">,
   maxOutputTokens: number,
@@ -351,7 +351,7 @@ function formatGeminiPromptBlock(feedback: GeminiPromptFeedback | undefined): st
   return message ? `${reason}: ${message}` : reason;
 }
 
-export class GeminiNoContentError extends Error {
+class GeminiNoContentError extends Error {
   constructor(
     readonly finishReason: string,
     readonly usage?: LLMUsage,

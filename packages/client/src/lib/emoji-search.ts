@@ -537,11 +537,6 @@ function emojiSearchWords(emoji: string): string[] {
   return unique;
 }
 
-/** Unicode name + curated keywords + synonyms for each word of the name. */
-export function emojiSearchText(emoji: string): string {
-  return emojiSearchWords(emoji).join(" ");
-}
-
 /**
  * Every query word must prefix-match a word of the emoji's search text, so word
  * order does not matter ("face grinning") and "tick" no longer hits "chopsticks".

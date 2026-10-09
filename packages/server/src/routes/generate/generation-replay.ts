@@ -1,6 +1,6 @@
 import { stripGenerationGuideInstruction, type GenerationGuideSource } from "@marinara-engine/shared";
 
-export type GenerationReplayGuideSource = GenerationGuideSource;
+type GenerationReplayGuideSource = GenerationGuideSource;
 
 export interface GenerationReplay {
   impersonate?: true;
@@ -14,7 +14,7 @@ export interface GenerationReplay {
   impersonatePromptTemplate?: string | null;
 }
 
-export interface GenerationReplayInput {
+interface GenerationReplayInput {
   userMessage?: string | null;
   impersonate?: boolean;
   generationGuide?: string | null;

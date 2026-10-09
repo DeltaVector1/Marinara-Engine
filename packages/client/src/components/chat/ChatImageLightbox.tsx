@@ -9,7 +9,7 @@ import { ImageDownloadButton } from "../ui/ImageDownloadButton";
 import { ImagePromptPanel } from "./ImagePromptPanel";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
-export function formatChatImageMeta(image: Pick<ChatImage, "model" | "provider" | "width" | "height">) {
+function formatChatImageMeta(image: Pick<ChatImage, "model" | "provider" | "width" | "height">) {
   const details: string[] = [];
   if (image.model) details.push(image.model);
   if (image.provider) details.push(image.provider.replace(/_/g, " "));
@@ -24,7 +24,7 @@ export function getChatImageDownloadName(image: Pick<ChatImage, "filePath" | "ur
   return fromUrl || `gallery-${image.id}.png`;
 }
 
-export function formatSceneVideoMeta(
+function formatSceneVideoMeta(
   video: Pick<GeneratedSceneVideo, "model" | "provider" | "durationSeconds" | "aspectRatio">,
 ) {
   const details: string[] = [];

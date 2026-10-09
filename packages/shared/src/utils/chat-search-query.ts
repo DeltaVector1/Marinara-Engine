@@ -3,18 +3,18 @@
 // ──────────────────────────────────────────────
 import type { ChatSearchHighlight } from "../types/chat-insights.js";
 
-export interface ParsedChatSearchQuery {
+interface ParsedChatSearchQuery {
   /** Every needle (loose words and quoted phrases) that must appear, in query order. */
   needles: string[];
   /** Quoted phrases only, for display. */
   phrases: string[];
 }
 
-export interface CompiledChatSearchQuery extends ParsedChatSearchQuery {
+interface CompiledChatSearchQuery extends ParsedChatSearchQuery {
   patterns: RegExp[];
 }
 
-export interface ChatSearchSnippet {
+interface ChatSearchSnippet {
   text: string;
   highlights: ChatSearchHighlight[];
 }
@@ -30,7 +30,7 @@ function escapeRegExp(value: string): string {
  * Split a query into needles. `"quoted phrases"` stay together, everything else
  * splits on whitespace. An unmatched quote treats the rest of the query as a phrase.
  */
-export function parseChatSearchQuery(raw: string): ParsedChatSearchQuery {
+function parseChatSearchQuery(raw: string): ParsedChatSearchQuery {
   const input = typeof raw === "string" ? raw.normalize("NFKC") : "";
   const needles: string[] = [];
   const phrases: string[] = [];

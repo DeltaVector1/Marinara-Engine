@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type AppDialogTone = "default" | "destructive" | "accent";
+type AppDialogTone = "default" | "destructive" | "accent";
 
 type AppDialogCommon = {
   title?: string;

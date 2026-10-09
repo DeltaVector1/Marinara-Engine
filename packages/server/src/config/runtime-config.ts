@@ -19,11 +19,10 @@ const DEFAULT_DATA_DIR = resolve(SERVER_ROOT, "data");
 const DEFAULT_MAX_TOOL_ROUNDS = 100;
 const MAX_CONFIGURED_TOOL_ROUNDS = 10_000;
 const DEFAULT_CUSTOM_TOOL_TIMEOUT_MS = 60_000;
-export const DEFAULT_CHAT_GENERATION_TIMEOUT_MS = 300_000;
+const DEFAULT_CHAT_GENERATION_TIMEOUT_MS = 300_000;
 const MIN_CHAT_GENERATION_TIMEOUT_MS = 10_000;
 const MAX_CHAT_GENERATION_TIMEOUT_MS = 3_600_000;
-export const DEFAULT_AGENT_CALL_TIMEOUT_MS = 300_000;
-export const DEFAULT_GAME_DYNAMIC_IMAGE_PROMPT_TIMEOUT_MS = 45_000;
+const DEFAULT_AGENT_CALL_TIMEOUT_MS = 300_000;
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
 function createValidatedTimeoutGetter(envVar: string, defaultMs: number, minMs: number, maxMs: number) {
@@ -62,12 +61,6 @@ const readChatGenerationTimeoutMs = createValidatedTimeoutGetter(
 const readAgentCallTimeoutMs = createValidatedTimeoutGetter(
   "AGENT_CALL_TIMEOUT_MS",
   DEFAULT_AGENT_CALL_TIMEOUT_MS,
-  MIN_CHAT_GENERATION_TIMEOUT_MS,
-  MAX_CHAT_GENERATION_TIMEOUT_MS,
-);
-const readGameDynamicImagePromptTimeoutMs = createValidatedTimeoutGetter(
-  "GAME_DYNAMIC_IMAGE_PROMPT_TIMEOUT_MS",
-  DEFAULT_GAME_DYNAMIC_IMAGE_PROMPT_TIMEOUT_MS,
   MIN_CHAT_GENERATION_TIMEOUT_MS,
   MAX_CHAT_GENERATION_TIMEOUT_MS,
 );
@@ -150,7 +143,7 @@ function ensureEnvFileExists(envPath: string) {
   }
 }
 
-export function loadRuntimeEnv() {
+function loadRuntimeEnv() {
   if (envLoaded) return;
 
   const envPath = getEnvFilePath();
@@ -171,9 +164,6 @@ export function loadRuntimeEnv() {
 }
 
 loadRuntimeEnv();
-
-// Deliberately restart-only: a hot reload or a saved UI preference cannot open peer networking.
-export const multiplayerAvailable = process.env.MULTIPLAYER_ENABLED === "true";
 
 export interface EnvReloadResult {
   added: string[];
@@ -244,7 +234,7 @@ export function reloadRuntimeEnv(): EnvReloadResult {
  * equivalent to leaving TZ unset. Treat whitespace-only values as absent so
  * schedules continue to inherit the host timezone.
  */
-export function normalizeRuntimeTimezoneEnv(env: NodeJS.ProcessEnv = process.env): boolean {
+function normalizeRuntimeTimezoneEnv(env: NodeJS.ProcessEnv = process.env): boolean {
   if (!("TZ" in env) || env.TZ?.trim()) return false;
   delete env.TZ;
   return true;
@@ -305,14 +295,6 @@ function parseCsv(value: string | undefined | null): string[] {
     .filter(Boolean);
 }
 
-export function getMonorepoRoot() {
-  return MONOREPO_ROOT;
-}
-
-export function getServerRoot() {
-  return SERVER_ROOT;
-}
-
 export function getHost() {
   return normalizeEnvValue(process.env.HOST) ?? DEFAULT_HOST;
 }
@@ -335,7 +317,7 @@ export function getLogLevel() {
   return normalizeEnvValue(process.env.LOG_LEVEL) ?? "warn";
 }
 
-export function getLogPreset() {
+function getLogPreset() {
   return normalizeEnvValue(process.env.LOG_PRESET)?.toLowerCase() ?? "default";
 }
 
@@ -353,7 +335,7 @@ export function isClaudeSubscriptionResumeEnabled() {
   return !isDisabledFlag(raw);
 }
 
-export function isPromptConnectionLogPreset() {
+function isPromptConnectionLogPreset() {
   const preset = getLogPreset().replace(/_/g, "-");
   return preset === "prompt-connections";
 }
@@ -480,29 +462,6 @@ export function getCsrfTrustedOrigins() {
   return parseCsv(process.env.CSRF_TRUSTED_ORIGINS).filter((origin) => origin.toLowerCase() !== "null");
 }
 
-export function isUpdatesApplyEnabled() {
-  return isEnabledFlag(process.env.UPDATES_APPLY_ENABLED);
-}
-
-/**
- * Hard refusal for server-side update application (#5646). The dev and e2e
- * launchers set UPDATES_APPLY_DISABLED so a loopback browser tab pointed at a
- * server booted from a working repo can never stash/checkout/rebuild that
- * checkout via the channel selector. Wins over UPDATES_APPLY_ENABLED and the
- * loopback channel-switch bypass.
- */
-const BOOT_UPDATES_APPLY_HARD_DISABLED = isEnabledFlag(process.env.UPDATES_APPLY_DISABLED);
-
-export function isUpdatesApplyHardDisabled() {
-  // Latched at boot: the launchers set this in the environment, and a later
-  // .env hot-reload writing UPDATES_APPLY_DISABLED=false must not lift a
-  // guard whose whole point is protecting the checkout this process runs from.
-  return BOOT_UPDATES_APPLY_HARD_DISABLED || isEnabledFlag(process.env.UPDATES_APPLY_DISABLED);
-}
-
-export function isUpdatesRemoteApplyAllowed() {
-  return isEnabledFlag(process.env.UPDATES_ALLOW_REMOTE_APPLY);
-}
 
 export function isProviderLocalUrlsEnabled() {
   if (process.platform === "android" && normalizeEnvValue(process.env.PROVIDER_LOCAL_URLS_ENABLED) === null) {
@@ -593,11 +552,6 @@ export function getAgentCallTimeoutMs() {
   return readAgentCallTimeoutMs();
 }
 
-/** Dynamic Game image-prompt LLM timeout. Read per request so .env hot reloads apply without a restart. */
-export function getGameDynamicImagePromptTimeoutMs() {
-  return readGameDynamicImagePromptTimeoutMs();
-}
-
 /**
  * SteamOS ships games that claim most of the Deck's 16 GiB of shared RAM, so
  * unbounded load-and-keep gets the server OOM-killed mid session (#5838). The
@@ -613,7 +567,7 @@ const CONSTRAINED_PLATFORM_DEFAULT_MAX_RESIDENT_CHATS = 8;
 let cachedSteamOsDetection: boolean | null = null;
 
 /** Exported for the regression lane; production goes through the cached path. */
-export function detectSteamOs(
+function detectSteamOs(
   osReleasePath = "/etc/os-release",
   platform: NodeJS.Platform = process.platform,
 ): boolean {
@@ -638,7 +592,7 @@ function constrainedPlatformDetected(): boolean {
 }
 
 /** The parameter is a test seam; production callers use the detected value. */
-export function platformDefaultMaxResidentChatUnits(constrained = constrainedPlatformDetected()): number {
+function platformDefaultMaxResidentChatUnits(constrained = constrainedPlatformDetected()): number {
   return constrained ? CONSTRAINED_PLATFORM_DEFAULT_MAX_RESIDENT_CHATS : 0;
 }
 
@@ -697,10 +651,6 @@ export function isTtsLocalUrlsEnabled() {
   return isEnabledFlag(process.env.TTS_LOCAL_URLS_ENABLED);
 }
 
-export function isDeeplxLocalUrlsEnabled() {
-  return isEnabledFlag(process.env.DEEPLX_LOCAL_URLS_ENABLED);
-}
-
 export function isWebhookLocalUrlsEnabled() {
   return isEnabledFlag(process.env.WEBHOOK_LOCAL_URLS_ENABLED);
 }
@@ -721,14 +671,6 @@ export function isSidecarRuntimeInstallEnabled() {
   return isEnabledFlag(process.env.SIDECAR_RUNTIME_INSTALL_ENABLED);
 }
 
-export function isHapticsRemoteAllowed() {
-  return isEnabledFlag(process.env.HAPTICS_ALLOW_REMOTE);
-}
-
-export function getIntifaceUrl() {
-  return normalizeEnvValue(process.env.INTIFACE_URL) ?? "ws://127.0.0.1:12345";
-}
-
 export function getImportAllowedRoots() {
   return parseCsv(process.env.IMPORT_ALLOWED_ROOTS).map(resolveFromRepoRoot);
 }
@@ -737,7 +679,7 @@ export function getEncryptionKeyOverride() {
   return normalizeEnvValue(process.env.ENCRYPTION_KEY);
 }
 
-export function getSpotifyRedirectUriOverride() {
+function getSpotifyRedirectUriOverride() {
   return normalizeEnvValue(process.env.SPOTIFY_REDIRECT_URI);
 }
 
@@ -784,10 +726,6 @@ export function buildSpotifyRedirectUri(req: RedirectUriRequest): string {
   return getLoopbackFallbackRedirectUri();
 }
 
-export function getSpotifyRedirectUri() {
-  return getSpotifyRedirectUriOverride() ?? getLoopbackFallbackRedirectUri();
-}
-
 export function getCorsConfig() {
   const raw = normalizeEnvValue(process.env.CORS_ORIGINS);
   if (!raw) {
@@ -822,7 +760,7 @@ export function getCorsConfig() {
   };
 }
 
-export function getTlsFilePaths() {
+function getTlsFilePaths() {
   const cert = normalizeEnvValue(process.env.SSL_CERT);
   const key = normalizeEnvValue(process.env.SSL_KEY);
   if (!cert || !key) return null;
@@ -851,10 +789,6 @@ export function loadTlsOptions() {
         `Please ensure the paths are correct and the files are readable.`,
     );
   }
-}
-
-export function isAutoOpenBrowserDisabled(value = process.env.AUTO_OPEN_BROWSER) {
-  return isDisabledFlag(value);
 }
 
 export function isAutoCreateDefaultConnectionDisabled(value = process.env.AUTO_CREATE_DEFAULT_CONNECTION) {

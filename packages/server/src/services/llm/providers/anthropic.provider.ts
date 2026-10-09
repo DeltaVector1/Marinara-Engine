@@ -262,7 +262,7 @@ function splitAnthropicSystemMessages(messages: ChatMessage[], model: string) {
   return { systemMessages, chatMessages };
 }
 
-export function applyAnthropicToolChoice(
+function applyAnthropicToolChoice(
   body: Record<string, unknown>,
   options: Pick<ChatOptions, "model" | "toolChoice" | "tools">,
 ): "applied" | "manual-thinking" | "automatic-only" | "none" {

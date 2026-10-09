@@ -47,7 +47,7 @@ export function normalizeEchoChamberMessages(value: unknown, now = Date.now()): 
   });
 }
 
-export type EchoChamberQueueState = {
+type EchoChamberQueueState = {
   messages: EchoChamberMessage[];
   visibleCount: number;
   baseline: number;

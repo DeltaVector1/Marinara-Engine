@@ -84,7 +84,7 @@ export function inheritedEnv(options: { network?: boolean } = {}): NodeJS.Proces
   );
 }
 
-export interface DecisionRuntimeInstall {
+interface DecisionRuntimeInstall {
   directoryPath: string;
   pythonPath: string;
   sourcePath: string;
@@ -150,7 +150,7 @@ export function artifactSnapshotPath(artifact: DecisionModelArtifact): string {
   return join(HF_HOME, "hub", `models--${artifact.repoId.replace(/\//g, "--")}`, "snapshots", artifact.revision);
 }
 
-export class DecisionRuntimeService {
+class DecisionRuntimeService {
   private installPromise: Promise<DecisionRuntimeInstall> | null = null;
   private activeChild: ChildProcess | null = null;
   private activeFetchAbort: AbortController | null = null;

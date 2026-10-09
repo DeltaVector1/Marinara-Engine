@@ -26,7 +26,7 @@ function mutationErrorMessage(error: unknown, fallback: string): string {
 
 const pendingPresetDuplicates = new Map<string, Promise<PromptPreset>>();
 
-export function duplicatePresetOnce(id: string): Promise<PromptPreset> {
+function duplicatePresetOnce(id: string): Promise<PromptPreset> {
   const pending = pendingPresetDuplicates.get(id);
   if (pending) return pending;
 

@@ -10,7 +10,7 @@ import { DRAWER_WINDOW_PREFIX } from "@marinara-engine/shared";
 import { BUBBLE_SNAP_GAP_PX, snapBubble, type BubbleRect, type SnapGuide } from "./window-bubble-snap";
 export { getDrawerWindowId } from "@marinara-engine/shared";
 
-export const FLOATING_WINDOW_LAYOUT_VERSION = 1 as const;
+const FLOATING_WINDOW_LAYOUT_VERSION = 1 as const;
 /** Gap kept between a window and the viewport edges. */
 export const WINDOW_MARGIN_PX = 8;
 export const WINDOW_KEYBOARD_STEP_PX = 10;
@@ -208,7 +208,7 @@ export interface PhoneMenuLayout {
 }
 
 /** Keep future tool ids, but reject corrupt or unbounded imported orders. */
-export function readPhoneMenuLayout(value: unknown): PhoneMenuLayout | undefined {
+function readPhoneMenuLayout(value: unknown): PhoneMenuLayout | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
   const source = value as { locked?: unknown; order?: unknown };
   const order = Array.isArray(source.order) ? [...new Set(source.order.filter(isStoredWindowId))].slice(0, 256) : [];
@@ -228,7 +228,7 @@ export interface WindowBounds {
   bottom: number;
 }
 
-export interface WindowSizeLimits {
+interface WindowSizeLimits {
   minWidth: number;
   minHeight: number;
 }

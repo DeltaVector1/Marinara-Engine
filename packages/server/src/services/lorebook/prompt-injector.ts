@@ -53,7 +53,7 @@ export interface PromptMessage {
   name?: string;
 }
 
-export interface InjectAtDepthOptions {
+interface InjectAtDepthOptions {
   /** Earliest index an entry may be inserted at. */
   minIndex?: number;
   /** Index considered "after the last message" for depth 0. Defaults to the full prompt length. */
@@ -65,7 +65,7 @@ export interface InjectAtDepthOptions {
  * Position 0 = WORLD_INFO_BEFORE (before character defs)
  * Position 1 = WORLD_INFO_AFTER (after character defs)
  */
-export function buildWorldInfoBlocks(activatedEntries: ActivatedEntry[]): {
+function buildWorldInfoBlocks(activatedEntries: ActivatedEntry[]): {
   before: string;
   after: string;
 } {
@@ -96,7 +96,7 @@ export function buildWorldInfoBlocks(activatedEntries: ActivatedEntry[]): {
  * Only entries with position 2 (depth injection mode) are included.
  * Position 0/1 entries always go to worldInfoBefore/After via buildWorldInfoBlocks.
  */
-export function getDepthInjectedEntries(activatedEntries: ActivatedEntry[]): Array<{
+function getDepthInjectedEntries(activatedEntries: ActivatedEntry[]): Array<{
   content: string;
   role: LorebookRole;
   depth: number;

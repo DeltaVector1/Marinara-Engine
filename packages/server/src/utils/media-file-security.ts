@@ -9,21 +9,21 @@ const SVG_EXTENSION = ".svg";
 const IMAGE_HEADER_BYTES = 4096;
 const SVG_IMAGE_MAX_BYTES = 50 * 1024 * 1024;
 
-export type ValidatedImageAsset = {
+type ValidatedImageAsset = {
   mimeType: string;
   isSvg: boolean;
 };
 
-export type ValidatedImageFile = ValidatedImageAsset & {
+type ValidatedImageFile = ValidatedImageAsset & {
   handle: FileHandle;
   size: number;
 };
 
-export type ValidatedVideoAsset = {
+type ValidatedVideoAsset = {
   mimeType: string;
 };
 
-export type ValidatedVideoFile = ValidatedVideoAsset & {
+type ValidatedVideoFile = ValidatedVideoAsset & {
   handle: FileHandle;
   size: number;
 };
@@ -279,7 +279,7 @@ async function resolveAllowedMediaPath(filePath: string, additionalRoot?: string
  * SVG remains a supported sprite/game-asset format, but active document
  * features are not needed for artwork and are unsafe on a same-origin route.
  */
-export function isSafeSvgImageBuffer(buffer: Buffer): boolean {
+function isSafeSvgImageBuffer(buffer: Buffer): boolean {
   const source = buffer.toString("utf8");
   if (source.includes("\ufffd") || !/<svg(?:\s|>)/iu.test(source)) return false;
   // Preserve ordinary SVG 1.1 exports while rejecting internal subsets and
@@ -329,7 +329,7 @@ export function validateImageAssetBuffer(
   return { mimeType: image.mimeType, isSvg: false };
 }
 
-export function validateVideoAssetBuffer(buffer: Buffer, filename: string): ValidatedVideoAsset | null {
+function validateVideoAssetBuffer(buffer: Buffer, filename: string): ValidatedVideoAsset | null {
   const extension = extname(filename).toLowerCase();
   if (
     (extension === ".mp4" || extension === ".mov") &&

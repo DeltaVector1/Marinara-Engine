@@ -34,7 +34,7 @@ export type AgentGenerationParameters = {
   thinkingHeadroom?: true;
 };
 
-export type AgentConnectionParameters = {
+type AgentConnectionParameters = {
   customParameters: Record<string, unknown>;
   temperature?: number;
   enabledParameters?: GenerationParameterSendMap;
@@ -89,7 +89,7 @@ function connectionOnlyBaseline(): GenerationParameterArgs["initial"] {
  * Resolve one connection's saved parameters through the main chat's rules (send switches, reasoning normalisation,
  * Codex Default, Claude sampling limits, managed custom parameters) without a preset, a chat layer or scene forcing.
  */
-export function resolveConnectionGenerationParameters(source: ConnectionParameterSource): ResolvedGenerationParameters {
+function resolveConnectionGenerationParameters(source: ConnectionParameterSource): ResolvedGenerationParameters {
   return resolveGenerationParameters({
     connection: {
       provider: source.provider,

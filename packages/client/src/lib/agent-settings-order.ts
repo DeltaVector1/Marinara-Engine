@@ -1,4 +1,4 @@
-import { STORYBOARD_AGENT_ID, type BuiltInAgentManifest } from "@marinara-engine/shared";
+import { type BuiltInAgentManifest } from "@marinara-engine/shared";
 
 const AGENT_CATEGORY_ORDER: Record<string, number> = {
   writer: 0,
@@ -10,7 +10,6 @@ const STANDALONE_ROLEPLAY_AGENT_SETTINGS = new Set([
   "memory-nag",
   "hierarchical-maps",
   "beholder",
-  STORYBOARD_AGENT_ID,
   "long-term-memory",
 ]);
 
@@ -30,6 +29,5 @@ export function buildRoleplayAgentSettingsOrder(agents: readonly BuiltInAgentMan
       })
       .map(({ agent }, index) => [agent.id, index]),
   );
-  order.set(STORYBOARD_AGENT_ID, (order.get("illustrator") ?? order.size) + 0.5);
   return order;
 }

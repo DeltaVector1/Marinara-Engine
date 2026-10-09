@@ -1,7 +1,7 @@
 import type { SidecarDownloadProgress } from "@marinara-engine/shared";
 import { api } from "./api-client";
 
-export type SidecarDownloadEvent = Partial<SidecarDownloadProgress> & {
+type SidecarDownloadEvent = Partial<SidecarDownloadProgress> & {
   done?: boolean;
   status?: string;
   error?: string;

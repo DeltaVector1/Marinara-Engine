@@ -11,7 +11,7 @@ import {
   supportsNativeToolCalls,
 } from "@marinara-engine/shared";
 
-export interface FunctionToolOption {
+interface FunctionToolOption {
   id: string;
   name: string;
   description: string;

@@ -5,11 +5,11 @@ import { TTS_DIALOGUE_PAUSE_MAX_SECONDS } from "@marinara-engine/shared";
 import { deleteCachedTTSAudioKeys, getOrCreateCachedTTSAudioBlob } from "./tts-audio-cache";
 import { SILENT_AUDIO_DATA_URI } from "./silent-audio";
 
-export type TTSState = "idle" | "loading" | "playing" | "paused" | "blocked" | "error";
+type TTSState = "idle" | "loading" | "playing" | "paused" | "blocked" | "error";
 
 type StateListener = (state: TTSState, activeId: string | null) => void;
 
-export interface TTSSpeakOptions {
+interface TTSSpeakOptions {
   speaker?: string;
   tone?: string;
   voice?: string;
@@ -24,7 +24,7 @@ export interface TTSSpeakOptions {
   muted?: boolean;
 }
 
-export interface TTSSpeakRequest {
+interface TTSSpeakRequest {
   text: string;
   paragraphIndex?: number;
   speaker?: string;
@@ -36,7 +36,7 @@ export interface TTSSpeakRequest {
   activeId?: string | null;
 }
 
-export interface TTSSpeakSequenceOptions extends Pick<TTSSpeakOptions, "signal" | "throwOnError" | "volume" | "muted"> {
+interface TTSSpeakSequenceOptions extends Pick<TTSSpeakOptions, "signal" | "throwOnError" | "volume" | "muted"> {
   progressive?: boolean;
   onChunkStart?: (request: TTSSpeakRequest, index: number) => void;
   onChunkEnd?: (request: TTSSpeakRequest, index: number) => void;
@@ -74,7 +74,7 @@ function playbackAbortError(): DOMException {
   return new DOMException("TTS playback aborted", "AbortError");
 }
 
-export function normalizeTTSPlaybackDelayMs(delayMs: number | undefined): number {
+function normalizeTTSPlaybackDelayMs(delayMs: number | undefined): number {
   const maximumDelayMs = TTS_DIALOGUE_PAUSE_MAX_SECONDS * 1000;
   return typeof delayMs === "number" && Number.isFinite(delayMs) ? Math.max(0, Math.min(maximumDelayMs, delayMs)) : 0;
 }
@@ -192,7 +192,7 @@ function waitForPlaybackReturn(signal?: AbortSignal): Promise<void> {
 }
 
 /** Exported for the regression lane, which drives it with stubbed globals. */
-export async function playWhenAvailable(
+async function playWhenAvailable(
   audio: Pick<HTMLAudioElement, "play">,
   signal?: AbortSignal,
   onBlocked?: () => void,

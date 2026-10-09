@@ -23,7 +23,6 @@ import {
   resolveMacros,
   resolveTrackerRowsUpdate,
   roleplayInventoryTrackerRowLockPrefix,
-  resolveChatPersonaCandidate,
   unwrapConversationInstructions,
   wrapConversationInstructions,
   type CharacterStat,
@@ -36,12 +35,8 @@ import {
   type PlayerStats,
   type WrapFormat,
 } from "@marinara-engine/shared";
-import { wrapContent } from "../../services/prompt/format-engine.js";
-import { parseStoredRulesetLive } from "../../services/storage/game-state.storage.js";
 import {
   appendReadableAttachmentsToContent,
-  extractFileAttachmentInputs,
-  extractImageAttachmentDataUrls,
   parseExtra,
   type PromptAttachment,
 } from "../../services/generation/prompt-attachments.js";
@@ -74,15 +69,15 @@ export type SimpleMessage = {
   contextKind?: "prompt" | "history" | "injection";
   providerMetadata?: Record<string, unknown>;
 };
-export type SpeakerPrefixMessage = SimpleMessage & {
+type SpeakerPrefixMessage = SimpleMessage & {
   characterId?: string | null;
   name?: string | null;
   personaSnapshotName?: string | null;
   providerMetadata?: Record<string, unknown>;
 };
-export type StoredGenerationParameters = Partial<GenerationParameters>;
+type StoredGenerationParameters = Partial<GenerationParameters>;
 
-export function hasProviderMessagePayload(message: {
+function hasProviderMessagePayload(message: {
   content: string;
   images?: unknown[];
   files?: unknown[];
@@ -98,18 +93,6 @@ export function hasProviderMessagePayload(message: {
     !!message.tool_calls?.length ||
     !!message.tool_call_id
   );
-}
-
-/**
- * Preserve the route-layer export while sharing the same Persona policy with
- * the client: every mode requires an explicit chat Persona selection.
- */
-export function resolveActivePersonaCandidate<T extends { id: string }>(
-  personas: readonly T[],
-  chatPersonaId: string | null | undefined,
-  chatMode: string | null | undefined,
-): T | null {
-  return resolveChatPersonaCandidate(personas, chatPersonaId, chatMode);
 }
 
 const PROMPT_WRAP_FORMATS = new Set<WrapFormat>(["xml", "markdown", "none"]);
@@ -256,40 +239,7 @@ const INVENTORY_TRACKER_PLAYER_STATS_FIELDS = [
 ] as const;
 
 type InventoryTrackerPlayerStatsField = (typeof INVENTORY_TRACKER_PLAYER_STATS_FIELDS)[number];
-type InventoryTrackerPlayerStats = Pick<PlayerStats, InventoryTrackerPlayerStatsField>;
 
-function inventoryTrackerQuantityMap(
-  playerStats: InventoryTrackerPlayerStats,
-): Map<string, { name: string; quantity: number }> {
-  const quantities = new Map<string, { name: string; quantity: number }>();
-  for (const field of INVENTORY_TRACKER_PLAYER_STATS_FIELDS) {
-    for (const row of normalizeInventoryTrackerRows(playerStats[field])) {
-      const key = normalizeTextForMatch(row.name);
-      if (!key) continue;
-      const existing = quantities.get(key);
-      quantities.set(key, {
-        name: row.name,
-        quantity: (existing?.quantity ?? 0) + (row.qty ?? 1),
-      });
-    }
-  }
-  return quantities;
-}
-
-/** New owned quantities only; moving an item between tracker groups is not an acquisition. */
-export function findInventoryTrackerAcquisitions(
-  previousPlayerStats: InventoryTrackerPlayerStats,
-  nextPlayerStats: InventoryTrackerPlayerStats,
-): Array<{ name: string; quantity: number }> {
-  const previous = inventoryTrackerQuantityMap(previousPlayerStats);
-  const next = inventoryTrackerQuantityMap(nextPlayerStats);
-  const acquisitions: Array<{ name: string; quantity: number }> = [];
-  for (const [key, item] of next) {
-    const quantity = item.quantity - (previous.get(key)?.quantity ?? 0);
-    if (quantity > 0) acquisitions.push({ name: item.name, quantity });
-  }
-  return acquisitions;
-}
 
 // `clampInventoryTrackerQty` and `normalizeInventoryTrackerRows` now live in
 // `@marinara-engine/shared` so the hand-edit paths (tracker panel, HUD popover,
@@ -528,7 +478,7 @@ export function resolveKnowledgeSourceLorebookIds(args: {
 }
 
 /** Find last message index matching a role (or predicate). Returns -1 if not found. */
-export function findLastIndex(messages: SimpleMessage[], role: string): number {
+function findLastIndex(messages: SimpleMessage[], role: string): number {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (messages[i]!.role === role) return i;
   }
@@ -799,14 +749,6 @@ export function getMessageConversationStartCharacterIds(message: { extra?: unkno
   );
 }
 
-export function isMessageHiddenFromAIForCharacter(
-  message: { extra?: unknown },
-  characterId: string | null | undefined,
-): boolean {
-  if (isMessageHiddenFromAI(message)) return true;
-  return typeof characterId === "string" && getMessageHiddenFromAICharacterIds(message).includes(characterId);
-}
-
 export function isRoleplaySummaryMode(chatMode: string): boolean {
   return chatMode === "roleplay";
 }
@@ -925,7 +867,7 @@ function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export interface CharacterIdentity {
+interface CharacterIdentity {
   name: string;
   nameAliases: string[];
 }
@@ -951,7 +893,7 @@ function readCharacterIdentity(data: unknown): CharacterIdentity | null {
 }
 
 /** Supply the chat's full character list to include disabled members without reading unrelated cards. */
-export async function resolveCharacterIdentityMap(
+async function resolveCharacterIdentityMap(
   characterIds: string[],
   getCharacterById: (id: string) => Promise<{ data?: unknown } | null | undefined>,
 ): Promise<Map<string, CharacterIdentity>> {
@@ -1061,7 +1003,7 @@ function isPromptAttachment(value: unknown): value is PromptAttachment {
  * <original_user_message> tags so downstream generation can return only
  * replacement user-message text.
  */
-export function buildUserMessageRegenerationInstruction(message: { content?: unknown; extra?: unknown }): string {
+function buildUserMessageRegenerationInstruction(message: { content?: unknown; extra?: unknown }): string {
   const original = typeof message.content === "string" ? message.content.trim() : "";
   const attachments = parsePromptAttachments(message.extra);
   const originalWithAttachments = appendReadableAttachmentsToContent(original, attachments);
@@ -1076,46 +1018,12 @@ export function buildUserMessageRegenerationInstruction(message: { content?: unk
   ].join("\n");
 }
 
-export function buildUserMessageRegenerationPrompt(message: { content?: unknown; extra?: unknown }): SimpleMessage {
-  const attachments = parsePromptAttachments(message.extra);
-  const images = extractImageAttachmentDataUrls(attachments);
-  const files = extractFileAttachmentInputs(attachments);
-  return {
-    role: "user",
-    content: buildUserMessageRegenerationInstruction(message),
-    ...(images.length ? { images } : {}),
-    ...(files.length ? { files } : {}),
-  };
-}
-
 export function buildUserMessageRegenerationPromptFromSource(source: SimpleMessage): SimpleMessage {
   return {
     role: "user",
     content: buildUserMessageRegenerationInstruction({ content: source.content }),
     ...(source.images?.length ? { images: source.images } : {}),
     ...(source.files?.length ? { files: source.files } : {}),
-  };
-}
-
-/**
- * Build the context-facing version of a user message being regenerated.
- * This preserves the original user text and attachments for prompt shaping
- * without adding the provider-facing rewrite instruction.
- */
-export function buildUserMessageRegenerationSourceMessage(message: {
-  content?: unknown;
-  extra?: unknown;
-}): SimpleMessage {
-  const original = typeof message.content === "string" ? message.content : "";
-  const attachments = parsePromptAttachments(message.extra);
-  const content = appendReadableAttachmentsToContent(original, attachments);
-  const images = extractImageAttachmentDataUrls(attachments);
-  const files = extractFileAttachmentInputs(attachments);
-  return {
-    role: "user",
-    content,
-    ...(images.length ? { images } : {}),
-    ...(files.length ? { files } : {}),
   };
 }
 
@@ -1179,8 +1087,6 @@ export function resolveActiveCharacterIds(
   metadata: Record<string, unknown>,
   options: { mode?: string; allowEmpty?: boolean } = {},
 ): string[] {
-  if (options.mode === "game") return characterIds;
-
   const inactiveIds = Array.isArray(metadata.inactiveCharacterIds)
     ? new Set(metadata.inactiveCharacterIds.filter((id): id is string => typeof id === "string"))
     : new Set<string>();
@@ -1227,7 +1133,7 @@ export function shouldRunCharacterActivityAgents(options: {
   );
 }
 
-export type GroupGenerationMode = "merged" | "individual";
+type GroupGenerationMode = "merged" | "individual";
 
 /** Resolve the stored generation mode for every group-capable chat mode. */
 export function resolveGroupGenerationMode(
@@ -1317,7 +1223,7 @@ export function resolveRegenerationGameStateFallbackMessageIds(
   return Array.from(ids);
 }
 
-export function formatSeparateAgentInjection(agentType: string, text: string, wrapFormat: string): string {
+function formatSeparateAgentInjection(agentType: string, text: string, wrapFormat: string): string {
   const meta =
     agentType === "knowledge-router"
       ? { heading: "Knowledge Router", tag: "knowledge_router" }
@@ -1366,7 +1272,6 @@ export function shouldInjectIdentityFallback({
   chatMode: string;
   presetId: string | null | undefined;
 }): boolean {
-  if (chatMode === "game") return false;
   // Conversation mode never runs the preset assembler (it is excluded from the
   // assemblePrompt path), so the preset only supplies the conversation prompt
   // text — it never injects character/persona card info. Without the identity
@@ -1534,18 +1439,6 @@ export function stripSpeakerTagsExceptLastAssistant(messages: SimpleMessage[]): 
   }
 }
 
-/** Build wrapped field parts from a record of { fieldName: value }. */
-export function wrapFields(
-  fields: Record<string, string | undefined | null>,
-  format: "xml" | "markdown" | "none",
-): string[] {
-  const parts: string[] = [];
-  for (const [name, value] of Object.entries(fields)) {
-    if (value) parts.push(wrapContent(value, name, format, 2));
-  }
-  return parts;
-}
-
 function trackerCharacterIdKey(character: Record<string, unknown>) {
   return typeof character.characterId === "string" ? character.characterId.trim().toLowerCase() : "";
 }
@@ -1664,19 +1557,6 @@ function getExplicitNameAliases(value: unknown): string[] {
   return [...aliases];
 }
 
-function buildUniqueCanonicalNames(names: readonly string[]): Map<string, string> {
-  const namesByKey = new Map<string, string>();
-  const duplicateKeys = new Set<string>();
-  for (const name of names) {
-    const trimmedName = name.trim();
-    const key = normalizeTextForMatch(trimmedName);
-    if (!key) continue;
-    if (namesByKey.has(key)) duplicateKeys.add(key);
-    else namesByKey.set(key, trimmedName);
-  }
-  for (const key of duplicateKeys) namesByKey.delete(key);
-  return namesByKey;
-}
 
 function resolveExplicitCanonicalName(value: unknown, namesByKey: Map<string, string>): string | null {
   const exactName = namesByKey.get(normalizeTextForMatch(value));
@@ -1689,20 +1569,6 @@ function resolveExplicitCanonicalName(value: unknown, namesByKey: Map<string, st
   return uniqueMatches.size === 1 ? aliasMatches[0]! : null;
 }
 
-/** Canonicalize only structured Game Mode VN speaker labels, leaving prose and ambiguous aliases unchanged. */
-export function canonicalizeGamePartySpeakerLabels(content: string, canonicalNames: readonly string[]): string {
-  const namesByKey = buildUniqueCanonicalNames(canonicalNames);
-  if (!content || namesByKey.size === 0) return content;
-
-  return content.replace(
-    /^(\s*)\[([^\]\r\n]+)\](\s+\[(?:main|side|thought|whisper:[^\]\r\n]+)\]\s+\[[^\]\r\n]+\]\s*:)/gmu,
-    (line, indentation: string, speakerName: string, suffix: string) => {
-      const canonicalName = resolveExplicitCanonicalName(speakerName, namesByKey);
-      return canonicalName ? `${indentation}[${canonicalName}]${suffix}` : line;
-    },
-  );
-}
-
 const TRACKER_CAST_ID_SEPARATOR = ":cast:";
 
 /**
@@ -1710,11 +1576,11 @@ const TRACKER_CAST_ID_SEPARATOR = ":cast:";
  * Cast ids stay stable across turns so locks, manual edits, NPC avatars, and
  * continuity keep pointing at the same person even when the card itself is one row.
  */
-export function buildTrackerCastCharacterId(cardId: string, name: unknown): string {
+function buildTrackerCastCharacterId(cardId: string, name: unknown): string {
   return `${cardId}${TRACKER_CAST_ID_SEPARATOR}${normalizeTextForMatch(name)}`;
 }
 
-export function parseTrackerCastCharacterId(value: unknown): { cardId: string; nameKey: string } | null {
+function parseTrackerCastCharacterId(value: unknown): { cardId: string; nameKey: string } | null {
   if (typeof value !== "string") return null;
   const index = value.indexOf(TRACKER_CAST_ID_SEPARATOR);
   if (index <= 0) return null;
@@ -1990,7 +1856,6 @@ export function parseGameStateRow(row: Record<string, unknown>): GameState {
     manualOverrides,
     fieldLocks,
     hiddenTrackerFields,
-    rulesetLive: parseStoredRulesetLive(row.rulesetLive),
     createdAt: row.createdAt as string,
   };
 }

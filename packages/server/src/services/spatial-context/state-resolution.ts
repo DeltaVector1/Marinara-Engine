@@ -2,7 +2,7 @@ import type { ResolvedSpatialTravel, SpatialContextDefinition, SpatialContextSna
 import { getCapabilityService } from "../capability-packages/capability-service-registry.service.js";
 import { isHierarchicalMapsEnabledForChat } from "./activation.js";
 
-export type AssistantSpatialDirective =
+type AssistantSpatialDirective =
   | { type: "move"; destinationId: string }
   | {
       type: "discover";
@@ -12,7 +12,7 @@ export type AssistantSpatialDirective =
       description?: string;
     };
 
-export interface ParsedAssistantSpatialDirective {
+interface ParsedAssistantSpatialDirective {
   cleanContent: string;
   directive: AssistantSpatialDirective | null;
   matched: boolean;
@@ -22,7 +22,7 @@ const ASSISTANT_SPATIAL_COMMAND_RE = /\[spatial_(move|discover):\s*([^\]\r\n]*)\
 const ASSISTANT_SPATIAL_COMMAND_PREFIXES = ["[spatial_move:", "[spatial_discover:"] as const;
 const ASSISTANT_SPATIAL_COMMAND_PREFIX_ONLY_RE = /^\[spatial_(?:move|discover):\s*$/iu;
 
-export interface AssistantSpatialDirectiveStreamFilter {
+interface AssistantSpatialDirectiveStreamFilter {
   push(content: string): string;
   flush(): string;
 }
@@ -136,12 +136,12 @@ export function extractAssistantSpatialDirective(content: string): ParsedAssista
   };
 }
 
-export interface SpatialMessageAnchor {
+interface SpatialMessageAnchor {
   messageId: string;
   swipeIndex: number;
 }
 
-export interface EffectiveSpatialState {
+interface EffectiveSpatialState {
   definition: SpatialContextDefinition | null;
   snapshot: SpatialContextSnapshot | null;
   currentLocationId: string | null;
@@ -174,36 +174,7 @@ interface StateResolutionService {
 
 const service = () => getCapabilityService<StateResolutionService>("hierarchical-maps:state-resolution");
 
-export function parseStoredSpatialDefinition(rawMetadata: unknown): SpatialContextDefinition | null {
-  return service()?.parseStoredSpatialDefinition(rawMetadata) ?? null;
-}
 
-export async function resolveEffectiveSpatialState(
-  chatId: string,
-  options: ResolveSpatialStateOptions,
-  chatMetadata: unknown,
-): Promise<EffectiveSpatialState> {
-  if (!isHierarchicalMapsEnabledForChat(chatMetadata)) {
-    return {
-      definition: null,
-      snapshot: null,
-      currentLocationId: null,
-      definitionRevision: 0,
-      visibleAnchor: null,
-      virtual: false,
-    };
-  }
-  return (
-    service()?.resolveEffectiveSpatialState(chatId, options) ?? {
-      definition: null,
-      snapshot: null,
-      currentLocationId: null,
-      definitionRevision: 0,
-      visibleAnchor: null,
-      virtual: false,
-    }
-  );
-}
 
 export async function materializeAssistantSpatialState(
   input: {

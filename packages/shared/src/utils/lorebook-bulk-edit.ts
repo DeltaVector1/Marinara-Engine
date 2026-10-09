@@ -5,13 +5,13 @@
 // ──────────────────────────────────────────────
 import { z } from "zod";
 
-export const LOREBOOK_BULK_MAX_ENTRIES = 5000;
-export const LOREBOOK_BULK_MAX_KEYS = 200;
+const LOREBOOK_BULK_MAX_ENTRIES = 5000;
+const LOREBOOK_BULK_MAX_KEYS = 200;
 
 const bulkKeyListSchema = z.array(z.string().max(500)).max(LOREBOOK_BULK_MAX_KEYS).default([]);
 
 /** Plain field changes applied identically to every selected entry. */
-export const lorebookBulkSetSchema = z
+const lorebookBulkSetSchema = z
   .object({
     enabled: z.boolean(),
     constant: z.boolean(),
@@ -51,7 +51,7 @@ export interface LorebookBulkEditResult {
 }
 
 /** Trim, drop blanks, and dedupe case-insensitively (first spelling wins). */
-export function normalizeLorebookBulkKeys(keys: readonly string[] | undefined): string[] {
+function normalizeLorebookBulkKeys(keys: readonly string[] | undefined): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
   for (const raw of keys ?? []) {
@@ -102,7 +102,7 @@ export function applyLorebookBulkKeyChanges(
   return next;
 }
 
-export interface LorebookBulkKeyPatch {
+interface LorebookBulkKeyPatch {
   id: string;
   keys?: string[];
   secondaryKeys?: string[];

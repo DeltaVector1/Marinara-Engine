@@ -1,4 +1,4 @@
-export type LlamaStartupPlan = {
+type LlamaStartupPlan = {
   gpuLayers: number;
   label: string;
 };

@@ -8,7 +8,7 @@ import { logger } from "../../lib/logger.js";
 import { DATA_DIR } from "../../utils/data-dir.js";
 import { assertInsideDir } from "../../utils/security.js";
 
-export type StoredGalleryFile = {
+type StoredGalleryFile = {
   absolutePath: string;
   directory: string;
   filename: string;
@@ -18,24 +18,6 @@ const galleryLifecycleQueues = new Map<string, Promise<void>>();
 
 function normalizedGalleryPath(filePath: string): string {
   return filePath.replace(/\\/g, "/");
-}
-
-/** Decode one URL path segment while rejecting separators and traversal names. */
-export function decodeSafePathSegment(value: string | undefined): string | null {
-  if (!value) return null;
-  try {
-    const decoded = decodeURIComponent(value);
-    return decoded &&
-      !decoded.includes("/") &&
-      !decoded.includes("\\") &&
-      !decoded.includes("\0") &&
-      decoded !== "." &&
-      decoded !== ".."
-      ? decoded
-      : null;
-  } catch {
-    return null;
-  }
 }
 
 function galleryFileLifecycleKey(filePath: string, galleryRoot?: string): string {
@@ -63,18 +45,6 @@ export function resolveStoredGalleryFile(
   } catch {
     return null;
   }
-}
-
-/**
- * Prefer an owner-local gallery file while supporting canonical shared files
- * referenced by owner-scoped URLs.
- */
-export function resolveOwnedGalleryPath(galleryRoot: string, ownerRoot: string, filename: string): string {
-  const ownedPath = assertInsideDir(ownerRoot, join(ownerRoot, filename));
-  if (existsSync(ownedPath)) return ownedPath;
-  const sharedRoot = assertInsideDir(galleryRoot, join(galleryRoot, "shared"));
-  const sharedPath = assertInsideDir(sharedRoot, join(sharedRoot, filename));
-  return existsSync(sharedPath) ? sharedPath : ownedPath;
 }
 
 /** Find the metadata row represented by an owner-scoped filename URL. */

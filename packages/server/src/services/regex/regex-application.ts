@@ -28,7 +28,7 @@ type RegexScriptLike = {
 const warnedInvalidPlacementScripts = new Set<string>();
 const REGEX_REPLACE_TIMEOUT_MIN_LENGTH = 256;
 
-export type RegexMessageLike = {
+type RegexMessageLike = {
   id?: string | null;
   role: string;
   content: string;
@@ -126,7 +126,7 @@ function warnInvalidPlacement(script: RegexScriptLike): void {
   );
 }
 
-export function applyRegexScriptsToPromptText(
+function applyRegexScriptsToPromptText(
   text: string,
   scripts: RegexScriptLike[],
   placement: RegexPlacement,

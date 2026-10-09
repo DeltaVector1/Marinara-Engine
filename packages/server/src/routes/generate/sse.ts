@@ -3,7 +3,7 @@ import type { FastifyReply } from "fastify";
 type SsePayload = Record<string, unknown>;
 
 /** Internal generation events are privileged data, not a peer protocol. */
-export interface GenerationEventSink {
+interface GenerationEventSink {
   readonly kind: "generation-event-sink";
   readonly ended: boolean;
   readonly started: boolean;
@@ -14,42 +14,6 @@ export interface GenerationEventSink {
 }
 
 export type GenerationOutput = FastifyReply | GenerationEventSink;
-
-export function createGenerationEventSink(callbacks: {
-  onEvent(payload: SsePayload): void;
-  onFinish(result: { statusCode: number; headers: Record<string, string>; body?: unknown }): void;
-}): GenerationEventSink {
-  let ended = false;
-  let started = false;
-  const headers: Record<string, string> = {};
-  return {
-    kind: "generation-event-sink",
-    get ended() {
-      return ended;
-    },
-    get started() {
-      return started;
-    },
-    start(values) {
-      if (ended) return;
-      Object.assign(headers, values);
-      started = true;
-    },
-    emit(payload) {
-      if (ended) return false;
-      callbacks.onEvent(payload);
-      return true;
-    },
-    header(name, value) {
-      if (!started && !ended) headers[name] = value;
-    },
-    finish(statusCode, body) {
-      if (ended) return;
-      ended = true;
-      callbacks.onFinish({ statusCode, headers: { ...headers }, ...(body === undefined ? {} : { body }) });
-    },
-  };
-}
 
 function isEventSink(reply: GenerationOutput): reply is GenerationEventSink {
   return "kind" in reply && reply.kind === "generation-event-sink";

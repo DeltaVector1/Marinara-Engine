@@ -68,7 +68,7 @@ export interface CurrentConversationStatus {
   override?: ConversationStatusOverride;
 }
 
-export interface AdjacentScheduleBlocks {
+interface AdjacentScheduleBlocks {
   previous: ScheduleBlock | null;
   current: ScheduleBlock | null;
   next: ScheduleBlock | null;

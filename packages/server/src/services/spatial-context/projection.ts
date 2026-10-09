@@ -33,13 +33,6 @@ interface ProjectionService {
 
 const service = () => getCapabilityService<ProjectionService>("hierarchical-maps:projection");
 
-export function buildOwnerSpatialProjection(
-  chatId: string,
-  definition: SpatialContextDefinition | null,
-  currentLocationId: string | null,
-): ResolvedOwnerSpatialProjection | null {
-  return service()?.buildOwnerSpatialProjection(chatId, definition, currentLocationId) ?? null;
-}
 
 export async function resolveOwnerSpatialProjection(
   chatId: string,
@@ -50,15 +43,7 @@ export async function resolveOwnerSpatialProjection(
   return service()?.resolveOwnerSpatialProjection(chatId, options) ?? null;
 }
 
-export function formatOwnerSpatialBreadcrumb(projection: ResolvedOwnerSpatialProjection): string {
-  return (
-    service()?.formatOwnerSpatialBreadcrumb(projection) ?? projection.breadcrumb.map(({ name }) => name).join(" > ")
-  );
-}
 
-export function formatOwnerSpatialPrompt(projection: ResolvedOwnerSpatialProjection): string {
-  return service()?.formatOwnerSpatialPrompt(projection) ?? "";
-}
 
 export function injectOwnerSpatialPrompt<T extends { role: "system" | "user" | "assistant"; content: string }>(
   messages: T[],

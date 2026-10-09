@@ -85,13 +85,13 @@ const RESTART_REQUIRED_KEYS = new Set<string>([
 const SENSITIVE_KEYS = new Set<string>(["BASIC_AUTH_PASS", "ADMIN_SECRET", "ENCRYPTION_KEY", "GIPHY_API_KEY"]);
 
 /** Debounce window for fs.watch events — editors fire several per save. */
-export const ENV_WATCH_DEBOUNCE_MS = 250;
+const ENV_WATCH_DEBOUNCE_MS = 250;
 
 /** Stat-poll interval when fs.watch is unavailable (was 2s — see #4707). */
-export const ENV_WATCH_FALLBACK_POLL_MS = 30_000;
+const ENV_WATCH_FALLBACK_POLL_MS = 30_000;
 
 /** `MARINARA_ENV_WATCH=0` (or false/off/no) disables the watcher; anything else keeps it on. */
-export function isEnvWatchDisabled(rawValue: string | undefined): boolean {
+function isEnvWatchDisabled(rawValue: string | undefined): boolean {
   if (rawValue === undefined) return false;
   const normalized = rawValue.trim().toLowerCase();
   return normalized === "0" || normalized === "false" || normalized === "off" || normalized === "no";
@@ -102,7 +102,7 @@ export function isEnvWatchDisabled(rawValue: string | undefined): boolean {
  * 30s stat-poll (for setups where change events never arrive, e.g. remote
  * edits across network mounts); 0/false/off/no → no watching at all.
  */
-export function resolveEnvWatchMode(rawValue: string | undefined): "watch" | "poll" | "off" {
+function resolveEnvWatchMode(rawValue: string | undefined): "watch" | "poll" | "off" {
   if (isEnvWatchDisabled(rawValue)) return "off";
   return rawValue?.trim().toLowerCase() === "poll" ? "poll" : "watch";
 }
@@ -170,7 +170,7 @@ function logDiff(diff: EnvReloadResult) {
   }
 }
 
-export interface EnvWatcherHandle {
+interface EnvWatcherHandle {
   stop(): void;
   reloadNow(): EnvReloadResult | null;
 }

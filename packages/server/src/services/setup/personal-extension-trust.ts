@@ -7,7 +7,7 @@ import { eq } from "../../db/file-query.js";
 import { installedExtensions } from "../../db/schema/index.js";
 import { computePersonalExtensionHash } from "../extensions/personal-extension-hash.js";
 
-export type PersonalExtensionTrustMigrationResult = {
+type PersonalExtensionTrustMigrationResult = {
   legacyRecordsQuarantined: number;
   changedRecordsDisabled: number;
 };

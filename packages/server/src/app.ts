@@ -25,17 +25,12 @@ import { recoverGalleryImages } from "./services/storage/gallery-recovery.js";
 import { migrateCharacterExtendedDescriptionsToLorebooks } from "./services/lorebook/extended-descriptions-migration.js";
 import { migrateTtsSettingsToAudioConnection } from "./services/connections/tts-audio-connection-migration.js";
 import { migrateLegacyDefaultAgentPrompts } from "./services/agents/default-prompt-migration.js";
-import { APP_VERSION, resetTurnGameRegistry } from "@marinara-engine/shared";
+import { APP_VERSION } from "@marinara-engine/shared";
 import { existsSync } from "fs";
 import { join, resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { getBuildCommit, getBuildLabel } from "./config/build-info.js";
-import {
-  getNodeEnv,
-  isRequestLoggingDisabled,
-  isAutoCreateDefaultConnectionDisabled,
-  getFileStorageDir,
-} from "./config/runtime-config.js";
+import { getNodeEnv, isRequestLoggingDisabled, isAutoCreateDefaultConnectionDisabled, getFileStorageDir } from "./config/runtime-config.js";
 import { corsDelegate } from "./config/cors-config.js";
 import { decisionProcessService } from "./services/sidecar/decision-process.service.js";
 import { sidecarProcessService } from "./services/sidecar/sidecar-process.service.js";
@@ -50,11 +45,7 @@ import { capabilityModuleRuntime } from "./services/capability-packages/capabili
 import { migrateLegacyCapabilities } from "./services/capability-packages/legacy-capability-migration.js";
 import { createClientNotFoundHandler, createClientStaticOptions } from "./config/client-static-config.js";
 import { hostValidationHook } from "./middleware/host-validation.js";
-import {
-  androidLocalAuthHook,
-  androidLocalLoginRoute,
-  isAndroidLocalAuthSatisfied,
-} from "./middleware/android-local-auth.js";
+import { androidLocalAuthHook, androidLocalLoginRoute, isAndroidLocalAuthSatisfied } from "./middleware/android-local-auth.js";
 import { arch, platform, release } from "node:os";
 import { execFileSync } from "node:child_process";
 import { getRuntimeMemorySnapshot } from "./utils/runtime-memory.js";
@@ -210,7 +201,6 @@ export async function buildApp(https?: { cert: Buffer; key: Buffer }) {
       app.log.warn(error, "Optional package availability migration did not complete; it will retry next startup");
     }
   }
-  resetTurnGameRegistry();
 
   // ── Seed defaults ──
   await startup.phase("seed.preset", () => seedDefaultPreset(db));

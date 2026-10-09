@@ -37,11 +37,11 @@ import { rafThrottle } from "../lib/raf-throttle";
 // frame, briefly showing the previous chat's text in the new chat. Requiring
 // the prefix delivers cross-chat swaps synchronously instead. Exported for
 // unit testing.
-export function isOngoingStreamGrowth(lastSeen: string, next: string): boolean {
+function isOngoingStreamGrowth(lastSeen: string, next: string): boolean {
   return lastSeen.length > 0 && next.length > lastSeen.length && next.startsWith(lastSeen);
 }
 
-export function isTypewriterSizedStreamGrowth(lastSeen: string, next: string): boolean {
+function isTypewriterSizedStreamGrowth(lastSeen: string, next: string): boolean {
   return isOngoingStreamGrowth(lastSeen, next) && next.length - lastSeen.length === 1;
 }
 

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 
-export type EditorTabItem<T extends string> = {
+type EditorTabItem<T extends string> = {
   id: T;
   label: string;
   icon: LucideIcon;

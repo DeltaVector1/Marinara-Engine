@@ -31,32 +31,32 @@ export interface TextBlock {
   type: "text";
   text: string;
 }
-export interface ThinkingBlock {
+interface ThinkingBlock {
   type: "thinking";
   thinking: string;
   signature: string;
 }
-export interface ToolUseBlock {
+interface ToolUseBlock {
   type: "tool_use";
   id: string;
   name: string;
   input: Record<string, unknown>;
 }
-export interface ToolResultBlock {
+interface ToolResultBlock {
   type: "tool_result";
   tool_use_id: string;
   content: string;
   is_error?: boolean;
 }
-export interface ImageBlock {
+interface ImageBlock {
   type: "image";
   source: { type: "base64"; media_type: string; data: string };
 }
 
-export type UserContentBlock = TextBlock | ToolResultBlock | ImageBlock;
-export type AssistantContentBlock = TextBlock | ThinkingBlock | ToolUseBlock;
+type UserContentBlock = TextBlock | ToolResultBlock | ImageBlock;
+type AssistantContentBlock = TextBlock | ThinkingBlock | ToolUseBlock;
 
-export interface CommonSessionMeta {
+interface CommonSessionMeta {
   sessionId: string;
   cwd: string;
   version: string;
@@ -68,7 +68,7 @@ export interface CommonSessionMeta {
 // the SDK's loose `SessionStoreEntry` (`{ type: string; [k: string]: unknown }`)
 // without a cast — object-literal type aliases carry an implicit index
 // signature; interfaces do not.
-export type SyntheticUserEntry = {
+type SyntheticUserEntry = {
   parentUuid: string | null;
   isSidechain: false;
   promptId: string;
@@ -85,7 +85,7 @@ export type SyntheticUserEntry = {
   gitBranch: string;
 };
 
-export interface SyntheticAssistantMessage {
+interface SyntheticAssistantMessage {
   model: string;
   id: string;
   type: "message";
@@ -96,7 +96,7 @@ export interface SyntheticAssistantMessage {
   usage: { input_tokens: number; output_tokens: number };
 }
 
-export type SyntheticAssistantEntry = {
+type SyntheticAssistantEntry = {
   parentUuid: string | null;
   isSidechain: false;
   message: SyntheticAssistantMessage;
@@ -112,7 +112,7 @@ export type SyntheticAssistantEntry = {
   gitBranch: string;
 };
 
-export type SyntheticEntry = SyntheticUserEntry | SyntheticAssistantEntry;
+type SyntheticEntry = SyntheticUserEntry | SyntheticAssistantEntry;
 
 // Constrain the payload to the legal base64 alphabet so the regex engine
 // fails fast on garbage instead of backtracking across multi-KB inputs.
@@ -165,7 +165,7 @@ function imageBlocksFromDataUrls(urls: readonly string[]): ImageBlock[] {
  *    followed by an optional text block.
  *  - plain text → string content (smaller files, identical wire result).
  */
-export function buildUserEntry(args: {
+function buildUserEntry(args: {
   message: ChatMessage;
   parentUuid: string | null;
   meta: CommonSessionMeta;
@@ -231,7 +231,7 @@ export function buildUserEntry(args: {
  * The Anthropic API rejects empty `content`; an assistant turn with neither
  * text nor tool_calls gets a single empty text block so resume still loads.
  */
-export function buildAssistantEntry(args: {
+function buildAssistantEntry(args: {
   message: ChatMessage;
   parentUuid: string | null;
   meta: CommonSessionMeta;
@@ -349,7 +349,7 @@ export function buildAssistantPrefillContinuationPrompt(prefill: string): string
   ].join("\n");
 }
 
-export interface SplitResult {
+interface SplitResult {
   /** Messages that go into the JSONL session file as prior history. */
   history: ChatMessage[];
   /** The message used to build the SDK `query()` prompt. */

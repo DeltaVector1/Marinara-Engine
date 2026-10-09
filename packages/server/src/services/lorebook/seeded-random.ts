@@ -4,7 +4,7 @@
  */
 
 /** FNV-1a hash of a string, as an unsigned 32-bit integer. */
-export function stableHash(value: string): number {
+function stableHash(value: string): number {
   let hash = 2166136261;
   for (let index = 0; index < value.length; index++) {
     hash ^= value.charCodeAt(index);

@@ -21,7 +21,7 @@ export interface ScenePackageOrigin {
 }
 
 /** What a package scene origin hands the planner and the scene chat. */
-export interface SceneOriginContext {
+interface SceneOriginContext {
   /** Engine character IDs the scene may cast. At least one. */
   characterIds: string[];
   /** The persona the player uses in this origin, or null for none. */
@@ -78,34 +78,6 @@ export interface SceneOriginProvider {
    * the lock, and must be idempotent: a retry or a later delete can deliver the same scene again.
    */
   release?(originId: string, end: SceneOriginEnd): Promise<void>;
-}
-
-/** Metadata stored on the scene's roleplay chat. */
-export interface SceneMeta {
-  /** The conversation chat that spawned this scene. Absent when a package origin did. */
-  sceneOriginChatId?: string;
-  /** The package thread that spawned this scene. */
-  scenePackageOrigin?: ScenePackageOrigin;
-  /** The package's per-scene settings. */
-  scenePackageData?: ScenePackageData;
-  /** The character who initiated the scene (or null if user-initiated). */
-  sceneInitiatorCharId: string | null;
-  /** Human-readable scenario description (shown as narrator message). */
-  sceneDescription: string;
-  /** Hidden scenario / plot outline — not shown to user. */
-  sceneScenario: string | null;
-  /** Background filename to apply. */
-  sceneBackground: string | null;
-  /** Custom system prompt crafted by the LLM for this scene. */
-  sceneSystemPrompt: string | null;
-  /** A concise summary of the characters' relationship and shared history. */
-  sceneRelationshipHistory: string | null;
-  /** Whether the scene is SFW or NSFW. */
-  sceneRating: "sfw" | "nsfw";
-  /** Lifecycle status. */
-  sceneStatus: "active" | "concluded";
-  /** The recap, kept on a concluded package-origin scene so the package can reconcile a missed release. */
-  sceneSummary?: string;
 }
 
 /** The comprehensive plan the LLM generates for a scene. */
@@ -193,12 +165,6 @@ export interface SceneConcludeResponse {
   /** The origin conversation chat ID to navigate back to; null for a package origin. */
   originChatId: string | null;
   packageOrigin: ScenePackageOrigin | null;
-}
-
-/** Request body for POST /scene/abandon. */
-export interface SceneAbandonRequest {
-  /** The scene (roleplay) chat to abandon and delete. */
-  sceneChatId: string;
 }
 
 /** Response from POST /scene/abandon. */

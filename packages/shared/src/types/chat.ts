@@ -2,13 +2,9 @@
 // Chat & Message Types
 // ──────────────────────────────────────────────
 
-import type { MariWorkspaceTraceItem } from "./professor-mari-workspace.js";
-import type { GameDicePlaceholderRecord } from "../utils/dice-placeholder.js";
 import type { GenerationGuideSource } from "../utils/generation-guide.js";
-import type { HapticFeedbackSensitivity } from "./haptic.js";
 import type { CustomEmojiSelectionPrefs } from "../schemas/custom-emoji.schema.js";
-import type { DiceRollResult, GameDicePoolConsumption, GameDicePoolMismatch } from "./game.js";
-import type { SpotifySourceType } from "./spotify.js";
+import type { DiceRollResult } from "./game.js";
 import type {
   RoleplayCommandActivity,
   RoleplayCommandAudience,
@@ -17,13 +13,12 @@ import type {
   RoleplayPrivateCommand,
 } from "./roleplay-command.js";
 
-export type { SpotifySourceType } from "./spotify.js";
 
 /** The three primary chat modes the engine supports. */
 export type ChatMode = "conversation" | "roleplay" | "game";
 
 /** How a multi-character (group) chat is handled. */
-export type GroupChatMode = "merged" | "individual";
+type GroupChatMode = "merged" | "individual";
 
 /** The one reading of a stored group mode: anything but "individual" is the default Merged mode. */
 export function normalizeGroupChatMode(value: unknown): GroupChatMode {
@@ -31,7 +26,7 @@ export function normalizeGroupChatMode(value: unknown): GroupChatMode {
 }
 
 /** How individual-mode group chats decide response order. */
-export type GroupResponseOrder = "sequential" | "smart" | "manual";
+type GroupResponseOrder = "sequential" | "smart" | "manual";
 
 export interface KnowledgeAgentSourceSettings {
   /** When true/omitted, this agent uses the chat's active lorebooks unless fixed sources are selected. */
@@ -49,14 +44,6 @@ export const CONVERSATION_COMMAND_KEYS = [
   "memory",
   "scene",
   "call",
-  "uno",
-  "chess",
-  "poker",
-  "eightball",
-  "tic_tac_toe",
-  "rock_paper_scissors",
-  "music",
-  "haptic",
   "influence",
   "note",
   "react",
@@ -70,14 +57,6 @@ export type ConversationCommandToggles = Partial<Record<ConversationCommandKey, 
 export const CONVERSATION_COMMAND_AGENT_IDS: Partial<Record<ConversationCommandKey, string>> = {
   selfie: "illustrator",
   call: "conversation-calls",
-  uno: "uno",
-  chess: "chess",
-  poker: "poker",
-  eightball: "eightball",
-  tic_tac_toe: "tic-tac-toe",
-  rock_paper_scissors: "rock-paper-scissors",
-  music: "spotify",
-  haptic: "haptic",
 };
 
 export type ConversationPresenceStatus = "online" | "idle" | "dnd" | "offline";
@@ -255,15 +234,8 @@ export function normalizeSummaryTailMessages(value: unknown): number {
 }
 export const CHAT_SUMMARY_OUTPUT_TOKENS = { MIN: 1, MAX: 32768, DEFAULT: 4096 } as const;
 
-export type GameStoryboardViewerDisplayMode = "floating" | "background";
-
 /** Extra metadata stored on a chat. */
 export interface ChatMetadata {
-  /** Fresh, explicitly reviewed setup for an optional shared session. */
-  multiplayerSetup?: boolean;
-  multiplayerSetupComplete?: boolean;
-  multiplayerGameSetup?: { preferences: string; gmConnectionId?: string; gameName?: string };
-  multiplayer?: import("./multiplayer.js").MultiplayerStoredRoom | import("./multiplayer.js").MultiplayerJoinedRoom;
   /** Opt-in coordinated Roleplay context and scene memory. */
   advancedMemory?: import("./advanced-memory.js").AdvancedMemorySettings;
   /** Durable maintenance checkpoint; model calls never hold a storage transaction. */
@@ -356,16 +328,6 @@ export interface ChatMetadata {
   selfieUseAvatarReferences?: boolean;
   /** Whether Conversation selfie commands should append matched character card appearance text to image prompts. */
   selfieIncludeCharacterAppearance?: boolean;
-  /** Whether Game Mode scene illustrations should send matching character/persona avatar references. */
-  gameImageUseAvatarReferences?: boolean;
-  /** Whether Game Mode scene illustrations should append matched character-card appearance fields. */
-  gameImageIncludeCharacterAppearance?: boolean;
-  /** Whether storyboard keyframes should use the selected provider-facing image prompt template. Defaults to true. */
-  gameStoryboardUsePromptTemplate?: boolean;
-  /** When false, Game Mode keeps manual Illustrator controls but stops automatic visual generations. */
-  gameImageAutoGenerationEnabled?: boolean;
-  /** When true, Game Mode asks the chat LLM to rewrite generated asset prompts before image generation. */
-  gameImageDynamicPromptEnabled?: boolean;
   /** Per-chat source overrides for knowledge agents. */
   knowledgeAgentSources?: Partial<Record<"knowledge-retrieval" | "knowledge-router", KnowledgeAgentSourceSettings>>;
   /** Per-chat image settings overrides for custom image agents, keyed by agent type. */
@@ -489,20 +451,6 @@ export interface ChatMetadata {
   impersonatePrompt?: string | null;
   /** Show a manual draft translation button beside the send control. */
   showInputTranslateButton?: boolean;
-  /** Legacy shared translation target. Directional targets fall back to this value. */
-  translationTargetLang?: string;
-  /** Target language used when translating the user's outgoing draft. */
-  translationInputTargetLang?: string;
-  /** Target language used when translating incoming assistant responses. */
-  translationOutputTargetLang?: string;
-  /** Legacy shared AI translation prompt. Directional prompts fall back to this value. */
-  translationPrompt?: string | null;
-  /** AI system prompt for outgoing draft translation. Supports {{targetLanguage}}. */
-  translationInputPrompt?: string | null;
-  /** AI system prompt for incoming response translation. Supports {{targetLanguage}}. */
-  translationOutputPrompt?: string | null;
-  /** Show only the translated text in place of the original message once a translation exists. */
-  translationDisplayOnly?: boolean;
   /** Allow roleplay characters to create direct-message conversation chats with hidden [dm] commands. */
   roleplayDmCommandsEnabled?: boolean;
   /** Hidden character commands are opt-in, independently of automatic agents. */
@@ -515,22 +463,6 @@ export interface ChatMetadata {
   roleplayDocumentAudience?: RoleplayCommandAudience;
   roleplayWhisperAudience?: RoleplayCommandAudience;
   roleplaySoundConnectionId?: string | null;
-  /** Chat-scoped Intiface Central WebSocket URL for haptic manual and auto-connect. */
-  hapticIntifaceUrl?: string | null;
-  /** Haptic response style for any chat mode. Missing = standard. */
-  hapticSensitivity?: HapticFeedbackSensitivity;
-  /** When true, very brief accidental brushes may trigger small haptic feedback. Missing/false = only deliberate contact. */
-  hapticIncidentalContact?: boolean;
-  /** Music source constraint for Music DJ in roleplay chats. */
-  spotifySourceType?: SpotifySourceType;
-  /** Spotify playlist ID used when spotifySourceType is "playlist". */
-  spotifyPlaylistId?: string | null;
-  /** Human-readable playlist name cached for prompts/display. */
-  spotifyPlaylistName?: string | null;
-  /** Spotify artist name used when spotifySourceType is "artist". */
-  spotifyArtist?: string | null;
-  /** Recent Spotify track URIs played by the roleplay/conversation Music DJ. */
-  spotifyRecentTracks?: string[];
   /** Durable count of autonomous messages the user has not viewed yet. */
   autonomousUnreadCount?: number;
   /** Character IDs that contributed to the current autonomous unread state. */
@@ -580,184 +512,14 @@ export interface ChatMetadata {
   selfiePositivePrompt?: string;
   /** Extra negative prompt/tags sent with generated conversation selfies. */
   selfieNegativePrompt?: string;
-
-  // ── Game Mode Fields ──
-  /** UUID linking all sessions of one game */
-  gameId?: string;
-  /** Session number within a game (1-based) */
-  gameSessionNumber?: number;
-  /** Current session lifecycle status */
-  gameSessionStatus?: import("./game.js").GameSessionStatus;
-  /** Whether the first game intro screen has been dismissed for this game chat. */
-  gameIntroPresented?: boolean;
-  /** Timestamp for when the current game session was created/started */
-  gameCurrentSessionStartedAt?: string;
-  /** Current game state (exploration, dialogue, combat, travel_rest) */
-  gameActiveState?: import("./game.js").GameActiveState;
   /** Whether the game should maintain visible custom HUD widgets. */
   enableCustomWidgets?: boolean;
-  /** Whether GM is a standalone narrator or an existing character */
-  gameGmMode?: import("./game.js").GameGmMode;
-  /** Character ID used as GM (when gameGmMode is "character") */
-  gameGmCharacterId?: string;
-  /** Party member IDs for the player's party; library character IDs or `npc:<slug>` tracked-NPC IDs. */
-  gamePartyCharacterIds?: string[];
-  /** ID of the linked party chat */
-  gamePartyChatId?: string;
-  /** Current area map */
-  gameMap?: import("./game.js").GameMap | null;
-  /** All generated/known maps for this game session/campaign. */
-  gameMaps?: import("./game.js").GameMap[];
   /** ID of the map the party is currently on. */
   activeGameMapId?: string | null;
-  /** Inactive recovery map retained only until an initial hierarchical map is saved or Game start falls back. */
-  gameInitialMapFallback?: import("./game.js").GameMap | null;
-  /** Summaries of all previous sessions */
-  gamePreviousSessionSummaries?: import("./game.js").SessionSummary[];
-  /** GM-only: overarching story arc and plot (never sent to party agent) */
-  gameStoryArc?: string;
-  /** GM-only: planned plot twists (never sent to party agent) */
-  gamePlotTwists?: string[];
-  /** Active dialogue sub-scene chat ID */
-  gameDialogueChatId?: string | null;
-  /** Active combat sub-scene chat ID */
-  gameCombatChatId?: string | null;
-  /** Live combat encounter snapshot — restored on page refresh while a fight is in progress. */
-  gameCombatState?: import("./game.js").GameCombatStateSnapshot | null;
-  /** Runtime override for combat presentation style (Pattern B). Takes effect next battle. */
-  gameCombatStyle?: import("./game.js").GameCombatStyle;
-  /** Live tactical (grid) battle snapshot — restored on page refresh while a tactical fight is in progress. */
-  gameTacticalCombatSnapshot?: import("../features/tactical-combat/types.js").TacticalCombatState | null;
-  /** The ruleset this game was created on, pinned for the game's lifetime. Absent means
-   *  `engine-legacy`: the Engine's own rules, exactly as before rulesets existed. */
-  gameRuleset?: import("../schemas/ruleset.schema.js").RulesetRef;
-  /** User's initial game setup preferences */
-  gameSetupConfig?: import("./game.js").GameSetupConfig | null;
-  /** Immutable creation-time setup retained for viewing and sharing after the campaign changes. */
-  gameInitialSetup?: import("./game.js").GameInitialSetupSnapshot | null;
-  /** Generated game blueprint, including campaign plan and initial HUD widgets. */
-  gameBlueprint?: Record<string, unknown> | null;
-  /** Runtime HUD widget state shown in Game Mode. */
-  gameWidgetState?: import("./game.js").HudWidget[];
-  /** Tracked NPCs with reputation */
-  gameNpcs?: import("./game.js").GameNpc[];
-  /** Current-session turn number when the last rare generated scene illustration was created. */
-  gameLastIllustrationTurn?: number;
-  /** Session number where the last rare generated scene illustration was created. */
-  gameLastIllustrationSessionNumber?: number | null;
-  /** Background tag for the last rare generated scene illustration. */
-  gameLastIllustrationTag?: string;
-  /** Connection used for Game Mode scene-video generation. */
-  gameVideoConnectionId?: string | null;
-  /** Optional independent tool-planning pass before the Game narrator. */
-  gameGmToolConnectionId?: string | null;
-  /** Let the GM query already-vectorized lore without enabling the other optional tools. */
-  gameLorebookSearch?: boolean;
-  /** Rewrite Game narration after new text-command dice rolls; absent means enabled. */
-  gameDiceOutcomeNarration?: boolean;
-  /**
-   * Finish a rolled Game turn in one provider request: the GM commits its prose blind,
-   * the engine rolls afterwards and fills the result in, and the narration rewrite never
-   * fires. Absent means off.
-   */
-  gameOneRequestDice?: boolean;
-  /**
-   * The sighted pool, a sub-option of `gameOneRequestDice` and off by default. The engine
-   * throws one die of each size before the turn and shows the head values to the GM, so a
-   * number that itself has to pick between three or more endings can be narrated in the
-   * same pass. The GM sees the number before it decides what to check, so it can steer
-   * outcomes in a way the blind forms do not allow; the engine's record is still what is
-   * saved. Only read while `gameOneRequestDice` is on.
-   */
-  gameDicePoolMode?: boolean;
-  /** How many values per size the GM is shown. Absent means 1, which is the smallest
-   *  window the mechanism works at and the largest single mitigation it has. */
-  gameDicePoolWindow?: number;
-  /** Accepted turns a size may go unspent before it is rethrown. Absent means 3; 0 is off. */
-  gameDicePoolAgeTurns?: number;
-  /** Serialize narration, agents, and scene media within this Game chat. */
-  gameSequentialAgents?: boolean;
-  /** Master visibility/runtime switch for manual Game Mode scene videos. */
-  gameSceneVideosEnabled?: boolean;
-  /** Selected Game Mode scene/storyboard video prompt template. */
-  gameVideoPromptTemplateId?: string | null;
-  /** Selected Game Mode prompt template for storyboard keyframe clips only. */
-  gameStoryboardVideoPromptTemplateId?: string | null;
-  /** Chat-local Game Mode scene/storyboard video prompt templates. */
-  gameVideoPromptTemplates?: import("./agent.js").AgentPromptTemplateOption[];
-  /** Selected provider-facing image prompt template for storyboard keyframes. */
-  gameStoryboardImagePromptTemplateId?: string | null;
-  /** Chat-local provider-facing storyboard image prompt templates. */
-  gameStoryboardImagePromptTemplates?: import("./agent.js").AgentPromptTemplateOption[];
-  /** When true, completed Game Mode GM turns automatically create storyboard keyframe illustrations. */
-  gameStoryboardAutoIllustrationsEnabled?: boolean;
-  /** When true, completed Game Mode GM turns automatically create storyboard keyframe videos. */
-  gameStoryboardAutoGenerationEnabled?: boolean;
-  /** Master visibility/runtime switch for Game Mode storyboard controls. */
-  gameStoryboardsEnabled?: boolean;
-  /** Target number of Game Mode storyboard keyframes to create per GM turn. */
-  gameStoryboardKeyframeCount?: number;
-  /** Per-chat storyboard animation clip duration in seconds. Null/omitted uses Video Generation settings. */
-  gameStoryboardAnimationDurationSeconds?: number | null;
-  /** How the Game Mode storyboard viewer is displayed in the game surface. */
-  gameStoryboardViewerDisplayMode?: GameStoryboardViewerDisplayMode;
-  /** Selected Game Mode storyboard prompt template for image-only auto storyboards. */
-  gameStoryboardIllustrationPromptTemplateId?: string | null;
-  /** Selected Game Mode storyboard prompt template for animation-ready auto storyboards. */
-  gameStoryboardAnimationPromptTemplateId?: string | null;
-  /** Chat-local storyboard prompt templates, merged with built-in storyboard prompt modes. */
-  gameStoryboardPromptTemplates?: import("./agent.js").AgentPromptTemplateOption[];
-  /** Chat-level toggle for Stage 3 image-aware storyboard motion refinement. */
-  storyboardAgentImageAwareShotPlanningEnabled?: boolean | null;
-  /** Chat-level Stage 3 image-aware planner selection. Null/omitted uses the Storyboard Agent default. */
-  storyboardAgentAnimationRefinementTemplateId?: string | null;
-  /** Use native NovelAI V4/V4.5 per-character captions for multi-character storyboard illustrations. Defaults to true. */
-  gameStoryboardUseNovelAiCharacterPrompts?: boolean;
-  /** Last generated scene-video record ID for this game. */
-  gameLastSceneVideoId?: string | null;
   /** Connection used for roleplay/gallery scene-video generation. */
   sceneVideoConnectionId?: string | null;
   /** Last generated roleplay/gallery scene-video record ID. */
   sceneLastVideoId?: string | null;
-  /** Game-mode GM instruction override. Empty/null uses the built-in default prompt. */
-  gameSystemPrompt?: string | null;
-  /** Selected built-in or chat-local Game Mode GM prompt template. */
-  gameGmPromptTemplateId?: string | null;
-  /** Chat-local Game Mode GM prompt templates. */
-  gameGmPromptTemplates?: import("./agent.js").AgentPromptTemplateOption[];
-  /** Additional game-mode generation instructions appended to the final GM format reminder. */
-  gameSpecialInstructions?: string | null;
-  /** Generic Game Mode Music DJ toggle. Legacy gameUseSpotifyMusic remains the Spotify-specific pipeline flag. */
-  gameUseMusicDj?: boolean;
-  /** Extra user instructions for game scene illustration prompts. */
-  gameImagePromptInstructions?: string | null;
-  /** Per-game asset browser folder exclusions. Omitted/null means every asset folder is available. */
-  gameAssetSelection?: { excludedFolders?: string[] } | null;
-  /** When true, Game Mode uses Music DJ for Spotify music instead of local music assets. */
-  gameUseSpotifyMusic?: boolean;
-  /** Music source constraint for Music DJ in Game Mode. */
-  gameSpotifySourceType?: SpotifySourceType;
-  /** Spotify playlist ID used when gameSpotifySourceType is "playlist". */
-  gameSpotifyPlaylistId?: string | null;
-  /** Human-readable playlist name cached for prompts/display. */
-  gameSpotifyPlaylistName?: string | null;
-  /** Spotify artist name used when gameSpotifySourceType is "artist". */
-  gameSpotifyArtist?: string | null;
-  /** Recent Spotify track URIs played by Game Mode Spotify music. */
-  gameRecentSpotifyTracks?: string[];
-  /** Run Game Lorebook Keeper after a session is concluded. */
-  gameLorebookKeeperEnabled?: boolean;
-  /** Chat-scoped lorebook maintained by Game Lorebook Keeper. */
-  gameLorebookKeeperLorebookId?: string | null;
-  /** Status of the most recent Game Lorebook Keeper session-end run. */
-  gameLorebookKeeperLastRun?: {
-    sessionNumber: number;
-    status: "running" | "success" | "failed";
-    updatedAt: string;
-    lorebookId?: string | null;
-    entryCount?: number;
-    error?: string;
-  } | null;
 
   // ── Conversation-Mode Auto-Summarization ──
   /** Per-day auto-generated conversation summaries (key: "DD.MM.YYYY"). */
@@ -875,10 +637,6 @@ export interface MessageExtra {
   attachments?: MessageAttachment[] | null;
   /** Client-generated ID that correlates a submitted user turn with its durable row. */
   submissionId?: string | null;
-  /** Persisted translated text for this message, if the user generated one. */
-  translation?: string | null;
-  /** User hid the persisted translation from display without deleting it. */
-  translationHidden?: boolean | null;
   /** Conversation-mode reactions on this message (emoji/custom-emoji + who reacted). */
   reactions?: MessageReaction[] | null;
   /** When true, this message marks the "new start" of the conversation — all earlier messages are excluded from context */
@@ -909,10 +667,6 @@ export interface MessageExtra {
   roleplayDocuments?: RoleplayDocument[] | null;
   /** User-only command disclosures. Their labels and raw text never enter prompt history. */
   roleplayCommandActivity?: RoleplayCommandActivity[] | null;
-  /** Professor Mari workspace trace shown on the home assistant transcript. */
-  mariWorkspaceTimeline?: MariWorkspaceTraceItem[] | null;
-  /** True when this Mari turn deferred mutating commands behind an Accept action (#5725 Manual mode). */
-  mariDeferredMutations?: boolean | null;
   /** Per-swipe sprite expressions from the Expression Engine agent */
   spriteExpressions?: Record<string, string> | null;
   /** Presentation-only ID-macro card references for merged Roleplay narrator avatars; never chat members. */
@@ -921,15 +675,6 @@ export interface MessageExtra {
   expressionSpriteIds?: string[];
   /** Per-swipe CYOA choices from the CYOA Choices agent */
   cyoaChoices?: Array<{ label: string; text: string }> | null;
-  /** Presentation-only Game Mode cues retained so completed turns can be replayed without rerunning scene analysis. */
-  gameReplayCue?: {
-    background?: string | null;
-    music?: string | null;
-    ambient?: string | null;
-    sfx?: string[];
-    directions?: import("./game.js").DirectionCommand[];
-    segmentEffects?: import("./sidecar.js").SceneSegmentEffect[];
-  } | null;
   /** Snapshot of the persona that was active when this message was sent (user messages only) */
   personaSnapshot?: {
     personaId: string;
@@ -960,12 +705,6 @@ export interface MessageExtra {
   diceRollResult?: DiceRollResult | null;
   /** Every Game roll in this swipe, in execution order. Older turns use diceRollResult. */
   diceRollResults?: DiceRollResult[] | null;
-  /** Real roll records survived, but the separate outcome narration request failed. */
-  gameOutcomeNarrationFailed?: boolean;
-  /** What the one-request dice pass did on this turn, when the switch was on. */
-  gameDiceTurn?: GameDiceTurnNotice | null;
-  /** Separate tool planner billing; never added to the narrator model's usage. */
-  gameToolPlanning?: GameToolPlanningInfo | null;
   /**
    * Cached pipeline injections (prose-guardian, director, knowledge-retrieval, etc.)
    * saved with this assistant message — reused when regenerating that swipe unless refreshed.
@@ -988,43 +727,6 @@ export interface MessageExtra {
     impersonateBlockAgents?: boolean;
     impersonatePromptTemplate?: string | null;
   } | null;
-}
-
-/**
- * Summary of the one-request dice pass for one Game turn. Saved on the assistant
- * message and mirrored on a `game_dice_turn_notice` SSE frame, so the session log can
- * say in plain words what the engine could and could not roll. Every field is optional
- * and only truthy values are written, so a clean turn stores nothing.
- */
-export interface GameDiceTurnNotice {
-  /** Which blind forms actually resolved this turn, in first-seen order. */
-  forms?: Array<"branch" | "placeholder">;
-  /**
-   * One record per substituted placeholder, in reading order: the body as the model
-   * wrote it, the dice actually thrown, and where the number landed. The saved content
-   * carries a bare number so the prompt leaf and the transcript both read as prose, so
-   * this is the only audit trail of what that number was.
-   */
-  placeholders?: GameDicePlaceholderRecord[];
-  /** Spans the pass refused to read and replaced with a visible notice. Never a number. */
-  unreadablePlaceholders?: number;
-  /** Branch blocks the pass could not read. The roll stands, the narration does not. */
-  branchFailures?: number;
-  /** The pass itself threw; its fallback rewrite ran and the turn was kept. */
-  passFailed?: boolean;
-  /**
-   * The pool values this turn actually spent, in spend order. Only ever written while
-   * the sighted pool sub-option is on, so a chat that never turned it on stores nothing.
-   */
-  poolSlots?: GameDicePoolConsumption[];
-  /**
-   * Checks and `[dice:]` tags the pool had no value left for. Nothing was rolled and
-   * nothing was written: the tag went back sparse and the outcome is owed to the next
-   * turn. Never a number, and never a second request to get one.
-   */
-  poolOverflow?: number;
-  /** What the model claimed that disagreed with what the engine spent. Recorded, never obeyed. */
-  poolMismatches?: GameDicePoolMismatch[];
 }
 
 export interface GameToolPlanningInfo {
@@ -1072,51 +774,6 @@ export interface MessageSwipe {
   extra: MessageExtra;
 }
 
-/** Payload sent to start a generation. */
-export interface GenerateRequest {
-  chatId: string;
-  userMessage: string | null;
-  /** Client-generated ID used to confirm that this exact user turn was persisted. */
-  submissionId?: string | null;
-  /** If set, regenerate the message at this ID */
-  regenerateMessageId: string | null;
-  /** If set, append the generated continuation to this assistant message */
-  continueMessageId?: string | null;
-  /** Whether a continued response is separated from the existing message by a blank line. */
-  continueAddsNewline?: boolean;
-  /** Override connection for this generation */
-  connectionId: string | null;
-  /** Background currently displayed on the active chat surface. */
-  currentBackground?: string | null;
-  /** Validated owner-mode movement committed with the user turn. */
-  pendingSpatialTransition?: import("./spatial-context.js").PendingSpatialTransition | null;
-  /** One-shot attachments sent with the user message. */
-  attachments?: MessageAttachment[];
-  /** One-shot Narrative Director mode for this generation, if the user armed Push Story. */
-  narrativeDirectorMode?: "natural" | "random" | null;
-  /** One-shot Smart speaker selection for an individual Roleplay group. */
-  smartResponse?: boolean;
-}
-
-/** An SSE event from the generation stream. */
-export interface StreamEvent {
-  type: "token" | "agent_update" | "game_state" | "done" | "error";
-  data: string;
-  agentId?: string;
-  messageId?: string;
-}
-
-/** An OOC influence queued from a conversation chat to be injected into a roleplay chat. */
-export interface OocInfluence {
-  id: string;
-  sourceChatId: string;
-  targetChatId: string;
-  content: string;
-  anchorMessageId: string;
-  consumed: boolean;
-  createdAt: string;
-}
-
 /** A durable note emitted from a conversation chat that persists in the connected roleplay's prompt until cleared. */
 export interface ConversationNote {
   id: string;
@@ -1127,7 +784,7 @@ export interface ConversationNote {
   createdAt: string;
 }
 
-export interface HistoricalPersonaIdentitySummary {
+interface HistoricalPersonaIdentitySummary {
   personaId: string;
   source: "persona" | "character";
   name: string;

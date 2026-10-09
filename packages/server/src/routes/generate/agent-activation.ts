@@ -4,11 +4,11 @@ import {
   testPrimaryKeys,
 } from "@marinara-engine/shared";
 
-export interface ActivationScanMessage {
+interface ActivationScanMessage {
   content?: unknown;
 }
 
-export interface AgentActivationMatch {
+interface AgentActivationMatch {
   configured: boolean;
   matched: boolean;
   keywords: string[];
@@ -16,7 +16,7 @@ export interface AgentActivationMatch {
   scanDepth: number;
 }
 
-export function normalizeAgentActivationKeywords(value: unknown): string[] {
+function normalizeAgentActivationKeywords(value: unknown): string[] {
   const rawKeywords = typeof value === "string" ? value.split(/\r?\n|,/) : Array.isArray(value) ? value : [];
   const seen = new Set<string>();
   const keywords: string[] = [];

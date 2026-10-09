@@ -43,12 +43,3 @@ export function folderContainsBundledGameAssets(folderPath: string): boolean {
   const relativePath = runtimeRelativePath(folderPath);
   return relativePath ? bundledEntry(relativePath, "directory") : false;
 }
-
-/** Pure relative-path variants used by focused regression coverage. */
-export function isBundledGameAssetPath(relativePath: string): boolean {
-  return bundledEntry(relativePath, "file");
-}
-
-export function isBundledGameAssetFolderPath(relativePath: string): boolean {
-  return bundledEntry(relativePath, "directory");
-}

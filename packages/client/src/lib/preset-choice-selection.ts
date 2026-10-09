@@ -1,4 +1,4 @@
-export type PresetChoiceSelections = Record<string, string | string[]>;
+type PresetChoiceSelections = Record<string, string | string[]>;
 
 interface PresetChoiceVariable {
   variableName: string;

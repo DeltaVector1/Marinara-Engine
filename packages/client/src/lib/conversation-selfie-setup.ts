@@ -1,13 +1,13 @@
 import type { ConversationCommandToggles } from "@marinara-engine/shared";
 
-export type ConversationSelfieConnectionOption = {
+type ConversationSelfieConnectionOption = {
   id: string;
   provider?: string;
   defaultForAgents?: boolean | string;
 };
 
 /** Resolve the image connection that Conversation setup should persist for enabled selfies. */
-export function resolveConversationSelfieConnectionId(input: {
+function resolveConversationSelfieConnectionId(input: {
   currentConnectionId: unknown;
   selfieCommandEnabled: boolean;
   connections: readonly ConversationSelfieConnectionOption[];

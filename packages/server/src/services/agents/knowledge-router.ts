@@ -48,7 +48,7 @@ const MAX_ROUTER_CANDIDATES = 400;
 const DEFAULT_SEMANTIC_TOP_K = 40;
 
 /** Single catalog row the LLM sees for routing. */
-export interface CatalogItem {
+interface CatalogItem {
   id: string;
   name: string;
   keys: string[];
@@ -69,7 +69,7 @@ interface RouterResponse {
   selected_entries?: unknown;
 }
 
-export interface KnowledgeRouterCandidateOptions extends LorebookEmbeddingOptions {
+interface KnowledgeRouterCandidateOptions extends LorebookEmbeddingOptions {
   semanticEnabled?: boolean;
   semanticTopK?: unknown;
   scanMessages?: ScanMessage[];
@@ -139,7 +139,7 @@ function escapeXmlText(value: string): string {
  * Parse the LLM response into a list of entry IDs.
  * Tolerates markdown code fences and extra prose around the JSON.
  */
-export function parseRouterResponse(text: string): string[] {
+function parseRouterResponse(text: string): string[] {
   const trimmed = text.trim();
   if (!trimmed) return [];
 
@@ -202,7 +202,7 @@ function normalizePositiveInteger(value: unknown, fallback: number): number {
   return Math.max(1, Math.trunc(numeric));
 }
 
-export function buildKnowledgeRouterQuery(context: AgentContext): string {
+function buildKnowledgeRouterQuery(context: AgentContext): string {
   const parts = context.recentMessages
     .slice(-10)
     .map((message) => message.content.trim())
@@ -212,7 +212,7 @@ export function buildKnowledgeRouterQuery(context: AgentContext): string {
   return parts.join("\n\n");
 }
 
-export function buildKeywordActivatedRouterEntries(
+function buildKeywordActivatedRouterEntries(
   entries: LorebookEntry[],
   messages: ScanMessage[],
   options: KnowledgeRouterCandidateOptions["scanOptions"] = {},
@@ -222,7 +222,7 @@ export function buildKeywordActivatedRouterEntries(
   );
 }
 
-export function mergeKnowledgeRouterCandidates(
+function mergeKnowledgeRouterCandidates(
   semanticMatches: SemanticLorebookMatch[],
   activatedEntries: LorebookEntry[],
 ): LorebookEntry[] {
@@ -241,7 +241,7 @@ export function mergeKnowledgeRouterCandidates(
   return candidates;
 }
 
-export async function prepareKnowledgeRouterCandidates(
+async function prepareKnowledgeRouterCandidates(
   entries: LorebookEntry[],
   context: AgentContext,
   options: KnowledgeRouterCandidateOptions = {},

@@ -7,7 +7,7 @@ import type {
 } from "../types/image-style-profile.js";
 
 export const IMAGE_STYLE_PROFILES_STORAGE_KEY = "imageStyleProfiles";
-export const DEFAULT_IMAGE_STYLE_PROFILE_ID = "auto";
+const DEFAULT_IMAGE_STYLE_PROFILE_ID = "auto";
 const MAX_IMAGE_STYLE_PROFILES = 100;
 
 const DEFAULT_RULES: ImageStyleProfileRules = {
@@ -208,7 +208,7 @@ export const DEFAULT_IMAGE_STYLE_PROFILES: ImageStyleProfile[] = [
   },
 ];
 
-export function createDefaultImageStyleProfileSettings(): ImageStyleProfileSettings {
+function createDefaultImageStyleProfileSettings(): ImageStyleProfileSettings {
   return {
     defaultProfileId: DEFAULT_IMAGE_STYLE_PROFILE_ID,
     profiles: DEFAULT_IMAGE_STYLE_PROFILES.map((profile) => cloneProfile(profile)),
@@ -237,7 +237,7 @@ export function normalizeImageStyleProfileSettings(raw: unknown): ImageStyleProf
   return { defaultProfileId, profiles };
 }
 
-export function normalizeImageStyleProfile(raw: unknown): ImageStyleProfile | null {
+function normalizeImageStyleProfile(raw: unknown): ImageStyleProfile | null {
   if (!isRecord(raw)) return null;
   const id = slugId(readString(raw.id, ""));
   if (!id) return null;

@@ -63,7 +63,7 @@ type ChatCompletionsUsagePayload = {
   };
 };
 
-export function extractOpenAICompatibleContentBlocks(
+function extractOpenAICompatibleContentBlocks(
   content: unknown,
   createAnonymousToolCallId?: () => string,
 ): { text: string; thinking: string; toolCalls: LLMToolCall[]; anonymousToolCallIds: string[] } | null {
@@ -127,7 +127,7 @@ type OpenAIProviderKind =
   | "openai-chatgpt"
   | "local-sidecar";
 
-export function normalizeOpenAIChatCompletionsResponseFormat(
+function normalizeOpenAIChatCompletionsResponseFormat(
   responseFormat: { type: string; [key: string]: unknown } | undefined,
 ): unknown | undefined {
   if (!responseFormat) return undefined;

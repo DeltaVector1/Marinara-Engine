@@ -15,8 +15,6 @@ export const setLorebooksEnabledSchema = z.object({
   enabled: z.boolean(),
 });
 
-export type SetLorebooksEnabledInput = z.infer<typeof setLorebooksEnabledSchema>;
-
 export interface SetLorebooksEnabledResult {
   changedIds: string[];
   unchangedIds: string[];

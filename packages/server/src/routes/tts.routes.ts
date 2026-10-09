@@ -8,24 +8,7 @@ import { createHash, randomUUID } from "crypto";
 import { addAbortListener } from "node:events";
 import { access, mkdir, readdir, rename, unlink, writeFile } from "fs/promises";
 import { join } from "path";
-import {
-  ttsConfigSchema,
-  ttsSourceProfileFromConfig,
-  ttsVoiceAssignmentInputSchema,
-  ttsVoiceModeInputSchema,
-  setCharacterVoiceAssignment,
-  TTS_VOICE_MAX_LENGTH,
-  normalizeMusicEnemyTier,
-  TTS_SETTINGS_KEY,
-  TTS_API_KEY_MASK,
-  ttsRoleplaySpeakerExtractorResponseSchema,
-  type TTSSource,
-  type TTSConfig,
-  type TTSRoleplaySpeakerExtractorResponse,
-  type TTSSourceProfiles,
-  type TTSModelsResponse,
-  type TTSVoicesResponse,
-} from "@marinara-engine/shared";
+import { ttsConfigSchema, ttsSourceProfileFromConfig, ttsVoiceAssignmentInputSchema, ttsVoiceModeInputSchema, setCharacterVoiceAssignment, TTS_VOICE_MAX_LENGTH, TTS_SETTINGS_KEY, TTS_API_KEY_MASK, ttsRoleplaySpeakerExtractorResponseSchema, type TTSSource, type TTSConfig, type TTSRoleplaySpeakerExtractorResponse, type TTSSourceProfiles, type TTSModelsResponse, type TTSVoicesResponse } from "@marinara-engine/shared";
 import { createAppSettingsStorage } from "../services/storage/app-settings.storage.js";
 import { createConnectionsStorage } from "../services/storage/connections.storage.js";
 import { encryptApiKey, decryptApiKey } from "../utils/crypto.js";
@@ -177,28 +160,6 @@ const extractedDialogueSchema = z.object({
     .max(500),
 });
 
-const gameAudioSchema = z.object({
-  kind: z.enum(["sfx", "music"]),
-  prompt: z.string().trim().min(1).max(4_100),
-  /** Optional audio-connection override (#5146); absent = default/legacy resolution. */
-  audioConnectionId: z.string().optional(),
-  /** Context-track request (#5161): a persistent composition generated ONCE
-   *  per area slug or encounter tier into the scoreable music library
-   *  (music/<axis>/<key>/), instead of a throwaway per-prompt clip. Music only. */
-  context: z
-    .object({
-      axis: z.enum(["area", "tier"]),
-      key: z
-        .string()
-        .trim()
-        .min(1)
-        .max(80)
-        .regex(/^[a-z0-9][a-z0-9_-]*$/),
-      /** Composition length; context tracks default to 120s. */
-      lengthMs: z.number().int().min(10_000).max(300_000).optional(),
-    })
-    .optional(),
-});
 
 const AUDIO_FILE_PATTERN = /\.(mp3|wav|ogg|m4a|flac)$/i;
 
@@ -363,7 +324,7 @@ export async function generateRoleplaySoundEffect(
 
 // ── Helpers ─────────────────────────────────────
 
-export function buildRoleplaySpeakerExtractorPrompt(input: {
+function buildRoleplaySpeakerExtractorPrompt(input: {
   group: string;
   user: string;
   characters: string[];
@@ -398,7 +359,7 @@ Example output:
 {"dialogue":[{"speaker":"Dottore","text":"\\\"I've had enough of your shenanigans,\\\""${input.includeEmotions ? ',"speech":"[irritated] \\\"I\'ve had enough of your shenanigans,\\\""' : ""}},{"speaker":"Dottore","text":"\\\"You're wasting my time, subject. This is your last chance to change my mind before I send you to Lab Thirteen.\\\""${input.includeEmotions ? ',"speech":"[irritated] \\\"You\'re wasting my time, subject. [sigh] This is your last chance to change my mind before I send you to Lab Thirteen.\\\""' : ""}},{"speaker":"Mari","text":"\\\"Skill issue,\\\""${input.includeEmotions ? ',"speech":"[chuckle] \\\"Skill issue,\\\""' : ""}}]}`;
 }
 
-export function buildRoleplaySpeakerExtractorUserPrompt(message: string): string {
+function buildRoleplaySpeakerExtractorUserPrompt(message: string): string {
   // Some Responses-compatible providers validate only input messages, not
   // system instructions, before allowing json_object response formatting.
   return `Return the extracted dialogue as a json object matching the requested schema.\n\nMessage to prepare:\n${message}`;
@@ -450,7 +411,7 @@ function validateAnnotatedDialogue(source: string, speech: string): string {
 }
 
 /** Build an exact, ordered queue by locating extracted dialogue inside the original message. */
-export function parseRoleplaySpeakerExtractorOutput(
+function parseRoleplaySpeakerExtractorOutput(
   raw: string,
   message: string,
   includeEmotions: boolean,
@@ -513,7 +474,7 @@ function withActiveSourceProfile(config: TTSConfig): TTSConfig {
 }
 
 /** Mask every stored provider key before returning TTS configuration to the browser. */
-export function maskTTSConfigForResponse(config: TTSConfig): TTSConfig {
+function maskTTSConfigForResponse(config: TTSConfig): TTSConfig {
   const configWithProfiles = withActiveSourceProfile(config);
   const sourceProfiles: TTSSourceProfiles = {};
   for (const source of TTS_SOURCES) {
@@ -535,7 +496,7 @@ export function maskTTSConfigForResponse(config: TTSConfig): TTSConfig {
  * Preserve masked provider credentials, encrypt new keys, and keep the active
  * provider fields synchronized with its source profile.
  */
-export function prepareTTSConfigForStorage(
+function prepareTTSConfigForStorage(
   input: TTSConfig,
   existing: TTSConfig,
   encryptKey: (value: string) => string = encryptApiKey,
@@ -587,7 +548,7 @@ async function loadConfig(storage: ReturnType<typeof createAppSettingsStorage>) 
  * pre-migration installs keep working untouched.
  */
 /** Callers pass this sentinel to force the legacy settings blob even when audio connections exist. */
-export const LEGACY_TTS_CONFIG_SENTINEL = "";
+const LEGACY_TTS_CONFIG_SENTINEL = "";
 
 async function resolveAudioConfig(
   storage: ReturnType<typeof createAppSettingsStorage>,
@@ -741,12 +702,12 @@ function pocketTtsV1BaseUrl(baseUrl: string) {
 type PocketTtsApiMode = "official" | "openai";
 const pocketTtsApiModeCache = new Map<string, Promise<PocketTtsApiMode>>();
 
-export function resolvePocketTtsApiMode(openApi: unknown): PocketTtsApiMode {
+function resolvePocketTtsApiMode(openApi: unknown): PocketTtsApiMode {
   const paths = asObject(asObject(openApi)?.["paths"]);
   return paths?.["/tts"] ? "official" : "openai";
 }
 
-export function buildOfficialPocketTtsForm(text: string, voice: string): FormData {
+function buildOfficialPocketTtsForm(text: string, voice: string): FormData {
   const form = new FormData();
   form.append("text", text);
   if (voice) form.append("voice_url", voice);
@@ -962,13 +923,13 @@ function readProviderErrorDetail(body: string): string {
 }
 
 /** Returns true only for an explicit provider-declared audio media type. */
-export function isAllowedTTSAudioContentType(contentType: string | null): boolean {
+function isAllowedTTSAudioContentType(contentType: string | null): boolean {
   const normalized = contentType?.toLowerCase() ?? "";
   return normalized.startsWith("audio/");
 }
 
 /** Detects the supported encoded audio container from its leading bytes. */
-export function detectTTSAudioMimeType(bytes: Uint8Array): string | null {
+function detectTTSAudioMimeType(bytes: Uint8Array): string | null {
   if (bytes.length >= 3 && bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) {
     return "audio/mpeg";
   }
@@ -1009,7 +970,7 @@ export function detectTTSAudioMimeType(bytes: Uint8Array): string | null {
  * Generic or missing media types require a recognized encoded container so a
  * JSON/text error body cannot be relabeled as audio.
  */
-export function resolveTTSAudioResponseContentType(contentType: string | null, bytes: Uint8Array): string | null {
+function resolveTTSAudioResponseContentType(contentType: string | null, bytes: Uint8Array): string | null {
   const declaredContentType = contentType?.trim() ?? "";
   if (isAllowedTTSAudioContentType(declaredContentType)) return declaredContentType;
   return detectTTSAudioMimeType(bytes);
@@ -1020,7 +981,7 @@ export function resolveTTSAudioResponseContentType(contentType: string | null, b
  * Only the official OpenAI endpoint has a documented fixed PCM layout fallback.
  * https://developers.openai.com/api/docs/guides/text-to-speech#supported-output-formats
  */
-export function resolveTTSPcmFormat(contentType: string | null, baseUrl: string) {
+function resolveTTSPcmFormat(contentType: string | null, baseUrl: string) {
   const parameters = new Map<string, string>();
   for (const parameter of (contentType ?? "").split(";").slice(1)) {
     const separator = parameter.indexOf("=");
@@ -1059,7 +1020,7 @@ export function resolveTTSPcmFormat(contentType: string | null, baseUrl: string)
 }
 
 /** Wrap signed 16-bit little-endian samples for browser playback without changing the samples. */
-export function wrapTTSPcm16AsWav(pcm: Uint8Array, format: { sampleRate: number; channels: number }): Uint8Array {
+function wrapTTSPcm16AsWav(pcm: Uint8Array, format: { sampleRate: number; channels: number }): Uint8Array {
   const { sampleRate, channels } = format;
   if (
     !Number.isInteger(sampleRate) ||
@@ -1113,18 +1074,18 @@ function buildSpeechInstructions(input: { speaker?: string; tone?: string; inclu
   return parts.join(" ");
 }
 
-export function buildElevenLabsTextInput(text: string, tone?: string): string {
+function buildElevenLabsTextInput(text: string, tone?: string): string {
   const normalizedTone = tone?.replace(/[\[\]\r\n]/g, "").trim();
   if (!normalizedTone || text.trimStart().startsWith(`[${normalizedTone}]`)) return text;
   return `[${normalizedTone}] ${text}`;
 }
 
-export function resolveTTSRequestVoice(configuredVoice: string, requestedVoice?: string | null): string {
+function resolveTTSRequestVoice(configuredVoice: string, requestedVoice?: string | null): string {
   const trimmedRequest = requestedVoice?.trim();
   return trimmedRequest || configuredVoice;
 }
 
-export async function fetchElevenLabsVoiceOptions(
+async function fetchElevenLabsVoiceOptions(
   baseUrl: string,
   apiKey: string,
   query: Record<string, string> = {},
@@ -1177,7 +1138,7 @@ export async function fetchElevenLabsVoiceOptions(
   return voiceOptions;
 }
 
-export async function fetchAllElevenLabsVoiceOptions(baseUrl: string, apiKey: string): Promise<VoiceOption[]> {
+async function fetchAllElevenLabsVoiceOptions(baseUrl: string, apiKey: string): Promise<VoiceOption[]> {
   const results = await Promise.allSettled([
     fetchElevenLabsVoiceOptions(baseUrl, apiKey),
     fetchElevenLabsVoiceOptions(baseUrl, apiKey, { voice_type: "saved" }),
@@ -1198,7 +1159,7 @@ export async function fetchAllElevenLabsVoiceOptions(baseUrl: string, apiKey: st
   return mergeVoiceOptions(successfulResults.flatMap((result) => result.value));
 }
 
-export function parseElevenLabsModelOptions(data: unknown): ModelOption[] {
+function parseElevenLabsModelOptions(data: unknown): ModelOption[] {
   if (!Array.isArray(data)) return [];
 
   return data.flatMap((value) => {
@@ -1547,62 +1508,6 @@ export async function ttsRoutes(app: FastifyInstance) {
       logger.warn(error, "Roleplay speaker extractor failed with connection %s", connection.id);
       return reply.status(502).send({
         error: "Roleplay speaker extractor failed",
-        detail: error instanceof Error ? error.message : "Unknown provider error",
-      });
-    }
-  });
-
-  /**
-   * POST /api/tts/game-audio
-   * Generates and caches scene-specific Game Mode music or sound effects.
-   */
-  app.post("/game-audio", async (req, reply) => {
-    const { kind, prompt, audioConnectionId, context } = gameAudioSchema.parse(req.body);
-    if (context && kind !== "music") {
-      return reply.status(400).send({ error: "Context tracks are music only" });
-    }
-    if (kind === "music" && !context) {
-      // The per-prompt 30-second music path is retired (#5161); leaving it
-      // reachable would let stray callers keep filling music/generated/ with
-      // clips nothing selects.
-      return reply.status(400).send({ error: "Music generation requires a context key (area or tier)" });
-    }
-    if (context?.axis === "tier") {
-      // Aliases (elite, legendary, …) are accepted but the STORED key must be
-      // canonical — a music/tier/elite/ folder would be a paid composition the
-      // scorer can never select.
-      const canonicalTier = normalizeMusicEnemyTier(context.key);
-      if (!canonicalTier) {
-        return reply.status(400).send({ error: `Unknown encounter tier "${context.key}"` });
-      }
-      context.key = canonicalTier;
-    }
-    const cfg = await resolveAudioConfig(storage, connections, audioConnectionId);
-    const enabled = kind === "sfx" ? cfg.elevenLabsGameSoundEffects === true : cfg.elevenLabsGameMusic === true;
-    if (cfg.source !== "elevenlabs" || !enabled) {
-      return reply.status(400).send({ error: `ElevenLabs game ${kind} generation is not enabled` });
-    }
-    if (!cfg.apiKey) {
-      return reply.status(400).send({ error: "ElevenLabs API key is not configured" });
-    }
-
-    const normalizedPrompt = normalizeGameAudioPrompt(prompt);
-    // Context generations lock on their KEY: two turns racing the same area
-    // must collapse into one composition even when their prompts differ.
-    const lockKey = context ? `context\0${context.axis}\0${context.key}` : `${kind}\0${normalizedPrompt.toLowerCase()}`;
-    let generation = gameAudioGenerationLocks.get(lockKey);
-    if (!generation) {
-      generation = generateElevenLabsGameAudio(cfg, kind, normalizedPrompt, context).finally(() => {
-        gameAudioGenerationLocks.delete(lockKey);
-      });
-      gameAudioGenerationLocks.set(lockKey, generation);
-    }
-    try {
-      return await generation;
-    } catch (error) {
-      logger.error(error, "ElevenLabs game %s generation failed", kind);
-      return reply.status(502).send({
-        error: `ElevenLabs game ${kind} generation failed`,
         detail: error instanceof Error ? error.message : "Unknown provider error",
       });
     }

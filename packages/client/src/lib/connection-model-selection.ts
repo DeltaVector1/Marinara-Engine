@@ -15,7 +15,7 @@ export type RemoteConnectionModel = {
   inputTokenMultiplier?: number;
 };
 
-export type ConnectionModelOption = {
+type ConnectionModelOption = {
   id: string;
   name: string;
   context: number;

@@ -18,7 +18,7 @@ type MarinaraAndroidNotificationBridge = {
   };
 };
 
-export type LocalMessageNotificationOptions = {
+type LocalMessageNotificationOptions = {
   enabled: boolean;
   characterName?: string | null;
   title?: string;

@@ -11,7 +11,7 @@ import { useTranslation as useUiTranslation } from "react-i18next";
 /**
  * Props for the FolderTree component.
  */
-export interface FolderTreeProps {
+interface FolderTreeProps {
   /** Tree node to render */
   node: TreeNode;
   /** Current nesting depth (0 = root) */

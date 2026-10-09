@@ -20,7 +20,7 @@ import {
 } from "@marinara-engine/shared";
 import { hubRevisionUrl, isLoadableArtifactFile, listHubFiles } from "./decision-hub.js";
 
-export type ByoRefusal =
+type ByoRefusal =
   | DecisionManifestRefusal
   | "invalid_repo"
   | "not_found"

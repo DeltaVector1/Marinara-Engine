@@ -4,7 +4,7 @@ export const CHAT_RESOURCE_DRAG_MIME = "application/x-marinara-chat-resource";
 export const CHAT_RESOURCE_ASSIGN_EVENT = "marinara:assign-chat-resource";
 export const CHAT_RESOURCE_AGENT_SETUP_EVENT = "marinara:setup-chat-agent";
 
-export type ChatResourceDragKind =
+type ChatResourceDragKind =
   "character" | "lorebook" | "agent" | "persona" | "preset" | "connection" | "background";
 
 export type ChatResourceDragPayload = {
@@ -75,7 +75,7 @@ export function getActiveChatResourceMouseDrag() {
   return mouseDrag ? activeChatResourceDrag : null;
 }
 
-export function parseChatResourceDragPayload(value: unknown): ChatResourceDragPayload | null {
+function parseChatResourceDragPayload(value: unknown): ChatResourceDragPayload | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const payload = value as Record<string, unknown>;
   if (payload.version !== 1) return null;
@@ -132,10 +132,6 @@ export function clearActiveChatResourceDrag() {
     activeChatResourceTouchDrag = null;
     touchDragListeners.forEach((listener) => listener());
   }
-}
-
-export function isChatResourceDrag(dataTransfer: DataTransfer) {
-  return dataTransfer.types.includes(CHAT_RESOURCE_DRAG_MIME) || activeChatResourceDrag !== null;
 }
 
 export function isFileDrag(dataTransfer: DataTransfer) {

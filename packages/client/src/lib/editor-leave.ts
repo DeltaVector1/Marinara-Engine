@@ -12,7 +12,7 @@ type EditorIds = Partial<Record<(typeof EDITOR_IDS)[number], string | null>>;
 type LeaveHandler = { key: string; request: (proceed: () => void) => boolean };
 let handler: LeaveHandler | null = null;
 
-export function editorLeaveKey(state: EditorIds): string | null {
+function editorLeaveKey(state: EditorIds): string | null {
   const field = EDITOR_IDS.find((id) => state[id]);
   return field ? `${field}:${state[field]}` : null;
 }

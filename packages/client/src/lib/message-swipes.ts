@@ -1,6 +1,6 @@
 import { api, ApiError } from "./api-client";
 
-export function normalizeGreetingSwipes(greetings: readonly string[] | null | undefined) {
+function normalizeGreetingSwipes(greetings: readonly string[] | null | undefined) {
   if (!Array.isArray(greetings)) return [];
   return greetings.map((greeting) => greeting.trim()).filter(Boolean);
 }

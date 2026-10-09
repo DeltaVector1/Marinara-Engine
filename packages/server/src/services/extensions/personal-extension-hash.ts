@@ -5,7 +5,7 @@ import {
   type PersonalExtensionRuntime,
 } from "@marinara-engine/shared";
 
-export type PersonalExtensionExecutable = {
+type PersonalExtensionExecutable = {
   runtime: PersonalExtensionRuntime;
   capabilities?: readonly PersonalExtensionCapability[] | null;
   css?: string | null;

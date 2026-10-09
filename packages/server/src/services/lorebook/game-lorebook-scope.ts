@@ -1,13 +1,7 @@
-export const GAME_LOREBOOK_KEEPER_SOURCE_ID = "game-lorebook-keeper";
-
-export type LorebookScopeExclusions = {
+type LorebookScopeExclusions = {
   excludedLorebookIds: string[];
   excludedSourceAgentIds: string[];
 };
-
-function readTrimmedString(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
 
 /**
  * Resolve which lorebooks/source-agents are excluded from scope for a chat.
@@ -22,7 +16,6 @@ function readTrimmedString(value: unknown): string | null {
  *    not leak into the prompt.
  */
 export function resolveLorebookScopeExclusions(
-  chatMode: unknown,
   metadata: Record<string, unknown> | null | undefined,
 ): LorebookScopeExclusions {
   const userExcludedLorebookIds = Array.isArray(metadata?.excludedLorebookIds)
@@ -31,16 +24,9 @@ export function resolveLorebookScopeExclusions(
       )
     : [];
 
-  const hideGameKeeper = chatMode === "game" && metadata?.gameLorebookKeeperEnabled !== true;
-  const gameLorebookId = hideGameKeeper ? readTrimmedString(metadata?.gameLorebookKeeperLorebookId) : null;
-
   return {
-    excludedLorebookIds: [...new Set([...userExcludedLorebookIds, ...(gameLorebookId ? [gameLorebookId] : [])])],
-    excludedSourceAgentIds: hideGameKeeper ? [GAME_LOREBOOK_KEEPER_SOURCE_ID] : [],
+    excludedLorebookIds: [...new Set(userExcludedLorebookIds)],
+    excludedSourceAgentIds: [],
   };
 }
 
-export function filterGameInternalAgentIds(chatMode: unknown, agentIds: string[]): string[] {
-  if (chatMode !== "game") return agentIds;
-  return agentIds.filter((agentId) => agentId !== "lorebook-keeper");
-}

@@ -9,10 +9,8 @@ import {
   type CapabilityPackageVersionNote,
   type BuiltInAgentManifest,
   type InstalledCapabilityPackage,
-  type InstalledRuleset,
-  type RulesetCatalogPayload,
 } from "@marinara-engine/shared";
-import { api, ApiError } from "../lib/api-client";
+import { api } from "../lib/api-client";
 import {
   beginCapabilityClientImport,
   capabilityClientNeedsRefresh,
@@ -32,69 +30,6 @@ export const capabilityPackageKeys = {
   releaseNotes: (id: string) => [...capabilityPackageKeys.all, "release-notes", id] as const,
 };
 
-/** Installed Game Mode rulesets. Keyed under `all`, so installing or removing a package refreshes it. */
-export function useInstalledRulesets(enabled = true) {
-  return useQuery({
-    queryKey: capabilityPackageKeys.rulesets(),
-    queryFn: () => api.get<InstalledRuleset[]>("/capability-packages/rulesets"),
-    enabled,
-  });
-}
-
-/** One ruleset catalog's entries, cached for a long time: a catalog changes only when the package
- *  or an import does, and both invalidate `capabilityPackageKeys.rulesets()`, which this key sits
- *  under. The version is the one the sheet is being read against, so a game keeps reading its own
- *  version. Shared with the combat bridge, which fetches the same query through the query client so
- *  a battle never loads a second copy of what the sheet editor already has. */
-export function rulesetCatalogQuery(rulesetId: string, catalogId: string, version: number | undefined) {
-  return {
-    queryKey: capabilityPackageKeys.rulesetCatalog(rulesetId, catalogId, version),
-    queryFn: () => {
-      const query = new URLSearchParams({ rulesetId, catalogId });
-      if (version !== undefined) query.set("version", String(version));
-      return api.get<RulesetCatalogPayload>(`/capability-packages/rulesets/catalog?${query.toString()}`);
-    },
-    staleTime: 30 * 60_000,
-    // A 4xx is the server's considered answer (no such catalog, an unusable file): asking again
-    // only delays the message. A dropped connection or a 5xx gets one more try.
-    retry: (failures: number, error: unknown) =>
-      failures < 1 && !(error instanceof ApiError && error.status >= 400 && error.status < 500),
-  };
-}
-
-/** The picker's own query: only fetched while a picker is open. */
-export function useRulesetCatalog(rulesetId: string, catalogId: string, version: number | undefined, enabled: boolean) {
-  return useQuery({
-    ...rulesetCatalogQuery(rulesetId, catalogId, version),
-    enabled: enabled && !!rulesetId && !!catalogId,
-  });
-}
-
-/** What `POST /game-rulesets/import` answers: `unchanged` means the exact file was already stored. */
-export type RulesetImportResult = { status: "added" | "unchanged"; rulesetId: string; version: number };
-
-/** Import one ruleset file. The file text goes over verbatim, because the stored bytes are what
- *  lets the server tell a re-import of the same file from a changed one. */
-export function useImportRuleset() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (definition: string) => api.post<RulesetImportResult>("/game-rulesets/import", { definition }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: capabilityPackageKeys.rulesets() }),
-  });
-}
-
-/** Remove every stored version of an imported ruleset. `force` is the answer to the server's
- *  `ruleset_in_use` 409, so a ruleset a game plays on is never removed by one click. */
-export function useRemoveRuleset() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ rulesetId, force }: { rulesetId: string; force?: boolean }) =>
-      api.delete<{ removed: number; games: number }>(
-        `/game-rulesets?rulesetId=${encodeURIComponent(rulesetId)}${force ? "&force=true" : ""}`,
-      ),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: capabilityPackageKeys.rulesets() }),
-  });
-}
 
 export function useCapabilityCatalog(enabled = true) {
   return useQuery({
@@ -154,36 +89,16 @@ export function partitionTrackerCapabilityPackages(packages: readonly InstalledC
   return { memoryNag, beholder, other };
 }
 
-/**
- * Installed packages that can provide a game's EXPERIENCE: runtime-ready, declaring the `game-surface`
- * slot, and carrying the client entrypoint that renders it. Shared so the setup chooser can only ever
- * offer what `GameSurface` would actually mount.
- *
- * The manifest schema rejects a game-surface package with no client entrypoint, so this is a second line
- * for anything installed before that rule existed — the module loader skips such a package, and offering
- * it would let a player start a game whose surface renders nothing.
- */
-export function selectGameExperiencePackages(
-  installed: InstalledCapabilityPackage[] | undefined,
-): InstalledCapabilityPackage[] {
-  return (installed ?? []).filter(
-    (pkg) =>
-      isInstalledCapabilityReady(pkg) &&
-      pkg.manifest.contributions?.slots?.includes("game-surface") &&
-      Boolean(pkg.manifest.entrypoints.client?.trim()),
-  );
-}
-
 /** A restart-required update keeps exposing the manifest paired with the runtime
  * and client module that remain active until the process restarts. */
-export function resolveCapabilityPackageAvailableUntilRestart(
+function resolveCapabilityPackageAvailableUntilRestart(
   installed: InstalledCapabilityPackage,
 ): InstalledCapabilityPackage | null {
   if (installed.status !== "restart-required" || !installed.previousVersion || !installed.previousManifest) return null;
   return { ...installed, version: installed.previousVersion, manifest: installed.previousManifest };
 }
 
-export function isCapabilityPackageAvailableUntilRestart(installed: InstalledCapabilityPackage): boolean {
+function isCapabilityPackageAvailableUntilRestart(installed: InstalledCapabilityPackage): boolean {
   return Boolean(resolveCapabilityPackageAvailableUntilRestart(installed));
 }
 
@@ -198,38 +113,6 @@ export function isCapabilityPackageAvailable(installed: InstalledCapabilityPacka
 /** A package with its own Home tab is a standalone app, not an agent you add to a chat. */
 export function isAppCapabilityPackage(manifest: CapabilityPackageManifest): boolean {
   return Boolean(manifest.contributions?.slots?.includes("home-browser-tab"));
-}
-
-/** Installed destinations that Home can safely expose as browser tabs. */
-export function selectHomeBrowserPackages(
-  installed: InstalledCapabilityPackage[] | undefined,
-): InstalledCapabilityPackage[] {
-  return (installed ?? [])
-    .map((pkg) => (isInstalledCapabilityReady(pkg) ? pkg : resolveCapabilityPackageAvailableUntilRestart(pkg)))
-    .filter(
-      (pkg): pkg is InstalledCapabilityPackage =>
-        pkg !== null &&
-        Boolean(pkg.manifest.contributions?.slots?.includes("home-browser-tab")) &&
-        Boolean(pkg.manifest.entrypoints.client?.trim()) &&
-        Boolean(pkg.manifest.contributions?.homeBrowserTab),
-    );
-}
-
-/** Agent packages with validated Home widget declarations and an available client runtime. */
-export function selectHomeWidgetPackages(
-  installed: InstalledCapabilityPackage[] | undefined,
-): InstalledCapabilityPackage[] {
-  return (installed ?? [])
-    .map((pkg) => (isInstalledCapabilityReady(pkg) ? pkg : resolveCapabilityPackageAvailableUntilRestart(pkg)))
-    .filter(
-      (pkg): pkg is InstalledCapabilityPackage =>
-        pkg !== null &&
-        pkg.manifest.kind.includes("agent") &&
-        pkg.manifest.permissions.includes("ui") &&
-        Boolean(pkg.manifest.contributions?.slots?.includes("home-widget")) &&
-        Boolean(pkg.manifest.contributions?.homeWidgets?.length) &&
-        Boolean(pkg.manifest.entrypoints.client?.trim()),
-    );
 }
 
 export function useInstalledCapabilityPackages(enabled = true) {
@@ -256,9 +139,9 @@ const capabilityClientModuleIdleStates = new Map<string, CapabilityClientModuleS
 const capabilityClientModuleListeners = new Set<() => void>();
 let capabilityClientModuleRevision = 0;
 
-export type CapabilityClientModuleStatus = "idle" | "loading" | "ready" | "error" | "refresh-required";
+type CapabilityClientModuleStatus = "idle" | "loading" | "ready" | "error" | "refresh-required";
 
-export interface CapabilityClientModuleState {
+interface CapabilityClientModuleState {
   packageId: string;
   name: string | null;
   version: string | null;

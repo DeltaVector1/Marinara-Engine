@@ -67,7 +67,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-export interface NanoGptModelSubscriptionMetadata {
+interface NanoGptModelSubscriptionMetadata {
   /** True when the model is covered by the account's subscription. */
   subscriptionIncluded?: boolean;
   /** Input tokens charged per token of subscription quota (2 = 2x). */
@@ -111,7 +111,7 @@ function readFiniteNumber(value: unknown): number | null {
  * object, which means "not configured" — deliberately distinct from a window
  * whose counters are null and `degraded: true`, which means "unknown".
  */
-export function normalizeQuotaWindow(value: unknown): NanoGptQuotaWindow | null {
+function normalizeQuotaWindow(value: unknown): NanoGptQuotaWindow | null {
   if (!isRecord(value)) return null;
   return {
     used: readFiniteNumber(value.used),
@@ -127,7 +127,7 @@ export function normalizeQuotaWindow(value: unknown): NanoGptQuotaWindow | null 
  * management and inference endpoints; the inference endpoint adds `routing`,
  * which this widget does not surface.
  */
-export function normalizeSubscriptionUsage(
+function normalizeSubscriptionUsage(
   raw: unknown,
   credential: NanoGptSubscriptionUsage["credential"],
   provider = "nanogpt",
@@ -154,7 +154,7 @@ export function normalizeSubscriptionUsage(
   };
 }
 
-export interface FetchNanoGptUsageOptions {
+interface FetchNanoGptUsageOptions {
   /** Preferred: a `usage:read` management token. */
   managementToken?: string | null;
   /** Fallback: the connection's inference API key. */
@@ -213,7 +213,7 @@ export async function fetchNanoGptSubscriptionUsage(
 }
 
 /** Turn a status code into an actionable, non-secret-bearing message. */
-export function describeUsageError(status: number, body: string, usedManagementToken: boolean): string {
+function describeUsageError(status: number, body: string, usedManagementToken: boolean): string {
   if (status === 401) {
     return usedManagementToken
       ? "NanoGPT rejected the management token (invalid, expired, or revoked)."

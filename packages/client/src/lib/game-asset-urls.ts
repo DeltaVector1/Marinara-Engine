@@ -4,7 +4,7 @@
 
 export const GAME_ASSET_FILE_URL_PREFIX = "/api/game-assets/file/";
 
-export function encodeGameAssetPath(path: string): string {
+function encodeGameAssetPath(path: string): string {
   return path
     .replace(/\\/g, "/")
     .split("/")

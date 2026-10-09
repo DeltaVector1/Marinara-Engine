@@ -1,6 +1,6 @@
 import type { RPGStatPool, RPGStatsConfig } from "../types/character.js";
 
-export const DEFAULT_RPG_STAT_POOLS: readonly RPGStatPool[] = [
+const DEFAULT_RPG_STAT_POOLS: readonly RPGStatPool[] = [
   { name: "HP", value: 100, max: 100, color: "#ef4444" },
   { name: "MP", value: 100, max: 100, color: "#3b82f6" },
 ];

@@ -9,7 +9,7 @@ import {
 
 type JsonRecord = Record<string, unknown>;
 
-export type CustomToolTransferConfig = {
+type CustomToolTransferConfig = {
   name: string;
   description: string;
   parametersSchema: JsonRecord;
@@ -29,12 +29,12 @@ export type CustomToolImportReview = {
   requestedHiddenContext: boolean;
 };
 
-export type PreparedCustomToolImport = {
+type PreparedCustomToolImport = {
   config: CustomToolTransferConfig;
   review: CustomToolImportReview | null;
 };
 
-export type CustomToolFolderPackageEntry = {
+type CustomToolFolderPackageEntry = {
   entry: {
     path: string;
     manifest: {
@@ -175,7 +175,7 @@ export function normalizeCustomToolImportEntry(
   return prepareCustomToolImportEntry(entry, resolveTextFile)?.config ?? null;
 }
 
-export function createCustomToolFolderPackageEntries(
+function createCustomToolFolderPackageEntries(
   tools: CustomToolTransferConfig[],
   folderName = "Function Calls",
 ): CustomToolFolderPackageEntry[] {

@@ -1,22 +1,8 @@
 import { useMemo, useState } from "react";
 import { Check, ExternalLink, GitFork, Loader2, Plus, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
-import {
-  CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING,
-  normalizeCustomAgentCapabilities,
-  type CustomAgentCapability,
-  type CustomAgentRepositoryChange,
-  type CustomAgentRepositoryPreview,
-  type CustomAgentRepositoryRulesetChange,
-  type CustomAgentRepositoryRulesetResult,
-} from "@marinara-engine/shared";
+import { CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING, normalizeCustomAgentCapabilities, type CustomAgentCapability, type CustomAgentRepositoryChange, type CustomAgentRepositoryPreview } from "@marinara-engine/shared";
 import { toast } from "sonner";
-import {
-  useAddCustomAgentRepository,
-  useCustomAgentRepositories,
-  usePreviewCustomAgentRepository,
-  useRemoveCustomAgentRepository,
-  useSyncCustomAgentRepository,
-} from "../../hooks/use-custom-agent-repositories";
+import { useAddCustomAgentRepository, useCustomAgentRepositories, usePreviewCustomAgentRepository, useRemoveCustomAgentRepository, useSyncCustomAgentRepository } from "../../hooks/use-custom-agent-repositories";
 import { getPrivilegedActionErrorMessage } from "../../lib/api-client";
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { cn } from "../../lib/utils";
@@ -34,29 +20,9 @@ const STATUS_LABELS: Record<CustomAgentRepositoryChange["status"], string> = {
   removed: "No longer published",
 };
 
-const RULESET_STATUS_KEYS: Record<CustomAgentRepositoryRulesetChange["status"], string> = {
-  new: "ui.agents.customagentrepositoriesmodal.rulesetStatusNew",
-  "new-version": "ui.agents.customagentrepositoriesmodal.rulesetStatusNewVersion",
-  unchanged: "ui.agents.customagentrepositoriesmodal.rulesetStatusUnchanged",
-  conflict: "ui.agents.customagentrepositoriesmodal.rulesetStatusConflict",
-  invalid: "ui.agents.customagentrepositoriesmodal.rulesetStatusInvalid",
-};
-
-/** The rulesets this confirm would actually install. A conflicting or unusable file changes nothing,
- *  so it neither asks for confirmation nor counts as work to review. */
-function installableRulesets(preview: CustomAgentRepositoryPreview | null): CustomAgentRepositoryRulesetChange[] {
-  return (preview?.rulesets ?? []).filter((ruleset) => ruleset.status === "new" || ruleset.status === "new-version");
-}
-
 function changeTone(status: CustomAgentRepositoryChange["status"]) {
   if (status === "unchanged") return "text-[var(--muted-foreground)]";
   if (status === "removed") return "text-[var(--destructive)]";
-  return "text-[var(--marinara-chat-chrome-highlight-text)]";
-}
-
-function rulesetTone(status: CustomAgentRepositoryRulesetChange["status"]) {
-  if (status === "invalid" || status === "conflict") return "text-[var(--destructive)]";
-  if (status === "unchanged") return "text-[var(--muted-foreground)]";
   return "text-[var(--marinara-chat-chrome-highlight-text)]";
 }
 
@@ -101,21 +67,10 @@ export function CustomAgentRepositoriesModal({ open, onClose }: { open: boolean;
     [preview],
   );
   const contentChanges = preview?.changes.filter((change) => change.status !== "unchanged") ?? [];
-  const rulesetChanges = installableRulesets(preview);
-  const changeCount = contentChanges.length + rulesetChanges.length;
+  const changeCount = contentChanges.length;
   const pending =
     previewMutation.isPending || addMutation.isPending || syncMutation.isPending || removeMutation.isPending;
-  // A preview from a server that predates repository rulesets has no `rulesets` at all.
-  const previewRulesets = preview?.rulesets ?? [];
   const agentImportsEnabled = agentImportPolicy?.enabled === true;
-
-  /** Adding or syncing reports what happened to the rulesets separately, because a version already
-   *  installed with other contents is deliberately left alone rather than replaced. */
-  const reportRulesets = (result: CustomAgentRepositoryRulesetResult | undefined) => {
-    // A server that predates repository rulesets answers without this part.
-    if (!result || result.added + result.unchanged + result.skipped === 0) return;
-    toast.info(localizeUi("ui.agents.customagentrepositoriesmodal.rulesetsApplied", { ...result }));
-  };
 
   const previewUrl = async () => {
     if (!url.trim()) return;
@@ -158,25 +113,12 @@ export function CustomAgentRepositoriesModal({ open, onClose }: { open: boolean;
             warning: TRUST_WARNING,
             count: preview.changes.length,
           }),
-          ...(rulesetChanges.length > 0
-            ? [
-                localizeUi("ui.agents.customagentrepositoriesmodal.rulesetsWillBeInstalled", {
-                  count: rulesetChanges.length,
-                }),
-              ]
-            : []),
         ].join("\n\n"),
         confirmLabel: localizeUi("ui.agents.customagentrepositoriesmodal.addRepoAnyway"),
       });
       if (!confirmed) return;
       try {
-        const result = await addMutation.mutateAsync({
-          url: preview.repository.url,
-          digest: preview.digest,
-          confirmed,
-        });
         toast.success(localizeUi("ui.agents.customagentrepositoriesmodal.customRepositoryAddedAndItsAgentsImported"));
-        reportRulesets(result.rulesets);
         setUrl("");
         setPreview(null);
       } catch (error) {
@@ -194,9 +136,6 @@ export function CustomAgentRepositoriesModal({ open, onClose }: { open: boolean;
     if (changeCount > 0) {
       const summary = [
         ...contentChanges.map((change) => `${change.name}: ${STATUS_LABELS[change.status].toLowerCase()}`),
-        ...rulesetChanges.map(
-          (ruleset) => `${ruleset.name}: ${localizeUi(RULESET_STATUS_KEYS[ruleset.status]).toLowerCase()}`,
-        ),
       ].join("\n");
       confirmed = await showConfirmDialog({
         title: localizeUi("ui.agents.customagentrepositoriesmodal.applyRepositoryChanges"),
@@ -209,17 +148,11 @@ export function CustomAgentRepositoriesModal({ open, onClose }: { open: boolean;
       if (!confirmed) return;
     }
     try {
-      const result = await syncMutation.mutateAsync({
-        repositoryId: configuredRepository.id,
-        digest: preview.digest,
-        confirmed,
-      });
       toast.success(
         changeCount > 0
           ? localizeUi("ui.agents.customagentrepositoriesmodal.repositoryChangesApplied")
           : localizeUi("ui.agents.customagentrepositoriesmodal.repositoryIsAlreadyCurrent"),
       );
-      reportRulesets(result.rulesets);
       setPreview(null);
     } catch (error) {
       toast.error(
@@ -339,11 +272,6 @@ export function CustomAgentRepositoriesModal({ open, onClose }: { open: boolean;
                     <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
                       {repository.agentCount} {localizeUi("ui.agents.agentcatalogview.agent")}
                       {repository.agentCount === 1 ? "" : localizeUi("ui.noodle.stageprofileview.s")}
-                      {repository.rulesetCount > 0
-                        ? localizeUi("ui.agents.customagentrepositoriesmodal.rulesetCount", {
-                            count: repository.rulesetCount,
-                          })
-                        : ""}
                       {repository.lastSyncedAt
                         ? localizeUi("ui.agents.customagentrepositoriesmodal.syncedValue1", {
                             value1: new Date(repository.lastSyncedAt).toLocaleString(),
@@ -493,54 +421,6 @@ export function CustomAgentRepositoriesModal({ open, onClose }: { open: boolean;
                 </details>
               ))}
             </div>
-
-            {previewRulesets.length > 0 && (
-              <div className="mt-6">
-                <h4 className="text-base font-semibold">
-                  {localizeUi("ui.agents.customagentrepositoriesmodal.rulesets")}
-                </h4>
-                <p className="mt-1 max-w-[70ch] text-sm text-[var(--muted-foreground)]">
-                  {localizeUi("ui.agents.customagentrepositoriesmodal.rulesetGameMasterNotice")}
-                </p>
-                <ul className="mt-3 divide-y divide-[var(--border)] border-y border-[var(--border)]">
-                  {previewRulesets.map((ruleset) => (
-                    <li key={ruleset.file} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-start sm:gap-3">
-                      <span className={cn("w-28 shrink-0 text-xs font-semibold", rulesetTone(ruleset.status))}>
-                        {localizeUi(RULESET_STATUS_KEYS[ruleset.status])}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">{ruleset.name}</p>
-                        <p className="mt-0.5 break-words text-xs text-[var(--muted-foreground)]">
-                          {ruleset.rulesetId ?? ruleset.file}
-                        </p>
-                        {ruleset.version !== null && (
-                          <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
-                            {localizeUi("ui.agents.customagentrepositoriesmodal.rulesetVersionValue1", {
-                              value1: ruleset.version,
-                            })}
-                          </p>
-                        )}
-                        {ruleset.coverage && (
-                          <p className="mt-1 max-w-[70ch] text-xs text-[var(--muted-foreground)]">{ruleset.coverage}</p>
-                        )}
-                        {ruleset.status === "conflict" && (
-                          <p className="mt-1 max-w-[70ch] text-xs text-[var(--muted-foreground)]">
-                            {localizeUi("ui.agents.customagentrepositoriesmodal.rulesetConflictNotice")}
-                          </p>
-                        )}
-                        {ruleset.issues.length > 0 && (
-                          <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs text-[var(--destructive)]">
-                            {ruleset.issues.map((issue) => (
-                              <li key={issue}>{issue}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </section>
         )}
       </div>

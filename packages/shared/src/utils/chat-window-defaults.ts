@@ -14,9 +14,9 @@ export function getLegacyChatWindowLayout(
   // An explicit layout, including null, is the user's choice. Multiplayer has separate controls.
   if (Object.hasOwn(metadata, "windowLayout") || metadata.multiplayer || metadata.multiplayerSetup === true)
     return null;
-  if (mode !== "conversation" && mode !== "roleplay" && mode !== "game") return null;
+  if (mode !== "conversation" && mode !== "roleplay") return null;
   const sections = ["chat-branches", "active-context", "gallery"];
-  if (mode !== "game") sections.push("message-search");
+  sections.push("message-search");
   if (mode === "roleplay") {
     sections.push("chat-summary", "author-notes");
     const memory = metadata.advancedMemory;

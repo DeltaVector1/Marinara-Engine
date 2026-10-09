@@ -10,7 +10,7 @@ export const REQUEST_TIMEOUTS = {
   comfyui: { env: "COMFYUI_GEN_TIMEOUT", unit: 1, defaultSeconds: 2400, maxSeconds: 86400 },
   embeddings: { env: "EMBEDDING_TIMEOUT_MS", unit: 1000, defaultSeconds: 300, maxSeconds: 86400 },
 } as const;
-export type RequestTimeoutKey = keyof typeof REQUEST_TIMEOUTS;
+type RequestTimeoutKey = keyof typeof REQUEST_TIMEOUTS;
 export type RequestTimeoutSettings = Record<RequestTimeoutKey, number>;
 export const requestTimeoutSettingsSchema = z
   .object(

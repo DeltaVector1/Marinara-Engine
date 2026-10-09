@@ -11,7 +11,7 @@ export interface ImageGenerationSize {
   height: number;
 }
 
-export interface ImageGenerationUserSettings {
+interface ImageGenerationUserSettings {
   autoSaveToGalleries: boolean;
   background: ImageGenerationSize;
   illustration: ImageGenerationSize;
@@ -70,7 +70,7 @@ function readSize(raw: Record<string, unknown>, widthKey: string, heightKey: str
   };
 }
 
-export function parseImageGenerationUserSettings(raw: string | null): ImageGenerationUserSettings {
+function parseImageGenerationUserSettings(raw: string | null): ImageGenerationUserSettings {
   if (!raw) return DEFAULT_IMAGE_GENERATION_SETTINGS;
 
   try {

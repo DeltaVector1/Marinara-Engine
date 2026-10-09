@@ -21,7 +21,7 @@ export function assertCapabilityAgentRuntimeServiceRegistration(
   }
 }
 
-export interface CapabilityAgentRuntimeService {
+interface CapabilityAgentRuntimeService {
   prepareContext?(input: { agent: AgentExecConfig; context: AgentContext }): Promise<unknown> | unknown;
   finalizeResult?(input: {
     agent: AgentExecConfig;

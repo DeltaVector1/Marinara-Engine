@@ -113,7 +113,7 @@ function toCharacterBookEntry(entry: LoreEntryRow, index: number): CharacterBook
   };
 }
 
-export function toCharacterBook(lorebook: LorebookRow, entries: LoreEntryRow[]): CharacterBook {
+function toCharacterBook(lorebook: LorebookRow, entries: LoreEntryRow[]): CharacterBook {
   return {
     name: asString(lorebook.name, "Character Lorebook"),
     description: asString(lorebook.description),
@@ -278,7 +278,7 @@ export async function embedLorebookIntoCharacter(
  * assert; "failed" = the write could not be confirmed (the error stays
  * swallowed so a sync failure still never breaks the mutation itself).
  */
-export type CharacterBookSyncOutcome =
+type CharacterBookSyncOutcome =
   | { status: "skipped" }
   | { status: "synced"; characterId: string; expectedBook: unknown }
   | { status: "failed"; lorebookId: string; error: string };

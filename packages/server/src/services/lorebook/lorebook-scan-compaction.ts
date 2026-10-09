@@ -11,7 +11,7 @@
  * (the newer ones were deleted), readers fall back to the entry's stored text.
  */
 
-export const COMPACT_LOREBOOK_SCAN_MARKER = "contentStripped";
+const COMPACT_LOREBOOK_SCAN_MARKER = "contentStripped";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);

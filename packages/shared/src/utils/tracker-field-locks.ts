@@ -159,24 +159,6 @@ export function toggleTrackerFieldLock(locks: TrackerFieldLocks | null | undefin
   return next;
 }
 
-export function toggleTrackerFieldHidden(hiddenFields: TrackerHiddenFields | null | undefined, key: string) {
-  const next = normalizeTrackerHiddenFields(hiddenFields);
-  if (next[key]) {
-    delete next[key];
-  } else {
-    next[key] = true;
-  }
-  return next;
-}
-
-export function removeTrackerArrayItemLocks(
-  locks: TrackerFieldLocks | null | undefined,
-  prefix: string,
-  removedIndex: number,
-) {
-  return removeIndexedTrackerLocks(locks, prefix.trim() ? `${prefix.trim()}.` : "", removedIndex);
-}
-
 function removeIndexedTrackerLocks(
   locks: TrackerFieldLocks | null | undefined,
   indexedPrefix: string,
@@ -309,11 +291,7 @@ export function personaStatTrackerLockPrefix(
   return `persona.stats.${namedRowLockRef(statOrIndex, index)}`;
 }
 
-export function personaStatsTrackerLockPrefix() {
-  return "persona.stats";
-}
-
-export function inventoryTrackerLockKey(
+function inventoryTrackerLockKey(
   itemOrIndex: Pick<InventoryItem, "name"> | number | null | undefined,
   field: InventoryField,
   index?: number,
@@ -321,15 +299,11 @@ export function inventoryTrackerLockKey(
   return `${inventoryItemTrackerLockPrefix(itemOrIndex, index)}.${field}`;
 }
 
-export function inventoryItemTrackerLockPrefix(
+function inventoryItemTrackerLockPrefix(
   itemOrIndex: Pick<InventoryItem, "name"> | number | null | undefined,
   index?: number,
 ) {
   return `player.inventory.${namedRowLockRef(itemOrIndex, index)}`;
-}
-
-export function inventoryTrackerLockPrefix() {
-  return "player.inventory";
 }
 
 export function roleplayInventoryTrackerLockKey(
@@ -347,10 +321,6 @@ export function roleplayInventoryTrackerRowLockPrefix(
   index?: number,
 ) {
   return `player.inventoryTracker.${group}.${namedRowLockRef(rowOrIndex, index)}`;
-}
-
-export function roleplayInventoryTrackerGroupLockPrefix(group: InventoryTrackerGroup) {
-  return `player.inventoryTracker.${group}`;
 }
 
 function characterLockRef(character: Pick<PresentCharacter, "characterId" | "name"> | null | undefined, index: number) {
@@ -387,14 +357,14 @@ export function characterStatTrackerLockKey(
   return `${characterStatTrackerLockPrefix(character, characterIndex, statOrIndex, statIndex)}.${field}`;
 }
 
-export function characterStatsTrackerLockPrefix(
+function characterStatsTrackerLockPrefix(
   character: Pick<PresentCharacter, "characterId" | "name"> | null | undefined,
   index: number,
 ) {
   return `${characterTrackerLockPrefix(character, index)}.stats`;
 }
 
-export function characterStatTrackerLockPrefix(
+function characterStatTrackerLockPrefix(
   character: Pick<PresentCharacter, "characterId" | "name"> | null | undefined,
   characterIndex: number,
   statOrIndex: Pick<CharacterStat, "name"> | number | null | undefined,
@@ -433,7 +403,7 @@ function questLockRef(quest: Pick<QuestProgress, "questEntryId" | "name"> | null
   return `index:${index}`;
 }
 
-export function questTrackerLockPrefix(
+function questTrackerLockPrefix(
   quest: Pick<QuestProgress, "questEntryId" | "name"> | null | undefined,
   index: number,
 ) {
@@ -458,7 +428,7 @@ export function questObjectiveTrackerLockKey(
   return `${questObjectiveTrackerLockPrefix(quest, questIndex, objectiveOrIndex, objectiveIndex)}.${field}`;
 }
 
-export function questObjectivesTrackerLockPrefix(
+function questObjectivesTrackerLockPrefix(
   quest: Pick<QuestProgress, "questEntryId" | "name"> | null | undefined,
   index: number,
 ) {
@@ -492,10 +462,6 @@ export function customTrackerLockKey(
   index?: number,
 ) {
   return `${customTrackerFieldLockPrefix(fieldOrIndex, index)}.${field}`;
-}
-
-export function customTrackerLockPrefix() {
-  return "player.custom";
 }
 
 export function customTrackerFieldLockPrefix(

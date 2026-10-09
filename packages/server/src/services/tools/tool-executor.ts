@@ -36,7 +36,7 @@ type ToolExecutionOutcome =
   { result: unknown; success: true; httpStatus?: never } | { result: unknown; success: false; httpStatus?: number };
 export type { ToolArgumentsValidator };
 
-export interface ToolExecutionResult {
+interface ToolExecutionResult {
   toolCallId: string;
   name: string;
   result: string;
@@ -89,13 +89,13 @@ export function createCustomToolArgumentsValidator(parametersSchema: Record<stri
 }
 
 /** Lorebook search function injected from the route layer. */
-export type LorebookSearchFn = (
+type LorebookSearchFn = (
   query: string,
   category?: string | null,
 ) => Promise<Array<{ name: string; content: string; tag: string; keys: string[] }>>;
 
 /** Lorebook writer function injected from the route layer. */
-export type SaveLorebookEntryFn = (entry: {
+type SaveLorebookEntryFn = (entry: {
   name: string;
   content: string;
   description?: string;
@@ -105,7 +105,7 @@ export type SaveLorebookEntryFn = (entry: {
 }) => Promise<Record<string, unknown>>;
 
 /** Message replacement function injected from the route layer. */
-export type ReplaceChatMessageContentFn = (input: {
+type ReplaceChatMessageContentFn = (input: {
   messageId: string;
   content: string;
   reason?: string;
@@ -477,7 +477,7 @@ function rollDice(args: Record<string, unknown>): Record<string, unknown> {
 // then silently dropped. The manifest enum is what the model is actually held to —
 // argument validation rejects a dead type before the executor runs — so the guard
 // below is defence in depth for any caller that reaches it without that schema.
-export const PERSISTED_GAME_STATE_UPDATE_TYPES = ["location_change", "time_advance"] as const;
+const PERSISTED_GAME_STATE_UPDATE_TYPES = ["location_change", "time_advance"] as const;
 
 async function updateGameState(
   args: Record<string, unknown>,

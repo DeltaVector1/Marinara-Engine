@@ -22,7 +22,7 @@ const FIELD_BY_GROUP = {
   inventory: "inventoryTrackerInventory",
 } as const satisfies Record<InventoryTrackerGroup, keyof PlayerStats>;
 
-export type InventoryTrackerPatch = Pick<
+type InventoryTrackerPatch = Pick<
   PlayerStats,
   "inventoryTrackerCurrencies" | "inventoryTrackerEquipped" | "inventoryTrackerInventory"
 >;

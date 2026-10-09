@@ -24,8 +24,8 @@ export type DecisionLocalSlot = (typeof DECISION_LOCAL_SLOTS)[number];
  * Never stored in the connections table; the decision default holds one of these
  * strings or names a real connection row.
  */
-export const DECISION_SIDECAR_CONNECTION_ID = "decision-sidecar:local";
-export const UTILITY_SIDECAR_DECISION_CONNECTION_ID = "utility-sidecar:decision";
+const DECISION_SIDECAR_CONNECTION_ID = "decision-sidecar:local";
+const UTILITY_SIDECAR_DECISION_CONNECTION_ID = "utility-sidecar:decision";
 
 export const DECISION_LOCAL_SLOT_IDS: Record<DecisionLocalSlot, string> = {
   primary: SIDECAR_CONNECTION_ID,
@@ -48,7 +48,7 @@ export function decisionLocalSlotForId(id: string | null | undefined): DecisionL
  */
 export const DECISION_THINKING_MODES = ["auto", "off", "allowed"] as const;
 export type DecisionThinkingMode = (typeof DECISION_THINKING_MODES)[number];
-export const DEFAULT_DECISION_THINKING_MODE: DecisionThinkingMode = "auto";
+const DEFAULT_DECISION_THINKING_MODE: DecisionThinkingMode = "auto";
 
 /**
  * Read a Thinking mode from a slot's config file.
@@ -75,7 +75,7 @@ export function normalizeDecisionThinking(value: unknown): DecisionThinkingMode 
  * between the least certain "yes" and the most certain "no" went from 3.8x to 10.9x
  * just by wrapping.
  */
-export const DECISION_QUESTION_SHAPES = ["text", "task_object"] as const;
+const DECISION_QUESTION_SHAPES = ["text", "task_object"] as const;
 export type DecisionQuestionShape = (typeof DECISION_QUESTION_SHAPES)[number];
 
 /** Domain hint sent with a wrapped question, so the model knows what it is reading. */

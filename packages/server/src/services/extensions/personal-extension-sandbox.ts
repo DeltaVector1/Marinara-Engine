@@ -8,7 +8,7 @@ import { getBubblewrapRuntimeStatus } from "../sandbox/bubblewrap-runtime.js";
 
 export type PersonalExtensionSandboxBackend = "macos-seatbelt" | "linux-bubblewrap";
 
-export type PersonalExtensionSandboxStatus =
+type PersonalExtensionSandboxStatus =
   { available: true; backend: PersonalExtensionSandboxBackend } | { available: false; backend: null; reason: string };
 
 export type SandboxedPersonalExtensionProcess = {

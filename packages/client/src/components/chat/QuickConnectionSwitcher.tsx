@@ -54,7 +54,7 @@ export function QuickConnectionSwitcher({
       useForRandom?: string;
       showUsageWidget?: unknown;
     }>,
-    chatMode !== "game" && sidecarModelDownloaded,
+    sidecarModelDownloaded,
     sidecarModelDisplayName,
   )
     .filter((connection) => !isRandom || !isLocalSidecarConnectionOption(connection))

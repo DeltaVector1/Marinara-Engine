@@ -17,12 +17,12 @@
 
 import { api } from "./api-client";
 
-export const ANDROID_HOST_HEARTBEAT_INTERVAL_MS = 10_000;
+const ANDROID_HOST_HEARTBEAT_INTERVAL_MS = 10_000;
 const IPV4_LOOPBACK_HOSTNAME_RE = /^127(?:\.(?:0|[1-9]\d?|1\d{2}|2[0-4]\d|25[0-5])){3}$/u;
 
 let started = false;
 
-export function shouldRunAndroidHostHeartbeat(input: {
+function shouldRunAndroidHostHeartbeat(input: {
   isAndroid: boolean;
   isHostDevice: boolean;
   pageVisible: boolean;
@@ -42,7 +42,7 @@ export function isLoopbackHostname(hostname: string): boolean {
   );
 }
 
-export function createAndroidHostHeartbeat(input: {
+function createAndroidHostHeartbeat(input: {
   isAndroid: boolean;
   isHostDevice: boolean;
   isPageVisible: () => boolean;

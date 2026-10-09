@@ -57,7 +57,7 @@ export function selectSpriteChromaMatte(appearance: string): SpriteChromaMatte {
   return matte;
 }
 
-export function spriteChromaMatteInstruction(matte: SpriteChromaMatte): string {
+function spriteChromaMatteInstruction(matte: SpriteChromaMatte): string {
   return [
     `use one perfectly flat, uniform ${matte.label} ${matte.hex} background across the entire canvas and every sheet gutter`,
     `this must be a real solid-color backdrop, never a painted transparency checkerboard or fake alpha preview`,
@@ -229,7 +229,7 @@ function analyzeBorderMatte(rgba: Buffer, width: number, height: number, channel
   return { color, confidence, variation, alreadyTransparent };
 }
 
-export type SpriteMatteCleanupResult = {
+type SpriteMatteCleanupResult = {
   buffer: Buffer;
   confidence: number;
   matteColor: RgbColor;

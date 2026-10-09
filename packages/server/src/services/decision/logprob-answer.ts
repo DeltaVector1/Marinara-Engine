@@ -16,7 +16,7 @@ export interface TopLogprob {
   logprob?: unknown;
 }
 
-export interface LogprobReading {
+interface LogprobReading {
   /** yes / (yes + no), or null when neither shape appeared. */
   probability: number | null;
   /** Summed probability of the `yes` variants. */
@@ -36,7 +36,7 @@ export interface LogprobReading {
  * leading whitespace and surrounding punctuation are stripped before comparing. The
  * comparison stays exact after that: `"nothing"` is not a `no`.
  */
-export function normalizeAnswerToken(token: string): string {
+function normalizeAnswerToken(token: string): string {
   return token
     .trim()
     .replace(/^[^\p{L}\p{N}]+/u, "")

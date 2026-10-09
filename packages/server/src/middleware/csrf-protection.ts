@@ -172,7 +172,7 @@ function appendOriginHint(origin: string): string {
  * CSRF_TRUSTED_ORIGINS. Used for the startup diagnostic so operators can see
  * the auto-trust scope at a glance and not paste duplicate entries into .env.
  */
-export interface CsrfTrustSummary {
+interface CsrfTrustSummary {
   loopback: string[];
   host: string | null;
   configured: string[];
@@ -180,7 +180,7 @@ export interface CsrfTrustSummary {
   privateLiteralPattern: string;
 }
 
-export function getCsrfTrustSummary(): CsrfTrustSummary {
+function getCsrfTrustSummary(): CsrfTrustSummary {
   const port = getPort();
   const loopback = [`http://127.0.0.1:${port}`, `http://localhost:${port}`];
   const configuredHost = getHost();
@@ -198,7 +198,7 @@ export function getCsrfTrustSummary(): CsrfTrustSummary {
   return { loopback, host, configured, wildcard, privateLiteralPattern };
 }
 
-export interface OriginTrustVerdict {
+interface OriginTrustVerdict {
   trusted: boolean;
   /** Resolved origin string the verdict applies to (Origin or fallback Referer). null if neither was present. */
   origin: string | null;

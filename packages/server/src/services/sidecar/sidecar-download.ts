@@ -17,7 +17,7 @@ export function isAbortError(error: unknown): boolean {
   return /abort/i.test(message);
 }
 
-export interface DownloadFileOptions {
+interface DownloadFileOptions {
   url: string;
   destPath: string;
   signal?: AbortSignal;

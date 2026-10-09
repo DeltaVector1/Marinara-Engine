@@ -35,7 +35,7 @@ export function formatRuntimePreference(preference: SidecarRuntimePreference): s
   }
 }
 
-export function isCpuVariant(variant: string): boolean {
+function isCpuVariant(variant: string): boolean {
   return /cpu/i.test(variant);
 }
 

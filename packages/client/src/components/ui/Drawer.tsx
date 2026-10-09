@@ -36,7 +36,7 @@ import { FloatingWindow, focusWindowOpener, PHONE_SHEET_CLASS, readFloatingWindo
 import { HelpTooltip } from "./HelpTooltip";
 import { useDrawerHost, type DrawerHost } from "./drawer-host";
 
-export interface DrawerProps {
+interface DrawerProps {
   /** Stable id, exposed as `data-drawer` for themes and tests. Inside a drawer host it also enables pop-out. */
   id?: string;
   title: ReactNode;

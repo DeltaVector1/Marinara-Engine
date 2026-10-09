@@ -36,7 +36,7 @@ import { logger } from "../../lib/logger.js";
 
 type PersonaFields = NonNullable<MacroContext["personaFields"]>;
 
-export interface BuildPromptMacroContextInput {
+interface BuildPromptMacroContextInput {
   db: DB;
   characterIds: string[];
   /** Full active roster when characterIds is narrowed to one generation target. */
@@ -195,7 +195,7 @@ export function resolveMacrosForPreview(
   return resolveMacros(template, cloneMacroContextForPreview(macroCtx), options);
 }
 
-export function extractCharacterReferenceIds(sources: readonly string[], limit = MAX_REFERENCED_CHARACTERS): string[] {
+function extractCharacterReferenceIds(sources: readonly string[], limit = MAX_REFERENCED_CHARACTERS): string[] {
   const ids: string[] = [];
   const seen = new Set<string>();
   for (const source of sources) {
@@ -210,7 +210,7 @@ export function extractCharacterReferenceIds(sources: readonly string[], limit =
   return ids;
 }
 
-export function extractPersonaReferenceIds(sources: readonly string[], excludeIds?: ReadonlySet<string>): string[] {
+function extractPersonaReferenceIds(sources: readonly string[], excludeIds?: ReadonlySet<string>): string[] {
   const ids: string[] = [];
   const seen = new Set<string>();
   for (const source of sources) {
@@ -622,7 +622,7 @@ function formatDurationPart(value: number, unit: string): string {
   return `${value} ${unit}${value === 1 ? "" : "s"}`;
 }
 
-export function formatPromptIdleDuration(milliseconds: number): string {
+function formatPromptIdleDuration(milliseconds: number): string {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000));
   if (totalSeconds < 60) return formatDurationPart(totalSeconds, "second");
 
@@ -1035,17 +1035,7 @@ export async function collectCharacterAdvancedPromptEntries(
 
 export function resolveCharacterAdvancedPromptIds(
   characterIds: string[],
-  chatMode: string,
-  chatMetadata: Record<string, unknown>,
 ): string[] {
   const resolved = new Set(characterIds.filter((id) => id && !id.startsWith("npc:")));
-  if (chatMode !== "game") return [...resolved];
-
-  const partyIds = Array.isArray(chatMetadata.gamePartyCharacterIds) ? chatMetadata.gamePartyCharacterIds : [];
-  for (const id of partyIds) {
-    if (typeof id === "string" && id && !id.startsWith("npc:")) resolved.add(id);
-  }
-  const gmCharacterId = chatMetadata.gameGmCharacterId;
-  if (typeof gmCharacterId === "string" && gmCharacterId) resolved.add(gmCharacterId);
   return [...resolved];
 }

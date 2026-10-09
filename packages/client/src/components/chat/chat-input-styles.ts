@@ -20,13 +20,13 @@ const CHAT_INPUT_INLINE_LAYOUT_CLASSES: Partial<Record<ChatInputLayout, string>>
   game: "items-center gap-1.5 px-2 py-2",
 };
 
-export const CHAT_INPUT_SHELL_BASE_CLASS =
+const CHAT_INPUT_SHELL_BASE_CLASS =
   "mari-chat-input-box mari-chat-style-surface marinara-chat-input-shell relative flex rounded-2xl border border-[var(--marinara-chat-chrome-input-border)] bg-[var(--marinara-chat-chrome-input-bg)] text-[var(--marinara-chat-chrome-panel-text)] shadow-sm backdrop-blur-md transition-all duration-200 focus-within:border-[var(--marinara-chat-chrome-input-border-focus)] focus-within:ring-1 focus-within:ring-[var(--marinara-chat-chrome-focus-ring)]";
 
-export const CHAT_INPUT_DRAGGING_CLASS =
+const CHAT_INPUT_DRAGGING_CLASS =
   "[--mari-chat-owner-bg:var(--marinara-chat-chrome-highlight-bg)] border-[var(--marinara-chat-chrome-input-border-focus)] bg-[var(--marinara-chat-chrome-highlight-bg)] shadow-lg shadow-black/10";
 
-export const CHAT_INPUT_HAS_CONTENT_CLASS = "shadow-md shadow-black/5";
+const CHAT_INPUT_HAS_CONTENT_CLASS = "shadow-md shadow-black/5";
 
 export function getChatInputShellClass({
   className,

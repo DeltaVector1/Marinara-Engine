@@ -4,8 +4,8 @@
 // backgrounds, VN scene illustrations, and
 // narration summarization for illustrations).
 // ──────────────────────────────────────────────
-import type { PromptOverrideKeyDef } from "../types.js";
 import { GAME_VIDEO_PROMPT_TEMPLATE, GAME_VIDEO_PROMPT_TEMPLATE_VARIABLES } from "@marinara-engine/shared";
+import type { PromptOverrideKeyDef } from "../types.js";
 import { renderTemplate } from "../template.js";
 
 // ── NPC portrait ──

@@ -44,7 +44,7 @@ const PROBE_CACHE_MS = 60_000;
  * This is what turns a running slot's footprint from arithmetic into a measurement.
  * A row that does not parse is dropped rather than recorded as a process using none.
  */
-export function parseNvidiaSmiApps(output: string): Map<number, number> {
+function parseNvidiaSmiApps(output: string): Map<number, number> {
   const usage = new Map<number, number>();
   for (const line of output.split(/\r?\n/u)) {
     if (!line.trim()) continue;
@@ -65,7 +65,7 @@ export function parseNvidiaSmiApps(output: string): Map<number, number> {
  * that does not parse is dropped rather than turned into a zero that would read as a
  * GPU with no memory.
  */
-export function parseNvidiaSmi(output: string): GpuDevice[] {
+function parseNvidiaSmi(output: string): GpuDevice[] {
   const devices: GpuDevice[] = [];
   for (const line of output.split(/\r?\n/u)) {
     if (!line.trim()) continue;

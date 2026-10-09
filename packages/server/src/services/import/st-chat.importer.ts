@@ -67,7 +67,7 @@ interface ParsedSTChatMessageInput {
   }>;
 }
 
-export interface ImportSTChatOptions {
+interface ImportSTChatOptions {
   /** Link chat to this character ID */
   characterId?: string | null;
   /** Multi-character override; takes precedence over characterId when provided */

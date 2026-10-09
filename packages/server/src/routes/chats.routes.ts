@@ -6,6 +6,7 @@ import { z } from "zod";
 import { logger } from "../lib/logger.js";
 import { cardPromptText } from "../services/prompt/card-text.js";
 import {
+  coerceGameStateTextValue,
   DECISION_PROMPT_QUESTION_LIMIT_SETTINGS_KEY,
   parseDecisionPromptQuestionLimit,
   CHAT_VARIABLE_STORED_NAME_RE,
@@ -20,7 +21,6 @@ import {
   compileChatSummaryEntries,
   createChatSummaryEntry,
   DEFAULT_CONVERSATION_PROMPT,
-  DEFAULT_GAME_SYSTEM_PROMPT,
   estimateChatSummaryTokens,
   getChatSummaryMessageIdsToUnhideAfterDelete,
   markAutonomousUnreadSchema,
@@ -31,12 +31,10 @@ import {
   type AdvancedMemoryReceipt,
   resolveMacros,
   summariesPatchSchema,
-  coerceGameStateTextValue,
   normalizeWorldCustomFields,
   normalizeTrackerFieldLocks,
   normalizeInventoryTrackerPlayerStats,
   normalizeTrackerHiddenFields,
-  HOME_FEED_SPRITE_EXPRESSION_MAX_LENGTH,
   parseTrackerFieldLocks,
   parseTrackerHiddenFields,
   characterTrackerCustomFieldDefaultsToRecord,
@@ -44,8 +42,6 @@ import {
   formatRpgStatsForPrompt,
   normalizeRpgStatPools,
   characterDataSchema,
-  readGameInventoryTurn,
-  rulesetLiveStatesSchema,
   applyContextMessageLimitWithPins,
   isMessagePinnedToContext,
   normalizeMessageMarkPatch,
@@ -71,9 +67,7 @@ import type {
   LorebookEntryTimingState,
   PresentCharacter,
   RPGStatsConfig,
-  RulesetLiveStates,
   WorldCustomField,
-  HomeFeedSnapshot,
 } from "@marinara-engine/shared";
 import {
   createChatsStorage,
@@ -109,24 +103,14 @@ import {
   heldDecision,
   readDecisionTimers,
 } from "../services/decision/decision-timers.js";
-import { gameGmPromptDecisionTexts } from "../services/generation/game-gm-prompt-runtime.js";
 import { DECISION_SETTINGS_KEYS } from "../services/decision/decision-default.js";
+import { createGameStateStorage, type GameStateVisibleAnchor } from "../services/storage/game-state.storage.js";
 import {
-  createGameStateStorage,
-  parseStoredRulesetLive,
-  type GameStateVisibleAnchor,
-} from "../services/storage/game-state.storage.js";
-import {
-  formatOwnerSpatialBreadcrumb,
   injectOwnerSpatialPrompt,
   projectGameSnapshotLocation,
   resolveOwnerSpatialProjection,
 } from "../services/spatial-context/projection.js";
 import { createSpatialContextStorage } from "../services/storage/spatial-context.storage.js";
-import { restoreBranchHudLists, trimJournalForBranch } from "../services/game/branch-state.js";
-import { removeGameInventoryTelling, switchGameInventoryTelling } from "../services/game/game-inventory.service.js";
-import { applyAllSegmentEdits, applyMessageSegmentEdits } from "../services/game/segment-edits.js";
-import type { Journal } from "../services/game/journal.service.js";
 import { createRegexScriptsStorage } from "../services/storage/regex-scripts.storage.js";
 import { filterRelevantLorebooks, processLorebooks } from "../services/lorebook/index.js";
 import { injectAtDepth } from "../services/lorebook/prompt-injector.js";
@@ -175,13 +159,9 @@ import {
   formatConversationInstructionsForWrap,
   injectIntoOutputFormatOrLastUser,
   normalizePromptWrapFormat,
-  parseGameStateRow,
   stripSpeakerTagsExceptLastAssistant,
 } from "./generate/generate-route-utils.js";
-import {
-  filterGameInternalAgentIds,
-  resolveLorebookScopeExclusions,
-} from "../services/lorebook/game-lorebook-scope.js";
+import { resolveLorebookScopeExclusions } from "../services/lorebook/game-lorebook-scope.js";
 import {
   isMemoryRecallVectorizerAvailable,
   resetMemoryRecallVectorizerCache,
@@ -202,7 +182,6 @@ import {
   resolveChatSummaryCombinePrompt,
 } from "../services/generation/roleplay-summary-runtime.js";
 import { resolveLorebookTokenBudget } from "../services/generation/lorebook-generation-runtime.js";
-import { resolveGameGmPromptTemplate } from "../services/generation/game-gm-prompt-runtime.js";
 import {
   parseScenePackageOrigin,
   parseStoredScenePackageData,
@@ -407,7 +386,7 @@ function sanitizeChatGameNpcAvatars<T extends { metadata?: unknown }>(chat: T): 
 }
 
 /** Convert storage-encoded chat JSON columns to the shared public Chat shape. */
-export function normalizeChatForResponse<T extends { metadata?: unknown; characterIds?: unknown }>(chat: T) {
+function normalizeChatForResponse<T extends { metadata?: unknown; characterIds?: unknown }>(chat: T) {
   return sanitizeChatGameNpcAvatars({
     ...chat,
     characterIds: resolveChatCharacterIds(chat.characterIds),
@@ -703,105 +682,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     return chats.map(normalizeChatForResponse);
   });
 
-  // Bounded Home data. This deliberately returns one short visible-message
-  // glimpse per chat instead of making the browser load recent transcripts.
-  app.get("/home-feed", async (): Promise<HomeFeedSnapshot> => {
-    const recentChats = [];
-    const seenRecentChatIds = new Set<string>();
-    const pageSize = 24;
-    let offset = 0;
-    while (recentChats.length < 6) {
-      const page = await storage.listRecent(pageSize, offset);
-      if (page.length === 0) break;
-      for (const chat of page) {
-        if (!seenRecentChatIds.has(chat.id)) {
-          seenRecentChatIds.add(chat.id);
-          recentChats.push(chat);
-        }
-        if (recentChats.length === 6) break;
-      }
-      offset += page.length;
-      if (page.length < pageSize) break;
-    }
-    return {
-      generatedAt: new Date().toISOString(),
-      recentChats: await Promise.all(
-        recentChats.map(async (chat) => {
-          const messages = await storage.listMessagePreviews(chat.id, 12);
-          const metadata = parseChatMetadata(chat.metadata);
-          const background = typeof metadata.background === "string" ? metadata.background.trim() : "";
-          const gameBackgroundTag =
-            chat.mode === "game" && typeof metadata.gameSceneBackground === "string"
-              ? metadata.gameSceneBackground.trim()
-              : "";
-          const chatCharacterIds = resolveChatCharacterIds(chat.characterIds).slice(0, 12);
-          const spriteCharacterIds = Array.isArray(metadata.spriteCharacterIds)
-            ? metadata.spriteCharacterIds
-                .filter((id): id is string => typeof id === "string" && id.trim().length > 0)
-                .slice(0, 12)
-            : [];
-          const spriteDisplayModes = Array.isArray(metadata.spriteDisplayModes)
-            ? metadata.spriteDisplayModes
-                .filter((mode): mode is "expressions" | "full-body" => mode === "expressions" || mode === "full-body")
-                .slice(0, 12)
-            : [];
-          const spriteExpressionCharacterIds = new Set([...spriteCharacterIds, ...chatCharacterIds].slice(0, 12));
-          const spriteExpressions: Record<string, string> = {};
-          if (isRecord(metadata.spriteExpressions)) {
-            for (const [characterId, expression] of Object.entries(metadata.spriteExpressions)) {
-              if (
-                spriteExpressionCharacterIds.has(characterId) &&
-                typeof expression === "string" &&
-                expression.trim()
-              ) {
-                spriteExpressions[characterId] = expression.trim().slice(0, HOME_FEED_SPRITE_EXPRESSION_MAX_LENGTH);
-              }
-            }
-          }
-          for (const message of messages) {
-            const extra = parseSnapshotJson<Record<string, unknown>>(message.extra, {});
-            if (!isRecord(extra.spriteExpressions)) continue;
-            for (const [characterId, expression] of Object.entries(extra.spriteExpressions)) {
-              if (
-                spriteExpressionCharacterIds.has(characterId) &&
-                typeof expression === "string" &&
-                expression.trim()
-              ) {
-                spriteExpressions[characterId] = expression.trim().slice(0, HOME_FEED_SPRITE_EXPRESSION_MAX_LENGTH);
-              }
-            }
-          }
-          const latest = [...messages]
-            .reverse()
-            .find((message) => message.role !== "system" && message.content.trim().length > 0);
-          return {
-            chat: {
-              id: chat.id,
-              name: chat.name.slice(0, 160),
-              mode: chat.mode,
-              groupId: chat.groupId ?? null,
-              characterIds: chatCharacterIds,
-              background: background.length > 0 && background.length <= 2_048 ? background : null,
-              gameBackgroundTag:
-                gameBackgroundTag.length > 0 && gameBackgroundTag.length <= 2_048 ? gameBackgroundTag : null,
-              spriteCharacterIds,
-              spriteDisplayModes,
-              spriteExpressions,
-            },
-            latestMessage: latest
-              ? {
-                  id: latest.id,
-                  role: latest.role,
-                  characterId: latest.characterId,
-                  content: latest.content.trim().replace(/\s+/gu, " ").slice(0, 280),
-                  createdAt: latest.createdAt,
-                }
-              : null,
-          };
-        }),
-      ),
-    };
-  });
 
   // Lightweight candidate ids for the background-autonomous poller (#4704):
   // the poller only needs ids, so skip the full-list materialization,
@@ -859,9 +739,7 @@ export async function chatsRoutes(app: FastifyInstance) {
   // Create chat
   app.post("/", async (req, reply) => {
     const input = createChatSchema.parse(req.body);
-    if (input.mode === "game" && input.personaCharacterId) {
-      return reply.status(400).send({ error: "Character identities are not available in Game chats." });
-    }
+
     if (input.personaCharacterId && !(await isValidCharacterIdentity(app.db, input.personaCharacterId))) {
       return reply.status(400).send({ error: "Selected character identity is invalid or unavailable." });
     }
@@ -1336,7 +1214,7 @@ export async function chatsRoutes(app: FastifyInstance) {
         characterIds,
         personaId: identity?.source === "persona" ? identity.id : null,
         activeLorebookIds: Array.isArray(metadata.activeLorebookIds) ? (metadata.activeLorebookIds as string[]) : [],
-        ...resolveLorebookScopeExclusions(chat.mode, metadata),
+        ...resolveLorebookScopeExclusions(metadata),
       }).length
     )
       return reply.status(404).send({ error: "Lorebook entry not available in this chat" });
@@ -1828,11 +1706,6 @@ export async function chatsRoutes(app: FastifyInstance) {
   app.delete<{ Params: { groupId: string }; Querystring: { force?: string } }>(
     "/group/:groupId",
     async (req, reply) => {
-      const force = req.query.force === "true" || req.query.force === "1";
-      const guard = await storage.canDeleteGroup(req.params.groupId, { force });
-      if (!guard.allowed) {
-        return reply.status(409).send({ error: guard.reason });
-      }
       await storage.removeGroup(req.params.groupId);
       return reply.status(204).send();
     },
@@ -1840,11 +1713,6 @@ export async function chatsRoutes(app: FastifyInstance) {
 
   // Delete chat
   app.delete<{ Params: { id: string }; Querystring: { force?: string } }>("/:id", async (req, reply) => {
-    const force = req.query.force === "true" || req.query.force === "1";
-    const guard = await storage.canDeleteChat(req.params.id, { force });
-    if (!guard.allowed) {
-      return reply.status(409).send({ error: guard.reason });
-    }
     // If this is a scene chat, clean up the origin chat's scene pointer
     const chat = await storage.getById(req.params.id);
     let scenePackageOrigin: ReturnType<typeof parseScenePackageOrigin> = null;
@@ -2181,8 +2049,7 @@ export async function chatsRoutes(app: FastifyInstance) {
   });
 
   // Game state is not restorable through the message-only trash, so retain permanent Game deletes.
-  const chatUsesMessageTrash = async (chatId: string) =>
-    isFeatureEnabled("messageTrash") && (await storage.getById(chatId))?.mode !== "game";
+  const chatUsesMessageTrash = async () => isFeatureEnabled("messageTrash");
 
   app.delete<{
     Params: { chatId: string; messageId: string };
@@ -2191,7 +2058,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     const message = await storage.getMessage(req.params.messageId);
     if (!message || message.chatId !== req.params.chatId) return reply.status(404).send({ error: "Message not found" });
     const trashed =
-      req.query.trash === "false" || !(await chatUsesMessageTrash(req.params.chatId))
+      req.query.trash === "false" || !(await chatUsesMessageTrash())
         ? []
         : await messageTrashStore.trashMessages(req.params.chatId, [req.params.messageId]);
     if (trashed.length === 0) await storage.removeMessage(req.params.messageId);
@@ -2205,9 +2072,7 @@ export async function chatsRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: "messageIds array is required" });
     }
     const ids = messageIds.filter((id): id is string => typeof id === "string");
-    const trashed = (await chatUsesMessageTrash(req.params.chatId))
-      ? await messageTrashStore.trashMessages(req.params.chatId, ids)
-      : [];
+    const trashed = (await chatUsesMessageTrash()) ? await messageTrashStore.trashMessages(req.params.chatId, ids) : [];
     if (trashed.length === 0) await storage.removeMessages(ids, req.params.chatId);
     return reply.send({ trashed: trashed.length > 0, trashedCount: trashed.length });
   });
@@ -2223,7 +2088,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     const chat = await storage.getById(req.params.chatId);
     if (!chat) return reply.status(404).send({ error: "Chat not found" });
     // Disabling retention leaves existing recovery entries usable, but message-only restore cannot restore Game state.
-    if (chat.mode === "game") return reply.status(409).send({ error: "Messages cannot be restored in Game Mode." });
+
     const active = (app as unknown as { activeGenerations?: Map<string, unknown> }).activeGenerations;
     if (active?.has(req.params.chatId))
       return reply.status(409).send({ error: "Wait for the current generation to finish before restoring messages." });
@@ -2490,9 +2355,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     );
     const row = projectGameSnapshotLocation(rawRow, ownerSpatialProjection)!;
     const manualOverrides = parseSnapshotJson<Record<string, string> | null>(row.manualOverrides, null);
-    if (manualOverrides && ownerSpatialProjection?.ownerMode === "game") {
-      delete manualOverrides.location;
-    }
 
     return {
       id: row.id,
@@ -2512,7 +2374,6 @@ export async function chatsRoutes(app: FastifyInstance) {
       manualOverrides,
       fieldLocks: parseTrackerFieldLocks(row.fieldLocks),
       hiddenTrackerFields: parseTrackerHiddenFields(row.hiddenTrackerFields),
-      rulesetLive: parseStoredRulesetLive(row.rulesetLive),
       committed: (row.committed as any) === 1,
       createdAt: row.createdAt,
     };
@@ -2543,9 +2404,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     const storedManualOverrides = row.manualOverrides
       ? (JSON.parse(row.manualOverrides as string) as Record<string, string>)
       : null;
-    if (storedManualOverrides && ownerSpatialProjection?.ownerMode === "game") {
-      delete storedManualOverrides.location;
-    }
+
     const fieldLocks = parseTrackerFieldLocks(row.fieldLocks);
     const hiddenTrackerFields = parseTrackerHiddenFields(row.hiddenTrackerFields);
     const worldCustomFields = normalizeWorldCustomFields(parseSnapshotJson(row.worldCustomFields, []));
@@ -2618,7 +2477,6 @@ export async function chatsRoutes(app: FastifyInstance) {
       manualOverrides: storedManualOverrides,
       fieldLocks,
       hiddenTrackerFields,
-      rulesetLive: parseStoredRulesetLive(row.rulesetLive),
       createdAt: row.createdAt,
     };
   });
@@ -2632,18 +2490,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     const chat = await storage.getById(req.params.id);
     if (!chat) return reply.status(404).send({ error: "Chat not found" });
     const ownerSpatialProjection = await resolveOwnerSpatialProjection(req.params.id, {}, chat.metadata);
-    if (manual && body.location !== undefined && ownerSpatialProjection?.ownerMode === "game") {
-      return reply.status(409).send({
-        error: "Story location is controlled by the world map.",
-        code: "spatial_location_authoritative",
-        field: "location",
-        location: formatOwnerSpatialBreadcrumb(ownerSpatialProjection),
-      });
-    }
-    const gameStateUpdateOptions =
-      ownerSpatialProjection?.ownerMode === "game"
-        ? { compatibilityLocation: formatOwnerSpatialBreadcrumb(ownerSpatialProjection) }
-        : undefined;
+
     // Explicit flag to wipe all manual overrides (e.g. from the Clear button)
     const clearOverrides = body.clearOverrides === true;
     const targetMessageId = typeof body.messageId === "string" && body.messageId ? body.messageId : null;
@@ -2664,16 +2511,11 @@ export async function chatsRoutes(app: FastifyInstance) {
       personaStats: any[];
       fieldLocks: Record<string, boolean> | null;
       hiddenTrackerFields: Record<string, boolean> | null;
-      rulesetLive: RulesetLiveStates | null;
     }> = {};
     if (body.date !== undefined) fields.date = coerceGameStateTextValue(body.date);
     if (body.time !== undefined) fields.time = coerceGameStateTextValue(body.time);
     if (body.location !== undefined) {
-      if (ownerSpatialProjection?.ownerMode === "game") {
-        logger.debug("[game-state] Ignored location patch because Spatial Context is authoritative");
-      } else {
-        fields.location = coerceGameStateTextValue(body.location);
-      }
+      fields.location = coerceGameStateTextValue(body.location);
     }
     if (body.weather !== undefined) fields.weather = coerceGameStateTextValue(body.weather);
     if (body.temperature !== undefined) fields.temperature = coerceGameStateTextValue(body.temperature);
@@ -2698,14 +2540,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     if (body.fieldLocks !== undefined) fields.fieldLocks = normalizeTrackerFieldLocks(body.fieldLocks);
     if (body.hiddenTrackerFields !== undefined)
       fields.hiddenTrackerFields = normalizeTrackerHiddenFields(body.hiddenTrackerFields);
-    // Live ruleset sheet state edited on the in-game sheet (a rest, a spent hit die, a corrected
-    // pool). Bounded here like every other write of it; what the numbers mean is the ruleset's
-    // business and the player's own game, so legality is not judged.
-    if (body.rulesetLive !== undefined) {
-      const live = body.rulesetLive === null ? null : rulesetLiveStatesSchema.safeParse(body.rulesetLive);
-      if (live && !live.success) return reply.status(400).send({ error: "rulesetLive is not valid live sheet state" });
-      fields.rulesetLive = live ? live.data : null;
-    }
     // Target the same snapshot the GET endpoint returns — the one for the last
     // assistant message's active swipe — so edits persist to the row the user
     // actually sees. Falls back to updateLatest when no messages exist yet.
@@ -2720,7 +2554,7 @@ export async function chatsRoutes(app: FastifyInstance) {
           req.params.id,
           fields,
           manual,
-          gameStateUpdateOptions,
+          undefined,
         );
       }
     }
@@ -2735,7 +2569,7 @@ export async function chatsRoutes(app: FastifyInstance) {
             req.params.id,
             fields,
             manual,
-            gameStateUpdateOptions,
+            undefined,
           );
           break;
         }
@@ -2767,10 +2601,7 @@ export async function chatsRoutes(app: FastifyInstance) {
           swipeIndex: 0,
           date: (fields.date as string) ?? null,
           time: (fields.time as string) ?? null,
-          location:
-            ownerSpatialProjection?.ownerMode === "game"
-              ? formatOwnerSpatialBreadcrumb(ownerSpatialProjection)
-              : ((fields.location as string) ?? null),
+          location: (fields.location as string) ?? null,
           weather: (fields.weather as string) ?? null,
           temperature: (fields.temperature as string) ?? null,
           worldCustomFields: normalizeWorldCustomFields(fields.worldCustomFields),
@@ -2780,7 +2611,6 @@ export async function chatsRoutes(app: FastifyInstance) {
           personaStats: (fields.personaStats as any) ?? null,
           fieldLocks: normalizeTrackerFieldLocks(fields.fieldLocks),
           hiddenTrackerFields: normalizeTrackerHiddenFields(fields.hiddenTrackerFields),
-          ...(fields.rulesetLive !== undefined ? { rulesetLive: fields.rulesetLive } : {}),
         },
         Object.keys(manualOverrides).length > 0 ? manualOverrides : null,
       );
@@ -2788,10 +2618,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     }
     if (!updated) return reply.status(404).send({ error: "No game state found" });
     // The row stores live sheet state as JSON text; callers get the same object the GET returns.
-    return projectGameSnapshotLocation(
-      { ...updated, rulesetLive: parseStoredRulesetLive(updated.rulesetLive) },
-      ownerSpatialProjection,
-    );
+    return projectGameSnapshotLocation(updated, ownerSpatialProjection);
   });
 
   // Delete all game state for a chat
@@ -2975,7 +2802,7 @@ export async function chatsRoutes(app: FastifyInstance) {
         : typeof chatMeta.presetId === "string" && chatMeta.presetId
           ? chatMeta.presetId
           : null;
-    if (presetId || chatMode === "conversation" || chatMode === "game" || chatMode === "roleplay") {
+    if (presetId || chatMode === "conversation" || chatMode === "roleplay") {
       try {
         const { createPromptsStorage } = await import("../services/storage/prompts.storage.js");
         const { createCharactersStorage } = await import("../services/storage/characters.storage.js");
@@ -2986,7 +2813,7 @@ export async function chatsRoutes(app: FastifyInstance) {
 
         const preset = presetId ? await presetStore.getById(presetId) : null;
         const chatMode = (chat.mode as string) ?? "roleplay";
-        if (preset || chatMode === "conversation" || chatMode === "game" || chatMode === "roleplay") {
+        if (preset || chatMode === "conversation" || chatMode === "roleplay") {
           // Apply conversation-start filter
           let scopedMessages = chatMessages;
           for (let i = chatMessages.length - 1; i >= 0; i--) {
@@ -3100,7 +2927,7 @@ export async function chatsRoutes(app: FastifyInstance) {
               JSON.stringify(chatMeta),
               preset ? JSON.stringify(preset) : "",
             ],
-            nameCharacterReferences: !(preset && chatMode !== "conversation" && chatMode !== "game"),
+            nameCharacterReferences: !(preset && chatMode !== "conversation"),
           });
           const resolvePromptMacros = (value: string, lorebookEntryCounts?: Readonly<Record<string, number>>) => {
             setLorebookEntryCounts(promptMacroContext, lorebookEntryCounts);
@@ -3116,7 +2943,7 @@ export async function chatsRoutes(app: FastifyInstance) {
           promptMacroContext.lastInput = [...mappedMessages]
             .reverse()
             .find((message) => message.role === "user")?.content;
-          const lorebookScopeExclusions = resolveLorebookScopeExclusions(chatMode, chatMeta);
+          const lorebookScopeExclusions = resolveLorebookScopeExclusions(chatMeta);
           const activeLorebookIds = Array.isArray(chatMeta.activeLorebookIds)
             ? (chatMeta.activeLorebookIds as string[])
             : [];
@@ -3157,7 +2984,7 @@ export async function chatsRoutes(app: FastifyInstance) {
               // The same sources generation plans from: preset sections only outside
               // Conversation and Game, where the conversation prompt takes their place.
               preset:
-                preset && chatMode !== "conversation" && chatMode !== "game"
+                preset && chatMode !== "conversation"
                   ? { sections, groups, choiceBlocks, choices: chatChoices }
                   : undefined,
               ctx: promptMacroContext,
@@ -3174,12 +3001,7 @@ export async function chatsRoutes(app: FastifyInstance) {
                   : []),
                 // Resolved in the same macro pass as the prompt.
                 chatMeta.authorNotes,
-                ...(chatMode === "game"
-                  ? gameGmPromptDecisionTexts(
-                      chatMeta,
-                      presetStringField(preset as Record<string, unknown> | null, "gamePrompt"),
-                    )
-                  : []),
+                ...[],
               ],
             });
             const plan = planPromptDecisions(
@@ -3272,72 +3094,7 @@ export async function chatsRoutes(app: FastifyInstance) {
                 "No saved model request was available, so this is a live best-effort preview assembled without sending.",
             };
           }
-          if (chatMode === "game") {
-            const setupConfig =
-              chatMeta.gameSetupConfig &&
-              typeof chatMeta.gameSetupConfig === "object" &&
-              !Array.isArray(chatMeta.gameSetupConfig)
-                ? (chatMeta.gameSetupConfig as Record<string, unknown>)
-                : null;
-            const customPrompt = resolveGameGmPromptTemplate(chatMeta, setupConfig);
-            const selectedGamePrompt = presetStringField(preset as Record<string, unknown> | null, "gamePrompt");
-            const gamePromptTemplate = customPrompt ?? (selectedGamePrompt || DEFAULT_GAME_SYSTEM_PROMPT);
-            const renderedGamePrompt = resolveMacros(gamePromptTemplate, promptMacroContext);
-            let messages: Parameters<typeof toPeekPromptMessages>[0] = [
-              {
-                role: "system" as const,
-                content: renderedGamePrompt,
-              },
-              ...mappedMessages,
-            ];
-            const latestGameState = projectGameSnapshotLocation(
-              await loadLatestChatGameSnapshot(app, req.params.id, visibleGameStateAnchor),
-              ownerSpatialProjection,
-            );
-            const lorebookResult = await processLorebooks(
-              app.db,
-              mappedMessages,
-              latestGameState
-                ? (parseGameStateRow(latestGameState as Record<string, unknown>) as unknown as Record<string, unknown>)
-                : null,
-              {
-                chatId: req.params.id,
-                characterIds: lorebookCharacterIds,
-                personaId,
-                activeLorebookIds,
-                forcedEntryIds: forcedLorebookEntryIds,
-                excludedLorebookIds: lorebookScopeExclusions.excludedLorebookIds,
-                excludedSourceAgentIds: lorebookScopeExclusions.excludedSourceAgentIds,
-                tokenBudget: lorebookTokenBudget,
-                entryStateOverrides,
-                entryTimingStates,
-                generationTriggers,
-                previewOnly: true,
-                resolveContent: resolvePromptMacros,
-                resolveDecisions: lorebookDecisions,
-              },
-            );
-            const loreContent = [lorebookResult.worldInfoBefore, lorebookResult.worldInfoAfter]
-              .filter(Boolean)
-              .join("\n");
-            if (loreContent) {
-              messages[0]!.content += `\n\n<lore>\n${loreContent}\n</lore>`;
-            }
-            if (lorebookResult.depthEntries.length > 0) {
-              messages = injectAtDepth(messages, lorebookResult.depthEntries);
-            }
-            return {
-              messages: toPeekPromptMessages(injectOwnerSpatialPrompt(messages, ownerSpatialProjection)),
-              chatMode,
-              parameters: null,
-              source: "live_preview",
-              exact: false,
-              generationInfo: null,
-              ...decisionReport(),
-              agentNote:
-                "No saved model request was available, so this is a live best-effort preview assembled without sending.",
-            };
-          }
+
           if (!preset && chatMode === "roleplay") {
             const lorebookResult = await processLorebooks(app.db, mappedMessages, null, {
               chatId: req.params.id,
@@ -3388,7 +3145,7 @@ export async function chatsRoutes(app: FastifyInstance) {
           const promptActiveAgentIds = Array.isArray(chatMeta.activeAgentIds)
             ? (chatMeta.activeAgentIds as string[])
             : [];
-          const activePromptAgentIds = filterGameInternalAgentIds(chatMode, promptActiveAgentIds);
+          const activePromptAgentIds = promptActiveAgentIds;
           const activeChatSummary = resolveRoleplayChatSummary(chatMode, chatMeta);
 
           const assembled = await assemblePrompt({
@@ -3736,28 +3493,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     },
   );
 
-  /** A deleted swipe leaves a game's record of that turn's tellings (#6774) counted as the message's
-   *  swipes are. The swipe is gone either way, so a failure here drops the record rather than leave
-   *  it pointing at the wrong tellings. */
-  const forgetInventoryTelling = async (
-    chatId: string,
-    messageId: string,
-    removed: number,
-    wasShown: boolean,
-    shown: number,
-  ) => {
-    try {
-      await removeGameInventoryTelling(app.db, chatId, messageId, removed, wasShown, shown);
-    } catch (err) {
-      logger.error(err, "[chats] Could not update the inventory for swipe %d of %s", removed, messageId);
-      // Without the record a later telling adds on top instead of starting the turn again, which
-      // is how every turn behaved before it; stale indexes could show the wrong telling's stacks.
-      await storage
-        .patchMetadata(chatId, { gameInventoryTurn: null })
-        .catch((clearErr) => logger.error(clearErr, "[chats] Could not drop the inventory record of %s", messageId));
-    }
-  };
-
   // Delete a swipe without deleting the parent message
   app.delete<{ Params: { chatId: string; messageId: string; index: string } }>(
     "/:chatId/messages/:messageId/swipes/:index",
@@ -3779,19 +3514,11 @@ export async function chatsRoutes(app: FastifyInstance) {
           return reply.status(404).send({ error: "Swipe not found" });
         }
 
-        const previous = await storage.getMessage(req.params.messageId);
         const updated = await storage.removeSwipe(req.params.messageId, index);
         if (!updated) {
           return reply.status(404).send({ error: "Message not found" });
         }
 
-        await forgetInventoryTelling(
-          req.params.chatId,
-          req.params.messageId,
-          index,
-          (previous?.activeSwipeIndex ?? 0) === index,
-          updated.activeSwipeIndex ?? 0,
-        );
         return updated;
       });
     },
@@ -3818,14 +3545,9 @@ export async function chatsRoutes(app: FastifyInstance) {
 
         // Descending indexes keep the selected swipe stable until lower rows are
         // removed, after which the existing removal path shifts it safely to 0.
-        let shown = message.activeSwipeIndex ?? 0;
         for (const swipe of [...swipes].sort((a: any, b: any) => b.index - a.index)) {
           if (swipe.index === keepIndex) continue;
-          const updated = await storage.removeSwipe(req.params.messageId, swipe.index);
-          if (!updated) continue;
-          const wasShown = shown === swipe.index;
-          shown = updated.activeSwipeIndex ?? 0;
-          await forgetInventoryTelling(req.params.chatId, req.params.messageId, swipe.index, wasShown, shown);
+          await storage.removeSwipe(req.params.messageId, swipe.index);
         }
         return storage.getMessage(req.params.messageId);
       });
@@ -3838,43 +3560,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     async (req) => {
       const { index } = req.body as { index: number };
       return withChatSwipeSelectionQueue(req.params.chatId, async () => {
-        const previous = await storage.getMessage(req.params.messageId);
         const updated = await storage.setActiveSwipe(req.params.messageId, index);
-        // A Game Mode inventory follows the telling that is shown, as long as nothing changed it since
-        // the telling left it (#6774). Only a game that remembers a turn has anything to switch.
-        if (updated && previous && (previous.activeSwipeIndex ?? 0) !== index) {
-          try {
-            const chat = await storage.getById(req.params.chatId);
-            let meta: Record<string, unknown> = {};
-            try {
-              meta = typeof chat?.metadata === "string" ? JSON.parse(chat.metadata) : (chat?.metadata ?? {});
-            } catch {
-              meta = {};
-            }
-            // Null when the stacks changed since that telling: then they are left as the player has
-            // them, on purpose. Only a failure to read or save lands in the catch.
-            if (readGameInventoryTurn(meta.gameInventoryTurn)?.messageId === req.params.messageId) {
-              await switchGameInventoryTelling(
-                app.db,
-                req.params.chatId,
-                req.params.messageId,
-                previous.activeSwipeIndex ?? 0,
-                index,
-              );
-            }
-          } catch (err) {
-            // The inventory could not follow, so the telling is put back rather than shown without it,
-            // unless the player has picked another one since, which is theirs to keep.
-            logger.error(err, "[chats] Could not switch the inventory to swipe %d of %s", index, req.params.messageId);
-            const now = await storage.getMessage(req.params.messageId).catch(() => null);
-            if ((now?.activeSwipeIndex ?? 0) === index) {
-              await storage.setActiveSwipe(req.params.messageId, previous.activeSwipeIndex ?? 0).catch((restoreErr) => {
-                logger.error(restoreErr, "[chats] Could not put swipe %s back", req.params.messageId);
-              });
-            }
-            throw err;
-          }
-        }
         return updated;
       });
     },
@@ -4092,7 +3778,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     const charIds = parseExportCharacterIds(chat.characterIds);
     const metadata = parseExportMetadata(chat.metadata);
     const msgs = rawMessages.map((message) => ({ ...message }));
-    if (chat.mode === "game") applyAllSegmentEdits(msgs, metadata, rawMessages);
+
     const messageIndexById = new Map(msgs.map((message, index) => [message.id, index]));
     const spatialContextHistory = (await createSpatialContextStorage().listForChat(chat.id))
       .map((snapshot) => ({
@@ -4189,7 +3875,7 @@ export async function chatsRoutes(app: FastifyInstance) {
           msg.role === "user" && isExportRecord(extra.personaSnapshot)
             ? readExportName(extra.personaSnapshot.name)
             : null;
-        const isCharacterTurn = msg.role === "assistant" && chat.mode !== "game" && displayName !== "Narrator";
+        const isCharacterTurn = msg.role === "assistant" && displayName !== "Narrator";
         entries.push({
           speakerKey:
             msg.role === "user" ? "user" : isCharacterTurn ? `character:${msg.characterId ?? "primary"}` : "narrator",
@@ -4300,10 +3986,7 @@ export async function chatsRoutes(app: FastifyInstance) {
                   swipe.index === msg.activeSwipeIndex
                     ? activeContent
                     : resolveExportMessageContent({
-                        content:
-                          chat.mode === "game" && (msg.role === "assistant" || msg.role === "narrator")
-                            ? applyMessageSegmentEdits(swipe.content, metadata, msg.id)
-                            : swipe.content,
+                        content: swipe.content,
                         characterId: msg.characterId,
                       }),
                 extra:
@@ -4554,17 +4237,7 @@ export async function chatsRoutes(app: FastifyInstance) {
     const sourceCutoffIndex = upToMessageId ? msgs.findIndex((msg) => msg.id === upToMessageId) : msgs.length - 1;
     const sourceMessagesToCopy = msgs.slice(0, sourceCutoffIndex + 1);
     const copiedSourceMessageIds = new Set(sourceMessagesToCopy.map((msg) => msg.id));
-    const firstOmittedMessage = msgs[sourceCutoffIndex + 1];
-    if (sourceChat.mode === "game" && firstOmittedMessage) {
-      if (settingsToKeep.gameJournal) {
-        settingsToKeep.gameJournal = trimJournalForBranch(
-          settingsToKeep.gameJournal as Journal,
-          copiedSourceMessageIds,
-          firstOmittedMessage.createdAt as string,
-        );
-      }
-      settingsToKeep.gameWidgetState = restoreBranchHudLists(sourceMeta, sourceMessagesToCopy);
-    }
+
     const inheritedSourceEntries = sourceSummaryEntries.filter((entry) => {
       if (!entry.messageIds?.length || !entry.messageIds.every((id) => copiedSourceMessageIds.has(id))) return false;
       if (entry.rangeEndIndex && entry.rangeEndIndex > sourceMessagesToCopy.length) return false;
@@ -4677,19 +4350,6 @@ export async function chatsRoutes(app: FastifyInstance) {
     await storage.remapRoleplayInterruptionTargets(newChat.id, sourceToBranchedMessageId);
     const forkSourceMessage = copiedSourceMessages.at(-1);
 
-    if (sourceChat.mode === "game" && settingsToKeep.gameJournal) {
-      const journal = settingsToKeep.gameJournal as Journal;
-      settingsToKeep.gameJournal = {
-        ...journal,
-        entries: journal.entries.map((entry) => ({
-          ...entry,
-          ...(entry.sourceMessageId && sourceToBranchedMessageId.has(entry.sourceMessageId)
-            ? { sourceMessageId: sourceToBranchedMessageId.get(entry.sourceMessageId) }
-            : {}),
-        })),
-      };
-    }
-
     const inheritedEntries = inheritedSourceEntries.map((entry) => ({
       ...entry,
       messageIds: entry.messageIds!.map((id) => sourceToBranchedMessageId.get(id)!).filter(Boolean),
@@ -4706,13 +4366,6 @@ export async function chatsRoutes(app: FastifyInstance) {
         : undefined;
     const branchCharacterIds = resolveChatCharacterIds(newChat.characterIds);
     settingsToKeep = remapAdvancedMemoryMetadata(settingsToKeep, sourceToBranchedMessageId, branchCharacterIds);
-    // A game's record of one turn's tellings (#6774) follows that turn into the branch, whose copy
-    // keeps every swipe index. A branch that stops before the turn has nothing for it to follow.
-    const inventoryTurn = readGameInventoryTurn(settingsToKeep.gameInventoryTurn);
-    const branchedInventoryTurnId = inventoryTurn && sourceToBranchedMessageId.get(inventoryTurn.messageId);
-    if (branchedInventoryTurnId)
-      settingsToKeep.gameInventoryTurn = { ...inventoryTurn, messageId: branchedInventoryTurnId };
-    else delete settingsToKeep.gameInventoryTurn;
     // #5406: `settingsToKeep` is the source metadata verbatim, which carries its
     // `metadataWriteOrdinals` mirror. Inherit the source's write-ordinal counter too, or the
     // branch's first allocation would come in BELOW the stamps it just copied and invert the
@@ -4780,7 +4433,7 @@ export async function chatsRoutes(app: FastifyInstance) {
       const { createGameStateStorage } = await import("../services/storage/game-state.storage.js");
       const gameStateStore = createGameStateStorage(app.db);
       const gameEngineStore =
-        sourceChat.mode === "game" || sourceChat.mode === "conversation"
+        sourceChat.mode === "conversation"
           ? (await import("../services/storage/game-engine-state.storage.js")).createGameEngineStateStorage(app.db)
           : null;
 
@@ -4792,16 +4445,7 @@ export async function chatsRoutes(app: FastifyInstance) {
       ) => {
         try {
           const overrides = parseSnapshotJson<Record<string, string> | null>(snapshot.manualOverrides, null);
-          const ownerSpatialProjection = await resolveOwnerSpatialProjection(
-            newChat.id,
-            {
-              exactAnchor: { messageId: targetMessageId, swipeIndex: targetSwipeIndex },
-            },
-            sourceMeta,
-          );
-          if (overrides && ownerSpatialProjection?.ownerMode === "game") {
-            delete overrides.location;
-          }
+
           await gameStateStore.create(
             {
               chatId: newChat.id,
@@ -4809,10 +4453,7 @@ export async function chatsRoutes(app: FastifyInstance) {
               swipeIndex: targetSwipeIndex,
               date: (snapshot.date as string) ?? null,
               time: (snapshot.time as string) ?? null,
-              location:
-                ownerSpatialProjection?.ownerMode === "game"
-                  ? formatOwnerSpatialBreadcrumb(ownerSpatialProjection)
-                  : ((snapshot.location as string) ?? null),
+              location: (snapshot.location as string) ?? null,
               weather: (snapshot.weather as string) ?? null,
               temperature: (snapshot.temperature as string) ?? null,
               worldCustomFields: normalizeWorldCustomFields(parseSnapshotJson(snapshot.worldCustomFields, [])),
@@ -4824,7 +4465,6 @@ export async function chatsRoutes(app: FastifyInstance) {
               hiddenTrackerFields: parseTrackerHiddenFields(snapshot.hiddenTrackerFields),
               // A branch is a new chat, so there is no row to inherit from: without this a branched
               // game would start with every pool full again.
-              rulesetLive: parseStoredRulesetLive(snapshot.rulesetLive),
               committed: (snapshot.committed as any) === 1,
             } as any,
             overrides,

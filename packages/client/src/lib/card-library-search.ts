@@ -1,11 +1,11 @@
 import { includesTextForMatch, normalizeTextForMatch } from "@marinara-engine/shared";
 
-export type CardLibrarySearchQuery = {
+type CardLibrarySearchQuery = {
   text: string;
   excludedTags: string[];
 };
 
-export type CardLibrarySearchDocument = {
+type CardLibrarySearchDocument = {
   name?: unknown;
   title?: unknown;
   meta?: unknown;

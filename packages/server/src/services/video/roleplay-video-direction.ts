@@ -4,7 +4,7 @@ import { loadPrompt, ROLEPLAY_GALLERY_VIDEO_DIRECTOR } from "../prompt-overrides
 
 const ROLEPLAY_VIDEO_DIRECTION_MAX_LENGTH = 6_000;
 
-export interface RoleplayVideoDirectionContext {
+interface RoleplayVideoDirectionContext {
   durationSeconds: number;
   aspectRatio: "16:9" | "9:16";
   sourceExchange: string;
@@ -13,9 +13,9 @@ export interface RoleplayVideoDirectionContext {
   setting: string;
 }
 
-export type RoleplayVideoDirectionMessages = [{ role: "system"; content: string }, { role: "user"; content: string }];
+type RoleplayVideoDirectionMessages = [{ role: "system"; content: string }, { role: "user"; content: string }];
 
-export function buildRoleplayVideoDirectionUserPrompt(ctx: RoleplayVideoDirectionContext): string {
+function buildRoleplayVideoDirectionUserPrompt(ctx: RoleplayVideoDirectionContext): string {
   const characterLine =
     ctx.characterNames.length > 0 ? ctx.characterNames.join(", ") : "Use only people visible in the scene.";
   const referenceImagePrompt = clipVerbatimVideoSource(ctx.referenceImagePrompt, 2_000);

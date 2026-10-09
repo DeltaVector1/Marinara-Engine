@@ -17,7 +17,7 @@ export interface CreatePersonaImageInput {
   height?: number;
 }
 
-export interface LegacyPersonaImageCandidateInput {
+interface LegacyPersonaImageCandidateInput {
   createdAfter: string;
   createdBefore: string;
   prompt: string;

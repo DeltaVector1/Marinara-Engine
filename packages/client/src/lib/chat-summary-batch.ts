@@ -8,7 +8,7 @@ export interface ChatSummaryBatchRangeDraft {
 
 export type ChatSummaryBatchRangeError = "missing" | "invalid" | "outside" | "tooLarge";
 
-export interface ChatSummaryBatchRangeInspection {
+interface ChatSummaryBatchRangeInspection {
   id: string;
   start: number | null;
   end: number | null;

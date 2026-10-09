@@ -6,7 +6,7 @@ import type { DB } from "../../db/connection.js";
 import { globalImages, galleryFolders } from "../../db/schema/index.js";
 import { newId, now } from "../../utils/id-generator.js";
 
-export interface CreateGlobalImageInput {
+interface CreateGlobalImageInput {
   filePath: string;
   folderId?: string | null;
   prompt?: string;

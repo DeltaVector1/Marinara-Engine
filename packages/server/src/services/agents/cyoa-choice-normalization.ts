@@ -5,7 +5,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-export function normalizeCyoaDialogueQuotes(text: string): string {
+function normalizeCyoaDialogueQuotes(text: string): string {
   return text.replace(SINGLE_QUOTED_SPAN_RE, '$1"$2"');
 }
 

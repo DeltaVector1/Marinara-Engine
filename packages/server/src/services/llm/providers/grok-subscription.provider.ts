@@ -47,7 +47,7 @@ function getGrokScratchDir(): Promise<string> {
   return grokScratchDirPromise;
 }
 
-export interface GrokCliModel {
+interface GrokCliModel {
   id: string;
   name: string;
   context?: number;

@@ -1,6 +1,6 @@
 // Shared CSS payload limits for user-authored page-injected CSS.
 
-export const MAX_USER_CSS_BYTES = 256 * 1024; // 256 KiB
+const MAX_USER_CSS_BYTES = 256 * 1024; // 256 KiB
 
 // `z.string().max(n)` counts UTF-16 code units, so a CSS file full of
 // multi-byte characters can exceed the intended storage/network budget while

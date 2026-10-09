@@ -15,7 +15,7 @@ export interface ToolParameterSchema {
   items?: ToolParameterProperty;
 }
 
-export interface ToolParameterProperty {
+interface ToolParameterProperty {
   type: "string" | "number" | "integer" | "boolean" | "array" | "object";
   description?: string;
   enum?: string[];
@@ -36,45 +36,6 @@ export interface ToolDefinition {
   parameters: ToolParameterSchema;
 }
 
-/** A tool call made by the model during generation. */
-export interface ToolCall {
-  /** Server-assigned ID for tracking */
-  id: string;
-  /** Which tool to call */
-  name: string;
-  /** Parsed arguments */
-  arguments: Record<string, unknown>;
-}
-
-/** Result of executing a tool call. */
-export interface ToolResult {
-  /** Matches the ToolCall id */
-  toolCallId: string;
-  /** Tool name for display */
-  name: string;
-  /** Stringified result */
-  result: string;
-  /** Whether execution succeeded */
-  success: boolean;
-}
-
-/** A user-created custom function tool persisted in DB. */
-export interface CustomTool {
-  id: string;
-  name: string;
-  description: string;
-  parametersSchema: ToolParameterSchema;
-  executionType: "webhook" | "static" | "script";
-  webhookUrl: string | null;
-  staticResult: string | null;
-  scriptBody: string | null;
-  /** Whether execution receives server-side context that is not exposed in the LLM tool schema. */
-  includeHiddenContext: boolean;
-  enabled: boolean;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 /** Extended AgentConfig with tool definitions. */
 export interface AgentToolConfig {

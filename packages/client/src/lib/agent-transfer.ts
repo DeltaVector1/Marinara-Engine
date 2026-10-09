@@ -81,7 +81,7 @@ export function sanitizeAgentSettingsForTransfer(settings: Record<string, unknow
 }
 
 /** Imported agents never receive tool access from the file they came from. */
-export function sanitizeAgentSettingsForImport(settings: Record<string, unknown>) {
+function sanitizeAgentSettingsForImport(settings: Record<string, unknown>) {
   const sanitized = sanitizeAgentSettingsForTransfer(settings);
   delete sanitized.enabledTools;
   return sanitized;

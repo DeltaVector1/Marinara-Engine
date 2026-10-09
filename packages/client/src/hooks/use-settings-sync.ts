@@ -58,7 +58,7 @@ const LOCAL_ONLY_SETTING_KEYS = [
   "activeImpersonatePromptTemplateId",
 ] as const;
 
-export function omitLocalOnlySettings(settings: ParsedSettings): ParsedSettings {
+function omitLocalOnlySettings(settings: ParsedSettings): ParsedSettings {
   const sanitized = { ...settings };
   for (const key of LOCAL_ONLY_SETTING_KEYS) {
     delete sanitized[key];
@@ -71,11 +71,11 @@ export function omitLocalOnlySettings(settings: ParsedSettings): ParsedSettings 
   return sanitized;
 }
 
-export function hasMissingSyncedSettings(settings: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
+function hasMissingSyncedSettings(settings: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
   return expectedKeys.some((key) => !(key in settings));
 }
 
-export function mergeUndatedSyncedSettings(
+function mergeUndatedSyncedSettings(
   localSettings: SyncedSettingsObject,
   serverSettings: ParsedSettings,
 ): SyncedSettingsObject {

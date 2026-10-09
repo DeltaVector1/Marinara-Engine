@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api-client";
 import type { AtlasCloudVideoModelSchemaResponse } from "@marinara-engine/shared";
 
-export const atlasCloudModelSchemaKeys = {
+const atlasCloudModelSchemaKeys = {
   all: ["atlas-cloud-model-schema"] as const,
   video: (model: string) => [...atlasCloudModelSchemaKeys.all, "video", model] as const,
 };

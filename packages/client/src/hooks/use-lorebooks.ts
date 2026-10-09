@@ -564,7 +564,7 @@ export function useCloneLorebookFolder() {
   });
 }
 
-export interface ActiveLorebookEntry {
+interface ActiveLorebookEntry {
   id: string;
   name: string;
   content: string;
@@ -601,7 +601,7 @@ export interface BudgetSkippedLorebookEntry {
   blockedBy: "lorebook" | "chat" | "both" | "location";
 }
 
-export interface ActiveLorebookScan {
+interface ActiveLorebookScan {
   entries: ActiveLorebookEntry[];
   budgetSkippedEntries: BudgetSkippedLorebookEntry[];
   totalTokens: number;

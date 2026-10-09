@@ -19,7 +19,7 @@ export function resolveLorebookGenerationTriggers(
   chatMode: string,
 ): string[] {
   const triggers = new Set<string>();
-  triggers.add(chatMode === "game" ? "game" : chatMode);
+  triggers.add(chatMode);
 
   if (input.impersonate) {
     triggers.add("impersonate");

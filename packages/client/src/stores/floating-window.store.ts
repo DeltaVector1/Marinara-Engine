@@ -243,16 +243,6 @@ export function selectHasDetachedDrawers(state: Pick<FloatingWindowState, "detac
   return Object.keys(state.detached).some((id) => isHostDrawerWindowId(id, hostId));
 }
 
-/** True while a control's content shows in its window, phone sheet or expanded Settings section. */
-export function selectWindowRestored(
-  state: Pick<FloatingWindowState, "layouts" | "open">,
-  id: FloatingWindowId,
-  dockedSectionExpanded = true,
-) {
-  if (state.layouts[id]?.docked) return dockedSectionExpanded && state.open[CHAT_SETTINGS_WINDOW_ID] === true;
-  return isPhoneWindowLayout() ? state.open[id] === true : state.layouts[id]?.minimized === false;
-}
-
 /** The chat's phone presentation: windows show as sheets, and minimizable ones as bubbles. */
 export const PHONE_LAYOUT_QUERY = "(max-width: 767px)";
 
@@ -261,7 +251,7 @@ export function isPhoneWindowLayout() {
 }
 
 /** Pinned windows ignore outside presses and other panels. Phones show windows as sheets, which never pin. */
-export function isFloatingWindowPinned(id: FloatingWindowId): boolean {
+function isFloatingWindowPinned(id: FloatingWindowId): boolean {
   if (isPhoneWindowLayout()) return false;
   return useFloatingWindowStore.getState().layouts[id]?.pinned === true;
 }

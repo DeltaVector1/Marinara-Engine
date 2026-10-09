@@ -16,7 +16,7 @@ import {
 const MAX_PACK_BYTES = 5 * 1024 * 1024;
 const installs = new Map<string, Promise<void>>();
 
-export function uiPackPath(language: string): string {
+function uiPackPath(language: string): string {
   if (!normalizeUILanguage(language) || language === "en" || normalizeUILanguage(language) !== language) {
     throw new Error("Unsupported UI language");
   }
@@ -42,7 +42,7 @@ export async function readUIPack(language: string): Promise<unknown | null> {
   }
 }
 
-export function uiPackManifestFile(raw: unknown, language: string): DocsPackManifestFile {
+function uiPackManifestFile(raw: unknown, language: string): DocsPackManifestFile {
   uiPackPath(language);
   const files = (raw as { files?: unknown } | null)?.files;
   if (!Array.isArray(files)) throw new Error("UI pack manifest has no file list");

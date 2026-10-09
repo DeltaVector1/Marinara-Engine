@@ -32,7 +32,7 @@ export interface DecisionConnection {
   timeoutMs?: number;
 }
 
-export type DecisionConnectionError =
+type DecisionConnectionError =
   "invalid_source" | "invalid_url" | "needs_relinking" | "missing_key" | "missing_model";
 
 /**
@@ -42,7 +42,7 @@ export type DecisionConnectionError =
  * so a key can be linked across by origin, and appends `/chat/completions` the way that
  * connection does. A bare host gets `/v1` too, and a full endpoint is kept as entered.
  */
-export function decisionChatCompletionsUrl(base: string): string {
+function decisionChatCompletionsUrl(base: string): string {
   const trimmed = base.trim().replace(/\/+$/, "");
   if (/\/chat\/completions$/.test(trimmed)) return trimmed;
   return new URL(trimmed).pathname.replace(/\/+$/, "")

@@ -19,7 +19,6 @@ import {
   type ChatWidgetShape,
   type ConversationAvatarShape,
   type ConversationMessageStyle,
-  type GameDialogueDisplayMode,
   type ChatListBackgroundMode,
   type RoleplayAvatarStyle,
   type RoleplayChatPosition,
@@ -1920,18 +1919,6 @@ const CHAT_LIST_BACKGROUND_OPTIONS: Array<{ id: ChatListBackgroundMode; label: s
   { id: "off", label: "Off", desc: "No banners. Chat rows keep the plain sidebar background." },
 ];
 
-const GAME_DIALOGUE_DISPLAY_OPTIONS: Array<{ id: GameDialogueDisplayMode; label: string; desc: string }> = [
-  {
-    id: "classic",
-    label: "Classic Dialogue Box",
-    desc: "One active segment in the dialogue box, with logs available from the Logs button.",
-  },
-  {
-    id: "stacked",
-    label: "History Above Dialogue Box",
-    desc: "Shows prior segments above the dialogue box and keeps the full session scrollable there.",
-  },
-];
 
 const TRACKER_THOUGHT_BUBBLE_DISPLAY_OPTIONS: Array<{
   id: TrackerThoughtBubbleDisplay;
@@ -4822,16 +4809,10 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
     appearanceChat?.mode === "roleplay"
       ? (parseChatMetadata(appearanceChat.metadata).roleplayDisplayStyle ?? roleplayDisplayStyle)
       : roleplayDisplayStyle;
-  const gameDialogueDisplayMode = useUIStore((s) => s.gameDialogueDisplayMode);
-  const setGameDialogueDisplayMode = useUIStore((s) => s.setGameDialogueDisplayMode);
   const chatListBackgrounds = useUIStore((s) => s.chatListBackgrounds);
   const setChatListBackgrounds = useUIStore((s) => s.setChatListBackgrounds);
-  const gameTextEffectsEnabled = useUIStore((s) => s.gameTextEffectsEnabled);
-  const setGameTextEffectsEnabled = useUIStore((s) => s.setGameTextEffectsEnabled);
   const gameAvatarScale = useUIStore((s) => s.gameAvatarScale);
-  const setGameAvatarScale = useUIStore((s) => s.setGameAvatarScale);
   const gameFullBodySpriteScale = useUIStore((s) => s.gameFullBodySpriteScale);
-  const setGameFullBodySpriteScale = useUIStore((s) => s.setGameFullBodySpriteScale);
   const textStrokeWidth = useUIStore((s) => s.textStrokeWidth);
   const setTextStrokeWidth = useUIStore((s) => s.setTextStrokeWidth);
   const textStrokeColor = useUIStore((s) => s.textStrokeColor);
@@ -4907,8 +4888,6 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
     gameAvatarPreviewBase,
     gameFullBodyPreviewBase,
   ]);
-  const gameAvatarPreview = gameAvatarPreviewSize ?? gameAvatarPreviewBase;
-  const gameFullBodyPreview = gameFullBodyPreviewSize ?? gameFullBodyPreviewBase;
 
   return (
     <div className="flex flex-col gap-3">
@@ -6330,141 +6309,6 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
                   {localizeUi("ui.panels.appearancesettings.rectanglesKeepTheCompactSideSlotButGivePortraits")}
                 </p>
               </div>
-            </div>
-          </SettingsSection>
-        </>
-      )}
-
-      {group === "game" && (
-        <>
-          <h2 className="text-sm font-semibold" data-appearance-group="game">
-            {localizeUi("settings.appearance.groups.game")}
-          </h2>
-          <SettingsSection
-            title={localizeUi("settings.sections.gamePresentation.title")}
-            description={localizeUi("settings.sections.gamePresentation.description")}
-            icon={<ScrollText size="0.875rem" />}
-            {...getSettingsSectionAnchorProps("game-presentation")}
-          >
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-1.5">
-                  <Image size="0.75rem" className="text-[var(--muted-foreground)]" />
-                  <span className="text-xs font-medium">{localizeUi("ui.panels.appearancesettings.gameVnArt")}</span>
-                  <HelpTooltip
-                    text={localizeUi(
-                      "ui.panels.appearancesettings.scalesGameModeDialoguePortraitsSeparatelyFromTheCenter",
-                    )}
-                  />
-                </div>
-                <div className="rounded-lg border border-[var(--border)] bg-[var(--secondary)]/45 p-3">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                    <div className="flex h-20 w-full shrink-0 items-end justify-center gap-3 overflow-hidden rounded-md bg-black/30 p-2 ring-1 ring-[var(--border)]/70 sm:w-28">
-                      <div
-                        className="shrink-0 rounded-lg border border-white/20 bg-gradient-to-b from-sky-300/80 via-cyan-200/65 to-slate-800/90 shadow-lg transition-all"
-                        style={{
-                          width: toPreviewRem(gameAvatarPreview.width),
-                          height: toPreviewRem(gameAvatarPreview.height),
-                        }}
-                      />
-                      <div
-                        className="mari-settings-portrait-preview shrink-0 rounded-full border border-white/20 shadow-lg transition-all"
-                        style={{
-                          width: toPreviewRem(gameFullBodyPreview.width),
-                          height: toPreviewRem(gameFullBodyPreview.height),
-                        }}
-                      />
-                    </div>
-                    <div className="grid min-w-0 flex-1 gap-3 sm:min-w-[9rem]">
-                      <label
-                        id={getSettingsControlAnchorId("game-dialogue-portrait-scale")}
-                        className="flex scroll-mt-3 min-w-0 flex-col gap-1"
-                      >
-                        <span className="text-[0.6875rem] font-medium text-[var(--foreground)]">
-                          {localizeUi("ui.panels.appearancesettings.dialoguePortraitScale")}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                            min={0.75}
-                            max={1.75}
-                            step={0.05}
-                            value={gameAvatarScale}
-                            onChange={(e) => setGameAvatarScale(Number(e.target.value))}
-                            className="min-w-0 flex-1 accent-[var(--primary)]"
-                          />
-                          <span className="w-12 text-right text-xs tabular-nums text-[var(--muted-foreground)]">
-                            {Math.round(gameAvatarScale * 100)}%
-                          </span>
-                        </div>
-                      </label>
-                      <label
-                        id={getSettingsControlAnchorId("game-full-body-sprite-scale")}
-                        className="flex scroll-mt-3 min-w-0 flex-col gap-1"
-                      >
-                        <span className="text-[0.6875rem] font-medium text-[var(--foreground)]">
-                          {localizeUi("ui.panels.appearancesettings.fullBodySpriteScale")}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="range"
-                            min={0.75}
-                            max={2.75}
-                            step={0.05}
-                            value={gameFullBodySpriteScale}
-                            onChange={(e) => setGameFullBodySpriteScale(Number(e.target.value))}
-                            className="min-w-0 flex-1 accent-[var(--primary)]"
-                          />
-                          <span className="w-12 text-right text-xs tabular-nums text-[var(--muted-foreground)]">
-                            {Math.round(gameFullBodySpriteScale * 100)}%
-                          </span>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-1.5">
-                  <ScrollText size="0.75rem" className="text-[var(--muted-foreground)]" />
-                  <span className="text-xs font-medium">
-                    {localizeUi("ui.panels.appearancesettings.gameDialogueDisplay")}
-                  </span>
-                  <HelpTooltip
-                    text={localizeUi("ui.panels.appearancesettings.chooseWhetherGameModeUsesAClassicDialogueBox")}
-                  />
-                </div>
-                <div
-                  id={getSettingsControlAnchorId("game-dialogue-display")}
-                  className="grid scroll-mt-3 grid-cols-1 gap-2 sm:grid-cols-2"
-                >
-                  {GAME_DIALOGUE_DISPLAY_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      onClick={() => setGameDialogueDisplayMode(opt.id)}
-                      className={cn(
-                        "flex flex-col items-start gap-1 rounded-lg border p-3 text-left text-xs transition-all",
-                        gameDialogueDisplayMode === opt.id
-                          ? "border-[var(--primary)] bg-[var(--primary)]/10 ring-1 ring-[var(--primary)]"
-                          : "border-[var(--border)] hover:border-[var(--primary)]/40",
-                      )}
-                    >
-                      <span className="font-semibold">{opt.label}</span>
-                      <span className="text-[0.625rem] leading-tight text-[var(--muted-foreground)]">{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <ToggleSetting
-                anchorId={getSettingsControlAnchorId("game-text-effects")}
-                label={localizeUi("settings.controls.gameTextEffects.label")}
-                checked={gameTextEffectsEnabled}
-                onChange={setGameTextEffectsEnabled}
-                help={localizeUi("settings.controls.gameTextEffects.help")}
-              />
             </div>
           </SettingsSection>
         </>

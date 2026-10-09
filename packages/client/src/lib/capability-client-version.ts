@@ -6,7 +6,7 @@ export function capabilityClientNeedsRefresh(
   return Boolean(loadedVersion && loadedVersion !== installedVersion && customElementRegistered);
 }
 
-export interface CapabilityClientImport {
+interface CapabilityClientImport {
   version: string;
   attempt: number;
 }

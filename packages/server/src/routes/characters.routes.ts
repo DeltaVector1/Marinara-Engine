@@ -761,7 +761,7 @@ async function buildNativeCharacterExport(
   };
 }
 
-export function buildCompatibleCharacterExport(data: any, sprites: Array<{ filename: string; data: string }> = []) {
+function buildCompatibleCharacterExport(data: any, sprites: Array<{ filename: string; data: string }> = []) {
   const extensions = { ...parseCharacterDataRecord(data?.extensions) };
   const description = [typeof data?.description === "string" ? data.description : ""];
   for (const [key, label] of [
@@ -913,7 +913,7 @@ function canonicalizePersonaForExport(persona: Record<string, unknown>): {
   return { row, usesFallbackName };
 }
 
-export async function validateCharacterGalleryReferences<T extends Record<string, unknown>>(
+async function validateCharacterGalleryReferences<T extends Record<string, unknown>>(
   characterId: string,
   characterDataUpdate: T,
   getGalleryImage: (imageId: string) => Promise<{ characterId: string } | null>,
@@ -1691,11 +1691,11 @@ export async function charactersRoutes(app: FastifyInstance) {
     const sceneClips = sceneVideoGroups.flatMap(({ chat, videos }) =>
       videos.map((video) => {
         const filename = video.filePath.split("/").pop() ?? "";
-        const routePrefix = chat.mode === "game" ? "/api/game" : "/api/gallery";
+        const routePrefix = "/api/gallery";
         return {
           id: `scene:${video.id}`,
-          source: chat.mode === "game" ? ("game-scene" as const) : ("scene-video" as const),
-          label: chat.mode === "game" ? "Game scene" : "Scene video",
+          source: "scene-video" as const,
+          label: "Scene video",
           prompt: video.prompt,
           status: "ready" as const,
           url: `${routePrefix}/scene-videos/file/${encodeURIComponent(chat.id)}/${encodeURIComponent(filename)}`,
@@ -2807,11 +2807,11 @@ export async function charactersRoutes(app: FastifyInstance) {
     const sceneClips = sceneVideoGroups.flatMap(({ chat, videos }) =>
       videos.map((video) => {
         const filename = video.filePath.split("/").pop() ?? "";
-        const routePrefix = chat.mode === "game" ? "/api/game" : "/api/gallery";
+        const routePrefix = "/api/gallery";
         return {
           id: `scene:${video.id}`,
-          source: chat.mode === "game" ? ("game-scene" as const) : ("scene-video" as const),
-          label: chat.mode === "game" ? "Game scene" : "Scene video",
+          source: "scene-video" as const,
+          label: "Scene video",
           prompt: video.prompt,
           status: "ready" as const,
           url: `${routePrefix}/scene-videos/file/${encodeURIComponent(chat.id)}/${encodeURIComponent(filename)}`,
@@ -3374,7 +3374,7 @@ export async function charactersRoutes(app: FastifyInstance) {
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 /** Create a minimal 1×1 transparent PNG (for characters without avatars). */
-export function createMinimalPng(): Buffer {
+function createMinimalPng(): Buffer {
   // IHDR chunk data: 1×1, 8-bit RGBA
   const ihdrData = Buffer.alloc(13);
   ihdrData.writeUInt32BE(1, 0); // width
@@ -3421,7 +3421,7 @@ function readPngTextKeyword(chunkType: string, chunkData: Buffer): string | null
 }
 
 /** Inject a tEXt chunk into an existing PNG buffer, right before the first IDAT. */
-export function injectTextChunk(png: Buffer, keyword: string, text: string): Buffer {
+function injectTextChunk(png: Buffer, keyword: string, text: string): Buffer {
   // Validate PNG signature
   if (png.subarray(0, 8).compare(PNG_SIGNATURE) !== 0) {
     throw new Error("Invalid PNG signature");

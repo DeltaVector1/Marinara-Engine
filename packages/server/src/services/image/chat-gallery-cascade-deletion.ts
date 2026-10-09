@@ -35,7 +35,7 @@ type EntityGalleryImage = {
   createdAt: string;
 };
 
-export type ChatGalleryCascadeDeletionResult = {
+type ChatGalleryCascadeDeletionResult = {
   characterCopiesRemoved: number;
   personaCopiesRemoved: number;
   filesRemoved: number;

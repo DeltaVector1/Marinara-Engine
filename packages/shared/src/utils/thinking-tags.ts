@@ -7,7 +7,7 @@ export interface ThinkingTagPair {
   close: string;
 }
 
-export interface LeadingThinkingExtraction {
+interface LeadingThinkingExtraction {
   content: string;
   thinking: string;
   stripped: boolean;
@@ -19,7 +19,7 @@ type InternalThinkingTagPair = ThinkingTagPair & {
   boundaryAfterOpen?: boolean;
 };
 
-export const BUILT_IN_THINKING_TAG_PAIRS: ThinkingTagPair[] = [
+const BUILT_IN_THINKING_TAG_PAIRS: ThinkingTagPair[] = [
   { open: "<thinking>", close: "</thinking>" },
   { open: "<think>", close: "</think>" },
   { open: "<thought>", close: "</thought>" },
@@ -137,12 +137,12 @@ export function extractLeadingThinkingBlocks(text: string, customTags?: unknown)
   };
 }
 
-export interface InlineThinkingStreamFilterResult {
+interface InlineThinkingStreamFilterResult {
   visible: string;
   thinking: string;
 }
 
-export interface InlineThinkingStreamFilter {
+interface InlineThinkingStreamFilter {
   push(chunk: string): InlineThinkingStreamFilterResult;
   flush(): InlineThinkingStreamFilterResult;
   reset(): void;

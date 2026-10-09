@@ -6,20 +6,20 @@ export interface SceneVideoPromptLimits {
   finalPrompt: number | null;
 }
 
-export interface GalleryVideoNarrationMessage {
+interface GalleryVideoNarrationMessage {
   id: string;
   role?: string | null;
   content?: string | null;
   extra?: unknown;
 }
 
-export interface GalleryVideoNarrationSwipe {
+interface GalleryVideoNarrationSwipe {
   messageId: string;
   content?: string | null;
   extra?: unknown;
 }
 
-export interface GalleryVideoSourceExchange {
+interface GalleryVideoSourceExchange {
   sourceMessageId: string | null;
   content: string;
 }
@@ -75,7 +75,7 @@ export function compactVideoPromptText(value: unknown, maxLength: number): strin
   return clipAtBoundary(clean, maxLength);
 }
 
-export function summarizeVideoNarration(value: unknown, maxLength: number): string {
+function summarizeVideoNarration(value: unknown, maxLength: number): string {
   if (typeof value !== "string" || maxLength <= 0) return "";
   const withoutDialogue = value
     .replace(/\[[^\]\r\n]{1,80}\]\s*:?\s*/g, " ")

@@ -6,9 +6,9 @@ export const semanticSummaryRetrievalSettingsSchema = z.object({
   semanticSummaryMinSimilarity: z.number().min(0).max(1).default(0.15),
 });
 
-export type SemanticSummaryRetrievalSettings = z.infer<typeof semanticSummaryRetrievalSettingsSchema>;
+type SemanticSummaryRetrievalSettings = z.infer<typeof semanticSummaryRetrievalSettingsSchema>;
 
-export const DEFAULT_SEMANTIC_SUMMARY_RETRIEVAL_SETTINGS: SemanticSummaryRetrievalSettings =
+const DEFAULT_SEMANTIC_SUMMARY_RETRIEVAL_SETTINGS: SemanticSummaryRetrievalSettings =
   semanticSummaryRetrievalSettingsSchema.parse({});
 
 export function normalizeSemanticSummaryRetrievalSettings(value: unknown): SemanticSummaryRetrievalSettings {

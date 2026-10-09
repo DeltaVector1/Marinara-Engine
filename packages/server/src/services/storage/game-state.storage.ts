@@ -6,23 +6,7 @@ import type { DB } from "../../db/connection.js";
 import { gameStateSnapshots } from "../../db/schema/index.js";
 import { newId, now } from "../../utils/id-generator.js";
 import { ensureTimestampAfter } from "../import/import-timestamps.js";
-import {
-  coerceGameStateTextValue,
-  applyTrackerFieldLocksToGameStatePatch,
-  normalizeWorldCustomFields,
-  normalizeTrackerFieldLocks,
-  normalizeTrackerFieldLocksForState,
-  normalizeTrackerHiddenFields,
-  parseTrackerFieldLocks,
-  parseTrackerHiddenFields,
-  rulesetLiveStatesSchema,
-  trackerFieldLocksAreEmpty,
-  trackerHiddenFieldsAreEmpty,
-  type GameState,
-  type RulesetLiveStates,
-  type TrackerFieldLocks,
-  type TrackerHiddenFields,
-} from "@marinara-engine/shared";
+import { coerceGameStateTextValue, applyTrackerFieldLocksToGameStatePatch, normalizeWorldCustomFields, normalizeTrackerFieldLocks, normalizeTrackerFieldLocksForState, normalizeTrackerHiddenFields, parseTrackerFieldLocks, parseTrackerHiddenFields, trackerFieldLocksAreEmpty, trackerHiddenFieldsAreEmpty, type GameState, type TrackerFieldLocks, type TrackerHiddenFields } from "@marinara-engine/shared";
 
 export type GameStateVisibleAnchor = { messageId: string; swipeIndex: number };
 
@@ -42,7 +26,6 @@ type GameStateUpdateFields = Partial<
     | "personaStats"
     | "fieldLocks"
     | "hiddenTrackerFields"
-    | "rulesetLive"
   >
 >;
 
@@ -101,18 +84,6 @@ function serializeFieldLocks(fieldLocks: TrackerFieldLocks | null | undefined) {
 function serializeHiddenTrackerFields(hiddenFields: TrackerHiddenFields | null | undefined) {
   const normalized = normalizeTrackerHiddenFields(hiddenFields);
   return trackerHiddenFieldsAreEmpty(normalized) ? null : JSON.stringify(normalized);
-}
-
-/** Live ruleset sheet state is bounded at every read and write: an unreadable or oversized value
- *  reads as none, which the sheet math treats as every pool at its default. */
-export function parseStoredRulesetLive(value: unknown): RulesetLiveStates | null {
-  const parsed = rulesetLiveStatesSchema.safeParse(parseSnapshotJson<unknown>(value, null));
-  return parsed.success && Object.keys(parsed.data).length > 0 ? parsed.data : null;
-}
-
-function serializeRulesetLive(value: unknown): string | null {
-  const live = parseStoredRulesetLive(value);
-  return live ? JSON.stringify(live) : null;
 }
 
 function parseSnapshotJson<T>(value: unknown, fallback: T): T {
@@ -404,7 +375,6 @@ export function createGameStateStorage(db: DB) {
         manualOverrides: serializeManualOverrides(manualOverrides),
         fieldLocks: serializeFieldLocks(state.fieldLocks),
         hiddenTrackerFields: serializeHiddenTrackerFields(state.hiddenTrackerFields),
-        rulesetLive: serializeRulesetLive(state.rulesetLive !== undefined ? state.rulesetLive : replaced?.rulesetLive),
         committed: state.committed ? 1 : 0,
         createdAt: ensureTimestampAfter(now(), latestBeforeInsert?.createdAt),
       });
@@ -529,7 +499,6 @@ export function createGameStateStorage(db: DB) {
           : null,
         fieldLocks: parseTrackerFieldLocks(latest?.fieldLocks),
         hiddenTrackerFields: parseTrackerHiddenFields(latest?.hiddenTrackerFields),
-        rulesetLive: parseStoredRulesetLive(latest?.rulesetLive),
       };
       baseState.fieldLocks = normalizeTrackerFieldLocksForState(
         baseState.fieldLocks,
@@ -556,7 +525,6 @@ export function createGameStateStorage(db: DB) {
       if (fields.hiddenTrackerFields !== undefined) {
         baseState.hiddenTrackerFields = normalizeTrackerHiddenFields(fields.hiddenTrackerFields);
       }
-      if (fields.rulesetLive !== undefined) baseState.rulesetLive = parseStoredRulesetLive(fields.rulesetLive);
 
       const manualOverrides = manual
         ? MANUAL_OVERRIDE_FIELDS.reduce<Record<string, string>>((acc, key) => {
@@ -589,7 +557,6 @@ export function createGameStateStorage(db: DB) {
         updates.personaStats = fields.personaStats ? JSON.stringify(fields.personaStats) : null;
       if (fields.hiddenTrackerFields !== undefined)
         updates.hiddenTrackerFields = serializeHiddenTrackerFields(fields.hiddenTrackerFields);
-      if (fields.rulesetLive !== undefined) updates.rulesetLive = serializeRulesetLive(fields.rulesetLive);
 
       if (manual) {
         const storedOverrides = parseStoredManualOverrides(row.manualOverrides) ?? {};

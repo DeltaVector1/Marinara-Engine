@@ -421,7 +421,7 @@ export function LorebookEditor() {
   const linkClipboard = useUIStore((s) => s.lorebookLinkClipboard);
   const setLinkClipboard = useUIStore((s) => s.setLorebookLinkClipboard);
   const activeChat = useChatStore((s) => s.activeChat);
-  const activeOwnerChatId = activeChat?.mode === "roleplay" || activeChat?.mode === "game" ? activeChat.id : null;
+  const activeOwnerChatId = activeChat?.mode === "roleplay" ? activeChat.id : null;
   const spatialBacklinksQuery = useSpatialContext(activeOwnerChatId);
   const { data: rawLorebook, isLoading, isError } = useLorebook(lorebookId);
   const { data: rawLorebooks } = useLorebooks();

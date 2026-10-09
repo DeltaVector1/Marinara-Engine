@@ -1,8 +1,8 @@
-export type DiceRollAxis = "flat-spin" | "corner-tumble" | "edge-tumble" | "long-axis-tumble";
-export type DiceShadowKind = "round" | "cube" | "diamond" | "long-oval";
-export type DiceSilhouetteMode = "stable" | "corner-flip" | "alternating-wide-thin";
+type DiceRollAxis = "flat-spin" | "corner-tumble" | "edge-tumble" | "long-axis-tumble";
+type DiceShadowKind = "round" | "cube" | "diamond" | "long-oval";
+type DiceSilhouetteMode = "stable" | "corner-flip" | "alternating-wide-thin";
 
-export interface DiceVisualProfile {
+interface DiceVisualProfile {
   rollAxis: DiceRollAxis;
   shadow: DiceShadowKind;
   silhouette: DiceSilhouetteMode;

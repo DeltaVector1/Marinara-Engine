@@ -89,7 +89,7 @@ export interface SlashCommandContext {
   availableCapabilityIds?: ReadonlySet<string>;
 }
 
-export interface SlashCommandAvailability {
+interface SlashCommandAvailability {
   mode?: "conversation" | "roleplay";
   availableCapabilityIds?: ReadonlySet<string>;
 }
@@ -186,7 +186,7 @@ function resolveGuidedCharacterTarget(
   return null;
 }
 
-export interface SlashCommandResult {
+interface SlashCommandResult {
   /** If true, don't send to the LLM / don't do normal send */
   handled: boolean;
   /** Optional feedback to show (ephemeral, not persisted) */
@@ -558,7 +558,7 @@ type TargetedHideParseResult =
   | { kind: "targeted"; character: { id: string; name: string }; indices: number[] }
   | { kind: "error"; reason: "usage" | "roleplay_only" | "unknown" | "ambiguous"; targetName?: string };
 
-export function parseTargetedHideArguments(
+function parseTargetedHideArguments(
   input: string,
   mode: SlashCommandContext["mode"],
   characters: Array<{ id: string; name: string }> = [],

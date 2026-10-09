@@ -11,7 +11,7 @@ export function parseMessageExtraRecord(value: unknown): Record<string, unknown>
   return typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
-export function hasPendingPostProcessingExtra(value: unknown): boolean {
+function hasPendingPostProcessingExtra(value: unknown): boolean {
   const pending = parseMessageExtraRecord(value).postProcessingPending;
   return !!pending && typeof pending === "object" && !Array.isArray(pending);
 }

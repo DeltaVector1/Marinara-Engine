@@ -9,7 +9,7 @@ import { desc } from "../../db/file-query.js";
 import { chats } from "../../db/schema/index.js";
 import { createAppSettingsStorage } from "./app-settings.storage.js";
 
-export const CHAT_WINDOW_DEFAULT_UPGRADE_KEY = "chat-window-default-upgrade-v1";
+const CHAT_WINDOW_DEFAULT_UPGRADE_KEY = "chat-window-default-upgrade-v1";
 const MODES: ChatMode[] = ["conversation", "roleplay", "game"];
 
 /** Preserve the old toolbar as the starting layout once, before this install serves requests. */

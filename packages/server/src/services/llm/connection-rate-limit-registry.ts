@@ -26,7 +26,3 @@ export function getConnectionRateLimit(connectionId: string): number | null {
 export function clearConnectionRateLimit(connectionId: string): void {
   limits.delete(connectionId);
 }
-
-export function resetConnectionRateLimitsForTests(): void {
-  limits.clear();
-}

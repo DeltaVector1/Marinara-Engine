@@ -25,7 +25,7 @@ import { SubscriptionCostPill } from "./SubscriptionCostPill";
 import { cn } from "../../lib/utils";
 
 /** The connection row fields the picker reads. */
-export type ModelPickerConnection = {
+type ModelPickerConnection = {
   id: string;
   name?: string | null;
   provider?: string | null;

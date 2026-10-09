@@ -7,7 +7,7 @@ export type CharacterIdentityChoice = {
   comment?: string | null;
 };
 
-export type CharacterIdentityGroup = CharacterGroup & { members: CharacterIdentityChoice[] };
+type CharacterIdentityGroup = CharacterGroup & { members: CharacterIdentityChoice[] };
 
 function parseIds(value: unknown): string[] {
   if (Array.isArray(value)) return value.filter((id): id is string => typeof id === "string" && id.trim().length > 0);

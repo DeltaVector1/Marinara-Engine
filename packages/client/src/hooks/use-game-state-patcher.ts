@@ -248,7 +248,7 @@ function queuePatch(chatId: string, field: GameStatePatchField, value: unknown) 
   );
 }
 
-export async function flushGameStatePatch(chatId?: string) {
+async function flushGameStatePatch(chatId?: string) {
   const errors: unknown[] = [];
   const entries = Array.from(pendingPatches.entries()).filter(([, queued]) => !chatId || queued.chatId === chatId);
 
@@ -426,7 +426,7 @@ function retainBeforeUnloadFlush() {
   };
 }
 
-export function patchGameStateField(chatId: string, field: GameStatePatchField, value: unknown) {
+function patchGameStateField(chatId: string, field: GameStatePatchField, value: unknown) {
   const store = useGameStateStore.getState();
   if (store.isRefreshing) return;
   const prev = getCurrentGameStateForChat(chatId);
@@ -435,7 +435,7 @@ export function patchGameStateField(chatId: string, field: GameStatePatchField, 
   queuePatch(chatId, field, value);
 }
 
-export function patchPlayerStatsField(chatId: string, field: keyof PlayerStats, value: unknown) {
+function patchPlayerStatsField(chatId: string, field: keyof PlayerStats, value: unknown) {
   const current = getCurrentGameStateForChat(chatId)?.playerStats ?? createEmptyPlayerStats();
   patchGameStateField(chatId, "playerStats", { ...current, [field]: value });
 }
@@ -448,7 +448,7 @@ export function patchPlayerStatsField(chatId: string, field: keyof PlayerStats, 
  * from `inventoryTrackerInventory`. Two `patchPlayerStatsField` calls would queue two
  * patches built from the same stale snapshot, and the second would drop the first.
  */
-export function patchPlayerStatsFields(
+function patchPlayerStatsFields(
   chatId: string,
   patch: Partial<PlayerStats> | ((current: PlayerStats) => Partial<PlayerStats>),
 ) {

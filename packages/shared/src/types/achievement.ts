@@ -1,6 +1,6 @@
-export type AchievementRank = "bronze" | "silver" | "gold";
+type AchievementRank = "bronze" | "silver" | "gold";
 
-export type AchievementIconKey =
+type AchievementIconKey =
   | "graduation"
   | "discord"
   | "heart"
@@ -15,7 +15,7 @@ export type AchievementIconKey =
   | "persona"
   | "trophy";
 
-export type AchievementCategory = "community" | "collection" | "creation" | "milestone";
+type AchievementCategory = "community" | "collection" | "creation" | "milestone";
 
 export type AchievementMetric =
   "conversationChats" | "roleplayChats" | "gameChats" | "characters" | "lorebooks" | "personas";
@@ -85,10 +85,6 @@ export interface AchievementStatusResponse {
   progress: AchievementProgress[];
   unlockedCount: number;
   totalCount: number;
-}
-
-export interface AchievementTrackRequest {
-  event: AchievementEvent;
 }
 
 export interface AchievementTrackResponse {

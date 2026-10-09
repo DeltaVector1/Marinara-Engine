@@ -27,13 +27,13 @@ export interface CapabilityPromptContextRequest {
 }
 
 /** Built-in game systems an experience can declare it replaces. Open set — undeclared stays built-in. */
-export interface CapabilityProvidedGameSystems {
+interface CapabilityProvidedGameSystems {
   /** The experience tracks items itself ⇒ drop the [inventory:] command and the PLAYER INVENTORY block. */
   inventory?: boolean;
 }
 
 /** Rich form of a contribution, for a package that also replaces built-in systems. */
-export interface CapabilityPromptContribution {
+interface CapabilityPromptContribution {
   text?: string | null;
   provides?: CapabilityProvidedGameSystems;
 }
@@ -75,7 +75,7 @@ export function registerCapabilityPromptContext(
 
 /** Deadline per contributor. A throw is already non-fatal, but a promise that never settles would hang
  *  the turn, so building the prompt can't wait on one indefinitely. */
-export const CONTRIBUTOR_TIMEOUT_MS = 2_000;
+const CONTRIBUTOR_TIMEOUT_MS = 2_000;
 
 /**
  * Reject if `value` has not settled within {@link CONTRIBUTOR_TIMEOUT_MS}. A primitive is passed straight

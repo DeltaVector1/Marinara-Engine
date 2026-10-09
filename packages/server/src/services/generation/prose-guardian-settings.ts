@@ -1,9 +1,9 @@
 import type { ResolvedAgent } from "../agents/agent-pipeline.js";
 
 export const PROSE_GUARDIAN_PENDING_MESSAGE = "Prose Guardian is working!";
-export const CONTINUITY_PENDING_MESSAGE = "Continuity Checker is working!";
-export const HTML_PENDING_MESSAGE = "Immersive HTML is working!";
-export const TEXT_REWRITE_PENDING_MESSAGE = "Rewrite agents are working!";
+const CONTINUITY_PENDING_MESSAGE = "Continuity Checker is working!";
+const HTML_PENDING_MESSAGE = "Immersive HTML is working!";
+const TEXT_REWRITE_PENDING_MESSAGE = "Rewrite agents are working!";
 const LEGACY_PROSE_GUARDIAN_PROMPT_PREFIX =
   "Study the last few assistant messages and produce concrete, actionable writing directives";
 const REWRITE_AGENT_TYPES = new Set(["prose-guardian", "continuity", "html"]);
@@ -22,7 +22,7 @@ function readSharedHoldForRewrite(
     : settings.holdForRewrite !== false;
 }
 
-export function applyProseGuardianChatSettings(
+function applyProseGuardianChatSettings(
   settings: Record<string, unknown>,
   chatMetadata: Record<string, unknown> | null | undefined,
 ): Record<string, unknown> {
@@ -45,7 +45,7 @@ export function applyProseGuardianChatSettings(
   };
 }
 
-export function applyContinuityCheckerChatSettings(
+function applyContinuityCheckerChatSettings(
   settings: Record<string, unknown>,
   chatMetadata: Record<string, unknown> | null | undefined,
 ): Record<string, unknown> {
@@ -56,7 +56,7 @@ export function applyContinuityCheckerChatSettings(
   };
 }
 
-export function applyImmersiveHtmlChatSettings(
+function applyImmersiveHtmlChatSettings(
   settings: Record<string, unknown>,
   chatMetadata: Record<string, unknown> | null | undefined,
 ): Record<string, unknown> {

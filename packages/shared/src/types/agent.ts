@@ -128,7 +128,7 @@ export function parseAgentSettingsRecord(value: unknown): Record<string, unknown
   return isRecord(value) ? value : {};
 }
 
-export const AGENT_CONFIG_DELETED_SETTING_KEY = "deletedFromLibrary";
+const AGENT_CONFIG_DELETED_SETTING_KEY = "deletedFromLibrary";
 
 export function isAgentConfigDeleted(settings: unknown): boolean {
   return parseAgentSettingsRecord(settings)[AGENT_CONFIG_DELETED_SETTING_KEY] === true;
@@ -277,7 +277,7 @@ export interface AgentResult {
   error: string | null;
 }
 
-export type AgentWriteApprovalKind = "character_card_create" | "lorebook_update" | "summary_update";
+type AgentWriteApprovalKind = "character_card_create" | "lorebook_update" | "summary_update";
 
 export interface AgentWriteApprovalProposal {
   kind: AgentWriteApprovalKind;
@@ -296,7 +296,7 @@ export interface AgentWriteApprovalEnvelope {
   approval: AgentWriteApprovalProposal;
 }
 
-export interface AgentCallDebugMessage {
+interface AgentCallDebugMessage {
   role: string;
   content: string;
   name?: string;
@@ -503,32 +503,7 @@ export interface AgentContext {
   signal?: any;
 }
 
-/** Built-in agent type identifiers. */
-export const BUILT_IN_AGENT_IDS = {
-  WORLD_STATE: "world-state",
-  PROSE_GUARDIAN: "prose-guardian",
-  CONTINUITY: "continuity",
-  EXPRESSION: "expression",
-  ECHO_CHAMBER: "echo-chamber",
-  DIRECTOR: "director",
-  QUEST: "quest",
-  ILLUSTRATOR: "illustrator",
-  LOREBOOK_KEEPER: "lorebook-keeper",
-  CARD_EVOLUTION_AUDITOR: "card-evolution-auditor",
-  COMBAT: "combat",
-  BACKGROUND: "background",
-  CHARACTER_TRACKER: "character-tracker",
-  PERSONA_STATS: "persona-stats",
-  HTML: "html",
-  SPOTIFY: "spotify",
-  KNOWLEDGE_RETRIEVAL: "knowledge-retrieval",
-  KNOWLEDGE_ROUTER: "knowledge-router",
-  CUSTOM_TRACKER: "custom-tracker",
-  HAPTIC: "haptic",
-  CYOA: "cyoa",
-} as const;
-
-export const RETIRED_BUILT_IN_AGENT_IDS = [
+const RETIRED_BUILT_IN_AGENT_IDS = [
   "about-me-keeper",
   "prompt-reviewer",
   "response-orchestrator",
@@ -589,7 +564,6 @@ export const BUILT_IN_AGENTS: BuiltInAgentMeta[] = [];
 export const DEFAULT_AGENT_CONTEXT_SIZE = 5;
 export const DEFAULT_AGENT_MAX_TOKENS = 4096;
 export const MIN_AGENT_MAX_TOKENS = 128;
-export const MAX_AGENT_MAX_TOKENS = 32768;
 
 export const CUSTOM_AGENT_CAPABILITY_IDS = [
   "create_characters",
@@ -639,7 +613,7 @@ export const DEFAULT_CUSTOM_AGENT_CONTEXT_SOURCES: CustomAgentContextSources = {
   previousOutput: false,
 };
 
-export function normalizeCustomAgentContextSources(settings: unknown): CustomAgentContextSources {
+function normalizeCustomAgentContextSources(settings: unknown): CustomAgentContextSources {
   const stored = parseAgentSettingsRecord(settings).contextSources;
   if (!isRecord(stored)) return { ...DEFAULT_CUSTOM_AGENT_CONTEXT_SOURCES };
 
@@ -673,8 +647,6 @@ export function getAgentContextSources(config: {
 export interface CustomAgentImportPolicy {
   enabled: boolean;
 }
-
-export type CustomAgentImportSource = "file" | "folder" | "repository";
 
 export const CUSTOM_AGENT_IMPORT_SOURCE_SETTING = "customAgentImportSource";
 export const CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING = "customAgentPermissionsExplicit";
@@ -825,7 +797,7 @@ const RETIRED_BUILT_IN_AGENT_TOOLS: Record<string, ReadonlySet<string>> = {
   expression: new Set(["set_expression"]),
 };
 
-export function normalizeBuiltInAgentEnabledTools(agentType: string, value: unknown): string[] | null {
+function normalizeBuiltInAgentEnabledTools(agentType: string, value: unknown): string[] | null {
   if (!Array.isArray(value)) return null;
   const enabledTools = value.filter((tool): tool is string => typeof tool === "string");
   const retiredTools = RETIRED_BUILT_IN_AGENT_TOOLS[agentType];
@@ -900,24 +872,6 @@ export function replaceBuiltInAgentDefinitions(manifests: readonly BuiltInAgentM
   }
 }
 
-/** Data shape for a lorebook_update agent result. */
-export interface LorebookUpdateResult {
-  /** "create" | "update" | "delete" */
-  action: "create" | "update" | "delete";
-  /** Target lorebook ID */
-  lorebookId: string;
-  /** Entry ID (for update/delete) */
-  entryId?: string;
-  /** Entry data (for create/update) */
-  entry?: {
-    name: string;
-    content: string;
-    keys: string[];
-    tag?: string;
-    /** Optional lorebook injection priority. Omission preserves the existing/default order. */
-    order?: number;
-  };
-}
 
 /**
  * Single proposed edit to a character card field.
@@ -956,9 +910,4 @@ export interface CharacterCardFieldUpdate {
   newText: string;
   /** Why the agent thinks this edit is warranted (shown to the user). */
   reason: string;
-}
-
-/** Data shape for a character_card_update agent result. */
-export interface CharacterCardUpdateResult {
-  updates: CharacterCardFieldUpdate[];
 }

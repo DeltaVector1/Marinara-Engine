@@ -23,7 +23,7 @@ export type IllustratorPromptConnectionsStore = {
   getFallbackForAgents(): Promise<FallbackConnection | null>;
 };
 
-export type IllustratorPromptRuntime = {
+type IllustratorPromptRuntime = {
   provider: BaseLLMProvider;
   model: string;
   connectionId: string;

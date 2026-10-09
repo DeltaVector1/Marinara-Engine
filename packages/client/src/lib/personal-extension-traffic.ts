@@ -1,4 +1,4 @@
-export type PersonalExtensionTrafficSnapshot = {
+type PersonalExtensionTrafficSnapshot = {
   requests: number;
   bytes: number;
   requestsLastMinute: number;
@@ -38,7 +38,7 @@ function addTransferredBytes(extensionId: string, bytes: number) {
   emitTrafficChange();
 }
 
-export function recordPersonalExtensionRequest(extensionId: string, bytes = 0, now = Date.now()) {
+function recordPersonalExtensionRequest(extensionId: string, bytes = 0, now = Date.now()) {
   const current = trafficByExtension.get(extensionId) ?? { requests: 0, bytes: 0, requestTimes: [] };
   current.requests += 1;
   current.bytes += Math.max(0, bytes);

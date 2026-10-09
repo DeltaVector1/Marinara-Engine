@@ -1,20 +1,6 @@
 import type { SkillCheckResult } from "../types/game.js";
 
-export function getSkillCheckOutcomeLabel(
-  result: Pick<SkillCheckResult, "success" | "criticalSuccess" | "criticalFailure">,
-): string {
-  if (result.criticalSuccess) return "Critical success";
-  if (result.criticalFailure) return "Critical failure";
-  return result.success ? "Success" : "Failure";
-}
 
-export function getSkillCheckOutcomeKey(
-  result: Pick<SkillCheckResult, "success" | "criticalSuccess" | "criticalFailure">,
-): string {
-  if (result.criticalSuccess) return "critical_success";
-  if (result.criticalFailure) return "critical_failure";
-  return result.success ? "success" : "failure";
-}
 
 /**
  * Whether the dice literally sum to the total, so a "a + b + c = total"
@@ -33,19 +19,6 @@ export function skillCheckDiceSumToTotal(
   return (
     result.resolution === "sum" && result.rolls.reduce((sum, roll) => sum + roll, 0) + result.modifier === result.total
   );
-}
-
-export function formatSkillCheckResultSummary(result: SkillCheckResult): string {
-  const modifier = result.modifier === 0 ? "" : ` ${result.modifier > 0 ? "+" : ""}${result.modifier}`;
-  const rollMode = result.rollMode !== "normal" ? ` (${result.rollMode})` : "";
-  // Only claim the dice add up to the total when they actually do; otherwise
-  // report the total on its own so the GM reads back what the player saw.
-  const arithmetic = skillCheckDiceSumToTotal(result)
-    ? `[${result.rolls.join(", ")}]${modifier}${rollMode} = ${result.total}`
-    : `[${result.rolls.join(", ")}]${result.resolution === "successes" ? "" : modifier}${rollMode} → ${result.total}${result.resolution === "successes" ? ` ${result.total === 1 ? "success" : "successes"}` : ""}`;
-  // A complication is alongside the outcome, never instead of it, so the outcome is still said first.
-  const complication = result.complication ? " Something went wrong on the side." : "";
-  return `${result.skill} check (DC ${result.dc}): ${arithmetic}. ${getSkillCheckOutcomeLabel(result)}.${complication}`;
 }
 
 function serializeSkillCheckAttribute(value: string): string {
@@ -77,7 +50,7 @@ function serializeSkillCheckAttribute(value: string): string {
  * how it reads. `threshold=` used to be spliced onto the end of a finished tag by the
  * one caller that needed it; it is written here now so the two spellings cannot drift.
  */
-export interface SkillCheckTagExtras {
+interface SkillCheckTagExtras {
   /** Per-die threshold for a success pool, when the GM declared a usable one. */
   threshold?: number;
   /** `pool="d20:1"` — the slot the engine actually spent, never the one the model claimed. */
@@ -186,43 +159,4 @@ export function serializeSparseSkillCheckTag(
   if (request.declaredResolution)
     parts.push(`resolution="${serializeSkillCheckAttribute(request.declaredResolution)}"`);
   return `${parts.join(" ")}${serializeSkillCheckExtras(extras)}]`;
-}
-
-export function serializeResolvedSkillCheckTag(result: SkillCheckResult, extras?: SkillCheckTagExtras): string {
-  // A result that carries its own `who` or per-die threshold writes them without the caller
-  // repeating itself. An explicit extra still wins: a caller that passes one is the path that
-  // measured it, and the legacy pool path has always passed its own.
-  const merged: SkillCheckTagExtras = {
-    ...(result.threshold != null ? { threshold: result.threshold } : {}),
-    ...(result.who ? { who: result.who } : {}),
-    ...(result.withAbility ? { with: result.withAbility } : {}),
-    ...(result.bonusDice ? { bonus: result.bonusDice } : {}),
-    ...(result.spent ? { spend: `${result.spent.pool}:${result.spent.amount}` } : {}),
-    ...(result.autoSuccesses ? { auto: result.autoSuccesses } : {}),
-    ...(result.used ? { use: result.used } : {}),
-    ...(result.rerolled ? { rerolled: result.rerolled } : {}),
-    ...(result.penalty != null ? { penalty: result.penalty } : {}),
-    ...(result.explodeFrom != null ? { explode: result.explodeFrom } : {}),
-    ...(result.doubleFrom != null ? { double: result.doubleFrom } : {}),
-    ...(result.complication ? { complication: true } : {}),
-    ...(result.adjust ? { adjust: result.adjust } : {}),
-    ...(result.reroll ? { reroll: result.reroll } : {}),
-    ...(result.effects ? { effects: result.effects } : {}),
-    ...(result.from?.length ? { from: result.from } : {}),
-    ...(result.automatic ? { automatic: true } : {}),
-    // An extra a caller left undefined is absent, not an instruction to erase what the result says.
-    ...Object.fromEntries(Object.entries(extras ?? {}).filter(([, value]) => value !== undefined)),
-  };
-  return `${[
-    `[skill_check: skill="${serializeSkillCheckAttribute(result.skill)}"`,
-    `dc="${result.dc}"`,
-    `rolls="${result.rolls.join("|")}"`,
-    `used="${result.usedRoll}"`,
-    `modifier="${result.modifier}"`,
-    `total="${result.total}"`,
-    `result="${getSkillCheckOutcomeKey(result)}"`,
-    `mode="${result.rollMode}"`,
-    `resolution="${result.resolution}"`,
-    `dice="${serializeSkillCheckAttribute(result.dice ?? "1d20")}"`,
-  ].join(" ")}${serializeSkillCheckExtras(merged)}]`;
 }

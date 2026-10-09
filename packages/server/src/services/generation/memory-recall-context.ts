@@ -13,7 +13,7 @@ type PromptMessage = {
   content: string;
 };
 
-export function buildMemoryRecallBlock(
+function buildMemoryRecallBlock(
   lines: string[],
   wrapFormat: WrapFormat,
   resolveMacros?: (value: string) => string,

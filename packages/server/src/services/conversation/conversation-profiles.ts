@@ -23,7 +23,7 @@ export interface ConversationProfileParticipant {
   postHistoryInstructions?: string;
 }
 
-export interface ConversationProfileBlocks {
+interface ConversationProfileBlocks {
   /** Labeled about-me block for the system prompt ("" when disabled or none present). */
   aboutMeBlock: string;
   /** Behavior directives to place before the main instructions. */
@@ -57,24 +57,6 @@ export function readCharacterConvoFields(data: CharacterData | null | undefined)
     convoBehavior: behavior && typeof behavior.instruction === "string" ? behavior : null,
     postHistoryInstructions: typeof data?.post_history_instructions === "string" ? data.post_history_instructions : "",
   };
-}
-
-/** Parse a persona's convoBehavior JSON string column into a config (or null). */
-export function parsePersonaConvoBehavior(raw: unknown): ConvoBehaviorConfig | null {
-  if (!raw) return null;
-  if (typeof raw === "object") {
-    const b = raw as ConvoBehaviorConfig;
-    return typeof b.instruction === "string" ? b : null;
-  }
-  if (typeof raw === "string" && raw.trim()) {
-    try {
-      const parsed = JSON.parse(raw) as ConvoBehaviorConfig;
-      return parsed && typeof parsed.instruction === "string" ? parsed : null;
-    } catch {
-      return null;
-    }
-  }
-  return null;
 }
 
 /** Resolve a behavior directive's placement text for a given strategy. */

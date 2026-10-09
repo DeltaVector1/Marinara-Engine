@@ -48,7 +48,6 @@ import { createLorebooksStorage } from "../services/storage/lorebooks.storage.js
 import { createChatsStorage } from "../services/storage/chats.storage.js";
 import { createCharactersStorage } from "../services/storage/characters.storage.js";
 import { resolveChatUserIdentity } from "../services/chat-user-identity.js";
-import { createGameStateStorage } from "../services/storage/game-state.storage.js";
 import { createConnectionsStorage } from "../services/storage/connections.storage.js";
 import { filterRelevantLorebooks, processLorebooks } from "../services/lorebook/index.js";
 import { runLorebookTestScan } from "../services/lorebook/test-scan.js";
@@ -65,7 +64,6 @@ import {
   resolvePromptIdleDuration,
   setLorebookEntryCounts,
 } from "../services/prompt/index.js";
-import { parseGameStateRow, resolveVisibleGameStateAnchor } from "./generate/generate-route-utils.js";
 import { cardPromptText } from "../services/prompt/card-text.js";
 import {
   syncCharacterBookFromLorebook,
@@ -178,7 +176,7 @@ function stRole(value: unknown): number {
 }
 
 function resolveScanGenerationTriggers(mode: unknown): string[] {
-  const modeTrigger = mode === "game" ? "game" : typeof mode === "string" && mode.trim() ? mode.trim() : "roleplay";
+  const modeTrigger = typeof mode === "string" && mode.trim() ? mode.trim() : "roleplay";
   return Array.from(new Set(["test_scan", modeTrigger, "chat"]));
 }
 
@@ -1132,30 +1130,13 @@ export async function lorebooksRoutes(app: FastifyInstance) {
       }
     }
 
-    const lorebookScopeExclusions = resolveLorebookScopeExclusions(chat?.mode, chatMeta);
+    const lorebookScopeExclusions = resolveLorebookScopeExclusions(chatMeta);
     const scanSourceMessages = selectMessagesForLastGenerationScan(chatMessages);
     const scanMessages = scanSourceMessages.map((m) => ({
       role: (m.role === "narrator" ? "system" : m.role) as string,
       content: typeof m.content === "string" ? m.content : "",
     }));
     const lastInput = [...scanMessages].reverse().find((message) => message.role === "user")?.content;
-    const gameStateForScan =
-      chat?.mode === "game"
-        ? await (async () => {
-            try {
-              const visibleAnchor = resolveVisibleGameStateAnchor(chatMessages);
-              const row = await createGameStateStorage(app.db).getForGeneration(chatId, {
-                preferLatestVisible: true,
-                visibleAnchor,
-              });
-              return row
-                ? (parseGameStateRow(row as Record<string, unknown>) as unknown as Record<string, unknown>)
-                : null;
-            } catch {
-              return null;
-            }
-          })()
-        : null;
 
     const lorebookMacroResolvers = await (async () => {
       try {
@@ -1277,7 +1258,7 @@ export async function lorebooksRoutes(app: FastifyInstance) {
 
     const ownerSpatialProjection = await resolveOwnerSpatialProjection(chatId, {}, chatMeta);
 
-    const result = await processLorebooks(app.db, scanMessages, gameStateForScan, {
+    const result = await processLorebooks(app.db, scanMessages, null, {
       chatId,
       characterIds,
       personaId,

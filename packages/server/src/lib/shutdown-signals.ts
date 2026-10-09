@@ -19,7 +19,7 @@ import {
  * and SIGHUP terminates the process at once, which drops the file store's
  * debounced writes. With the setting on, both start the graceful shutdown.
  */
-export function shutdownSignalsFor(
+function shutdownSignalsFor(
   platform: NodeJS.Platform = process.platform,
   windowsConsoleSignals: boolean = isShutdownWindowsConsoleSignalsEnabled(),
 ): NodeJS.Signals[] {
@@ -34,13 +34,13 @@ export function shutdownSignalsFor(
  * leave the rest of the window (STORE_CLOSE_RESERVE_MS or more) to the store
  * close and its final flush. Every other stop keeps the #5838 deadlines.
  */
-export const WINDOWS_CONSOLE_CLOSE_DEADLINES: Required<
+const WINDOWS_CONSOLE_CLOSE_DEADLINES: Required<
   Pick<ShutdownDeadlineOptions, "connectionDeadlineMs" | "forceExitDeadlineMs">
 > = {
   connectionDeadlineMs: 1_000,
   forceExitDeadlineMs: 4_000,
 };
-export const WINDOWS_CONSOLE_CLOSE_RUNTIME_STOP_BUDGET_MS = 1_000;
+const WINDOWS_CONSOLE_CLOSE_RUNTIME_STOP_BUDGET_MS = 1_000;
 
 function isWindowsConsoleClose(signal: NodeJS.Signals, platform: NodeJS.Platform): boolean {
   return platform === "win32" && signal === "SIGHUP";
@@ -76,7 +76,7 @@ export function runtimeStopBudgetFor(
  * or a supervisor repeating SIGTERM must not cut the close short before the
  * store flush and the writer lease release, so those repeats stay ignored.
  */
-export const FORCE_EXIT_SIGNALS: ReadonlySet<NodeJS.Signals> = new Set(["SIGINT", "SIGBREAK"]);
+const FORCE_EXIT_SIGNALS: ReadonlySet<NodeJS.Signals> = new Set(["SIGINT", "SIGBREAK"]);
 
 /**
  * A repeated stop request only counts as "stop now" once this long has passed
@@ -84,9 +84,9 @@ export const FORCE_EXIT_SIGNALS: ReadonlySet<NodeJS.Signals> = new Set(["SIGINT"
  * signals the whole process group and the launcher forwards it as well), and
  * that duplicate must never cut off the flush.
  */
-export const REPEATED_SIGNAL_GRACE_MS = 1_500;
+const REPEATED_SIGNAL_GRACE_MS = 1_500;
 
-export interface ShutdownSignalControllerOptions {
+interface ShutdownSignalControllerOptions {
   /** Starts the graceful shutdown. Called once, for the first signal. */
   onShutdown(signal: NodeJS.Signals): void;
   /**
@@ -107,7 +107,7 @@ export interface ShutdownSignalControllerOptions {
   repeatGraceMs?: number;
 }
 
-export interface ShutdownSignalController {
+interface ShutdownSignalController {
   handle(signal: NodeJS.Signals): "shutdown" | "duplicate" | "forced";
   readonly shuttingDown: boolean;
 }

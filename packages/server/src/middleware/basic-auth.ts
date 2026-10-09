@@ -314,10 +314,6 @@ function sendLockdown(request: FastifyRequest, reply: FastifyReply) {
   reply.status(403).send({ error: "Forbidden", message: LOCKDOWN_JSON_MESSAGE });
 }
 
-export function hasBasicAuthConfigured(): boolean {
-  return loadConfig() !== null;
-}
-
 export function isBasicAuthSatisfied(request: FastifyRequest): boolean {
   const ip = request.ip;
   if (isLoopbackIp(ip) || isInIpAllowlist(ip) || isTrustedInterfaceRequest(request)) return true;

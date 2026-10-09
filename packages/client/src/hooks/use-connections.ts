@@ -255,7 +255,7 @@ export function useTestVideoGeneration() {
 export type { RemoteConnectionModel };
 
 /** A connection's model list; `fetchedAt` is set when the list is the one saved on the connection. */
-export type ConnectionModelList = {
+type ConnectionModelList = {
   models: RemoteConnectionModel[];
   loras?: RemoteConnectionModel[];
   fetchedAt?: string;

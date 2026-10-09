@@ -5,48 +5,26 @@ import { mkdir, rm, symlink, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse as InjectResponse } from "fastify";
-import {
-  registerTurnGameEngine,
-  type AnyTurnGameEngine,
-  type CapabilityRuntimeHost,
-  type CapabilityRuntimeLogArgument,
-  type InstalledCapabilityPackage,
-  parseAgentSettingsRecord,
-  type PackagedAchievementDefinition,
-  type SceneOriginProvider,
-} from "@marinara-engine/shared";
+import { type CapabilityRuntimeHost, type CapabilityRuntimeLogArgument, type InstalledCapabilityPackage, parseAgentSettingsRecord, type PackagedAchievementDefinition, type SceneOriginProvider } from "@marinara-engine/shared";
 import { isDebugAgentsEnabled } from "../../config/runtime-config.js";
 import { logger, logDebugOverride } from "../../lib/logger.js";
 import { DATA_DIR } from "../../utils/data-dir.js";
 import { parseGameJsonish } from "../game/jsonish.js";
 import { createAgentsStorage } from "../storage/agents.storage.js";
 import { capabilityPackageManager } from "./package-manager.service.js";
-import {
-  registerCapabilityConversationCommand,
-  type CapabilityConversationCommandRegistration,
-} from "./capability-command-registry.service.js";
+import { registerCapabilityConversationCommand, type CapabilityConversationCommandRegistration } from "./capability-command-registry.service.js";
 import { registerCapabilityService } from "./capability-service-registry.service.js";
 import { assertCapabilityAgentRuntimeServiceRegistration } from "./capability-agent-runtime.service.js";
 import { createCapabilityIntegrationHost } from "./capability-integrations.service.js";
 import { createCapabilityLanguageModelHost } from "./capability-language-model.service.js";
 import { linkCapabilityNativeDependencies } from "./capability-native-dependencies.service.js";
-import {
-  createCapabilityEmbeddingHost,
-  createConfiguredCapabilityEmbeddingHost,
-} from "./capability-embedding.service.js";
+import { createCapabilityEmbeddingHost, createConfiguredCapabilityEmbeddingHost } from "./capability-embedding.service.js";
 import { createCapabilityAchievementHost } from "./capability-achievement-host.service.js";
 import { registerCapabilityAchievements } from "./capability-achievement-registry.service.js";
 import { createCapabilityPersistenceHost } from "./capability-persistence.service.js";
 import { createCapabilityResourceHost } from "./capability-resources.service.js";
-import {
-  registerCapabilityPrivilegedRoutes,
-  runCapabilityInternalRoute,
-} from "./capability-route-registration.service.js";
-import {
-  registerCapabilityPromptContext,
-  withDeadline,
-  type CapabilityPromptContextContributor,
-} from "./capability-prompt-context.service.js";
+import { registerCapabilityPrivilegedRoutes, runCapabilityInternalRoute } from "./capability-route-registration.service.js";
+import { registerCapabilityPromptContext, withDeadline, type CapabilityPromptContextContributor } from "./capability-prompt-context.service.js";
 import { registerCapabilityTool, type CapabilityToolRegistration } from "./capability-tool-registry.service.js";
 import { registerCapabilitySceneOrigin } from "./capability-scene-origin.service.js";
 import { failInjectFastDuring } from "../../lib/fastify-inject-gate.js";
@@ -57,7 +35,7 @@ import { failInjectFastDuring } from "../../lib/fastify-inject-gate.js";
  * healthy package on every later boot, so activation leaves its installed version and status untouched and the next
  * start retries it.
  */
-export function isHostLifecycleActivationError(error: unknown): boolean {
+function isHostLifecycleActivationError(error: unknown): boolean {
   const code = (error as { code?: unknown } | null)?.code;
   if (code === "FST_ERR_INSTANCE_ALREADY_LISTENING" || code === "AVV_ERR_ROOT_PLG_BOOTED") return true;
   const message = error instanceof Error ? error.message : String(error);
@@ -71,7 +49,6 @@ type CapabilityActivationContext = {
   package: InstalledCapabilityPackage;
   api: {
     runtime: CapabilityRuntimeHost;
-    registerTurnGameEngine(engine: AnyTurnGameEngine): Cleanup;
     registerConversationCommand(registration: CapabilityConversationCommandRegistration): Cleanup;
     registerService<T>(key: string, service: T): Cleanup;
     /** Contribute text to each turn's system prompt. Requires the `prompt-context` permission. */
@@ -140,7 +117,7 @@ type CapabilityModule = {
   selfCheck?: (context: CapabilityActivationContext) => void | Promise<void>;
 };
 
-export function prepareCapabilityRuntimeEnvironment(dataDir = DATA_DIR): void {
+function prepareCapabilityRuntimeEnvironment(dataDir = DATA_DIR): void {
   // Downloaded runtimes bundle Engine utilities and evaluate them before
   // activate(context). Give those bundles the host's absolute resolved path;
   // preserving a relative DATA_DIR would resolve beside the nested server.mjs.
@@ -160,7 +137,7 @@ async function runCleanups(cleanups: Cleanup[]): Promise<void> {
 }
 
 /** The last activation failure of one package in this process (admin runtime diagnostics). */
-export interface CapabilityActivationErrorRecord {
+interface CapabilityActivationErrorRecord {
   message: string;
   at: string;
 }
@@ -277,7 +254,6 @@ class CapabilityModuleRuntime {
         package: installed,
         api: {
           runtime: await createCapabilityRuntimeHost(app, installed.id, installed.manifest.permissions ?? []),
-          registerTurnGameEngine: (engine) => trackCleanup(registerTurnGameEngine(engine)),
           registerConversationCommand: (registration) => {
             if (registration.handler && !installed.manifest.permissions?.includes("conversation-actions")) {
               throw new Error(

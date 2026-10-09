@@ -1,10 +1,38 @@
 import { readImageAppearanceOverride, stripMacroComments } from "@marinara-engine/shared";
 import { readPreferredFullBodySpriteBase64 } from "../game/sprite.service.js";
-import { readAvatarBase64 } from "../game/game-asset-generation.js";
+import { existsSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { extname } from "node:path";
+import { extname, join } from "node:path";
+import { DATA_DIR } from "../../utils/data-dir.js";
 import { resolveStoredGalleryFile } from "./gallery-file-lifecycle.js";
 import { isAllowedImageBuffer } from "../../utils/security.js";
+
+function readAvatarBase64(avatarPath: string | null | undefined): string | undefined {
+  if (!avatarPath) return undefined;
+  const cleanAvatarPath = avatarPath.split("?")[0] ?? avatarPath;
+  const parts = cleanAvatarPath.split("/").filter(Boolean);
+  if (parts.some((part) => part === ".." || part.includes("\\"))) return undefined;
+
+  let diskPath: string | null = null;
+  if (cleanAvatarPath.startsWith("/api/avatars/file/")) {
+    const filename = parts.at(-1);
+    if (filename) diskPath = join(DATA_DIR, "avatars", filename);
+  } else if (cleanAvatarPath.startsWith("/api/avatars/npc/")) {
+    const chatId = parts.at(-2);
+    const filename = parts.at(-1);
+    if (chatId && filename) diskPath = join(DATA_DIR, "avatars", "npc", chatId, filename);
+  } else if (cleanAvatarPath.startsWith("avatars/")) {
+    diskPath = join(DATA_DIR, ...parts);
+  }
+
+  if (!diskPath) return undefined;
+  try {
+    if (!existsSync(diskPath)) return undefined;
+    return readFileSync(diskPath).toString("base64");
+  } catch {
+    return undefined;
+  }
+}
 
 type CharacterRowLike = {
   id: string;
@@ -26,15 +54,15 @@ type CharacterReferenceSource = {
   useCharacterSheetAsReference: boolean;
 };
 
-export type CharacterGalleryReferenceStore = {
+type CharacterGalleryReferenceStore = {
   getById: (id: string) => Promise<{ characterId: string; filePath: string } | null>;
 };
 
-export type PersonaGalleryReferenceStore = {
+type PersonaGalleryReferenceStore = {
   getById: (id: string) => Promise<{ personaId: string; filePath: string } | null>;
 };
 
-export type IllustratorPersonaReference = {
+type IllustratorPersonaReference = {
   id: string | null;
   name: string;
   avatarPath?: string | null;
@@ -48,7 +76,7 @@ export type IllustratorPersonaReference = {
   useCharacterSheetAsReference?: boolean;
 };
 
-export type IllustratorChatCharacterReference = {
+type IllustratorChatCharacterReference = {
   id: string;
   name: string;
   avatarPath?: string | null;
@@ -61,7 +89,7 @@ export type IllustratorChatCharacterReference = {
   appearanceOverride?: string | null;
 };
 
-export type IllustratorReferenceResolution = {
+type IllustratorReferenceResolution = {
   characterIds: string[];
   personaId: string | null;
   referenceImages: string[];
@@ -72,7 +100,7 @@ export type IllustratorReferenceResolution = {
   appearanceBlock: string | null;
 };
 
-export function isNovelAiImageConnection(args: {
+function isNovelAiImageConnection(args: {
   model?: unknown;
   baseUrl?: unknown;
   imageService?: unknown;
@@ -154,10 +182,10 @@ const MAX_ILLUSTRATOR_REFERENCE_IMAGES = 6;
 const MAX_ILLUSTRATOR_APPEARANCE_CHARS = 1400;
 const NAME_STOPWORDS = new Set(["the", "a", "an", "il", "la", "le", "de", "van", "von", "dr", "mr", "ms"]);
 
-export const ILLUSTRATOR_TEXT_NEGATIVE_PROMPT =
+const ILLUSTRATOR_TEXT_NEGATIVE_PROMPT =
   "dialogue boxes, speech bubbles, word balloons, captions, narration boxes, text boxes, manga sound effect text, SFX lettering, readable text, letters, subtitles, watermark, logo, signature";
 
-export const ILLUSTRATOR_NON_TEXT_ARTIFACT_NEGATIVE_PROMPT = "watermark, logo, signature";
+const ILLUSTRATOR_NON_TEXT_ARTIFACT_NEGATIVE_PROMPT = "watermark, logo, signature";
 
 const ILLUSTRATOR_RENDERED_TEXT_CONFLICTS = new Set([
   "text",
@@ -182,7 +210,7 @@ const ILLUSTRATOR_RENDERED_TEXT_REQUEST_PATTERNS = [
   /\b(?:sign|poster|screen|label|title)\s+(?:reading|reads|saying)\b/iu,
 ];
 
-export function illustratorPromptRequestsRenderedText(prompt: string): boolean {
+function illustratorPromptRequestsRenderedText(prompt: string): boolean {
   return ILLUSTRATOR_RENDERED_TEXT_REQUEST_PATTERNS.some((pattern) => pattern.test(prompt));
 }
 
@@ -319,7 +347,7 @@ export function normalizeIllustratorAppearance(value: unknown): string | null {
  * through `normalizeIllustratorAppearance` so macro-stripping and clipping are
  * unchanged; the helper only picks override-vs-fallback.
  */
-export function readIllustratorAppearance(data: Record<string, unknown>): string | null {
+function readIllustratorAppearance(data: Record<string, unknown>): string | null {
   const extensions = parseRecord(data.extensions);
   const stored =
     normalizeIllustratorAppearance(extensions.appearance) ?? normalizeIllustratorAppearance(data.appearance);
@@ -406,7 +434,7 @@ async function readBestReferenceImage(
   )?.base64;
 }
 
-export async function readPreferredCharacterReferenceImage(args: {
+async function readPreferredCharacterReferenceImage(args: {
   characterId: string;
   avatarPath?: string | null;
   characterSheetImageId?: string | null;
@@ -440,7 +468,7 @@ export async function readPreferredCharacterReferenceImage(args: {
   return sprite ? { base64: sprite, source: "sprite" } : null;
 }
 
-export async function readPreferredPersonaReferenceImage(args: {
+async function readPreferredPersonaReferenceImage(args: {
   personaId: string;
   avatarPath?: string | null;
   characterSheetImageId?: string | null;

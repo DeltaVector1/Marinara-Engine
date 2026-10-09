@@ -4,7 +4,7 @@
 // ──────────────────────────────────────────────
 
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
-import { logger, logDebugOverride } from "../lib/logger.js";
+import { logger } from "../lib/logger.js";
 import { z } from "zod";
 import { sidecarModelService } from "../services/sidecar/sidecar-model.service.js";
 import { validateLocalGgufPath } from "../services/sidecar/sidecar-model-files.js";
@@ -12,39 +12,12 @@ import { sidecarSpeechService } from "../services/sidecar/sidecar-speech.service
 import { mlxRuntimeService } from "../services/sidecar/mlx-runtime.service.js";
 import { sidecarRuntimeService } from "../services/sidecar/sidecar-runtime.service.js";
 import { getLocalSidecarProvider, LOCAL_SIDECAR_MODEL } from "../services/llm/local-sidecar.js";
-import {
-  analyzeScene,
-  isInferenceAvailable,
-  isInferenceBusy,
-  runTestMessage,
-  runTrackerPrompt,
-  unloadModel,
-} from "../services/sidecar/sidecar-inference.service.js";
+import { isInferenceAvailable, isInferenceBusy, runTestMessage, runTrackerPrompt, unloadModel } from "../services/sidecar/sidecar-inference.service.js";
 import { sidecarProcessService } from "../services/sidecar/sidecar-process.service.js";
 import { capabilityPackageManager } from "../services/capability-packages/package-manager.service.js";
-import {
-  buildSceneAnalyzerSystemPrompt,
-  buildSceneAnalyzerUserPrompt,
-  type SceneAnalyzerContext,
-} from "../services/sidecar/scene-analyzer.js";
-import { postProcessSceneResult, type PostProcessContext } from "../services/sidecar/scene-postprocess.js";
-import {
-  SIDECAR_EMBEDDING_POOLING_TYPES,
-  SIDECAR_RUNTIME_PREFERENCES,
-  SIDECAR_SCENE_ANALYSIS_NARRATION_BUDGET_CHARS,
-  SIDECAR_SPEECH_MODELS,
-  sceneAnalysisRequestSchema,
-  scoreAmbient,
-  scoreMusic,
-  musicAreaSlug,
-  type GameActiveState,
-  type SidecarDownloadProgress,
-  type SidecarQuantization,
-  type SidecarSpeechModelId,
-} from "@marinara-engine/shared";
+import { SIDECAR_EMBEDDING_POOLING_TYPES, SIDECAR_RUNTIME_PREFERENCES, SIDECAR_SPEECH_MODELS, type SidecarDownloadProgress, type SidecarQuantization, type SidecarSpeechModelId } from "@marinara-engine/shared";
 import { isSidecarRuntimeInstallEnabled } from "../config/runtime-config.js";
 import { isAdminAuthorized, requirePrivilegedAccess } from "../middleware/privileged-gate.js";
-import { registerSequentialGameTasks } from "../services/game/sequential-tasks.js";
 
 const quantizationSchema = z.enum(["q8_0", "q4_k_m"]);
 const speechModelIdSchema = z.enum(
@@ -55,7 +28,7 @@ const hfRepoSchema = z
   .trim()
   .regex(/^[^/\s]+\/[^/\s]+$/, "Repository must be in owner/repo format");
 
-export function isRuntimeInstallRequestAllowed(request: FastifyRequest): boolean {
+function isRuntimeInstallRequestAllowed(request: FastifyRequest): boolean {
   return isSidecarRuntimeInstallEnabled() || isAdminAuthorized(request);
 }
 
@@ -92,7 +65,6 @@ async function requireConversationCallsForSpeech(reply: FastifyReply): Promise<b
 
 export const sidecarRoutes: FastifyPluginAsync = async (app) => {
   let modelSwitchInProgress = false;
-  registerSequentialGameTasks(app, ["/analyze-scene"]);
   app.get("/status", async () => {
     void sidecarProcessService
       .syncForCurrentConfig({ suppressKnownFailure: true, allowRuntimeInstall: false })
@@ -493,129 +465,6 @@ export const sidecarRoutes: FastifyPluginAsync = async (app) => {
     }
     await unloadModel();
     return { ok: true };
-  });
-
-  app.post("/analyze-scene", async (req, reply) => {
-    const body = sceneAnalysisRequestSchema.parse(req.body);
-    const requestDebug = body.debugMode === true;
-    const debugLogsEnabled = requestDebug || logger.isLevelEnabled("debug");
-    const debugLog = (message: string, ...args: any[]) => {
-      logDebugOverride(requestDebug, message, ...args);
-    };
-    const available = await isInferenceAvailable();
-    if (!available) {
-      return reply.status(503).send({ error: "Sidecar model is not available" });
-    }
-
-    const bgTags = body.context.availableBackgrounds ?? [];
-    const sfxTags = body.context.availableSfx ?? [];
-
-    const sceneCtx = body.context as SceneAnalyzerContext;
-    const systemPrompt = buildSceneAnalyzerSystemPrompt(sceneCtx);
-    const userPrompt = buildSceneAnalyzerUserPrompt(
-      body.narration,
-      body.playerAction,
-      sceneCtx,
-      SIDECAR_SCENE_ANALYSIS_NARRATION_BUDGET_CHARS,
-    );
-
-    try {
-      if (debugLogsEnabled) {
-        debugLog(
-          "[debug/game/scene-analysis:sidecar] request narrationChars=%d playerActionChars=%d state=%s bgOptions=%d sfxOptions=%d widgets=%d npcs=%d generateBackgrounds=%s generateIllustration=%s",
-          body.narration.length,
-          body.playerAction?.length ?? 0,
-          body.context.currentState ?? "unknown",
-          bgTags.length,
-          sfxTags.length,
-          body.context.activeWidgets?.length ?? 0,
-          body.context.trackedNpcs?.length ?? 0,
-          !!body.context.canGenerateBackgrounds,
-          !!body.context.canGenerateIllustrations,
-        );
-        debugLog("[debug/game/scene-analysis:sidecar] system prompt:\n%s", systemPrompt);
-        debugLog("[debug/game/scene-analysis:sidecar] user prompt:\n%s", userPrompt);
-      }
-
-      const raw = await analyzeScene(
-        systemPrompt,
-        userPrompt,
-        createResponseAbortSignal(reply, "Sidecar scene analysis"),
-      );
-      if (debugLogsEnabled) {
-        debugLog("[debug/game/scene-analysis:sidecar] parsed model response:\n%s", JSON.stringify(raw, null, 2));
-      }
-
-      const ppCtx: PostProcessContext = {
-        availableBackgrounds: bgTags,
-        availableSfx: sfxTags,
-        useSpotifyMusic: !!body.context.useSpotifyMusic,
-        generateSoundEffects: !!body.context.generateSoundEffects,
-        generateMusic: !!body.context.generateMusic,
-        availableSpotifyTracks: body.context.availableSpotifyTracks ?? [],
-        canGenerateBackgrounds: !!body.context.canGenerateBackgrounds,
-        validWidgetIds: new Set(
-          (body.context.activeWidgets ?? [])
-            .map((widget) =>
-              widget && typeof widget === "object" && !Array.isArray(widget) ? (widget as { id?: unknown }).id : null,
-            )
-            .filter((id): id is string => typeof id === "string" && id.length > 0),
-        ),
-        characterNames: body.context.characterNames ?? [],
-      };
-      const result = postProcessSceneResult(raw, ppCtx);
-      if (!body.context.canGenerateIllustrations) {
-        result.illustration = null;
-      }
-
-      const { getAssetManifest } = await import("../services/game/asset-manifest.service.js");
-      const manifest = getAssetManifest();
-      const assetKeys = Object.keys(manifest.assets ?? {});
-      const musicTags = assetKeys.filter((key) => key.startsWith("music:"));
-      const ambientTags = assetKeys.filter((key) => key.startsWith("ambient:"));
-
-      if (body.context.useSpotifyMusic) {
-        result.music = null;
-      } else {
-        // Scoring runs even with music generation enabled (#5161): generated
-        // context tracks are ordinary scoreable library entries now, and the
-        // analyzer no longer writes free-text music prompts.
-        const scoredMusic = scoreMusic({
-          state: (body.context.currentState as GameActiveState) ?? "exploration",
-          weather: result.weather ?? body.context.currentWeather ?? null,
-          timeOfDay: result.timeOfDay ?? body.context.currentTimeOfDay ?? null,
-          musicGenre: result.musicGenre,
-          musicIntensity: result.musicIntensity,
-          locationSlug: musicAreaSlug(body.context.currentLocation),
-          enemyTier: body.context.enemyTier,
-          currentMusic: body.context.currentMusic ?? null,
-          recentMusic: body.context.recentMusic ?? null,
-          availableMusic: musicTags,
-        });
-        result.music = scoredMusic ?? null;
-      }
-
-      const scoredAmbient = scoreAmbient({
-        state: (body.context.currentState as GameActiveState) ?? "exploration",
-        weather: result.weather ?? body.context.currentWeather ?? null,
-        timeOfDay: result.timeOfDay ?? body.context.currentTimeOfDay ?? null,
-        locationKind: result.locationKind,
-        currentAmbient: body.context.currentAmbient ?? null,
-        availableAmbient: ambientTags,
-        background: result.background ?? body.context.currentBackground,
-      });
-      result.ambient = scoredAmbient ?? null;
-
-      if (debugLogsEnabled) {
-        debugLog("[debug/game/scene-analysis:sidecar] final result:\n%s", JSON.stringify(result, null, 2));
-      }
-
-      return { result };
-    } catch (error) {
-      return reply.status(500).send({
-        error: error instanceof Error ? error.message : "Scene analysis failed",
-      });
-    }
   });
 
   const trackerBodySchema = z.object({

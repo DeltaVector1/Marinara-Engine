@@ -36,7 +36,7 @@ function mergeCustomParameters(
   return merged;
 }
 
-export function parseConnectionCustomParameters(defaultParameters: unknown): Record<string, unknown> {
+function parseConnectionCustomParameters(defaultParameters: unknown): Record<string, unknown> {
   let parsed = defaultParameters;
   if (typeof parsed === "string") {
     try {

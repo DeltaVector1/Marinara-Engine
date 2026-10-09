@@ -22,11 +22,6 @@ export function isDiceRollResult(value: unknown): value is DiceRollResult {
   );
 }
 
-/** Read current plural records and legacy single rolls through the same card guard. */
-export function readDiceRollResults(value: unknown): DiceRollResult[] {
-  return (Array.isArray(value) ? value : [value]).filter(isDiceRollResult);
-}
-
 /** An edited/legacy message keeps its dice at the end when its original position is unavailable. */
 export function readRoleplayDiceRolls(text: string, extra: Record<string, unknown>) {
   return getRoleplayCommandActivity(extra)

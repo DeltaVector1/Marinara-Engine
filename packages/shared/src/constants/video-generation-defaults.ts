@@ -17,42 +17,32 @@ import type {
 import { normalizeComfyUiLoraSettings } from "./image-generation-defaults.js";
 
 export const VIDEO_DEFAULTS_STORAGE_KEY = "videoGeneration";
-export const VIDEO_GENERATION_DEFAULTS_VERSION = 1 as const;
+const VIDEO_GENERATION_DEFAULTS_VERSION = 1 as const;
 
-export const VIDEO_DEFAULTS_SERVICES: VideoDefaultsService[] = [
-  "gemini_omni",
-  "google_veo",
-  "xai",
-  "openrouter",
-  "atlas",
-  "seedance",
-  "comfyui",
-];
-
-export const DEFAULT_GEMINI_OMNI_VIDEO_DEFAULTS: GeminiOmniVideoDefaults = {
+const DEFAULT_GEMINI_OMNI_VIDEO_DEFAULTS: GeminiOmniVideoDefaults = {
   durationSeconds: 10,
   aspectRatio: "16:9",
 };
 
-export const DEFAULT_XAI_VIDEO_DEFAULTS: XaiVideoDefaults = {
+const DEFAULT_XAI_VIDEO_DEFAULTS: XaiVideoDefaults = {
   durationSeconds: 10,
   aspectRatio: "16:9",
   resolution: "720p",
 };
 
-export const DEFAULT_GOOGLE_VEO_VIDEO_DEFAULTS: GoogleVeoVideoDefaults = {
+const DEFAULT_GOOGLE_VEO_VIDEO_DEFAULTS: GoogleVeoVideoDefaults = {
   durationSeconds: 8,
   aspectRatio: "16:9",
   resolution: "720p",
 };
 
-export const DEFAULT_OPENROUTER_VIDEO_DEFAULTS: OpenRouterVideoDefaults = {
+const DEFAULT_OPENROUTER_VIDEO_DEFAULTS: OpenRouterVideoDefaults = {
   durationSeconds: 10,
   aspectRatio: "16:9",
   resolution: "720p",
 };
 
-export const DEFAULT_ATLAS_CLOUD_VIDEO_DEFAULTS: AtlasCloudVideoDefaults = {
+const DEFAULT_ATLAS_CLOUD_VIDEO_DEFAULTS: AtlasCloudVideoDefaults = {
   durationSeconds: 8,
   aspectRatio: "16:9",
   resolution: "720p",
@@ -67,7 +57,7 @@ const ATLAS_CLOUD_MODEL_OPTION_MAX_KEY_LENGTH = 64;
 /** Names that would reach Object.prototype instead of becoming an own property. */
 const UNSAFE_OBJECT_KEYS: ReadonlySet<string> = new Set(["__proto__", "constructor"]);
 
-export const DEFAULT_SEEDANCE_VIDEO_DEFAULTS: SeedanceVideoDefaults = {
+const DEFAULT_SEEDANCE_VIDEO_DEFAULTS: SeedanceVideoDefaults = {
   durationSeconds: 5,
   aspectRatio: "16:9",
   resolution: "720p",
@@ -75,7 +65,7 @@ export const DEFAULT_SEEDANCE_VIDEO_DEFAULTS: SeedanceVideoDefaults = {
   temporaryPublicReferenceUploadExpiry: "12h",
 };
 
-export const DEFAULT_COMFYUI_VIDEO_DEFAULTS: ComfyUiVideoDefaults = {
+const DEFAULT_COMFYUI_VIDEO_DEFAULTS: ComfyUiVideoDefaults = {
   durationSeconds: 5,
   fps: 16,
   aspectRatio: "16:9",
@@ -191,7 +181,7 @@ function readAtlasCloudModelOptionValue(value: unknown): AtlasCloudModelOptionVa
 }
 
 /** Keeps bounded option names and JSON-safe values; what a model accepts is checked against its schema at request time. */
-export function normalizeAtlasCloudModelOptions(raw: unknown): AtlasCloudModelOptions {
+function normalizeAtlasCloudModelOptions(raw: unknown): AtlasCloudModelOptions {
   const options: AtlasCloudModelOptions = {};
   if (!isRecord(raw)) return options;
   for (const [key, rawValue] of Object.entries(raw)) {

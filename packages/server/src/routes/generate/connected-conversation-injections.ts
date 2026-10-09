@@ -33,7 +33,7 @@ export async function injectConnectedConversationPromptBlocks(args: {
   finalMessages: PromptMessage[];
 }): Promise<void> {
   const { chatMode, connectedChatId, isSceneChat, chatId, chats, finalMessages } = args;
-  if ((chatMode === "roleplay" || chatMode === "game") && connectedChatId && !isSceneChat) {
+  if (chatMode === "roleplay" && connectedChatId && !isSceneChat) {
     const pendingInfluences = await chats.listPendingInfluences(chatId);
     if (pendingInfluences.length > 0) {
       const influenceLines = pendingInfluences
@@ -44,9 +44,7 @@ export async function injectConnectedConversationPromptBlocks(args: {
       if (influenceLines.length > 0) {
         const influenceBlock = [
           `<ooc_influences>`,
-          chatMode === "game"
-            ? `The following out-of-character notes come from a connected conversation. They represent things the players discussed or decided outside the game. Use them to steer the next scene, NPC reactions, objectives, or world state when appropriate — don't mention them explicitly as "OOC" in the narrative.`
-            : `The following out-of-character notes come from a connected conversation. They represent things the players discussed or decided outside of the roleplay. Weave them naturally into the story — don't mention them explicitly as "OOC" in the narrative.`,
+          `The following out-of-character notes come from a connected conversation. They represent things the players discussed or decided outside of the roleplay. Weave them naturally into the story — don't mention them explicitly as "OOC" in the narrative.`,
           ...influenceLines,
           `</ooc_influences>`,
         ].join("\n");
@@ -60,7 +58,7 @@ export async function injectConnectedConversationPromptBlocks(args: {
     }
   }
 
-  if ((chatMode === "roleplay" || chatMode === "game") && connectedChatId && !isSceneChat) {
+  if (chatMode === "roleplay" && connectedChatId && !isSceneChat) {
     const persistentNotes = await chats.listNotes(chatId);
     if (persistentNotes.length > 0) {
       const noteLines = persistentNotes
@@ -71,9 +69,7 @@ export async function injectConnectedConversationPromptBlocks(args: {
       if (noteLines.length > 0) {
         const noteBlock = [
           `<conversation_notes>`,
-          chatMode === "game"
-            ? `Durable notes from a connected conversation. These persist across every turn until the user clears them and represent things the players have established as ongoing truth — character knowledge, world facts, recurring dynamics. Use them to inform NPC behavior, world state, and scene framing — don't reference them explicitly as "notes" in the narrative.`
-            : `Durable notes from a connected conversation. These persist across every turn until the user clears them and represent things the character has been told to durably remember about themselves, the user, or the world. Use them to inform behavior, knowledge, and reactions naturally — don't reference them explicitly as "notes" in the narrative.`,
+          `Durable notes from a connected conversation. These persist across every turn until the user clears them and represent things the character has been told to durably remember about themselves, the user, or the world. Use them to inform behavior, knowledge, and reactions naturally — don't reference them explicitly as "notes" in the narrative.`,
           ...noteLines,
           `</conversation_notes>`,
         ].join("\n");

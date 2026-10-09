@@ -8,7 +8,7 @@ import { capabilityPackageManager } from "./package-manager.service.js";
 
 type AvailabilityMigrationResult = Awaited<ReturnType<typeof capabilityPackageManager.migrateLegacyAvailability>>;
 
-export type LegacyCapabilityMigrationDependencies = {
+type LegacyCapabilityMigrationDependencies = {
   migrateAvailability: (legacyInstall: boolean) => Promise<AvailabilityMigrationResult>;
   migrateChatSelections: (db: DB) => Promise<void>;
   correctHierarchicalMapsSelections: (db: DB) => Promise<number>;

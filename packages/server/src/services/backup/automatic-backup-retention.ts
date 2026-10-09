@@ -2,12 +2,12 @@ import { readdir, rm, stat } from "fs/promises";
 import { join } from "path";
 
 export const AUTOMATIC_BACKUP_FILENAME = "marinara-automatic-backup.zip";
-export const AUTOMATIC_BACKUP_RETENTION_MIN = 1;
-export const AUTOMATIC_BACKUP_RETENTION_MAX = 9_999;
-export const DEFAULT_AUTOMATIC_BACKUP_RETENTION_COUNT = 1;
+const AUTOMATIC_BACKUP_RETENTION_MIN = 1;
+const AUTOMATIC_BACKUP_RETENTION_MAX = 9_999;
+const DEFAULT_AUTOMATIC_BACKUP_RETENTION_COUNT = 1;
 export const AUTOMATIC_BACKUP_FREE_SPACE_HEADROOM_BYTES = 256 * 1024 * 1024;
 
-export type AutomaticBackupFile = {
+type AutomaticBackupFile = {
   filename: string;
   path: string;
   modifiedAtMs: number;

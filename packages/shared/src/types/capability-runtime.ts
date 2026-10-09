@@ -5,7 +5,7 @@ import type { SpatialContextSnapshot, SpatialSnapshotSource } from "./spatial-co
 
 export type CapabilityRuntimeLogArgument = unknown;
 
-export interface CapabilityRuntimeLogger {
+interface CapabilityRuntimeLogger {
   debug(message: string, ...args: CapabilityRuntimeLogArgument[]): void;
   info(message: string, ...args: CapabilityRuntimeLogArgument[]): void;
   warn(message: string, ...args: CapabilityRuntimeLogArgument[]): void;
@@ -84,7 +84,7 @@ export interface CapabilityPersonaUpdateInput {
 }
 /** Lorebook categories the host understands. Spelled out here rather than left as a free string so a
  *  wrong value is a compile error in the package instead of a silent rejection at write time. */
-export type CapabilityLorebookCategory = "uncategorized" | "world" | "character" | "npc" | "spellbook";
+type CapabilityLorebookCategory = "uncategorized" | "world" | "character" | "npc" | "spellbook";
 
 /** Fields accepted when a package creates a lorebook to hold its own world content. */
 export interface CapabilityLorebookCreateInput {
@@ -142,7 +142,7 @@ export interface CapabilityLanguageModelCompletionOptions {
   responseFormat?: Readonly<{ type: string; [key: string]: unknown }>;
 }
 
-export interface CapabilityLanguageModelCompletion {
+interface CapabilityLanguageModelCompletion {
   content: string | null;
   finishReason: string;
   usage?: {
@@ -153,7 +153,7 @@ export interface CapabilityLanguageModelCompletion {
   };
 }
 
-export interface CapabilityLanguageModelContextFit {
+interface CapabilityLanguageModelContextFit {
   messages: CapabilityLanguageModelMessage[];
   maxTokens?: number;
   estimatedTokensBefore: number;
@@ -161,7 +161,7 @@ export interface CapabilityLanguageModelContextFit {
   trimmed: boolean;
 }
 
-export interface CapabilityResolvedLanguageModel {
+interface CapabilityResolvedLanguageModel {
   name: string;
   connectionId: string;
   model: string;
@@ -177,7 +177,7 @@ export interface CapabilityResolvedLanguageModel {
   ): CapabilityLanguageModelContextFit;
 }
 
-export interface CapabilityLanguageModelRequest {
+interface CapabilityLanguageModelRequest {
   connectionId?: string | null;
   chatConnectionId?: string | null;
   model?: string;
@@ -188,7 +188,7 @@ export interface CapabilityLanguageModelHost {
   resolveForRequest(request: CapabilityLanguageModelRequest): Promise<CapabilityResolvedLanguageModel>;
 }
 
-export interface CapabilityJsonHost {
+interface CapabilityJsonHost {
   parseJsonish(raw: string): unknown;
 }
 
@@ -203,7 +203,7 @@ export interface CapabilityMessageRecord {
   createdAt: string;
 }
 
-export interface CapabilitySpatialSnapshotWrite {
+interface CapabilitySpatialSnapshotWrite {
   /**
    * Must be globally unique across ALL chats (use a UUID). The store rejects
    * an id that collides with a loaded chat's snapshot, but under lazy storage
@@ -254,7 +254,7 @@ export interface CapabilityDocumentRecord {
   updatedAt: string;
 }
 
-export interface CapabilityDocumentWrite {
+interface CapabilityDocumentWrite {
   id: string;
   packageId: string;
   kind: string;
@@ -265,7 +265,7 @@ export interface CapabilityDocumentWrite {
   updatedAt: string;
 }
 
-export interface CapabilityDocumentUpdate {
+interface CapabilityDocumentUpdate {
   id: string;
   packageId: string;
   expectedRevision: number;
@@ -322,7 +322,7 @@ export interface CapabilityGameStateRecord {
   presentCharacterIds: string[];
 }
 
-export type CapabilityRoleplayEventAudience = "public" | "user-only" | { characterIds: string[] };
+type CapabilityRoleplayEventAudience = "public" | "user-only" | { characterIds: string[] };
 
 export interface CapabilityRoleplayEventInput {
   id: string;

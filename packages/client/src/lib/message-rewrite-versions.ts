@@ -3,7 +3,7 @@ type MessageRewriteExtra = {
   proseGuardianRewrittenText?: unknown;
 };
 
-export type MessageRewriteVersions = {
+type MessageRewriteVersions = {
   originalText: string | null;
   rewrittenText: string | null;
   hasVersions: boolean;

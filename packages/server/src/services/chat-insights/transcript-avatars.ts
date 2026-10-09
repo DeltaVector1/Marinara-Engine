@@ -6,7 +6,7 @@ import { extname } from "node:path";
 import { resolveStoredAvatarFile } from "../image/avatar-file-lifecycle.js";
 
 /** Avatars larger than this are skipped so an exported story stays light. */
-export const MAX_EMBEDDED_AVATAR_BYTES = 96 * 1024;
+const MAX_EMBEDDED_AVATAR_BYTES = 96 * 1024;
 
 const AVATAR_MIME_BY_EXTENSION: Record<string, string> = {
   ".avif": "image/avif",

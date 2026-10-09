@@ -11,119 +11,23 @@ import { useUIStore } from "../../stores/ui.store";
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { api, getPrivilegedActionErrorMessage } from "../../lib/api-client";
 import { HostDeviceFileManagerError } from "../../lib/host-device";
-import {
-  agentKeys,
-  useAgentConfigs,
-  useUpdateAgent,
-  useCreateAgent,
-  type AgentConfigRow,
-} from "../../hooks/use-agents";
+import { agentKeys, useAgentConfigs, useUpdateAgent, useCreateAgent, type AgentConfigRow } from "../../hooks/use-agents";
 import { useConnections } from "../../hooks/use-connections";
 import { useOpenGameAssetsFolder } from "../../hooks/use-game-assets";
-import {
-  isCustomToolSelectable,
-  useCustomToolCapabilities,
-  useCustomTools,
-  type CustomToolRow,
-} from "../../hooks/use-custom-tools";
-import {
-  Activity,
-  ArrowLeft,
-  Save,
-  Sparkles,
-  Check,
-  AlertCircle,
-  X,
-  Zap,
-  Link2,
-  FileText,
-  RotateCcw,
-  Clock,
-  Info,
-  Wrench,
-  Trash2,
-  Plus,
-  Layers,
-  Music,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  BookOpen,
-  FolderOpen,
-  Upload,
-  Loader2,
-  ImageIcon,
-  Shield,
-  ShieldCheck,
-} from "lucide-react";
+import { isCustomToolSelectable, useCustomToolCapabilities, useCustomTools, type CustomToolRow } from "../../hooks/use-custom-tools";
+import { Activity, ArrowLeft, Save, Sparkles, Check, AlertCircle, X, Zap, Link2, FileText, RotateCcw, Clock, Info, Wrench, Trash2, Plus, Layers, Music, ChevronDown, ChevronUp, ExternalLink, BookOpen, FolderOpen, Upload, Loader2, ImageIcon, Shield, ShieldCheck } from "lucide-react";
 import { useDeleteAgent } from "../../hooks/use-agents";
 import { useLorebooks, useEntriesAcrossLorebooks } from "../../hooks/use-lorebooks";
-import {
-  useKnowledgeSources,
-  useUploadKnowledgeSource,
-  useDeleteKnowledgeSource,
-} from "../../hooks/use-knowledge-sources";
+import { useKnowledgeSources, useUploadKnowledgeSource, useDeleteKnowledgeSource } from "../../hooks/use-knowledge-sources";
 import { cn } from "../../lib/utils";
 import { MacroTextarea } from "../ui/MacroTextarea";
 import { formatEstimatedTokens } from "../../lib/character-token-count";
-import {
-  getAgentRunIntervalMeta,
-  getCadenceInputValue,
-  parseOptionalCadenceInputValue,
-  stepCadenceValue,
-} from "../../lib/agent-cadence";
-import {
-  DEFAULT_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS,
-  MAX_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS,
-  MIN_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS,
-  normalizeEchoChamberMessageDelaySeconds,
-} from "../../lib/echo-chamber-queue";
+import { getAgentRunIntervalMeta, getCadenceInputValue, parseOptionalCadenceInputValue, stepCadenceValue } from "../../lib/agent-cadence";
+import { DEFAULT_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS, MAX_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS, MIN_ECHO_CHAMBER_MESSAGE_DELAY_SECONDS, normalizeEchoChamberMessageDelaySeconds } from "../../lib/echo-chamber-queue";
 import { HelpTooltip } from "../ui/HelpTooltip";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
-import {
-  BUILT_IN_AGENTS,
-  estimateTextTokens,
-  BUILT_IN_TOOLS,
-  DEFAULT_AGENT_CONTEXT_SIZE,
-  DEFAULT_AGENT_TOOLS,
-  DEFAULT_AGENT_MAX_TOKENS,
-  DEFAULT_AGENT_AUTHOR,
-  CUSTOM_AGENT_CAPABILITY_IDS,
-  DEFAULT_CUSTOM_AGENT_CONTEXT_SOURCES,
-  CUSTOM_AGENT_IMPORT_SOURCE_SETTING,
-  CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING,
-  DEFAULT_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH,
-  LOCAL_SIDECAR_CONNECTION_ID,
-  UTILITY_SIDECAR_CONNECTION_ID,
-  MAX_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH,
-  MIN_AGENT_MAX_TOKENS,
-  getDefaultBuiltInAgentSettings,
-  getDefaultAgentPrompt,
-  isAgentConfigDeleted,
-  mergeBuiltInAgentSettings,
-  normalizeAgentPhaseForType,
-  normalizeCustomAgentCapabilities,
-  getAgentContextSources,
-  normalizeAgentPromptTemplateOptions,
-  normalizeStoryboardAgentSettings,
-  parseAgentSettingsRecord,
-  homeAgentWidgetsSchema,
-  type HomeAgentWidgetDefinition,
-  CUSTOM_AGENT_CONTEXT_SOURCE_IDS,
-  type AgentPhase,
-  type AgentPromptTemplateOption,
-  type StoryboardAgentSettings,
-  type CustomAgentCapability,
-  type CustomAgentCapabilityMap,
-  type CustomAgentContextSource,
-  type CustomAgentContextSources,
-  type ToolDefinition,
-} from "@marinara-engine/shared";
-import {
-  createAgentFolderPackageFilename,
-  createAgentFolderPackageFiles,
-  sanitizeAgentSettingsForTransfer,
-} from "../../lib/agent-transfer";
+import { BUILT_IN_AGENTS, estimateTextTokens, BUILT_IN_TOOLS, DEFAULT_AGENT_CONTEXT_SIZE, DEFAULT_AGENT_TOOLS, DEFAULT_AGENT_MAX_TOKENS, DEFAULT_AGENT_AUTHOR, CUSTOM_AGENT_CAPABILITY_IDS, DEFAULT_CUSTOM_AGENT_CONTEXT_SOURCES, CUSTOM_AGENT_IMPORT_SOURCE_SETTING, CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING, DEFAULT_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH, LOCAL_SIDECAR_CONNECTION_ID, UTILITY_SIDECAR_CONNECTION_ID, MAX_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH, MIN_AGENT_MAX_TOKENS, getDefaultBuiltInAgentSettings, getDefaultAgentPrompt, isAgentConfigDeleted, mergeBuiltInAgentSettings, normalizeAgentPhaseForType, normalizeCustomAgentCapabilities, getAgentContextSources, normalizeAgentPromptTemplateOptions, parseAgentSettingsRecord, homeAgentWidgetsSchema, type HomeAgentWidgetDefinition, CUSTOM_AGENT_CONTEXT_SOURCE_IDS, type AgentPhase, type AgentPromptTemplateOption, type CustomAgentCapability, type CustomAgentCapabilityMap, type CustomAgentContextSource, type CustomAgentContextSources, type ToolDefinition } from "@marinara-engine/shared";
+import { createAgentFolderPackageFilename, createAgentFolderPackageFiles, sanitizeAgentSettingsForTransfer } from "../../lib/agent-transfer";
 import { CUSTOM_AGENT_RESULT_EXAMPLES, type CustomAgentResultType } from "../../lib/custom-agent-result-examples";
 import { downloadZipFile } from "../../lib/download-zip";
 import { useSidecarStore } from "../../stores/sidecar.store";

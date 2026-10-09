@@ -4,10 +4,10 @@ import type { ResolvedAgent } from "../agents/agent-pipeline.js";
 import { wrapContent } from "../prompt/format-engine.js";
 import { resolveAgentRunInterval } from "./agent-cadence.js";
 
-export const DIRECTOR_SECRET_PLOT_DEFAULT_RUN_INTERVAL = 8;
+const DIRECTOR_SECRET_PLOT_DEFAULT_RUN_INTERVAL = 8;
 export const DIRECTOR_SECRET_PLOT_LAST_MESSAGE_KEY = "secretPlotLastAssistantMessageId";
 
-export function normalizeDirectorSecretPlotRunInterval(value: unknown): number {
+function normalizeDirectorSecretPlotRunInterval(value: unknown): number {
   return resolveAgentRunInterval({ runInterval: value }, DIRECTOR_SECRET_PLOT_DEFAULT_RUN_INTERVAL);
 }
 

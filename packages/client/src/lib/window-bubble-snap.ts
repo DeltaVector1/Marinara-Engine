@@ -21,14 +21,14 @@ export interface SnapGuide {
   to: number;
 }
 
-export interface BubbleSnapResult {
+interface BubbleSnapResult {
   x: number;
   y: number;
   guides: SnapGuide[];
 }
 
 /** How close (px) an edge or centre must come to snap. */
-export const BUBBLE_SNAP_THRESHOLD_PX = 8;
+const BUBBLE_SNAP_THRESHOLD_PX = 8;
 /** The gap left between two bubbles placed side by side. */
 export const BUBBLE_SNAP_GAP_PX = 8;
 

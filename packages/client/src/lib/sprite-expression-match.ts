@@ -1,6 +1,6 @@
 import { normalizeSpriteExpressionKey as normalizeUnicodeSpriteExpressionKey } from "@marinara-engine/shared";
 
-export type SpriteExpressionLike = {
+type SpriteExpressionLike = {
   expression: string;
 };
 

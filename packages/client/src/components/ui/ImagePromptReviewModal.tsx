@@ -4,9 +4,9 @@ import { Modal } from "./Modal";
 import { cn } from "../../lib/utils";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
-export type ImagePromptReviewKind = "background" | "illustration" | "portrait" | "sprite" | "avatar" | "video";
+type ImagePromptReviewKind = "background" | "illustration" | "portrait" | "sprite" | "avatar" | "video";
 
-export type ImagePromptReviewCharacterPrompt = {
+type ImagePromptReviewCharacterPrompt = {
   name: string;
   prompt: string;
   negativePrompt?: string;

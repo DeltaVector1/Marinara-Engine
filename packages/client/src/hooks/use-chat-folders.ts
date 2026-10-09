@@ -12,7 +12,7 @@ import type {
 } from "@marinara-engine/shared";
 import { chatKeys } from "./use-chats";
 
-export const folderKeys = {
+const folderKeys = {
   all: ["chat-folders"] as const,
   list: () => [...folderKeys.all, "list"] as const,
 };

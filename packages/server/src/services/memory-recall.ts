@@ -89,7 +89,7 @@ function parseStoredEmbedding(value: string | Float64Array | null): number[] | F
 
 // ── Public API ──
 
-export interface RecalledMemory {
+interface RecalledMemory {
   chatId: string;
   content: string;
   similarity: number;
@@ -116,13 +116,13 @@ export interface MemoryRecallEmbeddingOptions {
   inputType?: MemoryRecallEmbeddingInputType;
 }
 
-export interface RecallMemoriesOptions extends MemoryRecallEmbeddingOptions {
+interface RecallMemoriesOptions extends MemoryRecallEmbeddingOptions {
   topK?: number;
   /** Exclude chunks covering this message timestamp or anything newer. */
   excludeFromMessageAt?: string | null;
 }
 
-export interface ChunkAndEmbedMessagesOptions extends MemoryRecallEmbeddingOptions {
+interface ChunkAndEmbedMessagesOptions extends MemoryRecallEmbeddingOptions {
   /**
    * Keep the most recent N messages out of durable memory chunks. This lets
    * recall operate as read-behind storage for messages that have left the

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { storedRulesetSheetsSchema } from "./ruleset.schema.js";
 import { avatarCropSchema } from "./avatar-crop.schema.js";
 import { convoBehaviorInsertionStrategySchema } from "./character.schema.js";
 import { normalizeStatIcon, SUPPORTED_STAT_ICONS } from "../constants/stat-icons.js";
@@ -253,8 +252,6 @@ const personaStatsSchema = z
     enabled: z.boolean(),
     bars: z.array(personaStatBarSchema),
     rpgStats: rpgStatsSchema.optional(),
-    /** Starting builds for Game Mode rulesets, keyed by ruleset id. Bounded, never shape-checked. */
-    rulesetSheets: storedRulesetSheetsSchema.optional(),
   })
   .passthrough()
   .transform((value): PersonaStatsConfig => value);

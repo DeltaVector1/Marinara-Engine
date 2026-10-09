@@ -47,9 +47,9 @@ import {
 import { logger } from "../../lib/logger.js";
 
 export const MODELS_DIR = join(getDataDir(), "models");
-export const CUSTOM_MODELS_DIR = join(MODELS_DIR, "custom");
+const CUSTOM_MODELS_DIR = join(MODELS_DIR, "custom");
 export const CONFIG_PATH = join(MODELS_DIR, "sidecar-config.json");
-export const LEGACY_RUNTIME_STAMP_PATH = join(MODELS_DIR, "sidecar-runtime-stamp.txt");
+const LEGACY_RUNTIME_STAMP_PATH = join(MODELS_DIR, "sidecar-runtime-stamp.txt");
 
 type ProgressCallback = (progress: SidecarDownloadProgress) => void;
 

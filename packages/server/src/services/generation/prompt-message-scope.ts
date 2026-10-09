@@ -30,20 +30,6 @@ type CharacterPromptScopeInfo = {
 
 const PROFILE_SNIPPET_MIN_LENGTH = 20;
 
-export function isStandaloneCharacterProfileBlock(content: string, characterName: string): boolean {
-  const trimmed = content.trim();
-  if (!trimmed) return false;
-  const xmlTag = nameToXmlTag(characterName);
-  if (
-    (trimmed.startsWith(`<${xmlTag}>`) && trimmed.endsWith(`</${xmlTag}>`)) ||
-    (trimmed.startsWith(`<${characterName}>`) && trimmed.endsWith(`</${characterName}>`))
-  ) {
-    return true;
-  }
-  const escaped = characterName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^#{1,6}\\s+${escaped}\\s*$`, "m").test(trimmed);
-}
-
 function nameToMarkdownHeadingForMatch(name: string): string {
   return normalizeTextForMatch(name)
     .replace(/[^\p{L}\p{N}\s_-]/gu, "")

@@ -10,7 +10,7 @@
 //     empty allowance.
 
 /** One quota window as the usage endpoint reports it. */
-export interface QuotaWindowLike {
+interface QuotaWindowLike {
   used: number | null;
   remaining: number | null;
   percentUsed: number | null;

@@ -76,7 +76,7 @@ function ignoreControlWindowOutsidePointer(target: Element) {
   return !!target.closest("[data-chat-floating-panel], [data-macro-modal]");
 }
 
-export interface ChatControlWindowProps {
+interface ChatControlWindowProps {
   id: string;
   title: string;
   icon: ReactNode;

@@ -16,7 +16,7 @@ const ASSET_GRID_PAGE_SIZE = 240;
 /**
  * Props for the AssetGrid component.
  */
-export interface AssetGridProps {
+interface AssetGridProps {
   /** Nodes to render in the current folder */
   nodes: TreeNode[];
   /** Current display mode */

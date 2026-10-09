@@ -7,7 +7,6 @@
 // ──────────────────────────────────────────────
 import { readdirSync, statSync, existsSync, mkdirSync, writeFileSync, readFileSync, renameSync } from "fs";
 import { join, extname, relative, basename } from "path";
-import { type MusicGenre, type MusicIntensity } from "@marinara-engine/shared";
 import { DATA_DIR } from "../../utils/data-dir.js";
 
 export const GAME_ASSETS_DIR = join(DATA_DIR, "game-assets");
@@ -24,7 +23,7 @@ const EXTENSIONS: Record<string, Set<string>> = {
 };
 
 /** A single entry in the asset manifest. */
-export interface AssetEntry {
+interface AssetEntry {
   /** Tag for referencing in prompts, e.g. "music:combat:fantasy:intense:epic-battle" */
   tag: string;
   /** Category: music, sfx, sprites, backgrounds */
@@ -39,7 +38,7 @@ export interface AssetEntry {
   ext: string;
 }
 
-export interface AssetManifest {
+interface AssetManifest {
   /** ISO timestamp of last scan */
   scannedAt: string;
   /** Total asset count */
@@ -53,7 +52,7 @@ export interface AssetManifest {
 const MUSIC_STATES = ["exploration", "dialogue", "combat", "travel_rest"] as const;
 const LEGACY_MUSIC_STATE_SET = new Set<string>(MUSIC_STATES);
 
-function inferLegacyMusicGenre(name: string, state: string): MusicGenre {
+function inferLegacyMusicGenre(name: string, state: string): string {
   const lower = name.toLowerCase();
   if (/(horror|dark|sinister|eerie|dread|nightmare|shadow|catastrophe|menace|hostility|desolate)/.test(lower)) {
     return "horror";
@@ -73,7 +72,7 @@ function inferLegacyMusicGenre(name: string, state: string): MusicGenre {
   return "fantasy";
 }
 
-function inferLegacyMusicIntensity(name: string, state: string): MusicIntensity {
+function inferLegacyMusicIntensity(name: string, state: string): string {
   const lower = name.toLowerCase();
   if (
     state === "combat" ||

@@ -1,6 +1,6 @@
-export const FALLBACK_CONVERSATION_TIME_ZONE = "UTC";
+const FALLBACK_CONVERSATION_TIME_ZONE = "UTC";
 
-export function isValidConversationTimeZone(value: unknown): value is string {
+function isValidConversationTimeZone(value: unknown): value is string {
   if (typeof value !== "string") return false;
   const timeZone = value.trim();
   if (!timeZone || timeZone.length > 100) return false;

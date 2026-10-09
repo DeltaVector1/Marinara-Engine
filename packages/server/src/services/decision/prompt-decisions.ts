@@ -46,7 +46,7 @@ import {
   type HeldDecision,
 } from "./decision-timers.js";
 
-export interface PlannedDecision {
+interface PlannedDecision {
   kind: "noul" | "choice";
   /** The statement with its macros resolved: the key its answer is stored under. */
   key: string;
@@ -83,7 +83,7 @@ export interface PromptDecisionPlan {
 }
 
 /** Whether any text could hold a decision statement, before paying for a full parse. */
-export function mayContainDecisions(text: unknown): text is string {
+function mayContainDecisions(text: unknown): text is string {
   return typeof text === "string" && /decision(?:_choice)?\s*:/iu.test(text);
 }
 
@@ -107,7 +107,7 @@ export function collectDecisionTexts(value: unknown, out: string[] = [], depth =
 }
 
 /** A preset as stored, with the choices this turn uses. */
-export interface PresetDecisionParts {
+interface PresetDecisionParts {
   sections: ReadonlyArray<{ content?: unknown; enabled?: unknown; groupId?: unknown }>;
   groups: ReadonlyArray<{ id?: unknown; enabled?: unknown }>;
   choiceBlocks: ReadonlyArray<{
@@ -154,7 +154,7 @@ function presetDecisionTexts(preset: PresetDecisionParts, texts: string[]): void
 }
 
 /** The pieces of a turn that can hold decision statements, most important first. */
-export interface TurnDecisionSources {
+interface TurnDecisionSources {
   /** The preset, when the turn uses one. */
   preset?: PresetDecisionParts;
   ctx: MacroContext;
@@ -366,7 +366,7 @@ export class PromptDecisionTurnCache {
   }
 }
 
-export const promptDecisionTurnCache = new PromptDecisionTurnCache();
+const promptDecisionTurnCache = new PromptDecisionTurnCache();
 
 /** A Choice answer is cached against its option set, which a later edit can change. */
 function choiceCacheKey(decision: PlannedDecision): string {

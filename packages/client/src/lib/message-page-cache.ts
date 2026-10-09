@@ -17,20 +17,20 @@ import type { InfiniteData, QueryClient } from "@tanstack/react-query";
 // history on demand from the oldest retained page's own cursor.
 
 /** Pages a backgrounded chat keeps. Bounds both memory and any stray refetch of that chat. */
-export const INACTIVE_CHAT_MAX_MESSAGE_PAGES = 3;
+const INACTIVE_CHAT_MAX_MESSAGE_PAGES = 3;
 
 /** Page count at or below which a reconnect refetch is cheap enough to keep. */
-export const RECONNECT_REFETCH_MAX_PAGES = 1;
+const RECONNECT_REFETCH_MAX_PAGES = 1;
 
 /** Matches `chatKeys.messages(chatId)` from hooks/use-chats.ts — keep in sync. */
-export function chatIdOfMessagesQueryKey(queryKey: readonly unknown[]): string | null {
+function chatIdOfMessagesQueryKey(queryKey: readonly unknown[]): string | null {
   if (queryKey.length !== 3 || queryKey[0] !== "chats" || queryKey[1] !== "messages") return null;
   const chatId = queryKey[2];
   return typeof chatId === "string" && chatId.length > 0 ? chatId : null;
 }
 
 /** Drops pages from the OLD end, keeping `pages`/`pageParams` in lockstep. */
-export function trimMessagePagesToNewest<T>(
+function trimMessagePagesToNewest<T>(
   data: InfiniteData<T> | undefined,
   keep: number,
 ): InfiniteData<T> | undefined {

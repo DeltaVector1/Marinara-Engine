@@ -12,7 +12,7 @@ import type { IncomingMessage } from "node:http";
 import { LogController, type FastifyInstance, type FastifyRequest } from "fastify";
 import { runWithRootLogContext, type LogContext } from "./log-context.js";
 
-export const REQUEST_ID_HEADER = "x-request-id";
+const REQUEST_ID_HEADER = "x-request-id";
 
 const INCOMING_REQUEST_ID = /^[A-Za-z0-9._:-]{8,80}$/;
 const kLogContext = Symbol("marinara.logContext");
@@ -20,7 +20,7 @@ const kLogContext = Symbol("marinara.logContext");
 type RequestWithLogContext = FastifyRequest & { [kLogContext]?: LogContext };
 
 /** Accepts a client-supplied x-request-id only when it is a plain 8 to 80 character token. */
-export function sanitizeIncomingRequestId(value: unknown): string | undefined {
+function sanitizeIncomingRequestId(value: unknown): string | undefined {
   return typeof value === "string" && INCOMING_REQUEST_ID.test(value) ? value : undefined;
 }
 
@@ -33,12 +33,12 @@ export function genRequestId(req: IncomingMessage): string {
 }
 
 /** The matched route pattern ("/api/chats/:id"), so ids and query strings stay out of log lines. */
-export function routeLabel(request: FastifyRequest): string {
+function routeLabel(request: FastifyRequest): string {
   return request.routeOptions?.url ?? "<unmatched>";
 }
 
 /** The request path without its query string or fragment. */
-export function pathWithoutQuery(url: string): string {
+function pathWithoutQuery(url: string): string {
   return url.split(/[?#]/, 1)[0] ?? url;
 }
 

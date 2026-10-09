@@ -12,7 +12,7 @@ export type CustomTagPatch = {
   height?: number;
 };
 
-export type CustomKindValidation = { ok: true } | { ok: false; reason: string };
+type CustomKindValidation = { ok: true } | { ok: false; reason: string };
 
 /** Max pixel dimension (applies to BOTH width and height) per kind. */
 const CUSTOM_KIND_MAX_DIMENSION: Record<CustomKind, number> = {

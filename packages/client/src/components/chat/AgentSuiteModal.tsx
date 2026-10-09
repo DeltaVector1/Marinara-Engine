@@ -50,7 +50,7 @@ import { useGameStateStore } from "../../stores/game-state.store";
 import { Modal } from "../ui/Modal";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
-export interface AgentSuiteAgent {
+interface AgentSuiteAgent {
   id: string;
   name: string;
   description: string;

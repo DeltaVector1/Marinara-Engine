@@ -10,7 +10,7 @@ import { api } from "../lib/api-client";
 
 const FEATURES_PATH = `/app-settings/${FEATURE_SETTINGS_KEY}`;
 
-export const featureSettingsKeys = {
+const featureSettingsKeys = {
   all: [FEATURE_SETTINGS_KEY] as const,
 };
 

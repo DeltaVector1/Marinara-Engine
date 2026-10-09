@@ -7,8 +7,8 @@ import type {
 import { normalizeTrackerCardColorConfig as normalizeSharedTrackerCardColorConfig } from "@marinara-engine/shared";
 import { normalizeStatIconAssignments } from "./stat-icon-assignments";
 
-export const DEFAULT_TRACKER_CARD_COLOR_MODE: TrackerCardColorMode = "chat";
-export const DEFAULT_TRACKER_CARD_PORTRAIT_STAGE_BACKGROUND: TrackerCardPortraitStageBackground = "ambient";
+const DEFAULT_TRACKER_CARD_COLOR_MODE: TrackerCardColorMode = "chat";
+const DEFAULT_TRACKER_CARD_PORTRAIT_STAGE_BACKGROUND: TrackerCardPortraitStageBackground = "ambient";
 export const DEFAULT_TRACKER_CARD_PORTRAIT_FOCUS_X = 50;
 export const DEFAULT_TRACKER_CARD_PORTRAIT_FOCUS_Y = 36;
 export const MAX_TRACKER_CARD_PORTRAIT_FOCUS_Y = 140;
@@ -79,7 +79,7 @@ export interface TrackerCardPaintEnabled {
   surfaceEnabled: boolean;
 }
 
-export interface TrackerCardPortraitStageVars {
+interface TrackerCardPortraitStageVars {
   base: string;
   veil: string;
   light: string;
@@ -94,7 +94,7 @@ export interface TrackerCardPortraitStageVars {
   bottomRuleOpacity: string;
 }
 
-export interface TrackerCardPortraitStagePalette {
+interface TrackerCardPortraitStagePalette {
   background: TrackerCardPortraitStageBackground;
   displaySolid: string;
   accent: string;
@@ -102,7 +102,7 @@ export interface TrackerCardPortraitStagePalette {
   opacity: TrackerCardPaintOpacity;
 }
 
-export interface TrackerCardPortraitView {
+interface TrackerCardPortraitView {
   x: number;
   y: number;
   zoom: number;
@@ -131,7 +131,7 @@ export interface TrackerCardStylePalette {
   portraitStageBackground: TrackerCardPortraitStageBackground;
 }
 
-export interface TrackerCardStyleVars {
+interface TrackerCardStyleVars {
   accent: string;
   accentHighlightOpacity: string;
   accentLayer: string;
@@ -198,7 +198,7 @@ export interface TrackerCardStyleVars {
   backgroundBlendMode: string;
 }
 
-export interface TrackerCardSkinFinish {
+interface TrackerCardSkinFinish {
   accentPanelMix: number;
   borderOpacity: number;
   displayOpacity: string;
@@ -231,7 +231,7 @@ export interface TrackerCardSkinFinish {
   tintOpacity: string;
 }
 
-export const TRACKER_CARD_FINISH_DEFAULTS: Record<TrackerCardColorMode, TrackerCardFinish> = {
+const TRACKER_CARD_FINISH_DEFAULTS: Record<TrackerCardColorMode, TrackerCardFinish> = {
   default: {
     materialBrightness: DEFAULT_TRACKER_CARD_MATERIAL_BRIGHTNESS,
     glowIntensity: 25,
@@ -249,13 +249,13 @@ export const TRACKER_CARD_FINISH_DEFAULTS: Record<TrackerCardColorMode, TrackerC
   },
 };
 
-export const TRACKER_CARD_PAINT_OPACITY_DEFAULTS: TrackerCardPaintOpacity = {
+const TRACKER_CARD_PAINT_OPACITY_DEFAULTS: TrackerCardPaintOpacity = {
   nameColorOpacity: 100,
   dialogueColorOpacity: 100,
   boxColorOpacity: 100,
 };
 
-export const TRACKER_CARD_PAINT_ENABLED_DEFAULTS: TrackerCardPaintEnabled = {
+const TRACKER_CARD_PAINT_ENABLED_DEFAULTS: TrackerCardPaintEnabled = {
   displayEnabled: true,
   accentEnabled: true,
   surfaceEnabled: true,
@@ -273,7 +273,7 @@ export function normalizeTrackerCardColorMode(value: unknown): TrackerCardColorM
   return value === "default" || value === "chat" || value === "custom" ? value : DEFAULT_TRACKER_CARD_COLOR_MODE;
 }
 
-export function normalizeTrackerCardPortraitStageBackground(value: unknown): TrackerCardPortraitStageBackground {
+function normalizeTrackerCardPortraitStageBackground(value: unknown): TrackerCardPortraitStageBackground {
   return value === "ambient" || value === "spotlight" || value === "soft" || value === "plain"
     ? value
     : DEFAULT_TRACKER_CARD_PORTRAIT_STAGE_BACKGROUND;
@@ -484,7 +484,7 @@ function applyOpacityToLinearGradientStop(stop: string, paintOpacity: number) {
   return [`color-mix(in srgb, ${color} ${paintOpacity}%, transparent)`, ...positions].join(" ");
 }
 
-export function applyTrackerCardPaintOpacity(value: string, opacity: number) {
+function applyTrackerCardPaintOpacity(value: string, opacity: number) {
   const paintOpacity = Math.max(0, Math.min(100, Math.round(opacity)));
   if (paintOpacity >= 100) return value;
 
@@ -946,7 +946,7 @@ export function getTrackerCardStyleVars({
   };
 }
 
-export function getTrackerCardPortraitStageVars({
+function getTrackerCardPortraitStageVars({
   background,
   displaySolid,
   accent,
@@ -1085,7 +1085,7 @@ function getOpacity(base: number, value: number, scale: number, max: number) {
   return Math.min(max, base + value * scale).toFixed(3);
 }
 
-export function getTrackerCardSkinFinish(finish: TrackerCardFinish): TrackerCardSkinFinish {
+function getTrackerCardSkinFinish(finish: TrackerCardFinish): TrackerCardSkinFinish {
   const tint = TRACKER_CARD_FIXED_TINT_INTENSITY;
   const glow = finish.glowIntensity;
   const contrast = finish.contrastIntensity;

@@ -10,7 +10,7 @@
 // packages/server/src/services/lorebook/regex-timeout.ts is the second line of
 // defense for those cases.
 
-export interface PatternSafetyOptions {
+interface PatternSafetyOptions {
   /** Reject any source string longer than this. Default 1000. */
   maxLength?: number;
   /** Reject star height greater than this. 1 allows `a+`, `(a+)`, `(a)+`; rejects `(a+)+`. Default 1. */

@@ -18,7 +18,7 @@ export type SelectiveLogic = "and" | "and_all" | "or" | "not" | "not_all";
 
 /** Role for injected lorebook content. */
 export type LorebookRole = "system" | "user" | "assistant";
-export type LorebookEntryPosition = 0 | 1 | 2 | 7;
+type LorebookEntryPosition = 0 | 1 | 2 | 7;
 
 /** Why an entry was activated for the current generation. */
 export type LorebookActivationSource =
@@ -29,7 +29,7 @@ export type LorebookActivationSource =
  * activates as it otherwise would and the statement must also be true. `trigger`: the
  * statement alone can activate it. No answer reads as no in both.
  */
-export type LorebookDecisionMode = "off" | "require" | "trigger";
+type LorebookDecisionMode = "off" | "require" | "trigger";
 
 /** Include/exclude behavior for contextual lorebook filters. */
 export type LorebookFilterMode = "any" | "include" | "exclude";
@@ -313,21 +313,6 @@ export interface LorebookEntryTimingState {
   delayRemaining: number;
 }
 
-/** Quest-specific fields for quest-type lorebook entries. */
-export interface QuestData {
-  stages: QuestStage[];
-  currentStageIndex: number;
-  completed: boolean;
-  rewards: string[];
-}
-
-/** A single stage/objective in a quest. */
-export interface QuestStage {
-  name: string;
-  description: string;
-  objectives: QuestObjective[];
-  completionTrigger: string;
-}
 
 /** An objective within a quest stage. */
 export interface QuestObjective {

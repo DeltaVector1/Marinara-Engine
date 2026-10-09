@@ -14,7 +14,7 @@ const MAX_RECALL_CHARACTERS = 100_000;
 
 export type LongTermMemoryRecallReceipt = unknown;
 
-export interface LongTermMemoryRuntimeService {
+interface LongTermMemoryRuntimeService {
   /** Optional for older packages. The package owns freshness checks, locking and rebuilding. */
   refresh?(input: { signal: AbortSignal }): Promise<{ status: "refreshed" | "deferred" }>;
   recall(input: {
@@ -90,7 +90,7 @@ export async function withLongTermMemoryEmbeddingChange<T>(
   return saved;
 }
 
-export async function withLongTermMemoryRuntimeTimeout<T>(
+async function withLongTermMemoryRuntimeTimeout<T>(
   timeoutMs: number,
   operation: (signal: AbortSignal) => Promise<T>,
   signal?: AbortSignal,

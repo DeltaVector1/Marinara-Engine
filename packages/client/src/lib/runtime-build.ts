@@ -1,4 +1,4 @@
-export type RuntimeHealth = {
+type RuntimeHealth = {
   version: string;
   build?: string | null;
 };

@@ -29,7 +29,7 @@ export function getPackagePathBasename(path: string) {
   return slashIndex >= 0 ? normalized.slice(slashIndex + 1) : normalized;
 }
 
-export function getPackagePathDirname(path: string) {
+function getPackagePathDirname(path: string) {
   const normalized = normalizePackagePath(path);
   const slashIndex = normalized.lastIndexOf("/");
   return slashIndex >= 0 ? normalized.slice(0, slashIndex) : "";

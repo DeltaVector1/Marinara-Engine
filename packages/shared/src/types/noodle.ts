@@ -14,13 +14,13 @@ export type NoodleInteractionType = "like" | "repost" | "reply" | "vote";
 export type NoodlePostSource = "manual" | "generated";
 /** The real privacy concept: who may read a NoodleR post. Deliberately keeps the word "public". */
 export type NoodlePostAccess = "public" | "locked";
-export type NoodleTheme = "system" | "light" | "dark";
+type NoodleTheme = "system" | "light" | "dark";
 export type NoodleCarryoverMode = "off" | "conversation" | "roleplay" | "game" | "all";
 export type NoodleCarryoverTarget = "conversation" | "roleplay" | "game";
-export type NoodleParticipantSelectionMode = "all" | "random_range" | "exact";
-export type NoodleIdentityDisclosure = "open" | "hinted" | "secret";
-export type NoodlerOnboardingState = "incomplete" | "zero" | "completed";
-export type NoodlerFanArchetype =
+type NoodleParticipantSelectionMode = "all" | "random_range" | "exact";
+type NoodleIdentityDisclosure = "open" | "hinted" | "secret";
+type NoodlerOnboardingState = "incomplete" | "zero" | "completed";
+type NoodlerFanArchetype =
   "ordinary" | "eccentric" | "crossFandom" | "raider" | "organicDiscovery" | "freeResource";
 
 export interface NoodlerSourceSnapshot {
@@ -34,7 +34,7 @@ export interface NoodlerSourceSnapshot {
   backstory: string;
 }
 
-export type NoodlerSourceField = keyof NoodlerSourceSnapshot;
+type NoodlerSourceField = keyof NoodlerSourceSnapshot;
 
 export type NoodlerSourceStatus =
   | { state: "current" }
@@ -44,15 +44,15 @@ export type NoodlerSourceStatus =
       changes: Array<{ field: NoodlerSourceField; previous: string; current: string }>;
     };
 
-export interface NoodleAccountAccessSettings {
+interface NoodleAccountAccessSettings {
   hiddenFromAccountIds: string[];
 }
 
-export interface NoodleWalletSettings {
+interface NoodleWalletSettings {
   coins: number;
 }
 
-export interface NoodleAccountProfileSettings {
+interface NoodleAccountProfileSettings {
   avatarCrop?: AvatarCrop | null;
   bannerUrl?: string;
   location?: string;
@@ -63,7 +63,7 @@ export interface NoodleAccountProfileSettings {
   noodlerSourceSnapshot?: NoodlerSourceSnapshot;
 }
 
-export interface NoodleAccountSocialSettings {
+interface NoodleAccountSocialSettings {
   followingAccountIds?: string[];
   followingAccountTimestamps?: Record<string, string>;
   notificationsReadAt?: string;
@@ -79,15 +79,15 @@ export interface NoodleAccountSocialSettings {
   noodleFeedSeenAt?: string;
 }
 
-export interface NoodleAutoPostingSettings {
+interface NoodleAutoPostingSettings {
   enabled: boolean;
   /** NoodleR-owned image enablement; independent of public Noodle's enableImagePrompts. */
   imagesEnabled: boolean;
 }
 
-export type NoodlerFanArchetypeWeights = Record<NoodlerFanArchetype, number>;
+type NoodlerFanArchetypeWeights = Record<NoodlerFanArchetype, number>;
 
-export interface NoodlerFanActivitySettings {
+interface NoodlerFanActivitySettings {
   enabled?: boolean;
   archetypeWeights?: Partial<NoodlerFanArchetypeWeights>;
 }
@@ -97,22 +97,7 @@ export interface NoodleAccountSchedulerSettings {
   fanActivity?: NoodlerFanActivitySettings;
 }
 
-/** Per-creator outcome of the global "Refresh NoodleR now" action; one creator never rolls back another. */
-export type NoodlerRefreshNowOutcomeStatus =
-  | "generated"
-  | "disabled"
-  | "busy"
-  | "connection_required"
-  | "connection_not_found"
-  | "noodler_account_not_found"
-  | "skipped"
-  | "error";
-
-export interface NoodlerRefreshNowOutcome {
-  accountId: string;
-  status: NoodlerRefreshNowOutcomeStatus;
-}
-export interface NoodleAccountPrivacySettings {
+interface NoodleAccountPrivacySettings {
   identityDisclosure?: NoodleIdentityDisclosure;
   stagePersonality?: string;
   access: NoodleAccountAccessSettings;
@@ -126,7 +111,7 @@ export interface NoodleAccountSettings {
   wallet: NoodleWalletSettings;
 }
 
-export interface NoodlePollOption {
+interface NoodlePollOption {
   id: string;
   label: string;
 }
@@ -134,15 +119,6 @@ export interface NoodlePollOption {
 export interface NoodlePoll {
   question: string;
   options: NoodlePollOption[];
-}
-
-export interface NoodlePostImageCrop {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  sourceWidth: number;
-  sourceHeight: number;
 }
 
 export interface NoodleSettings {
@@ -198,7 +174,7 @@ export interface NoodleSettings {
   fanArchetypeWeights: NoodlerFanArchetypeWeights;
 }
 
-export interface NoodlerReserveCreatorStatus {
+interface NoodlerReserveCreatorStatus {
   accountId: string;
   nextPreparedAt: string | null;
 }
@@ -230,7 +206,7 @@ export interface NoodleAccount {
   updatedAt: string;
 }
 
-export interface NoodlerStageProfile {
+interface NoodlerStageProfile {
   id: string;
   noodleAccountId: string | null;
   handle: string;
@@ -250,16 +226,6 @@ export interface NoodlerManagedStageProfile extends NoodlerStageProfile {
   autoPosting: NoodleAutoPostingSettings;
   sourceStatus: NoodlerSourceStatus;
   fanActivity: NoodlerFanActivitySettings | null;
-}
-
-export interface NoodlerProfileSource {
-  id: string;
-  kind: NoodleAccountKind;
-  entityId: string;
-  displayName: string;
-  handle: string;
-  bio: string;
-  avatarUrl: string | null;
 }
 
 export interface NoodleAuthorSnapshot {
@@ -299,15 +265,6 @@ export interface NoodleAccountSubscription {
   createdAt: string;
 }
 
-export interface NoodlerSubscriber {
-  id: string;
-  displayName: string;
-  handle: string;
-  avatarUrl: string | null;
-  avatarCrop: AvatarCrop | null;
-  subscribedAt: string;
-}
-
 export interface NoodlePostUnlock {
   id: string;
   viewerAccountId: string;
@@ -315,36 +272,7 @@ export interface NoodlePostUnlock {
   createdAt: string;
 }
 
-export interface NoodlerPostView {
-  id: string;
-  authorAccountId: string;
-  access: NoodlePostAccess;
-  locked: boolean;
-  title: string | null;
-  content: string | null;
-  /** True when the post owns media, including while locked (imageUrl stays null then). */
-  hasImage: boolean;
-  imageUrl: string | null;
-  imagePrompt: string | null;
-  metadata: Record<string, unknown> | null;
-  createdAt: string;
-  /** Empty for locked posts — use likeCount/replyCount for the teaser footer. */
-  interactions: NoodleInteraction[];
-  likeCount: number;
-  replyCount: number;
-}
 
-export interface NoodlerViewerCreator {
-  profile: NoodlerStageProfile;
-  subscribed: boolean;
-  followed: boolean;
-  posts: NoodlerPostView[];
-}
-
-export interface NoodlerViewerScope {
-  viewer: NoodleAccount;
-  creators: NoodlerViewerCreator[];
-}
 
 export interface NoodleInteraction {
   id: string;
@@ -358,15 +286,6 @@ export interface NoodleInteraction {
   createdAt: string;
 }
 
-export type NoodlerCreatorReplyResult =
-  | { status: "generated"; interaction: NoodleInteraction }
-  | { status: "duplicate"; interaction: NoodleInteraction | null }
-  | { status: "exhausted" }
-  | { status: "busy" }
-  | { status: "ineligible" }
-  | { status: "connection_required" }
-  | { status: "connection_not_found" };
-
 export interface NoodleDigestEntry {
   id: string;
   accountIds: string[];
@@ -377,7 +296,7 @@ export interface NoodleDigestEntry {
   createdAt: string;
 }
 
-export type NoodleRefreshAttemptKind = "initial" | "text_only_fallback" | "correction";
+type NoodleRefreshAttemptKind = "initial" | "text_only_fallback" | "correction";
 
 export interface NoodleRefreshAttempt {
   sequence: number;
@@ -399,7 +318,7 @@ export interface NoodleRefreshRun {
   updatedAt: string;
 }
 
-export type NoodleRefreshSchedulerState = "disabled" | "scheduled" | "due" | "retrying" | "completed";
+type NoodleRefreshSchedulerState = "disabled" | "scheduled" | "due" | "retrying" | "completed";
 
 export interface NoodleRefreshSchedulerStatus {
   state: NoodleRefreshSchedulerState;

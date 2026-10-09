@@ -24,7 +24,6 @@ import {
   normalizeChatTopP,
   supportsAssistantReasoningPrefill,
 } from "./generation-parameters.js";
-import { clampGenerationMaxOutputTokens } from "./output-token-limits.js";
 import {
   isFallbackConnectionUsable,
   withConnectionFallbackProvider,
@@ -103,7 +102,7 @@ export type ResolvedGenerationParameters = GenerationParameterArgs["initial"] & 
   providerTopK: number | undefined;
 };
 
-export type GenerationProviderRuntime = GenerationParameterValues &
+type GenerationProviderRuntime = GenerationParameterValues &
   Omit<ResolvedGenerationParameters, keyof GenerationParameterValues> & {
     supportsAssistantReasoningPrefill: boolean;
     primaryProvider: BaseLLMProvider;
@@ -182,16 +181,6 @@ export function resolveGenerationParameters(args: GenerationParameterArgs): Reso
 
   if (args.isSceneChat) {
     forceParameters("scene", { maxTokens: 8192, reasoningEffort: "maximum", verbosity: "high" });
-  }
-
-  if (args.chatMode === "game") {
-    const capped = clampGenerationMaxOutputTokens({
-      provider: args.connection.provider,
-      model: args.connection.model,
-      maxTokens: runtime.maxTokens,
-      maxTokensOverride: args.connection.maxTokensOverride,
-    });
-    if (capped < runtime.maxTokens) forceParameters("outputCap", { maxTokens: capped });
   }
 
   const modelLower = (args.connection.model ?? "").toLowerCase();

@@ -39,7 +39,7 @@ const PeekPromptModal = lazy(async () => {
 });
 
 type ChatData = ComponentProps<typeof ChatSettingsDrawer>["chat"];
-export type ChatFloatingPanelAnchor = ChatToolbarFloatingPanelAnchor;
+type ChatFloatingPanelAnchor = ChatToolbarFloatingPanelAnchor;
 export type ChatSettingsInitialSection = ComponentProps<typeof ChatSettingsDrawer>["initialSection"];
 export type ChatSettingsTools = NonNullable<ComponentProps<typeof ChatSettingsDrawer>["chatTools"]>;
 

@@ -1,6 +1,5 @@
 import {
   CONVERSATION_CALL_CHARACTER_VIDEO_CLIP_KINDS,
-  type ConversationCallCharacterVideoClipKind,
 } from "../types/conversation-call.js";
 import type {
   ConversationCallVideoClipDurations,
@@ -15,7 +14,7 @@ export const VIDEO_CALL_CLIP_DURATION_MAX = 15;
 export const VIDEO_ANIMATED_EXPRESSION_CLIP_DURATION_MIN = 1;
 export const VIDEO_ANIMATED_EXPRESSION_CLIP_DURATION_MAX = 8;
 
-export const DEFAULT_CONVERSATION_CALL_VIDEO_CLIP_DURATIONS: ConversationCallVideoClipDurations = {
+const DEFAULT_CONVERSATION_CALL_VIDEO_CLIP_DURATIONS: ConversationCallVideoClipDurations = {
   idle: 5,
   talking: 5,
   laughing: 5,
@@ -24,7 +23,7 @@ export const DEFAULT_CONVERSATION_CALL_VIDEO_CLIP_DURATIONS: ConversationCallVid
   sighing: 5,
 };
 
-export const DEFAULT_VIDEO_GENERATION_USER_SETTINGS: VideoGenerationUserSettings = {
+const DEFAULT_VIDEO_GENERATION_USER_SETTINGS: VideoGenerationUserSettings = {
   sceneVideoDurationSeconds: 10,
   callClipDurations: DEFAULT_CONVERSATION_CALL_VIDEO_CLIP_DURATIONS,
   callCustomClipDurationSeconds: 5,
@@ -85,11 +84,4 @@ export function normalizeVideoGenerationUserSettings(raw: unknown): VideoGenerat
       VIDEO_ANIMATED_EXPRESSION_CLIP_DURATION_MAX,
     ),
   };
-}
-
-export function getConversationCallVideoClipDuration(
-  settings: VideoGenerationUserSettings,
-  kind: ConversationCallCharacterVideoClipKind,
-): number {
-  return settings.callClipDurations[kind] ?? DEFAULT_CONVERSATION_CALL_VIDEO_CLIP_DURATIONS[kind];
 }

@@ -1,36 +1,12 @@
 import { useRef, type ReactNode } from "react";
 import { Check, FolderOpen, Loader2, Upload } from "lucide-react";
 import { useQueries, useQuery } from "@tanstack/react-query";
-import {
-  DEFAULT_AGENT_PROMPT_TEMPLATE_ID,
-  getDefaultBuiltInAgentSettings,
-  normalizeAgentPromptTemplateSelectionMap,
-  normalizeSpotifySourceType,
-  resolveDefaultAgentPromptTemplateId,
-  type AgentPromptTemplateOption,
-  type HapticFeedbackSensitivity,
-  type KnowledgeAgentSourceSettings,
-  type Lorebook,
-  type SpotifySourceType,
-} from "@marinara-engine/shared";
+import { DEFAULT_AGENT_PROMPT_TEMPLATE_ID, getDefaultBuiltInAgentSettings, normalizeAgentPromptTemplateSelectionMap, resolveDefaultAgentPromptTemplateId, type AgentPromptTemplateOption, type KnowledgeAgentSourceSettings, type Lorebook } from "@marinara-engine/shared";
 import { useKnowledgeSources, useUploadKnowledgeSource } from "../../hooks/use-knowledge-sources";
 import { api } from "../../lib/api-client";
 import { showAlertDialog } from "../../lib/app-dialogs";
 import { cn } from "../../lib/utils";
-import {
-  DEFAULT_SPRITE_DISPLAY_MODES,
-  SPRITE_DISPLAY_OPACITY_MAX,
-  SPRITE_DISPLAY_OPACITY_MIN,
-  SPRITE_DISPLAY_OPACITY_PERCENT_MAX,
-  SPRITE_DISPLAY_OPACITY_PERCENT_MIN,
-  SPRITE_DISPLAY_SCALE_MAX,
-  SPRITE_DISPLAY_SCALE_MIN,
-  SPRITE_DISPLAY_SCALE_PERCENT_MAX,
-  SPRITE_DISPLAY_SCALE_PERCENT_MIN,
-  hasSpriteDisplayMode,
-  normalizeSpriteDisplayModes,
-  type SpriteDisplayMode,
-} from "./sprite-display-modes";
+import { DEFAULT_SPRITE_DISPLAY_MODES, SPRITE_DISPLAY_OPACITY_MAX, SPRITE_DISPLAY_OPACITY_MIN, SPRITE_DISPLAY_OPACITY_PERCENT_MAX, SPRITE_DISPLAY_OPACITY_PERCENT_MIN, SPRITE_DISPLAY_SCALE_MAX, SPRITE_DISPLAY_SCALE_MIN, SPRITE_DISPLAY_SCALE_PERCENT_MAX, SPRITE_DISPLAY_SCALE_PERCENT_MIN, hasSpriteDisplayMode, normalizeSpriteDisplayModes, type SpriteDisplayMode } from "./sprite-display-modes";
 import { HAPTIC_SENSITIVITY_OPTIONS } from "./haptic-sensitivity-options";
 import { SettingsSwitch } from "../panels/settings/SettingControls";
 import { useTranslation as useUiTranslation } from "react-i18next";

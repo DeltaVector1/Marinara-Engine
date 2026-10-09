@@ -49,7 +49,7 @@ const HF_API = "https://huggingface.co/api/models";
  * Requires `ready`, so a configured-but-down slot falls back to the agent's own
  * connection instead of failing the run.
  */
-export function utilitySlotServesAgent(
+function utilitySlotServesAgent(
   status: Pick<UtilitySidecarStatus, "activeModelId" | "models" | "runtimeInstalled">,
   agentType: string,
 ): boolean {
@@ -67,7 +67,7 @@ export function utilitySlotServesAgent(
  * count, and the operator is being asked to spend a download. When the ids cannot be
  * compared this reports `indeterminate` rather than implying the copy is current.
  */
-export function compareModelVersions(
+function compareModelVersions(
   installedOid: string | null,
   availableOid: string | null,
 ): { updateAvailable: boolean; indeterminate: boolean } {
@@ -128,7 +128,7 @@ function modelFilePath(modelId: string, file: string): string {
   return assertInsideUtilityDir(join(modelDirPath(modelId), file));
 }
 
-export class UtilitySidecarService {
+class UtilitySidecarService {
   private config: UtilitySidecarConfig = { ...UTILITY_SIDECAR_DEFAULT_CONFIG };
   private child: ChildProcess | null = null;
   /** Which model the running child actually loaded, so a stale one is never reused. */

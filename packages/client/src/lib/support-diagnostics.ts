@@ -118,7 +118,7 @@ function available(value: string | null | undefined): string {
   return value?.trim() || "Unavailable";
 }
 
-export const SERVER_UNREACHABLE_DIAGNOSTIC = "Unreachable (request timed out)";
+const SERVER_UNREACHABLE_DIAGNOSTIC = "Unreachable (request timed out)";
 
 /**
  * #5740: the acting-on phrase is model-authored free text - the only such

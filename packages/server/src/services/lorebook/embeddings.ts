@@ -15,7 +15,7 @@ const SEMANTIC_CALIBRATION_TEXTS = [
 
 export type LorebookEmbeddingOptions = MemoryRecallEmbeddingOptions;
 
-export interface LorebookEmbeddingWarmupResult {
+interface LorebookEmbeddingWarmupResult {
   attempted: number;
   embedded: number;
 }
@@ -25,7 +25,7 @@ export interface SemanticLorebookMatch {
   similarity: number;
 }
 
-export function selectLorebookVectorQueryText(
+function selectLorebookVectorQueryText(
   messages: Array<{ content: string; role?: string }>,
   depth: number,
 ): string {

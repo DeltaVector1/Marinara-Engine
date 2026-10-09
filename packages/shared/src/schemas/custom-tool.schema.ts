@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────
 import { z } from "zod";
 
-export const toolExecutionTypeSchema = z.enum(["webhook", "static", "script"]);
+const toolExecutionTypeSchema = z.enum(["webhook", "static", "script"]);
 
 export const createCustomToolSchema = z.object({
   name: z
@@ -28,5 +28,3 @@ export const reorderCustomToolsSchema = z.object({
 });
 
 export type CreateCustomToolInput = z.infer<typeof createCustomToolSchema>;
-export type UpdateCustomToolInput = z.infer<typeof updateCustomToolSchema>;
-export type ReorderCustomToolsInput = z.infer<typeof reorderCustomToolsSchema>;

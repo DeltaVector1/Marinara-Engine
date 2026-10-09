@@ -12,7 +12,7 @@ import type {
 } from "@marinara-engine/shared";
 import { connectionKeys } from "./use-connections";
 
-export const connectionFolderKeys = {
+const connectionFolderKeys = {
   all: ["connection-folders"] as const,
   list: () => [...connectionFolderKeys.all, "list"] as const,
 };

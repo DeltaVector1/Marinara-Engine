@@ -34,7 +34,7 @@ export interface CapabilityToolRegistration {
 }
 
 /** Where the call came from, so a handler can tell one chat from another. */
-export interface CapabilityToolCall {
+interface CapabilityToolCall {
   chatId: string;
   packageId: string;
   toolName: string;
@@ -64,7 +64,7 @@ const MAX_RESULT_BYTES = 64 * 1024;
 const HANDLER_TIMEOUT_MS = 10_000;
 
 /** `civitas_report_scene` from package `civitas` and tool `report_scene`. */
-export function qualifyToolName(packageId: string, name: string): string {
+function qualifyToolName(packageId: string, name: string): string {
   return `${packageId.replace(/-/g, "_")}_${name}`;
 }
 
@@ -139,13 +139,6 @@ export function registerCapabilityTool(packageId: string, registration: Capabili
     // from the superseded registration must not delete its replacement.
     if (byQualifiedName.get(qualifiedName) === registered) byQualifiedName.delete(qualifiedName);
   };
-}
-
-/** Drops every tool a package registered, for deactivation or removal. */
-export function releaseCapabilityTools(packageId: string): void {
-  for (const [qualifiedName, tool] of byQualifiedName) {
-    if (tool.packageId === packageId) byQualifiedName.delete(qualifiedName);
-  }
 }
 
 /** The definitions to hand a provider, in the shape the rest of the tool path already uses. */

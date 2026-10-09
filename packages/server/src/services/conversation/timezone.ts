@@ -150,7 +150,7 @@ export function formatZonedConversationDate(date: Date, timeZone?: string, rollo
   return `${String(parts.day).padStart(2, "0")}.${String(parts.month).padStart(2, "0")}.${parts.year}`;
 }
 
-export function zonedLogicalDateKey(date: Date, timeZone?: string, rolloverHour = 0): string {
+function zonedLogicalDateKey(date: Date, timeZone?: string, rolloverHour = 0): string {
   const shifted = new Date(date.getTime() - rolloverHour * 3_600_000);
   const parts = getZonedDateParts(shifted, timeZone);
   return `${parts.year}-${parts.month}-${parts.day}`;

@@ -46,7 +46,7 @@ interface ActiveVideoDefaults {
   fps?: number;
 }
 
-export interface GameVideoRuntime {
+interface GameVideoRuntime {
   source: string;
   serviceHint: string;
   baseUrl: string;

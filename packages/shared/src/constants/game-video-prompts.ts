@@ -1,9 +1,9 @@
 import type { AgentPromptTemplateOption } from "../types/agent.js";
 
 export const GAME_VIDEO_PROMPT_TEMPLATE_ID = "cinematic-scene-video";
-export const ANIME_GAME_VIDEO_PROMPT_TEMPLATE_ID = "anime-game-video";
-export const COMIC_PAGE_GAME_VIDEO_PROMPT_TEMPLATE_ID = "comic-page-game-video";
-export const LTX_DIRECTOR_GAME_VIDEO_PROMPT_TEMPLATE_ID = "ltx-director-video";
+const ANIME_GAME_VIDEO_PROMPT_TEMPLATE_ID = "anime-game-video";
+const COMIC_PAGE_GAME_VIDEO_PROMPT_TEMPLATE_ID = "comic-page-game-video";
+const LTX_DIRECTOR_GAME_VIDEO_PROMPT_TEMPLATE_ID = "ltx-director-video";
 
 export const GAME_VIDEO_PROMPT_TEMPLATE_VARIABLES = [
   "sceneTitle",
@@ -31,7 +31,7 @@ export const GAME_VIDEO_PROMPT_TEMPLATE = [
   "Avoid subtitles, captions, UI, logos, watermarks, unrelated new characters, distorted anatomy, and abrupt cuts.",
 ].join("\n");
 
-export const COMIC_PAGE_GAME_VIDEO_PROMPT_TEMPLATE = [
+const COMIC_PAGE_GAME_VIDEO_PROMPT_TEMPLATE = [
   "Create a ${durationSeconds}-second ${aspectRatio} animation from the supplied comic or manga page reference.",
   "${sourceIllustrationLine}",
   "Sequence: ${sceneTitle}",
@@ -51,7 +51,7 @@ export const COMIC_PAGE_GAME_VIDEO_PROMPT_TEMPLATE = [
   "Preserve any deliberate comic lettering only while it remains visible, but do not invent, rewrite, or animate extra dialogue, captions, subtitles, UI, logos, or watermarks.",
 ].join("\n");
 
-export const ANIME_GAME_VIDEO_PROMPT_TEMPLATE = [
+const ANIME_GAME_VIDEO_PROMPT_TEMPLATE = [
   "Create a ${durationSeconds}-second ${aspectRatio} anime shot from the supplied first-frame illustration.",
   "${sourceIllustrationLine}",
   "Shot: ${sceneTitle}",
@@ -73,7 +73,7 @@ export const ANIME_GAME_VIDEO_PROMPT_TEMPLATE = [
   "- Avoid unrelated movement, new characters, duplicated subjects, morphing, costume changes, distorted anatomy, subtitles, captions, speech bubbles, UI, logos, and watermarks.",
 ].join("\n");
 
-export const LTX_DIRECTOR_GAME_VIDEO_PROMPT_TEMPLATE = "${narrationSummary}";
+const LTX_DIRECTOR_GAME_VIDEO_PROMPT_TEMPLATE = "${narrationSummary}";
 
 export const GAME_VIDEO_BUILT_IN_PROMPT_TEMPLATES: AgentPromptTemplateOption[] = [
   {

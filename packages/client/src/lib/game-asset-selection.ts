@@ -4,15 +4,12 @@
 
 export type GameAssetSelectionStatus = "included" | "partial" | "excluded";
 
-export interface GameAssetSelectionMetadata {
+interface GameAssetSelectionMetadata {
   excludedFolders?: string[];
 }
 
-type AssetEntryWithPath = {
-  path: string;
-};
 
-export function normalizeGameAssetFolderPath(path: string | null | undefined): string {
+function normalizeGameAssetFolderPath(path: string | null | undefined): string {
   return (path ?? "")
     .trim()
     .replace(/\\/g, "/")
@@ -20,7 +17,7 @@ export function normalizeGameAssetFolderPath(path: string | null | undefined): s
     .replace(/\/+/g, "/");
 }
 
-export function isGameAssetPathInFolder(path: string, folder: string): boolean {
+function isGameAssetPathInFolder(path: string, folder: string): boolean {
   const normalizedPath = normalizeGameAssetFolderPath(path);
   const normalizedFolder = normalizeGameAssetFolderPath(folder);
   if (!normalizedFolder) return true;
@@ -48,20 +45,6 @@ export function serializeGameAssetSelection(excludedFolders: Iterable<string>): 
   return folders.length > 0 ? { excludedFolders: folders } : null;
 }
 
-export function isGameAssetIncluded(path: string, excludedFolders: readonly string[]): boolean {
-  return !excludedFolders.some((folder) => folder && isGameAssetPathInFolder(path, folder));
-}
-
-export function filterGameAssetMap<T extends AssetEntryWithPath>(
-  assets: Record<string, T> | null | undefined,
-  excludedFolders: readonly string[],
-): Record<string, T> | null {
-  if (!assets) return null;
-  if (excludedFolders.length === 0) return assets;
-  return Object.fromEntries(
-    Object.entries(assets).filter(([, entry]) => isGameAssetIncluded(entry.path, excludedFolders)),
-  );
-}
 
 export function getGameAssetFolderSelectionStatus(
   path: string,

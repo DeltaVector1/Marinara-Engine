@@ -4,7 +4,7 @@ import { captureTextSelection, restoreTextSelectionAfterRender } from "./text-se
 const pendingSelectionRestores = new WeakMap<HTMLTextAreaElement, () => void>();
 const QUOTE_INPUT_TRIGGER_RE = /["'\u2018\u2019\u201a\u201b\u201c\u201d\u201e\u201f]/;
 
-export function shouldFormatTextareaQuotes(inputEvent: InputEvent | undefined, value: string): boolean {
+function shouldFormatTextareaQuotes(inputEvent: InputEvent | undefined, value: string): boolean {
   if (!inputEvent) return QUOTE_INPUT_TRIGGER_RE.test(value);
   const inputType = typeof inputEvent.inputType === "string" ? inputEvent.inputType : "";
   if (inputEvent.isComposing || inputType === "insertCompositionText" || inputType.startsWith("delete")) {

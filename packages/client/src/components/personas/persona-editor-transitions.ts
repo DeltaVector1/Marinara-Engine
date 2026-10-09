@@ -15,7 +15,7 @@ function stableValueKey(value: unknown): string | undefined {
   });
 }
 
-export function personaEditorValuesEqual(left: unknown, right: unknown): boolean {
+function personaEditorValuesEqual(left: unknown, right: unknown): boolean {
   if (left === right) return true;
   return stableValueKey(left) === stableValueKey(right);
 }

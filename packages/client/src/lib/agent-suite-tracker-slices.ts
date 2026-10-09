@@ -5,7 +5,7 @@ import {
   normalizeInventoryTrackerRows,
 } from "@marinara-engine/shared";
 
-export type AgentSuiteTrackerSlice = {
+type AgentSuiteTrackerSlice = {
   label: string;
   description: string;
   getValue: (gameState: GameState) => unknown;

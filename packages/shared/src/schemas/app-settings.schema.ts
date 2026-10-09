@@ -19,21 +19,13 @@ export const managedGenerationParameterDefinitionSchema = z.object({
   tooltip: z.string().trim().max(500).optional(),
 });
 
-export const managedGenerationParameterDefinitionsSchema = z
-  .array(managedGenerationParameterDefinitionSchema)
-  .max(MAX_MANAGED_GENERATION_PARAMETER_DEFINITIONS);
-
-export type ManagedGenerationParameterDefinitionInput = z.infer<typeof managedGenerationParameterDefinitionSchema>;
-
 /** Payload for PUT /api/app-settings/:key — the opaque serialized settings blob. */
 export const appSettingsUpdateSchema = z.object({
   value: z.string().max(1_000_000),
 });
 
 /** Response shape for GET /api/app-settings/:key. */
-export const appSettingsResponseSchema = z.object({
+const appSettingsResponseSchema = z.object({
   value: z.string().nullable(),
 });
-
-export type AppSettingsUpdateInput = z.infer<typeof appSettingsUpdateSchema>;
 export type AppSettingsResponse = z.infer<typeof appSettingsResponseSchema>;

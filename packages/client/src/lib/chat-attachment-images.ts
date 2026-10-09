@@ -10,7 +10,7 @@ const COMPRESSION_ATTEMPTS = [
   { edge: 1024, quality: 0.68 },
 ];
 
-export interface PreparedImageAttachment {
+interface PreparedImageAttachment {
   type: string;
   data: string;
   name: string;
@@ -106,7 +106,7 @@ function readJpegDimensions(bytes: Uint8Array): ImageDimensions | null {
   return null;
 }
 
-export function readEncodedImageDimensions(bytes: Uint8Array): ImageDimensions | null {
+function readEncodedImageDimensions(bytes: Uint8Array): ImageDimensions | null {
   if (bytes.length >= 24 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     return { width: view.getUint32(16), height: view.getUint32(20) };

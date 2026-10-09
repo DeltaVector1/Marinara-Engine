@@ -6,7 +6,6 @@
 // ──────────────────────────────────────────────
 
 import { randomUUID } from "crypto";
-import type { SceneAnalysis } from "@marinara-engine/shared";
 import { fitMessagesToContext, llmFetch, sanitizeApiError, type ChatMessage } from "../llm/base-provider.js";
 import { sidecarModelService } from "./sidecar-model.service.js";
 import { sidecarProcessService } from "./sidecar-process.service.js";
@@ -26,7 +25,6 @@ export function isInferenceBusy(): boolean {
 }
 
 const MAX_OUTPUT_TOKENS = 8192;
-const SCENE_ANALYSIS_MAX_TOKENS = 4096;
 const STREAM_IDLE_TIMEOUT_MS = 120_000;
 const MAX_ACCUMULATED_TEXT_CHARS = 4_000_000;
 
@@ -148,7 +146,7 @@ function getRequestModel(): string {
   );
 }
 
-export type SidecarTestMessageOutput = {
+type SidecarTestMessageOutput = {
   content: string;
   reasoning: string;
   output: string;
@@ -187,17 +185,6 @@ function extractContentText(content: unknown): string {
   return "";
 }
 
-function extractJsonPayload<T>(raw: string): T {
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i)?.[1];
-    if (fenced) {
-      return JSON.parse(fenced) as T;
-    }
-    throw new Error("Sidecar returned invalid JSON");
-  }
-}
 
 function extractChoiceContent(
   choice:
@@ -495,187 +482,6 @@ export async function unloadModel(): Promise<void> {
   await sidecarProcessService.unload();
 }
 
-const SCENE_ANALYSIS_SCHEMA = {
-  type: "object" as const,
-  properties: {
-    background: { type: ["string", "null"] as const },
-    music: { type: ["string", "null"] as const },
-    ambient: { type: ["string", "null"] as const },
-    weather: { type: ["string", "null"] as const },
-    timeOfDay: { type: ["string", "null"] as const },
-    musicGenre: { type: ["string", "null"] as const },
-    musicIntensity: { type: ["string", "null"] as const },
-    locationKind: { type: ["string", "null"] as const },
-    spotifyTrack: {
-      type: ["string", "null"] as const,
-    },
-    reputationChanges: {
-      type: "array" as const,
-      maxItems: 5,
-      items: {
-        type: "object" as const,
-        properties: {
-          npcName: { type: "string" as const },
-          action: { type: "string" as const },
-        },
-        required: ["npcName", "action"] as const,
-        additionalProperties: false as const,
-      },
-    },
-    segmentEffects: {
-      type: "array" as const,
-      maxItems: 20,
-      items: {
-        type: "object" as const,
-        properties: {
-          segment: { type: "number" as const },
-          background: { type: ["string", "null"] as const },
-          music: { type: ["string", "null"] as const },
-          ambient: { type: ["string", "null"] as const },
-          sfx: {
-            type: "array" as const,
-            items: { type: "string" as const },
-            maxItems: 3,
-          },
-          sfxLoopCount: { type: "integer" as const, minimum: 1, maximum: 5 },
-          directions: {
-            type: "array" as const,
-            maxItems: 1,
-            items: {
-              type: "object" as const,
-              properties: {
-                effect: {
-                  type: "string" as const,
-                  enum: [
-                    "flash",
-                    "screen_shake",
-                    "pulse",
-                    "slow_zoom",
-                    "impact_zoom",
-                    "tilt",
-                    "desaturate",
-                    "chromatic_aberration",
-                    "film_grain",
-                    "rain_streaks",
-                    "spotlight",
-                    "focus",
-                    "vignette",
-                    "letterbox",
-                    "color_grade",
-                  ] as const,
-                },
-                duration: { type: "number" as const },
-                intensity: { type: "number" as const },
-                target: {
-                  type: "string" as const,
-                  enum: ["background", "content", "all"] as const,
-                },
-                params: {
-                  type: "object" as const,
-                  additionalProperties: { type: "string" as const },
-                },
-              },
-              required: ["effect"] as const,
-              additionalProperties: false as const,
-            },
-          },
-        },
-        required: ["segment"] as const,
-        additionalProperties: false as const,
-      },
-    },
-    directions: {
-      type: "array" as const,
-      maxItems: 8,
-      items: {
-        type: "object" as const,
-        properties: {
-          effect: {
-            type: "string" as const,
-            enum: [
-              "fade_from_black",
-              "fade_to_black",
-              "flash",
-              "screen_shake",
-              "blur",
-              "vignette",
-              "letterbox",
-              "color_grade",
-              "focus",
-              "pulse",
-              "slow_zoom",
-              "impact_zoom",
-              "tilt",
-              "desaturate",
-              "chromatic_aberration",
-              "film_grain",
-              "rain_streaks",
-              "spotlight",
-            ] as const,
-          },
-          duration: { type: "number" as const },
-          intensity: { type: "number" as const },
-          target: {
-            type: "string" as const,
-            enum: ["background", "content", "all"] as const,
-          },
-          params: {
-            type: "object" as const,
-            additionalProperties: { type: "string" as const },
-          },
-        },
-        required: ["effect"] as const,
-        additionalProperties: false as const,
-      },
-    },
-    illustration: {
-      type: ["object", "null"] as const,
-      properties: {
-        segment: { type: "number" as const },
-        title: { type: "string" as const },
-        prompt: { type: "string" as const },
-        characters: {
-          type: "array" as const,
-          maxItems: 6,
-          items: { type: "string" as const },
-        },
-        reason: { type: "string" as const },
-        slug: { type: "string" as const },
-      },
-      required: ["prompt"] as const,
-      additionalProperties: false as const,
-    },
-  },
-  additionalProperties: false as const,
-  required: ["background", "music", "ambient", "weather", "timeOfDay", "reputationChanges", "segmentEffects"] as const,
-};
-
-export async function analyzeScene(
-  systemPrompt: string,
-  userPrompt: string,
-  signal?: AbortSignal,
-): Promise<SceneAnalysis> {
-  return withRequestTracking(async () => {
-    const raw = await streamChatCompletion({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      maxTokens: SCENE_ANALYSIS_MAX_TOKENS,
-      responseFormat: {
-        type: "json_schema",
-        json_schema: {
-          name: "scene_analysis",
-          schema: SCENE_ANALYSIS_SCHEMA,
-          strict: true,
-        },
-      },
-      signal,
-    });
-
-    return extractJsonPayload<SceneAnalysis>(raw);
-  });
-}
 
 export async function runTrackerPrompt(
   systemPrompt: string,

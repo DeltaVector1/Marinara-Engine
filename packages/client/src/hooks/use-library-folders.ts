@@ -8,7 +8,7 @@ import { api } from "../lib/api-client";
 
 export type { LibraryFolderScope } from "@marinara-engine/shared";
 
-export type LibraryFolder = {
+type LibraryFolder = {
   id: string;
   scope: LibraryFolderScope;
   name: string;
@@ -26,7 +26,7 @@ type LegacyLibraryFolder = MigrateLibraryFolderInput & {
   scope: LibraryFolderScope;
 };
 
-export const libraryFolderKeys = {
+const libraryFolderKeys = {
   all: ["library-folders"] as const,
   list: (scope: LibraryFolderScope) => [...libraryFolderKeys.all, scope] as const,
 };

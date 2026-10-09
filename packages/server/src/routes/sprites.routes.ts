@@ -279,11 +279,11 @@ function ensureDir(dir: string) {
   }
 }
 
-export function resolveSpriteNativeTransparency(model: string | undefined, requested: boolean): boolean {
+function resolveSpriteNativeTransparency(model: string | undefined, requested: boolean): boolean {
   return requested && !isOpenAIGptImage2Model(model);
 }
 
-export function resolveSpriteSheetCanvas({
+function resolveSpriteSheetCanvas({
   cols,
   rows,
   spriteType,
@@ -321,7 +321,7 @@ export function resolveSpriteSheetCanvas({
   };
 }
 
-export function compileSpritePrompt(
+function compileSpritePrompt(
   prompt: string,
   options: {
     negativePrompt?: string;
@@ -1032,10 +1032,10 @@ function resolveReferenceImageBase64(input?: string): string | undefined {
   return undefined;
 }
 
-export type FullBodyReferenceRole =
+type FullBodyReferenceRole =
   { kind: "neutral-full-body" } | { kind: "expression"; expression: string } | { kind: "identity" };
 
-export function buildFullBodyReferenceContract(roles: FullBodyReferenceRole[]): string {
+function buildFullBodyReferenceContract(roles: FullBodyReferenceRole[]): string {
   if (roles.length === 0) return "";
 
   const instructions = roles.map((role, index) => {

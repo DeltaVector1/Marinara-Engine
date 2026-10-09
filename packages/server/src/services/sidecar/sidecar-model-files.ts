@@ -27,7 +27,7 @@ export function validateLocalGgufPath(filePath: string): string {
   return selected;
 }
 
-export function isLikelyMmprojModelPath(modelPath: string): boolean {
+function isLikelyMmprojModelPath(modelPath: string): boolean {
   const filename = basename(modelPath).toLowerCase();
   return (
     filename.includes("mmproj") || /(?:^|[-_.])mm-?proj(?:[-_.]|$)/i.test(filename) || filename.includes("projector")

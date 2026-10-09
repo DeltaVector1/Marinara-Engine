@@ -21,25 +21,13 @@ import { logger } from "../../lib/logger.js";
  * Switches an operator can pin from the environment. When the variable is set it wins, both on
  * and off; unset or blank falls through to the saved setting, then to the default.
  */
-export const FEATURE_ENV_FLAG_OVERRIDES: Partial<Record<FeatureSwitchName, string>> = {
+const FEATURE_ENV_FLAG_OVERRIDES: Partial<Record<FeatureSwitchName, string>> = {
   stableLorebookGroupPicks: "LOREBOOK_STABLE_GROUP_WINNERS",
   providerRetry: "PROVIDER_RETRY_TRANSIENT_ERRORS",
 };
 
 let cached: FeatureSettings = {};
 const changeListeners = new Set<() => void>();
-
-/**
- * Run `listener` after every change that can flip a switch: a save, a key removal, a raw row
- * write picked up by reloadFeatureSettingsIfTouched, or a `.env` reload (env overrides). Services
- * that must start or stop something at once subscribe here. Returns the unsubscribe function.
- */
-export function onFeatureSettingsChange(listener: () => void): () => void {
-  changeListeners.add(listener);
-  return () => {
-    changeListeners.delete(listener);
-  };
-}
 
 /** Tell the listeners the effective switches may have changed. A throwing listener never breaks the writer. */
 export function notifyFeatureSettingsChange(): void {
@@ -72,20 +60,8 @@ export async function loadFeatureSettings(storage: { get(key: string): Promise<s
   return applyFeatureSettingsValue(await storage.get(FEATURE_SETTINGS_KEY));
 }
 
-/**
- * Reload the cache after a write that bypassed app-settings storage (Professor Mari's generic
- * database commands and their restore). Returns true when the `features` row was touched.
- */
-export async function reloadFeatureSettingsIfTouched(
-  changes: ReadonlyArray<{ table: string; id: string }>,
-  storage: { get(key: string): Promise<string | null> },
-): Promise<boolean> {
-  if (!changes.some((change) => change.table === "app_settings" && change.id === FEATURE_SETTINGS_KEY)) return false;
-  await loadFeatureSettings(storage);
-  return true;
-}
 
-export function getFeatureSettings(): FeatureSettings {
+function getFeatureSettings(): FeatureSettings {
   return cached;
 }
 
@@ -99,7 +75,7 @@ export function isFeatureEnabled(name: FeatureSwitchName): boolean {
   return resolveFeatureEnabled(cached, name);
 }
 
-export function featureEnvOverrides(): FeatureSettingsResponse["envOverrides"] {
+function featureEnvOverrides(): FeatureSettingsResponse["envOverrides"] {
   const overrides: FeatureSettingsResponse["envOverrides"] = {};
   for (const [name, envVar] of Object.entries(FEATURE_ENV_FLAG_OVERRIDES) as Array<[FeatureSwitchName, string]>) {
     if (readEnvFlagOverride(envVar) !== null) overrides[name] = envVar;
@@ -108,7 +84,7 @@ export function featureEnvOverrides(): FeatureSettingsResponse["envOverrides"] {
 }
 
 /** The in-effect value of each switch an environment variable pins, so the UI shows it. */
-export function featureEnvEffective(): NonNullable<FeatureSettingsResponse["effective"]> {
+function featureEnvEffective(): NonNullable<FeatureSettingsResponse["effective"]> {
   const effective: NonNullable<FeatureSettingsResponse["effective"]> = {};
   for (const [name, envVar] of Object.entries(FEATURE_ENV_FLAG_OVERRIDES) as Array<[FeatureSwitchName, string]>) {
     const override = readEnvFlagOverride(envVar);

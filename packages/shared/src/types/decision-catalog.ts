@@ -13,8 +13,8 @@
 import type { DecisionCalibration } from "./decision.js";
 
 /** Which installer and launcher run an entry. A new kind is a real new runtime. */
-export const DECISION_RUNTIME_KINDS = ["open_jev_torch"] as const;
-export type DecisionRuntimeKind = (typeof DECISION_RUNTIME_KINDS)[number];
+const DECISION_RUNTIME_KINDS = ["open_jev_torch"] as const;
+type DecisionRuntimeKind = (typeof DECISION_RUNTIME_KINDS)[number];
 
 /**
  * Artifact types a published checkpoint can declare, mapped to the runtime that can
@@ -25,7 +25,7 @@ export type DecisionRuntimeKind = (typeof DECISION_RUNTIME_KINDS)[number];
  * pinned revision, so compatibility is read rather than assumed. A type that is not in
  * this table has no runtime here and is refused by name.
  */
-export const DECISION_ARTIFACT_RUNTIMES: Record<string, DecisionRuntimeKind> = {
+const DECISION_ARTIFACT_RUNTIMES: Record<string, DecisionRuntimeKind> = {
   qwen_lora_adapter_plus_scalar_decision_head: "open_jev_torch",
 };
 
@@ -37,7 +37,7 @@ export const DECISION_ARTIFACT_RUNTIMES: Record<string, DecisionRuntimeKind> = {
  * declaring `"constructor"` or `"toString"` would otherwise pass the one check that
  * decides whether a pasted repository is installable at all.
  */
-export function runtimeForArtifactType(artifactType: string): DecisionRuntimeKind | null {
+function runtimeForArtifactType(artifactType: string): DecisionRuntimeKind | null {
   return Object.hasOwn(DECISION_ARTIFACT_RUNTIMES, artifactType) ? DECISION_ARTIFACT_RUNTIMES[artifactType]! : null;
 }
 
@@ -214,7 +214,7 @@ export const SIDECAR_DECISION_MODELS: SidecarDecisionModelInfo[] = [
  * own manifest is not allowed to claim a lower driver floor or a wider GPU range than
  * the wheels actually support.
  */
-export const DECISION_RUNTIME_DEFAULTS: Record<
+const DECISION_RUNTIME_DEFAULTS: Record<
   DecisionRuntimeKind,
   Pick<SidecarDecisionModelInfo, "maxLengthTokens" | "batchSize" | "platforms" | "minComputeCapability" | "calibration">
 > = {
@@ -228,7 +228,7 @@ export const DECISION_RUNTIME_DEFAULTS: Record<
 };
 
 /** The shape of a checkpoint's own release manifest, as far as this engine reads it. */
-export interface DecisionReleaseManifest {
+interface DecisionReleaseManifest {
   artifact_type?: unknown;
   base_model?: unknown;
   base_revision?: unknown;
@@ -319,12 +319,12 @@ export const DECISION_SIDECAR_DEFAULT_SETTINGS: DecisionSidecarSettings = {
 };
 
 /** A plausible CUDA device index. Whether that card exists is the preflight's call. */
-export function isCudaDeviceIndex(value: unknown): value is number {
+function isCudaDeviceIndex(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 && value < 64;
 }
 
 /** Accept a stored custom entry only if its runtime and floors still make sense. */
-export function sanitizeCustomDecisionModel(value: unknown): SidecarDecisionModelInfo | null {
+function sanitizeCustomDecisionModel(value: unknown): SidecarDecisionModelInfo | null {
   if (!value || typeof value !== "object") return null;
   const model = value as SidecarDecisionModelInfo;
   const defaults = decisionRuntimeDefaults(model.runtime);

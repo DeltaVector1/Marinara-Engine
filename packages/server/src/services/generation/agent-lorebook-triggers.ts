@@ -12,7 +12,7 @@ import { logger } from "../../lib/logger.js";
 type LorebookSource = "manual" | "chat_active" | "none";
 type TriggeredEntriesByAgentId = NonNullable<AgentContext["triggeredLorebookEntriesByAgentId"]>;
 
-export interface AgentLorebookTriggerSource {
+interface AgentLorebookTriggerSource {
   id: string;
   contextSize: number;
   sourceLorebookIds: string[];
@@ -24,7 +24,7 @@ interface PreparedAgentLorebookSource {
   lorebooks: Lorebook[];
 }
 
-export interface AgentLorebookTriggerResolverOptions {
+interface AgentLorebookTriggerResolverOptions {
   agents: AgentLorebookTriggerSource[];
   activeCharacterIds: string[];
   activeCharacterTags: string[];

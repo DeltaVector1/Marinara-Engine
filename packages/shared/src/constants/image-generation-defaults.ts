@@ -7,11 +7,11 @@ import type {
 } from "../types/image-generation-defaults.js";
 
 export const IMAGE_DEFAULTS_STORAGE_KEY = "imageGeneration";
-export const IMAGE_GENERATION_DEFAULTS_VERSION = 1 as const;
+const IMAGE_GENERATION_DEFAULTS_VERSION = 1 as const;
 export const COMFYUI_LORA_STRENGTH_MIN = -100;
 export const COMFYUI_LORA_STRENGTH_MAX = 100;
 
-export const IMAGE_DEFAULTS_SERVICES: ImageDefaultsService[] = ["automatic1111", "comfyui", "novelai"];
+const IMAGE_DEFAULTS_SERVICES: ImageDefaultsService[] = ["automatic1111", "comfyui", "novelai"];
 
 /** Transparent placeholder accepted by ComfyUI image-processing nodes that reject 1×1 inputs. */
 export const COMFYUI_PLACEHOLDER_REFERENCE_BASE64 =
@@ -142,7 +142,7 @@ export const NOVELAI_NOISE_SCHEDULE_OPTIONS = [
   { value: "polyexponential", label: "Polyexponential" },
 ] as const;
 
-export interface NormalizeImageGenerationProfileResult {
+interface NormalizeImageGenerationProfileResult {
   profile: ImageGenerationDefaultsProfile;
   changed: boolean;
 }
@@ -155,7 +155,7 @@ export function imageSourceToDefaultsService(value: unknown): ImageDefaultsServi
   return isImageDefaultsService(normalized) ? normalized : null;
 }
 
-export function isImageDefaultsService(value: unknown): value is ImageDefaultsService {
+function isImageDefaultsService(value: unknown): value is ImageDefaultsService {
   return typeof value === "string" && (IMAGE_DEFAULTS_SERVICES as string[]).includes(value);
 }
 

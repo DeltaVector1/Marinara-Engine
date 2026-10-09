@@ -70,7 +70,7 @@ function ensureDir() {
 }
 
 /** Derive a display name from a font filename: "Roboto-Regular.woff2" → "Roboto" */
-export function fontDisplayName(filename: string): string {
+function fontDisplayName(filename: string): string {
   const name = basename(filename, extname(filename));
   return (
     name
@@ -170,7 +170,7 @@ function readCssDescriptor(block: string, name: string): string | undefined {
   return match?.[1]?.trim();
 }
 
-export function parseGoogleFontFaces(css: string): GoogleFontFace[] {
+function parseGoogleFontFaces(css: string): GoogleFontFace[] {
   const faces: GoogleFontFace[] = [];
   const seen = new Set<string>();
   const blocks = css.matchAll(/@font-face\s*\{([\s\S]*?)\}/g);
@@ -230,7 +230,7 @@ async function loadGoogleFontFaces(
   };
 }
 
-export function isLegacyManagedGoogleFilename(filename: string, safeName: string) {
+function isLegacyManagedGoogleFilename(filename: string, safeName: string) {
   const ext = extname(filename).toLowerCase();
   if (ext !== ".woff2") return false;
 

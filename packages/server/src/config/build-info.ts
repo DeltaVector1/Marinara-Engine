@@ -36,7 +36,7 @@ function isBuildMeta(value: unknown): value is BuildMeta {
   );
 }
 
-export function parseBuildMeta(value: string | null | undefined): BuildMeta | null {
+function parseBuildMeta(value: string | null | undefined): BuildMeta | null {
   if (value == null) return null;
 
   try {
@@ -106,7 +106,7 @@ function normalizeBranch(value: string | undefined | null) {
   return trimmed || null;
 }
 
-export function resolveBuildBranch(
+function resolveBuildBranch(
   envBranch: string | null | undefined,
   builtBranch: string | null | undefined,
   gitBranch: string | null | undefined,

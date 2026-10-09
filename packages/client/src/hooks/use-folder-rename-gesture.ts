@@ -6,7 +6,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 
-export interface FolderRenameGestureOptions {
+interface FolderRenameGestureOptions {
   onSingleClick: () => void;
   onRename: () => void;
   delayMs?: number;

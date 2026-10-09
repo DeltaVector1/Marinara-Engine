@@ -43,18 +43,18 @@ export interface AgentInjection {
   text: string;
 }
 
-export type AgentContextResolver = (
+type AgentContextResolver = (
   agent: AgentExecConfig,
   context: AgentContext,
 ) => AgentContext | Promise<AgentContext>;
 
-export type AgentPhaseContextPreparer = (
+type AgentPhaseContextPreparer = (
   agents: AgentExecConfig[],
   context: AgentContext,
 ) => AgentContext | Promise<AgentContext>;
 
 /** Callback fired whenever an agent produces a result. */
-export type AgentResultCallback = (result: AgentResult) => void;
+type AgentResultCallback = (result: AgentResult) => void;
 
 // ──────────────────────────────────────────────
 // Grouping — batch agents by (provider instance, model)
@@ -379,7 +379,7 @@ async function executePhase(
  * Run pre-generation agents (batched per provider+model).
  * Returns text snippets to inject into the main prompt.
  */
-export async function runPreGenerationAgents(
+async function runPreGenerationAgents(
   agents: ResolvedAgent[],
   context: AgentContext,
   onResult?: AgentResultCallback,
@@ -422,7 +422,7 @@ export async function runPreGenerationAgents(
  * Run post-processing agents (batched per provider+model).
  * Returns all results for the caller to apply.
  */
-export async function runPostProcessingAgents(
+async function runPostProcessingAgents(
   agents: ResolvedAgent[],
   context: AgentContext,
   onResult?: AgentResultCallback,
@@ -434,24 +434,13 @@ export async function runPostProcessingAgents(
 /**
  * Run parallel-phase agents (batched per provider+model).
  */
-export async function runParallelAgents(
+async function runParallelAgents(
   agents: ResolvedAgent[],
   context: AgentContext,
   onResult?: AgentResultCallback,
   resolveAgentContext?: AgentContextResolver,
 ): Promise<AgentResult[]> {
   return executePhase(agents, "parallel", context, onResult, resolveAgentContext);
-}
-
-// ──────────────────────────────────────────────
-// Full Pipeline (convenience wrapper)
-// ──────────────────────────────────────────────
-
-export interface AgentPipelineResult {
-  /** Text snippets injected before generation (from pre-gen agents) */
-  contextInjections: string[];
-  /** All agent results from every phase */
-  allResults: AgentResult[];
 }
 
 /**

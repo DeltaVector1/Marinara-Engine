@@ -1,6 +1,6 @@
 import type { Chat } from "@marinara-engine/shared";
 
-export type ChatDisplaySource = {
+type ChatDisplaySource = {
   name: string;
   metadata?: Chat["metadata"] | string | Record<string, unknown> | null;
 };

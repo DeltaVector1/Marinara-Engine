@@ -2,22 +2,22 @@
 // Hierarchical maps and spatial context
 // ──────────────────────────────────────────────
 
-export type SpatialOwnerMode = "roleplay" | "game";
+type SpatialOwnerMode = "roleplay" | "game";
 
-export type SpatialLocationKind = "region" | "settlement" | "place" | "building" | "floor" | "room";
+type SpatialLocationKind = "region" | "settlement" | "place" | "building" | "floor" | "room";
 
-export type SpatialChildPresentation = "map" | "layers" | "list";
+type SpatialChildPresentation = "map" | "layers" | "list";
 
-export type SpatialLocationStatus = "active" | "archived";
+type SpatialLocationStatus = "active" | "archived";
 
-export type SpatialLinkState = "available" | "hidden" | "blocked";
+type SpatialLinkState = "available" | "hidden" | "blocked";
 
-export interface SpatialLocationPlacement {
+interface SpatialLocationPlacement {
   x: number;
   y: number;
 }
 
-export interface SpatialLocationLink {
+interface SpatialLocationLink {
   targetId: string;
   label?: string;
   bidirectional: boolean;
@@ -76,7 +76,7 @@ export interface SpatialContextSnapshot {
   createdAt: string;
 }
 
-export type SpatialTravelMode = "step_by_step" | "travel_now";
+type SpatialTravelMode = "step_by_step" | "travel_now";
 
 export interface PendingSpatialTransition {
   destinationId: string;
@@ -99,7 +99,7 @@ export interface ResolvedSpatialTravel {
   complete: boolean;
 }
 
-export interface SpatialTravelPromptSummary {
+interface SpatialTravelPromptSummary {
   mode: SpatialTravelMode;
   fromLocationName: string;
   acceptedLocationName: string;
@@ -110,7 +110,7 @@ export interface SpatialTravelPromptSummary {
 
 export type SpatialDestinationRelation = "enter" | "leave" | "link";
 
-export interface SpatialDestination {
+interface SpatialDestination {
   id: string;
   name: string;
   kind: SpatialLocationKind;
@@ -141,7 +141,7 @@ export interface ResolvedOwnerSpatialProjection {
   knownLocations?: Array<{ id: string; path: string }>;
 }
 
-export type SpatialDefinitionIssueCode =
+type SpatialDefinitionIssueCode =
   | "too_many_locations"
   | "too_many_links"
   | "duplicate_location_id"
@@ -181,31 +181,6 @@ export type SpatialTransitionErrorCode =
   | "spatial_destination_missing"
   | "spatial_destination_unreachable";
 
-export type SpatialTransitionValidationResult =
-  | {
-      ok: true;
-      destination: SpatialDestination;
-      travel?: ResolvedSpatialTravel;
-    }
-  | {
-      ok: false;
-      code: SpatialTransitionErrorCode;
-      message: string;
-    };
-
-export type SpatialArchiveBlockerCode =
-  | "spatial_location_missing"
-  | "spatial_archive_starting_replacement_required"
-  | "spatial_archive_current_replacement_required"
-  | "spatial_archive_active_children";
-
-export type SpatialArchiveValidationResult =
-  | { ok: true }
-  | {
-      ok: false;
-      code: SpatialArchiveBlockerCode;
-      message: string;
-    };
 
 export interface SpatialContextResponse {
   definition: SpatialContextDefinition | null;
@@ -216,15 +191,15 @@ export interface SpatialContextResponse {
   hasCommittedSpatialHistory: boolean;
 }
 
-export type SpatialMapDraftSize = "small" | "medium" | "large";
+type SpatialMapDraftSize = "small" | "medium" | "large";
 
-export type SpatialMapDraftOperation = "create" | "replace" | "expand";
+type SpatialMapDraftOperation = "create" | "replace" | "expand";
 
-export type SpatialMapGroundingMode = "setup" | "lore_strict" | "lore_expand";
+type SpatialMapGroundingMode = "setup" | "lore_strict" | "lore_expand";
 
-export type SpatialMapLocationProvenanceKind = "lore_backed" | "inferred" | "added_by_ai";
+type SpatialMapLocationProvenanceKind = "lore_backed" | "inferred" | "added_by_ai";
 
-export interface SpatialMapLocationProvenanceSource {
+interface SpatialMapLocationProvenanceSource {
   entryId: string;
   lorebookId: string;
   lorebookName: string;
@@ -232,12 +207,12 @@ export interface SpatialMapLocationProvenanceSource {
   excerpt: string;
 }
 
-export interface SpatialMapLocationProvenance {
+interface SpatialMapLocationProvenance {
   kind: SpatialMapLocationProvenanceKind;
   sources: SpatialMapLocationProvenanceSource[];
 }
 
-export interface SpatialMapGroundingSummary {
+interface SpatialMapGroundingSummary {
   mode: SpatialMapGroundingMode;
   selectedLorebookCount: number;
   selectedEntryCount: number;

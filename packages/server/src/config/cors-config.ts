@@ -74,7 +74,7 @@ function originIsAllowed(origin: string): boolean {
   return false;
 }
 
-export type CorsDelegateCallback = (
+type CorsDelegateCallback = (
   err: Error | null,
   options?: { origin: boolean | string; credentials?: boolean; exposedHeaders?: string[] },
 ) => void;

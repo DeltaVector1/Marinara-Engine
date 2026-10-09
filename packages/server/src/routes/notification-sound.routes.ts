@@ -38,7 +38,7 @@ const STORED_FORMATS: NotificationSoundFormat[] = [
   { extension: ".webm", mimeType: "audio/webm" },
 ];
 
-export function detectNotificationSoundFormat(buffer: Buffer): NotificationSoundFormat | null {
+function detectNotificationSoundFormat(buffer: Buffer): NotificationSoundFormat | null {
   if (buffer.length >= 12 && buffer.subarray(0, 4).toString("ascii") === "RIFF") {
     if (buffer.subarray(8, 12).toString("ascii") === "WAVE") {
       return { extension: ".wav", mimeType: "audio/wav" };

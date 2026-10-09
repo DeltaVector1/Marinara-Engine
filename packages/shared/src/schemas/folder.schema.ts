@@ -64,6 +64,4 @@ export type CreateChatFolderInput = z.infer<typeof createChatFolderSchema>;
 export type UpdateFolderInput = z.infer<typeof updateFolderSchema>;
 export type ReorderFoldersInput = z.infer<typeof reorderFoldersSchema>;
 export type MoveChatToFolderInput = z.infer<typeof moveChatToFolderSchema>;
-export type ReorderChatsInFolderInput = z.infer<typeof reorderChatsInFolderSchema>;
-export type MoveConnectionToFolderInput = z.infer<typeof moveConnectionToFolderSchema>;
 export type ReorderConnectionsInFolderInput = z.infer<typeof reorderConnectionsInFolderSchema>;

@@ -24,10 +24,10 @@ import type { createLorebooksStorage } from "../storage/lorebooks.storage.js";
 type LorebooksStorage = ReturnType<typeof createLorebooksStorage>;
 
 /** Generous, but keeps a mistaken paste of a huge file from locking the store. */
-export const LOREBOOK_TEXT_IMPORT_MAX_CHARS = LOREBOOK_TEXT_MAX_CHARS;
-export const LOREBOOK_TEXT_IMPORT_MAX_ENTRIES = LOREBOOK_TEXT_MAX_ENTRIES;
+const LOREBOOK_TEXT_IMPORT_MAX_CHARS = LOREBOOK_TEXT_MAX_CHARS;
+const LOREBOOK_TEXT_IMPORT_MAX_ENTRIES = LOREBOOK_TEXT_MAX_ENTRIES;
 
-export interface LorebookTextImportRequest {
+interface LorebookTextImportRequest {
   format: LorebookTextFormat;
   text: string;
   duplicateMode: LorebookTextDuplicateMode;

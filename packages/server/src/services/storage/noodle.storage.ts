@@ -96,8 +96,8 @@ import {
 const NOODLE_SETTINGS_KEY = "noodle.settings";
 const NOODLE_REFRESH_SCHEDULE_KEY = "noodle.refresh-schedule";
 const NOODLE_CARRYOVER_TARGETS: NoodleCarryoverTarget[] = ["conversation", "roleplay", "game"];
-export const NOODLER_UNLOCK_COST = 1;
-export const NOODLER_SUBSCRIPTION_COST = 5;
+const NOODLER_UNLOCK_COST = 1;
+const NOODLER_SUBSCRIPTION_COST = 5;
 const NOODLER_RESERVE_STATE_ID = "noodler-reserve";
 const ROLLING_DAY_MS = 24 * 60 * 60 * 1000;
 const MANUAL_POST_INVALIDATION_MS = 60 * 60 * 1000;
@@ -110,7 +110,7 @@ const ELAPSED_PREPARED_SLOT_MS = 60 * 60 * 1000;
 /** How long published/discarded prepared rows are kept for crash recovery before pruning. */
 const TERMINAL_PREPARED_POST_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
 
-export type NoodlerPreparedPostPayload = {
+type NoodlerPreparedPostPayload = {
   title: string | null;
   content: string;
   access: NoodlePostAccess;
@@ -118,10 +118,10 @@ export type NoodlerPreparedPostPayload = {
   metadata: Record<string, unknown>;
 };
 
-export type NoodlerPreparedPostState = "prepared" | "published" | "discarded";
-export type NoodlerPreparedImageState = "none" | "pending" | "generating" | "attached" | "rejected" | "closed";
+type NoodlerPreparedPostState = "prepared" | "published" | "discarded";
+type NoodlerPreparedImageState = "none" | "pending" | "generating" | "attached" | "rejected" | "closed";
 
-export function noodlerReservePolicyFingerprint(
+function noodlerReservePolicyFingerprint(
   account: NoodleAccount,
   settings?: Pick<
     NoodleSettings,
@@ -228,7 +228,7 @@ type NoodlerPostPersistenceInput = {
   imagePrompt?: string | null;
 };
 
-export type NoodlerCreatorReplyClaimResult =
+type NoodlerCreatorReplyClaimResult =
   | {
       status: "claimed";
       claimId: string;
@@ -268,7 +268,7 @@ function defaultAutoPostingSettings(): NonNullable<NoodleAccountSchedulerSetting
   return { enabled: false, imagesEnabled: false };
 }
 
-export function normalizeScheduler(value: unknown): NoodleAccountSchedulerSettings {
+function normalizeScheduler(value: unknown): NoodleAccountSchedulerSettings {
   const defaults = defaultAutoPostingSettings();
   const scheduler = parseRecord(value);
   const raw = parseRecord(scheduler.autoPosting);
@@ -292,7 +292,7 @@ function normalizePersistedBoolean(value: unknown): boolean | undefined {
   return undefined;
 }
 
-export function normalizePersistedInteger(value: unknown): number | undefined {
+function normalizePersistedInteger(value: unknown): number | undefined {
   const parsed = typeof value === "number" ? value : typeof value === "string" && value.trim() ? Number(value) : NaN;
   return Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ? parsed : undefined;
 }
@@ -316,7 +316,7 @@ function validPrivacyField(key: string, value: unknown): NoodleAccountSettings["
   return parsed.success ? parsed.data : empty;
 }
 
-export function normalizeNoodleAccountSettings(value: unknown): NoodleAccountSettings {
+function normalizeNoodleAccountSettings(value: unknown): NoodleAccountSettings {
   const raw = parseRecord(value);
   const rawProfile = parseRecord(raw.profile);
   const rawSocial = parseRecord(raw.social);
@@ -419,10 +419,6 @@ function parseRefreshAttempts(value: unknown): NoodleRefreshAttempt[] {
   });
 }
 
-export function parseNoodleAvatarCrop(value: unknown): AvatarCrop | null {
-  return normalizeAvatarCrop(value);
-}
-
 function parseStringArray(value: unknown): string[] {
   if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string" && item.length > 0);
   if (typeof value !== "string") return [];
@@ -490,7 +486,7 @@ function normalizeAccountKind(kind: string): NoodleAccountKind {
 
 function legacyCarryoverTargets(mode: NoodleCarryoverMode): NoodleCarryoverTarget[] {
   if (mode === "all") return [...NOODLE_CARRYOVER_TARGETS];
-  if (mode === "conversation" || mode === "roleplay" || mode === "game") return [mode];
+  if (mode === "conversation" || mode === "roleplay") return [mode];
   return [];
 }
 
@@ -505,7 +501,7 @@ function isToggleInteractionType(type: NoodleInteractionType) {
   return type === "like" || type === "repost";
 }
 
-export function normalizeNoodleSettings(raw: unknown): NoodleSettings {
+function normalizeNoodleSettings(raw: unknown): NoodleSettings {
   const rawRecord = parseRecord(raw);
   const migratedMaxImagesPerRefresh =
     rawRecord.maxImagesPerRefresh ?? rawRecord.maxImagePromptsPerDay ?? DEFAULT_NOODLE_SETTINGS.maxImagesPerRefresh;

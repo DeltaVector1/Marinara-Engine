@@ -169,7 +169,7 @@ function resolveImageBackend(source: string, baseUrl: string, serviceHint: strin
 /** Default 30-minute timeout for image generation API calls (overridable via env). */
 const IMAGE_GEN_TIMEOUT = Number(process.env.IMAGE_GEN_TIMEOUT_MS ?? 1_800_000);
 const COMFYUI_GEN_TIMEOUT_SECONDS = Number(process.env.COMFYUI_GEN_TIMEOUT ?? 2400);
-export function resolveComfyUiImageGenerationTimeoutMs(
+function resolveComfyUiImageGenerationTimeoutMs(
   imageTimeoutMs = IMAGE_GEN_TIMEOUT,
   comfyUiTimeoutSeconds = COMFYUI_GEN_TIMEOUT_SECONDS,
 ): number {
@@ -183,7 +183,7 @@ export function resolveComfyUiImageGenerationTimeoutMs(
  * URL already is the physical target, and a stale `imageEndpointId` left on an imported or
  * copied connection must not split one ComfyUI/A1111 endpoint into separate slots.
  */
-export function imageAdmissionKey(normalizedBaseUrl: string, resolvedSource: string, imageEndpointId?: string): string {
+function imageAdmissionKey(normalizedBaseUrl: string, resolvedSource: string, imageEndpointId?: string): string {
   if (resolvedSource === "runpod_comfyui") {
     const endpointId = imageEndpointId?.trim();
     return endpointId ? `${normalizedBaseUrl}#${endpointId}` : normalizedBaseUrl;
@@ -1027,7 +1027,7 @@ async function downloadImageUrl(
   return { base64, mimeType, ext: imageExtensionFromMimeType(mimeType) };
 }
 
-export type ImageResultUrlPolicy = {
+type ImageResultUrlPolicy = {
   url: string;
   allowLocal: boolean;
   allowLoopback: boolean;
@@ -1279,7 +1279,7 @@ function chatGPTCanvasHint(request: ImageGenRequest, hasReferences: boolean): st
  * endpoint Codex's own image tool uses. The login token only ever goes to that fixed endpoint;
  * the connection's API key and base URL are not used. `fetchImpl` is replaceable for tests.
  */
-export async function generateChatGPTImage(
+async function generateChatGPTImage(
   request: ImageGenRequest,
   fetchImpl: typeof imageFetch = imageFetch,
 ): Promise<ImageGenResult> {
@@ -2031,7 +2031,7 @@ async function generateTogetherAI(baseUrl: string, apiKey: string, request: Imag
   return { base64: b64, mimeType: "image/png", ext: "png" };
 }
 
-export function buildArliImageUrl(baseUrl: string, endpoint: "txt2img" | "img2img"): string {
+function buildArliImageUrl(baseUrl: string, endpoint: "txt2img" | "img2img"): string {
   const trimmed = baseUrl.replace(/\/+$/, "");
   try {
     const parsed = new URL(trimmed);
@@ -2051,7 +2051,7 @@ export function buildArliImageUrl(baseUrl: string, endpoint: "txt2img" | "img2im
   }
 }
 
-export function buildArliImageRequest(request: ImageGenRequest): Record<string, unknown> {
+function buildArliImageRequest(request: ImageGenRequest): Record<string, unknown> {
   const model = request.model?.trim();
   if (!model) throw new Error("Arli.ai image generation requires a model");
 
@@ -2137,7 +2137,7 @@ function clampNovelAiDimension(value: number): number {
   return Math.max(NOVELAI_MIN_DIMENSION, Math.min(NOVELAI_MAX_DIMENSION, rounded));
 }
 
-export function detectNovelAiSubjectCount(prompt: string): number | null {
+function detectNovelAiSubjectCount(prompt: string): number | null {
   const [baseFragment = ""] = prompt.split("|", 1);
   const subjectTokens = baseFragment.matchAll(/\b(\d+)\s*(?:girls?|boys?|others?)\b/gi);
   let tokenCount = 0;
@@ -2151,7 +2151,7 @@ export function detectNovelAiSubjectCount(prompt: string): number | null {
   return pipeSegments.length > 1 ? pipeSegments.length - 1 : null;
 }
 
-export function resolveNovelAiSize(
+function resolveNovelAiSize(
   request: ImageGenRequest,
   prompt = request.prompt,
   defaults: NovelAiDefaults = resolveNovelAiDefaults(request),
@@ -2189,7 +2189,7 @@ export function resolveNovelAiRequestSize(
   return resolveNovelAiSize(request, scenePrompt, defaults);
 }
 
-export function resolveNovelAiStyleReferenceSecondaryStrength(fidelity: number): number {
+function resolveNovelAiStyleReferenceSecondaryStrength(fidelity: number): number {
   return 1 - Math.max(0, Math.min(1, fidelity));
 }
 
@@ -2317,7 +2317,7 @@ function cloneNovelAiRequestForMetadata(body: Record<string, unknown>): Record<s
 }
 
 /** Inspector text follows the final provider payload, including native character captions. */
-export function getNovelAiDisplayPrompt(body: Record<string, unknown>): string {
+function getNovelAiDisplayPrompt(body: Record<string, unknown>): string {
   const parameters = isRecord(body.parameters) ? body.parameters : {};
   const v4Prompt = isRecord(parameters.v4_prompt) ? parameters.v4_prompt : {};
   const caption = isRecord(v4Prompt.caption) ? v4Prompt.caption : {};
@@ -2418,7 +2418,7 @@ function prepareNovelAiCharacterPrompts(
     .filter((entry): entry is PreparedNovelAiCharacterPrompt => Boolean(entry));
 }
 
-export function buildNovelAiV4CharacterPromptPayload(
+function buildNovelAiV4CharacterPromptPayload(
   prompts: SceneIllustrationCharacterPrompt[] | undefined,
   model: string,
 ): {
@@ -2861,7 +2861,7 @@ function openRouterImageAspectRatio(model: string | undefined, width?: number, h
  * most of its image models return image only. Default to image-only; opt in to
  * text for the few families that also return it.
  */
-export function openRouterModalities(model?: string): string[] {
+function openRouterModalities(model?: string): string[] {
   const lower = model?.trim().toLowerCase() ?? "";
   const emitsText =
     /^google\/gemini-.*-image/.test(lower) ||
@@ -2870,7 +2870,7 @@ export function openRouterModalities(model?: string): string[] {
   return emitsText ? ["image", "text"] : ["image"];
 }
 
-export function usesOpenRouterImagesApi(model?: string): boolean {
+function usesOpenRouterImagesApi(model?: string): boolean {
   const lower = normalizeOpenRouterImagesApiModel(model)?.toLowerCase() ?? "";
   return (
     lower.startsWith("krea/") ||
@@ -2881,7 +2881,7 @@ export function usesOpenRouterImagesApi(model?: string): boolean {
   );
 }
 
-export function openRouterImagesUrl(baseUrl: string): string {
+function openRouterImagesUrl(baseUrl: string): string {
   const trimmed = baseUrl.replace(/\/+$/, "");
   try {
     const url = new URL(trimmed);
@@ -2906,7 +2906,7 @@ function normalizeOpenRouterImagesApiModel(model?: string): string | undefined {
   return /^gpt-image-/i.test(trimmed) ? `openai/${trimmed.toLowerCase()}` : trimmed;
 }
 
-export function buildOpenRouterImagesRequest(request: ImageGenRequest): Record<string, unknown> {
+function buildOpenRouterImagesRequest(request: ImageGenRequest): Record<string, unknown> {
   const prompt = request.negativePrompt
     ? `${request.prompt}\n\nAvoid in the image: ${request.negativePrompt}`
     : request.prompt;
@@ -3271,7 +3271,7 @@ function resolveSeed(profile: ImageGenerationDefaultsProfile | null | undefined)
   return typeof profile?.seed === "number" && profile.seed >= 0 ? profile.seed : randomSeed();
 }
 
-export function resolveNovelAiDefaults(request: ImageGenRequest): NovelAiDefaults {
+function resolveNovelAiDefaults(request: ImageGenRequest): NovelAiDefaults {
   if (request.imageDefaults?.service === "novelai" && request.imageDefaults.novelai) {
     return { ...DEFAULT_NOVELAI_DEFAULTS, ...request.imageDefaults.novelai };
   }
@@ -3561,7 +3561,7 @@ async function createSwarmUiSession(base: string, apiKey: string, request: Image
   return sessionId;
 }
 
-export function buildSwarmUiGenerationBody(request: ImageGenRequest, sessionId: string): Record<string, unknown> {
+function buildSwarmUiGenerationBody(request: ImageGenRequest, sessionId: string): Record<string, unknown> {
   const defaults = resolveComfyUiDefaults(request);
   const seed = resolveSeed(request.imageDefaults);
   const prompt = mergePromptPrefix(defaults.promptPrefix, request.prompt || "");
@@ -3660,19 +3660,6 @@ function redactSwarmUiWorkflowImages(workflowText: string, request: ImageGenRequ
       redacted.replaceAll(image, `[redacted image: ${Buffer.from(image, "base64").byteLength} bytes]`),
     workflowText,
   );
-}
-
-export function parseSwarmUiImageReference(value: unknown): string {
-  const apiError = swarmUiApiError(value);
-  if (apiError) throw new Error(`SwarmUI API error: ${apiError}`);
-  if (!isRecord(value) || !Array.isArray(value.images)) {
-    throw new Error("SwarmUI did not return an images array");
-  }
-  const image = value.images.find(
-    (candidate): candidate is string => typeof candidate === "string" && !!candidate.trim(),
-  );
-  if (!image) throw new Error("SwarmUI completed without an image output");
-  return image.trim();
 }
 
 async function generateSwarmUiImageReference(

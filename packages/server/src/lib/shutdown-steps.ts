@@ -37,12 +37,12 @@ export function setRuntimeStopBudgetMs(budgetMs: number = UNBOUNDED_RUNTIME_STOP
   activeRuntimeStopBudgetMs = Number.isNaN(budgetMs) ? UNBOUNDED_RUNTIME_STOP_BUDGET_MS : Math.max(0, budgetMs);
 }
 
-export interface NamedShutdownStep {
+interface NamedShutdownStep {
   name: string;
   run: () => unknown;
 }
 
-export interface ShutdownStepRecord {
+interface ShutdownStepRecord {
   stage: string;
   elapsedMs: number;
   /** A step still pending at the budget is "failed" with reason "timeout". */
@@ -52,7 +52,7 @@ export interface ShutdownStepRecord {
   timeoutMs?: number;
 }
 
-export interface ShutdownStepsOptions {
+interface ShutdownStepsOptions {
   /**
    * Called when a step that already timed out rejects later. Defaults to a
    * warn line so the late error is recorded, not lost.
@@ -68,7 +68,7 @@ function logLateShutdownFailure(name: string, reason: unknown, elapsedMs: number
   );
 }
 
-export interface ShutdownStepsResult {
+interface ShutdownStepsResult {
   failed: Array<{ name: string; reason: unknown; elapsedMs: number }>;
   /** Steps still pending when the budget ran out; they keep running detached. */
   timedOut: string[];

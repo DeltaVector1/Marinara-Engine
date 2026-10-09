@@ -11,7 +11,7 @@ export type ConnectionProviderLike = {
   useForRandom?: boolean | string | null;
 };
 
-export type LocalSidecarConnectionOption = {
+type LocalSidecarConnectionOption = {
   id: typeof LOCAL_SIDECAR_CONNECTION_ID;
   name: string;
   model: string;

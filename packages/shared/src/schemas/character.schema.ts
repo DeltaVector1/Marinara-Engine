@@ -2,9 +2,8 @@
 // Character Zod Schemas
 // ──────────────────────────────────────────────
 import { z } from "zod";
-import { storedRulesetSheetsSchema } from "./ruleset.schema.js";
 
-export const depthPromptSchema = z.object({
+const depthPromptSchema = z.object({
   prompt: z.string().default(""),
   depth: z.number().int().min(0).default(4),
   role: z.enum(["system", "user", "assistant"]).default("system"),
@@ -39,7 +38,7 @@ export const convoBehaviorInsertionStrategySchema = z.enum([
 ]);
 
 /** Conversation-mode-only behavior directive. */
-export const convoBehaviorConfigSchema = z.object({
+const convoBehaviorConfigSchema = z.object({
   instruction: z.string().default(""),
   insertionStrategy: convoBehaviorInsertionStrategySchema.catch("constant_after").default("constant_after"),
 });
@@ -63,12 +62,10 @@ export const characterExtensionsSchema = z
     convoDisplayNameInCard: z.boolean().optional(),
     aboutMe: z.string().optional(),
     convoBehavior: convoBehaviorConfigSchema.optional(),
-    /** Starting builds for Game Mode rulesets, keyed by ruleset id. Bounded, never shape-checked. */
-    rulesetSheets: storedRulesetSheetsSchema.optional(),
   })
   .passthrough();
 
-export const characterBookEntrySchema = z
+const characterBookEntrySchema = z
   .object({
     keys: z.array(z.string()).default([]),
     content: z.string().default(""),
@@ -122,11 +119,6 @@ export const characterDataSchema = z
   })
   .passthrough();
 
-export const characterCardV2Schema = z.object({
-  spec: z.literal("chara_card_v2"),
-  spec_version: z.literal("2.0"),
-  data: characterDataSchema,
-});
 
 export const createCharacterSchema = z.object({
   data: characterDataSchema,
@@ -162,11 +154,4 @@ export const createPersonaGroupSchema = z.object({
 });
 
 export const updatePersonaGroupSchema = createPersonaGroupSchema.partial();
-
-export type CreateCharacterInput = z.infer<typeof createCharacterSchema>;
 export type UpdateCharacterInput = z.infer<typeof updateCharacterSchema>;
-export type CharacterCardV2Input = z.infer<typeof characterCardV2Schema>;
-export type CreateGroupInput = z.infer<typeof createGroupSchema>;
-export type UpdateGroupInput = z.infer<typeof updateGroupSchema>;
-export type CreatePersonaGroupInput = z.infer<typeof createPersonaGroupSchema>;
-export type UpdatePersonaGroupInput = z.infer<typeof updatePersonaGroupSchema>;

@@ -220,7 +220,7 @@ function resolveProbability(entry: STWorldInfoEntry): number | null {
   return asNullablePercentage(entry.probability);
 }
 
-export function resolveSelectiveLogic(value: unknown): "and" | "and_all" | "or" | "not" | "not_all" {
+function resolveSelectiveLogic(value: unknown): "and" | "and_all" | "or" | "not" | "not_all" {
   const logicMap: Record<number, "and" | "and_all" | "not" | "not_all"> = {
     0: "and",
     1: "not_all",
@@ -233,7 +233,7 @@ export function resolveSelectiveLogic(value: unknown): "and" | "and_all" | "or" 
   return logicMap[typeof value === "number" ? value : 0] ?? "and";
 }
 
-export function resolvePosition(value: unknown): number {
+function resolvePosition(value: unknown): number {
   if (typeof value === "string") {
     if (value === "after_char") return 1;
     if (value === "at_depth" || value === "depth") return 2;

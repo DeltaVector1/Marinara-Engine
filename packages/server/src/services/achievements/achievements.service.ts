@@ -100,7 +100,7 @@ export function createAchievementsService(db: DB) {
       ...ZERO_COUNTS,
       conversationChats: chatRows.filter((chat) => chat.mode === "conversation").length,
       roleplayChats: chatRows.filter((chat) => isRoleplayMode(chat.mode)).length,
-      gameChats: chatRows.filter((chat) => chat.mode === "game").length,
+      gameChats: chatRows.filter(() => false).length,
       characters: characterRows.filter((character) => character.id !== PROFESSOR_MARI_ID).length,
       lorebooks: lorebookRows.length,
       personas: personaRows.length,

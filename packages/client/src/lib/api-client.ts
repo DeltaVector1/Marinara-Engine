@@ -39,7 +39,7 @@ export class ApiError extends Error {
  * half-open, so the caller should fall back to a refetch of the server-persisted
  * result rather than treating it as a real failure.
  */
-export class StreamResumeDisconnectError extends Error {
+class StreamResumeDisconnectError extends Error {
   constructor() {
     super("Stream disconnected while the tab was in the background");
     this.name = "StreamResumeDisconnectError";
@@ -105,7 +105,7 @@ export function isRequestTimeoutError(error: unknown): boolean {
   return error instanceof DOMException && error.name === "TimeoutError";
 }
 
-export const PRIVILEGED_ACCESS_HINT =
+const PRIVILEGED_ACCESS_HINT =
   "This action needs loopback access or admin access. Open the app through localhost, or set ADMIN_SECRET=<secret> in the server .env and paste the same value in Settings → Advanced → Admin Access. Marinara sends it as the X-Admin-Secret header.";
 
 /**
@@ -122,15 +122,7 @@ export function getPrivilegedActionErrorMessage(error: unknown, fallback: string
   return fallback;
 }
 
-export type JsonRepairKind = "game_setup" | "session_conclusion" | "campaign_progression" | "lorebook_keeper";
 
-export type JsonRepairRequest = {
-  kind: JsonRepairKind;
-  title: string;
-  rawJson: string;
-  applyEndpoint: string;
-  applyBody?: Record<string, unknown>;
-};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
@@ -152,7 +144,7 @@ function findNestedApiErrorMessage(value: unknown): string {
   return "";
 }
 
-export function getApiErrorMessage(value: unknown, fallback: string): string {
+function getApiErrorMessage(value: unknown, fallback: string): string {
   if (typeof value === "string" && value.trim()) return value.trim();
   if (Array.isArray(value)) {
     for (const item of value) {
@@ -227,39 +219,6 @@ async function releaseSseReader(reader: ReadableStreamDefaultReader<Uint8Array>,
   }
 }
 
-export function getJsonRepairRequest(error: unknown): JsonRepairRequest | null {
-  if (!(error instanceof ApiError) || !isRecord(error.payload)) return null;
-  const repair = error.payload.jsonRepair;
-  if (!isRecord(repair)) return null;
-
-  const kind = repair.kind;
-  const title = repair.title;
-  const rawJson = repair.rawJson;
-  const applyEndpoint = repair.applyEndpoint;
-  if (
-    (kind !== "game_setup" &&
-      kind !== "session_conclusion" &&
-      kind !== "campaign_progression" &&
-      kind !== "lorebook_keeper") ||
-    typeof title !== "string" ||
-    typeof rawJson !== "string" ||
-    typeof applyEndpoint !== "string"
-  ) {
-    return null;
-  }
-
-  return {
-    kind,
-    title,
-    rawJson,
-    applyEndpoint,
-    applyBody: isRecord(repair.applyBody) ? repair.applyBody : undefined,
-  };
-}
-
-export function isJsonRepairApiError(error: unknown): boolean {
-  return getJsonRepairRequest(error) !== null;
-}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await apiFetch(path, init);

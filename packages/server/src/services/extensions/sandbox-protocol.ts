@@ -62,7 +62,7 @@ export function resolveSandboxPollDelay(options: {
   return now - lastActivityAt <= SANDBOX_HOT_WINDOW_MS ? SANDBOX_HOT_POLL_MS : idlePollMs;
 }
 
-export type ExtractedProtocolLines = {
+type ExtractedProtocolLines = {
   /** Complete newline-terminated lines, in order, empty lines dropped. */
   lines: string[];
   /** Residual bytes after the last newline (an incomplete message). */

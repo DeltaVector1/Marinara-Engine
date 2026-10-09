@@ -151,7 +151,7 @@ export function resolveAgentsDefaultConnectionId(args: {
   return args.rowDefaultConnectionId;
 }
 
-export type ResolvedAgentPipelineAgents = {
+type ResolvedAgentPipelineAgents = {
   enabledConfigs: any[];
   resolvedAgents: ResolvedAgent[];
   agentConnectionWarnings: AgentConnectionWarning[];

@@ -2,7 +2,7 @@
 // the client uses the same functions to preview the confirmation summary, so
 // what the user confirms is exactly what gets written.
 
-export interface CharacterTagRename {
+interface CharacterTagRename {
   from: string;
   to: string;
 }
@@ -13,7 +13,7 @@ export interface CharacterTagEdit {
   rename?: CharacterTagRename[];
 }
 
-export interface CharacterTagEditSummary {
+interface CharacterTagEditSummary {
   /** Cards whose tag list would change. */
   changedIds: string[];
   /** Per-operation affected card counts, keyed by the tag text as entered. */
@@ -82,7 +82,7 @@ export function applyCharacterTagEdit(tags: readonly string[], edit: CharacterTa
   return result;
 }
 
-export function characterTagListsEqual(a: readonly string[], b: readonly string[]): boolean {
+function characterTagListsEqual(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((tag, index) => tag === b[index]);
 }
 

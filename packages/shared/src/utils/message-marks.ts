@@ -13,7 +13,7 @@ export const MAX_PRIVATE_NOTE_LENGTH = 2000;
 /** Trashed messages older than this are purged automatically. */
 export const MESSAGE_TRASH_RETENTION_DAYS = 30;
 /** Line prefixed to a pinned message that was restored from outside the context message limit. */
-export const PINNED_CONTEXT_MESSAGE_MARKER = "[Pinned message from earlier in the chat]";
+const PINNED_CONTEXT_MESSAGE_MARKER = "[Pinned message from earlier in the chat]";
 
 export interface MessageBookmark {
   /** Optional short user label shown in the Bookmarks list. */

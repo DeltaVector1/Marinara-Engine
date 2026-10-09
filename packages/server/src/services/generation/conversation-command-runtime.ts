@@ -62,23 +62,6 @@ function getConversationCommandKey(command: CharacterCommand): ConversationComma
       return "scene";
     case "call":
       return "call";
-    case "uno":
-      return "uno";
-    case "chess":
-      return "chess";
-    case "poker":
-      return "poker";
-    case "eightball":
-      return "eightball";
-    case "tic_tac_toe":
-      return "tic_tac_toe";
-    case "rock_paper_scissors":
-      return "rock_paper_scissors";
-    case "spotify":
-    case "youtube":
-      return "music";
-    case "haptic":
-      return "haptic";
     case "influence":
       return "influence";
     case "note":
@@ -106,26 +89,6 @@ export function filterEnabledConversationCommands(
   });
 }
 
-function parseStoredAgentSettingsValue(value: unknown): Record<string, unknown> {
-  if (!value) return {};
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? (parsed as Record<string, unknown>) : {};
-    } catch {
-      return {};
-    }
-  }
-  return typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-}
-
-export async function isConversationYoutubeCommandAvailable(storage: {
-  getByType(type: string): Promise<{ settings?: unknown } | null>;
-}): Promise<boolean> {
-  const agent = (await storage.getByType("spotify")) ?? (await storage.getByType("youtube"));
-  const settings = parseStoredAgentSettingsValue(agent?.settings);
-  return typeof settings.youtubeApiKey === "string" && settings.youtubeApiKey.trim().length > 0;
-}
 
 export async function buildConversationCommandsReminder(args: {
   enabled: boolean;

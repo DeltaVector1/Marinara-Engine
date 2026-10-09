@@ -4,7 +4,7 @@ import { isExternalExtensionsEnvEnabled } from "../../config/runtime-config.js";
 import { createAppSettingsStorage } from "../storage/app-settings.storage.js";
 import { getPersonalExtensionSandboxStatus } from "./personal-extension-sandbox.js";
 
-export const EXTERNAL_EXTENSIONS_SETTINGS_KEY = "external-extensions-enabled";
+const EXTERNAL_EXTENSIONS_SETTINGS_KEY = "external-extensions-enabled";
 
 export function isExternalPersonalExtensionSource(source: PersonalExtensionSource): boolean {
   return source !== "professor_mari";

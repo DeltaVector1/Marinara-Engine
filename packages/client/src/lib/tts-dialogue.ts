@@ -6,7 +6,7 @@ import {
 } from "@marinara-engine/shared";
 import { DIALOGUE_QUOTE_CAPTURE_GROUP_PATTERN_SOURCE, stripSurroundingDialogueQuotes } from "./dialogue-quotes";
 
-export interface TTSUtterance {
+interface TTSUtterance {
   text: string;
   speaker?: string;
   tone?: string;
@@ -21,7 +21,7 @@ export interface TTSVoiceRequest {
   pauseAfterMs?: number;
 }
 
-export interface CachedTTSVoiceRequest extends TTSVoiceRequest {
+interface CachedTTSVoiceRequest extends TTSVoiceRequest {
   cacheKey: string;
   cacheAliases?: string[];
 }
@@ -30,7 +30,7 @@ export function normalizeTTSCharacterName(value?: string | null): string {
   return (value ?? "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export function normalizeTTSCharacterBaseName(value?: string | null): string {
+function normalizeTTSCharacterBaseName(value?: string | null): string {
   let normalized = normalizeTTSCharacterName(value);
   let previous = "";
   while (normalized && normalized !== previous) {
@@ -66,14 +66,14 @@ export function findTTSCharacterIdBySpeakerName(
   return baseMatches.length === 1 ? baseMatches[0]![0] : null;
 }
 
-export function isTTSNarratorSpeaker(value?: string | null): boolean {
+function isTTSNarratorSpeaker(value?: string | null): boolean {
   const normalized = normalizeTTSCharacterName(value);
   return normalized === "narrator" || normalized === "gm" || normalized === "game master" || normalized === "system";
 }
 
-export type TTSNpcVoiceGender = "male" | "female" | "unknown";
+type TTSNpcVoiceGender = "male" | "female" | "unknown";
 
-export interface TTSNpcVoiceHint {
+interface TTSNpcVoiceHint {
   name: string;
   description?: string | null;
   gender?: string | null;
@@ -156,7 +156,7 @@ export function withTTSVoiceRequestCacheKeys(
   });
 }
 
-export function inferTTSNpcVoiceGender(hint?: TTSNpcVoiceHint | null): TTSNpcVoiceGender {
+function inferTTSNpcVoiceGender(hint?: TTSNpcVoiceHint | null): TTSNpcVoiceGender {
   const explicitText = [hint?.gender, hint?.pronouns].filter(Boolean).join(" ");
   if (/\b(she|her|hers|female|feminine|woman|girl)\b/i.test(explicitText)) return "female";
   if (/\b(he|him|his|male|masculine|man|boy)\b/i.test(explicitText)) return "male";
@@ -508,7 +508,7 @@ function isLikelyTTSVNSpeaker(value: string): boolean {
   return /^[\p{L}\p{N}][\p{L}\p{N}' ._-]{0,47}$/u.test(speaker);
 }
 
-export function extractDialogueUtterances(text: string, fallbackSpeaker?: string | null): TTSUtterance[] {
+function extractDialogueUtterances(text: string, fallbackSpeaker?: string | null): TTSUtterance[] {
   // Remove ordinary HTML before looking for quoted dialogue. Otherwise quote
   // marks inside style/class attributes are mistaken for spoken lines.
   const speechText = stripTTSMarkup(text, true);

@@ -45,7 +45,7 @@ const ACTIVE_ICON_CLASS =
 const ACTIVE_MENU_ICON_CLASS =
   "text-[color-mix(in_srgb,var(--marinara-chat-chrome-accent)_50%,black)] dark:text-[var(--marinara-chat-chrome-accent)]";
 
-export function readMessageMarks(message: { extra?: unknown }) {
+function readMessageMarks(message: { extra?: unknown }) {
   const bookmark = readMessageBookmark(message.extra);
   const pinned = isMessagePinnedToContext(message.extra);
   const note = readMessagePrivateNote(message.extra);

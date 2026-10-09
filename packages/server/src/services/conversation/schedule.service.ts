@@ -49,7 +49,7 @@ const ROUTINE_SUMMARY_DEFAULT_MAX_TOKENS = 8192;
 
 export type WeekScheduleDraftMode = "rewrite" | "adjust" | "vary" | "repair";
 
-export type WeekScheduleDraftOptions = {
+type WeekScheduleDraftOptions = {
   draftMode?: WeekScheduleDraftMode;
   timeZone?: string;
   debugMode?: boolean;

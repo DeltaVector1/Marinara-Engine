@@ -57,8 +57,3 @@ export function registerModalOverlay(): ModalOverlayRegistration {
 export function isModalOverlayOpen(): boolean {
   return openOverlays.length > 0;
 }
-
-/** Test seam: drop all state so a regression can drive the module repeatedly. */
-export function __resetModalOverlayRegistryForTests() {
-  openOverlays = [];
-}

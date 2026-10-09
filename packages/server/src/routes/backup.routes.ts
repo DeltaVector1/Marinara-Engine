@@ -197,11 +197,11 @@ type LongTermMemoryVaultRuntime = {
   withVaultMutation?: <T>(operation: () => Promise<T>) => Promise<T>;
 };
 
-export function buildPreparedBackupDownloadUrl(jobId: string, token: string): string {
+function buildPreparedBackupDownloadUrl(jobId: string, token: string): string {
   return `/api/backup/download/file/${encodeURIComponent(jobId)}?token=${encodeURIComponent(token)}`;
 }
 
-export function isPreparedBackupDownloadTokenValid(expected: string, provided: unknown): boolean {
+function isPreparedBackupDownloadTokenValid(expected: string, provided: unknown): boolean {
   return typeof provided === "string" && provided.length > 0 && safeCompareString(provided, expected);
 }
 
@@ -673,7 +673,7 @@ for (const candidate of Object.values(schema)) {
   }
 }
 
-export function sanitizeProfileTableRows(tableName: string, rows: Array<Record<string, unknown>>) {
+function sanitizeProfileTableRows(tableName: string, rows: Array<Record<string, unknown>>) {
   if (tableName === "noodler_fan_activity_state") return [];
   if (tableName === "chats") {
     return rows.map((row) => {
@@ -713,7 +713,7 @@ export function sanitizeProfileTableRows(tableName: string, rows: Array<Record<s
   return rows;
 }
 
-export function quarantineProfilePersonalExtensionRow(row: Record<string, unknown>) {
+function quarantineProfilePersonalExtensionRow(row: Record<string, unknown>) {
   const runtime = row.runtime === "server" ? "server" : "client";
   const capabilities =
     runtime === "client"
@@ -746,7 +746,7 @@ export function quarantineProfilePersonalExtensionRow(row: Record<string, unknow
   };
 }
 
-export function quarantineProfileCustomToolRow(row: Record<string, unknown>) {
+function quarantineProfileCustomToolRow(row: Record<string, unknown>) {
   const importedWebhookUrl =
     typeof row.webhookUrl === "string" && !row.webhookUrl.startsWith(ENCRYPTED_WEBHOOK_PREFIX)
       ? encryptCustomToolWebhookUrl(row.webhookUrl)
@@ -799,7 +799,7 @@ type ProfileApiConnectionImportPlan = {
   trustedIdentity: boolean;
 };
 
-export function quarantineProfileApiConnectionRow(
+function quarantineProfileApiConnectionRow(
   row: Record<string, unknown>,
   existing?: Record<string, unknown>,
 ): ProfileApiConnectionImportPlan {
@@ -829,15 +829,15 @@ async function planProfileApiConnectionImports(
   return rows.map((row) => quarantineProfileApiConnectionRow(row, existingById.get(row.id)));
 }
 
-export function quarantineProfileMariInstructionRow(row: Record<string, unknown>) {
+function quarantineProfileMariInstructionRow(row: Record<string, unknown>) {
   return { ...row, enabled: 0, persistent: 0 };
 }
 
-export function quarantineProfileThemeRow(row: Record<string, unknown>) {
+function quarantineProfileThemeRow(row: Record<string, unknown>) {
   return { ...row, isActive: "false" };
 }
 
-export function normalizeProfilePromptPresetRow(
+function normalizeProfilePromptPresetRow(
   row: Record<string, unknown>,
   localStockPresetId: string | null,
 ): Record<string, unknown> {
@@ -862,7 +862,7 @@ const REDACTED_UPDATE_COLUMNS: Record<string, string> = {
   custom_tools: "webhookUrl",
 };
 
-export function buildProfileUpdateSet(tableName: string, cleanRow: Record<string, unknown>): Record<string, unknown> {
+function buildProfileUpdateSet(tableName: string, cleanRow: Record<string, unknown>): Record<string, unknown> {
   const updateSet: Record<string, unknown> = { ...cleanRow };
   const secretColumn = REDACTED_UPDATE_COLUMNS[tableName];
   if (secretColumn) delete updateSet[secretColumn];

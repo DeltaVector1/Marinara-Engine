@@ -3,7 +3,7 @@ import type { DB } from "../../db/connection.js";
 import { gameSceneVideos } from "../../db/schema/index.js";
 import { newId, now } from "../../utils/id-generator.js";
 
-export interface CreateGameSceneVideoInput {
+interface CreateGameSceneVideoInput {
   chatId: string;
   filePath: string;
   sourceIllustrationTag?: string | null;

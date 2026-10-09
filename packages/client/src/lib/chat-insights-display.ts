@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────
 import type { ChatSearchHighlight } from "@marinara-engine/shared";
 
-export interface SnippetPart {
+interface SnippetPart {
   text: string;
   highlighted: boolean;
 }
@@ -65,7 +65,7 @@ export interface HeatmapCell {
   outside: boolean;
 }
 
-export interface HeatmapGrid {
+interface HeatmapGrid {
   /** Week columns, each Sunday to Saturday. */
   weeks: HeatmapCell[][];
   /** Month label positions: the week column where each month first appears. */
@@ -86,7 +86,7 @@ function utcToKey(time: number): string {
 }
 
 /** Thresholds splitting non-zero counts into four roughly equal bands. */
-export function heatmapThresholds(counts: readonly number[]): [number, number, number] {
+function heatmapThresholds(counts: readonly number[]): [number, number, number] {
   const sorted = counts.filter((count) => count > 0).sort((left, right) => left - right);
   if (sorted.length === 0) return [1, 1, 1];
   const at = (fraction: number) => sorted[Math.floor((sorted.length - 1) * fraction)]!;

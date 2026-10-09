@@ -220,7 +220,7 @@ export function applyRecentMessageContentEditsToData(
 export type ExpungeScope =
   "chats" | "characters" | "personas" | "lorebooks" | "presets" | "connections" | "automation" | "media";
 
-export interface ConversationSummaryBackfillResult {
+interface ConversationSummaryBackfillResult {
   generatedDays: string[];
   consolidatedWeeks: string[];
   failedDays: Array<{ date: string; error: string }>;
@@ -623,16 +623,6 @@ function mergeMetadataForVersion(
     }
   }
   return next as Chat["metadata"];
-}
-
-/**
- * Mark metadata fields as written by the client now, for a write that saves them through its own
- * route rather than {@link useUpdateChatMetadata} (the Game inventory route). A metadata response
- * produced before this moment then keeps its hands off those fields, exactly as it would after a
- * metadata PATCH of them (#5641).
- */
-export function claimChatMetadataFields(chatId: string, keys: string[]): number {
-  return nextChatMetadataMutationVersion(chatId, keys);
 }
 
 /**
@@ -1058,7 +1048,7 @@ export function useUpdateChatSummaries() {
   });
 }
 
-export type SummaryEntryOperation =
+type SummaryEntryOperation =
   | { operation: "replace"; entry: Partial<ChatSummaryEntry> & { id: string; content: string } }
   | { operation: "delete"; entryId?: string; entryIds?: string[] }
   | { operation: "toggle"; entryId?: string; entryIds?: string[]; enabled: boolean }
@@ -1144,7 +1134,7 @@ export function useBackfillConversationSummaries() {
   });
 }
 
-export interface RollingSummaryBackfillInput {
+interface RollingSummaryBackfillInput {
   chatId: string;
   summaryEntries: ChatSummaryEntry[];
   batchSize: number;
@@ -1609,7 +1599,7 @@ export function useReassignMessagePersonas(chatId: string | null) {
   });
 }
 
-export function replaceCachedMessage(
+function replaceCachedMessage(
   old: InfiniteData<Message[]> | undefined,
   messageId: string,
   updater: (message: Message) => Message,
@@ -1689,7 +1679,7 @@ export function usePeekPrompt() {
   });
 }
 
-export type ChatExportFormat = "jsonl" | "text" | "markdown" | "html";
+type ChatExportFormat = "jsonl" | "text" | "markdown" | "html";
 
 const CHAT_EXPORT_EXTENSIONS: Record<ChatExportFormat, string> = {
   jsonl: ".jsonl",
@@ -1779,7 +1769,7 @@ export function useBranchChat() {
 }
 
 /** Generate a rolling summary for a chat via the LLM */
-export type GenerateSummaryInput = {
+type GenerateSummaryInput = {
   chatId: string;
   contextSize?: number;
   rangeStartMessageId?: string;

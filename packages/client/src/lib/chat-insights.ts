@@ -6,9 +6,9 @@
 import { useChatStore } from "../stores/chat.store";
 import { isMobileShellViewport, useUIStore } from "../stores/ui.store";
 
-export const GLOBAL_SEARCH_MODAL = "global-chat-search";
-export const CHAT_STATS_MODAL = "chat-stats";
-export const ACTIVITY_OVERVIEW_MODAL = "activity-overview";
+const GLOBAL_SEARCH_MODAL = "global-chat-search";
+const CHAT_STATS_MODAL = "chat-stats";
+const ACTIVITY_OVERVIEW_MODAL = "activity-overview";
 
 /** Open the Search All Chats modal, optionally pre-filled. */
 export function openGlobalSearch(initialQuery?: string) {

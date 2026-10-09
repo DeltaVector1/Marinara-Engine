@@ -48,9 +48,7 @@ export function ChatGalleryPanel({ chat }: { chat: Chat }) {
   const illustratorEnabledForChat =
     chat.mode === "conversation"
       ? conversationSelfiesEnabled
-      : chat.mode === "game"
-        ? chatMetadata.enableSpriteGeneration === true
-        : chatMetadata.enableAgents === true && chatMetadata.activeAgentIds?.includes("illustrator");
+      : chatMetadata.enableAgents === true && chatMetadata.activeAgentIds?.includes("illustrator");
   const illustratorAvailable = illustratorInstalled && illustratorEnabledForChat;
   const customImageAgents = useMemo(() => {
     if (chatMetadata.enableAgents !== true || !onIllustrateWithAgent) return [];

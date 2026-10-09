@@ -25,7 +25,7 @@ interface CropPx {
 
 type DragHandle = "pan" | "tl" | "tr" | "bl" | "br";
 
-export interface AvatarCropWidgetProps {
+interface AvatarCropWidgetProps {
   /** Image URL or data URL to crop. */
   src: string;
   alt: string;

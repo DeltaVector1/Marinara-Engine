@@ -11,7 +11,7 @@ import { z } from "zod";
  */
 export const FEATURE_SETTINGS_KEY = "features";
 
-export const FEATURE_SWITCH_NAMES = [
+const FEATURE_SWITCH_NAMES = [
   "stableLorebookGroupPicks",
   "providerRetry",
   "usageAndActivationStats",

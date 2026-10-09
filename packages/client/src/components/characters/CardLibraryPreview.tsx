@@ -5,7 +5,7 @@ import { cn, getAvatarCropStyle, isLegacyAvatarCrop } from "../../lib/utils";
 import { formatEstimatedTokens } from "../../lib/character-token-count";
 import { AvatarImage } from "./AvatarImage";
 
-export type LibraryPreviewCard = {
+type LibraryPreviewCard = {
   id: string;
   name: string;
   title?: string | null;

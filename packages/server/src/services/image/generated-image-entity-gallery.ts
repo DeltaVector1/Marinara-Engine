@@ -13,7 +13,7 @@ type PersonaGalleryStore = {
   create(input: CreatePersonaImageInput): Promise<unknown>;
 };
 
-export type GeneratedImageEntityGalleryInput = {
+type GeneratedImageEntityGalleryInput = {
   /** Automatic membership only; the chat keeps its image and explicit saves stay available. */
   enabled?: boolean;
   sourceFilePath: string;

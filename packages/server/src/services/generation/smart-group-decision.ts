@@ -25,7 +25,7 @@ export interface SmartOrderCandidate {
 }
 
 /** The transcript the chat-model selector reads, so both paths judge the same turns. */
-export const SMART_ORDER_TRANSCRIPT_DEPTH = 5;
+const SMART_ORDER_TRANSCRIPT_DEPTH = 5;
 
 /** Per candidate, so one long card cannot crowd the transcript out of the budget. */
 const CANDIDATE_ABOUT_CHARS = 300;

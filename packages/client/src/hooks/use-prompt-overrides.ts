@@ -4,7 +4,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api-client";
 
-export interface PromptOverrideVariable {
+interface PromptOverrideVariable {
   name: string;
   description: string;
   example?: string;
@@ -27,7 +27,7 @@ export interface PromptOverrideRow {
   updatedAt: string;
 }
 
-export interface PromptOverrideDetail {
+interface PromptOverrideDetail {
   key: string;
   label: string | null;
   description: string;
@@ -35,14 +35,14 @@ export interface PromptOverrideDetail {
   override: PromptOverrideRow | null;
 }
 
-export interface PromptOverrideDefault {
+interface PromptOverrideDefault {
   key: string;
   label: string | null;
   template: string;
   exampleContext: Record<string, string | number | undefined>;
 }
 
-export const promptOverrideKeys = {
+const promptOverrideKeys = {
   all: ["prompt-overrides"] as const,
   list: () => [...promptOverrideKeys.all, "list"] as const,
   detail: (key: string) => [...promptOverrideKeys.all, "detail", key] as const,

@@ -12,7 +12,7 @@ export function isGlmModel(model: string): boolean {
   return model.toLowerCase().includes("glm");
 }
 
-export function isGlm52Model(model: string): boolean {
+function isGlm52Model(model: string): boolean {
   return /(?:^|\/)glm-5\.2(?:$|[-:])/u.test(model.toLowerCase());
 }
 
@@ -27,7 +27,7 @@ export function isGlm53MandatoryReasoningModel(model: string): boolean {
   return /(?:^|\/)glm-5\.3(?:$|[-:])/u.test(model.toLowerCase());
 }
 
-export function isNativeGlmEndpoint(baseUrl: string): boolean {
+function isNativeGlmEndpoint(baseUrl: string): boolean {
   try {
     const hostname = new URL(baseUrl).hostname.toLowerCase();
     return (
@@ -57,7 +57,7 @@ function glm52ReasoningEffort(reasoningEffort?: string | null): "high" | "max" |
  * guidance for `thinking.type: "disabled"`). No effort at all leaves the
  * provider default in place.
  */
-export function glm53ReasoningEffort(reasoningEffort?: string | null): "low" | "high" | "max" | null {
+function glm53ReasoningEffort(reasoningEffort?: string | null): "low" | "high" | "max" | null {
   if (!reasoningEffort) return null;
   switch (reasoningEffort) {
     case "none":

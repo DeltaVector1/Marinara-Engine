@@ -9,7 +9,7 @@ import { safeFetch } from "../utils/security.js";
 const DISCORD_WEBHOOK_REGEX = /^https:\/\/discord(?:app)?\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
 /** Validate that a string looks like a Discord webhook URL. */
-export function isValidDiscordWebhook(url: string): boolean {
+function isValidDiscordWebhook(url: string): boolean {
   return DISCORD_WEBHOOK_REGEX.test(url.trim());
 }
 

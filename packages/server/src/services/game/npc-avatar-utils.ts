@@ -1,6 +1,6 @@
 import type { GameNpc } from "@marinara-engine/shared";
 
-export const BUILT_IN_MARI_AVATAR = "/sprites/mari/Mari_profile.png";
+const BUILT_IN_MARI_AVATAR = "/sprites/mari/Mari_profile.png";
 
 const CHARACTER_NAME_LEADING_PREFIX_WORDS = new Set([
   "a",
@@ -35,7 +35,7 @@ export function normalizeAvatarLookupName(value: string): string {
     .trim();
 }
 
-export function nameLookupWithoutLeadingPrefix(normalizedName: string): string {
+function nameLookupWithoutLeadingPrefix(normalizedName: string): string {
   const words = normalizedName.split(/\s+/).filter(Boolean);
   return words.length > 1 && CHARACTER_NAME_LEADING_PREFIX_WORDS.has(words[0]!)
     ? words.slice(1).join(" ")
@@ -61,7 +61,7 @@ function avatarLookupAliases(value: string): string[] {
   );
 }
 
-export function addNameLookupEntry(map: Map<string, string>, name: unknown, value: unknown): void {
+function addNameLookupEntry(map: Map<string, string>, name: unknown, value: unknown): void {
   if (typeof name !== "string" || typeof value !== "string") return;
   const trimmedValue = value.trim();
   if (!trimmedValue) return;
@@ -165,7 +165,7 @@ function isMariNpcName(name: unknown): boolean {
   return normalized === "mari" || normalized === "professor mari";
 }
 
-export function isInvalidBuiltInMariNpcAvatar(npc: Pick<GameNpc, "name" | "avatarUrl">): boolean {
+function isInvalidBuiltInMariNpcAvatar(npc: Pick<GameNpc, "name" | "avatarUrl">): boolean {
   const avatarPath = typeof npc.avatarUrl === "string" ? npc.avatarUrl.split("?")[0] : "";
   return avatarPath === BUILT_IN_MARI_AVATAR && !isMariNpcName(npc.name);
 }

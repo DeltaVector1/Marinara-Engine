@@ -1,6 +1,6 @@
 import { promises as dns } from "node:dns";
 import { createHash, timingSafeEqual } from "node:crypto";
-import { basename, extname, relative, resolve, sep, win32 } from "node:path";
+import { relative, resolve, sep, win32 } from "node:path";
 import { brotliDecompressSync, gunzipSync, zstdDecompressSync } from "node:zlib";
 import { Agent } from "undici";
 import { isLoopbackIp, isPrivateNetworkIp } from "../middleware/ip-allowlist.js";
@@ -30,7 +30,7 @@ const RESERVED_IPV6_CIDRS = ["::/128", "::1/128", "64:ff9b::/96", "100::/64", "2
 type CidrEntry = { bytes: number[]; prefixLen: number };
 type AgentOptions = ConstructorParameters<typeof Agent>[0];
 
-export interface OutboundUrlPolicy {
+interface OutboundUrlPolicy {
   allowLocal?: boolean;
   allowLoopback?: boolean;
   allowMdns?: boolean;
@@ -86,12 +86,6 @@ export function assertInsideDir(rootDir: string, candidatePath: string): string 
   throw new Error("Path escapes the allowed directory");
 }
 
-export function safeBasename(value: string, fallback = "file"): string {
-  const name = basename(value)
-    .replace(/[\u0000-\u001f<>:"|?*]/g, "")
-    .trim();
-  return name || fallback;
-}
 
 export function isAllowedImageBuffer(buffer: Buffer, _expectedExt?: string): { ext: string; mimeType: string } | null {
   if (
@@ -585,7 +579,7 @@ export function requestHeadersWithIdentityEncoding(headersInit: RequestInit["hea
   return headers;
 }
 
-export function isAllowedResponseContentType(
+function isAllowedResponseContentType(
   contentType: string | null,
   allowedContentTypes: readonly string[],
   allowMissingContentType = false,
@@ -702,17 +696,4 @@ export async function safeFetch(url: string | URL, options: SafeFetchOptions = {
   }
 
   throw new Error("Outbound request exceeded redirect limit");
-}
-
-export function resolveValidatedImage(buf: Buffer): { mimeType: string } | null {
-  const imageInfo = isAllowedImageBuffer(buf);
-  if (!imageInfo) return null;
-  return { mimeType: imageInfo.mimeType };
-}
-
-export function sanitizePathFilename(filename: string, allowedExts?: Set<string>): string {
-  const safe = safeBasename(filename);
-  const ext = extname(safe).toLowerCase();
-  if (allowedExts && !allowedExts.has(ext)) throw new Error(`Unsupported file type: ${ext}`);
-  return safe;
 }

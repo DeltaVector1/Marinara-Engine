@@ -196,7 +196,7 @@ function parseStringArray(value: unknown): string[] {
 }
 
 /** Provenance fields accepted on top of the zod-validated create/update inputs. The HTTP schemas deliberately strip these — only server-side agent paths may set attribution. */
-export type EntryProvenanceInput = {
+type EntryProvenanceInput = {
   sourceAgentId?: string | null;
   sourceMessageRefs?: SourceMessageRef[];
   /** Repeated tool writes in one turn retain the snapshot taken by its first write. */

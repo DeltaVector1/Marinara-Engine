@@ -55,7 +55,7 @@ export type ImageCaptioningRuntime = {
   unavailableReason?: string;
 };
 
-export type PromptAttachmentResolution = {
+type PromptAttachmentResolution = {
   content: string;
   images: string[];
   files: Array<{ type: string; data: string; filename: string }>;
@@ -80,7 +80,7 @@ export function redactImageCaptionMessagesForLog(messages: readonly ChatMessage[
   }));
 }
 
-export const DISABLED_IMAGE_CAPTIONING: ImageCaptioningRuntime = {
+const DISABLED_IMAGE_CAPTIONING: ImageCaptioningRuntime = {
   enabled: false,
   connectionId: null,
   connection: null,
@@ -279,7 +279,7 @@ function appendImageCaptionBlocksToContent(content: string, blocks: string[]): s
   return `${content}${content.trim() ? "\n\n" : ""}${blocks.join("\n\n")}`;
 }
 
-export async function generateImageCaptionForDataUrl(
+async function generateImageCaptionForDataUrl(
   filename: string,
   imageDataUrl: string,
   imageCaptioning: ImageCaptioningRuntime,

@@ -4,7 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api-client";
 
-export interface CustomEmoji {
+interface CustomEmoji {
   id: string;
   name: string;
   filePath: string;

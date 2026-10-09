@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { agentResultTypeSchema } from "./agent.schema.js";
-import { isRulesetCatalogAssetPath, RULESET_ASSET_PATH } from "./ruleset.schema.js";
 
 /** Caps mirrored by the Marinara-Agents catalog build. Kept here so a hostile or
  *  broken notes document cannot push an unbounded string into a modal. */
-export const MAX_RELEASE_NOTE_CHARACTERS = 1000;
-export const MAX_RELEASE_NOTE_VERSIONS = 20;
+const MAX_RELEASE_NOTE_CHARACTERS = 1000;
+const MAX_RELEASE_NOTE_VERSIONS = 20;
 
-export const capabilityPackageKindSchema = z.enum(["agent", "maps", "conversation-calls", "turn-game", "ruleset"]);
-export const capabilityPermissionSchema = z.enum([
+const capabilityPackageKindSchema = z.enum(["agent", "maps", "conversation-calls", "turn-game", "ruleset"]);
+const capabilityPermissionSchema = z.enum([
   "achievements",
   "agent-runtime",
   "chat-read",
@@ -555,7 +554,7 @@ const capabilityPackageManifestBaseSchema = z
 //        context, holds the lock while the scene runs and receives the recap when it ends. The browser
 //        view gets `startScene`, `openChat`, `focusSceneOriginId` and `onFocusSceneOriginHandled`. Requires
 //        the `scenes` permission.
-export const supportedCapabilityApi = Object.freeze({ major: 1, minor: 66 } as const);
+const supportedCapabilityApi = Object.freeze({ major: 1, minor: 66 } as const);
 
 const capabilityApiVersionSchema = z
   .object({
@@ -571,13 +570,13 @@ const capabilityPackageBuiltAgainstSchema = z
   })
   .strict();
 
-export const capabilityPackageManifestV1Schema = capabilityPackageManifestBaseSchema
+const capabilityPackageManifestV1Schema = capabilityPackageManifestBaseSchema
   .extend({
     schemaVersion: z.literal(1),
   })
   .strict();
 
-export const capabilityPackageManifestV2Schema = capabilityPackageManifestBaseSchema
+const capabilityPackageManifestV2Schema = capabilityPackageManifestBaseSchema
   .extend({
     schemaVersion: z.literal(2),
     capabilityApi: capabilityApiVersionSchema,
@@ -780,42 +779,9 @@ export const capabilityPackageManifestSchema = z
         });
       }
     }
-    // A ruleset is the whole point of the package that ships one, so it is a hard 1.20 requirement
-    // rather than a soft seam: an older Engine refuses the install instead of installing a package
-    // that then does nothing.
-    if (manifest.contributions?.assets?.paths.includes(RULESET_ASSET_PATH)) {
-      const api = manifest.schemaVersion === 2 ? manifest.capabilityApi : null;
-      if (!api || api.major < 1 || (api.major === 1 && api.minor < 20)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["contributions", "assets", "paths"],
-          message: `${RULESET_ASSET_PATH} requires schemaVersion 2 and capabilityApi 1.20 or newer`,
-        });
-      }
-    }
-    // A catalog asset is part of a ruleset, so it follows the same hard requirement one minor
-    // later, and only ever ships beside the file that declares it: on its own it is a JSON document
-    // nothing would ever read.
-    if ((manifest.contributions?.assets?.paths ?? []).some(isRulesetCatalogAssetPath)) {
-      const api = manifest.schemaVersion === 2 ? manifest.capabilityApi : null;
-      if (!api || api.major < 1 || (api.major === 1 && api.minor < 21)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["contributions", "assets", "paths"],
-          message: "catalogs/<id>.json requires schemaVersion 2 and capabilityApi 1.21 or newer",
-        });
-      }
-      if (!manifest.contributions?.assets?.paths.includes(RULESET_ASSET_PATH)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["contributions", "assets", "paths"],
-          message: `A catalog asset must ship beside the ${RULESET_ASSET_PATH} that declares it`,
-        });
-      }
-    }
   });
 
-export const capabilityCatalogPackageSchema = z
+const capabilityCatalogPackageSchema = z
   .object({
     manifest: capabilityPackageManifestSchema,
     category: z.enum(["writer", "tracker", "misc"]).default("misc"),
@@ -835,7 +801,7 @@ export const capabilityCatalogPackageSchema = z
   })
   .strict();
 
-export const capabilityCatalogSchema = z
+const capabilityCatalogSchema = z
   .object({
     schemaVersion: z.literal(1),
     generatedAt: z.string().datetime(),
@@ -857,7 +823,7 @@ export const capabilityCatalogSchema = z
  *  TOP-LEVEL fields neither reject the envelope nor leak into the result. */
 const capabilityCatalogEnvelopeSchema = capabilityCatalogSchema.extend({ packages: z.array(z.unknown()) }).strip();
 
-export type CapabilityCatalogParseResult = {
+type CapabilityCatalogParseResult = {
   catalog: z.infer<typeof capabilityCatalogSchema>;
   /** Entries this Engine could not understand (newer manifest features). They
    *  are dropped from the catalog rather than failing it — the polite
@@ -894,7 +860,7 @@ export function parseCapabilityCatalogWithCompat(input: unknown): CapabilityCata
   return { catalog: { ...envelope, packages }, droppedEntries: droppedIds.length, droppedIds };
 }
 
-export const capabilityPackageReadinessSchema = z.enum(["pending", "registered", "ready", "error"]);
+const capabilityPackageReadinessSchema = z.enum(["pending", "registered", "ready", "error"]);
 
 export const installedCapabilityPackageSchema = z.object({
   id: z.string(),
@@ -926,7 +892,7 @@ const packagedAgentPromptTemplateSchema = z
   })
   .strict();
 
-export const packagedAgentDefinitionSchema = z
+const packagedAgentDefinitionSchema = z
   .object({
     id: z
       .string()
@@ -1083,11 +1049,9 @@ export interface CustomAgentRepository {
   lastDigest: string | null;
   lastSyncedAt: string | null;
   agentCount: number;
-  /** Game Mode rulesets the repository published under `rulesets/` at the last sync. */
-  rulesetCount: number;
 }
 
-export type CustomAgentRepositoryChangeStatus = "new" | "updated" | "unchanged" | "removed";
+type CustomAgentRepositoryChangeStatus = "new" | "updated" | "unchanged" | "removed";
 
 export interface CustomAgentRepositoryChange {
   agentId: string;
@@ -1097,44 +1061,13 @@ export interface CustomAgentRepositoryChange {
   definition?: PackagedAgentDefinition;
 }
 
-/** `new-version`: another version of this ruleset is already installed and this one joins it.
- *  `conflict`: that exact version is installed with different contents, so it is left alone and the
- *  author has to raise the version number. `invalid`: the file is not a usable ruleset. Both of the
- *  last two are skipped without stopping the rest of the repository. */
-export type CustomAgentRepositoryRulesetStatus = "new" | "new-version" | "unchanged" | "conflict" | "invalid";
-
-export interface CustomAgentRepositoryRulesetChange {
-  /** The file name inside `rulesets/`, which is what identifies the row even when nothing else parsed. */
-  file: string;
-  /** The namespaced id the ruleset would be installed under, or null when the file could not be read. */
-  rulesetId: string | null;
-  name: string;
-  version: number | null;
-  status: CustomAgentRepositoryRulesetStatus;
-  /** The author's summary of what the ruleset covers, empty when the file could not be read. */
-  coverage: string;
-  /** Why an unusable file cannot be installed, first few lines only. */
-  issues: string[];
-}
-
 export interface CustomAgentRepositoryPreview {
   repository: Pick<CustomAgentRepository, "id" | "url" | "owner" | "name">;
   digest: string;
   changes: CustomAgentRepositoryChange[];
-  rulesets: CustomAgentRepositoryRulesetChange[];
 }
 
-/** What adding or syncing a repository just did with its rulesets. Stored versions are never
- *  rewritten, so `skipped` covers both unusable files and versions already installed differently. */
-export interface CustomAgentRepositoryRulesetResult {
-  added: number;
-  unchanged: number;
-  skipped: number;
-}
-
-export interface CustomAgentRepositoryApplyResult extends CustomAgentRepository {
-  rulesets: CustomAgentRepositoryRulesetResult;
-}
+export type CustomAgentRepositoryApplyResult = CustomAgentRepository;
 
 export interface CustomAgentRepositoryState {
   enabled: boolean;

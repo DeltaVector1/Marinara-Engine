@@ -16,11 +16,11 @@
 
 import { logger } from "./logger.js";
 
-export const FREEZE_DETECTOR_INTERVAL_MS = 60_000;
+const FREEZE_DETECTOR_INTERVAL_MS = 60_000;
 /** A tick this many times later than scheduled counts as a suspension. */
-export const FREEZE_GAP_FACTOR = 2;
+const FREEZE_GAP_FACTOR = 2;
 
-export type FreezeRecord = {
+type FreezeRecord = {
   /** When the post-freeze tick ran (i.e. when the process thawed). */
   detectedAt: string;
   /** Total gap between consecutive ticks, in milliseconds. */
@@ -34,7 +34,7 @@ export type FreezeRecord = {
  * returns the estimated suspension when the gap crosses the threshold,
  * null for an on-time tick.
  */
-export function classifyTickGap(
+function classifyTickGap(
   now: number,
   lastTickAt: number,
   intervalMs: number = FREEZE_DETECTOR_INTERVAL_MS,

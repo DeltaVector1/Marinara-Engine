@@ -7,7 +7,7 @@ import {
 } from "@marinara-engine/shared";
 import { api } from "../lib/api-client";
 
-export const customGenerationParameterKeys = {
+const customGenerationParameterKeys = {
   all: ["app-settings", CUSTOM_GENERATION_PARAMETERS_SETTINGS_KEY] as const,
 };
 

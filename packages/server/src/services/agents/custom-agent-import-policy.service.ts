@@ -2,7 +2,7 @@ import type { CustomAgentImportPolicy } from "@marinara-engine/shared";
 import type { DB } from "../../db/connection.js";
 import { createAppSettingsStorage } from "../storage/app-settings.storage.js";
 
-export const CUSTOM_AGENT_IMPORTS_SETTINGS_KEY = "custom-agent-imports-enabled";
+const CUSTOM_AGENT_IMPORTS_SETTINGS_KEY = "custom-agent-imports-enabled";
 
 export function resolveCustomAgentImportsEnabled(value: string | null | undefined): boolean {
   // Imports were available before this policy setting existed. Preserve that

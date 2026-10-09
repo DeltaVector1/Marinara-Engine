@@ -38,9 +38,9 @@ const PROFESSOR_MARI_INTERNAL_CHAT_MARKER = "professor-mari";
 const SEARCH_ROLES = new Set<ChatSearchRole>(["user", "assistant", "narrator", "system"]);
 const CHAT_MODES = new Set<ChatMode>(["conversation", "roleplay", "game"]);
 
-export const GLOBAL_SEARCH_MAX_LIMIT = 100;
-export const GLOBAL_SEARCH_MAX_OFFSET = 1_000;
-export const GLOBAL_SEARCH_TIME_BUDGET_MS = 8_000;
+const GLOBAL_SEARCH_MAX_LIMIT = 100;
+const GLOBAL_SEARCH_MAX_OFFSET = 1_000;
+const GLOBAL_SEARCH_TIME_BUDGET_MS = 8_000;
 
 function parseRecord(raw: unknown): Record<string, unknown> {
   if (raw && typeof raw === "object" && !Array.isArray(raw)) return raw as Record<string, unknown>;
@@ -77,7 +77,7 @@ const VISIBILITY_FLAGS = ["hiddenFromUser", "commandOnly", "roleplayPrivateOnly"
  * Whether a stored message shows up in the readable transcript. The extra blob
  * is only parsed when it mentions one of the flags, which keeps full scans cheap.
  */
-export function isReaderVisibleMessage(message: { role?: unknown; content?: unknown; extra?: unknown }): boolean {
+function isReaderVisibleMessage(message: { role?: unknown; content?: unknown; extra?: unknown }): boolean {
   if (message.role === "system") return false;
   if (typeof message.content !== "string" || message.content.trim().length === 0) return false;
   const extra = message.extra;
@@ -128,7 +128,7 @@ function createCharacterNameCache(db: DB) {
 
 // ── Global search ──
 
-export interface GlobalChatSearchParams {
+interface GlobalChatSearchParams {
   query: string;
   mode?: string | null;
   characterId?: string | null;
@@ -237,7 +237,7 @@ export async function searchAllChats(db: DB, params: GlobalChatSearchParams): Pr
         messageId: row.id,
         messageNumber: index + 1,
         role: rowRole,
-        speaker: rowRole === "assistant" && chat.mode !== "game" ? names.get(row.characterId) : null,
+        speaker: rowRole === "assistant" ? names.get(row.characterId) : null,
         createdAt: row.createdAt,
         snippet: snippet.text,
         highlights: snippet.highlights,
@@ -253,7 +253,7 @@ export async function searchAllChats(db: DB, params: GlobalChatSearchParams): Pr
 
 // ── Per-chat stats ──
 
-export interface ChatStatsParams {
+interface ChatStatsParams {
   timezoneOffsetMinutes?: number;
   /** IANA zone from the reader's browser; wins over the fixed offset so DST is honoured. */
   timeZone?: string | null;
@@ -286,7 +286,7 @@ export async function computeStoredChatStats(db: DB, chat: ChatRow, params: Chat
     messageNumbers.set(row.id, index + 1);
     let speakerKey: string = role;
     let speakerName = role === "user" ? userName : "Narrator";
-    if (role === "assistant" && chat.mode !== "game") {
+    if (role === "assistant") {
       speakerKey = row.characterId ? `character:${row.characterId}` : "character:primary";
       speakerName = names.get(row.characterId) ?? primaryCharacter;
     }
@@ -312,10 +312,10 @@ export async function computeStoredChatStats(db: DB, chat: ChatRow, params: Chat
 
 // ── Activity overview ──
 
-export const ACTIVITY_CACHE_TTL_MS = 60_000;
-export const ACTIVITY_TOP_CHAT_LIMIT = 8;
+const ACTIVITY_CACHE_TTL_MS = 60_000;
+const ACTIVITY_TOP_CHAT_LIMIT = 8;
 /** Even an unchanged-looking chat summary is re-read after this long, to heal any drift. */
-export const ACTIVITY_SUMMARY_MAX_AGE_MS = 60 * 60_000;
+const ACTIVITY_SUMMARY_MAX_AGE_MS = 60 * 60_000;
 
 /** Time zone independent facts about one chat, reusable across overviews. */
 interface ChatActivitySummary {
@@ -359,7 +359,7 @@ async function summarizeChatActivity(db: DB, chat: ChatRow, generation: number):
  * generation are unchanged. Residency cannot prove that a chat is unchanged:
  * an edited unit can be flushed and evicted before the next overview build.
  */
-export function createChatActivitySummaryCache(db: DB, maxAgeMs = ACTIVITY_SUMMARY_MAX_AGE_MS) {
+function createChatActivitySummaryCache(db: DB, maxAgeMs = ACTIVITY_SUMMARY_MAX_AGE_MS) {
   const entries = new Map<string, ChatActivitySummary>();
   const store = (db as { _fileStore?: ActivityStoreProbe })._fileStore;
   const stats = { scanned: 0, reused: 0 };
@@ -397,9 +397,9 @@ export function createChatActivitySummaryCache(db: DB, maxAgeMs = ACTIVITY_SUMMA
   };
 }
 
-export type ChatActivitySummaryCache = ReturnType<typeof createChatActivitySummaryCache>;
+type ChatActivitySummaryCache = ReturnType<typeof createChatActivitySummaryCache>;
 
-export async function buildActivityOverview(
+async function buildActivityOverview(
   db: DB,
   params: {
     timezoneOffsetMinutes?: number;

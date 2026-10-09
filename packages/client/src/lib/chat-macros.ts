@@ -1,12 +1,11 @@
 import {
-  normalizeTextForMatch,
   resolveChatPersonaCandidate,
   resolveMacros,
   type MacroContext,
   type Persona,
 } from "@marinara-engine/shared";
 
-export interface MacroCharacterData {
+interface MacroCharacterData {
   id?: string;
   name: string;
   description?: string;
@@ -19,7 +18,7 @@ export interface MacroCharacterData {
   postHistoryInstructions?: string;
 }
 
-export interface MacroPersonaData {
+interface MacroPersonaData {
   personaId?: string;
   name: string;
   description?: string;
@@ -59,7 +58,7 @@ export function getChatCharacterIds(chat: { characterIds?: unknown } | null | un
   return [];
 }
 
-export function parseCharacterMacroData(
+function parseCharacterMacroData(
   raw: { id?: string; data: unknown } | null | undefined,
 ): MacroCharacterData | null {
   if (!raw) return null;
@@ -110,7 +109,7 @@ function toMacroPersonaDataFromCharacter(character: MacroCharacterData): MacroPe
   };
 }
 
-export function selectChatCharacters(
+function selectChatCharacters(
   chat: { characterIds?: unknown } | null | undefined,
   characters: Array<{ id: string; data: unknown }> | undefined,
 ): MacroCharacterData[] {
@@ -126,7 +125,7 @@ export function selectChatCharacters(
   return chatCharacterIds.map((id) => byId.get(id)).filter((value): value is MacroCharacterData => !!value);
 }
 
-export function selectActivePersona(
+function selectActivePersona(
   chat: { personaId?: string | null; mode?: string | null } | null | undefined,
   personas: Persona[] | undefined,
 ): MacroPersonaData | undefined {
@@ -137,24 +136,7 @@ export function selectActivePersona(
   return selectedPersona ? toMacroPersonaData(selectedPersona) : undefined;
 }
 
-export function findCharacterByName(
-  characters: Iterable<MacroCharacterData>,
-  name: string | null | undefined,
-): MacroCharacterData | undefined {
-  if (!name) return undefined;
-  const needle = normalizeTextForMatch(name);
-  if (!needle) return undefined;
-
-  for (const character of characters) {
-    if (normalizeTextForMatch(character.name) === needle) {
-      return character;
-    }
-  }
-
-  return undefined;
-}
-
-export function buildMessageMacroContext({
+function buildMessageMacroContext({
   persona,
   primaryCharacter,
   characters = [],

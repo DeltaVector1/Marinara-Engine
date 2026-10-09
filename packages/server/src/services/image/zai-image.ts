@@ -44,7 +44,7 @@ export function buildZaiImageUrl(baseUrl: string): string {
   return parsed.toString();
 }
 
-export function resolveZaiImageSize(model: string, width?: number, height?: number): string {
+function resolveZaiImageSize(model: string, width?: number, height?: number): string {
   const sizes = model.toLowerCase().startsWith("cogview") ? COGVIEW_IMAGE_SIZES : GLM_IMAGE_SIZES;
   const requestedWidth = Number.isFinite(width) && Number(width) > 0 ? Number(width) : 1;
   const requestedHeight = Number.isFinite(height) && Number(height) > 0 ? Number(height) : 1;

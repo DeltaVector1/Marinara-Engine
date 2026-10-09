@@ -1,8 +1,8 @@
-export const OPENROUTER_APP_REFERER = "https://github.com/Pasta-Devs/Marinara-Engine";
-export const OPENROUTER_APP_TITLE = "Marinara Engine";
-export const OPENROUTER_APP_CATEGORIES = "roleplay,game";
+const OPENROUTER_APP_REFERER = "https://github.com/Pasta-Devs/Marinara-Engine";
+const OPENROUTER_APP_TITLE = "Marinara Engine";
+const OPENROUTER_APP_CATEGORIES = "roleplay,game";
 
-export function isOpenRouterApiUrl(value: string | URL): boolean {
+function isOpenRouterApiUrl(value: string | URL): boolean {
   try {
     const hostname = (value instanceof URL ? value : new URL(value)).hostname.toLowerCase();
     return hostname === "openrouter.ai" || hostname.endsWith(".openrouter.ai");

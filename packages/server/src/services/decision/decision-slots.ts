@@ -78,7 +78,7 @@ export interface ResolvedDecisionSlot {
   serverSlots: number;
 }
 
-export type DecisionSlotFailure = { slot: DecisionLocalSlot; reason: DecisionUnavailableReason; detail?: string };
+type DecisionSlotFailure = { slot: DecisionLocalSlot; reason: DecisionUnavailableReason; detail?: string };
 
 /** The catalog entry the user has installed, if the sidecar is enabled at all. */
 export function installedDecisionModel(settings: DecisionSidecarSettings): SidecarDecisionModelInfo | null {

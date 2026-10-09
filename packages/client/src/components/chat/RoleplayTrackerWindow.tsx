@@ -80,7 +80,7 @@ const BUILT_IN_TRACKER_TYPES = [
 const DRAWER_MEMORY_PREFIX = "tracker-window:";
 
 /** Use the left gutter when it fits; otherwise begin as a button that leaves the transcript readable. */
-export function getTrackerWindowDefaultLayout(bounds: WindowBounds): WindowLayout {
+function getTrackerWindowDefaultLayout(bounds: WindowBounds): WindowLayout {
   const remPx = readCssPixels(document.documentElement, "font-size") || 16;
   const area = readChatWindowArea(bounds);
   const width = Math.min(TRACKER_WINDOW_WIDTH_REM * remPx, area.right - area.left);
@@ -113,7 +113,7 @@ function ignoreTrackerWindowOutsidePointer(target: Element) {
   return !!target.closest("[data-chat-floating-panel], [data-macro-modal]");
 }
 
-export interface RoleplayTrackerWindowProps {
+interface RoleplayTrackerWindowProps {
   chatId: string;
   enabledAgentTypes: Set<string>;
   isStreaming: boolean;

@@ -70,14 +70,6 @@ export function withoutRetiredChatSummaryAgentIds(chatMetadata: Record<string, u
   });
 }
 
-export function resolveChatSummaryPromptFromMetadata(chatMetadata: Record<string, unknown>): string {
-  return resolveChatSummaryPrompt({
-    requestedTemplateId: null,
-    chatMetadata,
-    globalSettingsValue: null,
-  });
-}
-
 export function resolveChatSummaryPrompt(args: {
   requestedTemplateId?: string | null;
   chatMetadata: Record<string, unknown>;
@@ -121,7 +113,7 @@ export function resolveChatSummaryCombinePrompt(globalSettingsValue?: string | n
   return normalizeChatSummaryPromptSettings(globalSettingsValue).combinePrompt || DEFAULT_CHAT_SUMMARY_COMBINE_PROMPT;
 }
 
-export interface ParsedChatSummaryResult {
+interface ParsedChatSummaryResult {
   summary: string;
   title: string;
 }
@@ -162,8 +154,4 @@ function resolvePromptFromTemplates(templates: unknown[], selectedId: string): s
     if (prompt) return prompt;
   }
   return null;
-}
-
-export function parseChatSummaryText(rawContent: string): string {
-  return parseChatSummaryResult(rawContent).summary;
 }

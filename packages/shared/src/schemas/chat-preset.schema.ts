@@ -27,4 +27,3 @@ export const updateChatPresetSchema = z
 
 export type CreateChatPresetInput = z.infer<typeof createChatPresetSchema>;
 export type UpdateChatPresetInput = z.infer<typeof updateChatPresetSchema>;
-export type ChatPresetSettingsInput = z.infer<typeof chatPresetSettingsSchema>;

@@ -9,12 +9,12 @@ type NotificationPingOptions = {
   onlyWhenUnfocused?: boolean;
 };
 
-export function isMarinaraFocused(): boolean {
+function isMarinaraFocused(): boolean {
   if (typeof document === "undefined") return false;
   return document.visibilityState === "visible" && document.hasFocus();
 }
 
-export function shouldPlayNotificationPing(options: NotificationPingOptions = {}): boolean {
+function shouldPlayNotificationPing(options: NotificationPingOptions = {}): boolean {
   return !options.onlyWhenUnfocused || !isMarinaraFocused();
 }
 

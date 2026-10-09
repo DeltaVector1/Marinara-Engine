@@ -3,13 +3,13 @@
 // ──────────────────────────────────────────────
 import { z } from "zod";
 
-export const ttsSourceSchema = z.enum(["openai", "elevenlabs", "pockettts", "xai"]);
+const ttsSourceSchema = z.enum(["openai", "elevenlabs", "pockettts", "xai"]);
 export type TTSSource = z.infer<typeof ttsSourceSchema>;
 
-export const ttsAudioFormatSchema = z.enum(["mp3", "wav", "pcm"]);
+const ttsAudioFormatSchema = z.enum(["mp3", "wav", "pcm"]);
 export type TTSAudioFormat = z.infer<typeof ttsAudioFormatSchema>;
 
-export const ttsVoiceModeSchema = z.enum(["single", "per-character"]);
+const ttsVoiceModeSchema = z.enum(["single", "per-character"]);
 export type TTSVoiceMode = z.infer<typeof ttsVoiceModeSchema>;
 
 export const TTS_DIALOGUE_PAUSE_MIN_SECONDS = 1;
@@ -21,10 +21,10 @@ function normalizeDialoguePauseMs(value: number): number {
   return Math.min(TTS_DIALOGUE_PAUSE_MAX_SECONDS, Math.max(TTS_DIALOGUE_PAUSE_MIN_SECONDS, wholeSeconds)) * 1000;
 }
 
-export const ttsConversationCallAudioInputModeSchema = z.enum(["system", "auto", "transcribe", "local_whisper"]);
+const ttsConversationCallAudioInputModeSchema = z.enum(["system", "auto", "transcribe", "local_whisper"]);
 export type TTSConversationCallAudioInputMode = z.infer<typeof ttsConversationCallAudioInputModeSchema>;
 
-export const ttsVoiceAssignmentSchema = z.object({
+const ttsVoiceAssignmentSchema = z.object({
   characterId: z.string().default(""),
   characterName: z.string().default(""),
   voice: z.string().default(""),
@@ -208,7 +208,7 @@ const ttsConfigBaseSchema = z.object({
   callSoundboardEnabled: z.boolean().default(true),
 });
 
-export const ttsSourceProfileSchema = ttsConfigBaseSchema.pick({
+const ttsSourceProfileSchema = ttsConfigBaseSchema.pick({
   baseUrl: true,
   apiKey: true,
   voice: true,
@@ -229,7 +229,7 @@ export const ttsSourceProfileSchema = ttsConfigBaseSchema.pick({
 });
 export type TTSSourceProfile = z.infer<typeof ttsSourceProfileSchema>;
 
-export const ttsSourceProfilesSchema = z
+const ttsSourceProfilesSchema = z
   .object({
     openai: ttsSourceProfileSchema.optional(),
     elevenlabs: ttsSourceProfileSchema.optional(),
@@ -271,7 +271,7 @@ export function ttsSourceProfileFromConfig(config: TTSConfig): TTSSourceProfile 
 export const TTS_SETTINGS_KEY = "tts";
 export const TTS_API_KEY_MASK = "••••••";
 
-export const ttsRoleplaySpeakerSegmentSchema = z.discriminatedUnion("kind", [
+const ttsRoleplaySpeakerSegmentSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("narration"),
     text: z.string().trim().min(1).max(100_000),

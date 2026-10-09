@@ -27,10 +27,10 @@ import {
 } from "./keyword-scanner.js";
 import { vmRegexExecutor } from "./regex-timeout.js";
 
-export type LorebookTestBlockReason =
+type LorebookTestBlockReason =
   "secondary_keys" | "filters" | "conditions" | "group" | "probability" | "recursion_only" | "folder_disabled";
 
-export interface LorebookTestActivatedEntry {
+interface LorebookTestActivatedEntry {
   entryId: string;
   name: string;
   matchedKeys: string[];
@@ -41,7 +41,7 @@ export interface LorebookTestActivatedEntry {
   probability: number | null;
 }
 
-export interface LorebookTestBlockedEntry {
+interface LorebookTestBlockedEntry {
   entryId: string;
   name: string;
   matchedKeys: string[];
@@ -55,7 +55,7 @@ export interface LorebookTestScanResult {
   scannedMessages: number;
 }
 
-export interface LorebookTestScanInput {
+interface LorebookTestScanInput {
   lorebook: Pick<Lorebook, "id" | "scanDepth" | "recursiveScanning" | "maxRecursionDepth">;
   entries: LorebookEntry[];
   folders?: Pick<LorebookFolder, "id" | "parentFolderId" | "enabled">[];

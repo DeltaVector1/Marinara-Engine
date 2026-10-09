@@ -426,7 +426,7 @@ function omitHiddenFieldLocksForContext(fieldLocks: unknown, hiddenFields: Track
   return changed ? Object.fromEntries(nextEntries) : fieldLocks;
 }
 
-export function compactGameStateForAgentContext(gameState: unknown, agentTypes: string[]): unknown {
+function compactGameStateForAgentContext(gameState: unknown, agentTypes: string[]): unknown {
   if (!isRecord(gameState)) {
     return gameState;
   }
@@ -542,7 +542,7 @@ function buildAgentOutputFormatBody(
   return parts.join("\n");
 }
 
-export function buildAgentOutputFormatBlock(
+function buildAgentOutputFormatBlock(
   configs: AgentExecConfig[],
   context: AgentContext,
   renderedTemplates?: RenderedAgentTemplateMap,
@@ -556,7 +556,7 @@ export function buildAgentOutputFormatBlock(
   return wrapContent(formattedBody, "Output Format", wrapFormat);
 }
 
-export function formatToolPayloadForLog(payload: string, maxLength = 400): string {
+function formatToolPayloadForLog(payload: string, maxLength = 400): string {
   const truncate = (value: string) => (value.length > maxLength ? `${value.slice(0, maxLength)}...` : value);
   const scrubSensitiveText = (value: string) =>
     value
@@ -729,7 +729,7 @@ function applyProviderMaxTokensOverride(provider: BaseLLMProvider, maxTokens: nu
   return provider.maxTokensOverrideValue !== null ? Math.min(maxTokens, provider.maxTokensOverrideValue) : maxTokens;
 }
 
-export function applyAgentMaxTokensCaps(provider: BaseLLMProvider, maxTokens: number, modelMaxOutput: unknown): number {
+function applyAgentMaxTokensCaps(provider: BaseLLMProvider, maxTokens: number, modelMaxOutput: unknown): number {
   const cappedByConnection = applyProviderMaxTokensOverride(provider, maxTokens);
   if (typeof modelMaxOutput !== "number" || !Number.isFinite(modelMaxOutput) || modelMaxOutput <= 0) {
     return cappedByConnection;
@@ -2312,14 +2312,6 @@ function buildStandardAgentMessages(config: AgentExecConfig, template: string, c
   });
 }
 
-export function buildKnowledgeRetrievalAgentMessagesForTest(
-  config: AgentExecConfig,
-  template: string,
-  context: AgentContext,
-): ChatMessage[] {
-  return buildKnowledgeRetrievalAgentMessages(config, template, context);
-}
-
 function buildKnowledgeRetrievalAgentMessages(
   config: AgentExecConfig,
   template: string,
@@ -2547,8 +2539,7 @@ function buildAvailableLocalMusicBlock(settings: Record<string, unknown>): strin
 }
 
 function buildSpotifyAgentMessages(config: AgentExecConfig, template: string, context: AgentContext): ChatMessage[] {
-  const isGame = context.chatMode === "game";
-  const turnLabel = isGame ? "game" : "roleplay";
+  const turnLabel = "roleplay";
   const musicProvider = getMusicProvider(config.settings);
   const systemParts: string[] = [];
   const providerLabel =
@@ -2598,23 +2589,17 @@ function buildSpotifyAgentMessages(config: AgentExecConfig, template: string, co
   }
 
   if (latestGameTurn) {
-    userParts.push(isGame ? `<last_game_turn>` : `<last_roleplay_turn>`);
+    userParts.push(`<last_roleplay_turn>`);
     userParts.push(truncateAgentText(latestGameTurn, 5000));
-    userParts.push(isGame ? `</last_game_turn>` : `</last_roleplay_turn>`);
+    userParts.push(`</last_roleplay_turn>`);
     userParts.push(``);
   }
 
   if (musicProvider === "custom") {
-    userParts.push(
-      isGame
-        ? `Pick one exact local track path for this game turn only, or return "none" if no listed track fits.`
-        : `Pick one exact local track path for this roleplay turn, or return "none" if no listed track fits.`,
-    );
+    userParts.push(`Pick one exact local track path for this roleplay turn, or return "none" if no listed track fits.`);
   } else {
     userParts.push(
-      isGame
-        ? `Pick music intent for this game turn only. If Spotify tools are available, you may use them; otherwise return JSON with action, mood, and searchQuery so the server can fetch a real track and apply playback after this response.`
-        : `Pick music intent for this roleplay turn. If Spotify tools are available, you may use them; otherwise return JSON with action, mood, and searchQuery so the server can fetch real tracks and apply playback after this response.`,
+      `Pick music intent for this roleplay turn. If Spotify tools are available, you may use them; otherwise return JSON with action, mood, and searchQuery so the server can fetch real tracks and apply playback after this response.`,
     );
   }
   userParts.push(`Now return the requested format.`);
@@ -2691,7 +2676,7 @@ function buildExpressionAgentMessages(config: AgentExecConfig, template: string,
 }
 
 /** Extract a useful message from fetch/network errors (preserves err.cause). */
-export function extractErrorMessage(err: unknown, fallback = "Agent execution failed"): string {
+function extractErrorMessage(err: unknown, fallback = "Agent execution failed"): string {
   if (!(err instanceof Error)) return fallback;
   const cause = (err as { cause?: unknown }).cause;
   if (cause instanceof Error) {
@@ -2745,7 +2730,7 @@ function buildCommittedTrackerStateContext(
  * when the host set it, so non-NovelAI connections never see the schema extension.
  * Card appearance references are independent and also serve custom image agents.
  */
-export function buildIllustratorCharacterPromptInstructionBlock(
+function buildIllustratorCharacterPromptInstructionBlock(
   instruction: unknown,
   appearanceReference?: unknown,
 ): string {
@@ -2754,7 +2739,7 @@ export function buildIllustratorCharacterPromptInstructionBlock(
   return [block, reference].filter(Boolean).join("\n");
 }
 
-export function buildIllustratorImageStyleInstructionBlock(styleInstruction: unknown): string {
+function buildIllustratorImageStyleInstructionBlock(styleInstruction: unknown): string {
   const instruction = typeof styleInstruction === "string" ? styleInstruction.trim() : "";
   if (!instruction) return "";
   return [
@@ -2937,7 +2922,7 @@ function buildAgentMessages(
   return messages;
 }
 
-export function formatAgentMainResponseForPrompt(context: AgentContext, preserveMarkup = false): string {
+function formatAgentMainResponseForPrompt(context: AgentContext, preserveMarkup = false): string {
   if (preserveMarkup || !context.mainResponseSegments?.length) {
     return preserveMarkup ? (context.mainResponse ?? "") : stripHtmlTags(context.mainResponse ?? "");
   }
@@ -3173,10 +3158,7 @@ function buildAgentExtras(
     parts.push("Tracker capability: tracker_incremental_updates: supported. Existing array output remains supported.");
   }
 
-  const gameImageStylePrompt =
-    context.chatMode === "game" && typeof context.memory._gameImageStylePrompt === "string"
-      ? context.memory._gameImageStylePrompt.trim()
-      : "";
+  const gameImageStylePrompt = "";
 
   if (imageCapable && !gameImageStylePrompt) {
     const illustratorStyleBlock = buildIllustratorImageStyleInstructionBlock(

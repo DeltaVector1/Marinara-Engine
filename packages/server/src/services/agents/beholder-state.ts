@@ -1,6 +1,6 @@
 import { logger } from "../../lib/logger.js";
 
-export const BEHOLDER_BODY_SLOTS = [
+const BEHOLDER_BODY_SLOTS = [
   "head",
   "face",
   "neck",
@@ -29,23 +29,23 @@ export const BEHOLDER_BODY_SLOTS = [
   "hind_right_foot",
 ] as const;
 
-export type BeholderBodySlot = (typeof BEHOLDER_BODY_SLOTS)[number];
-export type BeholderDamage = "pristine" | "damaged" | "cracked" | "broken";
-export type BeholderWoundSeverity = "minor" | "serious" | "critical";
+type BeholderBodySlot = (typeof BEHOLDER_BODY_SLOTS)[number];
+type BeholderDamage = "pristine" | "damaged" | "cracked" | "broken";
+type BeholderWoundSeverity = "minor" | "serious" | "critical";
 
-export interface BeholderWornItem {
+interface BeholderWornItem {
   item: string;
   material?: string;
   color?: string;
   damage: BeholderDamage;
 }
 
-export interface BeholderHeldItem {
+interface BeholderHeldItem {
   item: string;
   damage: BeholderDamage;
 }
 
-export interface BeholderWound {
+interface BeholderWound {
   text: string;
   severity: BeholderWoundSeverity;
   bleeding: boolean;
@@ -59,17 +59,17 @@ export interface BeholderSlotState {
   missing?: boolean;
 }
 
-export interface BeholderCharacterState {
+interface BeholderCharacterState {
   name: string;
   species?: string;
   body: Partial<Record<BeholderBodySlot, BeholderSlotState>>;
 }
 
-export interface BeholderState {
+interface BeholderState {
   characters: BeholderCharacterState[];
 }
 
-export interface BeholderStateResolution {
+interface BeholderStateResolution {
   state: BeholderState;
   valid: boolean;
   error?: string;

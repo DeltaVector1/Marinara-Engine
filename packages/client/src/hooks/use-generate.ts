@@ -65,8 +65,6 @@ import {
   type AgentTaskProgress,
   type CharacterCardFieldUpdate,
   type EditableCharacterCardField,
-  type MariGuidedPlanStep,
-  type MariSuggestionChip,
   type PendingSpatialTransition,
   type Persona,
   type ResolvedSpatialTravel,
@@ -434,7 +432,6 @@ function createCacheOnlyPartialMessage(params: {
 }
 
 function replyNotificationTitle(mode: Chat["mode"] | undefined, characterName: string | null): string | undefined {
-  if (mode === "game") return "Game turn is ready";
   if (characterName) return undefined;
   if (mode === "roleplay") return "Roleplay reply is ready";
   if (mode === "conversation") return "New message is ready";
@@ -1001,7 +998,7 @@ function createLeadingSpeakerPrefixFilter(initialLabels: string[]) {
 
 function shouldRefreshGameStateAfterGeneration(qc: QueryClient, chatId: string) {
   const chat = getCachedChatForGeneration(qc, chatId);
-  if (chat?.mode === "game") return true;
+
   if (chat?.mode !== "roleplay") return false;
   const enableAgents = parseChatMetadata(chat.metadata).enableAgents;
   return enableAgents === true || enableAgents === "true";
@@ -1205,10 +1202,6 @@ export function useGenerate() {
   const enqueueEchoMessages = useAgentStore((s) => s.enqueueEchoMessages);
   const setCyoaChoices = useAgentStore((s) => s.setCyoaChoices);
   const clearCyoaChoices = useAgentStore((s) => s.clearCyoaChoices);
-  const setMariChips = useAgentStore((s) => s.setMariChips);
-  const clearMariChips = useAgentStore((s) => s.clearMariChips);
-  const setMariPlan = useAgentStore((s) => s.setMariPlan);
-  const clearMariPlan = useAgentStore((s) => s.clearMariPlan);
   const setYoutubePlay = useAgentStore((s) => s.setYoutubePlay);
   const setYoutubeVolume = useAgentStore((s) => s.setYoutubeVolume);
   const setLocalMusicPlay = useAgentStore((s) => s.setLocalMusicPlay);
@@ -1291,7 +1284,7 @@ export function useGenerate() {
       // Used to guard global UI state updates (typing indicator, delayed info, stream
       // buffer, etc.) so that a background chat's events don't corrupt the active view.
       const isActiveChat = () => useChatStore.getState().activeChatId === params.chatId;
-      const isGameGeneration = getCachedChatMode(qc, params.chatId) === "game";
+      const isGameGeneration = false;
       const completionNotifications: Array<() => void> = [];
       const notifyWhenReady = (notify: () => void) => {
         completionNotifications.push(notify);
@@ -1314,9 +1307,6 @@ export function useGenerate() {
         // they belong to THIS chat, or a regular chat's generation wipes a
         // Mari chat's pending suggestions (observed: a held proposal's Accept
         // chip vanishing after unrelated navigation).
-        const agentState = useAgentStore.getState();
-        if (agentState.mariChipsChatId === params.chatId) clearMariChips();
-        if (agentState.mariPlanChatId === params.chatId) clearMariPlan();
         clearFailedAgentTypes(params.chatId);
         setRegenerateMessageId(params.regenerateMessageId ?? null);
       }
@@ -1474,7 +1464,7 @@ export function useGenerate() {
       const keepStreamLiveThroughPostProcessing = shouldKeepStreamLiveThroughPostProcessing({
         streamingEnabled,
         shouldDisplayRawStream,
-        isGameGeneration,
+        isGameGeneration: false,
         isRegeneration: !!params.regenerateMessageId,
         isContinuation: !!params.continueMessageId,
       });
@@ -2347,9 +2337,6 @@ export function useGenerate() {
               // "preparing" while the next character is still narrating. Guarded
               // by stream ownership for the same reason the set is: a queued
               // event from a superseded stream must not touch its replacement.
-              if (isGameGeneration && useChatStore.getState().abortControllers.get(params.chatId) === abortController) {
-                useChatStore.getState().setNarrationSaved(params.chatId, false);
-              }
 
               // If this isn't the first character, flush the previous one's content
               if (turn.index > 0) {
@@ -2622,18 +2609,6 @@ export function useGenerate() {
               if (savedMessage.role === "assistant") {
                 completeQueuedResponse(params.chatId, savedMessage.characterId);
                 currentGroupTurnSavedMessage = savedMessage;
-                if (
-                  isGameGeneration &&
-                  useChatStore.getState().abortControllers.get(params.chatId) === abortController
-                ) {
-                  // The narration text is durable now. The request stays open for
-                  // post-processing, the refresh, and scene analysis, so this is
-                  // the point where the Game Master has stopped writing.
-                  //
-                  // Ownership-checked: a queued event from a superseded stream
-                  // would otherwise mark the generation that replaced it as done.
-                  useChatStore.getState().setNarrationSaved(params.chatId, true);
-                }
               }
               await qc.cancelQueries({ queryKey: chatKeys.messages(params.chatId), exact: true });
               persistedMessages.set(savedMessage.id, savedMessage);
@@ -2679,7 +2654,7 @@ export function useGenerate() {
                 heldTextRewriteMessage = heldMessage;
                 receivedContent = true;
                 persistedMessages.set(heldMessage.id, heldMessage);
-                if (!isGameGeneration && (!streamingEnabled || !shouldDisplayRawStream)) {
+                if (!streamingEnabled || !shouldDisplayRawStream) {
                   upsertPersistedMessages(qc, params.chatId, [heldMessage]);
                 }
                 break;
@@ -2694,7 +2669,7 @@ export function useGenerate() {
               // Game Narration reveals the saved row segment by segment after
               // the whole GM pipeline settles. Publishing it now jumps ahead
               // of that reveal; the final authoritative refresh below owns it.
-              if (!isGameGeneration) upsertPersistedMessages(qc, params.chatId, [savedMessage]);
+              upsertPersistedMessages(qc, params.chatId, [savedMessage]);
               break;
             }
 
@@ -2766,7 +2741,7 @@ export function useGenerate() {
               // would insert it into the cache alongside the StreamingIndicator,
               // causing a duplicate flash. The finally block's authoritative
               // refresh will pick up the selfie attachment from DB.
-              if (!streamingEnabled && !isGameGeneration) {
+              if (!streamingEnabled) {
                 await refreshMessagesAuthoritatively(qc, params.chatId, persistedMessages.values());
               }
               break;
@@ -2900,7 +2875,7 @@ export function useGenerate() {
               // Roleplay can already have handed off to the durable row while other
               // agents still own this stream. Show its saved image immediately;
               // only defer when the live message presentation still owns the row.
-              if (!isGameGeneration && canRefreshCurrentMessagesNow()) {
+              if (canRefreshCurrentMessagesNow()) {
                 await refreshMessagesAuthoritatively(qc, params.chatId, persistedMessages.values());
               }
               void qc.invalidateQueries({ queryKey: ["gallery", params.chatId] });
@@ -3034,15 +3009,6 @@ export function useGenerate() {
               } else if (actionData.action === "data_fetched") {
                 const fetchType = (actionData.fetchType as string) ?? "data";
                 toast(`Fetched ${fetchType}: ${actionData.name}`, { icon: "📋" });
-              } else if (actionData.action === "suggestions") {
-                const suggestions = Array.isArray(actionData.suggestions)
-                  ? (actionData.suggestions as MariSuggestionChip[])
-                  : [];
-                if (useUIStore.getState().professorMariSuggestionsEnabled) setMariChips(params.chatId, suggestions);
-              } else if (actionData.action === "plan") {
-                const plan = Array.isArray(actionData.plan) ? (actionData.plan as MariGuidedPlanStep[]) : [];
-                if (useUIStore.getState().professorMariSuggestionsEnabled && plan.length > 0)
-                  setMariPlan(params.chatId, plan);
               } else if (actionData.action === "navigate") {
                 const panel = actionData.panel as string;
                 const tab = actionData.tab as string | null;
@@ -3308,10 +3274,7 @@ export function useGenerate() {
         }
         const stillOwnerAtCleanupStart =
           useChatStore.getState().abortControllers.get(params.chatId) === abortController;
-        if (
-          (chatModeForGeneration === "roleplay" || chatModeForGeneration === "game") &&
-          !spatialCapabilityRefreshDispatched
-        ) {
+        if (chatModeForGeneration === "roleplay" && !spatialCapabilityRefreshDispatched) {
           // Narrated Maps transitions commit near the end of the server stream.
           // Reconcile both client caches when the transition SSE was missed.
           dispatchSpatialCapabilityEvent(getGameExperiencePackageId(qc, params.chatId), {
@@ -3337,13 +3300,7 @@ export function useGenerate() {
           // persisted active-swipe row after generation-time SSE patches.
           await refreshVisibleGameStateAfterGeneration(params.chatId);
         }
-        if (isGameGeneration && sawDoneEvent && receivedContent) {
-          const uiState = useUIStore.getState();
-          notifyWhenReady(() =>
-            playConfiguredNotificationPing(uiState.gameNotificationSound, uiState.notificationSoundsOnlyWhenUnfocused),
-          );
-          gameTurnLoadedSoundPlayed = true;
-        }
+
         // Re-sort sidebar so this chat floats to the top
         qc.invalidateQueries({ queryKey: chatKeys.list() });
         // If the user navigated away from this chat during generation,
@@ -3386,7 +3343,7 @@ export function useGenerate() {
               .addNotification(params.chatId, identity.name ?? "Character", identity.avatarUrl, identity.avatarCrop);
           }
           const isRp = chat?.mode === "roleplay";
-          const isGame = chat?.mode === "game" || isGameGeneration;
+          const isGame = isGameGeneration;
           const uiState = useUIStore.getState();
           const soundEnabled = isGame
             ? sawDoneEvent && uiState.gameNotificationSound && !gameTurnLoadedSoundPlayed
@@ -3462,7 +3419,7 @@ export function useGenerate() {
         const refreshMessagesInBackground = () => {
           void refreshMessagesAuthoritatively(qc, params.chatId, persistedForRefresh);
         };
-        if (isGameGeneration || (receivedContent && persistedForRefresh.length === 0)) {
+        if (receivedContent && persistedForRefresh.length === 0) {
           await refreshMessagesAuthoritatively(qc, params.chatId, persistedForRefresh);
         } else {
           primeMessagesFromSaved();
@@ -3587,10 +3544,6 @@ export function useGenerate() {
       enqueueEchoMessages,
       setCyoaChoices,
       clearCyoaChoices,
-      setMariChips,
-      clearMariChips,
-      setMariPlan,
-      clearMariPlan,
       setYoutubePlay,
       setYoutubeVolume,
       setLocalMusicPlay,

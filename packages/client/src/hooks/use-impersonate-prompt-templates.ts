@@ -12,7 +12,7 @@ import { translate } from "../localization/i18n";
 
 const CATALOG_PATH = `/app-settings/${IMPERSONATE_PROMPT_TEMPLATES_SETTINGS_KEY}`;
 
-export const impersonatePromptTemplateKeys = {
+const impersonatePromptTemplateKeys = {
   catalog: [IMPERSONATE_PROMPT_TEMPLATES_SETTINGS_KEY, "catalog"] as const,
 };
 

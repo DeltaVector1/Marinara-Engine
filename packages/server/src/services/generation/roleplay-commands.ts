@@ -401,7 +401,7 @@ export function appendRoleplayMessageNotes(
   return added;
 }
 
-export function readRoleplayPersonalState(
+function readRoleplayPersonalState(
   messages: readonly HistoryMessage[],
   audienceCharacterId?: string,
   summaryHiddenIds: ReadonlySet<string> = new Set(),

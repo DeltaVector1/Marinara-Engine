@@ -1,8 +1,8 @@
 import type { LLMUsage } from "../llm/base-provider.js";
 
-export const GENERIC_EMPTY_RESPONSE_MESSAGE = "The AI returned an empty response. Try sending your message again.";
+const GENERIC_EMPTY_RESPONSE_MESSAGE = "The AI returned an empty response. Try sending your message again.";
 
-export interface EmptyResponseContext {
+interface EmptyResponseContext {
   finishReason?: string | null;
   usage?: Pick<LLMUsage, "completionTokens" | "completionReasoningTokens"> | null;
   maxTokens?: number | null;

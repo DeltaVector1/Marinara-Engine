@@ -7,7 +7,6 @@
 // ──────────────────────────────────────────────
 
 import type { DirectionCommand } from "./game.js";
-import type { LocationKind, MusicGenre, MusicIntensity } from "../utils/music-score.js";
 
 /** Available quantization variants for the sidecar model. */
 import type { DecisionThinkingMode } from "./decision.js";
@@ -176,7 +175,7 @@ export interface SidecarStatusResponse {
 // ── Scene Analysis Output ──
 
 /** A single segment-tied effect batch. Applied when the user reaches this segment. */
-export interface SceneSegmentEffect {
+interface SceneSegmentEffect {
   /** 0-based index of the narration segment this effect triggers on. */
   segment: number;
   background?: string | null;
@@ -202,7 +201,7 @@ export interface SceneIllustrationCharacterPrompt {
 }
 
 /** Rare request for a VN CG-style illustration background. */
-export interface SceneIllustrationRequest {
+interface SceneIllustrationRequest {
   /** 0-based narration segment where the illustration should replace the background. */
   segment?: number;
   /** Short visual title for the illustrated moment. */
@@ -219,7 +218,7 @@ export interface SceneIllustrationRequest {
   slug?: string;
 }
 
-export interface GeneratedSceneIllustration {
+interface GeneratedSceneIllustration {
   tag: string;
   segment?: number;
 }
@@ -235,7 +234,7 @@ export interface SceneSpotifyTrackCandidate {
 }
 
 /** Spotify track selected by scene analysis from the provided candidates. */
-export interface SceneSpotifyTrackSelection {
+interface SceneSpotifyTrackSelection {
   uri: string;
   name?: string | null;
   artist?: string | null;
@@ -255,12 +254,6 @@ export interface SceneAnalysis {
   weather: string | null;
   /** Time of day update — applied immediately. */
   timeOfDay: string | null;
-  /** Compact scene-genre hint for deterministic music scoring. */
-  musicGenre?: MusicGenre | null;
-  /** Compact scene-intensity hint for deterministic music scoring. */
-  musicIntensity?: MusicIntensity | null;
-  /** Compact physical-location hint for deterministic ambient scoring. */
-  locationKind?: LocationKind | null;
   /** Spotify track to play when Game Mode is configured to use Spotify music. */
   spotifyTrack?: SceneSpotifyTrackSelection | null;
   /** NPC reputation changes — applied immediately. */
@@ -277,27 +270,8 @@ export interface SceneAnalysis {
   generatedNpcAvatars?: Array<{ name: string; avatarUrl: string }>;
 }
 
-/** A single widget update from scene analysis. */
-export interface SceneWidgetUpdate {
-  widgetId: string;
-  /** For progress_bar/gauge/relationship_meter: new value. */
-  value?: number | string;
-  /** For counter: new count. */
-  count?: number;
-  /** For list/inventory: item to add. */
-  add?: string;
-  /** For list/inventory: item to remove. */
-  remove?: string;
-  /** For timer: start/stop. */
-  running?: boolean;
-  /** For timer: set seconds. */
-  seconds?: number;
-  /** For stat_block: which stat to update (by name). */
-  statName?: string;
-}
-
 /** A reputation change from scene analysis. */
-export interface SceneReputationChange {
+interface SceneReputationChange {
   npcName: string;
   action: string;
 }

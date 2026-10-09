@@ -1,6 +1,6 @@
 import type { NoodleRefreshSchedulerStatus } from "@marinara-engine/shared";
 
-export const NOODLE_REFRESH_SCHEDULE_VERSION = 1 as const;
+const NOODLE_REFRESH_SCHEDULE_VERSION = 1 as const;
 
 export interface PersistedNoodleRefreshSchedule {
   version: typeof NOODLE_REFRESH_SCHEDULE_VERSION;
@@ -37,18 +37,18 @@ function normalizedRandom(random: RandomSource): number {
   return Math.min(0.999_999, Math.max(0, value));
 }
 
-export function localScheduleDate(date: Date): string {
+function localScheduleDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
-export function localScheduleTimezone(): string {
+function localScheduleTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
 }
 
-export function generateNoodleRefreshTimes(
+function generateNoodleRefreshTimes(
   date: Date,
   refreshesPerDay: number,
   random: RandomSource = Math.random,
@@ -143,121 +143,17 @@ export function reconcileNoodleRefreshSchedule(
   };
 }
 
-export function dueNoodleRefreshTimes(schedule: PersistedNoodleRefreshSchedule, at: Date): string[] {
+function dueNoodleRefreshTimes(schedule: PersistedNoodleRefreshSchedule, at: Date): string[] {
   const completed = new Set(schedule.completedTimes);
   const now = at.getTime();
   return schedule.scheduledTimes.filter((time) => !completed.has(time) && Date.parse(time) <= now);
 }
 
-export function nextNoodleRefreshTime(schedule: PersistedNoodleRefreshSchedule): string | null {
+function nextNoodleRefreshTime(schedule: PersistedNoodleRefreshSchedule): string | null {
   const completed = new Set(schedule.completedTimes);
   return schedule.scheduledTimes.find((time) => !completed.has(time)) ?? null;
 }
 
-function localClockTime(value: string): string {
-  const date = new Date(value);
-  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
-
-export function rescheduleNoodleRefreshTime(
-  schedule: PersistedNoodleRefreshSchedule,
-  scheduledTime: string,
-  time: string,
-  at: Date,
-): PersistedNoodleRefreshSchedule {
-  if (!schedule.scheduledTimes.includes(scheduledTime)) {
-    throw new Error("That automatic refresh slot no longer exists.");
-  }
-  if (schedule.completedTimes.includes(scheduledTime)) {
-    throw new Error("Completed automatic refresh slots cannot be rescheduled.");
-  }
-  const timeMatch = /^(\d{2}):(\d{2})$/u.exec(time);
-  if (!timeMatch) throw new Error("Choose a valid time.");
-  if (schedule.scheduledTimes.some((candidate) => candidate !== scheduledTime && localClockTime(candidate) === time)) {
-    throw new Error("Another automatic refresh is already planned for that time.");
-  }
-
-  const dateParts = schedule.scheduleDate.split("-").map(Number);
-  const year = dateParts[0];
-  const month = dateParts[1];
-  const day = dateParts[2];
-  const hour = Number(timeMatch[1]);
-  const minute = Number(timeMatch[2]);
-  if (!year || !month || !day || !Number.isInteger(hour) || !Number.isInteger(minute)) {
-    throw new Error("Choose a valid time.");
-  }
-  const replacement = new Date(year, month - 1, day, hour, minute, 0, 0);
-  if (localScheduleDate(replacement) !== schedule.scheduleDate) {
-    throw new Error("That time is not available on today's local schedule.");
-  }
-  if (replacement.getTime() <= at.getTime()) {
-    throw new Error("Choose a future time for the planned refresh.");
-  }
-
-  return {
-    ...schedule,
-    scheduledTimes: schedule.scheduledTimes
-      .map((candidate) => (candidate === scheduledTime ? replacement.toISOString() : candidate))
-      .sort(),
-    failureAttempts: 0,
-    nextAttemptAt: null,
-    lastError: null,
-  };
-}
-
-export function markNoodleRefreshAttempt(
-  schedule: PersistedNoodleRefreshSchedule,
-  at: Date,
-): PersistedNoodleRefreshSchedule {
-  return {
-    ...schedule,
-    lastAttemptAt: at.toISOString(),
-    nextAttemptAt: null,
-  };
-}
-
-export function markNoodleRefreshSuccess(
-  schedule: PersistedNoodleRefreshSchedule,
-  consumedTimes: string[],
-  at: Date,
-): PersistedNoodleRefreshSchedule {
-  const scheduled = new Set(schedule.scheduledTimes);
-  const alreadyCompleted = new Set(schedule.completedTimes);
-  const matchedTimes = consumedTimes.filter((time) => scheduled.has(time));
-  const fallbackTime = schedule.scheduledTimes.find((time) => !alreadyCompleted.has(time));
-  const completedTimes = Array.from(
-    new Set([
-      ...schedule.completedTimes,
-      ...matchedTimes,
-      ...(matchedTimes.length === 0 && fallbackTime ? [fallbackTime] : []),
-    ]),
-  ).sort();
-  return {
-    ...schedule,
-    completedTimes,
-    successfulRefreshes: Math.min(schedule.refreshesPerDay, schedule.successfulRefreshes + 1),
-    failureAttempts: 0,
-    nextAttemptAt: null,
-    lastAutomaticRefreshAt: at.toISOString(),
-    lastAttemptAt: at.toISOString(),
-    lastError: null,
-  };
-}
-
-export function markNoodleRefreshFailure(
-  schedule: PersistedNoodleRefreshSchedule,
-  error: string,
-  at: Date,
-  retryDelayMs: number,
-): PersistedNoodleRefreshSchedule {
-  return {
-    ...schedule,
-    failureAttempts: schedule.failureAttempts + 1,
-    nextAttemptAt: new Date(at.getTime() + Math.max(1_000, retryDelayMs)).toISOString(),
-    lastAttemptAt: at.toISOString(),
-    lastError: error.slice(0, 500),
-  };
-}
 
 export function clearNoodleRefreshFailure(schedule: PersistedNoodleRefreshSchedule): PersistedNoodleRefreshSchedule {
   return {

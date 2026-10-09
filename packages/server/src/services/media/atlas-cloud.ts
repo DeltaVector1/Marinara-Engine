@@ -1,9 +1,9 @@
 import { safeFetch } from "../../utils/security.js";
 import { logger } from "../../lib/logger.js";
 
-export type AtlasCloudGenerationKind = "image" | "video";
+type AtlasCloudGenerationKind = "image" | "video";
 
-export interface AtlasCloudPrediction {
+interface AtlasCloudPrediction {
   id: string | null;
   status: string | null;
   output: string | null;
@@ -130,7 +130,7 @@ function predictionError(record: Record<string, unknown>): string | null {
   return null;
 }
 
-export function parseAtlasCloudPrediction(value: unknown): AtlasCloudPrediction {
+function parseAtlasCloudPrediction(value: unknown): AtlasCloudPrediction {
   const record = unwrapPrediction(value);
   return {
     id: readString(record.id) ?? readString(record.predictionId) ?? readString(record.prediction_id),
@@ -140,7 +140,7 @@ export function parseAtlasCloudPrediction(value: unknown): AtlasCloudPrediction 
   };
 }
 
-export function buildAtlasCloudUrl(
+function buildAtlasCloudUrl(
   baseUrl: string,
   resource: "generateImage" | "generateVideo" | `prediction/${string}`,
 ): string {
@@ -157,7 +157,7 @@ export function buildAtlasCloudUrl(
 }
 
 /** The public model catalog sits beside the generation endpoints and does not need an API key. */
-export function buildAtlasCloudCatalogUrl(baseUrl: string): string {
+function buildAtlasCloudCatalogUrl(baseUrl: string): string {
   const parsed = new URL(buildAtlasCloudUrl(baseUrl, "generateVideo"));
   parsed.pathname = parsed.pathname.replace(/\/model\/generateVideo$/, "/models");
   return parsed.toString();
@@ -169,7 +169,7 @@ const ATLAS_CLOUD_CATALOG_CATEGORIES: Record<AtlasCloudGenerationKind, readonly 
   image: ["TEXT-TO-IMAGE", "IMAGE-TO-IMAGE"],
 };
 
-export function parseAtlasCloudCatalog(
+function parseAtlasCloudCatalog(
   value: unknown,
   kind: AtlasCloudGenerationKind,
 ): Array<{ id: string; name: string }> {

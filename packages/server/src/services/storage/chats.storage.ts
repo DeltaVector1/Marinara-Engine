@@ -84,7 +84,7 @@ const GALLERY_DIR = join(DATA_DIR, "gallery");
 const GAME_SCENE_VIDEOS_DIR = join(DATA_DIR, "game-scene-videos");
 
 /** Total character budget for durable conversation notes per roleplay chat. Oldest pruned on insert. */
-export const CONVERSATION_NOTES_BUDGET_CHARS = 4000;
+const CONVERSATION_NOTES_BUDGET_CHARS = 4000;
 
 export type MetadataPatch = Record<string, unknown>;
 export type MetadataUpdater = (current: MetadataPatch) => MetadataPatch | Promise<MetadataPatch>;
@@ -95,7 +95,6 @@ function protectRoomMetadata(patch: MetadataPatch, allowed: readonly RoomMetadat
     if (key.startsWith("multiplayer") && !allowed.includes(key as RoomMetadataKey)) delete patch[key];
   }
 }
-export type ChatDeleteGuardResult = { allowed: true } | { allowed: false; reason: string };
 
 function lorebookEntryStateRemovalPatch(metadata: MetadataPatch, entryIds: ReadonlySet<string>): MetadataPatch {
   const patch: MetadataPatch = {};
@@ -313,7 +312,7 @@ function mergeMetadataPatch(current: MetadataPatch, patch: MetadataPatch): Metad
 // counter above every engine-row ordinal it copied.
 
 /** Engine-owned metadata key holding `{ "<top-level metadata key>": <write ordinal> }` (#5406). */
-export const METADATA_WRITE_ORDINALS_KEY = "metadataWriteOrdinals";
+const METADATA_WRITE_ORDINALS_KEY = "metadataWriteOrdinals";
 
 /** Read a stored mirror defensively — it can predate #5406 or have been clobbered by a
  *  whole-blob `updateMetadata`, and only positive safe integers are usable ordinals. */
@@ -510,7 +509,7 @@ function areConversationSchedulesEnabled(meta: MetadataPatch): boolean {
 }
 
 /** Resolved presence state for one chat, read from the character cards it uses. */
-export type ConversationPresenceState = {
+type ConversationPresenceState = {
   schedules: CharacterSchedules;
   statusOverrides: Record<string, ConversationStatusOverride>;
 };
@@ -1154,31 +1153,6 @@ export function createChatsStorage(db: DB) {
     return existingStoryboard.length > 0;
   }
 
-  async function isProtectedGameDeleteTarget(chat: {
-    id: string;
-    mode: string | null;
-    metadata: unknown;
-  }): Promise<boolean> {
-    if (chat.mode !== "game") return false;
-    const meta = parseMetadata(chat.metadata);
-    const hasGameId = typeof meta.gameId === "string" && meta.gameId.trim().length > 0;
-    return hasGameId || (await hasGameDeletePayload(chat.id));
-  }
-
-  async function checkDeleteTargets(
-    rows: Array<{ id: string; mode: string | null; metadata: unknown }>,
-    options: { force?: boolean },
-    reason: string,
-  ): Promise<ChatDeleteGuardResult> {
-    if (options.force) return { allowed: true };
-    for (const chat of rows) {
-      if (await isProtectedGameDeleteTarget(chat)) {
-        return { allowed: false, reason };
-      }
-    }
-    return { allowed: true };
-  }
-
   /**
    * `chatIds` scopes every messageId-keyed condition to the owning chats so
    * the lazy store (#5592 Phase 2) loads only those chat units instead of
@@ -1774,31 +1748,6 @@ export function createChatsStorage(db: DB) {
     async listByGroup(groupId: string) {
       await ensureChatLastMessageAtBackfilled();
       return db.select().from(chats).where(eq(chats.groupId, groupId)).orderBy(desc(chats.updatedAt));
-    },
-
-    async canDeleteChat(id: string, options: { force?: boolean } = {}): Promise<ChatDeleteGuardResult> {
-      const rows = await db
-        .select({ id: chats.id, mode: chats.mode, metadata: chats.metadata })
-        .from(chats)
-        .where(eq(chats.id, id))
-        .limit(1);
-      return checkDeleteTargets(
-        rows,
-        options,
-        "Refusing to hard-delete a game campaign without explicit confirmation.",
-      );
-    },
-
-    async canDeleteGroup(groupId: string, options: { force?: boolean } = {}): Promise<ChatDeleteGuardResult> {
-      const rows = await db
-        .select({ id: chats.id, mode: chats.mode, metadata: chats.metadata })
-        .from(chats)
-        .where(eq(chats.groupId, groupId));
-      return checkDeleteTargets(
-        rows,
-        options,
-        "Refusing to hard-delete a game campaign group without explicit confirmation.",
-      );
     },
 
     /**

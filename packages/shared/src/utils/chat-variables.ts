@@ -11,7 +11,7 @@
 import { CHARACTER_REFERENCE_ID_PATTERN, SUPPORTED_MACROS } from "./macro-engine.js";
 
 /** Names addressable as a bare `{{name}}`: letter or underscore first, 64 chars max. */
-export const CHAT_VARIABLE_NAME_RE = /^[A-Za-z_]\w{0,63}$/;
+const CHAT_VARIABLE_NAME_RE = /^[A-Za-z_]\w{0,63}$/;
 
 /**
  * Names accepted by the store, which `{{setvar}}` has always been free to use.
@@ -69,9 +69,9 @@ function collectReservedMacroNames(): ReadonlySet<string> {
  * Built-in passes run before the catch-all, so a chat variable sharing one of
  * these names would never resolve as `{{name}}` — only as `{{getvar::name}}`.
  */
-export const RESERVED_MACRO_NAMES: ReadonlySet<string> = collectReservedMacroNames();
+const RESERVED_MACRO_NAMES: ReadonlySet<string> = collectReservedMacroNames();
 
-export function isReservedMacroName(name: string): boolean {
+function isReservedMacroName(name: string): boolean {
   // The built-in passes are case-insensitive ({{USER}} resolves), so the
   // reserved check has to be too, even though variable lookup is exact-case.
   return RESERVED_MACRO_NAMES.has(name.trim().toLowerCase());
@@ -82,7 +82,7 @@ export function isReservedMacroName(name: string): boolean {
  * where null means the variable did not exist. Saved on the reply so that
  * regenerating or deleting it can put the earlier values back.
  */
-export type ChatVariableChanges = Record<string, [before: string | null, after: string | null]>;
+type ChatVariableChanges = Record<string, [before: string | null, after: string | null]>;
 type ChatVariableChange = ChatVariableChanges[string];
 
 const isChatVariableChange = (value: unknown): value is ChatVariableChange =>

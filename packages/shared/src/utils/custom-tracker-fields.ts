@@ -10,7 +10,7 @@ export function formatCustomTrackerFieldForPrompt(field: unknown): string {
   return `- ${name}: ${value}${lockLabel}`;
 }
 
-export function normalizeCharacterTrackerCustomFieldDefaults(value: unknown): CharacterTrackerCustomFieldDefault[] {
+function normalizeCharacterTrackerCustomFieldDefaults(value: unknown): CharacterTrackerCustomFieldDefault[] {
   if (!Array.isArray(value)) return [];
 
   const fields: CharacterTrackerCustomFieldDefault[] = [];

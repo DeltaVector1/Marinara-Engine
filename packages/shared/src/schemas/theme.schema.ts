@@ -25,4 +25,3 @@ export const setActiveThemeSchema = z.object({
 
 export type CreateThemeInput = z.infer<typeof createThemeSchema>;
 export type UpdateThemeInput = z.infer<typeof updateThemeSchema>;
-export type SetActiveThemeInput = z.infer<typeof setActiveThemeSchema>;

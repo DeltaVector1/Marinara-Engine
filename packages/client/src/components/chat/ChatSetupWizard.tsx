@@ -879,9 +879,8 @@ function SetupGenerationParametersPanel({
 }
 
 export function ChatSetupWizard({ chat, onFinish }: ChatSetupWizardProps) {
-  const chatMode = (chat as unknown as { mode?: string }).mode ?? "roleplay";
   // Game mode has its own wizard in GameSurface — skip the roleplay wizard
-  if (chatMode === "game") return null;
+
   return <SavedChatSetupWizard key={chat.id} chat={chat} onFinish={onFinish} />;
 }
 

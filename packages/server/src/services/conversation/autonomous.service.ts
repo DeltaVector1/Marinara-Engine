@@ -30,7 +30,7 @@ export interface AutonomousCheckResult {
   generationStartedAt?: number;
 }
 
-export type AutonomousClientPresenceStatus = "active" | "idle" | "dnd";
+type AutonomousClientPresenceStatus = "active" | "idle" | "dnd";
 
 /** Auto-reset generationInProgress after this many ms (5 minutes) */
 const GENERATION_TIMEOUT_MS = 5 * 60 * 1000;
@@ -44,7 +44,7 @@ const REACTION_GATE_FRACTION = 0.34;
 /** …but never sooner than this, so a character never reacts within a few seconds. */
 const REACTION_MIN_GATE_MS = 30 * 1000;
 
-export interface ChatActivityState {
+interface ChatActivityState {
   /** Timestamp of the last user message */
   lastUserMessageAt: number;
   /** Timestamp of the last assistant message */
@@ -67,7 +67,7 @@ export interface ChatActivityState {
   clientPresence?: { status: AutonomousClientPresenceStatus; updatedAt: number };
 }
 
-export type DailyBudgetMeta = {
+type DailyBudgetMeta = {
   date: string;
   counts: Record<string, number>;
 };
@@ -348,13 +348,6 @@ export function recordAutonomousClientPresence(
     generationInProgressSince: null,
     clientPresence: { status, updatedAt: now },
   });
-}
-
-export function getRecentAutonomousClientPresence(chatId: string, maxAgeMs: number) {
-  const presence = activityStates.get(chatId)?.clientPresence;
-  if (!presence) return null;
-  if (Date.now() - presence.updatedAt > maxAgeMs) return null;
-  return presence;
 }
 
 /**

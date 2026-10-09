@@ -19,7 +19,7 @@ type VeniceImageRequestInput = {
   height?: number;
 };
 
-export type VeniceImageResult = {
+type VeniceImageResult = {
   base64: string;
   mimeType: string;
   ext: string;

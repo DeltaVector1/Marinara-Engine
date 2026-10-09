@@ -14,12 +14,6 @@ import { appendChatSummaryToolManifest } from "./tools/append-chat-summary/manif
 import { readChatVariableToolManifest } from "./tools/read-chat-variable/manifest.js";
 import { writeChatVariableToolManifest } from "./tools/write-chat-variable/manifest.js";
 import { updateAboutMeToolManifest } from "./tools/update-about-me/manifest.js";
-import { spotifyGetCurrentPlaybackToolManifest } from "./tools/spotify-get-current-playback/manifest.js";
-import { spotifyGetPlaylistsToolManifest } from "./tools/spotify-get-playlists/manifest.js";
-import { spotifyGetPlaylistTracksToolManifest } from "./tools/spotify-get-playlist-tracks/manifest.js";
-import { spotifySearchToolManifest } from "./tools/spotify-search/manifest.js";
-import { spotifyPlayToolManifest } from "./tools/spotify-play/manifest.js";
-import { spotifySetVolumeToolManifest } from "./tools/spotify-set-volume/manifest.js";
 import { editChatMessageToolManifest } from "./tools/edit-chat-message/manifest.js";
 
 export const BUILT_IN_TOOLS: ToolDefinition[] = [
@@ -35,12 +29,6 @@ export const BUILT_IN_TOOLS: ToolDefinition[] = [
   readChatVariableToolManifest,
   writeChatVariableToolManifest,
   updateAboutMeToolManifest,
-  spotifyGetCurrentPlaybackToolManifest,
-  spotifyGetPlaylistsToolManifest,
-  spotifyGetPlaylistTracksToolManifest,
-  spotifySearchToolManifest,
-  spotifyPlayToolManifest,
-  spotifySetVolumeToolManifest,
   editChatMessageToolManifest,
 ];
 

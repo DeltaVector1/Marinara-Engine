@@ -1,6 +1,6 @@
-export const CAPABILITY_CLIENT_EVENT = "marinara-capability-server-event";
+const CAPABILITY_CLIENT_EVENT = "marinara-capability-server-event";
 
-export interface CapabilityClientEventDetail {
+interface CapabilityClientEventDetail {
   packageId: string;
   type: string;
   chatId: string;

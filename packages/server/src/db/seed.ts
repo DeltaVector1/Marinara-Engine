@@ -9,14 +9,7 @@ import { createPromptsStorage } from "../services/storage/prompts.storage.js";
 import { createAppSettingsStorage } from "../services/storage/app-settings.storage.js";
 import { importMarinara } from "../services/import/marinara.importer.js";
 import { choiceBlocks, promptGroups, promptSections } from "./schema/index.js";
-import {
-  DEFAULT_CONVERSATION_PROMPT,
-  DEFAULT_GAME_SYSTEM_PROMPT,
-  MARINARA_UNIVERSAL_PRESET_AUTHOR,
-  MARINARA_UNIVERSAL_PRESET_NAME,
-  MARINARA_UNIVERSAL_PRESET_SYSTEM_KEY,
-  isStockMarinaraUniversalPreset,
-} from "@marinara-engine/shared";
+import { DEFAULT_CONVERSATION_PROMPT, MARINARA_UNIVERSAL_PRESET_AUTHOR, MARINARA_UNIVERSAL_PRESET_NAME, MARINARA_UNIVERSAL_PRESET_SYSTEM_KEY, isStockMarinaraUniversalPreset } from "@marinara-engine/shared";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -141,10 +134,6 @@ function bundledConversationPrompt(preset: Record<string, unknown>): string {
   return String(preset.conversationPrompt ?? preset.conversation_prompt ?? DEFAULT_CONVERSATION_PROMPT);
 }
 
-function bundledGamePrompt(preset: Record<string, unknown>): string {
-  return String(preset.gamePrompt ?? preset.game_prompt ?? DEFAULT_GAME_SYSTEM_PROMPT);
-}
-
 function buildPresetSnapshot(args: {
   preset: Record<string, unknown>;
   groups: Record<string, unknown>[];
@@ -163,7 +152,6 @@ function buildPresetSnapshot(args: {
       name: String(preset.name ?? ""),
       description: String(preset.description ?? ""),
       conversationPrompt: bundledConversationPrompt(preset),
-      gamePrompt: bundledGamePrompt(preset),
       variableGroups: parseJsonField(preset.variableGroups, []),
       variableValues: parseJsonField(preset.variableValues, {}),
       parameters: parseJsonField(preset.parameters, {}),
@@ -274,7 +262,6 @@ async function applyBundledPresetToExisting(
     name: String(preset.name ?? MARINARA_UNIVERSAL_PRESET_NAME),
     description: String(preset.description ?? MARINARA_PRESET_DESCRIPTION),
     conversationPrompt: bundledConversationPrompt(preset),
-    gamePrompt: bundledGamePrompt(preset),
     variableGroups: parseJsonField(preset.variableGroups, []),
     variableValues: parseJsonField(preset.variableValues, {}),
     parameters: parseJsonField(preset.parameters, {}),
@@ -473,7 +460,6 @@ export async function seedDefaultPreset(db: DB) {
   await storage.setSystemKey(presetId, MARINARA_UNIVERSAL_PRESET_SYSTEM_KEY);
   await storage.update(presetId, {
     conversationPrompt: bundledConversationPrompt(bundled.envelope.data.preset),
-    gamePrompt: bundledGamePrompt(bundled.envelope.data.preset),
     defaultChoices: parseJsonField(bundled.envelope.data.preset.defaultChoices, {}),
   });
   await appSettings.set(MARINARA_PRESET_SEED_HASH_KEY, bundled.hash);

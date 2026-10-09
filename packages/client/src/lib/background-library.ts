@@ -1,6 +1,6 @@
 export type BackgroundLibrarySort = "name-asc" | "name-desc" | "newest" | "oldest";
 
-export type SortableBackgroundLibraryItem = {
+type SortableBackgroundLibraryItem = {
   id: string;
   filename: string;
   tag?: string;

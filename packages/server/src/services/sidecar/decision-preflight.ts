@@ -34,7 +34,7 @@ import { readSidecarSlots } from "./sidecar-slot-report.js";
 import { decisionProcessService } from "./decision-process.service.js";
 import { decisionSidecarSettings } from "../decision/decision-slots.js";
 
-export interface DecisionPreflight {
+interface DecisionPreflight {
   modelId: string;
   assessment: SidecarLoadAssessment;
   /** A sentence naming the one thing that is wrong, when something is. */

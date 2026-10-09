@@ -1,13 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api-client";
 
-export interface CustomNotificationSoundStatus {
+interface CustomNotificationSoundStatus {
   configured: boolean;
   url: string | null;
   updatedAt: string | null;
 }
 
-export const customNotificationSoundKey = ["custom-notification-sound"] as const;
+const customNotificationSoundKey = ["custom-notification-sound"] as const;
 
 export function useCustomNotificationSoundStatus() {
   return useQuery<CustomNotificationSoundStatus>({

@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 
-export type MarinaraRouteRateLimit = {
+type MarinaraRouteRateLimit = {
   readonly max: number;
   readonly timeWindow: number;
 };
@@ -24,7 +24,7 @@ type RateLimitRule = {
 
 const DEFAULT_RULE: RateLimitRule = { key: "default", limit: 600, windowMs: 60_000 };
 
-export const UPDATE_CHANNEL_RATE_LIMIT = {
+const UPDATE_CHANNEL_RATE_LIMIT = {
   max: 30,
   timeWindow: 60_000,
 } as const satisfies MarinaraRouteRateLimit;
@@ -56,7 +56,7 @@ export const RUNTIME_DIAGNOSTICS_RATE_LIMIT = {
 } as const satisfies MarinaraRouteRateLimit;
 
 /** One document per guest frame mount; each response reads and embeds the trusted bundle. */
-export const MULTIPLAYER_GUEST_VIEW_RATE_LIMIT = {
+const MULTIPLAYER_GUEST_VIEW_RATE_LIMIT = {
   max: 30,
   timeWindow: 60_000,
 } as const satisfies MarinaraRouteRateLimit;

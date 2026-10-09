@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export interface RollingBackfillState {
+interface RollingBackfillState {
   chatId: string | null;
   status: "idle" | "running";
   totalBatches: number;

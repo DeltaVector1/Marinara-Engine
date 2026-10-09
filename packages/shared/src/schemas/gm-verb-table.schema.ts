@@ -74,7 +74,7 @@ export const GM_VERB_TABLE_MAX_BYTES = 64 * 1024;
  *  buying a fix, and it must never be cited as the reason the delimiters get stripped. What
  *  strips them is a literal pattern in `utils/dice-branch.ts`; no name set on either side
  *  reaches `[on success]` or `[/branch]` at all. */
-export const RESERVED_GM_TAG_NAMES = Object.freeze([
+const RESERVED_GM_TAG_NAMES = Object.freeze([
   "action",
   "ambient",
   "bg",
@@ -121,181 +121,11 @@ export const RESERVED_GM_TAG_NAMES = Object.freeze([
 
 const reservedGmTagNames = new Set<string>(RESERVED_GM_TAG_NAMES);
 
-/** Chat-metadata namespaces the Engine reads and writes itself. A package whose normalized id is
- *  one of these — or extends one at an uppercase boundary, which is exactly where a colliding key
- *  is minted — may not own metadata keys at all.
- *
- *  Derived, and pinned by `capability-gm-verbs.regression.ts`, from:
- *    1. every top-level key of `ChatMetadata` (`packages/shared/src/types/chat.ts`), reduced to its
- *       leading lowercase run: `gameSetupConfig` → `game`, `lorebookTokenBudget` → `lorebook`,
- *       unless an explicitly narrower compound namespace such as `advancedMemory` already covers it;
- *    2. every engine-owned `*_METADATA_KEY` constant in the server, reduced the same way — these
- *       are keys no interface declares (`metadataWriteOrdinals`, the write-ordinal mirror);
- *    3. the keys that live in the interface's `[key: string]: unknown` index signature instead of
- *       in its declaration. A large share of the Engine's real chat metadata is undeclared this way
- *       (`encounterActive`, `internalAssistant`, `professorMariActive`, `imageGenConnectionId`,
- *       `authorNotes`), and sources 1 and 2 are structurally blind to all of it — a package
- *       squatting one of those namespaces could overwrite an Engine key from model output. It takes
- *       seven sub-sources, because no single one covers the vocabulary: the object literal a
- *       `patchMetadata`/`updateMetadata` call passes; the object literal an updater callback
- *       RETURNS, a shape the Engine reaches for about as often as the first; the client's own
- *       `useUpdateChatMetadata()` mutation and its `onMetadataChange` prop, which PATCH chat
- *       metadata without going near `patchMetadata`; the client's DIRECT `PATCH
- *       /chats/:id/metadata` calls, which skip that hook as well (`GameSurface.tsx` writes combat,
- *       scene and narration keys this way); the `chatMetadata.key` / `chat.metadata.key` property
- *       reads; property reads off a `parseChatMetadata(…)` result, the idiom the Engine actually
- *       uses most and the only one that reaches `scenario`; and
- *       `CHAT_PRESET_EXCLUDED_METADATA_KEYS` (`packages/shared/src/types/chat-preset.ts`), which is
- *       not a sweep at all but the list the Engine already hand-maintains of the keys that belong
- *       to a chat rather than to a reusable settings profile. That list is the only source that
- *       reaches `spatialContext`, and it reaches it precisely because the six sweeps cannot.
- *  Plus `persona`, an engine namespace no current key happens to start with; it is floored
- *  explicitly rather than left to appear the day something claims it.
- *
- *  What the derivation CANNOT see, stated plainly, in two shapes. A write whose payload is a
- *  variable or a helper's return value (`patchMetadata(id, hydratedMeta)`, or the same shape on the
- *  metadata route) commits keys no static sweep in this repository can read; there are twenty-one
- *  such calls, and the regression pins that count so a new one fails until someone reads it by
- *  hand. The Advanced Memory import remap is the twenty-first, audited under `advancedMemory`, `summary`,
- *  and `last`. And a read that happens INSIDE a helper, off a parameter rather than off a name a sweep
- *  recognizes, is interprocedural and out of reach of every read arm here: `spatialContext` is
- *  written into chat metadata by the hierarchical-maps package's own client — code that ships from
- *  the Agents repository, so no write site here names it — and read back by
- *  `hasUsableHierarchicalWorldMap(current)` off a `patchMetadata` updater's parameter and by a
- *  file-local `parseMetadata()` in the capability migration. Widening a sweep does not close that
- *  shape; source 7 does, which is why a curated Engine list sits beside six derivations here.
- *  Everything else is derived. */
-export const ENGINE_OWNED_METADATA_KEY_PREFIXES = Object.freeze([
-  "active",
-  "advancedMemory",
-  "agent",
-  "applied",
-  "archived",
-  "attach",
-  "author",
-  "auto",
-  "automatic",
-  "autonomous",
-  "background",
-  "branch",
-  "card",
-  "character",
-  "chat",
-  "context",
-  "conversation",
-  "cross",
-  "custom",
-  "day",
-  "decision",
-  "discord",
-  "dm",
-  "embedding",
-  "enable",
-  "encounter",
-  "entry",
-  "exclude",
-  "excluded",
-  "expression",
-  "extended",
-  "force",
-  "full",
-  "game",
-  "generation",
-  "group",
-  "haptic",
-  "hide",
-  "illustrator",
-  "image",
-  "impersonate",
-  "import",
-  "inactive",
-  "intent",
-  "internal",
-  "knowledge",
-  "last",
-  "lorebook",
-  "macro",
-  "manual",
-  "mari",
-  "metadata",
-  "multiplayer",
-  "narrative",
-  "noodle",
-  "past",
-  "persona",
-  "preset",
-  "professor",
-  "prompt",
-  "prose",
-  "roleplay",
-  "scenario",
-  "scene",
-  "schedule",
-  "scoped",
-  "selfie",
-  "semantic",
-  "show",
-  "slurp2",
-  "spatial",
-  "spotify",
-  "sprite",
-  "storyboard",
-  "summary",
-  "tags",
-  "tracker",
-  "translate",
-  "translation",
-  "week",
-  "window",
-] as const);
 
-/** The package id as it appears at the head of a metadata key: `hierarchical-maps` →
- *  `hierarchicalMaps`. Manifest ids are already `^[a-z0-9]+(?:-[a-z0-9]+)*$`, so this only has to
- *  fold the hyphens. */
-export function camelCaseCapabilityPackageId(packageId: string): string {
-  return packageId
-    .split("-")
-    .map((segment, index) => (index === 0 ? segment : segment.charAt(0).toUpperCase() + segment.slice(1)))
-    .join("");
-}
 
-/** True when `prefix` is an engine-owned namespace, or extends one at an uppercase boundary.
- *  The boundary case is not hypothetical: the shipped `conversation-calls` package normalizes to
- *  `conversationCalls`, and `conversationCalls` + `Enabled` is `conversationCallsEnabled` — a real
- *  `ChatMetadata` key. A bare set-membership test would let that package overwrite it. */
-function extendsEngineOwnedPrefix(prefix: string): boolean {
-  return ENGINE_OWNED_METADATA_KEY_PREFIXES.some(
-    (owned) => prefix === owned || (prefix.startsWith(owned) && /^[A-Z]/.test(prefix.charAt(owned.length))),
-  );
-}
 
-/** The three key-ownership rules (#5798 decision D1), as one reusable check: the key is the
- *  package's normalized id followed by a non-empty suffix starting at an uppercase boundary, and
- *  neither the normalized id nor its target key uses an engine-owned namespace. Returns the refusal
- *  reason, or `null` when the key is the package's to write. Keys are flat and top-level because that is what the shipped
- *  reconciler already reads; an engine-owned subtree stays the recorded alternative. */
-export function gmVerbMetadataKeyIssue(packageId: string, metadataKey: string): string | null {
-  const prefix = camelCaseCapabilityPackageId(packageId);
-  if (!prefix) return "A verb table needs an owning package id to check metadata key ownership";
-  if (extendsEngineOwnedPrefix(prefix)) {
-    return `Package "${packageId}" normalizes to the engine-owned metadata namespace "${prefix}" and cannot own chat metadata keys`;
-  }
-  // A shorter package ID (e.g. `advanced`) must not claim a narrower host key (`advancedMemory`).
-  if (extendsEngineOwnedPrefix(metadataKey)) {
-    return `metadataKey "${metadataKey}" belongs to an engine-owned metadata namespace`;
-  }
-  if (!metadataKey.startsWith(prefix)) {
-    return `metadataKey must start with "${prefix}" so the key belongs to package "${packageId}"`;
-  }
-  const suffix = metadataKey.slice(prefix.length);
-  if (!suffix) return `metadataKey must add a name after the "${prefix}" prefix`;
-  if (!/^[A-Z]/.test(suffix)) {
-    return `metadataKey must continue with an uppercase letter after the "${prefix}" prefix`;
-  }
-  return null;
-}
 
-export const gmVerbEffectSchema = z.enum(["state", "event"]);
+const gmVerbEffectSchema = z.enum(["state", "event"]);
 
 const gmVerbArgBaseSchema = z
   .object({
@@ -315,7 +145,7 @@ const gmVerbArgBaseSchema = z
   })
   .strict();
 
-export const gmVerbArgSchema = gmVerbArgBaseSchema.superRefine((arg, ctx) => {
+const gmVerbArgSchema = gmVerbArgBaseSchema.superRefine((arg, ctx) => {
   if (arg.enum && arg.type !== "string") {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -449,140 +279,12 @@ function refineGmVerb(verb: z.infer<typeof gmVerbBaseSchema>, ctx: z.RefinementC
 }
 
 /** One verb, checked for everything that does not depend on who declared it. */
-export const gmVerbSchema = gmVerbBaseSchema.superRefine(refineGmVerb);
+const gmVerbSchema = gmVerbBaseSchema.superRefine(refineGmVerb);
 
-/** One verb, plus the key-ownership rules for the package that ships it. */
-export function createGmVerbSchema(packageId: string) {
-  return gmVerbBaseSchema.superRefine((verb, ctx) => {
-    refineGmVerb(verb, ctx);
-    if (verb.effect !== "state" || !verb.metadataKey) return;
-    const issue = gmVerbMetadataKeyIssue(packageId, verb.metadataKey);
-    if (issue) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["metadataKey"], message: issue });
-  });
-}
 
-function refineGmVerbTable(table: { verbs: z.infer<typeof gmVerbBaseSchema>[] }, ctx: z.RefinementCtx): void {
-  const names = new Set<string>();
-  const metadataKeys = new Set<string>();
-  for (const [index, verb] of table.verbs.entries()) {
-    // Folded, because the shipped tag parse is case-insensitive.
-    const name = verb.name.toLowerCase();
-    if (names.has(name)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["verbs", index, "name"],
-        message: `Duplicate verb name "${verb.name}"`,
-      });
-    }
-    names.add(name);
-    if (!verb.metadataKey) continue;
-    if (metadataKeys.has(verb.metadataKey)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["verbs", index, "metadataKey"],
-        message: `Two verbs write the same metadataKey "${verb.metadataKey}"`,
-      });
-    }
-    metadataKeys.add(verb.metadataKey);
-  }
-}
 
-/** The whole `gm-verbs.json` document, checked without an owning package. */
-export const gmVerbTableSchema = z
-  .object({
-    schemaVersion: z.literal(1),
-    verbs: z.array(gmVerbSchema).min(1).max(16),
-  })
-  .strict()
-  .superRefine(refineGmVerbTable);
-
-/** The whole document, plus the key-ownership rules for the package that ships it. */
-export function createGmVerbTableSchema(packageId: string) {
-  return z
-    .object({
-      schemaVersion: z.literal(1),
-      verbs: z.array(createGmVerbSchema(packageId)).min(1).max(16),
-    })
-    .strict()
-    .superRefine(refineGmVerbTable);
-}
-
-export type GmVerbEffect = z.infer<typeof gmVerbEffectSchema>;
-export type GmVerbArg = z.infer<typeof gmVerbArgSchema>;
 export type GmVerb = z.infer<typeof gmVerbSchema>;
-export type GmVerbTable = z.infer<typeof gmVerbTableSchema>;
 
-/** Envelope-only table shape, derived from the real schema so the two cannot drift: entries stay
- *  unparsed so one verb from a NEWER Engine cannot fail the whole table — within the cap, which
- *  the envelope carries too, so a table of MORE than sixteen verbs is refused whole rather than
- *  degrading per verb — and `.strip()` rather than `.strict()`, so a newer TOP-LEVEL field does not
- *  reject the envelope. Nothing leaks whichever of the two tolerant modes is chosen: the result is
- *  rebuilt field by field below (`{ schemaVersion: envelope.schemaVersion, verbs: deduped }`), so
- *  `.passthrough()` here would behave identically and `.strip()` states the intent rather than
- *  supplying the guarantee. Same shape as `parseCapabilityCatalogWithCompat`'s envelope, for the
- *  same reason. */
-const gmVerbTableEnvelopeSchema = z
-  .object({ schemaVersion: z.literal(1), verbs: z.array(z.unknown()).min(1).max(16) })
-  .strip();
 
-/** What the tolerant parse yields: the document shape WITHOUT the schema's `min(1)` guarantee.
- *  Every entry can drop — a table declared by the wrong package drops all of them — so this is a
- *  separate name from `GmVerbTable` on purpose. A caller must check `verbs.length` rather than
- *  reason off the one-verb minimum the validating schema enforces. */
-export type ParsedGmVerbTable = { schemaVersion: GmVerbTable["schemaVersion"]; verbs: GmVerb[] };
 
-export type GmVerbTableParseResult = {
-  /** Possibly empty — see `ParsedGmVerbTable`. */
-  table: ParsedGmVerbTable;
-  /** Verbs this Engine could not understand — a newer effect, a shape it cannot represent, or a
-   *  declaration this Engine refuses. They are dropped rather than failing the table, so one bad
-   *  verb never costs a package its whole vocabulary. */
-  droppedEntries: number;
-  /** Best-effort names of what vanished, so an operator can be told which verb went missing. */
-  droppedNames: string[];
-};
 
-function bestEffortVerbName(entry: unknown): string {
-  if (entry && typeof entry === "object" && !Array.isArray(entry)) {
-    const name = (entry as Record<string, unknown>).name;
-    if (typeof name === "string" && name) return name.slice(0, 32);
-  }
-  return "(unidentifiable verb)";
-}
-
-/** Parse a package's verb table, tolerating individual verbs this Engine cannot understand.
- *  THROWS when the envelope itself is unusable — a wrong `schemaVersion`, a missing or empty
- *  `verbs` array, a non-object document. The caller turns that into its own degradation (an empty
- *  table plus one log line); the turn always survives either way. */
-export function parseGmVerbTableWithCompat(input: unknown, packageId: string): GmVerbTableParseResult {
-  const envelope = gmVerbTableEnvelopeSchema.parse(input);
-  const verbSchema = createGmVerbSchema(packageId);
-  const verbs: GmVerb[] = [];
-  const droppedNames: string[] = [];
-  for (const entry of envelope.verbs) {
-    const parsed = verbSchema.safeParse(entry);
-    if (parsed.success) verbs.push(parsed.data);
-    else droppedNames.push(bestEffortVerbName(entry));
-  }
-  // The table-level collision checks have to run over what SURVIVED: two verbs that collide are
-  // still a collision when a third was dropped between them. Here the later duplicate is dropped
-  // rather than failing the table, which is the whole point of this parse path.
-  const seenNames = new Set<string>();
-  const seenKeys = new Set<string>();
-  const deduped: GmVerb[] = [];
-  for (const verb of verbs) {
-    const name = verb.name.toLowerCase();
-    if (seenNames.has(name) || (verb.metadataKey && seenKeys.has(verb.metadataKey))) {
-      droppedNames.push(verb.name);
-      continue;
-    }
-    seenNames.add(name);
-    if (verb.metadataKey) seenKeys.add(verb.metadataKey);
-    deduped.push(verb);
-  }
-  return {
-    table: { schemaVersion: envelope.schemaVersion, verbs: deduped },
-    droppedEntries: droppedNames.length,
-    droppedNames,
-  };
-}

@@ -115,7 +115,7 @@ type SceneCheckOptions = AdvancedMemoryOperationOptions & {
   batchedCheck?: { request: AdvancedMemorySceneCheck; result: unknown };
 };
 
-export interface PrepareAdvancedMemoryInput extends AdvancedMemoryOperationOptions {
+interface PrepareAdvancedMemoryInput extends AdvancedMemoryOperationOptions {
   chatId: string;
   /** Full canonical source prefix, BEFORE audience/window filtering. Regeneration excludes its target and future. */
   messages: readonly AdvancedMemoryMessage[];
@@ -3338,7 +3338,6 @@ export function createAdvancedMemoryService(db: DB, { includeExcerptsInStatus = 
       .map((item) => item.text)
       .join("\n\n");
     const recalledScenes = sceneText ? `${recallIntroduction}\n\n${sceneText}` : null;
-    const recalledMessages = null;
     const excerpts = sources.filter((message) => excerptIds.has(message.id));
     used += tokenSize(recalledScenes ?? "");
     receipt.estimatedTokensAfter = used + 192;
@@ -3383,7 +3382,7 @@ export function createAdvancedMemoryService(db: DB, { includeExcerptsInStatus = 
       chatSummary: chatSummary || null,
       currentSceneSummary,
       recalledScenes,
-      recalledMessages,
+      recalledMessages: null,
       recalledRecordIds: [...new Set(recalledRecords.map((record) => record.id))].filter(
         (id) => !constantTimelineRecords.has(id),
       ),

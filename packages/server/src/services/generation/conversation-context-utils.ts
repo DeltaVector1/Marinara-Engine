@@ -1,6 +1,6 @@
 import type { ConversationStatusOverride } from "@marinara-engine/shared";
 
-export interface SmartGroupCandidatePromptData {
+interface SmartGroupCandidatePromptData {
   id: string;
   name: string;
   talkativeness: number;

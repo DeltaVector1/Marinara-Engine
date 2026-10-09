@@ -9,13 +9,9 @@ import { resolveGalleryImagePath } from "./gallery-image-path.js";
 export const SPATIAL_LOCATION_REFERENCE_PROMPT_LINE =
   "Location handling: an attached location reference image is available. Use it to set the scene location.";
 
-export const GLOBAL_GALLERY_SPATIAL_REFERENCE_PREFIX = "global-gallery:";
+const GLOBAL_GALLERY_SPATIAL_REFERENCE_PREFIX = "global-gallery:";
 
-export function globalGallerySpatialReferenceId(imageId: string): string {
-  return `${GLOBAL_GALLERY_SPATIAL_REFERENCE_PREFIX}${imageId.trim()}`;
-}
-
-export function parseGlobalGallerySpatialReferenceId(referenceImageId: string): string | null {
+function parseGlobalGallerySpatialReferenceId(referenceImageId: string): string | null {
   if (!referenceImageId.startsWith(GLOBAL_GALLERY_SPATIAL_REFERENCE_PREFIX)) return null;
   return referenceImageId.slice(GLOBAL_GALLERY_SPATIAL_REFERENCE_PREFIX.length).trim() || null;
 }

@@ -15,7 +15,7 @@ function tokenCount(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 ? Math.round(value) : null;
 }
 
-export function resolveProfessorMariContextBudget(
+function resolveProfessorMariContextBudget(
   messages: readonly Message[],
   maxContext: number | null | undefined,
 ): ProfessorMariContextBudget | null {

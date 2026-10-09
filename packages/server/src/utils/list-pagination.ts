@@ -1,6 +1,6 @@
-export const LIBRARY_PAGE_LIMIT = 100;
+const LIBRARY_PAGE_LIMIT = 100;
 
-export type LibraryPageQuery = {
+type LibraryPageQuery = {
   limit?: string;
   offset?: string;
   search?: string;

@@ -26,7 +26,7 @@ export interface ChatStatsMessage {
   tokensCompletion?: number | null;
 }
 
-export interface ChatStatsOptions {
+interface ChatStatsOptions {
   /** Minutes to subtract from UTC to get local time, as returned by Date#getTimezoneOffset. */
   timezoneOffsetMinutes?: number;
   /** IANA zone; preferred over the fixed offset so DST changes bucket correctly. */
@@ -56,7 +56,7 @@ export function parseChatTimestamp(value: unknown): number | null {
 }
 
 /** Local calendar day (YYYY-MM-DD) for a UTC timestamp and a Date#getTimezoneOffset value. */
-export function toLocalDayKey(timeMs: number, timezoneOffsetMinutes = 0): string {
+function toLocalDayKey(timeMs: number, timezoneOffsetMinutes = 0): string {
   const shifted = new Date(timeMs - timezoneOffsetMinutes * 60_000);
   const year = shifted.getUTCFullYear();
   const month = String(shifted.getUTCMonth() + 1).padStart(2, "0");
@@ -76,7 +76,7 @@ export function normalizeTimeZoneName(value: unknown): string | null {
   }
 }
 
-export interface ChatDayZone {
+interface ChatDayZone {
   /** IANA zone. When valid it wins, so days before and after a DST change both land on the right date. */
   timeZone?: string | null;
   /** Fixed Date#getTimezoneOffset fallback for runtimes without the zone. */

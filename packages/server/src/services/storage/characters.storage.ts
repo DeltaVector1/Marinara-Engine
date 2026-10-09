@@ -77,7 +77,7 @@ function personaVersionedContentChanged(current: PersonaCardSnapshot, next: Pers
   return JSON.stringify(personaVersionedContent(current)) !== JSON.stringify(personaVersionedContent(next));
 }
 
-export function bumpCardVersion(version: string): string {
+function bumpCardVersion(version: string): string {
   const trimmedVersion = version.trim();
   const parts = trimmedVersion
     .match(/^\d+(?:\.\d+){1,2}$/u)?.[0]

@@ -89,7 +89,7 @@ export class LLMHttpError extends Error {
  * (`"12"`) or an HTTP date (`"Wed, 21 Oct 2026 07:28:00 GMT"`). Returns undefined when absent or
  * unparseable so callers fall back to their own backoff.
  */
-export function parseRetryAfterMs(headerValue: string | null | undefined): number | undefined {
+function parseRetryAfterMs(headerValue: string | null | undefined): number | undefined {
   if (!headerValue) return undefined;
   const trimmed = headerValue.trim();
   if (/^\d+$/.test(trimmed)) {
@@ -111,7 +111,7 @@ export function llmHttpErrorFromResponse(message: string, response: Response): L
 }
 
 /** Accept either an OpenAI-compatible API base URL or its full embeddings endpoint. */
-export function resolveEmbeddingEndpointUrl(baseUrl: string): string {
+function resolveEmbeddingEndpointUrl(baseUrl: string): string {
   const endpoint = new URL(baseUrl.trim());
   const pathname = endpoint.pathname.replace(/\/+$/u, "");
   endpoint.pathname = /\/embeddings$/iu.test(pathname) ? pathname : `${pathname}/embeddings`;
@@ -253,7 +253,7 @@ function estimateMessageTokens(message: ChatMessage): number {
   return total;
 }
 
-export function estimateMessagesTokens(messages: ChatMessage[]): number {
+function estimateMessagesTokens(messages: ChatMessage[]): number {
   return messages.reduce((sum, message) => sum + estimateMessageTokens(message), 0);
 }
 

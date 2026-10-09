@@ -71,7 +71,7 @@ export function useSetDecisionThinking() {
   });
 }
 
-export interface DecisionSlotTestResult {
+interface DecisionSlotTestResult {
   success: boolean;
   decisionProbability?: number;
   latencyMs: number;

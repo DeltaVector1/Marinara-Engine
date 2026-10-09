@@ -132,6 +132,3 @@ export const CHAT_PRESET_EXCLUDED_METADATA_KEYS: readonly string[] = [
   // instead of wiping the ordering its packages depend on.
   "metadataWriteOrdinals",
 ] as const;
-
-/** Top-level chat keys that CAN be saved into a profile. */
-export const CHAT_PRESET_INCLUDED_CHAT_KEYS: readonly string[] = ["connectionId", "promptPresetId"] as const;

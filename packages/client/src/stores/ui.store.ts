@@ -27,15 +27,15 @@ import type { ChatWizardDefaults, ChatWizardMode } from "../lib/chat-wizard-defa
 
 export type Panel =
   "chat" | "characters" | "lorebooks" | "presets" | "connections" | "agents" | "personas" | "settings" | "extensions";
-export type ChatModeShortcut = "conversation" | "roleplay" | "game";
-export const CHARACTER_LIBRARY_SORT_OPTIONS = ["name-asc", "name-desc", "newest", "oldest", "favorites"] as const;
+type ChatModeShortcut = "conversation" | "roleplay" | "game";
+const CHARACTER_LIBRARY_SORT_OPTIONS = ["name-asc", "name-desc", "newest", "oldest", "favorites"] as const;
 export type CharacterLibrarySort = (typeof CHARACTER_LIBRARY_SORT_OPTIONS)[number];
 export type CardLibraryKind = "characters" | "personas";
 export const MOBILE_SHELL_MEDIA_QUERY =
   "(max-width: 767px), (max-width: 1440px) and (hover: none) and (any-pointer: coarse)";
-export const CHARACTER_PANEL_FAVORITE_FILTER_OPTIONS = ["all", "favorites", "non-favorites"] as const;
-export type CharacterPanelFavoriteFilter = (typeof CHARACTER_PANEL_FAVORITE_FILTER_OPTIONS)[number];
-export const LOREBOOK_PANEL_CATEGORY_OPTIONS = [
+const CHARACTER_PANEL_FAVORITE_FILTER_OPTIONS = ["all", "favorites", "non-favorites"] as const;
+type CharacterPanelFavoriteFilter = (typeof CHARACTER_PANEL_FAVORITE_FILTER_OPTIONS)[number];
+const LOREBOOK_PANEL_CATEGORY_OPTIONS = [
   "all",
   "active",
   "world",
@@ -45,10 +45,10 @@ export const LOREBOOK_PANEL_CATEGORY_OPTIONS = [
   "uncategorized",
 ] as const satisfies readonly (LorebookCategory | "all" | "active")[];
 export type LorebookPanelCategory = (typeof LOREBOOK_PANEL_CATEGORY_OPTIONS)[number];
-export const LOREBOOK_PANEL_SORT_OPTIONS = ["name-asc", "name-desc", "newest", "oldest", "tokens"] as const;
+const LOREBOOK_PANEL_SORT_OPTIONS = ["name-asc", "name-desc", "newest", "oldest", "tokens"] as const;
 export type LorebookPanelSort = (typeof LOREBOOK_PANEL_SORT_OPTIONS)[number];
 export type ResourcePanelSort = BasicPanelSort;
-export const CONNECTION_PANEL_SORT_OPTIONS = [...BASIC_PANEL_SORT_OPTIONS, "custom"] as const;
+const CONNECTION_PANEL_SORT_OPTIONS = [...BASIC_PANEL_SORT_OPTIONS, "custom"] as const;
 export type ConnectionPanelSort = (typeof CONNECTION_PANEL_SORT_OPTIONS)[number];
 
 function normalizeConnectionPanelSort(value: unknown): ConnectionPanelSort {
@@ -82,17 +82,17 @@ export type ConversationAvatarShape = "circle" | "square";
 export type TrackerPanelSide = "left" | "right";
 export type TrackerThoughtBubbleDisplay = "inline" | "floating";
 export type TrackerStatDisplayMode = "bars" | "gauges";
-export type MusicPlayerSource = "spotify" | "youtube" | "custom";
-export const TRACKER_TEMPERATURE_UNITS = ["celsius", "fahrenheit"] as const;
+type MusicPlayerSource = "spotify" | "youtube" | "custom";
+const TRACKER_TEMPERATURE_UNITS = ["celsius", "fahrenheit"] as const;
 export type TrackerTemperatureUnit = (typeof TRACKER_TEMPERATURE_UNITS)[number];
 export const QUICK_REPLIES_SETTINGS_CONTROL_ID = "quick-replies" as const;
-export const TRACKER_PANEL_SIZE_PROFILES = ["compact", "standard", "expanded"] as const;
+const TRACKER_PANEL_SIZE_PROFILES = ["compact", "standard", "expanded"] as const;
 export type TrackerPanelSizeProfile = (typeof TRACKER_PANEL_SIZE_PROFILES)[number];
 export type TrackerDataPanelSection = "world" | "persona" | "characters" | "inventory" | "quests" | "custom";
 export type TrackerPanelCollapsedSections = Partial<Record<TrackerDataPanelSection, boolean>>;
-export type TrackerPanelSectionOrder = TrackerDataPanelSection[];
+type TrackerPanelSectionOrder = TrackerDataPanelSection[];
 export type EchoChamberSide = "top-left" | "top-right" | "bottom-left" | "bottom-right";
-export interface EchoChamberSize {
+interface EchoChamberSize {
   width: number;
   height: number;
 }
@@ -101,13 +101,13 @@ export type RoleplayAvatarStyle = "none" | "circles" | "rectangles" | "panel";
 export type RoleplayChatPosition = "left" | "center" | "right";
 
 /** Stale or unknown synced values fall back to the centred layout. */
-export function normalizeRoleplayChatPosition(value: unknown): RoleplayChatPosition {
+function normalizeRoleplayChatPosition(value: unknown): RoleplayChatPosition {
   return value === "left" || value === "right" ? value : "center";
 }
 export type GameDialogueDisplayMode = "classic" | "stacked";
 /** How much of the chat list shows each chat's background as a row banner. */
 export type ChatListBackgroundMode = "hover" | "always" | "off";
-export type SummaryPopoverSourceMode = "last" | "range";
+type SummaryPopoverSourceMode = "last" | "range";
 export const DEFAULT_ROLEPLAY_BACKGROUND_URL = "/api/backgrounds/file/Black.jpg";
 const DEFAULT_CONVERSATION_BACKGROUND_IMAGE_OPACITY = 45;
 
@@ -116,12 +116,12 @@ export function normalizeConversationBackgroundImageOpacity(value: unknown): num
     ? Math.max(0, Math.min(100, Math.round(value)))
     : DEFAULT_CONVERSATION_BACKGROUND_IMAGE_OPACITY;
 }
-export interface FloatingWidgetPosition {
+interface FloatingWidgetPosition {
   x: number;
   y: number;
 }
-export const DEFAULT_MOBILE_MUSIC_WIDGET_POSITION = { x: 16, y: 144 } as const;
-export interface SummaryPopoverSettings {
+const DEFAULT_MOBILE_MUSIC_WIDGET_POSITION = { x: 16, y: 144 } as const;
+interface SummaryPopoverSettings {
   sourceMode: SummaryPopoverSourceMode;
   contextSize: number | null;
   rangeStart: number | null;
@@ -129,7 +129,7 @@ export interface SummaryPopoverSettings {
   hideSummarisedMessages: boolean;
   collapseHiddenMessages: boolean;
 }
-export interface PendingSpatialMapDraftReview {
+interface PendingSpatialMapDraftReview {
   chatId: string;
   result?: GenerateSpatialMapDraftResponse;
   source: "game_setup";
@@ -138,7 +138,7 @@ export interface PendingSpatialMapDraftReview {
   selection?: unknown;
 }
 
-export interface GameSetupLearnedOptions {
+interface GameSetupLearnedOptions {
   genres: string[];
   tones: string[];
   settings: string[];
@@ -146,7 +146,7 @@ export interface GameSetupLearnedOptions {
   preferences: string[];
 }
 
-export interface GameSetupRememberedText {
+interface GameSetupRememberedText {
   playerGoals: string;
   preferences: string;
 }
@@ -155,7 +155,7 @@ export const SIDEBAR_WIDTH_MIN = 240;
 export const SIDEBAR_WIDTH_MAX = 480;
 export const RIGHT_PANEL_WIDTH_MIN = 280;
 export const RIGHT_PANEL_WIDTH_MAX = 520;
-export const TRACKER_PANEL_SIZE_PROFILE_WIDTHS: Record<TrackerPanelSizeProfile, number> = {
+const TRACKER_PANEL_SIZE_PROFILE_WIDTHS: Record<TrackerPanelSizeProfile, number> = {
   compact: 280,
   standard: 340,
   expanded: 420,
@@ -264,18 +264,18 @@ function shouldFlushUiStorageImmediately(previousValue: string | null, nextValue
     previous.echoChamberSizes !== next.echoChamberSizes
   );
 }
-export const TRACKER_PANEL_WIDTH_DEFAULT = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.standard;
-export const TRACKER_PANEL_WIDTH_MIN = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.compact;
-export const TRACKER_PANEL_WIDTH_MAX = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.expanded;
+const TRACKER_PANEL_WIDTH_DEFAULT = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.standard;
+const TRACKER_PANEL_WIDTH_MIN = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.compact;
+const TRACKER_PANEL_WIDTH_MAX = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.expanded;
 export const TRACKER_PANEL_DEFAULT_BACKGROUND_COLOR = "#09090b";
-export const DEFAULT_APP_BACKGROUND_DARK = "#050312";
-export const DEFAULT_APP_BACKGROUND_LIGHT = "#faf8ff";
+const DEFAULT_APP_BACKGROUND_DARK = "#050312";
+const DEFAULT_APP_BACKGROUND_LIGHT = "#faf8ff";
 const DEFAULT_APP_BACKGROUNDS = new Set([DEFAULT_APP_BACKGROUND_DARK, DEFAULT_APP_BACKGROUND_LIGHT]);
 const LEGACY_DEFAULT_APP_ACCENTS = new Set(["#d4d4d4", "#1a1025"]);
-export const DEFAULT_CHAT_TEXT_DARK = "#d4d4d4";
-export const DEFAULT_CHAT_TEXT_LIGHT = "#1a1025";
-export const DEFAULT_CHAT_CHROME_TEXT_DARK = "#d4d4d4";
-export const DEFAULT_CHAT_CHROME_TEXT_LIGHT = "#1a1025";
+const DEFAULT_CHAT_TEXT_DARK = "#d4d4d4";
+const DEFAULT_CHAT_TEXT_LIGHT = "#1a1025";
+const DEFAULT_CHAT_CHROME_TEXT_DARK = "#d4d4d4";
+const DEFAULT_CHAT_CHROME_TEXT_LIGHT = "#1a1025";
 const IMAGE_DIMENSION_MIN = 64;
 const IMAGE_DIMENSION_MAX = 4096;
 const GAME_SETUP_LEARNED_LIMIT = 60;
@@ -348,7 +348,7 @@ export function getDefaultChatChromeTextColor(theme: "dark" | "light") {
   return theme === "light" ? DEFAULT_CHAT_CHROME_TEXT_LIGHT : DEFAULT_CHAT_CHROME_TEXT_DARK;
 }
 
-export function normalizeCharacterLibrarySort(value: unknown): CharacterLibrarySort {
+function normalizeCharacterLibrarySort(value: unknown): CharacterLibrarySort {
   return CHARACTER_LIBRARY_SORT_OPTIONS.includes(value as CharacterLibrarySort)
     ? (value as CharacterLibrarySort)
     : "name-asc";
@@ -519,11 +519,11 @@ export function normalizeScenePromptPreferences(value: unknown): ScenePromptPref
   return { pov, tense, extraInstructions, promptPresetId };
 }
 
-export function normalizeConversationMessageStyle(value: unknown): ConversationMessageStyle {
+function normalizeConversationMessageStyle(value: unknown): ConversationMessageStyle {
   return value === "bubble" || value === "classic" ? value : "classic";
 }
 
-export function normalizeConversationAvatarShape(value: unknown): ConversationAvatarShape {
+function normalizeConversationAvatarShape(value: unknown): ConversationAvatarShape {
   return value === "square" ? "square" : "circle";
 }
 
@@ -584,7 +584,7 @@ function mergeLearnedGameSetupOptions(existing: string[] | undefined, incoming: 
 }
 
 /** Legacy browser-local custom theme preserved for one-time migration. */
-export interface CustomTheme {
+interface CustomTheme {
   id: string;
   name: string;
   /** Raw CSS that gets injected as a <style> tag */
@@ -594,7 +594,7 @@ export interface CustomTheme {
 }
 
 /** A user-defined quick reply that sends a fixed prompt, macro, or slash command. */
-export interface CustomQuickReply {
+interface CustomQuickReply {
   id: string;
   label: string;
   content: string;
@@ -602,8 +602,8 @@ export interface CustomQuickReply {
   icon?: string;
 }
 
-export type MariPanelSortMode = "az" | "za" | "newest" | "oldest";
-export type MariEditViewMode = "easy" | "raw";
+type MariPanelSortMode = "az" | "za" | "newest" | "oldest";
+type MariEditViewMode = "easy" | "raw";
 
 interface UIState {
   /** Transient: the initial cross-device settings fetch has settled. */
@@ -1521,7 +1521,7 @@ export function pickSyncedSettings(state: UIState) {
   };
 }
 
-export function pickPersistedUIState(state: UIState) {
+function pickPersistedUIState(state: UIState) {
   return {
     showHomeBrowserAddressBar: state.showHomeBrowserAddressBar,
     showHomeBrowserDesktopBookmarksOnOtherTabs: state.showHomeBrowserDesktopBookmarksOnOtherTabs,

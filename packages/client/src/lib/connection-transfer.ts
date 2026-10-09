@@ -56,7 +56,7 @@ export type ConnectionTransferRow = {
   claudeFastMode?: unknown;
 };
 
-export type SafeConnectionExport = {
+type SafeConnectionExport = {
   name: string;
   provider: APIProvider;
   baseUrl: string;
@@ -100,7 +100,7 @@ export type SafeConnectionExport = {
   claudeFastMode: boolean;
 };
 
-export type ConnectionImportPayload = {
+type ConnectionImportPayload = {
   connection: CreateConnectionPayload;
   defaultParameters: Record<string, unknown> | null;
   hasDefaultParameters: boolean;

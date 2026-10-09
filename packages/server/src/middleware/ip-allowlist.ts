@@ -149,7 +149,7 @@ const DOCKER_CIDR = parseCIDR("172.16.0.0/12")!;
  * conventional 172.16.0.0/12 bridge range. In those environments, traffic
  * forwarded from the host arrives from this exact gateway address.
  */
-export function parseDockerDefaultGatewayIp(routeTable: string): string | null {
+function parseDockerDefaultGatewayIp(routeTable: string): string | null {
   const candidates: Array<{ ip: string; metric: number }> = [];
 
   for (const line of routeTable.split(/\r?\n/u).slice(1)) {
@@ -429,7 +429,7 @@ export function isLoopbackIp(ip: string): boolean {
 }
 
 /** True when the IP belongs to the built-in private/non-routable ranges, independent of auth configuration. */
-export function isNonRoutableNetworkIp(ip: string): boolean {
+function isNonRoutableNetworkIp(ip: string): boolean {
   const bytes = ipToBytes(ip);
   return Boolean(bytes && DEFAULT_PRIVATE_NETWORK_CIDRS.some((cidr) => matchesCIDR(bytes, cidr)));
 }
@@ -465,14 +465,14 @@ export function isInIpAllowlist(ip: string): boolean {
 }
 
 /** True if the given IP is in the Tailscale CGNAT range (100.64.0.0/10). */
-export function isTailscaleIp(ip: string): boolean {
+function isTailscaleIp(ip: string): boolean {
   const bytes = ipToBytes(ip);
   if (!bytes) return false;
   return matchesCIDR(bytes, TAILSCALE_CIDR);
 }
 
 /** True if the given IP is in the Docker bridge range (172.16.0.0/12). */
-export function isDockerIp(ip: string): boolean {
+function isDockerIp(ip: string): boolean {
   const bytes = ipToBytes(ip);
   if (!bytes) return false;
   return matchesCIDR(bytes, DOCKER_CIDR);

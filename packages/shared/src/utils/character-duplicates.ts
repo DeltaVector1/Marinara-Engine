@@ -4,14 +4,14 @@
 // pairs come from an inverted shingle index, so a large library never pays
 // for an all-pairs comparison. Detection only: callers must never delete.
 
-export interface DuplicateCharacterInput {
+interface DuplicateCharacterInput {
   id: string;
   name: string;
   description?: string | null;
   personality?: string | null;
 }
 
-export interface CharacterDuplicateGroup {
+interface CharacterDuplicateGroup {
   /** Member ids, in input order. */
   ids: string[];
   /** True when at least one pair in the group shares a normalized name. */
@@ -20,7 +20,7 @@ export interface CharacterDuplicateGroup {
   similarity: number;
 }
 
-export interface FindDuplicateCharactersOptions {
+interface FindDuplicateCharactersOptions {
   /** Minimum Jaccard similarity for a content match. Default 0.5. */
   threshold?: number;
   /** Words per shingle. Default 3. */
@@ -37,7 +37,7 @@ const COPY_SUFFIX = /(?:^|\s)(?:copy|duplicate|dup|imported|import|new|old|v\d+(
  * Normalize a character name for duplicate matching: accents stripped,
  * case folded, bracketed notes and "copy" / version / counter suffixes removed.
  */
-export function normalizeCharacterName(name: string): string {
+function normalizeCharacterName(name: string): string {
   let value = name
     .normalize("NFKD")
     .replace(/\p{M}+/gu, "")
@@ -71,7 +71,7 @@ function shingles(text: string, size: number): Set<string> {
 }
 
 /** Jaccard similarity of two sets (0 when both are empty). */
-export function jaccardSimilarity(a: ReadonlySet<string>, b: ReadonlySet<string>): number {
+function jaccardSimilarity(a: ReadonlySet<string>, b: ReadonlySet<string>): number {
   if (a.size === 0 && b.size === 0) return 0;
   const [small, large] = a.size <= b.size ? [a, b] : [b, a];
   let intersection = 0;

@@ -41,7 +41,7 @@ export function NewChatConnectionGate({ mode, onClose }: NewChatConnectionGatePr
     () =>
       appendLocalSidecarConnectionOption(
         (connections ?? []) as Array<{ id: string; name: string; provider?: string; isDefault?: boolean | string }>,
-        mode !== "game" && sidecarModelDownloaded,
+        sidecarModelDownloaded,
         sidecarModelDisplayName,
       ),
     [connections, mode, sidecarModelDisplayName, sidecarModelDownloaded],

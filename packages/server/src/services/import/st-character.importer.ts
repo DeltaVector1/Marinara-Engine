@@ -9,14 +9,8 @@ import { createCharactersStorage } from "../storage/characters.storage.js";
 import { createLorebooksStorage } from "../storage/lorebooks.storage.js";
 import { createRegexScriptsStorage } from "../storage/regex-scripts.storage.js";
 import { importSTLorebook } from "./st-lorebook.importer.js";
-import { capImportedRulesetSheets, containsDecisionStatements, isPatternSafe } from "@marinara-engine/shared";
-import type {
-  CharacterBookEntryPosition,
-  CharacterBookEntryRole,
-  CharacterData,
-  CreateRegexScriptInput,
-  RegexPlacement,
-} from "@marinara-engine/shared";
+import { containsDecisionStatements, isPatternSafe } from "@marinara-engine/shared";
+import type { CharacterBookEntryPosition, CharacterBookEntryRole, CharacterData, CreateRegexScriptInput, RegexPlacement } from "@marinara-engine/shared";
 import { existsSync, mkdirSync } from "fs";
 import { unlink, writeFile } from "fs/promises";
 import { join } from "path";
@@ -31,7 +25,7 @@ const AVATAR_DIR = join(DATA_DIR, "avatars");
 const IMPORT_METADATA_KEY = "importMetadata";
 
 /** Remove Marinara sprite binaries from card metadata before the normalized card is stored. */
-export function takeEmbeddedMarinaraSprites(raw: Record<string, unknown>): unknown {
+function takeEmbeddedMarinaraSprites(raw: Record<string, unknown>): unknown {
   const cardData = raw.data && typeof raw.data === "object" ? (raw.data as Record<string, unknown>) : raw;
   if (!cardData.extensions || typeof cardData.extensions !== "object") return undefined;
   const extensions = cardData.extensions as Record<string, unknown>;
@@ -104,7 +98,7 @@ export interface STCharacterImportPreview {
   error?: string;
 }
 
-export interface STCharacterImportOptions {
+interface STCharacterImportOptions {
   timestampOverrides?: TimestampOverrides | null;
   importEmbeddedLorebook?: boolean;
   tagImportMode?: STCharacterTagImportMode;
@@ -689,17 +683,7 @@ function resolveCharXAsset(zip: AdmZip, uri: string, ext?: string): string | nul
 }
 
 function normalizeV2(raw: Record<string, unknown>): CharacterData {
-  // Ruleset sheets travel dormant under their key; only one the boundary would refuse is dropped.
-  // The raw key is taken out of the spread below, so a value that is not a sheet map leaves nothing.
-  const { rulesetSheets: rawRulesetSheets, ...rawExtensions } = optionalRecord(raw.extensions);
-  const importedSheets = capImportedRulesetSheets(rawRulesetSheets);
-  if (importedSheets.dropped.length > 0) {
-    logger.warn(
-      "[import] Dropped %d unusable ruleset sheet(s) from an imported character: %s",
-      importedSheets.dropped.length,
-      importedSheets.dropped.join(", "),
-    );
-  }
+  const rawExtensions = optionalRecord(raw.extensions);
   return {
     name: String(raw.name ?? "Unknown"),
     summary: String(raw.summary ?? "")
@@ -731,7 +715,6 @@ function normalizeV2(raw: Record<string, unknown>): CharacterData {
       },
       backstory: String(rawExtensions.backstory ?? ""),
       appearance: String(rawExtensions.appearance ?? ""),
-      ...(importedSheets.sheets ? { rulesetSheets: importedSheets.sheets } : {}),
     },
     character_book: normalizeCharacterBook(raw.character_book),
     ...pickDefinedFields(raw, V3_CHARACTER_DATA_FIELDS),

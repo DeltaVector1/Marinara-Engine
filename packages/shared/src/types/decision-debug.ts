@@ -1,7 +1,7 @@
 import type { AdvancedMemoryDecisionDiagnostics } from "./advanced-memory.js";
 
 /** Diagnostics for an explicit Peek Prompt inspection or isolated live decision test. */
-export type DecisionDebugStatus =
+type DecisionDebugStatus =
   "ready" | "evaluated" | "cached" | "held" | "deferred" | "unavailable" | "unanswered" | "dropped";
 
 export interface DecisionDebugResult {

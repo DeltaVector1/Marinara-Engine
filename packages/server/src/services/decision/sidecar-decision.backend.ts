@@ -46,7 +46,7 @@ interface ChatCompletionResponse {
 }
 
 /** What one question's request concluded, before it becomes a probability or a skip. */
-export interface SidecarAnswer {
+interface SidecarAnswer {
   probability: number | null;
   /** True when the model produced a usable one-token answer. */
   direct: boolean;

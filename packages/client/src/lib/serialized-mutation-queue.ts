@@ -1,4 +1,4 @@
-export type SerializedMutationQueue = {
+type SerializedMutationQueue = {
   enqueue: (mutation: () => Promise<void>) => Promise<void>;
   waitForIdle: () => Promise<void>;
 };

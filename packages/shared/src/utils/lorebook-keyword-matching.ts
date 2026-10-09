@@ -6,12 +6,12 @@ import type { SelectiveLogic } from "../types/lorebook.js";
 import { isPatternSafe } from "./regex-safety.js";
 
 /** Pluggable executor for compiled regex test calls. Server passes a vm-timeout-bounded executor. */
-export type RegexExecutor = (regex: RegExp, text: string) => boolean;
+type RegexExecutor = (regex: RegExp, text: string) => boolean;
 
 const defaultRegexExecutor: RegexExecutor = (regex, text) => regex.test(text);
 const unicodeWordCharacter = /[\p{L}\p{N}_]/u;
 
-export interface KeywordMatchOptions {
+interface KeywordMatchOptions {
   useRegex: boolean;
   matchWholeWords: boolean;
   caseSensitive: boolean;

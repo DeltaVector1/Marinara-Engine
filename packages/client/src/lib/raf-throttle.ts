@@ -11,7 +11,7 @@
 // The scheduler is injectable so the coalescing logic can be unit-tested with a
 // manual clock instead of a real animation frame.
 
-export interface RafThrottle<T> {
+interface RafThrottle<T> {
   /** Record the latest value and ensure a flush is scheduled for the next frame. */
   call: (value: T) => void;
   /** Apply the pending value immediately (if any) and clear the scheduled frame. */

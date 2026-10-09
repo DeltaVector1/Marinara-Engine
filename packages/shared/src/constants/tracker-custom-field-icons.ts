@@ -3,7 +3,7 @@ import { normalizeIconNameFormat } from "../utils/icon-name-format.js";
 
 export const DEFAULT_WORLD_CUSTOM_FIELD_ICON = "tag";
 
-export const SUPPORTED_WORLD_CUSTOM_FIELD_ICONS = [
+const SUPPORTED_WORLD_CUSTOM_FIELD_ICONS = [
   "activity",
   "anchor",
   "backpack",

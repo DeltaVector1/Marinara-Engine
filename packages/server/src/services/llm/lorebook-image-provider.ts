@@ -2,7 +2,7 @@ import { logger } from "../../lib/logger.js";
 import { BaseLLMProvider, LLMHttpError, type ChatMessage, type ChatOptions, type LLMUsage } from "./base-provider.js";
 
 /** Retry only explicit image-input incompatibility, before any output has been delivered. */
-export function isImageInputUnsupported(error: unknown): boolean {
+function isImageInputUnsupported(error: unknown): boolean {
   if (!(error instanceof LLMHttpError) || ![400, 415, 422].includes(error.status)) return false;
   return (
     /(?:image(?:_url|s)?|vision|multimodal)/iu.test(error.message) &&

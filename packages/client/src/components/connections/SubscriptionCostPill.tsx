@@ -22,7 +22,7 @@ import { useTranslation as useUiTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 
 /** The subscription fields a model record may carry. */
-export interface SubscriptionCostFields {
+interface SubscriptionCostFields {
   /** True when the account's subscription covers the model; undefined when unknown. */
   subscriptionIncluded?: boolean;
   /** Input tokens charged per token of subscription quota (2 = 2x). */

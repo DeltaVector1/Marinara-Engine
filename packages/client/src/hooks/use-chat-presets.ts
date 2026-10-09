@@ -6,7 +6,7 @@ import { api } from "../lib/api-client";
 import { captureChatMetadataVersion, chatKeys, guardServerChatSnapshot, syncCachedChat } from "./use-chats";
 import type { Chat, ChatMode, ChatPreset, ChatPresetSettings } from "@marinara-engine/shared";
 
-export const chatPresetKeys = {
+const chatPresetKeys = {
   all: ["chat-presets"] as const,
   list: (mode?: ChatMode | null) => [...chatPresetKeys.all, "list", mode ?? "all"] as const,
 };

@@ -15,7 +15,7 @@ export function getChatActivityTime(chat: ChatRecencyFields): number {
   return readTimestamp(chat.lastMessageAt) || readTimestamp(chat.createdAt) || readTimestamp(chat.updatedAt);
 }
 
-export function compareChatsByActivityAsc(left: ChatRecencyFields, right: ChatRecencyFields): number {
+function compareChatsByActivityAsc(left: ChatRecencyFields, right: ChatRecencyFields): number {
   const activity = getChatActivityTime(left) - getChatActivityTime(right);
   if (activity !== 0) return activity;
 

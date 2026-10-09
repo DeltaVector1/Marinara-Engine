@@ -15,7 +15,7 @@ const HUB_ORIGIN = "https://huggingface.co";
  */
 const MAX_TREE_PAGES = 50;
 
-export interface HubFile {
+interface HubFile {
   path: string;
   /** The LFS object's size where there is one, which is the bytes actually downloaded. */
   size: number;

@@ -8,15 +8,14 @@ type ChatToolbarButtonClassInput = {
   sizeClassName?: string;
 };
 
-export type ChatToolbarPanelAction = "settings";
+type ChatToolbarPanelAction = "settings";
 
 export const CHAT_TOOLBAR_ICON_GAP_CLASS = "gap-0.5";
-export const CHAT_TOOLBAR_DEFAULT_BUTTON_SIZE_CLASS = "h-8 w-8";
+const CHAT_TOOLBAR_DEFAULT_BUTTON_SIZE_CLASS = "h-8 w-8";
 export const CHAT_TOOLBAR_IDENTITY_PILL_SIZE_CLASS = "h-8 w-auto max-md:h-9";
 export const CHAT_TOOLBAR_MOBILE_OVERFLOW_HEIGHT_CLASS = "max-md:h-9";
 export const CHAT_TOOLBAR_OVERFLOW_BUTTON_SIZE_CLASS = "h-8 w-8 max-md:h-9 max-md:w-9";
 export const CHAT_TOOLBAR_ACTION_EVENT = "mari-chat-toolbar-action";
-export const CHAT_FLOATING_PANEL_SELECTOR = "[data-chat-floating-panel]";
 const CHAT_TOOLBAR_PANEL_ACTION_ATTRIBUTE = "data-chat-toolbar-panel-action";
 
 export type ChatToolbarFloatingPanelAnchor = {
@@ -28,11 +27,6 @@ export type ChatToolbarFloatingPanelAnchor = {
 function readCssPixelValue(element: HTMLElement, property: string) {
   const parsed = Number.parseFloat(window.getComputedStyle(element).getPropertyValue(property));
   return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
-}
-
-export function getChatFloatingPanelDesktopRight(anchor: ChatToolbarFloatingPanelAnchor) {
-  const triggerOffset = anchor ? Math.max(0, anchor.right - anchor.rightInset) : 12;
-  return `calc(var(--mari-chat-ui-inset-right, 0px) + var(--tracker-panel-hud-clear-right, 0px) + ${triggerOffset}px)`;
 }
 
 function readChatToolbarPanelAction(target: EventTarget | null): ChatToolbarPanelAction | null {

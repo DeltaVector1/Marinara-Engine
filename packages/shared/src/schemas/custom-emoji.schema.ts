@@ -8,11 +8,11 @@ export const CUSTOM_EMOJI_NAME_PATTERN = /^[a-z0-9_]{1,32}$/;
 /** Custom emojis are dimension-gated like gallery-tagged emojis (max 256x256). */
 export const CUSTOM_EMOJI_MAX_DIMENSION = 256;
 
-export const customEmojiNameSchema = z
+const customEmojiNameSchema = z
   .string()
   .regex(CUSTOM_EMOJI_NAME_PATTERN, "Name must be 1-32 lowercase letters, numbers, or underscores.");
 
-export const createCustomEmojiSchema = z.object({
+const createCustomEmojiSchema = z.object({
   name: customEmojiNameSchema,
   filePath: z.string().min(1),
   width: z.number().int().positive().nullable().default(null),
@@ -30,8 +30,8 @@ export type UpdateCustomEmojiInput = z.infer<typeof updateCustomEmojiSchema>;
 // Selection preferences — how the model is told which custom emojis it may use.
 // Stored per-chat in chat metadata; resolved with normalizeCustomEmojiSelection.
 // ──────────────────────────────────────────────
-export const CUSTOM_EMOJI_SELECTION_MODES = ["random", "semantic", "tool-call"] as const;
-export type CustomEmojiSelectionMode = (typeof CUSTOM_EMOJI_SELECTION_MODES)[number];
+const CUSTOM_EMOJI_SELECTION_MODES = ["random", "semantic", "tool-call"] as const;
+type CustomEmojiSelectionMode = (typeof CUSTOM_EMOJI_SELECTION_MODES)[number];
 
 export interface CustomEmojiSelectionPrefs {
   /** How the advertised subset is chosen when there are more emojis than maxCount. */
@@ -44,7 +44,7 @@ export interface CustomEmojiSelectionPrefs {
 
 export const CUSTOM_EMOJI_SELECTION_MIN_COUNT = 1;
 export const CUSTOM_EMOJI_SELECTION_MAX_COUNT = 100;
-export const CUSTOM_EMOJI_SELECTION_DEFAULTS: CustomEmojiSelectionPrefs = {
+const CUSTOM_EMOJI_SELECTION_DEFAULTS: CustomEmojiSelectionPrefs = {
   mode: "semantic",
   maxCount: 20,
   toolConnectionId: null,

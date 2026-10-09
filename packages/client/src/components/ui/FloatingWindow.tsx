@@ -60,9 +60,9 @@ import {
   useFloatingWindowStore,
 } from "../../stores/floating-window.store";
 
-export type FloatingWindowCloseReason = "close-button" | "escape" | "outside-pointer";
+type FloatingWindowCloseReason = "close-button" | "escape" | "outside-pointer";
 
-export interface FloatingWindowProps {
+interface FloatingWindowProps {
   id: FloatingWindowId;
   title: ReactNode;
   titleIcon?: ReactNode;
@@ -143,7 +143,7 @@ export const PHONE_FULL_SHEET_CLASS =
  * rightmost run of them (the chat's control bubbles), a snapping gap away; otherwise the first free
  * spot along the top rows from the right edge. `except` is the bubble being placed.
  */
-export function findFreeBubble(
+function findFreeBubble(
   bounds: WindowBounds,
   { size, except }: { size: number; except?: FloatingWindowId },
 ): WindowPoint {
@@ -256,7 +256,7 @@ function readSafeAreaInsets() {
  * Where phone bubbles may sit: the chat below the topbar, inside the safe area, above the on-screen
  * keyboard and above the open chat's message box, so a bubble never covers it.
  */
-export function readPhoneBubbleBounds(): WindowBounds {
+function readPhoneBubbleBounds(): WindowBounds {
   const base = readFloatingWindowBounds();
   const insets = readSafeAreaInsets();
   const viewport = window.visualViewport;

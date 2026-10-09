@@ -37,9 +37,9 @@ export const HEARTBEAT_INTERVAL_MS = 30_000;
 const UNCLEAN_EXIT_HISTORY_LIMIT = 10;
 
 /** How a session ended, when the ending was observed from inside. */
-export type SessionExitKind = "clean" | "crash" | "restart" | "forced";
+type SessionExitKind = "clean" | "crash" | "restart" | "forced";
 
-export type SessionHeartbeat = {
+type SessionHeartbeat = {
   pid: number;
   bootId: string | null;
   startedAt: string;
@@ -52,7 +52,7 @@ export type SessionHeartbeat = {
   exitCode?: number;
 };
 
-export type UncleanExitRecord = {
+type UncleanExitRecord = {
   /** When the previous session started. */
   startedAt: string;
   /** The last heartbeat before death - time of death to one interval. */
@@ -74,12 +74,12 @@ export type UncleanExitRecord = {
  * a first run, an unreadable record, and a still-live sibling instance, none
  * of which may be reported as a clean shutdown.
  */
-export type PreviousSessionStatus =
+type PreviousSessionStatus =
   | { status: "unknown"; reason: string }
   | { status: "ended"; exitKind: SessionExitKind; exitedAt: string | null; exitCode: number | null }
   | { status: "unclean"; record: UncleanExitRecord };
 
-export function heartbeatMemorySnapshot(): { rssMiB: number; heapUsedMiB: number } {
+function heartbeatMemorySnapshot(): { rssMiB: number; heapUsedMiB: number } {
   const usage = process.memoryUsage();
   return {
     rssMiB: Math.round((usage.rss / 1024 / 1024) * 10) / 10,
@@ -98,7 +98,7 @@ export function readBootId(): string | null {
 }
 
 /** True when a process with this pid currently exists (signal 0 probes only). */
-export function processIsAlive(pid: number): boolean {
+function processIsAlive(pid: number): boolean {
   if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) return false;
   try {
     process.kill(pid, 0);
@@ -117,7 +117,7 @@ const SESSION_EXIT_KINDS = new Set<string>(["clean", "crash", "restart", "forced
  * fabricated ending or a fabricated death. Validated here rather than trusted
  * through the readJson type assertion.
  */
-export function isValidHeartbeat(value: unknown): value is SessionHeartbeat {
+function isValidHeartbeat(value: unknown): value is SessionHeartbeat {
   if (typeof value !== "object" || value === null) return false;
   const beat = value as Record<string, unknown>;
   if (!Number.isInteger(beat.pid) || (beat.pid as number) <= 0) return false;
@@ -133,7 +133,7 @@ export function isValidHeartbeat(value: unknown): value is SessionHeartbeat {
  * Pure classifier so the regression lane can pin the semantics without a
  * filesystem or live processes. `isAlive` is injected for the same reason.
  */
-export function classifyPreviousSession(
+function classifyPreviousSession(
   previous: unknown,
   currentBootId: string | null,
   detectedAt: string,
@@ -216,7 +216,7 @@ function readJson<T>(path: string): T | null {
  * heartbeat entirely - silently disabling the tracking until someone deleted
  * the file. Anything unexpected reads as an empty history instead.
  */
-export function readUncleanExitHistory(value: unknown): UncleanExitRecord[] {
+function readUncleanExitHistory(value: unknown): UncleanExitRecord[] {
   if (!Array.isArray(value)) return [];
   return value.filter(
     (entry): entry is UncleanExitRecord =>

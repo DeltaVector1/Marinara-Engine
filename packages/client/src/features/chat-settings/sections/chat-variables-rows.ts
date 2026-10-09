@@ -19,7 +19,7 @@ export interface VariableRow {
   savedValue: string | null;
 }
 
-export const isRowEdited = (row: VariableRow) => row.name !== row.savedName || row.value !== row.savedValue;
+const isRowEdited = (row: VariableRow) => row.name !== row.savedName || row.value !== row.savedValue;
 
 /**
  * Whether this row's name blocks saving.
@@ -39,7 +39,7 @@ export function rowNameIssue(row: VariableRow, otherRows: VariableRow[]): ChatVa
 }
 
 let rowKeySeed = 0;
-export const nextRowKey = () => `chat-variable-${(rowKeySeed += 1)}`;
+const nextRowKey = () => `chat-variable-${(rowKeySeed += 1)}`;
 
 export function toRows(variables: Record<string, string>): VariableRow[] {
   return Object.entries(variables)

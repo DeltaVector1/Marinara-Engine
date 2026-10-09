@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 
 import { isDockerRuntime } from "../../config/runtime-config.js";
 
-export type BubblewrapRuntimeStatus =
+type BubblewrapRuntimeStatus =
   { available: true; executable: string } | { available: false; executable: null; reason: string };
 
 const BWRAP_CANDIDATES = ["/usr/bin/bwrap", "/bin/bwrap", "/usr/local/bin/bwrap"];

@@ -7,7 +7,7 @@ import { normalizeIllustratorAppearance } from "./illustrator-references.js";
  * roleplay Illustrator. NovelAI V4/V4.5 accept up to 6 character captions on a
  * 5x5 grid; V5 accepts 22 on a free canvas. Both take normalized centers.
  */
-export const NOVELAI_V4_MAX_CHARACTER_PROMPTS = 6;
+const NOVELAI_V4_MAX_CHARACTER_PROMPTS = 6;
 export const NOVELAI_V5_MAX_CHARACTER_PROMPTS = 22;
 
 const NOVELAI_CHARACTER_PROMPT_MODEL =
@@ -31,7 +31,7 @@ function compactText(value: unknown, max: number): string {
 }
 
 /** Whether the model accepts native character captions at all (V4, V4.5, V5). */
-export function isNovelAiCharacterPromptModel(model: string): boolean {
+function isNovelAiCharacterPromptModel(model: string): boolean {
   return NOVELAI_CHARACTER_PROMPT_MODEL.test(model.trim());
 }
 
@@ -63,7 +63,7 @@ export function supportsNovelAiCharacterPrompts(connection: { model?: unknown; b
 }
 
 /** Spread characters left-to-right, wrapping onto rows of three past the third. */
-export function defaultCharacterPromptPosition(index: number, total: number): { x: number; y: number } {
+function defaultCharacterPromptPosition(index: number, total: number): { x: number; y: number } {
   if (total <= 1) return { x: 0.5, y: 0.5 };
   if (total <= 3) return { x: (index + 1) / (total + 1), y: 0.5 };
 
@@ -78,7 +78,7 @@ export function defaultCharacterPromptPosition(index: number, total: number): { 
   };
 }
 
-export function normalizeCharacterPromptCoordinate(value: unknown, fallback: number): number {
+function normalizeCharacterPromptCoordinate(value: unknown, fallback: number): number {
   const numeric = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(numeric)) return fallback;
   return Math.round(Math.min(1, Math.max(0, numeric)) * 100) / 100;
@@ -99,7 +99,7 @@ function matchCharacterPromptName(value: unknown, characters: string[]): string 
  * the unit square; missing positions are filled from the default layout; the
  * result is capped at the model's caption limit.
  */
-export function sanitizeCharacterPrompts(
+function sanitizeCharacterPrompts(
   value: unknown,
   characters: string[],
   limit: number,
@@ -141,7 +141,7 @@ export function sanitizeCharacterPrompts(
 }
 
 /** Rules shared by every prompt writer that emits NovelAI character captions. */
-export const NOVELAI_CHARACTER_PROMPT_RULES = [
+const NOVELAI_CHARACTER_PROMPT_RULES = [
   "Start each character prompt with girl, boy, or other without a number, then add the canonical character tag or visual identity traits.",
   "For interactions, use NovelAI action roles such as source#hug, target#hug, or mutual#hug in the relevant character prompts when applicable.",
   "Use negativePrompt to block traits belonging only to the other visible characters. Use an empty string when no character-specific negative is needed.",
@@ -174,7 +174,7 @@ export function readCharacterPrompts(
   return sanitizeCharacterPrompts(data.characterPrompts, characters, limit);
 }
 
-export type CharacterAppearanceSource = { name: string; appearance: string };
+type CharacterAppearanceSource = { name: string; appearance: string };
 
 /**
  * Per-character image-prompt appearance overrides (#7053), keyed by character id
@@ -233,7 +233,7 @@ const MAX_APPEARANCE_REFERENCE_CHARS = 8000;
  * "[NAME] tags | [NAME] tags". Returns one segment per marker, or null when the
  * block has no markers and therefore describes a single character.
  */
-export function splitEnsembleAppearance(appearance: string): CharacterAppearanceSource[] | null {
+function splitEnsembleAppearance(appearance: string): CharacterAppearanceSource[] | null {
   const text = appearance.trim();
   if (!text.startsWith("[")) return null;
   const segments: CharacterAppearanceSource[] = [];

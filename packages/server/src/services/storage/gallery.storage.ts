@@ -6,7 +6,7 @@ import type { DB } from "../../db/connection.js";
 import { chatImages } from "../../db/schema/index.js";
 import { newId, now } from "../../utils/id-generator.js";
 
-export interface CreateChatImageInput {
+interface CreateChatImageInput {
   chatId: string;
   filePath: string;
   prompt?: string;

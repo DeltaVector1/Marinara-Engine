@@ -96,7 +96,7 @@ export function stripLeadingMessageTimestamps(text: string): string {
 }
 
 /** One parsed speaker turn: the speaker's name (null = narration) + its text. */
-export interface SpeakerSegment {
+interface SpeakerSegment {
   speaker: string | null;
   text: string;
   /** Character offset in the source content where this segment's raw span starts. */

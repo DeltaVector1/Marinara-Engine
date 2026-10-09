@@ -34,8 +34,8 @@ function defaultCategoryForProvider(provider: string): ConnectionDefaultCategory
 }
 
 /** One model in a saved provider list: display and limit fields only, never credentials. */
-export type SavedConnectionModel = { id: string; name: string } & Record<string, unknown>;
-export type SavedConnectionModelList = { fetchedAt: string; models: SavedConnectionModel[] };
+type SavedConnectionModel = { id: string; name: string } & Record<string, unknown>;
+type SavedConnectionModelList = { fetchedAt: string; models: SavedConnectionModel[] };
 
 /** The only fields kept from a provider's model entry when its list is saved. */
 const SAVED_MODEL_EXTRA_FIELDS = [

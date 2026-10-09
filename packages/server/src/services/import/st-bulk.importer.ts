@@ -192,7 +192,7 @@ interface STBulkScanItemBase {
   modifiedAt: string | null;
 }
 
-export interface STBulkScanResult {
+interface STBulkScanResult {
   success: boolean;
   error?: string;
   dataDir?: string;
@@ -508,7 +508,7 @@ export async function scanSTFolder(rootPath: string): Promise<STBulkScanResult> 
 
 // ─── Bulk Import ───
 
-export type STBulkImportSelection = boolean | string[];
+type STBulkImportSelection = boolean | string[];
 
 export interface STBulkImportOptions {
   characters: STBulkImportSelection;
@@ -522,7 +522,7 @@ export interface STBulkImportOptions {
   regexScriptScope?: "character" | "global";
 }
 
-export interface STBulkImportResult {
+interface STBulkImportResult {
   success: boolean;
   error?: string;
   imported: {

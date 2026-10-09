@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "../../lib/utils";
 import { useLocalizedUiText } from "../../localization/use-localized-ui-text";
 
-export type EditorSectionJump = {
+type EditorSectionJump = {
   id: string;
   label: string;
 };

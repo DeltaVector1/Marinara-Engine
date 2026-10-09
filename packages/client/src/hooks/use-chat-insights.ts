@@ -14,7 +14,7 @@ export interface GlobalChatSearchFilters {
 
 const GLOBAL_SEARCH_PAGE_SIZE = 30;
 
-export const chatInsightKeys = {
+const chatInsightKeys = {
   all: ["chat-insights"] as const,
   search: (filters: GlobalChatSearchFilters) => [...chatInsightKeys.all, "search", filters] as const,
   stats: (chatId: string) => [...chatInsightKeys.all, "stats", chatId] as const,

@@ -162,8 +162,6 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
 
 export const ACHIEVEMENT_DEFINITION_BY_ID = new Map(ACHIEVEMENT_DEFINITIONS.map((item) => [item.id, item]));
 
-export const ACHIEVEMENT_IDS = ACHIEVEMENT_DEFINITIONS.map((item) => item.id);
-
 export const ACHIEVEMENT_DIRECT_EVENT_IDS: Partial<Record<AchievementEvent, string>> = {
   tutorial_completed: "diligent_student",
   discord_clicked: "one_of_us",

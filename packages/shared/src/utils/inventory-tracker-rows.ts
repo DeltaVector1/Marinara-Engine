@@ -13,10 +13,10 @@
 import type { InventoryTrackerRow } from "../types/game-state.js";
 
 /** Longest tracked item name. Anything past this is truncated, not rejected. */
-export const INVENTORY_TRACKER_MAX_NAME_LENGTH = 160;
+const INVENTORY_TRACKER_MAX_NAME_LENGTH = 160;
 
 /** Most rows kept per group. Extra rows are dropped from the end. */
-export const INVENTORY_TRACKER_MAX_ROWS = 250;
+const INVENTORY_TRACKER_MAX_ROWS = 250;
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);

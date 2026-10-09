@@ -29,7 +29,7 @@ export function normalizePersonalExtensionCapabilities(value: unknown): Personal
 }
 
 export const PERSONAL_EXTENSION_CONTRIBUTION_KINDS = ["button", "menu-item", "panel"] as const;
-export type PersonalExtensionContributionKind = (typeof PERSONAL_EXTENSION_CONTRIBUTION_KINDS)[number];
+type PersonalExtensionContributionKind = (typeof PERSONAL_EXTENSION_CONTRIBUTION_KINDS)[number];
 
 export const PERSONAL_EXTENSION_CONTRIBUTION_SURFACES = [
   "top-bar",
@@ -63,7 +63,6 @@ export const PERSONAL_EXTENSION_UI_ELEMENT_KINDS = [
   "color",
   "spacer",
 ] as const;
-export type PersonalExtensionUiElementKind = (typeof PERSONAL_EXTENSION_UI_ELEMENT_KINDS)[number];
 
 export const PERSONAL_EXTENSION_UI_LIMITS = {
   contributionsPerExtension: 24,

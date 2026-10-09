@@ -6,7 +6,7 @@ import { useTranslation as useUiTranslation } from "react-i18next";
 export type ExportFormatChoice = "native" | "compatible" | "compatible-png";
 
 /** Additional formats a caller can offer next to the standard ones. */
-export interface ExportFormatExtraOption {
+interface ExportFormatExtraOption {
   id: string;
   label: string;
   icon: typeof Layers;

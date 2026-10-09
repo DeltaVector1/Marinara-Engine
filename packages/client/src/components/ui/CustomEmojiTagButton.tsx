@@ -17,7 +17,7 @@ import {
 } from "../../lib/custom-emoji";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
-export interface TaggableImage {
+interface TaggableImage {
   id: string;
   url: string;
   customKind?: CustomKind | null;

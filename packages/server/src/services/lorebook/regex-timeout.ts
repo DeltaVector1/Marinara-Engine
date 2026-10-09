@@ -17,10 +17,10 @@ import * as vm from "node:vm";
 import { logger } from "../../lib/logger.js";
 
 /** Default per-call timeout for a single regex.test against chat context, in ms. */
-export const DEFAULT_REGEX_TIMEOUT_MS = 50;
+const DEFAULT_REGEX_TIMEOUT_MS = 50;
 
 /** Build a regex executor that runs `regex.test(text)` under a vm timeout. */
-export function createTimeoutRegexExecutor(timeoutMs: number = DEFAULT_REGEX_TIMEOUT_MS) {
+function createTimeoutRegexExecutor(timeoutMs: number = DEFAULT_REGEX_TIMEOUT_MS) {
   return function vmRegexExecutor(regex: RegExp, text: string): boolean {
     // The vm context only needs the regex + text; we recompile inside the vm so
     // the interrupt check is wired through the new isolate's regex execution.
@@ -58,7 +58,7 @@ export function createTimeoutRegexExecutor(timeoutMs: number = DEFAULT_REGEX_TIM
 export const vmRegexExecutor = createTimeoutRegexExecutor();
 
 /** Build a guard that proves `text.replace(regex, "")` returns within a vm timeout. */
-export function createTimeoutRegexReplaceGuard(timeoutMs: number = DEFAULT_REGEX_TIMEOUT_MS) {
+function createTimeoutRegexReplaceGuard(timeoutMs: number = DEFAULT_REGEX_TIMEOUT_MS) {
   return function vmRegexReplaceGuard(regex: RegExp, text: string): boolean {
     const context = vm.createContext({ __pattern: regex.source, __flags: regex.flags, __text: text });
     try {

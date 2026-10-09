@@ -107,7 +107,7 @@ function migratePromptTemplateOptions(agentType: string, settings: unknown) {
   return { settings: { ...parsed, promptTemplates }, changed: true };
 }
 
-export function buildLegacyDefaultAgentConfigUpdate(row: typeof agentConfigs.$inferSelect) {
+function buildLegacyDefaultAgentConfigUpdate(row: typeof agentConfigs.$inferSelect) {
   const update: Partial<typeof agentConfigs.$inferInsert> = {};
   const hasKnownDefaultPrompt = isKnownDefaultPrompt(row.type, row.promptTemplate);
   if (hasKnownDefaultPrompt) {

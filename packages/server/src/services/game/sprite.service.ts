@@ -24,17 +24,8 @@ const AUTOMATIC_FULL_BODY_POSES = new Set([
   "point",
 ]);
 
-export interface CharacterSpriteInfo {
-  name: string;
-  expressions: string[];
-  expressionChoices: string[];
-  /** Custom full-body aliases the model may intentionally choose. */
-  fullBody: string[];
-  /** Engine-assigned standard full-body poses; not exposed to the model. */
-  automaticFullBody: string[];
-}
 
-export interface FullBodySpriteReference {
+interface FullBodySpriteReference {
   expression: string;
   filename: string;
   base64: string;
@@ -168,22 +159,4 @@ export function readPreferredFullBodySpriteBase64(
   } catch {
     return null;
   }
-}
-
-/**
- * List sprites for multiple characters, returning a map of name → sprite info.
- */
-export function listPartySprites(characters: Array<{ id: string; name: string }>): CharacterSpriteInfo[] {
-  const result: CharacterSpriteInfo[] = [];
-  for (const char of characters) {
-    const sprites = listCharacterSprites(char.id);
-    if (sprites) {
-      result.push({
-        name: char.name,
-        expressionChoices: buildSpriteExpressionChoices(sprites.expressions),
-        ...sprites,
-      });
-    }
-  }
-  return result;
 }

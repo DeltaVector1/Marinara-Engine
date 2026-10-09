@@ -12,12 +12,12 @@ import { getSharp } from "./sharp-runtime.js";
 
 /** Hard input bounds: pixelization holds several full-resolution RGBA buffers,
  *  which on a phone is the known OOM pressure class. Reject before allocating. */
-export const PIXELIZE_MAX_INPUT_DIMENSION = 4096;
-export const PIXELIZE_MAX_INPUT_PIXELS = 4096 * 4096;
-export const PIXELIZE_MAX_OUTPUT_DIMENSION = 512;
-export const PIXELIZE_MAX_PALETTE_ENTRIES = 256;
+const PIXELIZE_MAX_INPUT_DIMENSION = 4096;
+const PIXELIZE_MAX_INPUT_PIXELS = 4096 * 4096;
+const PIXELIZE_MAX_OUTPUT_DIMENSION = 512;
+const PIXELIZE_MAX_PALETTE_ENTRIES = 256;
 
-export interface PixelizeOptions {
+interface PixelizeOptions {
   /** Target output width in pixels (the "cell" size of the final asset). */
   targetWidth: number;
   /** Target output height; defaults to preserving the input aspect ratio. */
@@ -29,7 +29,7 @@ export interface PixelizeOptions {
   alphaThreshold?: number;
 }
 
-export interface PixelizeReport {
+interface PixelizeReport {
   width: number;
   height: number;
   paletteSize: number | null;
@@ -40,7 +40,7 @@ export interface PixelizeReport {
   tileable: boolean;
 }
 
-export interface PixelizeResult {
+interface PixelizeResult {
   png: Buffer;
   report: PixelizeReport;
 }
@@ -54,7 +54,7 @@ export class PixelizeInputError extends Error {}
  *  but valid input to a raw RGBA buffer, the known phone/Termux pressure class — is
  *  the SERVER's fault, not a malformed request, so it must keep its 500/503 mapping
  *  rather than be reported to the caller as an invalid image (400). */
-export function isResourceSharpFailure(message: string): boolean {
+function isResourceSharpFailure(message: string): boolean {
   return /allocat|out of memory|\benomem\b|no space left|unable to write/iu.test(message);
 }
 

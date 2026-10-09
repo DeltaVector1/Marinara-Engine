@@ -35,7 +35,7 @@ let pendingSelfPops = 0;
 let registrationSeq = 0;
 
 /** The full stack, outermost → innermost. The last entry is what back closes. */
-export function getBackLayerStack(): BackLayer[] {
+function getBackLayerStack(): BackLayer[] {
   return [...resolveStoreLayers(), ...registeredLayers];
 }
 
@@ -114,15 +114,4 @@ export function registerBackLayer(close: () => void): () => void {
     if (index >= 0) registeredLayers.splice(index, 1);
     syncBackNavigation();
   };
-}
-
-/** Test seam: drop all state so a regression can drive the module repeatedly. */
-export function __resetBackNavigationForTests() {
-  registeredLayers.length = 0;
-  resolveStoreLayers = () => [];
-  initialized = false;
-  sentinelActive = false;
-  pendingSelfPops = 0;
-  registrationSeq = 0;
-  if (typeof window !== "undefined") window.removeEventListener("popstate", handlePopState);
 }

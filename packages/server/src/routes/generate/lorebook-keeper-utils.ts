@@ -9,17 +9,17 @@ import {
 import { logger } from "../../lib/logger.js";
 import { createLorebooksStorage } from "../../services/storage/lorebooks.storage.js";
 
-export interface LorebookKeeperSettings {
+interface LorebookKeeperSettings {
   targetLorebookId: string | null;
   readBehindMessages: number;
 }
 
-export interface CustomLorebookBackfillSettings {
+interface CustomLorebookBackfillSettings {
   enabled: boolean;
   chunkSize: number;
 }
 
-export interface ExistingLorebookEntrySummary {
+interface ExistingLorebookEntrySummary {
   id: string;
   name: string;
   content: string;
@@ -27,12 +27,12 @@ export interface ExistingLorebookEntrySummary {
   locked: boolean;
 }
 
-export interface WritableLorebookSummary {
+interface WritableLorebookSummary {
   id: string;
   name: string;
 }
 
-export type LorebookNamingScheme = Record<string, string>;
+type LorebookNamingScheme = Record<string, string>;
 
 type LorebooksStore = ReturnType<typeof createLorebooksStorage>;
 
@@ -43,7 +43,7 @@ type LorebookKeeperMessage = {
   characterId?: string | null;
 };
 
-export const MAX_READ_BEHIND_MESSAGES = 100;
+const MAX_READ_BEHIND_MESSAGES = 100;
 export const DEFAULT_CUSTOM_LOREBOOK_BACKFILL_CHUNK_SIZE = 25;
 export const MAX_CUSTOM_LOREBOOK_BACKFILL_CHUNK_SIZE = 100;
 export const CUSTOM_LOREBOOK_BACKFILL_CURSOR_KEY = "_lorebookBackfillLastMessageId";
@@ -251,22 +251,6 @@ export function getLorebookKeeperAutomaticTarget<T extends { id: string; role: s
   if (readBehindMessages <= 0) return null;
   const assistants = getAssistantMessages(messages);
   return assistants[assistants.length - readBehindMessages] ?? null;
-}
-
-export function getLorebookKeeperAutomaticPendingCount<T extends { id: string; role: string }>(
-  messages: T[],
-  readBehindMessages: number,
-  lastProcessedMessageId: string | null,
-): number {
-  const assistants = getAssistantMessages(messages);
-  const targetIndex = readBehindMessages <= 0 ? assistants.length : assistants.length - readBehindMessages;
-  if (targetIndex < 0) return 0;
-
-  const lastProcessedIndex = findMessageIndex(assistants, lastProcessedMessageId);
-  if (lastProcessedIndex >= 0) {
-    return Math.max(targetIndex - lastProcessedIndex, 0);
-  }
-  return targetIndex + 1;
 }
 
 export function getLorebookKeeperBackfillTargets<T extends { id: string; role: string }>(

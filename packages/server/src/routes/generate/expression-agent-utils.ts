@@ -6,30 +6,30 @@ import { buildSpriteExpressionChoices } from "../../services/game/sprite.service
 
 export type SpriteDisplayMode = "expressions" | "full-body";
 
-export type AvailableSpriteCharacter = {
+type AvailableSpriteCharacter = {
   characterId: string;
   characterName: string;
   expressions: string[];
   expressionChoices?: string[];
 };
 
-export type SpriteExpressionEntry = {
+type SpriteExpressionEntry = {
   characterId?: unknown;
   characterName?: unknown;
   expression?: unknown;
   transition?: unknown;
 };
 
-export type ExpressionValidationWarning = {
+type ExpressionValidationWarning = {
   message: string;
 };
 
-export type ExpressionValidationResult<T extends SpriteExpressionEntry> = {
+type ExpressionValidationResult<T extends SpriteExpressionEntry> = {
   expressions: T[];
   warnings: ExpressionValidationWarning[];
 };
 
-export type SpriteExpressionCompletionOptions = {
+type SpriteExpressionCompletionOptions = {
   defaultSourceText?: string;
   sourceTextByCharacterId?: ReadonlyMap<string, string>;
 };

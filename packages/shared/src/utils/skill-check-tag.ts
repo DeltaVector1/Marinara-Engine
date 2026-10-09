@@ -14,7 +14,7 @@ import type { GameDicePoolSlotName, SkillCheckResult } from "../types/game.js";
 import { parsePoolSlotName } from "./dice-pool.js";
 import { isWithinDiceLimits, parseDiceNotation } from "./dice-notation.js";
 
-export interface SkillCheckTag {
+interface SkillCheckTag {
   skill: string;
   /**
    * `dc=` as written. Absent only on a tag that names its difficulty by `difficulty=` instead, which
@@ -135,7 +135,7 @@ export interface SkillCheckTag {
  * own regex instance (they carry `lastIndex`) cannot drift from the shipped
  * shape.
  */
-export const SKILL_CHECK_TAG_REGEX_SOURCE = String.raw`\[skill_check:\s*([^\]]+)\]`;
+const SKILL_CHECK_TAG_REGEX_SOURCE = String.raw`\[skill_check:\s*([^\]]+)\]`;
 
 /** A fresh global, case-insensitive matcher over `[skill_check: ...]` tags. */
 export function createSkillCheckTagRegex(): RegExp {

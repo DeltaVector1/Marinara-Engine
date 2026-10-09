@@ -23,9 +23,9 @@ type BackgroundRemoverCommand = {
   source: "env" | "local" | "path";
 };
 
-export type SpriteBackgroundRemovalEngine = "auto" | "backgroundremover" | "builtin";
+type SpriteBackgroundRemovalEngine = "auto" | "backgroundremover" | "builtin";
 
-export interface BackgroundRemoverStatus {
+interface BackgroundRemoverStatus {
   engine: SpriteBackgroundRemovalEngine;
   installed: boolean;
   command: string | null;

@@ -1,6 +1,6 @@
 import type { AgentResultType } from "@marinara-engine/shared";
 
-export const CUSTOM_AGENT_RESULT_TYPE_IDS = [
+const CUSTOM_AGENT_RESULT_TYPE_IDS = [
   "context_injection",
   "character_card_create",
   "text_rewrite",
@@ -26,7 +26,7 @@ export const CUSTOM_AGENT_RESULT_TYPE_IDS = [
 
 export type CustomAgentResultType = (typeof CUSTOM_AGENT_RESULT_TYPE_IDS)[number];
 
-export interface CustomAgentResultExample {
+interface CustomAgentResultExample {
   format: "json" | "text";
   value: string;
 }

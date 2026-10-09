@@ -231,7 +231,7 @@ function nanoGptVideoConnectionError(conn: Record<string, unknown>): string | nu
 // object_info, or null when the response does not carry that node's schema —
 // a valid empty list and missing metadata must stay distinguishable so the
 // route can keep its 502 contract for malformed checkpoint responses.
-export function parseComfyLoaderModelNames(info: unknown, nodeName: string, inputName: string): string[] | null {
+function parseComfyLoaderModelNames(info: unknown, nodeName: string, inputName: string): string[] | null {
   if (!isRecord(info)) return null;
   const node = info[nodeName];
   if (!isRecord(node) || !isRecord(node.input) || !isRecord(node.input.required)) return null;
@@ -325,11 +325,11 @@ async function createSwarmUiSession(baseUrl: string, apiKey: string): Promise<st
   return sessionId;
 }
 
-export function buildGoogleModelsPageUrl(baseUrl: string, modelsEndpoint: string, pageToken = ""): string {
+function buildGoogleModelsPageUrl(baseUrl: string, modelsEndpoint: string, pageToken = ""): string {
   return `${baseUrl}${modelsEndpoint}?pageSize=1000` + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
 }
 
-export function buildConnectionTestCatalogUrl(
+function buildConnectionTestCatalogUrl(
   baseUrl: string,
   provider: string,
   modelsEndpoint = "/models",
@@ -1896,7 +1896,7 @@ const OPENROUTER_PARAMETER_FIELDS: Record<string, GenerationParameterKey> = {
   verbosity: "verbosity",
 };
 
-export function readOpenRouterModelCapabilities(
+function readOpenRouterModelCapabilities(
   model: Record<string, unknown>,
 ): ModelParameterCapabilities | undefined {
   const fields = Array.isArray(model.supported_parameters) ? model.supported_parameters : [];

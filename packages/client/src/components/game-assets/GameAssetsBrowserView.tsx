@@ -1,9 +1,8 @@
 // ──────────────────────────────────────────────
 // View: File Browser (full-page overlay)
 // ──────────────────────────────────────────────
-import { useState, useMemo, useCallback, useRef, useEffect, type ReactNode } from "react";
-import { createPortal } from "react-dom";
-import { Check, Folder, Upload, Pencil, Info, FileText, Move, Copy, Minus, RotateCcw, Trash2, X } from "lucide-react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { Folder, Upload, Pencil, Info, FileText, Move, Copy, Trash2, X } from "lucide-react";
 import {
   useGameAssetTree,
   useCreateGameAssetFolder,
@@ -39,33 +38,21 @@ import { isImage, isAudio, isEditableText, countItems } from "./utils";
 import { resolveGameAssetFileUrl } from "../../lib/game-asset-urls";
 import { useUIStore } from "../../stores/ui.store";
 import { useChatStore } from "../../stores/chat.store";
-import { useChat, useUpdateChatMetadata } from "../../hooks/use-chats";
+import { useChat } from "../../hooks/use-chats";
 import { parseChatMetadata } from "../../lib/chat-display";
 import {
-  excludeGameAssetFolder,
   getGameAssetFolderSelectionStatus,
-  includeGameAssetFolder,
   parseGameAssetExcludedFolders,
-  serializeGameAssetSelection,
-  type GameAssetSelectionStatus,
 } from "../../lib/game-asset-selection";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
 const PROTECTED_PATHS = new Set(["", "music", "sfx", "ambient", "sprites", "backgrounds"]);
 
-function AssetSelectionIcon({ status }: { status: GameAssetSelectionStatus }) {
-  if (status === "included") return <Check size="0.75rem" />;
-  if (status === "partial") return <Minus size="0.75rem" />;
-  return null;
-}
 
 function sameFolderSelection(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((folder, index) => folder === b[index]);
 }
 
-function AssetMenuPortal({ children }: { children: ReactNode }) {
-  return createPortal(children, document.body);
-}
 
 /**
  * Browser for previewing and managing game assets.
@@ -103,7 +90,6 @@ export function GameAssetsBrowserView({
   const moveBulk = useMoveGameAssetsBulk();
   const copyBulk = useCopyGameAssetsBulk();
   const deleteBulk = useDeleteGameAssetsBulk();
-  const updateChatMetadata = useUpdateChatMetadata();
 
   const [selectedPath, setSelectedPath] = useState("");
   const [search, setSearch] = useState("");
@@ -144,11 +130,8 @@ export function GameAssetsBrowserView({
   const [deleteRecursive, setDeleteRecursive] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
   const saveFile = useSaveGameAssetFile();
-  const closeGameAssetsBrowser = useUIStore((s) => s.closeGameAssetsBrowser);
   const activeChatId = useChatStore((s) => s.activeChatId);
   const { data: activeChat } = useChat(activeChatId);
-  const showGameCloseButton = activeChat?.mode === "game";
-  const canSelectGameAssets = activeChat?.mode === "game" && !!activeChatId;
   const activeChatMeta = useMemo(() => parseChatMetadata(activeChat?.metadata), [activeChat?.metadata]);
   const persistedGameAssetExcludedFolders = useMemo(
     () => parseGameAssetExcludedFolders(activeChatMeta.gameAssetSelection),
@@ -157,24 +140,6 @@ export function GameAssetsBrowserView({
   const gameAssetExcludedFolders = optimisticAssetExcludedFolders ?? persistedGameAssetExcludedFolders;
   const folderSelectionMenuRef = useRef<HTMLDivElement>(null);
 
-  const persistGameAssetSelection = useCallback(
-    (excludedFolders: string[]) => {
-      if (!activeChatId) return;
-      const metadata = serializeGameAssetSelection(excludedFolders);
-      const normalizedExcludedFolders = metadata?.excludedFolders ?? [];
-      setOptimisticAssetExcludedFolders(normalizedExcludedFolders);
-      updateChatMetadata.mutate(
-        {
-          id: activeChatId,
-          gameAssetSelection: metadata,
-        },
-        {
-          onError: () => setOptimisticAssetExcludedFolders(null),
-        },
-      );
-    },
-    [activeChatId, updateChatMetadata],
-  );
 
   const getFolderSelectionStatus = useCallback(
     (node: TreeNode) => getGameAssetFolderSelectionStatus(node.path, gameAssetExcludedFolders),
@@ -190,50 +155,15 @@ export function GameAssetsBrowserView({
     });
   }, []);
 
-  const handleIncludeFolder = useCallback(
-    (node: TreeNode) => {
-      persistGameAssetSelection(includeGameAssetFolder(node.path, gameAssetExcludedFolders));
-    },
-    [gameAssetExcludedFolders, persistGameAssetSelection],
-  );
 
-  const handleExcludeFolder = useCallback(
-    (node: TreeNode) => {
-      persistGameAssetSelection(excludeGameAssetFolder(node.path, gameAssetExcludedFolders));
-    },
-    [gameAssetExcludedFolders, persistGameAssetSelection],
-  );
 
-  const handleExcludeSubfolders = useCallback(
-    (nodes: TreeNode[]) => {
-      const nextExcludedFolders = nodes.reduce(
-        (folders, node) => excludeGameAssetFolder(node.path, folders),
-        gameAssetExcludedFolders,
-      );
-      persistGameAssetSelection(nextExcludedFolders);
-    },
-    [gameAssetExcludedFolders, persistGameAssetSelection],
-  );
 
-  const handleIncludeSubfolders = useCallback(
-    (nodes: TreeNode[]) => {
-      const nextExcludedFolders = nodes.reduce(
-        (folders, node) => includeGameAssetFolder(node.path, folders),
-        gameAssetExcludedFolders,
-      );
-      persistGameAssetSelection(nextExcludedFolders);
-    },
-    [gameAssetExcludedFolders, persistGameAssetSelection],
-  );
 
   useEffect(() => {
-    if (!canSelectGameAssets) {
-      setAssetSelectionMode(false);
-      setFolderSelectionMenu(null);
-      return;
-    }
-    if (selectFoldersByDefault) setAssetSelectionMode(true);
-  }, [canSelectGameAssets, selectFoldersByDefault]);
+    setAssetSelectionMode(false);
+    setFolderSelectionMenu(null);
+    return;
+  }, [false, selectFoldersByDefault]);
 
   useEffect(() => {
     setOptimisticAssetExcludedFolders(null);
@@ -700,7 +630,7 @@ export function GameAssetsBrowserView({
     }
   }, [updateDescription, selectedPath, descriptionValue, localizeUi]);
 
-  const closeAction = onClose ?? (showGameCloseButton ? closeGameAssetsBrowser : undefined);
+  const closeAction = onClose ?? undefined;
 
   return (
     <div className={cn("flex h-full flex-col", embedded ? "bg-transparent" : "bg-[var(--background)]")}>
@@ -730,42 +660,8 @@ export function GameAssetsBrowserView({
         listColumns={listColumns}
         onToggleColumn={(col) => setListColumns((prev) => ({ ...prev, [col]: !prev[col] }))}
         onClose={closeAction}
-        assetSelection={
-          canSelectGameAssets
-            ? {
-                active: assetSelectionMode,
-                excludedCount: gameAssetExcludedFolders.length,
-                onToggle: () => setAssetSelectionMode((active) => !active),
-              }
-            : undefined
-        }
+        assetSelection={undefined}
       />
-
-      {canSelectGameAssets && assetSelectionMode && (
-        <div className="flex min-h-[36px] items-center gap-3 border-b border-[var(--border)]/40 bg-[var(--foreground)]/5 px-4 py-1.5">
-          <span className="text-xs font-medium text-[var(--primary)]">
-            {localizeUi("ui.gameAssets.gameassetsbrowserview.gameAssetSelection")}
-          </span>
-          <span className="text-xs text-[var(--muted-foreground)]">
-            {gameAssetExcludedFolders.length === 0
-              ? localizeUi("ui.gameAssets.gameassetsbrowserview.allFoldersIncluded")
-              : localizeUi("ui.gameAssets.gameassetsbrowserview.value1FolderValue2Excluded", {
-                  value1: gameAssetExcludedFolders.length,
-                  value2: gameAssetExcludedFolders.length !== 1 ? localizeUi("ui.noodle.stageprofileview.s") : "",
-                })}
-          </span>
-          {gameAssetExcludedFolders.length > 0 && (
-            <button
-              type="button"
-              onClick={() => persistGameAssetSelection([])}
-              className="ml-auto flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]"
-            >
-              <RotateCcw size="0.75rem" />
-              {localizeUi("ui.gameAssets.gameassetsbrowserview.resetToAll")}
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Folder Description (hidden when selections exist) */}
       {selectedPaths.size === 0 && selectedNode?.type === "folder" && (
@@ -891,7 +787,7 @@ export function GameAssetsBrowserView({
               expanded={expanded}
               onToggle={toggleExpanded}
               onSelect={setSelectedPath}
-              assetSelectionMode={canSelectGameAssets && assetSelectionMode}
+              assetSelectionMode={false}
               getFolderSelectionStatus={getFolderSelectionStatus}
               onOpenFolderSelection={handleOpenFolderSelection}
             />
@@ -927,7 +823,7 @@ export function GameAssetsBrowserView({
                   setActionMenu({ node, x: rect.right - 160, y: rect.bottom + 4 });
                 }}
                 listColumns={listColumns}
-                assetSelectionMode={canSelectGameAssets && assetSelectionMode}
+                assetSelectionMode={false}
                 getFolderSelectionStatus={getFolderSelectionStatus}
                 onOpenFolderSelection={handleOpenFolderSelection}
               />
@@ -945,110 +841,6 @@ export function GameAssetsBrowserView({
           )}
         </div>
       </div>
-
-      {canSelectGameAssets && assetSelectionMode && folderSelectionMenu && (
-        <AssetMenuPortal>
-          <div
-            data-chat-floating-panel
-            ref={folderSelectionMenuRef}
-            className="fixed z-[10002] w-72 rounded-lg border border-[var(--border)] bg-[var(--card)] py-1 shadow-xl"
-            style={{ left: folderSelectionMenu.x, top: folderSelectionMenu.y }}
-          >
-            {(() => {
-              const status = getFolderSelectionStatus(folderSelectionMenu.node);
-              const subfolders = folderSelectionMenu.node.children?.filter((child) => child.type === "folder") ?? [];
-              return (
-                <>
-                  <div className="border-b border-[var(--border)]/50 px-3 py-2">
-                    <div className="truncate text-xs font-semibold text-[var(--foreground)]">
-                      {folderSelectionMenu.node.name}
-                    </div>
-                    <div className="mt-0.5 text-[0.625rem] text-[var(--muted-foreground)]">
-                      {status === "included" && "Included in this game"}
-                      {status === "partial" && "Some subfolders excluded"}
-                      {status === "excluded" && "Excluded from this game"}
-                    </div>
-                  </div>
-                  {subfolders.length > 0 && (
-                    <div className="max-h-56 overflow-y-auto py-1">
-                      <div className="px-3 py-1 text-[0.625rem] font-medium uppercase text-[var(--muted-foreground)]">
-                        {localizeUi("ui.gameAssets.gameassetsbrowserview.subfolders")}
-                      </div>
-                      {subfolders.map((child) => {
-                        const childStatus = getFolderSelectionStatus(child);
-                        const childIncluded = childStatus !== "excluded";
-                        return (
-                          <button
-                            key={child.path}
-                            type="button"
-                            onClick={() => {
-                              if (childIncluded) handleExcludeFolder(child);
-                              else handleIncludeFolder(child);
-                            }}
-                            className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-[var(--foreground)] transition-colors hover:bg-[var(--accent)]"
-                          >
-                            <span
-                              className={
-                                "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border " +
-                                (childIncluded
-                                  ? "border-[var(--primary)]/35 bg-[var(--primary)]/10 text-[var(--primary)]"
-                                  : "border-[var(--border)] text-[var(--muted-foreground)]")
-                              }
-                            >
-                              <AssetSelectionIcon status={childStatus} />
-                            </span>
-                            <span className="min-w-0 flex-1 truncate">{child.name}</span>
-                            <span className="text-[0.625rem] text-[var(--muted-foreground)]">
-                              {childIncluded
-                                ? localizeUi("ui.gameAssets.gameassetsbrowserview.included")
-                                : localizeUi("ui.gameAssets.gameassetsbrowserview.excluded")}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div className="border-t border-[var(--border)]/50 py-1">
-                    {subfolders.length > 0 && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleExcludeSubfolders(subfolders)}
-                          className="flex w-full items-center justify-between px-3 py-1.5 text-left text-xs font-medium text-[var(--primary)] transition-colors hover:bg-[var(--primary)]/10"
-                        >
-                          {localizeUi("ui.gameAssets.gameassetsbrowserview.removeAllSubfoldersFromGame")}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleIncludeSubfolders(subfolders)}
-                          className="flex w-full items-center justify-between px-3 py-1.5 text-left text-xs font-medium text-[var(--foreground)]/80 transition-colors hover:bg-[var(--accent)]"
-                        >
-                          {localizeUi("ui.gameAssets.gameassetsbrowserview.includeAllSubfolders")}
-                        </button>
-                      </>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (status === "excluded") handleIncludeFolder(folderSelectionMenu.node);
-                        else handleExcludeFolder(folderSelectionMenu.node);
-                      }}
-                      className={cn(
-                        "flex w-full items-center justify-between px-3 py-1.5 text-left text-xs font-medium transition-colors hover:bg-[var(--accent)]",
-                        status === "excluded" ? "text-[var(--foreground)]/80" : "text-[var(--primary)]",
-                      )}
-                    >
-                      {status === "excluded"
-                        ? localizeUi("ui.gameAssets.gameassetsbrowserview.includeThisFolder")
-                        : localizeUi("ui.gameAssets.gameassetsbrowserview.removeThisFolderFromGame")}
-                    </button>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </AssetMenuPortal>
-      )}
 
       {/* Hidden upload input */}
       <input ref={uploadRef} type="file" multiple className="hidden" onChange={(e) => handleUpload(e.target.files)} />

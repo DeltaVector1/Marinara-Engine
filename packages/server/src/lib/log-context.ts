@@ -21,11 +21,6 @@ export interface LogContext {
 
 const storage = new AsyncLocalStorage<LogContext>();
 
-/** The context of the current async execution, or undefined outside any. */
-export function getLogContext(): LogContext | undefined {
-  return storage.getStore();
-}
-
 /**
  * Runs `fn` in a fresh context that does not inherit the caller's. Used at the
  * start of a request, and by timers or pollers that must not keep the
@@ -75,7 +70,7 @@ export function logContextMixin(_mergeObject: object, _level: number, log?: Bind
  * True for a user stop, a closed client or an aborted signal: an expected
  * outcome that belongs at info, not error.
  */
-export function isCancellation(error: unknown): boolean {
+function isCancellation(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const candidate = error as { name?: unknown; code?: unknown };
   if (candidate.name === "AbortError" || candidate.code === "ABORT_ERR") return true;

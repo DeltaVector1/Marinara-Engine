@@ -32,7 +32,7 @@ export const COMMITTED_TRACKER_AGENT_TYPES = new Set([
   "beholder",
 ]);
 
-export const MAX_WORLD_CUSTOM_FIELDS_IN_COMMITTED_CONTEXT = 64;
+const MAX_WORLD_CUSTOM_FIELDS_IN_COMMITTED_CONTEXT = 64;
 
 const WORLD_RESERVED_CUSTOM_FIELD_NAMES = new Set(["date", "time", "location", "weather", "temperature"]);
 const CHARACTER_RESERVED_CUSTOM_FIELD_NAMES = new Set([

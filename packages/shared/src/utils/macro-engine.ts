@@ -160,7 +160,7 @@ export interface ResolveMacroOptions {
   maxMacroOutputLength?: number;
 }
 
-export interface SupportedMacroDefinition {
+interface SupportedMacroDefinition {
   category: string;
   syntax: string;
   description: string;
@@ -257,7 +257,7 @@ type ConditionalChainPayload = {
 };
 type DeferredConditionalPayload = ConditionalBlockPayload | ConditionalChainPayload;
 
-export type MacroResolutionBudget = {
+type MacroResolutionBudget = {
   expansions: number;
   exceeded?: boolean;
 };
@@ -688,7 +688,7 @@ function macroContextForCharacterProfile(profile: CharacterMacroProfile, base?: 
   };
 }
 
-export function resolveCharacterScopedMacros(
+function resolveCharacterScopedMacros(
   template: string,
   profile: CharacterMacroProfile,
   depth = 0,
@@ -1030,7 +1030,7 @@ const DECISION_CHOICE_OPERAND_PREFIX_RE = /^decision_choice\s*:/iu;
  * turns, reading as no between checks. `priority` decides which statements are asked
  * when a turn has more than its limit; medium when unset.
  */
-export interface DecisionStatementModifiers {
+interface DecisionStatementModifiers {
   sticky?: number;
   cooldown?: number;
   every?: number;
@@ -1149,7 +1149,7 @@ export function resolveDecisionQuestionText(question: string, ctx: MacroContext)
   return normalizeDecisionQuestion(resolveMacros(question, { ...ctx, decisions: undefined }, { trimResult: true }));
 }
 
-export interface CollectedDecisionQuestion extends DecisionStatementModifiers {
+interface CollectedDecisionQuestion extends DecisionStatementModifiers {
   kind: "noul" | "choice";
   /** As written, before its macros are resolved. */
   question: string;

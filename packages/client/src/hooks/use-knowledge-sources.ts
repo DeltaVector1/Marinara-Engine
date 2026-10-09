@@ -4,7 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api-client";
 
-export interface KnowledgeSource {
+interface KnowledgeSource {
   id: string;
   originalName: string;
   filename: string;

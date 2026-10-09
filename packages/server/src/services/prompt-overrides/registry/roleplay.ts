@@ -4,7 +4,7 @@ import { renderTemplate } from "../template.js";
 
 const ROLEPLAY_GALLERY_VIDEO_DIRECTOR_VARIABLES = ["durationSeconds"] as const;
 
-export const ROLEPLAY_GALLERY_VIDEO_DIRECTOR_PROMPT_TEMPLATE = [
+const ROLEPLAY_GALLERY_VIDEO_DIRECTOR_PROMPT_TEMPLATE = [
   "You are an animation director for one ${durationSeconds}-second image-to-video Roleplay clip.",
   "The supplied reference image is the exact first frame at time zero.",
   "Plan only the action already happening in the source exchange or its immediate visual follow-through.",

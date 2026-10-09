@@ -108,7 +108,7 @@ const ACTION_HINT_KEY: Record<ChatResourceDropAction["type"], string> = {
 };
 
 /** Reason labels match the source chips in the chat settings lorebook list, so they read the same way. */
-export function formatInheritedSources(reasons: string[]) {
+function formatInheritedSources(reasons: string[]) {
   return reasons.join(", ");
 }
 

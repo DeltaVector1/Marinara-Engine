@@ -8,7 +8,7 @@ import { api, ApiError } from "../lib/api-client";
 import { useUIStore } from "../stores/ui.store";
 import type { CreateThemeInput, Theme, UpdateThemeInput } from "@marinara-engine/shared";
 
-export const themeKeys = {
+const themeKeys = {
   all: ["themes"] as const,
   list: () => [...themeKeys.all, "list"] as const,
 };

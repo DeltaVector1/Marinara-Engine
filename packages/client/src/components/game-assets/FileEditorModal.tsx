@@ -16,7 +16,7 @@ const MAX_TEXT_LENGTH = 10_000_000; // ~10 MB char limit
 /**
  * Props for the FileEditorModal component.
  */
-export interface FileEditorModalProps {
+interface FileEditorModalProps {
   /** Text file node to edit */
   node: TreeNode;
   /** Callback when modal should close */

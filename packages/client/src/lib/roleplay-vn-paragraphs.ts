@@ -29,9 +29,3 @@ export function splitRoleplayParagraphs(content: string, streaming = false): str
 
   return paragraphs;
 }
-
-/** A blank line completes a VN paragraph; fenced code stays together. */
-export function latestRoleplayParagraph(content: string, streaming = false): string {
-  const paragraphs = splitRoleplayParagraphs(content, streaming);
-  return paragraphs[paragraphs.length - 1] ?? "";
-}

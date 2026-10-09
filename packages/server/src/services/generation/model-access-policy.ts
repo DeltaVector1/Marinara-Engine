@@ -7,7 +7,7 @@ import {
 } from "../llm/base-provider.js";
 import { minContextLimit, normalizeMaxContext } from "./generation-parameters.js";
 
-export interface ModelAccessPolicy {
+interface ModelAccessPolicy {
   suppressModelParameters: boolean;
   connectionMaxContext?: number;
   knownModelContext?: number;
@@ -52,11 +52,7 @@ export function resolveStoredModelContextLimit(
   return normalizeMaxContext(params.maxContext);
 }
 
-export function modelAccessOptions<T extends ChatOptions>(options: T, policy: ModelAccessPolicy): T {
-  return policy.suppressModelParameters ? { ...options, suppressModelParameters: true } : options;
-}
-
-export function fitMessagesToModelAccessContext(args: {
+function fitMessagesToModelAccessContext(args: {
   messages: ChatMessage[];
   policy: ModelAccessPolicy;
   maxTokens?: number;

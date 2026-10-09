@@ -87,7 +87,7 @@ type AgentsStore = {
   publishHomeWidgetState(agentId: string, widgetId: string, text: string): Promise<{ updatedAt: string }>;
 };
 
-export type ResolveGenerationToolsArgs = {
+type ResolveGenerationToolsArgs = {
   requestBody: Record<string, unknown>;
   chatId: string;
   chatMetadata: Record<string, unknown>;
@@ -119,11 +119,11 @@ export type ResolveGenerationToolsArgs = {
   lorebookEmbeddingOptions?: LorebookEmbeddingOptions;
 };
 
-export type ResolveAgentGenerationToolsArgs = ResolveGenerationToolsArgs & {
+type ResolveAgentGenerationToolsArgs = ResolveGenerationToolsArgs & {
   observeSpotifyPlaybackBeforePlay?: boolean;
 };
 
-export type ResolvedGenerationTools = {
+type ResolvedGenerationTools = {
   enableChatTools: boolean;
   /**
    * Whether this turn sends tools to the model at all — true when the chat toggle is on
@@ -138,7 +138,7 @@ export type ResolvedGenerationTools = {
   finalizeLorebookWrites: () => Promise<void>;
 };
 
-export function resolveToolLorebookCharacterIds(
+function resolveToolLorebookCharacterIds(
   promptCharacterIds: string[],
   lorebookCharacterIds?: string[],
 ): string[] {
@@ -162,7 +162,7 @@ const CONVERSATION_ONLY_TOOL_NAMES = new Set(["update_about_me"]);
 // (excluded from the "no filter set = all tools on" default).
 const DEFAULT_OFF_TOOL_NAMES = new Set(["update_about_me", ...(DEFAULT_AGENT_TOOLS.spotify ?? [])]);
 
-export function isChatToolEnabledByDefault(toolName: string): boolean {
+function isChatToolEnabledByDefault(toolName: string): boolean {
   return !AGENT_ONLY_TOOL_NAMES.has(toolName) && !DEFAULT_OFF_TOOL_NAMES.has(toolName);
 }
 
@@ -180,7 +180,7 @@ export const GAME_MODE_AUTO_ATTACH_TOOL_NAMES: readonly string[] = ["roll_dice"]
  * - toggle off, auto-attach names     → only those names
  * - toggle on                         → the chat's set, plus any auto-attached name it missed
  */
-export function resolveChatToolDefs(args: {
+function resolveChatToolDefs(args: {
   allToolDefs: LLMToolDefinition[];
   enableChatTools: boolean;
   activeToolIds: string[];
@@ -205,7 +205,7 @@ export function resolveChatToolDefs(args: {
  * loaded definitions for reasons this cannot see (disabled, renamed, an invalid schema),
  * so the answer for one is an upper bound rather than a fact.
  */
-export function isChatToolResolved(
+function isChatToolResolved(
   name: string,
   args: { enableChatTools: boolean; activeToolIds: readonly string[]; autoAttachToolNames: readonly string[] },
 ): boolean {
@@ -216,7 +216,7 @@ export function isChatToolResolved(
 }
 
 /** The chat's tool filter, or an empty list when it has none. Empty means "no filter". */
-export function readChatActiveToolIds(chatMetadata: Record<string, unknown>): string[] {
+function readChatActiveToolIds(chatMetadata: Record<string, unknown>): string[] {
   return Array.isArray(chatMetadata.activeToolIds) ? (chatMetadata.activeToolIds as string[]) : [];
 }
 
@@ -225,7 +225,7 @@ export function readChatActiveToolIds(chatMetadata: Record<string, unknown>): st
  * override first, then the stored toggle, and nothing at all on a connection without a
  * tools API. Shared with callers that need it before `resolveGenerationTools` runs.
  */
-export function resolveChatToolsEnabled(args: {
+function resolveChatToolsEnabled(args: {
   requestBody: Record<string, unknown>;
   chatMetadata: Record<string, unknown>;
   nativeToolsAvailable: boolean;
@@ -878,9 +878,6 @@ async function resolveToolRuntime(
   if (toolDefs && agentContext.chatMode !== "conversation") {
     toolDefs = toolDefs.filter((toolDef) => !CONVERSATION_ONLY_TOOL_NAMES.has(toolDef.function.name));
   }
-  if (toolDefs && agentContext.chatMode === "game" && !booleanText(chatMetadata.gameLorebookSearch)) {
-    toolDefs = toolDefs.filter((toolDef) => toolDef.function.name !== "search_lorebook");
-  }
 
   let chatResolvedToolNames = new Set((toolDefs ?? []).map((toolDef) => toolDef.function.name));
   // ponytail: Spotify playback was removed with the music player, but the Music DJ agent type and its
@@ -1019,7 +1016,7 @@ async function resolveToolRuntime(
       gameState,
     }),
     customTools: customToolDefs,
-    searchLorebook: (query, category) => searchLorebookForTools(query, category, agentContext.chatMode === "game"),
+    searchLorebook: (query, category) => searchLorebookForTools(query, category, false),
     chatMeta: chatMetadata,
     onUpdateMetadata: updateChatMetadataForTools,
   };
@@ -1231,12 +1228,7 @@ export async function resolveGenerationTools(args: ResolveGenerationToolsArgs): 
   return resolveToolRuntime(args, {
     enableChatTools,
     autoAttachToolNames: available
-      ? [
-          ...(args.autoAttachToolNames ?? []),
-          ...(args.agentContext.chatMode === "game" && booleanText(args.chatMetadata.gameLorebookSearch)
-            ? ["search_lorebook"]
-            : []),
-        ]
+      ? [...(args.autoAttachToolNames ?? []), ...[]]
       : args.agentContext.chatMode === "roleplay"
         ? (args.autoAttachToolNames ?? []).filter((name) => name === "roll_dice")
         : [],

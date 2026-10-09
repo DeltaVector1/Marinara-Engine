@@ -35,7 +35,7 @@ function isAbortFailure(error: unknown, signal?: AbortSignal): boolean {
   return candidate.name === "AbortError" || candidate.code === "ABORT_ERR";
 }
 
-export function prepareAssistantReasoningPrefillMessages(messages: ChatMessage[], supported: boolean): ChatMessage[] {
+function prepareAssistantReasoningPrefillMessages(messages: ChatMessage[], supported: boolean): ChatMessage[] {
   if (supported) return messages;
 
   return messages.flatMap((message) => {
@@ -130,7 +130,7 @@ function fallbackOptions(options: ChatOptions, connection: FallbackConnection): 
   };
 }
 
-export class ConnectionFallbackProvider extends BaseLLMProvider {
+class ConnectionFallbackProvider extends BaseLLMProvider {
   constructor(
     private readonly primary: BaseLLMProvider,
     private readonly fallback: BaseLLMProvider,

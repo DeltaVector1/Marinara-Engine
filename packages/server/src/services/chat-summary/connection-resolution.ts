@@ -15,7 +15,7 @@ type SummaryConnectionCandidate = {
   source: SummaryConnectionSource;
 };
 
-export type ResolvedChatSummaryConnection =
+type ResolvedChatSummaryConnection =
   | {
       ok: true;
       provider: BaseLLMProvider;

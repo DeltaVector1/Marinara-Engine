@@ -26,7 +26,7 @@ const MANUAL_ILLUSTRATION_SYSTEM_PROMPT = [
   '{"prompt":"detailed provider-ready image prompt","negativePrompt":"optional exclusions","style":"optional scene-specific art direction","characters":["visible names"],"aspectRatio":"portrait|landscape|square","reason":"brief description of the chosen moment"}',
 ].join("\n");
 
-export type ManualIllustratorPromptPlan = {
+type ManualIllustratorPromptPlan = {
   prompt: string;
   negativePrompt: string;
   style: string;
@@ -37,7 +37,7 @@ export type ManualIllustratorPromptPlan = {
   characterPrompts: unknown[];
 };
 
-export type ManualIllustratorPromptResult = {
+type ManualIllustratorPromptResult = {
   plan: ManualIllustratorPromptPlan;
   tokensUsed: number;
 };
@@ -88,7 +88,7 @@ function normalizeAspectRatio(value: unknown): ManualIllustratorPromptPlan["aspe
   return "";
 }
 
-export function parseManualIllustratorPromptPlan(value: unknown): ManualIllustratorPromptPlan | null {
+function parseManualIllustratorPromptPlan(value: unknown): ManualIllustratorPromptPlan | null {
   const record = parseRecord(value);
   const prompt = readTrimmedString(record.prompt ?? record.imagePrompt ?? record.description).slice(0, 7_000);
   if (!prompt) return null;
@@ -164,7 +164,7 @@ function appendConversationMessage(messages: ChatMessage[], role: "user" | "assi
   messages.push({ role, content: clean, contextKind: "history" });
 }
 
-export function buildManualIllustratorPromptMessages(args: {
+function buildManualIllustratorPromptMessages(args: {
   context: AgentContext;
   contextSize: unknown;
   selectedPromptTemplate?: string;

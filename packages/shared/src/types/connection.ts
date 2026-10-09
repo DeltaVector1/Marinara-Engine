@@ -54,7 +54,7 @@ export function defaultDecisionStateTokens(source: string | null | undefined): n
 }
 
 /** Audio backends an audio connection can target (the former TTS sources). */
-export const AUDIO_GENERATION_SOURCES = ["openai", "elevenlabs", "pockettts", "xai"] as const;
+const AUDIO_GENERATION_SOURCES = ["openai", "elevenlabs", "pockettts", "xai"] as const;
 export type AudioGenerationSource = (typeof AUDIO_GENERATION_SOURCES)[number];
 
 export const IMAGE_GENERATION_QUALITIES = ["auto", "low", "medium", "high", "xhigh", "max"] as const;
@@ -184,22 +184,6 @@ export interface ConnectionFolder {
   updatedAt: string;
 }
 
-/** Model information returned from a provider. */
-export interface ModelInfo {
-  id: string;
-  name: string;
-  maxContext: number;
-  provider: APIProvider;
-  capabilities: ModelCapabilities;
-}
-
-/** What a model supports. */
-export interface ModelCapabilities {
-  streaming: boolean;
-  toolUse: boolean;
-  vision: boolean;
-  reasoning: boolean;
-}
 
 /** Test result for a connection. */
 export interface ConnectionTestResult {

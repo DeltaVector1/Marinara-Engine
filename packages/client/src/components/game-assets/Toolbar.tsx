@@ -32,7 +32,7 @@ function clampToolbarMenuX(left: number) {
 /**
  * Props for the Toolbar component.
  */
-export interface ToolbarProps {
+interface ToolbarProps {
   /** Breadcrumb segments starting with "Game Assets" */
   breadcrumb: string[];
   /** Current search query */

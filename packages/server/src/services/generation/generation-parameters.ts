@@ -116,7 +116,7 @@ export function readChatCompletionsReasoningMetadata(value: unknown): Record<str
   return Object.keys(metadata).length ? metadata : undefined;
 }
 
-export function shouldReplayStoredChatCompletionsReasoning(provider: string, model: string): boolean {
+function shouldReplayStoredChatCompletionsReasoning(provider: string, model: string): boolean {
   if (provider !== "openrouter") return true;
   const normalizedModel = model.toLowerCase();
   return !normalizedModel.startsWith("google/gemini") && !normalizedModel.includes("/gemini-");

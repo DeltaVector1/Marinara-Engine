@@ -1,12 +1,4 @@
-// ──────────────────────────────────────────────
-// Character Card V2 Types (compatible with ST / Chub)
-// ──────────────────────────────────────────────
-/** Full Character Card V2 envelope. */
-export interface CharacterCardV2 {
-  spec: "chara_card_v2";
-  spec_version: "2.0";
-  data: CharacterData;
-}
+
 
 /** Core character data (V2 spec). */
 export interface CharacterData {
@@ -31,7 +23,7 @@ export interface CharacterData {
 }
 
 /** ST-compatible extension fields. */
-export interface CharacterExtensions {
+interface CharacterExtensions {
   talkativeness: number;
   fav: boolean;
   world: string;
@@ -278,17 +270,6 @@ export interface CharacterGroup {
   avatarPath: string | null;
   /** IDs of characters belonging to this group */
   characterIds: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-/** A group of personas — for organising user personas. */
-export interface PersonaGroup {
-  id: string;
-  name: string;
-  description: string;
-  /** IDs of personas belonging to this group */
-  personaIds: string[];
   createdAt: string;
   updatedAt: string;
 }

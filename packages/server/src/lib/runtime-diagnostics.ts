@@ -31,7 +31,7 @@ async function section<T>(collect: () => T | Promise<T>): Promise<T | { error: s
 }
 
 /** Process facts /api/health leaves out. */
-export function collectProcessDiagnostics() {
+function collectProcessDiagnostics() {
   return {
     pid: process.pid,
     node: process.version,
@@ -41,7 +41,7 @@ export function collectProcessDiagnostics() {
 }
 
 /** Which tables are dirty or fully resident, the last flush failure and the quarantine count. */
-export function collectStorageDiagnostics() {
+function collectStorageDiagnostics() {
   const stats = getFileStoreStats();
   if (!stats) return { open: false as const };
   let residentRows = 0;
@@ -67,7 +67,7 @@ export function collectStorageDiagnostics() {
   };
 }
 
-export type CapabilityPackageRuntimeState = "active" | "failed" | "restart-required" | "pending";
+type CapabilityPackageRuntimeState = "active" | "failed" | "restart-required" | "pending";
 
 type PackageStateInput = {
   status: string;
@@ -83,14 +83,14 @@ type PackageStateInput = {
  * not live is "failed" when this process recorded an activation failure for
  * it, and "pending" otherwise (for example part-way through its activation).
  */
-export function derivePackageRuntimeState(input: PackageStateInput): CapabilityPackageRuntimeState {
+function derivePackageRuntimeState(input: PackageStateInput): CapabilityPackageRuntimeState {
   if (input.status === "restart-required") return "restart-required";
   if (input.status === "error" || input.readiness === "error") return "failed";
   if (!input.hasServer || input.live) return "active";
   return input.activationFailed ? "failed" : "pending";
 }
 
-export async function collectCapabilityPackageDiagnostics() {
+async function collectCapabilityPackageDiagnostics() {
   const installed = await capabilityPackageManager.installed();
   const runtime = capabilityModuleRuntime.runtimeState();
   const live = new Set(runtime.live);

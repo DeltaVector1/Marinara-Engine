@@ -34,10 +34,6 @@ export function getAnswerStyle(modelIdentity: string): DecisionAnswerStyle {
   return records.get(modelIdentity)?.style ?? "unknown";
 }
 
-export function isUncalibrated(modelIdentity: string): boolean {
-  return records.get(modelIdentity)?.uncalibrated ?? false;
-}
-
 /** A one-token request produced a real yes/no answer. */
 export function recordDirectAnswer(modelIdentity: string, uncalibrated = false): void {
   const entry = record(modelIdentity);
@@ -68,13 +64,4 @@ export function recordThinkingAnswer(modelIdentity: string, uncalibrated: boolea
   const entry = record(modelIdentity);
   entry.style = "thinks";
   entry.uncalibrated = uncalibrated;
-}
-
-/** Drop what was learned, for a slot that has loaded a different model. */
-export function forgetDecisionModel(modelIdentity: string): void {
-  records.delete(modelIdentity);
-}
-
-export function clearDecisionThinkingCache(): void {
-  records.clear();
 }

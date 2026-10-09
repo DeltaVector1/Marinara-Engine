@@ -115,7 +115,7 @@ export function isMessageIntent(value: string): value is MessageIntent {
   return MESSAGE_INTENTS.has(value as MessageIntent);
 }
 
-export function getIntentCooldowns(chatMeta: Record<string, unknown>, characterId: string): Record<string, string> {
+function getIntentCooldowns(chatMeta: Record<string, unknown>, characterId: string): Record<string, string> {
   const all = chatMeta.intentCooldowns as Record<string, Record<string, string>> | undefined;
   return all?.[characterId] ?? {};
 }

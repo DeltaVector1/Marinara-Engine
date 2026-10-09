@@ -1,7 +1,7 @@
 import type { PersonalExtensionContextSnapshot } from "@marinara-engine/shared";
 
-export const PERSONAL_EXTENSION_CONTEXT_MAX_ID_LENGTH = 256;
-export const PERSONAL_EXTENSION_CONTEXT_MAX_CHARACTER_IDS = 256;
+const PERSONAL_EXTENSION_CONTEXT_MAX_ID_LENGTH = 256;
+const PERSONAL_EXTENSION_CONTEXT_MAX_CHARACTER_IDS = 256;
 
 function normalizeContextId(value: unknown): string | null {
   if (

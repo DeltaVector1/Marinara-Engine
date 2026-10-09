@@ -84,7 +84,7 @@ function canonicalCustomHeaders(defaultParameters: unknown): string {
   );
 }
 
-export interface MemoryRecallEmbeddingInputProfile {
+interface MemoryRecallEmbeddingInputProfile {
   id: string;
   queryPrefix: string;
   documentPrefix: string;
@@ -101,7 +101,7 @@ const DEFAULT_EMBEDDING_INPUT_PROFILE: MemoryRecallEmbeddingInputProfile = {
  * Unknown models remain untouched because adding an unsupported instruction
  * can be more damaging than omitting one.
  */
-export function resolveMemoryRecallEmbeddingInputProfile(model: string): MemoryRecallEmbeddingInputProfile {
+function resolveMemoryRecallEmbeddingInputProfile(model: string): MemoryRecallEmbeddingInputProfile {
   const normalized = model.toLowerCase();
   if (normalized.includes("snowflake-arctic-embed") && normalized.includes("v2")) {
     return { id: "snowflake-arctic-v2", queryPrefix: "query: ", documentPrefix: "" };

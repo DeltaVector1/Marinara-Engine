@@ -40,8 +40,8 @@ export type GenerationParameterKey =
   | "customThinkingTags"
   | "customParameters";
 
-export type StoredEffortLevel = "low" | "medium" | "high" | "xhigh" | "maximum";
-export type StoredVerbosityLevel = "low" | "medium" | "high";
+type StoredEffortLevel = "low" | "medium" | "high" | "xhigh" | "maximum";
+type StoredVerbosityLevel = "low" | "medium" | "high";
 
 /** What a model accepts, as reported live by its provider. Every field is optional: absent means not reported. */
 export interface ModelParameterCapabilities {
@@ -63,7 +63,7 @@ export interface ModelParameterCapabilities {
   supportedParameters?: GenerationParameterKey[];
 }
 
-export interface GenerationParameterContext {
+interface GenerationParameterContext {
   provider?: string | null;
   model?: string | null;
   capabilities?: ModelParameterCapabilities | null;
@@ -73,7 +73,7 @@ export interface GenerationParameterContext {
   baseUrl?: string | null;
 }
 
-export interface GenerationParameterChoice<T> {
+interface GenerationParameterChoice<T> {
   value: T;
   /** The provider's name for the choice; null for the "off" or "none" choice, which the UI names itself. */
   label: string | null;
@@ -203,7 +203,7 @@ function hasActiveEffort(effort: StoredEffortLevel | null | undefined): boolean 
 }
 
 /** Anthropic models where "off" really turns thinking off (anthropic.provider.ts supportsAnthropicThinkingDisable). */
-export function supportsClaudeThinkingDisable(model: string): boolean {
+function supportsClaudeThinkingDisable(model: string): boolean {
   return /claude-(?:opus|sonnet)-5(?:$|[-.])/u.test(model.toLowerCase());
 }
 

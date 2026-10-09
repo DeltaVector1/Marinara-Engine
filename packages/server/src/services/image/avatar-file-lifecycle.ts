@@ -19,7 +19,7 @@ const STORED_AVATAR_EXTENSIONS = new Set([".avif", ".bmp", ".gif", ".jpeg", ".jp
 export const ABANDONED_AVATAR_MIN_AGE_MS = 10 * 60 * 1_000;
 let avatarLifecycleQueue = Promise.resolve();
 
-export interface AbandonedAvatarFileSummary {
+interface AbandonedAvatarFileSummary {
   files: number;
   bytes: number;
 }
@@ -264,21 +264,6 @@ async function unlinkAvatarFilesIfUnreferencedUnlocked(input: {
     }
   }
   return deleted;
-}
-
-/** Remove local avatar files after their final database reference has been deleted. */
-export async function unlinkAvatarFilesIfUnreferenced(input: {
-  db: DB;
-  avatarPaths: readonly string[];
-  /** Test-only filesystem override. */
-  avatarRoot?: string;
-}): Promise<number> {
-  return withAvatarFileLifecycleLock(() =>
-    unlinkAvatarFilesIfUnreferencedUnlocked({
-      ...input,
-      avatarRoot: input.avatarRoot ?? join(DATA_DIR, "avatars"),
-    }),
-  );
 }
 
 /** Hold the lifecycle lock from reference capture through mutation and cleanup. */

@@ -149,7 +149,7 @@ export function useCreateAgent() {
   });
 }
 
-export interface AgentMemoryResponse {
+interface AgentMemoryResponse {
   agentConfigId: string;
   memory: Record<string, unknown>;
 }

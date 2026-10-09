@@ -1,4 +1,4 @@
-export interface MessageReasoningDisplay {
+interface MessageReasoningDisplay {
   summary: string | null;
   summaryUnavailable: boolean;
   hasReasoning: boolean;

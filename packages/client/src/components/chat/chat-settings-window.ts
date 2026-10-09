@@ -58,7 +58,7 @@ export function readChatWindowArea(bounds: WindowBounds) {
 /**
  * Open below the Chat Settings button, within the chat and clear of a right-side Tracker Panel.
  */
-export function getChatSettingsDefaultLayout(bounds: WindowBounds): WindowLayout {
+function getChatSettingsDefaultLayout(bounds: WindowBounds): WindowLayout {
   const remPx = readCssPixels(document.documentElement, "font-size") || 16;
   const area = readChatWindowArea(bounds);
   // A right-side Tracker Panel floats over the chat; AppShell publishes its width plus a gap.

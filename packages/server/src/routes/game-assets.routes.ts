@@ -3,28 +3,12 @@
 // ──────────────────────────────────────────────
 import type { FastifyInstance } from "fastify";
 import { logger } from "../lib/logger.js";
-import {
-  existsSync,
-  mkdirSync,
-  writeFileSync,
-  createReadStream,
-  createWriteStream,
-  readdirSync,
-  statSync,
-  rmdirSync,
-  renameSync,
-  copyFileSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  unlinkSync,
-} from "fs";
+import { existsSync, mkdirSync, writeFileSync, createReadStream, createWriteStream, readdirSync, statSync, rmdirSync, renameSync, copyFileSync, readFileSync, realpathSync, rmSync, unlinkSync } from "fs";
 import { join, extname, basename, dirname, resolve, sep } from "path";
 import { execFile } from "child_process";
 import { platform } from "os";
 import { z } from "zod";
 import { pipeline } from "stream/promises";
-import { MUSIC_GENRES, MUSIC_INTENSITIES } from "@marinara-engine/shared";
 import { GAME_ASSETS_DIR, buildAssetManifest, getAssetManifest } from "../services/game/asset-manifest.service.js";
 import { folderContainsBundledGameAssets, isBundledGameAsset } from "../services/game/native-game-assets.js";
 import { requirePrivilegedAccess } from "../middleware/privileged-gate.js";
@@ -99,8 +83,6 @@ const GENERATED_BACKGROUND_MAX_INPUT_PIXELS = 32_000_000;
 const PICK_FOLDER_TIMEOUT_MS = 60_000;
 const MUSIC_STATES = ["exploration", "dialogue", "combat", "travel_rest"] as const;
 const MUSIC_STATE_SET = new Set<string>(MUSIC_STATES);
-const MUSIC_GENRE_SET = new Set<string>(MUSIC_GENRES);
-const MUSIC_INTENSITY_SET = new Set<string>(MUSIC_INTENSITIES);
 
 /**
  * Reject path-traversal attempts in a URL segment.
@@ -299,9 +281,7 @@ function prepareAssetTarget(category: string, subcategory: string, filename: str
       !state ||
       !genre ||
       !intensity ||
-      !MUSIC_STATE_SET.has(state) ||
-      !MUSIC_GENRE_SET.has(genre) ||
-      !MUSIC_INTENSITY_SET.has(intensity)
+      !MUSIC_STATE_SET.has(state)
     ) {
       throw new Error("Music folder must be state/genre/intensity, e.g. exploration/fantasy/calm");
     }

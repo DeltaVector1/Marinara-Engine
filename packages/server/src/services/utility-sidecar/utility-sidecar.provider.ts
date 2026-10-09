@@ -11,7 +11,7 @@ import { utilitySidecarService } from "./utility-sidecar.service.js";
 import { logger } from "../../lib/logger.js";
 
 /** Model name reported to llama-server; it serves whatever single model it loaded. */
-export const UTILITY_SIDECAR_MODEL = "utility-sidecar";
+const UTILITY_SIDECAR_MODEL = "utility-sidecar";
 
 /**
  * Prefix for the synthetic connection id a utility-routed agent reports.
@@ -20,7 +20,7 @@ export const UTILITY_SIDECAR_MODEL = "utility-sidecar";
  * false for it, and so the UI can tell the two slots apart when it names the connection
  * that answered.
  */
-export const UTILITY_SIDECAR_CONNECTION_PREFIX = "utility-sidecar:";
+const UTILITY_SIDECAR_CONNECTION_PREFIX = "utility-sidecar:";
 
 let cached: { baseUrl: string; provider: BaseLLMProvider } | null = null;
 
@@ -35,7 +35,7 @@ let cached: { baseUrl: string; provider: BaseLLMProvider } | null = null;
  * back to the agent's own connection instead of failing the run. The reason is left
  * in the slot's status for the UI to show.
  */
-export async function getUtilitySidecarProvider(): Promise<BaseLLMProvider | null> {
+async function getUtilitySidecarProvider(): Promise<BaseLLMProvider | null> {
   let status = utilitySidecarService.getStatus();
   if (!status.ready) {
     try {
@@ -54,7 +54,7 @@ export async function getUtilitySidecarProvider(): Promise<BaseLLMProvider | nul
 }
 
 /** The generation settings a utility-slot run uses, minus the provider wrapper. */
-export interface UtilitySidecarAgentEntry {
+interface UtilitySidecarAgentEntry {
   connectionId: string;
   provider: BaseLLMProvider;
   model: string;

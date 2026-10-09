@@ -138,13 +138,6 @@ export function registerCapabilityAchievements(
   };
 }
 
-/** Drops every achievement a package registered, for deactivation or removal. */
-export function releaseCapabilityAchievements(packageId: string): void {
-  for (const [id, entry] of byId) {
-    if (entry.packageId === packageId) byId.delete(id);
-  }
-}
-
 export function capabilityAchievementDefinitions(packageId?: string): AchievementDefinition[] {
   return [...byId.values()]
     .filter((entry) => !packageId || entry.packageId === packageId)

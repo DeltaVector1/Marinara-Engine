@@ -8,7 +8,7 @@ import { estimateTextTokens } from "./token-estimator.js";
 
 export type LorebookLintSeverity = "error" | "warning" | "info";
 
-export type LorebookLintCode =
+type LorebookLintCode =
   | "empty_content"
   | "no_keys"
   | "invalid_regex"
@@ -39,7 +39,7 @@ export type LintableLorebookEntry = Pick<
 > &
   Partial<Pick<LorebookEntry, "order">>;
 
-export interface LorebookLintOptions {
+interface LorebookLintOptions {
   /** Entries estimated above this many tokens are flagged. Default 1000. */
   maxEntryTokens?: number;
   /** Literal keys shorter than this many characters are flagged. Default 3. */
@@ -47,7 +47,7 @@ export interface LorebookLintOptions {
 }
 
 export const LOREBOOK_LINT_DEFAULT_MAX_ENTRY_TOKENS = 1000;
-export const LOREBOOK_LINT_DEFAULT_MIN_KEY_LENGTH = 3;
+const LOREBOOK_LINT_DEFAULT_MIN_KEY_LENGTH = 3;
 
 const SEVERITY_RANK: Record<LorebookLintSeverity, number> = { error: 0, warning: 1, info: 2 };
 

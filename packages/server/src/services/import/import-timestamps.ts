@@ -5,7 +5,7 @@ export interface TimestampOverrides {
   updatedAt?: unknown;
 }
 
-export interface NormalizedTimestampOverrides {
+interface NormalizedTimestampOverrides {
   createdAt?: string | null;
   updatedAt?: string | null;
 }

@@ -8,7 +8,7 @@ import {
 } from "../constants/agent-activation.js";
 import { AGENT_RESULT_TYPE_VALUES, CUSTOM_AGENT_CAPABILITY_IDS } from "../types/agent.js";
 
-export const agentPhaseSchema = z.enum(["pre_generation", "parallel", "post_processing"]);
+const agentPhaseSchema = z.enum(["pre_generation", "parallel", "post_processing"]);
 
 export const agentResultTypeSchema = z.enum(AGENT_RESULT_TYPE_VALUES);
 
@@ -20,7 +20,7 @@ export const customAgentActivationSettingsSchema = z.object({
   activationMaxSkip: z.number().int().min(1).max(100).optional(),
 });
 
-export const homeAgentWidgetSchema = z
+const homeAgentWidgetSchema = z
   .object({
     id: z
       .string()
@@ -120,6 +120,5 @@ export const agentSuiteRewriteSchema = z.object({
 });
 
 export type CreateAgentConfigInput = z.infer<typeof createAgentConfigSchema>;
-export type UpdateAgentConfigInput = z.infer<typeof updateAgentConfigSchema>;
 export type ImportAgentConfigInput = z.infer<typeof importAgentConfigSchema>;
 export type AgentSuiteRewriteInput = z.infer<typeof agentSuiteRewriteSchema>;

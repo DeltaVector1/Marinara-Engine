@@ -37,7 +37,7 @@ const DEFAULT_RUNPOD_POLL_INTERVAL_MS = 2_000;
 const DEFAULT_COMFYUI_GEN_TIMEOUT_SECONDS = 2_400;
 
 /** Parse the shared ComfyUI timeout without allowing invalid values to poison RunPod polling. */
-export function resolveRunPodComfyUiTimeoutSeconds(rawValue: string | undefined): number {
+function resolveRunPodComfyUiTimeoutSeconds(rawValue: string | undefined): number {
   const parsed = Number(rawValue);
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : DEFAULT_COMFYUI_GEN_TIMEOUT_SECONDS;
 }

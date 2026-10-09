@@ -18,7 +18,7 @@ import type { DiceRollResult } from "../types/game.js";
  * NdM notation: an optional die count (bare `d20` means one die), a face count,
  * and an optional flat modifier. Case-insensitive.
  */
-export const DICE_NOTATION_REGEX = /^(\d+)?d(\d+)([+-]\d+)?$/i;
+const DICE_NOTATION_REGEX = /^(\d+)?d(\d+)([+-]\d+)?$/i;
 
 /** Most dice one notation may throw. */
 export const MAX_DICE_COUNT = 100;

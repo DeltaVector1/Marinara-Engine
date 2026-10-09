@@ -31,7 +31,7 @@ export interface TreeNode {
   native?: boolean;
 }
 
-export interface GameAssetEntry {
+interface GameAssetEntry {
   tag: string;
   category: string;
   subcategory: string;
@@ -40,7 +40,7 @@ export interface GameAssetEntry {
   ext: string;
 }
 
-export interface GameAssetManifest {
+interface GameAssetManifest {
   scannedAt: string;
   count: number;
   assets: Record<string, GameAssetEntry>;
@@ -48,7 +48,7 @@ export interface GameAssetManifest {
 }
 
 /** TanStack Query key factory for game-assets queries. */
-export const gameAssetKeys = {
+const gameAssetKeys = {
   all: ["game-assets"] as const,
   manifest: () => [...gameAssetKeys.all, "manifest"] as const,
   tree: () => [...gameAssetKeys.all, "tree"] as const,

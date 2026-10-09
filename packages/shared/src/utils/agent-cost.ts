@@ -27,7 +27,7 @@ import type { AgentPhase } from "../types/agent.js";
 import { estimateTextTokens } from "./token-estimator.js";
 
 /** Minimal shape needed to estimate an agent's contribution. */
-export interface AgentCostInput {
+interface AgentCostInput {
   /** Agent type identifier, e.g. "world-state". Used to special-case static agents. */
   type: string;
   phase: AgentPhase;
@@ -41,7 +41,7 @@ export interface AgentCostInput {
   ownRequest?: boolean;
 }
 
-export interface AgentLoadCost {
+interface AgentLoadCost {
   instructionTokens: number;
   extraCalls: number;
   /** Soft warning level. "high" when the loadout crosses a threshold likely to

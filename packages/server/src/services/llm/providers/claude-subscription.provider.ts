@@ -131,11 +131,6 @@ function formatClaudeSdkError(err: unknown): string {
   return message;
 }
 
-/** @internal Test-only seam. Replaces the cached SDK module with a fake or clears it. */
-export function __setSdkForTesting(mod: Pick<SdkModule, "query"> | null): void {
-  cachedSdk = mod ? (Promise.resolve(mod as SdkModule) as Promise<SdkModule>) : null;
-}
-
 /**
  * Wrap a single SDK-shaped user message in an AsyncIterable suitable for the
  * SDK's `prompt: AsyncIterable<SDKUserMessage>` form. We yield once and

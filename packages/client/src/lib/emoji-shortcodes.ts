@@ -60,7 +60,7 @@ for (const [emoji, unicodeName] of Object.entries(EMOJI_SEARCH_NAMES)) {
   byName.set(name, { name, emoji });
 }
 
-export const STANDARD_EMOJI_SHORTCODES: readonly StandardEmojiShortcode[] = Array.from(byName.values());
+const STANDARD_EMOJI_SHORTCODES: readonly StandardEmojiShortcode[] = Array.from(byName.values());
 
 export function resolveStandardEmojiShortcode(name: string): string | null {
   return byName.get(toShortcode(name))?.emoji ?? null;

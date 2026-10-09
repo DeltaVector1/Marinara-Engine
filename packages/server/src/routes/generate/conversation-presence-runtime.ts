@@ -14,7 +14,7 @@ import type { GenerationPromptMessage } from "../../services/generation/prompt-m
 import { resolveSceneBusyCharacterIds } from "../../services/generation/scene-context-runtime.js";
 import { isMessageHiddenFromAI, parseExtra } from "./generate-route-utils.js";
 
-export type ConversationPromptCharacterInfo = {
+type ConversationPromptCharacterInfo = {
   charId: string;
   /** Base character-card name, retained for matching historical mentions. */
   name: string;

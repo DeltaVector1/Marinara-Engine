@@ -2,7 +2,7 @@ import { api } from "./api-client";
 import { useUIStore, type UserStatus } from "../stores/ui.store";
 import { toAutonomousPresenceStatus } from "./user-status";
 
-export function restoreAvailableAfterUserMessage(): UserStatus {
+function restoreAvailableAfterUserMessage(): UserStatus {
   const { userStatus, userStatusManual, setUserStatus } = useUIStore.getState();
 
   if (userStatusManual === "active" && userStatus === "idle") {

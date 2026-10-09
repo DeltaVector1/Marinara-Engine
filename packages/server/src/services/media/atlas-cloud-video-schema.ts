@@ -8,7 +8,7 @@ import type { AtlasCloudModelLimits, AtlasCloudModelOptionField } from "@marinar
  * authoritative list of the fields a model accepts, so video requests are shaped from it
  * instead of assuming every model takes the same body.
  */
-export interface AtlasCloudSchemaProperty {
+interface AtlasCloudSchemaProperty {
   type: string | null;
   enum: Array<string | number> | null;
   minimum: number | null;
@@ -17,12 +17,12 @@ export interface AtlasCloudSchemaProperty {
   description: string | null;
 }
 
-export interface AtlasCloudModelInputSchema {
+interface AtlasCloudModelInputSchema {
   required: string[];
   properties: Record<string, AtlasCloudSchemaProperty>;
 }
 
-export interface AtlasCloudVideoRequestInput {
+interface AtlasCloudVideoRequestInput {
   model: string;
   prompt: string;
   durationSeconds: number;
@@ -33,7 +33,7 @@ export interface AtlasCloudVideoRequestInput {
   modelOptions?: Record<string, unknown>;
 }
 
-export interface AdaptedAtlasCloudVideoRequest {
+interface AdaptedAtlasCloudVideoRequest {
   body: Record<string, unknown>;
   /** Human-readable notes for every value that was renamed, snapped, or dropped to fit the model. */
   adjustments: string[];
@@ -76,7 +76,7 @@ function readFiniteNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-export function parseAtlasCloudModelSchema(document: unknown): AtlasCloudModelInputSchema | null {
+function parseAtlasCloudModelSchema(document: unknown): AtlasCloudModelInputSchema | null {
   if (!isRecord(document)) return null;
   const components = isRecord(document.components) ? document.components : null;
   const schemas = components && isRecord(components.schemas) ? components.schemas : null;
@@ -161,7 +161,7 @@ export async function fetchAtlasCloudModelSchema(
 }
 
 /** True when the model cannot run without a first-frame or reference image. */
-export function atlasCloudSchemaRequiresImage(schema: AtlasCloudModelInputSchema): boolean {
+function atlasCloudSchemaRequiresImage(schema: AtlasCloudModelInputSchema): boolean {
   return [...ATLAS_CLOUD_STRING_IMAGE_KEYS, ...ATLAS_CLOUD_ARRAY_IMAGE_KEYS].some((key) =>
     schema.required.includes(key),
   );

@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────
 import type { APIProvider } from "../types/connection.js";
 
-export interface ProviderDefinition {
+interface ProviderDefinition {
   id: APIProvider;
   name: string;
   defaultBaseUrl: string;
@@ -15,7 +15,7 @@ export interface ProviderDefinition {
   apiKeyHeader: string | null;
 }
 
-export const LOCAL_AUTH_PROVIDERS = ["openai_chatgpt", "claude_subscription", "grok_subscription"] as const;
+const LOCAL_AUTH_PROVIDERS = ["openai_chatgpt", "claude_subscription", "grok_subscription"] as const;
 
 /** These subscription transports send text only; they ignore native tool schemas. */
 export function supportsNativeToolCalls(provider: string | null | undefined): boolean {

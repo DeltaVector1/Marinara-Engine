@@ -25,7 +25,7 @@ function record(value: unknown): Record<string, unknown> {
 }
 
 /** Read configured runtime capacity, never the model's training window or shared cache size. */
-export function readLocalContextLimit(value: unknown, endpoint: string): number | null {
+function readLocalContextLimit(value: unknown, endpoint: string): number | null {
   const data = record(value);
   const raw =
     endpoint === "/api/extra/true_max_context_length"

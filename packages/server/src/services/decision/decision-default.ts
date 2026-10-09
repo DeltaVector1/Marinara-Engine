@@ -71,7 +71,7 @@ export interface MixedDecisionAnswers {
  * statement, and the likeliest wins if it clears the model's threshold. This is how
  * Open-Jev answers Choice internally too, one candidate at a time.
  */
-export async function askChoicesAsStatements(
+async function askChoicesAsStatements(
   ask: (state: unknown, questions: NoulQuestion[]) => Promise<Map<string, number> | null>,
   state: unknown,
   questions: NoulQuestion[],
@@ -104,7 +104,7 @@ export async function askChoicesAsStatements(
   return { answers, choices };
 }
 
-export interface DecisionDefaultDeps {
+interface DecisionDefaultDeps {
   getLocalDefault: () => Promise<string | null>;
   getThinkingPreGeneration: () => Promise<boolean>;
   getDefaultConnection: () => Promise<DecisionConnectionRow | null>;
@@ -118,7 +118,7 @@ export interface DecisionDefaultDeps {
  * Choice option plus the added "none of these", each of which costs about as much as
  * a statement (measured on Open-Jev 2B and 9B).
  */
-export function answersAskedFor(questions: NoulQuestion[]): number {
+function answersAskedFor(questions: NoulQuestion[]): number {
   return questions.reduce((n, q) => n + (q.options ? q.options.length + 1 : 1), 0);
 }
 
@@ -127,7 +127,7 @@ export function answersAskedFor(questions: NoulQuestion[]): number {
  * further one. A time limit belongs to a statement, never to the whole group, so a
  * request carrying thirty statements is never held to the limit of one.
  */
-export function perStatementLimitMs(answers: number, first: number, each: number): number {
+function perStatementLimitMs(answers: number, first: number, each: number): number {
   return first + each * Math.max(0, answers - 1);
 }
 
@@ -190,7 +190,7 @@ async function chatBackend(
 }
 
 /** Read the local entry the user picked, if any, ignoring one this build cannot serve. */
-export async function readDecisionLocalSlot(
+async function readDecisionLocalSlot(
   getLocalDefault: () => Promise<string | null>,
 ): Promise<DecisionLocalSlot | null> {
   const slot = decisionLocalSlotForId(await getLocalDefault());

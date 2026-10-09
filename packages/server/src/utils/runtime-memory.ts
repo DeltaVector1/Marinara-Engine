@@ -6,7 +6,7 @@ const MEMORY_WARNING_RATIO = 0.85;
 const MEMORY_WARNING_RESET_RATIO = 0.75;
 const MEMORY_CHECK_INTERVAL_MS = 60_000;
 
-export type RuntimeMemorySnapshot = {
+type RuntimeMemorySnapshot = {
   heapUsedMiB: number;
   heapLimitMiB: number;
   rssMiB: number;

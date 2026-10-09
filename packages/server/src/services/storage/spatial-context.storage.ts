@@ -1,7 +1,7 @@
 import type { SpatialContextSnapshot, SpatialSnapshotSource } from "@marinara-engine/shared";
 import { getCapabilityService } from "../capability-packages/capability-service-registry.service.js";
 
-export interface CreateSpatialSnapshotInput {
+interface CreateSpatialSnapshotInput {
   chatId: string;
   messageId?: string;
   swipeIndex?: number;
@@ -12,7 +12,7 @@ export interface CreateSpatialSnapshotInput {
   transitionPayloadHash?: string | null;
 }
 
-export interface SpatialContextStorage {
+interface SpatialContextStorage {
   /** chatId is optional but keeps the lazy file store from loading every chat's shards for a bare-id probe. */
   getById(id: string, chatId?: string): Promise<SpatialContextSnapshot | null>;
   getByAnchor(chatId: string, messageId: string, swipeIndex: number): Promise<SpatialContextSnapshot | null>;

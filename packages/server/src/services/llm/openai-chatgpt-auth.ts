@@ -28,7 +28,7 @@ type CodexAuthJson = {
   [key: string]: unknown;
 };
 
-export type OpenAIChatGPTAuth = {
+type OpenAIChatGPTAuth = {
   accessToken: string;
   accountId: string | null;
   planType: string | null;
@@ -44,7 +44,7 @@ function getCodexHome(): string {
   return configured || join(homedir(), ".codex");
 }
 
-export function getCodexAuthFilePath(): string {
+function getCodexAuthFilePath(): string {
   return join(getCodexHome(), "auth.json");
 }
 

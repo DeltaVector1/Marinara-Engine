@@ -35,7 +35,6 @@ import {
 } from "./keyword-scanner.js";
 import type { LorebookImageEntry } from "../generation/lorebook-image-prompt.js";
 import {
-  applyTokenBudget,
   estimateLorebookEntryTokens,
   fitLorebookEntryToBudget,
   processActivatedEntries,
@@ -66,7 +65,7 @@ export interface LorebookScanResult {
   updatedEntryTimingStates?: Record<string, LorebookEntryTimingState>;
 }
 
-export function scopeLorebookScanResultToCharacterContext(
+function scopeLorebookScanResultToCharacterContext(
   result: LorebookScanResult,
   entries: LorebookEntry[],
   options: {
@@ -150,8 +149,8 @@ export async function scopeLorebookScanResultToCharacter(
   });
 }
 
-export type LorebookBudgetSkipReason = "lorebook" | "chat" | "both" | "location";
-export type LorebookMatchType = "keyword" | "semantic" | "constant" | "sticky" | "decision";
+type LorebookBudgetSkipReason = "lorebook" | "chat" | "both" | "location";
+type LorebookMatchType = "keyword" | "semantic" | "constant" | "sticky" | "decision";
 
 /** Answers entries' decision statements (#6570); see `resolveDecisions` on `processLorebooks`. */
 export interface LorebookDecisionResolver {
@@ -172,14 +171,14 @@ export interface LorebookDecisionResolver {
 const DECISION_STATEMENT_RE = /decision(?:_choice)?\s*:/iu;
 
 /** Whether an entry's activation depends on a decision statement (#6570). */
-export function hasDecisionActivation(entry: Pick<LorebookEntry, "decisionMode" | "decisionStatement">): boolean {
+function hasDecisionActivation(entry: Pick<LorebookEntry, "decisionMode" | "decisionStatement">): boolean {
   return (
     (entry.decisionMode === "require" || entry.decisionMode === "trigger") &&
     (entry.decisionStatement ?? "").trim().length > 0
   );
 }
 
-export interface LorebookBudgetSkippedEntry {
+interface LorebookBudgetSkippedEntry {
   id: string;
   name: string;
   lorebookId: string;
@@ -396,7 +395,7 @@ export async function loadLorebookIncludes(db: DB, chatId?: string): Promise<Lor
         characterIds: Array.isArray(characterIds) ? characterIds.map(String) : [],
         personaId: chat.personaId,
         activeLorebookIds: Array.isArray(meta.activeLorebookIds) ? meta.activeLorebookIds.map(String) : [],
-        ...resolveLorebookScopeExclusions(chat.mode, meta),
+        ...resolveLorebookScopeExclusions(meta),
       })
     : [];
   return {
@@ -443,7 +442,7 @@ function hasSerializedTimingStates(states?: Record<string, LorebookEntryTimingSt
   return states !== undefined && Object.keys(states).length > 0;
 }
 
-export function serializeTimingStateMap(
+function serializeTimingStateMap(
   states: Map<string, EntryTimingState>,
 ): Record<string, LorebookEntryTimingState> {
   const record: Record<string, LorebookEntryTimingState> = {};
@@ -456,21 +455,6 @@ export function serializeTimingStateMap(
     };
   }
   return record;
-}
-
-export function enforceMaxActivatedEntries(
-  activatedEntries: ActivatedEntry[],
-  maxEntries: number = LIMITS.MAX_LOREBOOK_ENTRIES,
-): ActivatedEntry[] {
-  if (maxEntries <= 0 || activatedEntries.length <= maxEntries) return activatedEntries;
-  return [...activatedEntries]
-    .sort((a, b) => {
-      if (a.entry.constant && !b.entry.constant) return -1;
-      if (!a.entry.constant && b.entry.constant) return 1;
-      return a.injectionOrder - b.injectionOrder;
-    })
-    .slice(0, maxEntries)
-    .sort((a, b) => a.injectionOrder - b.injectionOrder);
 }
 
 export function applyLorebookDefaults(
@@ -488,29 +472,7 @@ export function applyLorebookDefaults(
   });
 }
 
-export function applyPerLorebookTokenBudgets(
-  activatedEntries: ActivatedEntry[],
-  lorebooksById: ReadonlyMap<string, Pick<Lorebook, "tokenBudget">>,
-): ActivatedEntry[] {
-  if (activatedEntries.length === 0) return [];
-
-  const grouped = new Map<string, ActivatedEntry[]>();
-  for (const entry of activatedEntries) {
-    const list = grouped.get(entry.entry.lorebookId) ?? [];
-    list.push(entry);
-    grouped.set(entry.entry.lorebookId, list);
-  }
-
-  const budgeted: ActivatedEntry[] = [];
-  for (const [lorebookId, group] of grouped) {
-    const budget = lorebooksById.get(lorebookId)?.tokenBudget ?? 0;
-    budgeted.push(...applyTokenBudget(group, budget));
-  }
-
-  return budgeted.sort((a, b) => a.injectionOrder - b.injectionOrder);
-}
-
-export interface LorebookContentResolution {
+interface LorebookContentResolution {
   content: string;
   commit?: () => void;
   rollback?: () => void;
@@ -520,22 +482,6 @@ export type LorebookFinalContentResolver = (
   value: string,
   lorebookEntryCounts?: Readonly<Record<string, number>>,
 ) => string | LorebookContentResolution;
-
-export function resolveActivatedLorebookEntryContent(
-  activatedEntries: ActivatedEntry[],
-  resolveContent?: (value: string) => string,
-  options: { useRawContent?: boolean } = {},
-): ActivatedEntry[] {
-  if (!resolveContent) return activatedEntries;
-  return activatedEntries.map((entry) => ({
-    ...entry,
-    rawContent: entry.rawContent ?? entry.entry.content,
-    entry: {
-      ...entry.entry,
-      content: resolveContent(options.useRawContent ? (entry.rawContent ?? entry.entry.content) : entry.entry.content),
-    },
-  }));
-}
 
 function resolveFinalLorebookContent(
   activatedEntry: ActivatedEntry,
@@ -1003,7 +949,7 @@ function selectBudgetedLorebookEntryBatch(
   };
 }
 
-export function resolveAndBudgetActivatedLorebookEntriesWithDiagnostics(
+function resolveAndBudgetActivatedLorebookEntriesWithDiagnostics(
   activatedEntries: ActivatedEntry[],
   lorebooksById: ReadonlyMap<string, Pick<Lorebook, "name" | "tokenBudget" | "entryLimit">>,
   tokenBudget: number,
@@ -1027,23 +973,7 @@ export function resolveAndBudgetActivatedLorebookEntriesWithDiagnostics(
   };
 }
 
-export function resolveAndBudgetActivatedLorebookEntries(
-  activatedEntries: ActivatedEntry[],
-  lorebooksById: ReadonlyMap<string, Pick<Lorebook, "name" | "tokenBudget" | "entryLimit">>,
-  tokenBudget: number,
-  maxEntries: number,
-  resolveContent?: LorebookFinalContentResolver,
-): ActivatedEntry[] {
-  return resolveAndBudgetActivatedLorebookEntriesWithDiagnostics(
-    activatedEntries,
-    lorebooksById,
-    tokenBudget,
-    maxEntries,
-    resolveContent,
-  ).selected;
-}
-
-export function resolveBudgetAndRecursivelyActivateLorebookEntriesWithDiagnostics(
+function resolveBudgetAndRecursivelyActivateLorebookEntriesWithDiagnostics(
   messages: ScanMessage[],
   entries: LorebookEntry[],
   options: ScanOptions,
@@ -1126,32 +1056,6 @@ export function resolveBudgetAndRecursivelyActivateLorebookEntriesWithDiagnostic
     ),
     budgetSkippedEntries,
   };
-}
-
-export function resolveBudgetAndRecursivelyActivateLorebookEntries(
-  messages: ScanMessage[],
-  entries: LorebookEntry[],
-  options: ScanOptions,
-  maxDepth: number,
-  lorebooksById: ReadonlyMap<string, Pick<Lorebook, "name" | "tokenBudget" | "entryLimit">>,
-  tokenBudget: number,
-  maxEntries: number,
-  resolveContent?: LorebookFinalContentResolver,
-  recursiveLorebookIds?: ReadonlySet<string>,
-  initialActivatedEntries: ActivatedEntry[] = [],
-): ActivatedEntry[] {
-  return resolveBudgetAndRecursivelyActivateLorebookEntriesWithDiagnostics(
-    messages,
-    entries,
-    options,
-    maxDepth,
-    lorebooksById,
-    tokenBudget,
-    maxEntries,
-    resolveContent,
-    recursiveLorebookIds,
-    initialActivatedEntries,
-  ).selected;
 }
 
 /**

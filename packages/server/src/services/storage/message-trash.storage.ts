@@ -75,7 +75,7 @@ function parseSnapshot(row: TrashRow): TrashSnapshot | null {
   }
 }
 
-export function toMessageTrashEntry(row: TrashRow): MessageTrashEntry {
+function toMessageTrashEntry(row: TrashRow): MessageTrashEntry {
   const snapshot = parseSnapshot(row);
   const deletedMs = Date.parse(row.deletedAt);
   return {
@@ -92,7 +92,7 @@ export function toMessageTrashEntry(row: TrashRow): MessageTrashEntry {
   };
 }
 
-export type RestoreTrashResult = {
+type RestoreTrashResult = {
   restoredMessageIds: string[];
   /** Entries that could not be restored; retained snapshots can be retried. */
   conflictEntryIds: string[];

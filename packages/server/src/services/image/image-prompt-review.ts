@@ -3,7 +3,7 @@ import type { ImageGenerationDefaultsProfile } from "@marinara-engine/shared";
 import { resolveImageGenerationService, type ImageDefaultsConnection } from "./image-generation-defaults.js";
 import { resolveNovelAiRequestSize } from "./image-generation.js";
 
-export type ReviewedImagePromptSubmission = {
+type ReviewedImagePromptSubmission = {
   prompt: string;
   negativePrompt: string;
 };

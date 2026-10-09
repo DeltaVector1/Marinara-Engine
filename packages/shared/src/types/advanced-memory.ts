@@ -23,7 +23,7 @@ export const advancedMemorySettingsSchema = z.object({
 });
 
 export type AdvancedMemorySettings = z.infer<typeof advancedMemorySettingsSchema>;
-export const DEFAULT_ADVANCED_MEMORY_SETTINGS: AdvancedMemorySettings = advancedMemorySettingsSchema.parse({});
+const DEFAULT_ADVANCED_MEMORY_SETTINGS: AdvancedMemorySettings = advancedMemorySettingsSchema.parse({});
 
 export function normalizeAdvancedMemorySettings(value: unknown): AdvancedMemorySettings {
   const parsed = advancedMemorySettingsSchema.safeParse(value ?? {});

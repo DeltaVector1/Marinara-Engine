@@ -7,8 +7,8 @@ import type { GeneratedSceneVideo } from "@marinara-engine/shared";
 
 const PINNED_GALLERY_IMAGES_STORAGE_KEY = "marinara-pinned-gallery-images";
 
-export type PinnedGalleryImage = ChatImage & { kind: "image" };
-export type PinnedGalleryVideo = GeneratedSceneVideo & { kind: "video" };
+type PinnedGalleryImage = ChatImage & { kind: "image" };
+type PinnedGalleryVideo = GeneratedSceneVideo & { kind: "video" };
 export type PinnedGalleryMedia = PinnedGalleryImage | PinnedGalleryVideo;
 
 function isStoredChatImage(value: unknown): value is ChatImage {

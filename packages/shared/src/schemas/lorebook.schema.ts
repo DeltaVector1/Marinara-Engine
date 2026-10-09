@@ -4,9 +4,9 @@
 import { z } from "zod";
 import { LIMITS } from "../constants/defaults.js";
 
-export const LOREBOOK_CATEGORY_VALUES = ["world", "character", "npc", "spellbook", "uncategorized"] as const;
-export type LorebookCategoryValue = (typeof LOREBOOK_CATEGORY_VALUES)[number];
-export const lorebookCategorySchema = z.enum(LOREBOOK_CATEGORY_VALUES);
+const LOREBOOK_CATEGORY_VALUES = ["world", "character", "npc", "spellbook", "uncategorized"] as const;
+type LorebookCategoryValue = (typeof LOREBOOK_CATEGORY_VALUES)[number];
+const lorebookCategorySchema = z.enum(LOREBOOK_CATEGORY_VALUES);
 
 export function normalizeLorebookCategory(value: unknown): LorebookCategoryValue {
   if (typeof value !== "string") return "uncategorized";
@@ -14,17 +14,17 @@ export function normalizeLorebookCategory(value: unknown): LorebookCategoryValue
   return parsed.success ? parsed.data : "uncategorized";
 }
 
-export const lorebookScopeModeSchema = z.enum(["all", "disabled", "specific"]);
+const lorebookScopeModeSchema = z.enum(["all", "disabled", "specific"]);
 
-export const lorebookScopeSchema = z.object({
+const lorebookScopeSchema = z.object({
   mode: lorebookScopeModeSchema.default("all"),
   chatIds: z.array(z.string()).default([]),
 });
 
-export const selectiveLogicSchema = z.enum(["and", "and_all", "or", "not", "not_all"]);
+const selectiveLogicSchema = z.enum(["and", "and_all", "or", "not", "not_all"]);
 
 export const lorebookFilterModeSchema = z.enum(["any", "include", "exclude"]);
-export const lorebookDecisionModeSchema = z.enum(["off", "require", "trigger"]);
+const lorebookDecisionModeSchema = z.enum(["off", "require", "trigger"]);
 
 /**
  * An entry's decision activation (#6570) from any source: a stored row, an import or a
@@ -41,7 +41,7 @@ export function parseLorebookDecisionActivation(value: { decisionStatement?: unk
   };
 }
 
-export const lorebookMatchingSourceSchema = z.enum([
+const lorebookMatchingSourceSchema = z.enum([
   "character_name",
   "character_description",
   "character_personality",
@@ -51,13 +51,13 @@ export const lorebookMatchingSourceSchema = z.enum([
   "persona_tags",
 ]);
 
-export const activationConditionSchema = z.object({
+const activationConditionSchema = z.object({
   field: z.string(),
   operator: z.enum(["equals", "not_equals", "contains", "not_contains", "gt", "lt"]),
   value: z.string(),
 });
 
-export const lorebookScheduleSchema = z.object({
+const lorebookScheduleSchema = z.object({
   activeTimes: z.array(z.string()).default([]),
   activeDates: z.array(z.string()).default([]),
   activeLocations: z.array(z.string()).default([]),
@@ -69,7 +69,7 @@ export const MAX_LOREBOOK_ENTRY_IMAGES = 4;
 export const LOREBOOK_ENTRY_IMAGE_PATH_PATTERN =
   /^\/api\/lorebooks\/entry-images\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(png|jpg|webp)$/;
 
-export const lorebookEntryImageSchema = z.object({
+const lorebookEntryImageSchema = z.object({
   path: z.string().regex(LOREBOOK_ENTRY_IMAGE_PATH_PATTERN),
   caption: z.string().max(500).default(""),
 });

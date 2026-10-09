@@ -50,32 +50,6 @@ export function canReparentFolder(
   return { ok: true };
 }
 
-/** Collapsing a folder hides its whole subtree from "select visible". */
-export function collectHiddenFolderIds(
-  folders: Pick<LorebookFolder, "id" | "parentFolderId">[],
-  collapsedFolderIds: ReadonlySet<string>,
-): Set<string> {
-  if (collapsedFolderIds.size === 0) return new Set();
-  const childrenByParent = new Map<string, string[]>();
-  for (const folder of folders) {
-    const parentId = folder.parentFolderId;
-    if (!parentId) continue;
-    const siblings = childrenByParent.get(parentId);
-    if (siblings) siblings.push(folder.id);
-    else childrenByParent.set(parentId, [folder.id]);
-  }
-  const hidden = new Set<string>();
-  const stack = Array.from(collapsedFolderIds);
-  while (stack.length > 0) {
-    const id = stack.pop()!;
-    if (hidden.has(id)) continue;
-    hidden.add(id);
-    const children = childrenByParent.get(id);
-    if (children) stack.push(...children);
-  }
-  return hidden;
-}
-
 /**
  * All folder ids in the subtree rooted at `rootId` — the root itself plus every
  * descendant. Used to cascade-delete a folder together with its sub-folders, and
@@ -135,7 +109,7 @@ export function collectEffectivelyDisabledFolderIds(
 type ForestNode = { id: string; parentFolderId: string | null; order: number };
 
 /** Render shape: sorted roots plus sorted child lists. */
-export type FolderForest<T extends ForestNode> = {
+type FolderForest<T extends ForestNode> = {
   roots: T[];
   childrenByParent: Map<string, T[]>;
 };

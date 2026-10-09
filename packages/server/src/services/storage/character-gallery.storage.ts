@@ -17,7 +17,7 @@ export interface CreateCharacterImageInput {
   height?: number;
 }
 
-export interface LegacyCharacterImageCandidateInput {
+interface LegacyCharacterImageCandidateInput {
   createdAfter: string;
   createdBefore: string;
   prompt: string;

@@ -1,15 +1,15 @@
 import type { PendingSpatialTransition, ResolvedSpatialTravel, SpatialContextSnapshot } from "@marinara-engine/shared";
 
 type SpatialGenerationMode = "conversation" | "roleplay" | "game";
-export type SpatialGenerationOrigin = "owner" | "guided" | "autonomous" | "turn_game";
+type SpatialGenerationOrigin = "owner" | "guided" | "autonomous" | "turn_game";
 
-export type SpatialGenerationRequestError = {
+type SpatialGenerationRequestError = {
   statusCode: 400;
   error: string;
   code: "spatial_mode_unsupported" | "spatial_transition_requires_new_turn";
 };
 
-export type AlreadyAppliedSpatialTurn = {
+type AlreadyAppliedSpatialTurn = {
   messageId: string;
   swipeIndex: number;
   currentLocationId: string | null;
@@ -71,7 +71,7 @@ export function validateSpatialGenerationRequest(input: {
   continueMessageId?: string | null;
 }): SpatialGenerationRequestError | null {
   if (!input.pendingSpatialTransition) return null;
-  if (input.mode !== "roleplay" && input.mode !== "game") {
+  if (input.mode !== "roleplay") {
     return {
       statusCode: 400,
       error: "Only Roleplay and Game chats can change hierarchical location.",

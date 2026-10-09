@@ -36,7 +36,7 @@ const MEMORY_COMPONENTS = {
   },
 } as const;
 
-export type AdvancedMemoryMarkerType = keyof typeof MEMORY_COMPONENTS;
+type AdvancedMemoryMarkerType = keyof typeof MEMORY_COMPONENTS;
 export const ADVANCED_MEMORY_MARKER_TYPES = Object.keys(MEMORY_COMPONENTS) as AdvancedMemoryMarkerType[];
 
 export interface AdvancedMemoryPlacement {

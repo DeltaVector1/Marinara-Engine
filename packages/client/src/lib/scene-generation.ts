@@ -11,7 +11,7 @@ import { api } from "./api-client";
 import { useChatStore } from "../stores/chat.store";
 import { normalizeScenePromptPreferences, useUIStore } from "../stores/ui.store";
 
-export interface StartSceneOptions {
+interface StartSceneOptions {
   /** The Conversation the scene branches from. Exactly one of this and `packageOrigin`. */
   chatId?: string;
   /** The package thread the scene branches from. */
@@ -34,7 +34,7 @@ export interface StartSceneOptions {
 
 let pendingScenePromptPreferencesSettle: ((preferences: ScenePromptPreferences | null) => void) | null = null;
 
-export function requestScenePromptPreferences(
+function requestScenePromptPreferences(
   sourceLabel?: string | null,
   chatId?: string,
 ): Promise<ScenePromptPreferences | null> {

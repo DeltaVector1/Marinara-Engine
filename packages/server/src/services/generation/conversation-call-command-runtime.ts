@@ -8,7 +8,7 @@ type ChatsStore = {
   createMessagesBatch(chatId: string, messages: Array<Record<string, unknown>>): Promise<unknown>;
 };
 
-export interface ConversationCallCommandArgs {
+interface ConversationCallCommandArgs {
   command: CharacterCommand;
   characterId: string | null;
   chatId: string;

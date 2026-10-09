@@ -22,9 +22,9 @@ import { getConnectionRateLimit } from "./connection-rate-limit-registry.js";
 import { isFeatureEnabled } from "../features/feature-settings.js";
 import { logger } from "../../lib/logger.js";
 
-export const MAX_RATE_LIMIT_RETRIES = 6;
+const MAX_RATE_LIMIT_RETRIES = 6;
 /** Transient transport / gateway failures get a much smaller budget than rate limits. */
-export const MAX_TRANSIENT_RETRIES = 2;
+const MAX_TRANSIENT_RETRIES = 2;
 const BACKOFF_BASE_MS = 2_000;
 const TRANSIENT_BACKOFF_BASE_MS = 1_000;
 /**
@@ -68,7 +68,7 @@ function transientNetworkErrorCode(error: unknown): string | undefined {
  * are classified by `isRateLimitError` and keep their own larger budget. 504 is excluded because
  * the upstream model may already have produced (and billed) the answer behind the gateway timeout.
  */
-export function isTransientProviderError(error: unknown): boolean {
+function isTransientProviderError(error: unknown): boolean {
   if (error instanceof LLMHttpError) return error.status === 502 || error.status === 503;
   return transientNetworkErrorCode(error) !== undefined;
 }
@@ -125,7 +125,7 @@ function backoffMs(attempt: number, retryAfterMs: number | undefined): number {
  * TRANSIENT_BACKOFF_CAP_MS, else waits 1 s doubling (same cap) with equal jitter (half fixed,
  * half random) so many requests failing on one outage do not retry in lockstep.
  */
-export function computeRetryDelayMs(
+function computeRetryDelayMs(
   attempt: number,
   retryAfterMs: number | undefined,
   kind: RetryKind = "rate_limit",
@@ -200,7 +200,7 @@ function trackStreamedOutput(options: ChatOptions): { options: ChatOptions; emit
   return { options: tracked, emitted: () => emitted };
 }
 
-export interface RateLimitAwareProviderOptions {
+interface RateLimitAwareProviderOptions {
   /**
    * false turns the transient retry off for this wrapper even when PROVIDER_RETRY_TRANSIENT_ERRORS
    * is on. The connection-fallback primary leg passes false: when a fallback exists, switching to

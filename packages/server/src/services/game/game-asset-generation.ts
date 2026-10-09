@@ -1,4 +1,3 @@
-import { supportsNovelAiCharacterPrompts } from "../image/character-prompts.js";
 // ──────────────────────────────────────────────
 // Game: On-the-fly Asset Generation
 //
@@ -8,6 +7,7 @@ import { supportsNovelAiCharacterPrompts } from "../image/character-prompts.js";
 // `enableSpriteGeneration` is active.
 // ──────────────────────────────────────────────
 
+import { MAX_IMAGE_PROMPT_INSTRUCTIONS_LENGTH } from "@marinara-engine/shared";
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "fs";
 import { createHash } from "crypto";
 import { logger } from "../../lib/logger.js";
@@ -21,10 +21,8 @@ import {
   GAME_NPC_PORTRAIT,
   GAME_BACKGROUND,
   MAPS_LOCATION_ARTWORK,
-  GAME_SCENE_ILLUSTRATION,
 } from "../prompt-overrides/index.js";
 import {
-  inferImageSource,
   type ImageGenerationDefaultsProfile,
   type ImageGenerationQuality,
   type ImageStyleProfileSettings,
@@ -32,45 +30,18 @@ import {
 } from "@marinara-engine/shared";
 import type { ImageGenerationSize } from "../image/image-generation-settings.js";
 import { compileImagePrompt } from "../image/image-prompt-compiler.js";
-import { loadGameStoryboardImagePrompt } from "../image/game-storyboard-image-prompt.js";
-import { SPATIAL_LOCATION_REFERENCE_PROMPT_LINE } from "../image/spatial-location-reference.js";
-import { compactImagePromptInstructions } from "../sidecar/scene-analyzer.js";
 
 const NPC_AVATAR_DIR = join(DATA_DIR, "avatars", "npc");
-const CHAT_BACKGROUND_DIR = join(DATA_DIR, "backgrounds");
-const CHAT_BACKGROUND_META_PATH = join(CHAT_BACKGROUND_DIR, "meta.json");
-export const DEFAULT_GAME_BACKGROUND_SIZE: ImageGenerationSize = { width: 1280, height: 720 };
-export const DEFAULT_GAME_PORTRAIT_SIZE: ImageGenerationSize = { width: 1024, height: 1024 };
-export const GENERATED_GAME_BACKGROUND_EXTS = ["png", "jpg", "jpeg", "webp", "avif", "gif"] as const;
+const DEFAULT_GAME_BACKGROUND_SIZE: ImageGenerationSize = { width: 1280, height: 720 };
+const DEFAULT_GAME_PORTRAIT_SIZE: ImageGenerationSize = { width: 1024, height: 1024 };
+const GENERATED_GAME_BACKGROUND_EXTS = ["png", "jpg", "jpeg", "webp", "avif", "gif"] as const;
 const GAME_BACKGROUND_EXT_SET = new Set<string>(GENERATED_GAME_BACKGROUND_EXTS);
 const GENERATED_BACKGROUND_MAX_INPUT_PIXELS = 32_000_000;
 const GAME_PORTRAIT_NEGATIVE_PROMPT =
   "text, letters, captions, subtitles, UI, watermark, logo, signature, speech bubble, split screen, panel, collage, contact sheet, grid, four portraits, multiple portraits, duplicated face, extra head, extra person, bad anatomy, low quality";
 const GAME_BACKGROUND_NEGATIVE_PROMPT =
   "text, letters, captions, subtitles, UI, watermark, logo, signature, foreground character, main character, named character, portrait, close-up person, posed subject, split screen, panel, collage, contact sheet, grid, multiple frames, low quality";
-const GAME_ILLUSTRATION_NEGATIVE_PROMPT =
-  "text, letters, captions, subtitles, UI, watermark, logo, signature, speech bubble, split screen, panel, collage, contact sheet, character sheet, grid, four images, duplicated face, extra head, unrelated character, bad anatomy, low quality";
-const MAX_SCENE_ILLUSTRATION_APPEARANCE_NOTES_CHARS = 4800;
 const MAX_GENERATED_ASSET_SLUG_BYTES = 180;
-const DEFAULT_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT = 4;
-const OPENAI_COMPAT_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT = 16;
-const NARROW_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT = 3;
-const SINGLE_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT = 1;
-const SCENE_ILLUSTRATION_IMAGE_BACKENDS = new Set([
-  "openai",
-  "nanogpt",
-  "openrouter",
-  "pollinations",
-  "stability",
-  "togetherai",
-  "novelai",
-  "horde",
-  "xai",
-  "comfyui",
-  "automatic1111",
-  "runpod_comfyui",
-  "gemini_image",
-]);
 
 // sharp is optional in the server package. Generated game backgrounds should be
 // stored at the VN canvas ratio when possible, but generation must still work on
@@ -100,7 +71,6 @@ type GameBackgroundImage = {
   ext: string;
 };
 
-type ChatBackgroundMeta = Record<string, { tags: string[] }>;
 
 function atomicWriteBuffer(filePath: string, buffer: Buffer): void {
   const tmpPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
@@ -117,71 +87,10 @@ function atomicWriteBuffer(filePath: string, buffer: Buffer): void {
   }
 }
 
-function atomicWriteText(filePath: string, value: string): void {
-  atomicWriteBuffer(filePath, Buffer.from(value, "utf-8"));
-}
 
-function normalizeSceneIllustrationImageSource(value: string | null | undefined): string {
-  const normalized = (value ?? "").trim().toLowerCase();
-  if (normalized === "drawthings") return "automatic1111";
-  return SCENE_ILLUSTRATION_IMAGE_BACKENDS.has(normalized) ? normalized : "";
-}
 
-function resolveSceneIllustrationImageBackend(
-  req: Pick<SceneIllustrationGenRequest, "imgSource" | "imgModel" | "imgBaseUrl" | "imgService">,
-): string {
-  const inferred = inferImageSource(req.imgModel || req.imgSource || "", req.imgBaseUrl || "");
-  const explicit = normalizeSceneIllustrationImageSource(req.imgService || req.imgSource);
-  if (!explicit) return inferred;
-  if (explicit === "openai" && inferred === "gemini_image") return inferred;
-  return explicit;
-}
 
-export function resolveSceneIllustrationGenerationConcurrency(
-  req: Pick<SceneIllustrationGenRequest, "imgSource" | "imgModel" | "imgBaseUrl" | "imgService">,
-  requestedConcurrency: number,
-): number {
-  const concurrency = Math.max(1, Math.trunc(requestedConcurrency));
-  return resolveSceneIllustrationImageBackend(req) === "novelai" ? 1 : concurrency;
-}
 
-export function supportsSceneIllustrationStructuredCharacterPrompts(
-  req: Pick<SceneIllustrationGenRequest, "imgSource" | "imgModel" | "imgBaseUrl" | "imgService">,
-): boolean {
-  return (
-    resolveSceneIllustrationImageBackend(req) === "novelai" &&
-    supportsNovelAiCharacterPrompts({ baseUrl: req.imgBaseUrl, model: req.imgModel })
-  );
-}
-
-export function resolveSceneIllustrationReferenceImageLimit(
-  req: Pick<SceneIllustrationGenRequest, "imgSource" | "imgModel" | "imgBaseUrl" | "imgService">,
-): number {
-  const backend = resolveSceneIllustrationImageBackend(req);
-  const model = [req.imgModel, req.imgSource, req.imgService].filter(Boolean).join(" ").toLowerCase();
-  const isGeminiImageModel = model.includes("gemini") && model.includes("image");
-
-  if (backend === "openrouter" && (model.includes("nano-banana") || isGeminiImageModel)) return 14;
-  if (backend === "gemini_image" || isGeminiImageModel) {
-    if (model.includes("gemini-3-pro-image")) return 5;
-    return DEFAULT_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT;
-  }
-
-  if (backend === "nanogpt" || backend === "xai") return NARROW_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT;
-  if (backend === "automatic1111" || backend === "stability" || backend === "pollinations") {
-    return SINGLE_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT;
-  }
-  if (backend === "openai" || backend === "openrouter" || backend === "novelai") {
-    return OPENAI_COMPAT_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT;
-  }
-  return DEFAULT_SCENE_ILLUSTRATION_REFERENCE_IMAGE_LIMIT;
-}
-
-function sceneIllustrationReferenceImagesForProvider(req: SceneIllustrationGenRequest): string[] {
-  const references = req.referenceImages?.map((reference) => reference.trim()).filter(Boolean) ?? [];
-  if (references.length === 0) return [];
-  return references.slice(0, resolveSceneIllustrationReferenceImageLimit(req));
-}
 
 /** Return the extension implied by known image file signatures. */
 function detectImageExt(buffer: Buffer): string | null {
@@ -276,30 +185,8 @@ function isUsableGeneratedImagePath(filePath: string): boolean {
   }
 }
 
-function readChatBackgroundMeta(): ChatBackgroundMeta {
-  if (!existsSync(CHAT_BACKGROUND_META_PATH)) return {};
-  try {
-    const parsed = JSON.parse(readFileSync(CHAT_BACKGROUND_META_PATH, "utf-8"));
-    return parsed && typeof parsed === "object" ? (parsed as ChatBackgroundMeta) : {};
-  } catch {
-    return {};
-  }
-}
 
-function writeChatBackgroundMeta(meta: ChatBackgroundMeta): void {
-  if (!existsSync(CHAT_BACKGROUND_DIR)) mkdirSync(CHAT_BACKGROUND_DIR, { recursive: true });
-  atomicWriteText(CHAT_BACKGROUND_META_PATH, JSON.stringify(meta, null, 2));
-}
 
-export function chatBackgroundTags(req: ChatBackgroundGenRequest, slug: string): string[] {
-  const tags = new Set<string>(["generated", req.sourceMode ?? "roleplay", slug.replace(/-/g, " ")]);
-  for (const value of [req.locationSlug, req.reason, ...(req.tags ?? [])]) {
-    if (!value) continue;
-    const clean = value.trim().replace(/\s+/g, " ");
-    if (clean) tags.add(clean.slice(0, 80));
-  }
-  return Array.from(tags).filter(Boolean);
-}
 
 export function readAvatarBase64(avatarPath: string | null | undefined): string | undefined {
   if (!avatarPath) return undefined;
@@ -349,7 +236,7 @@ function truncateSlugByBytes(slug: string, maxBytes: number): string {
   return truncated.replace(/-+$/g, "");
 }
 
-export function safeGeneratedAssetSlug(name: string, opts: { maxBytes?: number; suffix?: string } = {}): string {
+function safeGeneratedAssetSlug(name: string, opts: { maxBytes?: number; suffix?: string } = {}): string {
   const maxBytes = opts.maxBytes ?? MAX_GENERATED_ASSET_SLUG_BYTES;
   const slug = safeName(name) || "asset";
   const suffix = opts.suffix ? safeName(opts.suffix) : "";
@@ -501,7 +388,7 @@ function resolvedSize(size: ImageGenerationSize | undefined, fallback: ImageGene
 
 // ── NPC Portrait Generation ──
 
-export interface NpcPortraitRequest {
+interface NpcPortraitRequest {
   chatId: string;
   npcName: string;
   appearance: string;
@@ -536,14 +423,14 @@ export interface NpcPortraitRequest {
   signal?: AbortSignal;
 }
 
-export type CompiledGameImagePrompt = {
+type CompiledGameImagePrompt = {
   prompt: string;
   negativePrompt: string;
 };
 
-export type GameDynamicImagePromptKind = "portrait" | "background" | "illustration";
+type GameDynamicImagePromptKind = "portrait" | "background" | "illustration";
 
-export type GameDynamicImagePromptRequest = {
+type GameDynamicImagePromptRequest = {
   kind: GameDynamicImagePromptKind;
   title: string;
   sourcePrompt: string;
@@ -551,7 +438,7 @@ export type GameDynamicImagePromptRequest = {
   maxCharacters: number;
 };
 
-export type GameDynamicImagePromptGenerator = (
+type GameDynamicImagePromptGenerator = (
   request: GameDynamicImagePromptRequest,
 ) => Promise<string | null | undefined>;
 
@@ -562,7 +449,7 @@ async function buildNpcPortraitRawPrompt(req: NpcPortraitRequest): Promise<strin
     : GAME_NPC_PORTRAIT.defaultBuilder(vars);
 }
 
-export async function buildNpcPortraitProviderPrompt(req: NpcPortraitRequest): Promise<CompiledGameImagePrompt> {
+async function buildNpcPortraitProviderPrompt(req: NpcPortraitRequest): Promise<CompiledGameImagePrompt> {
   if (req.promptOverride?.trim()) {
     return {
       prompt: req.promptOverride.trim(),
@@ -590,10 +477,6 @@ export async function buildNpcPortraitProviderPrompt(req: NpcPortraitRequest): P
     1400,
     GAME_PORTRAIT_NEGATIVE_PROMPT,
   );
-}
-
-export async function buildNpcPortraitImagePrompt(req: NpcPortraitRequest): Promise<string> {
-  return (await buildNpcPortraitProviderPrompt(req)).prompt;
 }
 
 function compileGameImagePrompt(
@@ -831,7 +714,7 @@ function genreToFolder(genre?: string): string {
   return "fantasy";
 }
 
-export interface BackgroundGenRequest {
+interface BackgroundGenRequest {
   chatId: string;
   /** Short slug for the location, e.g. "dark-forest-clearing" */
   locationSlug: string;
@@ -888,7 +771,7 @@ export interface BackgroundGenRequest {
   signal?: AbortSignal;
 }
 
-export interface MapsLocationArtworkContext {
+interface MapsLocationArtworkContext {
   locationName: string;
   locationDescription: string;
   locationType: string;
@@ -900,16 +783,8 @@ export interface MapsLocationArtworkContext {
   imageInstructions: string;
 }
 
-export interface ChatBackgroundGenRequest extends BackgroundGenRequest {
-  /** Why the background agent asked for generation. Stored as background metadata. */
-  reason?: string;
-  /** Searchable library tags supplied by the prompt writer. */
-  tags?: string[];
-  /** Source chat mode used for library tags. */
-  sourceMode?: "roleplay" | "game";
-}
 
-export interface SceneIllustrationGenRequest {
+interface SceneIllustrationGenRequest {
   chatId: string;
   title?: string;
   prompt: string;
@@ -997,7 +872,7 @@ async function buildBackgroundRawPrompt(req: BackgroundGenRequest): Promise<stri
     ? await loadPrompt(req.promptOverridesStorage, GAME_BACKGROUND, backgroundVars)
     : GAME_BACKGROUND.defaultBuilder(backgroundVars);
   const imagePromptInstructionsLine = req.imagePromptInstructions?.trim()
-    ? `User image instructions: ${compactImagePromptInstructions(req.imagePromptInstructions)}`
+    ? `User image instructions: ${req.imagePromptInstructions.trim().replace(/\s+/g, " ").slice(0, MAX_IMAGE_PROMPT_INSTRUCTIONS_LENGTH)}`
     : "";
   return imagePromptInstructionsLine && !rawPrompt.includes(imagePromptInstructionsLine)
     ? `${rawPrompt}\n${imagePromptInstructionsLine}`
@@ -1081,198 +956,13 @@ export async function buildBackgroundProviderPrompt(req: BackgroundGenRequest): 
   );
 }
 
-export async function buildBackgroundImagePrompt(req: BackgroundGenRequest): Promise<string> {
-  return (await buildBackgroundProviderPrompt(req)).prompt;
-}
 
-function truncateSceneIllustrationAppearanceLine(value: string, maxLength: number): string {
-  const clean = value.trim().replace(/\s+/g, " ");
-  if (clean.length <= maxLength) return clean;
-  if (maxLength <= 3) return ".".repeat(Math.max(0, maxLength));
-  const clipped = clean.slice(0, maxLength - 3).trimEnd();
-  const wordBoundary = clipped.lastIndexOf(" ");
-  return `${(wordBoundary > 0 ? clipped.slice(0, wordBoundary) : clipped).trimEnd()}...`;
-}
 
-function buildSceneIllustrationAppearanceNotes(characterDescriptions: string[] | undefined): string {
-  const header = "Character appearance notes:\n";
-  const lines = Array.from(
-    new Set(
-      (characterDescriptions ?? []).map((description) => description.trim().replace(/\s+/g, " ")).filter(Boolean),
-    ),
-  ).slice(0, 16);
-  if (!lines.length) return "";
 
-  const separatorChars = Math.max(0, lines.length - 1);
-  let remainingBudget = MAX_SCENE_ILLUSTRATION_APPEARANCE_NOTES_CHARS - header.length - separatorChars;
-  let remainingIndexes = lines.map((_, index) => index);
-  const allocations = new Array<number>(lines.length).fill(0);
-  while (remainingIndexes.length) {
-    const fairShare = Math.floor(remainingBudget / remainingIndexes.length);
-    const completed = remainingIndexes.filter((index) => lines[index]!.length <= fairShare);
-    if (!completed.length) {
-      for (const index of remainingIndexes) allocations[index] = fairShare;
-      break;
-    }
-    for (const index of completed) {
-      allocations[index] = lines[index]!.length;
-      remainingBudget -= allocations[index]!;
-    }
-    remainingIndexes = remainingIndexes.filter((index) => !completed.includes(index));
-  }
 
-  return `${header}${lines
-    .map((line, index) => truncateSceneIllustrationAppearanceLine(line, allocations[index]!))
-    .filter(Boolean)
-    .join("\n")}`;
-}
 
-async function buildSceneIllustrationRawPrompt(req: SceneIllustrationGenRequest): Promise<string> {
-  const styleHint = [req.artStyle, req.genre, req.setting].filter(Boolean).join(", ");
-  const sceneTitle = sceneIllustrationContextTitle(req);
-  const narrativePurpose = cleanSceneIllustrationContext(req.reason);
-  const meaningfulNarrativePurpose = isGenericSceneMomentLabel(narrativePurpose) ? "" : narrativePurpose;
-  const referenceImages = sceneIllustrationReferenceImagesForProvider(req);
-  const characterReferenceImagesAttached = referenceImages.length > (req.locationReferenceImageAttached ? 1 : 0);
-  const imagePromptInstructionsLine = req.imagePromptInstructions?.trim()
-    ? `User image instructions: ${compactImagePromptInstructions(req.imagePromptInstructions)}`
-    : "";
-  const useGamePromptTemplate = req.useGamePromptTemplate !== false;
-  const scopedScenePrompt = req.prompt.trim();
-  const finalVisibilityRuleMatch = scopedScenePrompt.match(/(?:^|\s+)(Final visibility rule:[\s\S]*)$/iu);
-  const directScenePrompt = finalVisibilityRuleMatch
-    ? scopedScenePrompt.slice(0, finalVisibilityRuleMatch.index).trim()
-    : scopedScenePrompt;
-  const finalVisibilityRuleLine = finalVisibilityRuleMatch?.[1]?.trim() ?? "";
-  const sceneIllustrationVars = {
-    sceneTitleLine: sceneTitle ? `${sceneTitle}.` : "",
-    scenePrompt: directScenePrompt,
-    finalVisibilityRuleLine,
-    narrativePurposeLine: meaningfulNarrativePurpose ? `Narrative purpose: ${meaningfulNarrativePurpose}.` : "",
-    charactersLine: req.characters?.length ? `Characters: ${req.characters.join(", ")}.` : "",
-    referenceHandlingLine: characterReferenceImagesAttached
-      ? "Reference handling: attached character reference images are available. Use them to match faces, hair, build, colors, and distinctive features for the referenced characters."
-      : "",
-    locationHandlingLine: req.locationReferenceImageAttached ? SPATIAL_LOCATION_REFERENCE_PROMPT_LINE : "",
-    appearanceNotesBlock: buildSceneIllustrationAppearanceNotes(req.characterDescriptions),
-    artDirectionLine: styleHint ? `Art direction: ${styleHint}.` : "",
-    imagePromptInstructionsLine,
-  };
-  const directPromptWithAppearance = [
-    directScenePrompt,
-    sceneIllustrationVars.finalVisibilityRuleLine,
-    sceneIllustrationVars.appearanceNotesBlock,
-  ]
-    .filter(Boolean)
-    .join("\n");
-  const hasStoryboardImagePromptSelection =
-    req.storyboardImagePromptTemplateId != null || req.storyboardImagePromptTemplates != null;
-  const rawIllustrationPrompt = !useGamePromptTemplate
-    ? directPromptWithAppearance
-    : hasStoryboardImagePromptSelection
-      ? await loadGameStoryboardImagePrompt({
-          templateId: req.storyboardImagePromptTemplateId,
-          customTemplates: req.storyboardImagePromptTemplates,
-          ctx: sceneIllustrationVars,
-        })
-      : req.promptOverridesStorage
-        ? await loadPrompt(req.promptOverridesStorage, GAME_SCENE_ILLUSTRATION, sceneIllustrationVars)
-        : GAME_SCENE_ILLUSTRATION.defaultBuilder(sceneIllustrationVars);
-  const rawPromptWithRequiredAppearance =
-    req.ensureCharacterAppearance &&
-    sceneIllustrationVars.appearanceNotesBlock &&
-    !rawIllustrationPrompt.includes(sceneIllustrationVars.appearanceNotesBlock)
-      ? `${rawIllustrationPrompt}\n${sceneIllustrationVars.appearanceNotesBlock}`
-      : rawIllustrationPrompt;
-  const finalPrompt =
-    imagePromptInstructionsLine && !rawPromptWithRequiredAppearance.includes(imagePromptInstructionsLine)
-      ? `${rawPromptWithRequiredAppearance}\n${imagePromptInstructionsLine}`
-      : rawPromptWithRequiredAppearance;
-  return finalPrompt;
-}
 
-function sceneIllustrationContextTitle(req: SceneIllustrationGenRequest): string {
-  const explicitTitle = cleanSceneIllustrationContext(req.title);
-  if (explicitTitle) return explicitTitle;
 
-  const visualReason = cleanSceneIllustrationContext(req.reason);
-  if (visualReason && hasSceneSubjectCue(visualReason)) return visualReason;
-
-  const slugTitle = cleanSceneIllustrationContext(req.slug?.replace(/[-_]+/g, " "));
-  return slugTitle && hasSceneSubjectCue(slugTitle) ? slugTitle : "";
-}
-
-function cleanSceneIllustrationContext(value: string | null | undefined): string {
-  return (value ?? "")
-    .replace(
-      /\b(?:major character moment|key emotional moment|major reveal|dramatic action scene|important scene|scene moment|narrative purpose)\s*[-:]\s*/gi,
-      "",
-    )
-    .replace(/\s+/g, " ")
-    .replace(/[.!?]+$/g, "")
-    .trim()
-    .slice(0, 180);
-}
-
-function hasSceneSubjectCue(value: string): boolean {
-  return /\b(?:seeing|watching|looking|facing|meeting|holding|reaching|standing|kneeling|falling|fighting|duel|kiss|confession|reveal|transformation|mirror|uniform|door|character|protagonist|player|npc|self|room|hall|chamber|courtyard|battle|boss|monster|creature|arrival|entrance)\b/i.test(
-    value,
-  );
-}
-
-function isGenericSceneMomentLabel(value: string): boolean {
-  return /^(?:major character moment|key emotional moment|major reveal|dramatic action scene|important scene|scene moment)$/i.test(
-    value,
-  );
-}
-
-export async function buildSceneIllustrationProviderPrompt(
-  req: SceneIllustrationGenRequest,
-): Promise<CompiledGameImagePrompt> {
-  if (req.promptOverride?.trim()) {
-    return {
-      prompt: req.promptOverride.trim(),
-      negativePrompt: req.negativePromptOverride?.trim() || "",
-    };
-  }
-  const sourcePrompt = await buildSceneIllustrationRawPrompt(req);
-  const referenceImages = sceneIllustrationReferenceImagesForProvider(req);
-  const useGamePromptTemplate = req.useGamePromptTemplate !== false;
-  const prompt = await maybeGenerateDynamicGameImagePrompt(req.dynamicPromptGenerator, {
-    kind: "illustration",
-    title: req.title || req.reason || req.slug || "Scene illustration",
-    sourcePrompt,
-    maxCharacters: 7000,
-    assetContext: useGamePromptTemplate
-      ? [
-          req.title ? `Title: ${req.title}` : "",
-          `Scene prompt: ${req.prompt}`,
-          req.reason ? `Narrative purpose: ${req.reason}` : "",
-          req.characters?.length ? `Visible characters: ${req.characters.join(", ")}` : "",
-          req.characterDescriptions?.length
-            ? `Character appearance notes: ${req.characterDescriptions.join("; ")}`
-            : "",
-          req.genre ? `Genre: ${req.genre}` : "",
-          req.setting ? `Setting: ${req.setting}` : "",
-          req.artStyle ? `Art style: ${req.artStyle}` : "",
-          req.imagePromptInstructions ? `User image instructions: ${req.imagePromptInstructions}` : "",
-          req.locationReferenceImageAttached ? SPATIAL_LOCATION_REFERENCE_PROMPT_LINE : "",
-          referenceImages.length ? `Reference images attached: ${referenceImages.length}` : "",
-        ]
-      : [],
-  });
-  return compileGameImagePrompt(
-    req.dynamicPromptGenerator ? { ...req, preserveFullSourcePrompt: true } : req,
-    "illustration",
-    prompt,
-    7000,
-    GAME_ILLUSTRATION_NEGATIVE_PROMPT,
-  );
-}
-
-export async function buildSceneIllustrationImagePrompt(req: SceneIllustrationGenRequest): Promise<string> {
-  return (await buildSceneIllustrationProviderPrompt(req)).prompt;
-}
 
 /**
  * Generate a background image for a game location and add it to the
@@ -1345,146 +1035,6 @@ export async function generateBackground(req: BackgroundGenRequest): Promise<str
     return tag;
   } catch (err) {
     logger.warn(err, '[game-asset-gen] Failed to generate background "%s"', slug);
-    return null;
-  }
-}
-
-/**
- * Generate a reusable Roleplay chat background and save it into the normal
- * user backgrounds folder so the Background agent can select it on later turns.
- * Returns the saved filename on success, or null on failure.
- */
-export async function generateChatBackground(req: ChatBackgroundGenRequest): Promise<string | null> {
-  const baseSlug = safeGeneratedAssetSlug(req.locationSlug || req.sceneDescription.slice(0, 80), { maxBytes: 160 });
-  if (!baseSlug) return null;
-
-  const slug = `generated-${baseSlug}`;
-  if (!existsSync(CHAT_BACKGROUND_DIR)) mkdirSync(CHAT_BACKGROUND_DIR, { recursive: true });
-
-  const existingPath = !req.force ? existingGeneratedBackgroundPath(CHAT_BACKGROUND_DIR, slug) : null;
-  if (existingPath) return basename(existingPath);
-
-  const compiled = await buildBackgroundProviderPrompt(req);
-  const prompt = compiled.prompt;
-  const size = resolvedSize(req.size, DEFAULT_GAME_BACKGROUND_SIZE);
-  req.debugLog?.(
-    "[debug/background-agent/image-generation] request slug=%s model=%s source=%s targetSize=%dx%d prompt:\n%s",
-    slug,
-    req.imgModel,
-    req.imgSource || req.imgService || "",
-    size.width,
-    size.height,
-    prompt,
-  );
-
-  try {
-    const result = await generateImage(
-      req.imgModel,
-      req.imgBaseUrl,
-      req.imgApiKey,
-      req.imgSource || req.imgService || "",
-      {
-        prompt,
-        negativePrompt: compiled.negativePrompt || undefined,
-        model: req.imgModel,
-        width: size.width,
-        height: size.height,
-        imageEndpointId: req.imgEndpointId || undefined,
-        comfyWorkflow: req.imgComfyWorkflow || undefined,
-        imageDefaults: req.imgDefaults ?? undefined,
-        quality: req.imgQuality,
-        fallback: req.imgFallback,
-        signal: req.signal,
-      },
-    );
-
-    const image = await gameBackgroundImage(result, size);
-    const filename = `${slug}.${image.ext}`;
-    atomicWriteBuffer(join(CHAT_BACKGROUND_DIR, filename), image.buffer);
-
-    const meta = readChatBackgroundMeta();
-    meta[filename] = {
-      tags: chatBackgroundTags(req, baseSlug),
-    };
-    writeChatBackgroundMeta(meta);
-
-    buildAssetManifest();
-    logger.info('[background-agent] Generated roleplay background "%s"', filename);
-    req.debugLog?.(
-      "[debug/background-agent/image-generation] result slug=%s bytes=%d filename=%s",
-      slug,
-      image.buffer.byteLength,
-      filename,
-    );
-    return filename;
-  } catch (err) {
-    logger.warn(err, '[background-agent] Failed to generate roleplay background "%s"', slug);
-    return null;
-  }
-}
-
-export async function generateSceneIllustration(req: SceneIllustrationGenRequest): Promise<string | null> {
-  const slug = safeGeneratedAssetSlug(req.slug || req.reason || req.prompt.slice(0, 80) || "scene-illustration", {
-    suffix: Date.now().toString(36),
-  });
-  const targetDir = join(GAME_ASSETS_DIR, "backgrounds", "illustrations");
-  const tag = `backgrounds:illustrations:${slug}`;
-
-  const compiled = await buildSceneIllustrationProviderPrompt(req);
-  const prompt = compiled.prompt;
-  req.onCompiledPrompt?.(compiled);
-  const size = resolvedSize(req.size, DEFAULT_GAME_BACKGROUND_SIZE);
-  const referenceImages = sceneIllustrationReferenceImagesForProvider(req);
-  req.debugLog?.(
-    "[debug/game/image-generation] scene illustration request slug=%s model=%s source=%s targetSize=%dx%d refs=%d prompt:\n%s",
-    slug,
-    req.imgModel,
-    req.imgSource || req.imgService || "",
-    size.width,
-    size.height,
-    referenceImages.length,
-    prompt,
-  );
-
-  try {
-    const result = await generateImage(
-      req.imgModel,
-      req.imgBaseUrl,
-      req.imgApiKey,
-      req.imgSource || req.imgService || "",
-      {
-        prompt,
-        negativePrompt: compiled.negativePrompt || undefined,
-        model: req.imgModel,
-        width: size.width,
-        height: size.height,
-        imageEndpointId: req.imgEndpointId || undefined,
-        comfyWorkflow: req.imgComfyWorkflow || undefined,
-        imageDefaults: req.imgDefaults ?? undefined,
-        quality: req.imgQuality,
-        fallback: req.imgFallback,
-        signal: req.signal,
-        referenceImages: referenceImages.length ? referenceImages : undefined,
-        characterPrompts: req.characterPrompts,
-      },
-    );
-
-    if (!existsSync(targetDir)) mkdirSync(targetDir, { recursive: true });
-    const image = await gameBackgroundImage(result, size);
-    const targetPath = generatedBackgroundPath(targetDir, slug, image.ext);
-    atomicWriteBuffer(targetPath, image.buffer);
-    buildAssetManifest();
-
-    logger.info('[game-asset-gen] Generated scene illustration "%s" -> tag: %s', slug, tag);
-    req.debugLog?.(
-      "[debug/game/image-generation] scene illustration result slug=%s bytes=%d tag=%s",
-      slug,
-      image.buffer.byteLength,
-      tag,
-    );
-    return tag;
-  } catch (err) {
-    logger.warn(err, '[game-asset-gen] Failed to generate scene illustration "%s"', slug);
     return null;
   }
 }

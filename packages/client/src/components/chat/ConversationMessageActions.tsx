@@ -12,7 +12,7 @@ import { MESSAGE_ACTION_ICON_SIZE } from "./MessageActionButton";
 import { ReactionAddButton } from "./ReactionAddButton";
 import { MessageMarksAction } from "./MessageMarks";
 
-export interface ConversationMessageActionsProps {
+interface ConversationMessageActionsProps {
   message: Pick<Message, "id" | "chatId" | "content"> & { extra?: unknown };
   name: string;
   isUser: boolean;

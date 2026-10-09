@@ -130,17 +130,7 @@ export async function getConversationCallCharacterVideoManifest(
   );
 }
 
-export function startConversationCallCharacterVideoGeneration(
-  input: GenerationInput & { clipKinds?: ConversationCallCharacterVideoClipKind[] | null },
-) {
-  return requireProvider().startConversationCallCharacterVideoGeneration(input);
-}
 
-export function startConversationCallCustomVideoClipGeneration(
-  input: GenerationInput & { label?: string | null; prompt: string },
-) {
-  return requireProvider().startConversationCallCustomVideoClipGeneration(input);
-}
 
 export function uploadConversationCallCharacterVideoClip(
   input: BaseVideoInput & {
@@ -178,13 +168,4 @@ export function deleteConversationCallCustomVideoClip(input: BaseVideoInput & { 
   return requireProvider().deleteConversationCallCustomVideoClip(input);
 }
 
-export function getConversationCallCharacterVideoFile(
-  characterId: string,
-  kind: ConversationCallCharacterVideoClipKind,
-) {
-  return provider()?.getConversationCallCharacterVideoFile(characterId, kind) ?? null;
-}
 
-export function getConversationCallCustomVideoClipFile(characterId: string, clipId: string) {
-  return provider()?.getConversationCallCustomVideoClipFile(characterId, clipId) ?? null;
-}

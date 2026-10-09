@@ -3,7 +3,7 @@ import { DEFAULT_MEDIA_GENERATION_CONCURRENCY } from "@marinara-engine/shared";
 import { logger } from "../../lib/logger.js";
 
 type MediaGenerationQueueTask<T> = () => Promise<T>;
-export type MediaGenerationPriority = "foreground" | "background";
+type MediaGenerationPriority = "foreground" | "background";
 
 const mediaGenerationQueueTails = new Map<string, Promise<void>>();
 
@@ -187,16 +187,6 @@ async function acquireGlobalPermit(
     waiters.push(waiter);
   });
   return release;
-}
-
-/** Test-only: waits for a quiescent queue would race; expose the counters. */
-export function inspectMediaGenerationConcurrencyForTests() {
-  return {
-    activeGlobalPermits,
-    queuedWaiters: foregroundPermitWaiters.length + backgroundPermitWaiters.length,
-    foregroundWaiters: foregroundPermitWaiters.length,
-    backgroundWaiters: backgroundPermitWaiters.length,
-  };
 }
 
 function mediaGenerationAbortError(signal: AbortSignal): Error {

@@ -5,7 +5,7 @@ export interface RuntimeManifestAsset {
   sha256: string;
 }
 
-export interface LlamaRuntimeManifestEntry {
+interface LlamaRuntimeManifestEntry {
   variant: string;
   asset: RuntimeManifestAsset;
   dependencyAssets?: RuntimeManifestAsset[];

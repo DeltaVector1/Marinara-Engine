@@ -14,7 +14,7 @@ export interface CapabilityConversationCommandRegistration {
   handler?: (action: CapabilityConversationAction) => void | Promise<void>;
 }
 
-export interface CapabilityConversationAction {
+interface CapabilityConversationAction {
   type: "capability";
   commandType: string;
   payload: string | null;
@@ -89,7 +89,7 @@ export function listCapabilityConversationCommandInstructions(): string[] {
 export const CAPABILITY_COMMAND_TAG_PATTERN = String.raw`\[([a-z][a-z0-9_-]*)(?::(\{[^\r\n]*?\}|[^\]\r\n]*))?\]`;
 
 /** A fresh global regex per call — a shared one carries `lastIndex` between callers. */
-export function createCapabilityCommandTagRegex(): RegExp {
+function createCapabilityCommandTagRegex(): RegExp {
   return new RegExp(CAPABILITY_COMMAND_TAG_PATTERN, "gi");
 }
 

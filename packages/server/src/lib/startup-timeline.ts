@@ -12,7 +12,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { logger } from "./logger.js";
 
-export interface StartupPhaseRecord {
+interface StartupPhaseRecord {
   stage: string;
   elapsedMs: number;
   /** Time not spent in nested phases: the part of elapsedMs this step itself took. */

@@ -10,7 +10,7 @@ import {
 } from "@marinara-engine/shared";
 import { api } from "../lib/api-client";
 
-export const storageMigrationNoticeKeys = {
+const storageMigrationNoticeKeys = {
   notice: ["app-settings", STORAGE_MIGRATION_NOTICE_SETTINGS_KEY] as const,
 };
 

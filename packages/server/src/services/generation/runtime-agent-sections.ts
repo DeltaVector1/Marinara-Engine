@@ -134,8 +134,6 @@ export function buildRuntimeAgentSectionEligibleTypes(input: {
   return eligible;
 }
 
-export const buildRuntimeAgentSectionEligibleTypesForTest = buildRuntimeAgentSectionEligibleTypes;
-
 export function makeRuntimeAgentSectionTokens(
   agentType: RuntimeAgentSectionType,
   nonce: string,
@@ -191,8 +189,6 @@ export function splitRuntimeHandledAgentInjections(
   return { fallbackInjections, omittedInjections };
 }
 
-export const splitRuntimeHandledAgentInjectionsForTest = splitRuntimeHandledAgentInjections;
-
 export function clearUnusedRuntimeAgentSections(
   messages: Array<{ content: string }>,
   tokenEntries: Iterable<[RuntimeAgentSectionType, RuntimeAgentSectionTokens]>,
@@ -224,8 +220,6 @@ export function clearUnusedRuntimeAgentSections(
     pruneEmptyPromptWrappers(messages);
   }
 }
-
-export const clearUnusedRuntimeAgentSectionsForTest = clearUnusedRuntimeAgentSections;
 
 export function pruneEmptyPromptWrappers(
   messages: Array<{ content: string; images?: readonly unknown[] | null; files?: readonly unknown[] | null }>,

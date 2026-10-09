@@ -6,7 +6,7 @@ import { withGlobalGalleryImageLifecycleLocks } from "./gallery-file-lifecycle.j
 const GLOBAL_GALLERY_REFERENCE_PREFIX = "global-gallery:";
 const MAX_SCANNED_VALUES = 200_000;
 
-export class GlobalGalleryCapabilityReferenceUnavailableError extends Error {
+class GlobalGalleryCapabilityReferenceUnavailableError extends Error {
   readonly imageIds: string[];
 
   constructor(imageIds: string[]) {
@@ -16,7 +16,7 @@ export class GlobalGalleryCapabilityReferenceUnavailableError extends Error {
   }
 }
 
-export interface GlobalGalleryCapabilityReferenceSummary {
+interface GlobalGalleryCapabilityReferenceSummary {
   documentCount: number;
   chatCount: number;
   totalCount: number;

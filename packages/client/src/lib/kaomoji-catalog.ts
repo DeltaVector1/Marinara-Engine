@@ -4,12 +4,12 @@
 // query like "table man angry throw" surfaces the table-flip.
 // ──────────────────────────────────────────────
 
-export interface KaomojiEntry {
+interface KaomojiEntry {
   value: string;
   keywords: string;
 }
 
-export interface KaomojiCategory {
+interface KaomojiCategory {
   /** Stable id used for the localization key (`chat.kaomoji.category.<id>`). */
   id: string;
   /** English fallback label. */

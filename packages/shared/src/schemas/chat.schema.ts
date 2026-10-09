@@ -6,7 +6,7 @@ import { pendingSpatialTransitionSchema } from "./spatial-context.schema.js";
 
 export const chatModeSchema = z.enum(["conversation", "roleplay", "game"]);
 
-export const messageRoleSchema = z.enum(["user", "assistant", "system", "narrator"]);
+const messageRoleSchema = z.enum(["user", "assistant", "system", "narrator"]);
 
 export const messageReplySchema = z.object({
   messageId: z.string().min(1).max(200),
@@ -97,7 +97,7 @@ export const generateRequestSchema = z.object({
 });
 
 // Auto-summarization entries — shape-only validation (no length caps).
-export const summaryEntrySchema = z.object({
+const summaryEntrySchema = z.object({
   summary: z.string(),
   keyDetails: z.array(z.string()),
 });
@@ -130,7 +130,4 @@ export const reassignMessagePersonaSchema = z
 
 export type CreateChatInput = z.infer<typeof createChatSchema>;
 export type CreateMessageInput = z.infer<typeof createMessageSchema>;
-export type GenerateRequestInput = z.infer<typeof generateRequestSchema>;
-export type SummariesPatchInput = z.infer<typeof summariesPatchSchema>;
-export type MarkAutonomousUnreadInput = z.infer<typeof markAutonomousUnreadSchema>;
 export type ReassignMessagePersonaInput = z.infer<typeof reassignMessagePersonaSchema>;

@@ -73,7 +73,7 @@ export const characterKeys = {
   personaGroupDetail: (id: string) => ["persona-groups", "detail", id] as const,
 };
 
-export type CharacterSummary = {
+type CharacterSummary = {
   id: string;
   name: string;
   avatarUrl: string | null;
@@ -276,7 +276,7 @@ export function useUpdateCharacter() {
   });
 }
 
-export interface CharacterSummaryDraft {
+interface CharacterSummaryDraft {
   name?: string;
   description?: string;
   personality?: string;
@@ -285,7 +285,7 @@ export interface CharacterSummaryDraft {
 }
 
 /** Shared by the editor's single Generate action and the library's bulk run. */
-export function generateCharacterSummary(id: string, draft?: CharacterSummaryDraft) {
+function generateCharacterSummary(id: string, draft?: CharacterSummaryDraft) {
   return api.post<{ summary: string }>(`/characters/${encodeURIComponent(id)}/summary/generate`, {
     debugMode: useUIStore.getState().debugMode,
     draft,
@@ -298,9 +298,9 @@ export function useGenerateCharacterSummary() {
   });
 }
 
-export type CharacterConvoProfileTarget = "aboutMe" | "behavior";
+type CharacterConvoProfileTarget = "aboutMe" | "behavior";
 
-export interface CharacterConvoProfileDraft {
+interface CharacterConvoProfileDraft {
   name?: string;
   description?: string;
   personality?: string;
@@ -444,7 +444,7 @@ export interface SpriteInfo {
 
 export type SpriteCleanupEngine = "auto" | "backgroundremover" | "builtin";
 
-export interface SpriteCapabilities {
+interface SpriteCapabilities {
   imageProcessingAvailable: boolean;
   spriteGenerationAvailable: boolean;
   backgroundRemovalAvailable: boolean;
@@ -470,7 +470,7 @@ export interface SpriteCleanupResult {
   error?: string;
 }
 
-export interface SpriteCleanupRestoreResult {
+interface SpriteCleanupRestoreResult {
   restored: number;
   failed: Array<{ expression: string; error: string }>;
   sprites: SpriteInfo[];
@@ -513,12 +513,12 @@ export interface CharacterGalleryClip {
   clipKind: string | null;
 }
 
-export interface CharacterGalleryClipsResponse {
+interface CharacterGalleryClipsResponse {
   clips: CharacterGalleryClip[];
   callVideoGenerating: boolean;
 }
 
-export type CharacterGalleryClipUploadInput = {
+type CharacterGalleryClipUploadInput = {
   file: File;
   label?: string | null;
   kind?: string | null;
@@ -557,36 +557,6 @@ export function useCharacterSprites(characterId: string | null) {
   });
 }
 
-/**
- * Fetch the small, bounded set of sprite lists used by Home's recent-chat
- * previews without coupling the feed contract to filesystem-backed assets.
- */
-const MAX_HOME_SPRITE_PREVIEWS = 6;
-
-export function useCharacterSpritePreviews(characterIds: string[]) {
-  const uniqueIds = useMemo(
-    () =>
-      Array.from(new Set(characterIds.filter((id) => id.trim().length > 0)))
-        .sort()
-        .slice(0, MAX_HOME_SPRITE_PREVIEWS),
-    [characterIds],
-  );
-  const queries = useQueries({
-    queries: uniqueIds.map((characterId) => ({
-      queryKey: spriteKeys.list(characterId),
-      queryFn: () => api.get<SpriteInfo[]>(`/sprites/${characterId}`),
-      staleTime: 5 * 60_000,
-    })),
-  });
-
-  return useMemo(() => {
-    const previews = new Map<string, SpriteInfo[]>();
-    uniqueIds.forEach((characterId, index) => {
-      previews.set(characterId, queries[index]?.data ?? []);
-    });
-    return previews;
-  }, [queries, uniqueIds]);
-}
 
 export function useUploadSprite() {
   const qc = useQueryClient();

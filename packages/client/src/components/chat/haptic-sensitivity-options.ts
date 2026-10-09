@@ -1,4 +1,3 @@
-import type { HapticFeedbackSensitivity } from "@marinara-engine/shared";
 
 export const HAPTIC_SENSITIVITY_OPTIONS: ReadonlyArray<{
   id: HapticFeedbackSensitivity;

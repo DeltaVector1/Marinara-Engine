@@ -1,7 +1,7 @@
-export type DiceShapeKind =
+type DiceShapeKind =
   "coin" | "tetra" | "cube" | "diamond" | "kite" | "dodeca" | "crystal" | "icosa" | "medallion";
 
-export interface DiceShapeDefinition {
+interface DiceShapeDefinition {
   kind: DiceShapeKind;
   body: string;
   face: string;

@@ -2,9 +2,9 @@ import type { PlayerStats, QuestProgress } from "../types/game-state.js";
 
 type QuestObjective = QuestProgress["objectives"][number];
 
-export type QuestUpdateAction = "create" | "update" | "complete" | "fail";
+type QuestUpdateAction = "create" | "update" | "complete" | "fail";
 
-export interface NormalizedQuestUpdate {
+interface NormalizedQuestUpdate {
   action: QuestUpdateAction;
   questName: string;
   description?: string;
@@ -13,7 +13,7 @@ export interface NormalizedQuestUpdate {
   notes?: string;
 }
 
-export interface QuestMergeResult {
+interface QuestMergeResult {
   updates: NormalizedQuestUpdate[];
   originalQuests: QuestProgress[];
   quests: QuestProgress[];
@@ -154,7 +154,7 @@ function collectNestedQuests(value: Record<string, unknown>, depth: number): Que
   return nested;
 }
 
-export function normalizeQuestCollectionForQuestMerge(value: unknown, depth = 0): QuestProgress[] {
+function normalizeQuestCollectionForQuestMerge(value: unknown, depth = 0): QuestProgress[] {
   if (value == null || depth > 5) return [];
 
   if (Array.isArray(value)) {
@@ -200,7 +200,7 @@ function normalizeQuestUpdate(value: unknown): NormalizedQuestUpdate | null {
   };
 }
 
-export function normalizeQuestUpdates(value: unknown): NormalizedQuestUpdate[] {
+function normalizeQuestUpdates(value: unknown): NormalizedQuestUpdate[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
     const update = normalizeQuestUpdate(entry);
@@ -208,7 +208,7 @@ export function normalizeQuestUpdates(value: unknown): NormalizedQuestUpdate[] {
   });
 }
 
-export function normalizePlayerStatsForQuestMerge(value: unknown): PlayerStats & Record<string, unknown> {
+function normalizePlayerStatsForQuestMerge(value: unknown): PlayerStats & Record<string, unknown> {
   const existing = isRecord(value) ? value : {};
   return {
     ...DEFAULT_PLAYER_STATS,
@@ -283,21 +283,5 @@ export function applyQuestUpdatesToPlayerStats(
     quests,
     playerStats: { ...playerStats, activeQuests: quests },
     changed: JSON.stringify(quests) !== rawActiveQuestsJson,
-  };
-}
-
-export function buildQuestJournalData(update: NormalizedQuestUpdate): {
-  id: string;
-  name: string;
-  status: "active" | "completed" | "failed";
-  description: string;
-  objectives: string[];
-} {
-  return {
-    id: update.questName,
-    name: update.questName,
-    status: update.action === "complete" ? "completed" : update.action === "fail" ? "failed" : "active",
-    description: update.description || update.questName,
-    objectives: (update.objectives ?? []).map((objective) => objective.text),
   };
 }

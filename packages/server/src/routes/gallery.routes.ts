@@ -2,20 +2,12 @@
 // Routes: Chat Gallery (upload, list, delete, serve)
 // ──────────────────────────────────────────────
 import type { FastifyInstance, FastifyReply } from "fastify";
+import { resolveIllustratorImageConnectionId } from "../services/generation/illustrator-background-generation.js";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync } from "fs";
 import { writeFile } from "fs/promises";
 import { basename, extname, join } from "path";
 import { z } from "zod";
-import {
-  findImageStyleProfile,
-  LOCAL_SIDECAR_CONNECTION_ID,
-  readImageAppearanceOverride,
-  resolveGameSetupArtStylePrompt,
-  VIDEO_GENERATION_SETTINGS_KEY,
-  normalizeVideoGenerationUserSettings,
-  type GameSceneVideoAspectRatio,
-  type GeneratedSceneVideo,
-} from "@marinara-engine/shared";
+import { findImageStyleProfile, LOCAL_SIDECAR_CONNECTION_ID, readImageAppearanceOverride, VIDEO_GENERATION_SETTINGS_KEY, normalizeVideoGenerationUserSettings, type GameSceneVideoAspectRatio, type GeneratedSceneVideo } from "@marinara-engine/shared";
 import { createGalleryStorage } from "../services/storage/gallery.storage.js";
 import { createChatsStorage } from "../services/storage/chats.storage.js";
 import { createCharactersStorage } from "../services/storage/characters.storage.js";
@@ -26,74 +18,36 @@ import { createAgentsStorage } from "../services/storage/agents.storage.js";
 import { createGameSceneVideosStorage } from "../services/storage/game-scene-videos.storage.js";
 import { createPromptOverridesStorage } from "../services/storage/prompt-overrides.storage.js";
 import { createAppSettingsStorage } from "../services/storage/app-settings.storage.js";
-import { loadGameVideoPrompt } from "../services/video/game-video-prompt.js";
-import {
-  generateVideo,
-  removeSavedVideoFromDisk,
-  saveVideoToDisk,
-  type VideoReferenceImage,
-} from "../services/video/video-generation.js";
+import { generateVideo, removeSavedVideoFromDisk, saveVideoToDisk, type VideoReferenceImage } from "../services/video/video-generation.js";
 import { resolveGameVideoRuntime } from "../services/video/game-video-runtime.js";
+import { loadGameVideoPrompt } from "../services/video/game-video-prompt.js";
+import { buildBackgroundProviderPrompt } from "../services/game/game-asset-generation.js";
 import { generateImage, removeSavedImageFromDisk, saveImageToDisk } from "../services/image/image-generation.js";
 import { resolveGalleryImagePath } from "../services/image/gallery-image-path.js";
 import { parseThumbnailWidth, resolveThumbPath } from "../services/image/image-thumbnail.js";
-import {
-  resolveConnectionImageDefaults,
-  resolveConnectionImageQuality,
-} from "../services/image/image-generation-defaults.js";
+import { resolveConnectionImageDefaults, resolveConnectionImageQuality } from "../services/image/image-generation-defaults.js";
 import { loadImageGenerationUserSettings } from "../services/image/image-generation-settings.js";
-import {
-  compileImagePrompt,
-  formatImageStylePromptGuidance,
-  resolveImageStyleGuidanceText,
-} from "../services/image/image-prompt-compiler.js";
-import {
-  resolveImagePromptReviewSize,
-  resolveReviewedImagePromptSubmission,
-} from "../services/image/image-prompt-review.js";
-import { buildBackgroundProviderPrompt } from "../services/game/game-asset-generation.js";
+import { compileImagePrompt, formatImageStylePromptGuidance, resolveImageStyleGuidanceText } from "../services/image/image-prompt-compiler.js";
+import { resolveImagePromptReviewSize, resolveReviewedImagePromptSubmission } from "../services/image/image-prompt-review.js";
 import { runImageGenerationRequest } from "../services/image/image-generation-queue.js";
 import { generateIllustratorImageVariants } from "../services/image/illustrator-image-variants.js";
 import { persistGeneratedImageToEntityGalleries } from "../services/image/generated-image-entity-gallery.js";
 import { deleteChatGalleryImageEverywhere } from "../services/image/chat-gallery-cascade-deletion.js";
-import {
-  findGalleryRowByFilename,
-  resolveStoredGalleryFile,
-  storedGalleryFilename,
-} from "../services/image/gallery-file-lifecycle.js";
-import {
-  resolveImageConnectionFallback,
-  resolveVideoConnectionFallback,
-} from "../services/generation/media-connection-fallback.js";
+import { findGalleryRowByFilename, resolveStoredGalleryFile, storedGalleryFilename } from "../services/image/gallery-file-lifecycle.js";
+import { resolveImageConnectionFallback, resolveVideoConnectionFallback } from "../services/generation/media-connection-fallback.js";
 import { resolveIllustratorPromptRuntime } from "../services/generation/illustrator-prompt-runtime.js";
-import { resolveIllustratorImageConnectionId } from "../services/generation/illustrator-background-generation.js";
 import { resolveConversationSelfieSystemPrompt } from "../services/conversation/selfie-prompt.js";
 import { appendImagePromptInstructions } from "../services/generation/image-prompt-instructions.js";
-import {
-  suppressesReferencePromptLine,
-  resolveIllustratorCharacterReferences,
-} from "./generate/illustrator-references.js";
+import { suppressesReferencePromptLine, resolveIllustratorCharacterReferences } from "./generate/illustrator-references.js";
 import { resolveBaseUrl } from "./generate/generate-route-utils.js";
-import {
-  compactVideoPromptText,
-  excerptIllustrationPromptForVideo,
-  resolveGalleryVideoNarrationSummary,
-  resolveGalleryVideoSourceExchange,
-} from "../services/video/prompt-context.js";
+import { compactVideoPromptText, excerptIllustrationPromptForVideo, resolveGalleryVideoNarrationSummary, resolveGalleryVideoSourceExchange } from "../services/video/prompt-context.js";
 import { resolveSceneVideoPrompt, SceneVideoPromptReviewError } from "../services/video/scene-video-prompt-review.js";
-import {
-  buildRoleplayVideoDirectionMessages,
-  resolveRoleplayVideoDirection,
-} from "../services/video/roleplay-video-direction.js";
+import { buildRoleplayVideoDirectionMessages, resolveRoleplayVideoDirection } from "../services/video/roleplay-video-direction.js";
 import { isDebugAgentsEnabled } from "../config/runtime-config.js";
 import { newId } from "../utils/id-generator.js";
 import { DATA_DIR } from "../utils/data-dir.js";
 import { assertInsideDir, isAllowedImageBuffer } from "../utils/security.js";
-import {
-  sendValidatedMediaFile,
-  validateImageAssetFile,
-  validateVideoAssetFile,
-} from "../utils/media-file-security.js";
+import { sendValidatedMediaFile, validateImageAssetFile, validateVideoAssetFile } from "../utils/media-file-security.js";
 import { logger, logDebugOverride } from "../lib/logger.js";
 
 const GALLERY_DIR = join(DATA_DIR, "gallery");
@@ -227,7 +181,7 @@ function serializeSceneVideo(row: SceneVideoRow): GeneratedSceneVideo {
 // Reject any chatId segment that could escape GALLERY_DIR (traversal, absolute
 // path separators, empty, or NUL byte). Mirrors avatars.routes.ts isValidFilename
 // but adds the empty/null-byte guards the gallery serve route omits.
-export function isValidChatId(chatId: string): boolean {
+function isValidChatId(chatId: string): boolean {
   return (
     chatId.length > 0 &&
     !chatId.includes("..") &&
@@ -327,7 +281,6 @@ function readTrimmedString(value: unknown): string | null {
 
 async function resolveGalleryImageConnection(
   app: FastifyInstance,
-  chatMode: string,
   metadata: Record<string, unknown>,
 ) {
   const agents = createAgentsStorage(app.db);
@@ -336,9 +289,7 @@ async function resolveGalleryImageConnection(
     logger.warn(err, "[gallery/generate-image] Failed to read Illustrator settings");
     return null;
   });
-  const configuredId = resolveIllustratorImageConnectionId(
-    chatMode,
-    metadata,
+  const configuredId = resolveIllustratorImageConnectionId(metadata,
     parseJsonRecord(illustrator?.settings).imageConnectionId,
   );
   let connection = configuredId ? await connections.getWithKey(configuredId) : null;
@@ -538,13 +489,8 @@ export async function galleryRoutes(app: FastifyInstance) {
     }
 
     const metadata = parseChatMetadata(chat.metadata);
-    if (chat.mode === "game" && metadata.enableSpriteGeneration !== true) {
-      throw new GalleryImageRequestError(400, "Enable Game Illustrator in Chat Settings before creating map artwork.");
-    }
-    if (chat.mode === "game" && !readTrimmedString(metadata.gameImageConnectionId)) {
-      throw new GalleryImageRequestError(400, "Choose the Game Illustrator image connection in Chat Settings first.");
-    }
-    const { connection: imageConnection, connections } = await resolveGalleryImageConnection(app, chat.mode, metadata);
+
+    const { connection: imageConnection, connections } = await resolveGalleryImageConnection(app, metadata);
     if (!imageConnection) {
       throw new GalleryImageRequestError(
         400,
@@ -565,7 +511,7 @@ export async function galleryRoutes(app: FastifyInstance) {
       imageDefaults?.styleProfileId ??
       imageSettings.styleProfiles.defaultProfileId;
     const styleProfile = findImageStyleProfile(imageSettings.styleProfiles, styleProfileId);
-    const artStyle = resolveGameSetupArtStylePrompt(setupConfig);
+    const artStyle = "";
     const genre = readTrimmedString(setupConfig.genre);
     const setting = readTrimmedString(setupConfig.setting);
     const worldOverview = readTrimmedString(metadata.gameWorldOverview);
@@ -1678,13 +1624,7 @@ export async function galleryRoutes(app: FastifyInstance) {
   // List all images for a chat
   app.get<{ Params: { chatId: string } }>("/:chatId", async (req) => {
     const { chatId } = req.params;
-    const chat = await chats.getById(chatId);
-    const meta = parseChatMetadata(chat?.metadata);
-    const gameId = typeof meta.gameId === "string" && meta.gameId.trim() ? meta.gameId.trim() : chat?.groupId;
-    const gameSessionIds =
-      chat?.mode === "game" && gameId
-        ? (await chats.listByGroup(gameId)).filter((session) => session.mode === "game").map((session) => session.id)
-        : [chatId];
+    const gameSessionIds = [chatId];
     const imageChatIds = Array.from(new Set([...gameSessionIds, chatId]));
     const images =
       imageChatIds.length > 1 ? await storage.listByChatIds(imageChatIds) : await storage.listByChatId(chatId);

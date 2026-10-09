@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
 
-export type RecentMediaKind = "emoji" | "kaomoji" | "gif" | "sticker";
+type RecentMediaKind = "emoji" | "kaomoji" | "gif" | "sticker";
 
-export interface RecentMediaItem {
+interface RecentMediaItem {
   value: string;
   label?: string;
   previewUrl?: string;

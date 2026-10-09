@@ -14,7 +14,7 @@ import {
   type TTSVoiceRequest,
 } from "./tts-dialogue";
 
-export type ExtractRoleplayTTSSpeakersInput = {
+type ExtractRoleplayTTSSpeakersInput = {
   message: string;
   group: string;
   user: string;

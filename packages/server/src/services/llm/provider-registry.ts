@@ -12,7 +12,7 @@ import { withConnectionDefaultParameters } from "./connection-default-provider.j
 import { withConnectionAdmissionProvider } from "../generation/connection-admission.js";
 import { withRateLimitAwareProvider } from "./rate-limit-aware-provider.js";
 
-export function normalizeCohereOpenAIBaseUrl(baseUrl: string): string {
+function normalizeCohereOpenAIBaseUrl(baseUrl: string): string {
   const trimmed = baseUrl.replace(/\/+$/, "");
   const lower = trimmed.toLowerCase();
 

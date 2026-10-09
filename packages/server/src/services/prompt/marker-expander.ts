@@ -37,7 +37,7 @@ import { advancedMemoryMarkerContent, type AdvancedMemoryPromptParts } from "./a
 import { sanitizeExampleDialoguePromptLeaf, sanitizePromptLeaf } from "./prompt-escaping.js";
 
 /** World-info positions a lorebook marker can place: position 0 (before) and position 1 (after). */
-export type LorebookMarkerPosition = "before" | "after";
+type LorebookMarkerPosition = "before" | "after";
 
 /** Context required for expanding markers. */
 export interface MarkerContext {
@@ -163,7 +163,7 @@ const CHARACTER_CARD_FIELD_ORDER = new Map(
 );
 
 /** Keep selected card sections in the same order as the Character editor. */
-export function orderCharacterMarkerFields(fields: readonly string[]): string[] {
+function orderCharacterMarkerFields(fields: readonly string[]): string[] {
   return fields
     .map((field, index) => ({ field, index }))
     .sort((left, right) => {
@@ -175,7 +175,7 @@ export function orderCharacterMarkerFields(fields: readonly string[]): string[] 
 }
 
 /** Resolve only the card fields explicitly owned by the Character Info marker. */
-export function resolveCharacterMarkerFields(configuredFields: readonly string[] | undefined): string[] {
+function resolveCharacterMarkerFields(configuredFields: readonly string[] | undefined): string[] {
   return orderCharacterMarkerFields(configuredFields ?? DEFAULT_CHARACTER_MARKER_FIELDS);
 }
 

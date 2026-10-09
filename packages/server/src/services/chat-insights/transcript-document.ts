@@ -12,7 +12,7 @@ export interface TranscriptDocumentEntry {
   thinking?: string | null;
 }
 
-export interface TranscriptDocumentInput {
+interface TranscriptDocumentInput {
   title: string;
   entries: TranscriptDocumentEntry[];
   /** Optional data: URIs keyed by speakerKey. Anything else is ignored. */
@@ -23,7 +23,7 @@ export interface TranscriptDocumentInput {
 }
 
 /** Hidden, system and empty turns are left out of readable documents. */
-export interface TranscriptVisibilityInput {
+interface TranscriptVisibilityInput {
   role: string;
   content: string;
   extra: Record<string, unknown>;
@@ -48,7 +48,7 @@ function formatDay(iso: string): string {
 }
 
 /** "2026-01-02 to 2026-02-03", or a single day, from the first and last dated entries. */
-export function describeTranscriptDateRange(entries: readonly TranscriptDocumentEntry[]): string {
+function describeTranscriptDateRange(entries: readonly TranscriptDocumentEntry[]): string {
   const times = entries
     .map((entry) => (entry.createdAt ? Date.parse(entry.createdAt) : Number.NaN))
     .filter((time) => Number.isFinite(time));
@@ -102,7 +102,7 @@ export function escapeHtml(value: string): string {
 }
 
 /** Escapes first, then applies a small safe subset of Markdown emphasis. */
-export function renderStoryInline(value: string): string {
+function renderStoryInline(value: string): string {
   return escapeHtml(value)
     .replace(/`([^`\n]+)`/gu, "<code>$1</code>")
     .replace(/\*\*([^*\n]+)\*\*/gu, "<strong>$1</strong>")

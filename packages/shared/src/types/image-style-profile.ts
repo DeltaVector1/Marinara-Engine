@@ -1,4 +1,4 @@
-export type ImageStyleBase =
+type ImageStyleBase =
   | "auto"
   | "anime"
   | "danbooru"

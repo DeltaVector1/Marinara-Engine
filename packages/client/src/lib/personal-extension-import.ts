@@ -24,7 +24,7 @@ export type PersonalExtensionImportDraft = {
   serverJs: string | null;
 };
 
-export function normalizePersonalExtensionVersion(value: unknown): string | null {
+function normalizePersonalExtensionVersion(value: unknown): string | null {
   if (typeof value === "number" && Number.isFinite(value) && value >= 0) return String(value);
   if (typeof value !== "string") return null;
   const normalized = value.trim();

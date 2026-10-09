@@ -13,9 +13,9 @@ import { isAllowedImageBuffer } from "../../utils/security.js";
 
 export const LOREBOOK_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 export const LOREBOOK_EXPORT_IMAGE_MAX_BYTES = 64 * 1024 * 1024;
-export const lorebookImagesDirectory = () => join(getDataDir(), "lorebooks", "images", "entries");
+const lorebookImagesDirectory = () => join(getDataDir(), "lorebooks", "images", "entries");
 
-export function lorebookImageInfo(buffer: Buffer) {
+function lorebookImageInfo(buffer: Buffer) {
   const info = isAllowedImageBuffer(buffer);
   return buffer.length <= LOREBOOK_IMAGE_MAX_BYTES && info && ["png", "jpg", "webp"].includes(info.ext) ? info : null;
 }
@@ -161,10 +161,6 @@ export async function discardImportedLorebookImages(
         await discardLorebookImage(image).catch((error: unknown) => {
           logger.warn(error, "Failed to remove an unused imported lorebook image");
         });
-}
-
-export async function restoreLorebookImages(value: unknown): Promise<LorebookEntryImage[]> {
-  return saveDecodedLorebookImages(await decodeLorebookImages(value));
 }
 
 /** Keep local character mirrors small; embed bytes only at the export boundary. */

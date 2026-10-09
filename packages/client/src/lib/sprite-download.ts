@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { saveBlobToDevice } from "./file-download";
 
-export type DownloadableSprite = {
+type DownloadableSprite = {
   url: string;
   filename?: string | null;
   expression: string;

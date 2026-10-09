@@ -12,7 +12,7 @@ export interface GenerationRoomContext {
 }
 
 type Participant = { id: string; displayName: string; persona: { name: string; description: string }; isHost: boolean };
-export interface RoomGenerationPolicy extends GenerationRoomContext {
+interface RoomGenerationPolicy extends GenerationRoomContext {
   chatId: string;
   characterIds: readonly string[];
   characters: readonly { id: string; name: string; role: "character" | "gm" }[];
@@ -153,7 +153,7 @@ export function roomAgentAllowed(type: string, settings?: unknown): boolean {
 }
 
 /** Tracked NPC companions are room state; they never authorize a library-card lookup. */
-export function filterRoomGamePartyCharacterIds(
+function filterRoomGamePartyCharacterIds(
   metadata: Record<string, unknown>,
   approvedCharacterIds: readonly string[],
 ): string[] {

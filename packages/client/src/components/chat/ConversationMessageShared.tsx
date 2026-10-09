@@ -234,7 +234,7 @@ export function formatTimestamp(dateStr: string): string {
 
 export const IMAGE_URL_RE = /^https?:\/\/\S+\.(?:gif|png|jpe?g|webp)(?:\?[^\s]*)?$/i;
 
-export function highlightMentions(nodes: ReactNode[], names: string[], keyPrefix: string): ReactNode[] {
+function highlightMentions(nodes: ReactNode[], names: string[], keyPrefix: string): ReactNode[] {
   if (names.length === 0) return nodes;
   const sorted = [...names].sort((a, b) => b.length - a.length);
   const pattern = new RegExp(

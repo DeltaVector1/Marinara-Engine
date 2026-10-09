@@ -4,8 +4,8 @@
 import { z } from "zod";
 import { isPatternSafe } from "../utils/regex-safety.js";
 
-export const regexPlacementSchema = z.enum(["ai_output", "user_input"]);
-export const regexApplyModeSchema = z.enum(["prompt", "display", "both"]);
+const regexPlacementSchema = z.enum(["ai_output", "user_input"]);
+const regexApplyModeSchema = z.enum(["prompt", "display", "both"]);
 
 function hasValidRegexFlags(flags: string): boolean {
   try {
@@ -98,6 +98,3 @@ export const reorderRegexScriptsSchema = z.object({
 });
 
 export type CreateRegexScriptInput = z.infer<typeof createRegexScriptSchema>;
-export type ImportRegexScriptInput = z.infer<typeof importRegexScriptSchema>;
-export type UpdateRegexScriptInput = z.infer<typeof updateRegexScriptSchema>;
-export type ReorderRegexScriptsInput = z.infer<typeof reorderRegexScriptsSchema>;

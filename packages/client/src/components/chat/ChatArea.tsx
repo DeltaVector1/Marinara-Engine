@@ -267,7 +267,7 @@ function resolveExpressionAvatarSpriteUrl(sprites: SpriteInfo[] | undefined, exp
 }
 
 function suppressBuiltInProfessorMariForMode(mode: string | undefined): boolean {
-  return mode === "game" || mode === "roleplay";
+  return mode === "roleplay";
 }
 
 const INTUITIVE_SWIPE_MIN_DISTANCE = 56;
@@ -557,7 +557,7 @@ export const ChatArea = memo(function ChatArea() {
 const retainedExpressionTurns = new Map<string, ReturnType<typeof resolveLatestSpriteExpressionTurn>>();
 
 function readChatMode(chat: { mode?: unknown }): ChatMode {
-  return chat.mode === "conversation" || chat.mode === "game" ? chat.mode : "roleplay";
+  return chat.mode === "conversation" ? chat.mode : "roleplay";
 }
 
 const LocalChatArea = memo(function LocalChatArea() {
@@ -725,7 +725,6 @@ const LocalChatArea = memo(function LocalChatArea() {
   const chatMode = rawMode ?? lastModeRef.current;
   const isRoleplay = chatMode === "roleplay";
   const suppressBuiltInProfessorMari = suppressBuiltInProfessorMariForMode(chatMode);
-  const isGameChat = chatMode === "game";
   const messagePageSize = messagesPerPage;
   const {
     data: msgData,
@@ -765,7 +764,7 @@ const LocalChatArea = memo(function LocalChatArea() {
   }, [messageOffset, messages]);
   // Only the selected identity card is needed here, so fetch that one row
   // instead of the whole character library. [PR #5583]
-  const identityCharacterId = isGameChat ? null : (chat?.personaCharacterId ?? null);
+  const identityCharacterId = chat?.personaCharacterId ?? null;
   const identityCharacterQueries = useQueries({
     queries: (identityCharacterId ? [identityCharacterId] : []).map((id) => ({
       queryKey: characterKeys.detail(id),
@@ -1515,8 +1514,7 @@ const LocalChatArea = memo(function LocalChatArea() {
   // across every render path.
   const cardCssMode: CardCssMode =
     chatMeta.cardCssMode === "exclusive" || chatMeta.cardCssMode === "chat" ? chatMeta.cardCssMode : "disabled";
-  const cardCssChatMode: ChatModeFilter =
-    chatMode === "conversation" ? "conversation" : chatMode === "game" ? "game" : "roleplay";
+  const cardCssChatMode: ChatModeFilter = chatMode === "conversation" ? "conversation" : "roleplay";
   // Persona creator-notes CSS only reaches the Conversation about-me popout
   // (personas have no other data-card-css hook), so only feed it in Convo mode.
   const cardCssPersonas = useMemo<PersonaCssRow[] | undefined>(() => {
@@ -1819,7 +1817,7 @@ const LocalChatArea = memo(function LocalChatArea() {
       return resolveExpressionAvatarSpriteUrl(expressionAvatarSpriteMap.get(characterId), expression);
     };
   }, [characterMap, expressionAvatarSpriteMap, expressionAvatarsEnabled, personaInfo?.id, personaInfo?.name]);
-  const shouldRefreshGameStateOnSwipe = isGameChat || Boolean(chatMeta.enableAgents);
+  const shouldRefreshGameStateOnSwipe = Boolean(chatMeta.enableAgents);
 
   const refreshVisibleGameState = useCallback(async () => {
     if (!shouldRefreshGameStateOnSwipe || !activeChatId) return;
@@ -1841,7 +1839,7 @@ const LocalChatArea = memo(function LocalChatArea() {
     [deleteDialogMessageId, messages],
   );
   const deleteDialogCanDeleteSwipe = (deleteDialogMessage?.swipeCount ?? 0) > 1;
-  const deleteDialogCanDeleteOtherSwipes = deleteDialogCanDeleteSwipe && !isGameChat;
+  const deleteDialogCanDeleteOtherSwipes = deleteDialogCanDeleteSwipe;
   const deleteDialogActiveSwipeIndex = deleteDialogMessage?.activeSwipeIndex ?? 0;
   const deleteDialogSwipeCount = deleteDialogMessage?.swipeCount ?? 0;
 
@@ -2676,7 +2674,7 @@ const LocalChatArea = memo(function LocalChatArea() {
       if (!cfg?.enabled) return;
 
       const mode = chatModeRef.current;
-      const shouldAutoplay = mode === "roleplay" ? cfg.autoplayRP : mode === "game" ? false : cfg.autoplayConvo;
+      const shouldAutoplay = mode === "roleplay" ? cfg.autoplayRP : cfg.autoplayConvo;
       if (!shouldAutoplay) return;
 
       const targetRevision = getTTSAutoplayRevision(lastMsg);

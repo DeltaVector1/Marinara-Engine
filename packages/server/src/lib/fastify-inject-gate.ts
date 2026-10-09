@@ -16,7 +16,7 @@ import { logger } from "./logger.js";
  * - Any other held call is rejected with the same error after `maxHoldMs`, with a warning (and its stack) first
  *   after `warnAfterMs`. Startup then fails loudly instead of hanging.
  */
-export class InjectDuringRegistrationError extends Error {
+class InjectDuringRegistrationError extends Error {
   readonly code = "MARINARA_INJECT_DURING_REGISTRATION";
   constructor(message: string) {
     super(message);
@@ -40,7 +40,7 @@ export async function failInjectFastDuring<T>(operation: () => Promise<T> | T): 
   }
 }
 
-export type InjectGateOptions = {
+type InjectGateOptions = {
   /** Log a warning, with the caller's stack, for a call still held after this long. */
   warnAfterMs?: number;
   /** Reject a call still held after this long, so startup cannot hang on it. */

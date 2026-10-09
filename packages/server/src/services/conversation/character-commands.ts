@@ -40,20 +40,10 @@
 // - [navigate: panel="...", tab="..."]
 // - [fetch: type="character|persona|lorebook|chat|preset", name="..."]
 
-import {
-  normalizeHapticAction,
-  normalizeHapticPattern,
-  normalizeTextForMatch,
-  stripLeadingMessageTimestamps,
-  type HapticDeviceAction,
-  type HapticFeedbackPattern,
-} from "@marinara-engine/shared";
+import { normalizeTextForMatch, stripLeadingMessageTimestamps } from "@marinara-engine/shared";
 
 import { stripConversationPromptTimestamps } from "./transcript-sanitize.js";
-import {
-  parseCapabilityConversationCommands,
-  stripCapabilityConversationCommands,
-} from "../capability-packages/capability-command-registry.service.js";
+import { parseCapabilityConversationCommands, stripCapabilityConversationCommands } from "../capability-packages/capability-command-registry.service.js";
 
 export interface ScheduleUpdateCommand {
   type: "schedule_update";
@@ -82,7 +72,7 @@ export interface MemoryCommand {
   summary: string;
 }
 
-export interface SceneCommand {
+interface SceneCommand {
   type: "scene";
   /** Description of the scene/scenario the character wants to play out */
   scenario: string;
@@ -92,7 +82,7 @@ export interface SceneCommand {
   plan?: string;
 }
 
-export interface CallCommand {
+interface CallCommand {
   /** Ring the user for a Conversation-mode audio call. Param-less or optional reason/greeting. */
   type: "call";
   reason?: string;
@@ -100,37 +90,37 @@ export interface CallCommand {
   greeting?: string;
 }
 
-export interface UnoCommand {
+interface UnoCommand {
   /** Start a game of UNO at the table. Param-less; the system deals + runs the game. */
   type: "uno";
 }
 
-export interface ChessCommand {
+interface ChessCommand {
   /** Start a one-on-one chess game against the user. Param-less; the system sets up + runs the board. */
   type: "chess";
 }
 
-export interface PokerCommand {
+interface PokerCommand {
   /** Start a game of Texas Hold'em poker at the table. Param-less; the system seats + runs the game. */
   type: "poker";
 }
 
-export interface EightballCommand {
+interface EightballCommand {
   /** Start a one-on-one 8-ball pool game against the user. Param-less; the system racks + runs the table. */
   type: "eightball";
 }
 
-export interface TicTacToeCommand {
+interface TicTacToeCommand {
   /** Start a one-on-one tic-tac-toe game against the user. Param-less; the system sets up + runs the board. */
   type: "tic_tac_toe";
 }
 
-export interface RockPaperScissorsCommand {
+interface RockPaperScissorsCommand {
   /** Start a one-on-one rock-paper-scissors match against the user. Param-less; the system sets up + runs the match. */
   type: "rock_paper_scissors";
 }
 
-export interface CapabilityConversationCommand {
+interface CapabilityConversationCommand {
   type: "capability";
   commandType: string;
   payload: string | null;
@@ -161,32 +151,6 @@ export interface DirectMessageCommand {
   resolvedCharacterName?: string;
 }
 
-export interface HapticCommand {
-  type: "haptic";
-  /** Device action */
-  action: HapticDeviceAction;
-  /** Intensity / speed (0.0-1.0) */
-  intensity?: number;
-  /** Duration in seconds */
-  duration?: number;
-  /** Named output pattern. */
-  pattern?: HapticFeedbackPattern;
-}
-
-export interface SpotifyCommand {
-  type: "spotify";
-  /** Exact song title to play */
-  title: string;
-  /** Artist name to disambiguate the track */
-  artist: string;
-}
-
-export interface YouTubeCommand {
-  type: "youtube";
-  /** YouTube search query to resolve on the client player */
-  query: string;
-}
-
 export interface ReactCommand {
   type: "react";
   /** The reaction token: a unicode emoji (e.g. "😂") or a custom-emoji ref `:name:`. */
@@ -202,7 +166,7 @@ export interface ReactCommand {
 
 // ── Assistant commands (Professor Mari) ──
 
-export interface CreatePersonaCommand {
+interface CreatePersonaCommand {
   type: "create_persona";
   name: string;
   description?: string;
@@ -211,7 +175,7 @@ export interface CreatePersonaCommand {
   aboutMe?: string;
 }
 
-export interface CreateCharacterCommand {
+interface CreateCharacterCommand {
   type: "create_character";
   name: string;
   summary?: string;
@@ -238,7 +202,7 @@ export interface CreateCharacterCommand {
   depthPromptRole?: "system" | "user" | "assistant";
 }
 
-export interface UpdateCharacterCommand {
+interface UpdateCharacterCommand {
   type: "update_character";
   name: string;
   summary?: string;
@@ -265,7 +229,7 @@ export interface UpdateCharacterCommand {
   depthPromptRole?: "system" | "user" | "assistant";
 }
 
-export interface UpdatePersonaCommand {
+interface UpdatePersonaCommand {
   type: "update_persona";
   name: string;
   description?: string;
@@ -276,7 +240,7 @@ export interface UpdatePersonaCommand {
   aboutMe?: string;
 }
 
-export interface CreateLorebookEntryCommand {
+interface CreateLorebookEntryCommand {
   name: string;
   /** Forward-slash folder path inside the lorebook. Missing folders are created. */
   path?: string;
@@ -289,12 +253,12 @@ export interface CreateLorebookEntryCommand {
   selective?: boolean;
 }
 
-export interface UpdateLorebookEntryCommand extends CreateLorebookEntryCommand {
+interface UpdateLorebookEntryCommand extends CreateLorebookEntryCommand {
   /** Existing entry name to match when renaming or disambiguating. Defaults to name. */
   matchName?: string;
 }
 
-export interface CreateLorebookCommand {
+interface CreateLorebookCommand {
   type: "create_lorebook";
   name: string;
   description?: string;
@@ -304,7 +268,7 @@ export interface CreateLorebookCommand {
   entries?: CreateLorebookEntryCommand[];
 }
 
-export interface UpdateLorebookCommand {
+interface UpdateLorebookCommand {
   type: "update_lorebook";
   /** Existing lorebook name to update. */
   name: string;
@@ -317,7 +281,7 @@ export interface UpdateLorebookCommand {
   entries?: UpdateLorebookEntryCommand[];
 }
 
-export interface CreatePresetSectionCommand {
+interface CreatePresetSectionCommand {
   name: string;
   content?: string;
   identifier?: string;
@@ -331,20 +295,20 @@ export interface CreatePresetSectionCommand {
   skipWrap?: boolean;
 }
 
-export interface CreatePresetGroupCommand {
+interface CreatePresetGroupCommand {
   name: string;
   parentGroupName?: string;
   order?: number;
   enabled?: boolean;
 }
 
-export interface CreatePresetChoiceOptionCommand {
+interface CreatePresetChoiceOptionCommand {
   id?: string;
   label: string;
   value: string;
 }
 
-export interface CreatePresetChoiceBlockCommand {
+interface CreatePresetChoiceBlockCommand {
   variableName: string;
   question: string;
   options: CreatePresetChoiceOptionCommand[];
@@ -355,7 +319,7 @@ export interface CreatePresetChoiceBlockCommand {
   optionSort?: "manual" | "alphabetical";
 }
 
-export interface CreatePresetCommand {
+interface CreatePresetCommand {
   type: "create_preset";
   name: string;
   description?: string;
@@ -366,19 +330,19 @@ export interface CreatePresetCommand {
   choiceBlocks?: CreatePresetChoiceBlockCommand[];
 }
 
-export interface CreateChatCommand {
+interface CreateChatCommand {
   type: "create_chat";
   character: string;
   mode?: "conversation" | "roleplay";
 }
 
-export interface NavigateCommand {
+interface NavigateCommand {
   type: "navigate";
   panel: string;
   tab?: string;
 }
 
-export interface FetchCommand {
+interface FetchCommand {
   type: "fetch";
   /** What kind of item to fetch */
   fetchType: "character" | "persona" | "lorebook" | "chat" | "preset";
@@ -386,17 +350,17 @@ export interface FetchCommand {
   name: string;
 }
 
-export interface SuggestionsCommand {
+interface SuggestionsCommand {
   type: "suggestions";
   suggestions: unknown;
 }
 
-export interface PlanCommand {
+interface PlanCommand {
   type: "plan";
   plan: unknown;
 }
 
-export type AssistantCommand =
+type AssistantCommand =
   | CreatePersonaCommand
   | CreateCharacterCommand
   | UpdateCharacterCommand
@@ -427,9 +391,6 @@ export type CharacterCommand =
   | InfluenceCommand
   | NoteCommand
   | DirectMessageCommand
-  | HapticCommand
-  | SpotifyCommand
-  | YouTubeCommand
   | ReactCommand
   | AssistantCommand;
 
@@ -448,9 +409,6 @@ const SELFIE_RE = /\[selfie(?::\s*(?:context="([^"]*)"|"([^"]*)"|([^\]\r\n"]+)))
 const MEMORY_RE = /\[memory:\s*target="([^"]+)"\s*,\s*summary="([^"]+)"\]/gi;
 const SCENE_RE = new RegExp(`\\[scene:\\s*(${QUOTED_PARAM_BLOCK})\\]`, "gi");
 const CALL_RE = new RegExp(`\\[call(?::\\s*(${QUOTED_PARAM_BLOCK}))?\\]`, "gi");
-const HAPTIC_RE = new RegExp(`\\[haptic:\\s*(${QUOTED_PARAM_BLOCK})\\]`, "gi");
-const SPOTIFY_RE = new RegExp(`\\[spotify:\\s*(${QUOTED_PARAM_BLOCK})\\]`, "gi");
-const YOUTUBE_RE = new RegExp(`\\[youtube:\\s*(${QUOTED_PARAM_BLOCK})\\]`, "gi");
 // React with an emoji. Accepts [react: emoji="😂"], [react: "😂"], or [react: 😂]
 // — and likewise for a custom emoji ref :name:. An optional trailing
 // `to "Character Name"` (quotes optional) aims the reaction at that character's
@@ -1237,49 +1195,6 @@ export function parseCharacterCommands(content: string): {
     if (text) commands.push({ type: "note", content: text });
   }
 
-  // Parse haptic commands
-  for (const match of content.matchAll(HAPTIC_RE)) {
-    const params = match[1]!;
-    const actionMatch = params.match(/action="([^"]+)"/);
-    const action = normalizeHapticAction(actionMatch?.[1] ?? "vibrate");
-    if (!action) continue;
-    const cmd: HapticCommand = { type: "haptic", action };
-    const intensityMatch = params.match(/intensity=([0-9.]+)/);
-    if (intensityMatch) {
-      const v = parseFloat(intensityMatch[1]!);
-      if (Number.isFinite(v)) cmd.intensity = Math.max(0, Math.min(1, v));
-    }
-    const durationMatch = params.match(/duration=([0-9.]+)/);
-    if (durationMatch) {
-      const v = parseFloat(durationMatch[1]!);
-      if (Number.isFinite(v)) cmd.duration = Math.max(0, v);
-    }
-    const pattern = normalizeHapticPattern(params.match(/pattern="([^"]+)"/)?.[1]);
-    if (pattern) cmd.pattern = pattern;
-    commands.push(cmd);
-  }
-
-  // Parse Spotify song commands
-  for (const match of content.matchAll(SPOTIFY_RE)) {
-    const params = match[1]!;
-    const title = parseQuotedParam(params, "title");
-    const artist = parseQuotedParam(params, "artist");
-    if (title && artist) {
-      commands.push({ type: "spotify", title, artist });
-    }
-  }
-
-  // Parse YouTube song commands
-  for (const match of content.matchAll(YOUTUBE_RE)) {
-    const params = match[1]!;
-    const query =
-      parseQuotedParam(params, "query") ??
-      [parseQuotedParam(params, "title"), parseQuotedParam(params, "artist")].filter(Boolean).join(" ");
-    if (query) {
-      commands.push({ type: "youtube", query });
-    }
-  }
-
   // Parse reaction commands — react with an emoji to the user's latest message,
   // or to a specific character's most recent part via the `to "Name"` suffix.
   for (const match of content.matchAll(REACT_RE)) {
@@ -1437,9 +1352,6 @@ export function parseCharacterCommands(content: string): {
     .replace(MEMORY_RE, "")
     .replace(SCENE_RE, "")
     .replace(CALL_RE, "")
-    .replace(HAPTIC_RE, "")
-    .replace(SPOTIFY_RE, "")
-    .replace(YOUTUBE_RE, "")
     // Only strip react tags that actually parse into a command — bodies
     // parseReactBody rejects (junk prose with quotes, unterminated quotes)
     // stay visible, matching the old stricter grammar's behavior.

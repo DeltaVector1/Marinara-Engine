@@ -72,7 +72,7 @@ async function rankEmojiNamesBySemantic(names: string[], query: string): Promise
 }
 
 /** Order a pool of emoji names per the selection mode (does NOT cap; the formatter slices to maxCount). */
-export async function orderEmojiNames(
+async function orderEmojiNames(
   names: string[],
   prefs: CustomEmojiSelectionPrefs,
   query: string,
@@ -92,7 +92,7 @@ export async function orderEmojiNames(
  * picks (<= maxCount), or null on any failure so the caller can fall back to
  * semantic/random. Never throws: generation must not depend on it.
  */
-export async function selectCustomAssetNamesByToolCall(
+async function selectCustomAssetNamesByToolCall(
   assetLabel: string,
   tokenExample: string,
   candidates: string[],
@@ -160,7 +160,7 @@ export async function selectCustomAssetNamesByToolCall(
   }
 }
 
-export function uniqueEmojiNames(names: Array<string | null | undefined>): string[] {
+function uniqueEmojiNames(names: Array<string | null | undefined>): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
   for (const raw of names) {
@@ -393,7 +393,7 @@ export async function appendConversationCustomAssetAdvertisements(args: {
  * Build the Conversation-mode system-prompt block that tells the responding
  * character(s) which custom emojis they may use (`:name:`).
  */
-export function buildCustomEmojiAdvertisement(
+function buildCustomEmojiAdvertisement(
   responders: { charId: string; name: string }[],
   orderedGlobal: string[],
   orderedOwnByChar: Map<string, string[]>,
@@ -429,7 +429,7 @@ export function buildCustomEmojiAdvertisement(
  * Build the Conversation-mode system-prompt block telling the responding
  * character(s) which custom stickers they may send (`sticker:name:`, a block image).
  */
-export function buildCustomStickerAdvertisement(
+function buildCustomStickerAdvertisement(
   responders: { charId: string; name: string }[],
   orderedGlobal: string[],
   orderedOwnByChar: Map<string, string[]>,
@@ -685,10 +685,10 @@ export function getStoredFilename(filePath: string): string {
   return filePath.split("/").pop() ?? filePath;
 }
 
-export function buildCharacterGalleryEmojiUrl(characterId: string, filename: string): string {
+function buildCharacterGalleryEmojiUrl(characterId: string, filename: string): string {
   return `/api/characters/${encodeURIComponent(characterId)}/gallery/file/${encodeURIComponent(filename)}`;
 }
 
-export function buildPersonaGalleryEmojiUrl(personaId: string, filename: string): string {
+function buildPersonaGalleryEmojiUrl(personaId: string, filename: string): string {
   return `/api/characters/personas/${encodeURIComponent(personaId)}/gallery/file/${encodeURIComponent(filename)}`;
 }

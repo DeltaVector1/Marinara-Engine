@@ -24,7 +24,7 @@ export interface DecisionSidecarModel {
   };
 }
 
-export interface DecisionSidecarStatus {
+interface DecisionSidecarStatus {
   supported: boolean;
   unsupportedReason: string | null;
   settings: DecisionSidecarSettings;
@@ -38,7 +38,7 @@ export interface DecisionSidecarStatus {
   cudaDevice: number;
 }
 
-export const decisionSidecarKey = [...decisionKeys.all, "sidecar"] as const;
+const decisionSidecarKey = [...decisionKeys.all, "sidecar"] as const;
 
 export function useDecisionSidecar(enabled = true) {
   return useQuery({

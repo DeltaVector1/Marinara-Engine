@@ -164,11 +164,11 @@ function groupIntoBursts(msgs: MessageRow[]): MessageRow[][] {
 const AWARENESS_INTRODUCTION =
   "These are your other active conversations. You naturally remember what happens in them — reference or react to them as a real person would.";
 
-export function formatAwarenessConversationBlock(lines: string[], wrapFormat: WrapFormat): string {
+function formatAwarenessConversationBlock(lines: string[], wrapFormat: WrapFormat): string {
   return wrapContent(lines.join("\n"), "Conversation", wrapFormat, 1);
 }
 
-export function formatAwarenessContextBlock(conversationBlocks: string[], wrapFormat: WrapFormat): string {
+function formatAwarenessContextBlock(conversationBlocks: string[], wrapFormat: WrapFormat): string {
   return wrapContent(
     [AWARENESS_INTRODUCTION, ...conversationBlocks].filter(Boolean).join("\n\n"),
     "Awareness",

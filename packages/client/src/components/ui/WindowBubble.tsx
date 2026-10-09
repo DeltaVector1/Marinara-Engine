@@ -72,7 +72,7 @@ type BubbleDrag = {
   others: { x: number; y: number; width: number; height: number }[];
 };
 
-export interface WindowBubbleProps {
+interface WindowBubbleProps {
   id: FloatingWindowId;
   /** Where it sits (its top-left corner, viewport pixels); clamped to `bounds` here. */
   point: WindowPoint;

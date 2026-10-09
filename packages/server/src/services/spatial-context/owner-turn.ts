@@ -8,7 +8,7 @@ import type {
 } from "@marinara-engine/shared";
 import { getCapabilityService } from "../capability-packages/capability-service-registry.service.js";
 
-export type SpatialOwnerTurnErrorCode =
+type SpatialOwnerTurnErrorCode =
   | SpatialTransitionErrorCode
   | "chat_not_found"
   | "spatial_mode_unsupported"
@@ -56,12 +56,12 @@ export interface CommitSpatialOwnerTurnInput {
   attachments?: MessageAttachment[];
 }
 
-export type CommitSpatialOwnerTurnResult = {
+type CommitSpatialOwnerTurnResult = {
   message: CapabilityMessageRecord;
   snapshot: SpatialContextSnapshot;
   travel?: ResolvedSpatialTravel;
 };
-export type AppliedSpatialOwnerTurn = {
+type AppliedSpatialOwnerTurn = {
   messageId: string;
   snapshot: SpatialContextSnapshot;
   travel?: ResolvedSpatialTravel;

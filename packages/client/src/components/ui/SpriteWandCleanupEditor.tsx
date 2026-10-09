@@ -120,7 +120,6 @@ const DEFAULT_BLUR_STRENGTH = 65;
 const DEFAULT_CLEAN_TOLERANCE = 36;
 const DEFAULT_CLEAN_EDGE_GUARD = 45;
 const DEFAULT_CLEAN_FEATHER = 8;
-const DEFAULT_WAND_STRONG = false;
 const DEFAULT_WAND_SOFTNESS = 55;
 const DEFAULT_WAND_FEATHER = 12;
 const WAND_EDGE_GUARD = 55;
@@ -393,7 +392,7 @@ export function SpriteWandCleanupEditor({
   const [tool, setTool] = useState<CleanupTool>("wand");
   const [previewBackground, setPreviewBackground] = useState<PreviewBackground>("dark");
   const [wandTolerance, setWandTolerance] = useState(DEFAULT_WAND_TOLERANCE);
-  const [wandStrong, setWandStrong] = useState(DEFAULT_WAND_STRONG);
+  const [wandStrong, setWandStrong] = useState(false);
   const [wandSoftness, setWandSoftness] = useState(DEFAULT_WAND_SOFTNESS);
   const [wandFeather, setWandFeather] = useState(DEFAULT_WAND_FEATHER);
   const [cleanTolerance, setCleanTolerance] = useState(DEFAULT_CLEAN_TOLERANCE);
@@ -789,7 +788,7 @@ export function SpriteWandCleanupEditor({
 
   const handleResetWandDefaults = useCallback(() => {
     setWandTolerance(DEFAULT_WAND_TOLERANCE);
-    setWandStrong(DEFAULT_WAND_STRONG);
+    setWandStrong(false);
     setWandSoftness(DEFAULT_WAND_SOFTNESS);
     setWandFeather(DEFAULT_WAND_FEATHER);
     setStatus("Wand settings reset");

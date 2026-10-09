@@ -1,30 +1,13 @@
-// ──────────────────────────────────────────────
-// Folder-shaped import/export packages
-// ──────────────────────────────────────────────
 
-export type MarinaraFolderKind =
-  "marinara.agent-folder" | "marinara.function-folder" | "marinara.theme-folder" | "marinara.preset-folder";
-
-export interface MarinaraItemManifest<T = unknown> {
+interface MarinaraItemManifest<T = unknown> {
   kind: string;
   version: 1;
   config: T;
 }
 
-export interface MarinaraFolderEntry<T = unknown> {
+interface MarinaraFolderEntry<T = unknown> {
   path: string;
   manifest: MarinaraItemManifest<T>;
-}
-
-export interface MarinaraFolderPackage<T = unknown> {
-  kind: MarinaraFolderKind;
-  version: 1;
-  exportedAt: string;
-  folderName: string;
-  agents?: MarinaraFolderEntry<T>[];
-  functions?: MarinaraFolderEntry<T>[];
-  themes?: MarinaraFolderEntry<T>[];
-  presets?: MarinaraFolderEntry<T>[];
 }
 
 export function isJsonRecord(value: unknown): value is Record<string, unknown> {

@@ -15,9 +15,9 @@ type ConnectionState = {
 };
 
 const states = new Map<string, ConnectionState>();
-export const BACKGROUND_CONNECTION_IDLE_MS = 30_000;
-export const BACKGROUND_CONNECTION_FAILURE_THRESHOLD = 3;
-export const BACKGROUND_CONNECTION_FAILURE_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+const BACKGROUND_CONNECTION_IDLE_MS = 30_000;
+const BACKGROUND_CONNECTION_FAILURE_THRESHOLD = 3;
+const BACKGROUND_CONNECTION_FAILURE_COOLDOWN_MS = 6 * 60 * 60 * 1000;
 
 import type {
   ConnectionAttemptOutcome,
@@ -30,32 +30,22 @@ export type {
   ConnectionAdmissionMode,
 } from "@marinara-engine/shared";
 
-/**
- * Marks a request the server issued to itself on a scheduler's behalf. Background admission is
- * strictly self-limiting — it can only make the caller yield — so an outside client setting this
- * gains nothing; it is a routing hint, not a privilege.
- */
-export const AUTOMATIC_GENERATION_HEADER = "x-marinara-automatic-generation";
 
-export function admissionModeForRequest(headers: Record<string, unknown>): ConnectionAdmissionMode {
-  return headers[AUTOMATIC_GENERATION_HEADER] === "1" ? { kind: "background" } : { kind: "foreground" };
-}
-
-export class BackgroundConnectionBusyError extends Error {
+class BackgroundConnectionBusyError extends Error {
   constructor(readonly connectionId: string) {
     super(`Connection ${connectionId} is not available for background generation.`);
     this.name = "BackgroundConnectionBusyError";
   }
 }
 
-export class ConnectionAttemptRejectedError extends Error {
+class ConnectionAttemptRejectedError extends Error {
   constructor(readonly cause: unknown) {
     super("Connection attempt was rejected before provider work started.", { cause });
     this.name = "ConnectionAttemptRejectedError";
   }
 }
 
-export class ConnectionAttemptFinalizationError extends Error {
+class ConnectionAttemptFinalizationError extends Error {
   constructor(readonly cause: unknown) {
     super("Connection attempt accounting failed after provider work finished.", { cause });
     this.name = "ConnectionAttemptFinalizationError";
@@ -97,7 +87,7 @@ function recordConnectionOutcome(state: ConnectionState, outcome: ConnectionAtte
   }
 }
 
-export function beginForegroundConnection(connectionId: string): (outcome?: ConnectionAttemptOutcome) => void {
+function beginForegroundConnection(connectionId: string): (outcome?: ConnectionAttemptOutcome) => void {
   const state = stateFor(connectionId);
   state.foregroundActive += 1;
   let released = false;
@@ -110,7 +100,7 @@ export function beginForegroundConnection(connectionId: string): (outcome?: Conn
   };
 }
 
-export function tryBackgroundConnection(
+function tryBackgroundConnection(
   connectionId: string,
   at: Date,
 ): { acquired: false } | { acquired: true; release: (outcome?: ConnectionAttemptOutcome) => void } {
@@ -134,10 +124,6 @@ export function tryBackgroundConnection(
       recordConnectionOutcome(state, outcome);
     },
   };
-}
-
-export function resetConnectionAdmissionForTests(): void {
-  states.clear();
 }
 
 async function beginConnectionAttempt(

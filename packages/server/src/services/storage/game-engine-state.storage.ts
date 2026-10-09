@@ -9,19 +9,15 @@ import type { DB } from "../../db/connection.js";
 import { gameEngineState } from "../../db/schema/index.js";
 import { newId, now } from "../../utils/id-generator.js";
 
-export type GameEngineStateRow = typeof gameEngineState.$inferSelect;
-export type GameEngineVisibleAnchor = { messageId: string; swipeIndex: number };
-
-/** Host-owned namespace prefix for game-surface Experience rows (#5102). Turn-game engine
- *  types are bare identifiers ("uno", "chess"); Experience rows are "experience:<packageId>". */
-export const EXPERIENCE_GAME_TYPE_PREFIX = "experience:";
+type GameEngineStateRow = typeof gameEngineState.$inferSelect;
+type GameEngineVisibleAnchor = { messageId: string; swipeIndex: number };
 
 /** Row-type scope for reads and destructive seams: a literal gameType selects exactly that
  *  namespace; `{ excludePrefix }` selects everything OUTSIDE a namespace (what the turn-game
  *  runner uses so Experience rows can never masquerade as — or be destroyed as — turn-games). */
-export type GameEngineStateScope = string | { readonly excludePrefix: string };
+type GameEngineStateScope = string | { readonly excludePrefix: string };
 
-export interface CreateGameEngineStateInput {
+interface CreateGameEngineStateInput {
   chatId: string;
   messageId: string;
   swipeIndex: number;

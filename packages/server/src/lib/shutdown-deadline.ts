@@ -18,8 +18,8 @@ import { noteSessionExitKind } from "./session-postmortem.js";
  * SIGKILL anyway, except we leave on our own terms with the session exit
  * stamp already recorded.
  */
-export const SHUTDOWN_CONNECTION_DEADLINE_MS = 4_000;
-export const SHUTDOWN_FORCE_EXIT_DEADLINE_MS = 8_000;
+const SHUTDOWN_CONNECTION_DEADLINE_MS = 4_000;
+const SHUTDOWN_FORCE_EXIT_DEADLINE_MS = 8_000;
 
 export interface ShutdownDeadlineOptions {
   connectionDeadlineMs?: number;

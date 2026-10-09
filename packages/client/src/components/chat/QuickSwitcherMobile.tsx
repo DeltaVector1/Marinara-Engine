@@ -105,7 +105,7 @@ export function QuickSwitcherMobile({ contextBudget }: { contextBudget?: Profess
       useForRandom?: string;
       showUsageWidget?: unknown;
     }>,
-    chatMode !== "game" && sidecarModelDownloaded,
+    sidecarModelDownloaded,
     sidecarModelDisplayName,
   )
     .filter((connection) => !isRandom || !isLocalSidecarConnectionOption(connection))

@@ -20,7 +20,7 @@ import { useUIStore } from "../../stores/ui.store";
 import { cn } from "../../lib/utils";
 import { RoleplayHUDActionsMenu } from "../chat/RoleplayHUDActionsMenu";
 
-export interface AgentActivitySectionProps {
+interface AgentActivitySectionProps {
   chatId: string;
   /** The chat's messages, oldest first, when the host has them; otherwise the loaded transcript is used. */
   messages?: Message[];

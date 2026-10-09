@@ -8,7 +8,7 @@ import type {
 } from "@marinara-engine/shared";
 import { api } from "../lib/api-client";
 
-export const personalExtensionKeys = {
+const personalExtensionKeys = {
   all: ["personal-extensions"] as const,
   list: () => [...personalExtensionKeys.all, "list"] as const,
   runtime: () => [...personalExtensionKeys.all, "runtime"] as const,

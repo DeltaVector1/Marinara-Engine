@@ -72,7 +72,7 @@ const ZIP_DEFLATE = 8;
  * Stream a ZIP whose entries are generated and compressed one at a time.
  * ponytail: ZIP32 only, so an archive past 4 GB fails; reuse the backup writer's ZIP64 support if that is reached.
  */
-export async function* streamZip(
+async function* streamZip(
   entries: AsyncIterable<{ name: string; content: AsyncIterable<string | Buffer> }>,
 ): AsyncGenerator<Buffer> {
   const { time, day } = dosDateTime(new Date());

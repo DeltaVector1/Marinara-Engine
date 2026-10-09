@@ -130,13 +130,6 @@ function parseEmbeddedJson(raw: string): unknown | undefined {
   return undefined;
 }
 
-function extractJsonishCandidate(raw: string): string {
-  const objectStart = raw.indexOf("{");
-  const arrayStart = raw.indexOf("[");
-  const starts = [objectStart, arrayStart].filter((index) => index >= 0);
-  if (starts.length === 0) return raw.trim();
-  return raw.slice(Math.min(...starts)).trim();
-}
 
 function scanJsonishStructure(raw: string): {
   started: boolean;
@@ -336,33 +329,4 @@ export function parseGameJsonish(raw: string): unknown {
   } catch {
     return unwrapJsonString(JSON.parse(candidate));
   }
-}
-
-/**
- * Parse every independent JSON-ish value emitted in one model response. Some
- * local models serialize a requested object as adjacent collection fragments
- * instead of one enclosing object. Callers that support fragment merging can
- * use this without changing the single-value behavior of parseGameJsonish.
- */
-export function parseGameJsonishSequence(raw: string): unknown[] {
-  const unfenced = stripFences(raw.trim());
-  const regions = collectIndependentJsonRegions(unfenced);
-  if (regions.length <= 1) return [parseGameJsonish(raw)];
-
-  const parsed: unknown[] = [];
-  for (const region of regions) {
-    try {
-      parsed.push(parseGameJsonish(unfenced.slice(region.start, region.end)));
-    } catch {
-      // Keep other complete fragments usable. If every fragment fails, the
-      // normal parser below retains its existing error and repair behavior.
-    }
-  }
-  return parsed.length > 0 ? parsed : [parseGameJsonish(raw)];
-}
-
-export function jsonishLooksTruncated(raw: string): boolean {
-  const candidate = extractJsonishCandidate(stripFences(raw.trim()));
-  const scan = scanJsonishStructure(candidate);
-  return scan.started && !scan.mismatched && (scan.inString || scan.escaped || scan.closers.length > 0);
 }

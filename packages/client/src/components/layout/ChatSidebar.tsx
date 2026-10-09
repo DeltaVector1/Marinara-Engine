@@ -611,7 +611,7 @@ export function ChatSidebar() {
     // 1. Tab sync — once per chat switch
     if (!s.tabSynced) {
       const chatMode = chat.mode;
-      if (chatMode === "conversation" || chatMode === "roleplay" || chatMode === "game") {
+      if (chatMode === "conversation" || chatMode === "roleplay") {
         setActiveTab(chatMode);
       }
       // Clear search so the active chat isn't hidden by a stale filter.
@@ -1210,19 +1210,6 @@ export function ChatSidebar() {
           >
             {displayName}
           </span>
-          {chat.metadata?.multiplayer && (
-            <span className="mari-chrome-accent-text-muted block truncate text-[0.6875rem]">
-              {localizeUi(
-                (chat.metadata.multiplayer as { role?: string; status?: string }).role === "host"
-                  ? (chat.metadata.multiplayer as { status?: string }).status === "ended"
-                    ? "multiplayer.sidebar.stopped"
-                    : "multiplayer.sidebar.hosting"
-                  : (chat.metadata.multiplayer as { status?: string }).status === "joined"
-                    ? "multiplayer.sidebar.joined"
-                    : "multiplayer.sidebar.disconnected",
-              )}
-            </span>
-          )}
           {subtitle && (
             <span className="mari-chrome-accent-text-muted flex items-center gap-1 truncate text-[0.6875rem] leading-tight">
               {SubtitleIcon && (

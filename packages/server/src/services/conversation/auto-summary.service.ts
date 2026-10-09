@@ -9,7 +9,7 @@ import { tryParseJsonRecord } from "../../lib/json-repair.js";
 import { stripConversationPromptTimestamps } from "./transcript-sanitize.js";
 import { formatZonedConversationDate, toZonedWallClockDate } from "./timezone.js";
 
-export interface ConversationSummaryMessage {
+interface ConversationSummaryMessage {
   id?: string;
   role: string;
   content: string | null;
@@ -30,7 +30,7 @@ export function countConversationMessagesAfterSummaryAnchor(
   return messages.slice(anchorIndex + 1).filter(isConversationMessage).length;
 }
 
-export interface ConversationSummaryRunResult {
+interface ConversationSummaryRunResult {
   daySummaries: Record<string, DaySummaryEntry>;
   weekSummaries: Record<string, WeekSummaryEntry>;
   newlyGeneratedDays: Record<string, DaySummaryEntry>;
@@ -49,7 +49,7 @@ interface ConversationSummaryDayBucket {
   msgs: Array<{ role: string; content: string; author: string; ts: Date }>;
 }
 
-export interface ConversationSummaryFailureRecord {
+interface ConversationSummaryFailureRecord {
   attempts: number;
   lastAttemptAt: string;
   lastError: string;
@@ -57,7 +57,7 @@ export interface ConversationSummaryFailureRecord {
   permanent: boolean;
 }
 
-export interface ConversationSummaryFailures {
+interface ConversationSummaryFailures {
   days: Record<string, ConversationSummaryFailureRecord>;
   weeks: Record<string, ConversationSummaryFailureRecord>;
 }
@@ -106,7 +106,7 @@ function coerceFailureRecord(value: unknown): ConversationSummaryFailureRecord |
   };
 }
 
-export function normalizeConversationSummaryFailures(raw: unknown): ConversationSummaryFailures {
+function normalizeConversationSummaryFailures(raw: unknown): ConversationSummaryFailures {
   const empty: ConversationSummaryFailures = { days: createSummaryFailureMap(), weeks: createSummaryFailureMap() };
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return empty;
   const record = raw as Record<string, unknown>;
@@ -138,7 +138,7 @@ function coerceSummaryEntry(value: unknown): DaySummaryEntry | null {
   return summary || keyDetails.length > 0 ? { summary, keyDetails } : null;
 }
 
-export function normalizeDaySummaries(raw: unknown): Record<string, DaySummaryEntry> {
+function normalizeDaySummaries(raw: unknown): Record<string, DaySummaryEntry> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
   const out: Record<string, DaySummaryEntry> = {};
   for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
@@ -148,7 +148,7 @@ export function normalizeDaySummaries(raw: unknown): Record<string, DaySummaryEn
   return out;
 }
 
-export function normalizeWeekSummaries(raw: unknown): Record<string, WeekSummaryEntry> {
+function normalizeWeekSummaries(raw: unknown): Record<string, WeekSummaryEntry> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
   const out: Record<string, WeekSummaryEntry> = {};
   for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
@@ -167,7 +167,7 @@ export function formatConversationDateKey(date: Date): string {
   return `${String(date.getDate()).padStart(2, "0")}.${String(date.getMonth() + 1).padStart(2, "0")}.${date.getFullYear()}`;
 }
 
-export function getConversationWeekMonday(date: Date): Date {
+function getConversationWeekMonday(date: Date): Date {
   const day = date.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + diff);
@@ -241,7 +241,7 @@ function cleanJsonishResponse(raw: string): string {
   return trimmed;
 }
 
-export function parseSummaryResponse(raw: string): DaySummaryEntry {
+function parseSummaryResponse(raw: string): DaySummaryEntry {
   const trimmed = raw.trim();
   const parsed = tryParseJsonRecord(cleanJsonishResponse(trimmed));
   if (parsed) {

@@ -230,7 +230,7 @@ function detectVariableGroups(prompts: STPromptEntry[]): PromptVariableGroup[] {
   return Array.from(groups.values());
 }
 
-export function extractSetvarAssignments(content: string): Array<[name: string, value: string]> {
+function extractSetvarAssignments(content: string): Array<[name: string, value: string]> {
   const assignments: Array<[string, string]> = [];
   const prefix = "{{setvar::";
   const prefixPattern = /\{\{setvar::/gi;

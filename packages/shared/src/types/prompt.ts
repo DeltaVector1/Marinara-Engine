@@ -17,7 +17,7 @@ export function isStockMarinaraUniversalPreset(preset: { systemKey?: unknown }):
 export type PromptRole = "system" | "user" | "assistant";
 
 /** Where in the prompt a section is injected. */
-export type InjectionPosition =
+type InjectionPosition =
   /** Placed in order relative to other sections */
   | "ordered"
   /** Injected at a depth relative to the end of chat history */
@@ -189,7 +189,7 @@ export interface PromptVariableGroup {
 }
 
 /** A single option within a variable group. */
-export interface PromptVariableOption {
+interface PromptVariableOption {
   label: string;
   value: string;
 }
@@ -220,7 +220,7 @@ export interface ManagedGenerationParameterDefinition {
   tooltip?: string;
 }
 
-export interface ManagedGenerationParameterValue {
+interface ManagedGenerationParameterValue {
   enabled: boolean;
   value: number;
 }
@@ -270,22 +270,6 @@ export interface GenerationParameters {
   /** Send chat history as one user message, keeping the leading system prompt separate. */
   singleUserMessage: boolean;
 }
-
-/** Well-known built-in marker identifiers (match ST). */
-export const BUILTIN_MARKERS = {
-  MAIN: "main",
-  NSFW: "nsfw",
-  JAILBREAK: "jailbreak",
-  ENHANCE_DEFINITIONS: "enhanceDefinitions",
-  CHAR_DESCRIPTION: "charDescription",
-  CHAR_PERSONALITY: "charPersonality",
-  SCENARIO: "scenario",
-  PERSONA_DESCRIPTION: "personaDescription",
-  DIALOGUE_EXAMPLES: "dialogueExamples",
-  CHAT_HISTORY: "chatHistory",
-  WORLD_INFO_BEFORE: "worldInfoBefore",
-  WORLD_INFO_AFTER: "worldInfoAfter",
-} as const;
 
 /** A ChatML-format message (internal lingua franca). */
 export interface ChatMLMessage {

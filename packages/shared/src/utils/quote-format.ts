@@ -1,4 +1,4 @@
-export const QUOTE_FORMATS = ["straight", "typographic"] as const;
+const QUOTE_FORMATS = ["straight", "typographic"] as const;
 export type QuoteFormat = (typeof QUOTE_FORMATS)[number];
 
 const STRAIGHT_DOUBLE_QUOTE = '"';

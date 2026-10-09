@@ -18,7 +18,7 @@ const entries = new Map<string, Entry>();
  * Returns the number of repeats skipped since the last line when `key` may
  * log now, or null while it is inside its window.
  */
-export function takeRateLimitedSlot(key: string, windowMs = DEFAULT_WINDOW_MS, now = Date.now()): number | null {
+function takeRateLimitedSlot(key: string, windowMs = DEFAULT_WINDOW_MS, now = Date.now()): number | null {
   const entry = entries.get(key);
   if (entry && now - entry.lastLoggedAt < windowMs) {
     entry.suppressed += 1;
@@ -32,11 +32,6 @@ export function takeRateLimitedSlot(key: string, windowMs = DEFAULT_WINDOW_MS, n
   }
   entries.set(key, { lastLoggedAt: now, suppressed: 0 });
   return suppressed;
-}
-
-/** Test hook: forget every key. */
-export function resetRateLimitedLogs(): void {
-  entries.clear();
 }
 
 /**

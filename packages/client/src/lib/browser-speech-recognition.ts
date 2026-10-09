@@ -2,25 +2,25 @@ type BrowserSpeechRecognitionAlternative = {
   transcript?: string;
 };
 
-export type BrowserSpeechRecognitionResult = {
+type BrowserSpeechRecognitionResult = {
   readonly isFinal: boolean;
   readonly length: number;
   item(index: number): BrowserSpeechRecognitionAlternative;
   [index: number]: BrowserSpeechRecognitionAlternative | undefined;
 };
 
-export type BrowserSpeechRecognitionResultList = {
+type BrowserSpeechRecognitionResultList = {
   readonly length: number;
   item(index: number): BrowserSpeechRecognitionResult;
   [index: number]: BrowserSpeechRecognitionResult | undefined;
 };
 
-export type BrowserSpeechRecognitionEvent = Event & {
+type BrowserSpeechRecognitionEvent = Event & {
   readonly resultIndex: number;
   readonly results: BrowserSpeechRecognitionResultList;
 };
 
-export type BrowserSpeechRecognitionErrorEvent = Event & {
+type BrowserSpeechRecognitionErrorEvent = Event & {
   readonly error?: string;
 };
 

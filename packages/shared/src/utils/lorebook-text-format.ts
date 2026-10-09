@@ -20,13 +20,13 @@
 export type LorebookTextFormat = "markdown" | "csv";
 export type LorebookTextDuplicateMode = "skip" | "rename" | "overwrite";
 
-export const LOREBOOK_TEXT_MAX_NAME_LENGTH = 200;
+const LOREBOOK_TEXT_MAX_NAME_LENGTH = 200;
 export const LOREBOOK_TEXT_MAX_CHARS = 1024 * 1024;
 export const LOREBOOK_TEXT_MAX_ENTRIES = 20_000;
 /** Folder paths are written as "Parent / Child". */
-export const LOREBOOK_TEXT_FOLDER_SEPARATOR = " / ";
+const LOREBOOK_TEXT_FOLDER_SEPARATOR = " / ";
 
-export interface LorebookTextEntry {
+interface LorebookTextEntry {
   name: string;
   keys: string[];
   content: string;
@@ -37,7 +37,7 @@ export interface LorebookTextEntry {
   probability: number | null;
 }
 
-export type LorebookTextIssueCode =
+type LorebookTextIssueCode =
   | "missing_name"
   | "name_too_long"
   | "empty_content"
@@ -63,13 +63,13 @@ export interface LorebookTextIssue {
   detail?: string;
 }
 
-export interface ParsedLorebookTextEntry extends LorebookTextEntry {
+interface ParsedLorebookTextEntry extends LorebookTextEntry {
   line: number;
   /** True when this entry has at least one error and will not be imported. */
   invalid: boolean;
 }
 
-export interface ParsedLorebookText {
+interface ParsedLorebookText {
   format: LorebookTextFormat;
   /** The "# Title" of a Markdown file, if any. */
   title: string | null;
@@ -89,7 +89,7 @@ function normalizeNewlines(text: string): string {
 }
 
 /** Splits a comma (or newline) separated key list, trimming and dropping blanks and repeats. */
-export function splitLorebookTextKeys(raw: string): string[] {
+function splitLorebookTextKeys(raw: string): string[] {
   const keys: string[] = [];
   const seen = new Set<string>();
   for (const part of raw.split(/[,\n]/)) {
@@ -101,7 +101,7 @@ export function splitLorebookTextKeys(raw: string): string[] {
   return keys;
 }
 
-export function splitLorebookFolderPath(raw: string): string[] {
+function splitLorebookFolderPath(raw: string): string[] {
   return raw
     .split("/")
     .map((part) => part.trim())
@@ -478,7 +478,7 @@ export function detectLorebookTextFormat(text: string, fileName?: string): Loreb
 
 // ── Export ──
 
-export interface LorebookTextExportEntry {
+interface LorebookTextExportEntry {
   name: string;
   keys: string[];
   content: string;
@@ -488,13 +488,13 @@ export interface LorebookTextExportEntry {
   probability?: number | null;
 }
 
-export interface LorebookTextExportFolder {
+interface LorebookTextExportFolder {
   id: string;
   name: string;
   parentFolderId: string | null;
 }
 
-export interface LorebookTextExportInput {
+interface LorebookTextExportInput {
   name?: string;
   entries: LorebookTextExportEntry[];
   folders?: LorebookTextExportFolder[];
@@ -558,7 +558,7 @@ function csvCell(value: string): string {
     : safeValue;
 }
 
-export const LOREBOOK_CSV_COLUMNS = [
+const LOREBOOK_CSV_COLUMNS = [
   "name",
   "keys",
   "content",
@@ -597,7 +597,7 @@ export function exportLorebookText(format: LorebookTextFormat, input: LorebookTe
 
 // ── Import planning ──
 
-export type LorebookTextImportAction =
+type LorebookTextImportAction =
   | { kind: "create"; entry: LorebookTextEntry; name: string }
   | { kind: "overwrite"; entry: LorebookTextEntry; targetId: string }
   | { kind: "skip"; entry: LorebookTextEntry };

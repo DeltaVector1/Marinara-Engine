@@ -24,7 +24,7 @@ export const CHAT_WIDGET_COLOR_PROPERTIES = [
 type WidgetColorStyle = CSSProperties & Partial<Record<(typeof CHAT_WIDGET_COLOR_PROPERTIES)[number], string>>;
 
 /** Picker values may paint colors or gradients, never fetch images or inject declarations. */
-export function getChatWidgetPaint(value: string | undefined): string {
+function getChatWidgetPaint(value: string | undefined): string {
   const paint = typeof value === "string" ? value.trim() : "";
   if (!paint || /[;{}\\]|url\s*\(/iu.test(paint) || typeof CSS === "undefined") return "";
   if (CSS.supports("color", paint)) return paint;

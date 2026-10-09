@@ -605,7 +605,7 @@ export function SettingsCheckbox({
 
 type SettingsSwitchAccessibleLabel = { label: ReactNode; ariaLabel?: never } | { label?: undefined; ariaLabel: string };
 
-export function SettingsSwitchTrack({ checked, className }: { checked: boolean; className?: string }) {
+function SettingsSwitchTrack({ checked, className }: { checked: boolean; className?: string }) {
   return (
     <span
       aria-hidden="true"

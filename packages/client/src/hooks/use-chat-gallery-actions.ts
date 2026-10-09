@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 import type { ChatImage } from "./use-gallery";
 
-export interface ChatGalleryActions {
+interface ChatGalleryActions {
   /** Manually trigger the Illustrator agent. */
   onIllustrate?: () => void | Promise<void>;
   /** Manually trigger an active custom image-generation agent. */

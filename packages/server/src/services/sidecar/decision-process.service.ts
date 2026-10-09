@@ -35,7 +35,7 @@ const START_BACKOFF_MS = 60_000;
 /** The first request on a cold kernel cache took 14.4 s once; a warm-up never waits longer than this. */
 const WARM_UP_TIMEOUT_MS = 60_000;
 
-export interface DecisionProcessStatus {
+interface DecisionProcessStatus {
   running: boolean;
   baseUrl: string | null;
   modelId: string | null;

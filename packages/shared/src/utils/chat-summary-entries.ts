@@ -10,13 +10,13 @@ const VALID_KINDS = new Set<ChatSummaryEntryKind>(["rolling"]);
 const VALID_ORIGINS = new Set<ChatSummaryEntryOrigin>(["manual", "automated", "legacy"]);
 const VALID_SOURCES = new Set<ChatSummaryEntrySource>(["last", "range", "agent"]);
 
-export const MAX_AUTOMATED_CHAT_SUMMARY_ENTRIES = 200;
+const MAX_AUTOMATED_CHAT_SUMMARY_ENTRIES = 200;
 
-export type ChatSummaryEntryInput = Partial<ChatSummaryEntry> & {
+type ChatSummaryEntryInput = Partial<ChatSummaryEntry> & {
   content: string;
 };
 
-export interface ChatSummaryEntryNormalizeOptions {
+interface ChatSummaryEntryNormalizeOptions {
   legacySummary?: string | null;
   createId?: () => string;
   now?: string;
@@ -66,13 +66,13 @@ export function estimateChatSummaryTokens(content: string): number {
 }
 
 /** Generate a concise default title from an entry's origin and source metadata. */
-export function generateChatSummaryEntryTitle(entry: Pick<ChatSummaryEntry, "origin">): string {
+function generateChatSummaryEntryTitle(entry: Pick<ChatSummaryEntry, "origin">): string {
   if (entry.origin === "legacy") return "Legacy summary";
   if (entry.origin === "automated") return "Automated summary";
   return "Manual summary";
 }
 
-export function createLegacyChatSummaryEntry(
+function createLegacyChatSummaryEntry(
   summary: string | null | undefined,
   options: ChatSummaryEntryNormalizeOptions = {},
 ): ChatSummaryEntry | null {
@@ -94,7 +94,7 @@ export function createLegacyChatSummaryEntry(
   };
 }
 
-export function normalizeChatSummaryEntry(
+function normalizeChatSummaryEntry(
   raw: unknown,
   options: ChatSummaryEntryNormalizeOptions = {},
 ): ChatSummaryEntry | null {
@@ -165,7 +165,7 @@ export function createChatSummaryEntry(
   return entry;
 }
 
-export function sortChatSummaryEntries(entries: ChatSummaryEntry[]): ChatSummaryEntry[] {
+function sortChatSummaryEntries(entries: ChatSummaryEntry[]): ChatSummaryEntry[] {
   // Array order is persisted user intent. New summaries append to this order,
   // while combine/reorder operations deliberately place entries within it.
   return [...entries];

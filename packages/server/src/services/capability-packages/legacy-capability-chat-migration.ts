@@ -18,7 +18,7 @@ function parseMetadata(value: unknown): Record<string, unknown> {
   }
 }
 
-export function buildLegacyChatCapabilityPatch(chat: { mode: string; metadata: unknown }) {
+function buildLegacyChatCapabilityPatch(chat: { mode: string; metadata: unknown }) {
   const metadata = parseMetadata(chat.metadata);
   const active = new Set(
     Array.isArray(metadata.activeAgentIds)
@@ -40,7 +40,7 @@ function hasPersistedSpatialDefinition(metadata: Record<string, unknown>): boole
   return Array.isArray(locations) && locations.length > 0;
 }
 
-export function buildHierarchicalMapsSelectionCorrectionPatch(
+function buildHierarchicalMapsSelectionCorrectionPatch(
   chat: { mode: string; metadata: unknown },
   hasSpatialSnapshots: boolean,
 ) {

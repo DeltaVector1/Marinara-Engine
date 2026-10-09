@@ -352,7 +352,7 @@ async function playSpotifyFallbackCandidates(args: {
     return { ...result, success: false, error: candidates.error ?? "No Spotify candidates found." };
   }
 
-  const queueSize = context.chatMode === "game" ? 1 : 5;
+  const queueSize = 5;
   let picked = candidates.tracks.slice(0, queueSize);
   let uris = picked.map((track) => track.uri);
   let play = await executeSpotifyAgentToolJson(

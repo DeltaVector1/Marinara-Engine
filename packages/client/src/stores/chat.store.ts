@@ -75,7 +75,7 @@ export type DelayedCharacterInfo = {
   characterStatuses?: Record<string, DelayedCharacterStatus>;
 };
 
-export type ActiveConversationCallSnapshot = {
+type ActiveConversationCallSnapshot = {
   session: ConversationCallSession;
   chatName?: string;
   characterMap: CharacterMap;

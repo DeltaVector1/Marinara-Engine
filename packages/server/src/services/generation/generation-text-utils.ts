@@ -1,5 +1,4 @@
 import type { LLMUsage } from "../llm/base-provider.js";
-import { stripGmCommandTags } from "../game/segment-edits.js";
 
 /** Preserve turn-wide billing counters across every completed request. */
 export function addGenerationUsage(total: LLMUsage | undefined, next: LLMUsage | undefined): LLMUsage | undefined {
@@ -103,12 +102,6 @@ export function getHiddenCompletionTokens(usage: LLMUsage | undefined): number |
 export function getVisibleCompletionTokens(usage: LLMUsage | undefined): number | undefined {
   if (!usage || typeof usage.completionTokens !== "number") return undefined;
   return Math.max(0, usage.completionTokens - (getHiddenCompletionTokens(usage) ?? 0));
-}
-
-export function sanitizeConnectedGameTranscript(content: string): string {
-  return stripGmCommandTags(content)
-    .replace(/^\[(?:To the party|To the GM)\]\s*/i, "")
-    .trim();
 }
 
 export function stripSpacesBeforeLineBreaks(content: string): string {

@@ -26,7 +26,7 @@ type CachedVoiceLine = {
 };
 
 type CachedVoiceLineMeta = Omit<CachedVoiceLine, "blob">;
-export type CachedTTSAudioMeta = CachedVoiceLineMeta;
+type CachedTTSAudioMeta = CachedVoiceLineMeta;
 export type CachedTTSAudioExportEntry = CachedVoiceLineMeta & {
   blob: Blob;
 };
@@ -40,7 +40,7 @@ const cachePurgeEpochs = new Map<string, number>();
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 let lastPersistentPruneAt = 0;
 
-export function shouldUsePersistentTTSAudioCache(userAgent: string, platform: string, maxTouchPoints: number): boolean {
+function shouldUsePersistentTTSAudioCache(userAgent: string, platform: string, maxTouchPoints: number): boolean {
   return !isIosWebKitBrowser(userAgent, platform, maxTouchPoints);
 }
 
@@ -81,21 +81,6 @@ function readFromMemory(key: string): Blob | null {
   if (!hit) return null;
   rememberInMemory(key, hit);
   return hit;
-}
-
-/** Test seams for the regression lane; production code never calls these. */
-export function __rememberTTSAudioInMemoryForTests(key: string, blob: Blob) {
-  rememberInMemory(key, blob);
-}
-export function __readTTSAudioFromMemoryForTests(key: string): Blob | null {
-  return readFromMemory(key);
-}
-export function __ttsMemoryCacheStatsForTests(): { entries: number; bytes: number } {
-  return { entries: memoryCache.size, bytes: memoryCacheBytes };
-}
-export function __resetTTSMemoryCacheForTests() {
-  memoryCache.clear();
-  memoryCacheBytes = 0;
 }
 
 function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
@@ -265,7 +250,7 @@ async function putPersistentBlob(key: string, blob: Blob, epoch: number): Promis
   }
 }
 
-export async function getCachedTTSAudioBlob(key: string): Promise<Blob | null> {
+async function getCachedTTSAudioBlob(key: string): Promise<Blob | null> {
   const memoryHit = readFromMemory(key);
   if (memoryHit) return memoryHit;
 

@@ -6,8 +6,8 @@ import {
   type WeekSchedule,
 } from "@marinara-engine/shared";
 
-export const CHARACTER_SCHEDULE_EXPORT_KIND = "marinara.character-schedule";
-export const CHARACTER_SCHEDULE_EXPORT_VERSION = 1;
+const CHARACTER_SCHEDULE_EXPORT_KIND = "marinara.character-schedule";
+const CHARACTER_SCHEDULE_EXPORT_VERSION = 1;
 export const MAX_CHARACTER_SCHEDULE_FILE_SIZE = 1024 * 1024;
 
 const PRESENCE_STATUSES = new Set<ConversationPresenceStatus>(["online", "idle", "dnd", "offline"]);
@@ -22,9 +22,9 @@ const MESSAGE_INTENTS = new Set<ConversationMessageIntent>([
   "transition_ping",
 ]);
 
-export type CharacterScheduleImportFailure = "invalid" | "unsupported-version";
+type CharacterScheduleImportFailure = "invalid" | "unsupported-version";
 
-export type CharacterScheduleImportResult =
+type CharacterScheduleImportResult =
   | { ok: true; schedule: WeekSchedule; format: "current" | "legacy" }
   | { ok: false; reason: CharacterScheduleImportFailure };
 

@@ -34,7 +34,7 @@ export function useStartChatFromCharacter() {
       shortcutMode = true,
       onSuccess,
     }: StartChatFromCharacterOptions) => {
-      const label = mode === "conversation" ? "Conversation" : mode === "game" ? "Game" : "Roleplay";
+      const label = mode === "conversation" ? "Conversation" : "Roleplay";
       const presets = chatPresetsData ?? [];
       const presetMode = mode === "conversation" || mode === "roleplay" ? mode : null;
       const starred = presetMode

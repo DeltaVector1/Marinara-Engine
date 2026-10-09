@@ -92,7 +92,7 @@ function buildConversationSummaryRetrievalQuery(messages: ConversationHistoryMes
 }
 
 /** Bound old summary context while keeping the newest weeks available without retrieval. */
-export async function selectConversationSummariesForPrompt(args: {
+async function selectConversationSummariesForPrompt(args: {
   daySummaries: Record<string, DaySummaryEntry>;
   weekSummaries: Record<string, WeekSummaryEntry>;
   query: string;
@@ -188,9 +188,9 @@ export async function selectConversationSummariesForPrompt(args: {
   }
 }
 
-export type ConversationMembershipHistoryEvent = "joined" | "left";
+type ConversationMembershipHistoryEvent = "joined" | "left";
 
-export function resolveConversationMembershipHistoryEvent(
+function resolveConversationMembershipHistoryEvent(
   message: ConversationHistoryMessage | null | undefined,
 ): ConversationMembershipHistoryEvent | null {
   if (!message) return null;

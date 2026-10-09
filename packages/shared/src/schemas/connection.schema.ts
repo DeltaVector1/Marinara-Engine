@@ -11,7 +11,7 @@ import {
 import { DECISION_CONNECTION_TIMEOUT_BOUNDS_MS } from "../types/decision.js";
 import { MAX_IMAGE_PROMPT_INSTRUCTIONS_LENGTH } from "../constants/defaults.js";
 
-export const apiProviderSchema = z.enum([
+const apiProviderSchema = z.enum([
   "openai",
   "openai_chatgpt",
   "anthropic",
@@ -33,12 +33,12 @@ export const apiProviderSchema = z.enum([
   "decision",
 ]);
 
-export const audioGenerationSourceSchema = z.enum(["openai", "elevenlabs", "pockettts", "xai"]);
+const audioGenerationSourceSchema = z.enum(["openai", "elevenlabs", "pockettts", "xai"]);
 
-export const imageGenerationQualitySchema = z.enum(IMAGE_GENERATION_QUALITIES);
+const imageGenerationQualitySchema = z.enum(IMAGE_GENERATION_QUALITIES);
 
 /** A model ID as the model picker sends it: trimmed, non-empty and bounded. */
-export const connectionModelIdSchema = z.string().trim().min(1).max(MAX_MODEL_ID_LENGTH);
+const connectionModelIdSchema = z.string().trim().min(1).max(MAX_MODEL_ID_LENGTH);
 
 /** Pin or unpin one model on a connection. */
 export const connectionModelPinSchema = z.object({
@@ -51,7 +51,7 @@ export const connectionImageCaptioningDefaultsSchema = z.object({
   imageCaptioningConnectionId: z.string().trim().min(1).nullable().optional(),
 });
 
-export type ConnectionImageCaptioningDefaults = z.infer<typeof connectionImageCaptioningDefaultsSchema>;
+type ConnectionImageCaptioningDefaults = z.infer<typeof connectionImageCaptioningDefaultsSchema>;
 
 export function parseConnectionImageCaptioningDefaults(raw: unknown): ConnectionImageCaptioningDefaults {
   let parsed = raw;
