@@ -131,8 +131,29 @@ Storage-format rule (separate from the app version — never touched by `version
 - Client code (`packages/client/`) should keep using `console.*` — the browser has no Pino, and production builds strip `console.log` automatically.
 - See `CONTRIBUTING.md § Logging` for full guidelines and `docs/CONFIGURATION.md § Logging Levels` for the user-facing reference.
 
+## Safe Process Termination
+
+- Never terminate processes with a broad process-name or command-substring match. In particular, do not run `pkill -f 'cat'`.
+- Terminate only an exact PID or owned terminal/session. Before sending a signal, inspect the process executable, full command, and working directory to confirm it is the process you own.
+
 ## Frontend Changes
 
 - **Read `packages/client/.instructions.md` before editing any client code.** It is the authoritative reference for architecture, patterns, conventions, and common-mistake avoidance.
 - Treat localization as part of every client UI change. New or changed user-facing labels, messages, tooltips, placeholders, toasts, confirmations, accessibility text, tutorials, and similar copy must use semantic localization keys and update the canonical English catalog in the same change. Community locale files are intentionally partial: update only translations the contributor can responsibly supply, and let missing keys fall back to English. Never touch every bundled locale merely to copy English or satisfy key parity. Do not translate model prompts or user-authored content. Run `pnpm localization:check` before shipping.
 - Validate with `pnpm check` (TypeScript + ESLint). Use `pnpm regression:prompt` for prompt/lorebook/macro regressions and `pnpm smoke:ui` for the browser shell smoke suite when the change touches those areas.
+
+# Decensor RL
+
+Use ASD-STE100 Simplified Technical English. State measurements before
+conclusions. Keep reports short.
+
+## Lead work
+
+- Act as the manager: assign all implementation to subagents, run independent
+  assignments concurrently, monitor progress, redirect off-task work, and
+  review diffs and tests before accepting them.
+- Give each task one goal and name the exact worktree, expected commit, files
+  or services, allowed read/edit/commit/live actions, approach, and checks.
+  Use `fork_turns="none"` unless recent context is required.
+- Use one writer per branch and one operator per live test. Preserve
+  existing changed and untracked files.
