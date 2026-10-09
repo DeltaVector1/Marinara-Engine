@@ -5,6 +5,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 ## [Unreleased]
 
 - Removed obsolete Windows installer and Tauri pre-alpha packaging, with release versioning and CI checks limited to supported build targets.
+- Removed obsolete feature-specific regression hooks so the supported Conversation and Roleplay checks match the reduced fork.
 
 ## [2.5.0]
 

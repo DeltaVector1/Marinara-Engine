@@ -9,7 +9,7 @@ import { fileTable, isFileUniqueConstraintError, text } from "../../packages/ser
 process.env.NODE_ENV = "production";
 const { createFileNativeDB, encodeShardKey } = await import("../../packages/server/src/db/file-backed-store.js");
 const beforeExitListeners = process.listenerCount("beforeExit");
-import { appSettings, customStickers, noodleInteractions } from "../../packages/server/src/db/schema/index.js";
+import { appSettings, customStickers } from "../../packages/server/src/db/schema/index.js";
 
 const appSettingsShardPath = (root: string, key: string) =>
   join(root, "tables", "app_settings", `${encodeShardKey(key)}.json`);
@@ -332,29 +332,6 @@ try {
     .from(customStickers)
     .where(eq(customStickers.id, "sticker-two"));
   assert.deepEqual(unchangedSticker, [{ name: "other_name" }]);
-
-  const interactionBase = {
-    postId: "post-one",
-    parentInteractionId: null,
-    actorAccountId: "actor-one",
-    content: null,
-    imageUrl: null,
-    actorSnapshot: "{}",
-    createdAt: "2026-07-15T00:00:00.000Z",
-  };
-  await db.insert(noodleInteractions).values({ id: "like-one", type: "like", ...interactionBase });
-  await assert.rejects(
-    db.insert(noodleInteractions).values({ id: "like-two", type: "like", ...interactionBase }),
-    (error) =>
-      isFileUniqueConstraintError(error, "noodle_interactions", [
-        "postId",
-        "actorAccountId",
-        "type",
-        "parentInteractionId",
-      ]),
-  );
-  await db.insert(noodleInteractions).values({ id: "reply-one", type: "reply", ...interactionBase });
-  await db.insert(noodleInteractions).values({ id: "reply-two", type: "reply", ...interactionBase });
 
   await db._fileStore.close();
   console.info("File-backed unique-key regression passed.");

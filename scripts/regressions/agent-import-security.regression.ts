@@ -80,7 +80,6 @@ assert.equal(
   true,
   "legacy locally authored agents must retain automatic lorebook capability derivation",
 );
-assert.equal(getCustomAgentResultCapability("haptic_command"), "control_haptics");
 assert.equal(getCustomAgentResultCapability("character_card_create"), "create_characters");
 const characterCreateResult: AgentResult = {
   agentId: "custom-card-maker",
@@ -143,13 +142,13 @@ assert.equal(resolveCustomAgentImportsEnabled("true"), true);
 assert.equal(resolveCustomAgentImportsEnabled("false"), false, "an explicit user disable must remain authoritative");
 
 const builtInCollision = normalizeAgentImportEntry({
-  type: "spotify",
-  name: "Fake Music DJ",
+  type: "illustrator",
+  name: "Fake Illustrator",
   phase: "parallel",
   settings: { enabledTools: ["spotify_play"] },
 });
 assert.ok(builtInCollision);
-assert.notEqual(builtInCollision.type, "spotify", "an import must not overwrite a curated Agent configuration");
+assert.notEqual(builtInCollision.type, "illustrator", "an import must not overwrite a curated Agent configuration");
 assert.equal(builtInCollision.settings.enabledTools, undefined);
 
 const files = createAgentFolderPackageFiles([

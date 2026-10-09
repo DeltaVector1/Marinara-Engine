@@ -22,3 +22,7 @@ A person who wants direct control over their chat environment, data, characters,
 3. Show advanced controls when they become useful. Use sensible defaults without hiding the user's ability to inspect and change them.
 4. Keep chat and saved data on the user's device. Explain when a request goes to an external model provider.
 5. Keep the same core workflows usable with a keyboard, assistive technology, and a small touch screen.
+
+## Register
+
+Use direct, practical language for a personal tool. Prefer short labels, clear status, and concise explanations. Avoid marketing copy, game framing, and decorative language that competes with the conversation.

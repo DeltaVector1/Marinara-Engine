@@ -22,10 +22,6 @@ function repositoryRelative(file) {
   return path.relative(repositoryRoot, file).split(path.sep).join('/');
 }
 
-export function regressionTimeoutMs(relativePath) {
-  return FILE_TIMEOUT_MS;
-}
-
 function discoverRegressions(directory = regressionsRoot) {
   const files = [];
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
@@ -145,7 +141,7 @@ function regressionEnvironment(scratchDir) {
 
 function runRegression(relativePath) {
   const { args, command, cwd } = commandFor(relativePath);
-  const timeoutMs = regressionTimeoutMs(relativePath);
+  const timeoutMs = FILE_TIMEOUT_MS;
   const startedAt = Date.now();
   process.stdout.write(`[${relativePath}] START\n`);
   const scratchDir = fs.mkdtempSync(path.join(os.tmpdir(), 'marinara-regression-'));

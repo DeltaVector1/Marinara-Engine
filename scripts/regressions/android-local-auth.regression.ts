@@ -30,7 +30,6 @@ app.get("/", async () => ({ ok: true }));
 app.get("/api/health", async (request) => ({ status: "ok", detailed: isAndroidLocalAuthSatisfied(request) }));
 app.get("/api/private", async () => ({ private: true }));
 app.post("/api/private-mutation", async () => ({ mutated: true }));
-app.get("/api/spotify/callback", async () => ({ callback: true }));
 
 try {
   await app.ready();
@@ -41,14 +40,6 @@ try {
   const health = await app.inject({ method: "GET", url: "/api/health" });
   assert.equal(health.statusCode, 200, "local readiness checks must remain available without a browser session");
   assert.equal(health.json().detailed, false, "another app on the device must not read the health details");
-
-  const spotifyCallback = await app.inject({
-    method: "GET",
-    url: "/api/spotify/callback?state=pending-state&code=authorization-code",
-  });
-  assert.equal(spotifyCallback.statusCode, 200, "Spotify's state-bound OAuth callback must remain reachable");
-  const unboundSpotifyCallback = await app.inject({ method: "GET", url: "/api/spotify/callback?code=missing-state" });
-  assert.equal(unboundSpotifyCallback.statusCode, 401, "an OAuth callback without state must not bypass local auth");
 
   const browserRedirect = await app.inject({ method: "GET", url: "/", headers: { accept: "text/html" } });
   assert.equal(browserRedirect.statusCode, 303);

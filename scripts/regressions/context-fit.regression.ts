@@ -1,6 +1,6 @@
 // Guards prompt survival when a connection's stored max_tokens eats most of the context window.
 //
-// Single-shot prompts (Noodle refreshes, summarizers) carry no messages marked contextKind
+// Single-shot prompts (summarizers) carry no messages marked contextKind
 // "history", so the trimmer has nothing it may safely drop. It used to delete the prompt body
 // anyway and send only the trailing instruction, which reaches the model as a request with no
 // content to work from — and no error anywhere.
@@ -10,11 +10,11 @@ import type { ChatMessage } from "../../packages/server/src/services/llm/base-pr
 
 const filler = (approximateTokens: number) => "word ".repeat(approximateTokens);
 
-// Shaped like a Noodle timeline refresh: system rules, the context body, then the JSON format
+// Shaped like a single-shot summary: system rules, the context body, then the JSON format
 // instruction. Nothing is annotated as history, because none of it is history.
 const singleShotPrompt: ChatMessage[] = [
   { role: "system", content: filler(1000) },
-  { role: "user", content: `# Active Noodle Accounts\n# Character Profiles\n${filler(3000)}` },
+  { role: "user", content: `# Character Profiles\n${filler(3000)}` },
   { role: "user", content: `# JSON Output Format\n${filler(350)}` },
 ];
 
