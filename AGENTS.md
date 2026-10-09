@@ -98,8 +98,6 @@ The local review conserves the shared CodeRabbit quota and complements the GitHu
   - `packages/server/package.json`
   - `packages/shared/package.json`
   - `packages/shared/src/constants/defaults.ts`
-  - `win/installer/installer.nsi`
-  - `win/installer/install.bat`
   - `android/app/build.gradle`
 
 Android-specific rule:

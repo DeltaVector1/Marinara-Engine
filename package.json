@@ -23,7 +23,6 @@
     "build:client": "pnpm build:shared && pnpm --filter @marinara-engine/client build",
     "check": "pnpm clean:stale-client && pnpm impeccable:check && pnpm localization:check && pnpm format:check && pnpm lint && pnpm check:e2e-types && pnpm build",
     "start": "node scripts/run-server.mjs packages/server/dist/index.js",
-    "mari": "node scripts/run-mari.mjs",
     "format": "prettier --write \"packages/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"packages/**/*.{ts,tsx}\"",
     "clean:stale-client": "node ./scripts/clean-stale-client-artifacts.mjs",
@@ -45,10 +44,8 @@
     "version:check": "node ./scripts/check-version-drift.mjs",
     "credits:sync": "node ./scripts/sync-credits.mjs",
     "credits:check": "node ./scripts/sync-credits.mjs --check",
-    "ruleset:schema": "pnpm build:shared && node ./scripts/generate-ruleset-schema.mjs",
     "backgroundremover:install": "node ./scripts/install-backgroundremover.mjs",
     "backgroundremover:reinstall": "node ./scripts/install-backgroundremover.mjs --reinstall",
-    "guard:installer-artifacts": "node ./scripts/check-tracked-installers.mjs",
     "release:check-tag": "node ./scripts/check-release-tag.mjs",
     "release:notes": "node ./scripts/render-release-notes.mjs",
     "clean": "pnpm -r --if-present run clean && node ./scripts/clean-workspace.mjs"

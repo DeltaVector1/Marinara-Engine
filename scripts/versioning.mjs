@@ -47,26 +47,6 @@ function updateSharedDefaults(content, version) {
   );
 }
 
-function updateInstallerNsi(content, version) {
-  const next = replaceOrThrow(
-    content,
-    /!define APP_VERSION "[^"]+"/,
-    `!define APP_VERSION "${version}"`,
-    "NSIS APP_VERSION",
-  );
-  return replaceOrThrow(next, /!define RELEASE_TAG "v[^"]+"/, `!define RELEASE_TAG "v${version}"`, "NSIS RELEASE_TAG");
-}
-
-function updateInstallerBat(content, version) {
-  const next = replaceOrThrow(
-    content,
-    /(echo\s+\^\|\s+v)(\d+\.\d+\.\d+)(\s+\^\|)/,
-    `$1${version}$3`,
-    "installer banner version",
-  );
-  return replaceOrThrow(next, /set "RELEASE_TAG=v[^"]+"/, `set "RELEASE_TAG=v${version}"`, "installer release tag");
-}
-
 function updateAndroidBuildGradle(content, version, androidVersionCode) {
   let next = replaceOrThrow(content, /versionName "[^"]+"/, `versionName "${version}"`, "Android versionName");
 
@@ -121,14 +101,6 @@ const DERIVED_VERSION_FILES = [
   {
     path: "packages/shared/src/constants/defaults.ts",
     render: (content, version) => updateSharedDefaults(content, version),
-  },
-  {
-    path: "win/installer/installer.nsi",
-    render: (content, version) => updateInstallerNsi(content, version),
-  },
-  {
-    path: "win/installer/install.bat",
-    render: (content, version) => updateInstallerBat(content, version),
   },
   {
     path: "android/app/build.gradle",

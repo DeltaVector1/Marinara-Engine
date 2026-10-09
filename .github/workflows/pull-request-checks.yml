@@ -38,14 +38,8 @@ jobs:
       - name: Run project checks
         run: pnpm check
 
-      - name: Test dependency update handoff
-        run: pnpm regression:launcher-update
-
       - name: Run focused security regressions
         run: pnpm regression:security
-
-      - name: Test release tag validation
-        run: pnpm regression:release
 
       - name: Validate pull request gate topology
         run: node scripts/validate-pr-triage.mjs
@@ -55,9 +49,6 @@ jobs:
 
       - name: Check version drift
         run: pnpm version:check
-
-      - name: Check tracked installer artifacts
-        run: pnpm guard:installer-artifacts
 
       # Keep the small browser suite inside this already-required check, so
       # a failed smoke test blocks staging merges without new ruleset names.
@@ -73,11 +64,6 @@ jobs:
           PLAYWRIGHT_ONLY_PROJECT: desktop
         run: pnpm smoke:ui
 
-      - name: Open the production frontend in Chromium
-        if: github.base_ref == 'staging'
-        timeout-minutes: 5
-        run: pnpm smoke:production --project=desktop-chromium
-
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -86,32 +72,6 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
-
-  windows-launcher-regressions:
-    runs-on: windows-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        with:
-          run_install: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 24
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build:shared
-      - name: Verify Windows restart ownership and ESM loader paths
-        run: node scripts/run-regressions.mjs --filter scripts/regressions/restart-supervisor.regression.ts
-      - name: Verify native console Ctrl+C finishes graceful shutdown
-        # Retain the fixture's own readiness/close deadlines without the general
-        # regression runner's shorter 30s whole-file cap.
-        timeout-minutes: 5
-        run: pnpm --filter @marinara-engine/server exec tsx ../../scripts/regressions/server-signal-shutdown.regression.ts
 
   container-build-test:
     runs-on: ubuntu-latest

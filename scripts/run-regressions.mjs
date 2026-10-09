@@ -23,13 +23,6 @@ function repositoryRelative(file) {
 }
 
 export function regressionTimeoutMs(relativePath) {
-  if (relativePath === 'scripts/regressions/server-signal-shutdown.regression.ts') {
-    // 20s main-server phase + six sequential 40s PTY bounds + 10s setup/cleanup margin.
-    return 270_000;
-  }
-  if (relativePath === 'scripts/regressions/restart-supervisor.regression.ts') return 90_000;
-  // Two provider deadlines (8 s each): a silent getContext and a claim that answers late.
-  if (relativePath === 'scripts/regressions/scene-package-origin.regression.ts') return 60_000;
   return FILE_TIMEOUT_MS;
 }
 

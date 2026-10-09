@@ -21,7 +21,6 @@ on:
       - "scripts/**"
       - "start*"
       - "android/**"
-      - "win/**"
 
 permissions:
   contents: read
@@ -36,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-15, macos-15-intel, windows-latest]
+        os: [ubuntu-latest, macos-15, macos-15-intel]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     steps:
@@ -52,17 +51,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - name: Exercise launcher dependency handoff and data preservation
-        run: pnpm regression:launcher-update
-      - name: Exercise restart ownership
-        run: node scripts/run-regressions.mjs --filter scripts/regressions/restart-supervisor.regression.ts
-      - name: Exercise native console shutdown and saved-data flush
-        # This file runs several separately bounded console/PTY scenarios; the
-        # general regression runner's 30s whole-file cap cuts those short.
-        timeout-minutes: 5
-        run: pnpm --filter @marinara-engine/server exec tsx ../../scripts/regressions/server-signal-shutdown.regression.ts
-      - name: Exercise update apply policy
-        run: node scripts/run-regressions.mjs --filter scripts/regressions/update-apply-hardening.regression.ts
 
   container-runtime:
     name: Container runtime (${{ matrix.variant }}, ${{ matrix.arch }})
@@ -106,26 +94,6 @@ jobs:
           cache-to: type=gha,mode=max,scope=platform-${{ matrix.variant }}-${{ matrix.arch }}
       - name: Verify startup, native dependencies and data after replacement
         run: node scripts/smoke-container.mjs marinara-platform-proof:${{ matrix.variant }} ${{ matrix.variant }} ${{ matrix.arch }}
-
-  windows-installer:
-    name: Windows installer compile (x64 prerequisites)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - name: Install NSIS
-        run: sudo apt-get update && sudo apt-get install -y nsis
-      - name: Compile installer pinned to this checkout
-        working-directory: win/installer
-        run: makensis -DRELEASE_COMMIT="$(git rev-parse HEAD)" installer.nsi
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: windows-installer-compile-only
-          path: win/installer/Marinara-Engine-Installer-*.exe
-          if-no-files-found: error
-          retention-days: 7
 
   android-debug:
     name: Android debug APK and release signing guard

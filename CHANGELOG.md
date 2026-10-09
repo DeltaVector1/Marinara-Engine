@@ -4,6 +4,8 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- Removed obsolete Windows installer and Tauri pre-alpha packaging, with release versioning and CI checks limited to supported build targets.
+
 ## [2.5.0]
 
 - Release notes too long for a GitHub release are trimmed at a whole entry and end with a link to the full changelog, so publishing a large release such as this one no longer fails (#7146).
