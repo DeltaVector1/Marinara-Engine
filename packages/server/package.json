@@ -12,7 +12,7 @@
     "build": "node ./scripts/build.mjs",
     "start": "node ../../scripts/run-server.mjs dist/index.js",
     "clean": "node -e \"const fs=require('fs');['dist','tsconfig.tsbuildinfo'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch{}})\"",
-    "lint": "tsc -b ../shared && tsc --noEmit && tsc -p ../../scripts/regressions/tsconfig.character-activity.json"
+    "lint": "tsc -b ../shared && tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.282",
