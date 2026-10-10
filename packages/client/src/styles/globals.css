@@ -229,8 +229,8 @@
   --mari-logo-title-pink: var(--primary);
   --marinara-app-accent-solid: var(--primary);
   --marinara-app-accent-static: var(--primary);
-  --marinara-app-accent-gradient: linear-gradient(90deg, #7394bd, #7394bd);
-  --marinara-app-accent-static-gradient: linear-gradient(90deg, #7394bd, #7394bd);
+  --marinara-app-accent-gradient: linear-gradient(90deg, var(--primary), var(--primary));
+  --marinara-app-accent-static-gradient: linear-gradient(90deg, var(--primary), var(--primary));
   --marinara-chat-chrome-accent: var(--marinara-app-accent-solid);
   --marinara-chat-chrome-accent-gradient: var(--marinara-app-accent-gradient);
   --marinara-chat-chrome-text: var(--card-foreground);
@@ -427,8 +427,8 @@
   --card-foreground: #24272b;
   --popover: #ffffff;
   --popover-foreground: #24272b;
-  --primary: #7394bd;
-  --primary-foreground: #0a0a0a;
+  --primary: #4d6f98;
+  --primary-foreground: #ffffff;
   --secondary: #eceff2;
   --secondary-foreground: #24272b;
   --marinara-conversation-gradient-from: #f5f6f7;
