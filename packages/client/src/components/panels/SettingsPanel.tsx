@@ -4502,7 +4502,7 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
                   label={localizeUi("settings.controls.accentColor.label")}
                   helpText={localizeUi("settings.controls.accentColor.help")}
                   emptyText={localizeUi("ui.panels.trackerpanelappearancedrawer.defaultValue1", {
-                    value1: localizeUi("ui.ui.colorpicker.marinaraGradient"),
+                    value1: defaultAppAccentColor,
                   })}
                   emptyPreviewValue={defaultAppAccentColor}
                   clearLabel="Reset to default"

@@ -7517,7 +7517,7 @@
   "ui.panels.appearancesettings.toDefault": "to default",
   "ui.panels.appearancesettings.value1Px": "{{value1}}px",
   "ui.panels.appearancesettings.visualEffectsThatEnhanceTheRoleplayAtmosphereWeatherParticles": "Visual effects for Roleplay and Game modes. Weather particles like rain, snow, and fog appear based on the story context.",
-  "ui.panels.appearancesettings.visualPreferencesGroupedByGlobalChromeTextConversationRoleplay": "Visual preferences, grouped by global chrome, text, Conversation, Roleplay, and Game presentation.",
+  "ui.panels.appearancesettings.visualPreferencesGroupedByGlobalChromeTextConversationRoleplay": "Visual preferences, grouped by global chrome, text, Conversation, and Roleplay presentation.",
   "ui.panels.appearancesettings.visualStyle": "Visual Style",
   "ui.panels.appearancesettings.width": "Width",
   "ui.panels.appearancesettings.worldState": "World State",
