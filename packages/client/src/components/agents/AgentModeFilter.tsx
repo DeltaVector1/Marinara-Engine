@@ -1,14 +1,12 @@
-import type { ChatMode } from "@marinara-engine/shared";
 import { useTranslation } from "react-i18next";
 import { cn } from "../../lib/utils";
 
-export type AgentModeFilterValue = "all" | ChatMode;
+export type AgentModeFilterValue = "all" | "conversation" | "roleplay";
 
 const MODE_FILTERS = [
   ["all", "ui.agents.agentcatalogview.allModes"],
   ["conversation", "ui.agents.agentcatalogview.conversationMode"],
   ["roleplay", "ui.agents.agentcatalogview.roleplayMode"],
-  ["game", "ui.agents.agentcatalogview.gameMode"],
 ] as const;
 
 export function AgentModeFilter({

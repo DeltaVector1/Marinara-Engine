@@ -50,7 +50,7 @@ function catalogCategory({ manifest, category }: Pick<CapabilityCatalogPackage, 
   return isAppCapabilityPackage(manifest) ? "app" : category;
 }
 
-type CatalogMode = "conversation" | "roleplay" | "game";
+type CatalogMode = "conversation" | "roleplay";
 
 const OFFICIAL_PACKAGE_MODES: Readonly<Record<string, readonly CatalogMode[]>> = Object.freeze({
   beholder: ["roleplay"],
@@ -67,30 +67,21 @@ const OFFICIAL_PACKAGE_MODES: Readonly<Record<string, readonly CatalogMode[]>> =
   quartermaster: ["roleplay"],
   "relationship-tracker": ["roleplay"],
   "memory-nag": ["roleplay"],
-  "long-term-memory": ["conversation", "roleplay", "game"],
+  "long-term-memory": ["conversation", "roleplay"],
   expression: ["roleplay"],
-  "gacha-forge": ["conversation", "roleplay", "game"],
-  "hierarchical-maps": ["roleplay", "game"],
+  "gacha-forge": ["conversation", "roleplay"],
+  "hierarchical-maps": ["roleplay"],
   "persona-stats": ["roleplay"],
   quest: ["roleplay"],
   "world-state": ["roleplay"],
-  eightball: ["conversation"],
-  chess: ["conversation"],
   combat: ["roleplay"],
   "conversation-calls": ["conversation"],
   cyoa: ["roleplay"],
   "echo-chamber": ["roleplay"],
-  illustrator: ["conversation", "roleplay", "game"],
+  illustrator: ["conversation", "roleplay"],
   html: ["roleplay"],
-  "lorebook-keeper": ["roleplay", "game"],
-  noodle: ["conversation", "roleplay", "game"],
-  slurp: ["conversation", "roleplay", "game"],
-  spotify: ["conversation", "roleplay", "game"],
-  poker: ["conversation"],
-  "rock-paper-scissors": ["conversation"],
-  "ruleset-5e-2014": ["game"],
-  "tic-tac-toe": ["conversation"],
-  uno: ["conversation"],
+  "lorebook-keeper": ["roleplay"],
+  slurp: ["conversation", "roleplay"],
 });
 
 const MODE_BADGES: Record<CatalogMode, { labelKey: string; className: string }> = {
@@ -103,11 +94,6 @@ const MODE_BADGES: Record<CatalogMode, { labelKey: string; className: string }> 
     labelKey: "ui.agents.agentcatalogview.roleplayMode",
     className:
       "border-[color-mix(in_srgb,var(--mari-logo-orange)_55%,var(--border))] bg-[color-mix(in_srgb,var(--mari-logo-orange)_18%,transparent)]",
-  },
-  game: {
-    labelKey: "ui.agents.agentcatalogview.gameMode",
-    className:
-      "border-[color-mix(in_srgb,var(--marinara-chat-chrome-accent)_55%,var(--border))] bg-[color-mix(in_srgb,var(--marinara-chat-chrome-accent)_18%,transparent)]",
   },
 };
 
@@ -135,9 +121,7 @@ function catalogErrorDescription(error: unknown) {
 
 function kindLabel(kind: CapabilityCatalogPackage["manifest"]["kind"][number]) {
   if (kind === "conversation-calls") return "Calls";
-  if (kind === "turn-game") return "Conversation Game";
   if (kind === "maps") return "Maps";
-  if (kind === "ruleset") return "Rules";
   return "Agent";
 }
 
