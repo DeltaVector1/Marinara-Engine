@@ -320,7 +320,6 @@ export function PresetEditor() {
   const [localWrapFormat, setLocalWrapFormat] = useState<WrapFormat>("xml");
   const [localAuthor, setLocalAuthor] = useState("");
   const [localConversationPrompt, setLocalConversationPrompt] = useState("");
-  const [localGamePrompt, setLocalGamePrompt] = useState("");
   const [localParameters, setLocalParameters] = useState<Record<string, unknown>>({});
   const [localScopedRegexMode, setLocalScopedRegexMode] = useState<ScopedRegexMode>("disabled");
   const hydratedPresetIdRef = useRef<string | null>(null);
@@ -343,7 +342,6 @@ export function PresetEditor() {
     setLocalWrapFormat((p.wrapFormat ?? "xml") as WrapFormat);
     setLocalAuthor(p.author ?? "");
     setLocalConversationPrompt(p.conversationPrompt ?? "");
-    setLocalGamePrompt(p.gamePrompt ?? "");
     try {
       const parameters = typeof p.parameters === "string" ? JSON.parse(p.parameters) : p.parameters;
       setLocalParameters(parameters && typeof parameters === "object" && !Array.isArray(parameters) ? parameters : {});
@@ -392,7 +390,6 @@ export function PresetEditor() {
       wrapFormat: localWrapFormat,
       author: localAuthor,
       conversationPrompt: localConversationPrompt,
-      gamePrompt: localGamePrompt,
       parameters: { ...DEFAULT_GENERATION_PARAMS, ...localParameters },
       scopedRegexMode: localScopedRegexMode,
     };
@@ -409,7 +406,6 @@ export function PresetEditor() {
     localWrapFormat,
     localAuthor,
     localConversationPrompt,
-    localGamePrompt,
     localParameters,
     localScopedRegexMode,
     updatePreset,
@@ -710,11 +706,6 @@ export function PresetEditor() {
                 conversationPrompt={localConversationPrompt}
                 onConversationPromptChange={(v) => {
                   setLocalConversationPrompt(v);
-                  markDirty();
-                }}
-                gamePrompt={localGamePrompt}
-                onGamePromptChange={(v) => {
-                  setLocalGamePrompt(v);
                   markDirty();
                 }}
               />
@@ -1198,13 +1189,9 @@ function PresetPictureField({ preset }: { preset: PromptPreset }) {
 function PromptsTab({
   conversationPrompt,
   onConversationPromptChange,
-  gamePrompt,
-  onGamePromptChange,
 }: {
   conversationPrompt: string;
   onConversationPromptChange: (v: string) => void;
-  gamePrompt: string;
-  onGamePromptChange: (v: string) => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
   const quoteFormat = useUIStore((s) => s.quoteFormat);
@@ -1241,24 +1228,6 @@ function PromptsTab({
         <div className="rounded-lg bg-[var(--secondary)] px-3 py-2 text-xs text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
           {localizeUi("ui.presets.promptstab.usesTheAssembledPromptFromSections")}
         </div>
-      </FieldGroup>
-
-      <FieldGroup
-        label={localizeUi("onboarding.game.title")}
-        help={localizeUi("ui.presets.promptstab.usedAsThePromptPresetSGamePromptIn")}
-      >
-        <MacroTextarea
-          showTokenCount
-          value={gamePrompt}
-          tokenCountAlign="start"
-          onChange={onGamePromptChange}
-          title={localizeUi("ui.presets.promptstab.editGameModePrompt")}
-          placeholder={localizeUi("ui.presets.promptstab.leaveEmptyToUseMarinaraSBuiltInGame")}
-          className="mari-editor-field min-h-[12rem] w-full p-3 font-mono text-xs"
-          formatOnChange={formatPrompt}
-          showMarkdownPreview
-          spellCheck={false}
-        />
       </FieldGroup>
     </>
   );

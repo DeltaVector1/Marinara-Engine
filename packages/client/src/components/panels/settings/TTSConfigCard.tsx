@@ -241,6 +241,19 @@ function formatVoiceOptionLabel(option: VoiceOption): string {
   return option.name === option.id ? option.id : `${option.name} (${option.id})`;
 }
 
+function readVoiceMetadata(option: VoiceOption): string {
+  return [
+    option.name,
+    option.id,
+    option.description,
+    option.category,
+    ...Object.entries(option.labels ?? {}).flatMap(([key, value]) => [key, String(value ?? "")]),
+  ]
+    .filter(Boolean)
+    .map(String)
+    .join(" ");
+}
+
 function formatCacheBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
   const units = ["B", "KB", "MB", "GB"];
@@ -282,126 +295,6 @@ function downloadTTSClip(entry: CachedTTSAudioExportEntry, index: number): void 
   anchor.click();
   anchor.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
-}
-
-const ELEVENLABS_DEFAULT_MALE_VOICE_NAMES = new Set([
-  "adam",
-  "antoni",
-  "arnold",
-  "baxter",
-  "bill",
-  "brian",
-  "callum",
-  "caleb",
-  "charlie",
-  "chris",
-  "clyde",
-  "daniel",
-  "darian",
-  "dave",
-  "drew",
-  "eddie",
-  "eldrin",
-  "eric",
-  "ethan",
-  "fin",
-  "finley",
-  "george",
-  "giovanni",
-  "harry",
-  "james",
-  "jeremy",
-  "joseph",
-  "josh",
-  "kaelen",
-  "kellan",
-  "lawrence",
-  "liam",
-  "michael",
-  "patrick",
-  "paul",
-  "roger",
-  "river",
-  "ryan",
-  "sam",
-  "sawyer",
-  "thomas",
-  "warren",
-  "will",
-  "wyatt",
-]);
-
-const ELEVENLABS_DEFAULT_FEMALE_VOICE_NAMES = new Set([
-  "alice",
-  "alicia",
-  "aria",
-  "charlotte",
-  "domi",
-  "dorothy",
-  "elli",
-  "elara",
-  "elowen",
-  "emily",
-  "florence",
-  "freya",
-  "gigi",
-  "glinda",
-  "grace",
-  "jade",
-  "jessica",
-  "laura",
-  "lily",
-  "maisie",
-  "matilda",
-  "mimi",
-  "nicole",
-  "rachel",
-  "river",
-  "sarah",
-  "serena",
-  "talia",
-]);
-
-function normalizeVoiceName(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
-function readVoiceMetadata(option: VoiceOption): string {
-  return [
-    option.name,
-    option.id,
-    option.description,
-    option.category,
-    ...Object.entries(option.labels ?? {}).flatMap(([key, value]) => [key, String(value ?? "")]),
-  ]
-    .filter(Boolean)
-    .map(String)
-    .join(" ");
-}
-
-function inferVoiceOptionGender(option: VoiceOption): "male" | "female" | null {
-  const metadata = normalizeVoiceName(readVoiceMetadata(option));
-  if (/\b(female|feminine|woman|girl|lady)\b/.test(metadata)) return "female";
-  if (/\b(male|masculine|man|boy|gentleman)\b/.test(metadata)) return "male";
-  return null;
-}
-
-function isElevenLabsVoiceForGender(option: VoiceOption, gender: "male" | "female", names: Set<string>): boolean {
-  const inferredGender = inferVoiceOptionGender(option);
-  if (inferredGender) return inferredGender === gender;
-
-  const normalizedName = normalizeVoiceName(option.name);
-  const normalizedId = normalizeVoiceName(option.id);
-  return names.has(normalizedName) || names.has(normalizedId);
-}
-
-function sameStringSet(left: string[], right: string[]): boolean {
-  if (left.length === 0 || right.length === 0 || left.length !== right.length) return false;
-  const rightSet = new Set(right);
-  return left.every((value) => rightSet.has(value));
 }
 
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
@@ -894,55 +787,6 @@ function PocketTTSVoiceControl({
   );
 }
 
-function NpcDefaultVoicePool({
-  label,
-  options,
-  selected,
-  onToggle,
-  note,
-}: {
-  label: string;
-  options: VoiceOption[];
-  selected: string[];
-  onToggle: (voiceId: string, checked: boolean) => void;
-  note?: string;
-}) {
-  const { t: localizeUi } = useUiTranslation();
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[0.6875rem] font-medium text-[var(--foreground)]">{label}</span>
-        <span className="text-[0.625rem] text-[var(--muted-foreground)]">
-          {selected.length} {localizeUi("ui.panels.npcdefaultvoicepool.selected")}
-        </span>
-      </div>
-      {options.length > 0 ? (
-        <div className="grid gap-1 sm:grid-cols-2">
-          {options.map((option) => (
-            <label
-              key={option.id}
-              className="flex min-w-0 cursor-pointer items-center gap-2 rounded-lg bg-black/10 px-2 py-1.5 text-xs transition-colors hover:bg-black/20"
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(option.id)}
-                onChange={(e) => onToggle(option.id, e.target.checked)}
-                className="h-3 w-3 shrink-0 rounded border-[var(--border)] accent-[var(--primary)]"
-              />
-              <span className="truncate">{formatVoiceOptionLabel(option)}</span>
-            </label>
-          ))}
-        </div>
-      ) : (
-        <p className="rounded-lg border border-dashed border-[var(--border)] px-2.5 py-2 text-[0.625rem] leading-relaxed text-[var(--muted-foreground)]">
-          {localizeUi("ui.panels.npcdefaultvoicepool.noProviderVoicesLoadedYet")}
-        </p>
-      )}
-      {note && <p className="text-[0.625rem] leading-relaxed text-[var(--muted-foreground)]">{note}</p>}
-    </div>
-  );
-}
-
 // ── Main card ─────────────────────────────────────
 
 export function TTSConfigCard() {
@@ -963,17 +807,11 @@ export function TTSConfigCard() {
   const [voiceAssignments, setVoiceAssignments] = useState<TTSVoiceAssignment[]>([]);
   const [narratorVoiceEnabled, setNarratorVoiceEnabled] = useState(false);
   const [narratorVoice, setNarratorVoice] = useState("");
-  const [npcDefaultVoicesEnabled, setNpcDefaultVoicesEnabled] = useState(false);
-  const [npcDefaultMaleVoices, setNpcDefaultMaleVoices] = useState<string[]>([]);
-  const [npcDefaultFemaleVoices, setNpcDefaultFemaleVoices] = useState<string[]>([]);
   const [speed, setSpeed] = useState(1.0);
   const [elevenLabsStability, setElevenLabsStability] = useState(0.5);
   const [elevenLabsLanguageCode, setElevenLabsLanguageCode] = useState("");
-  const [elevenLabsGameSoundEffects, setElevenLabsGameSoundEffects] = useState(false);
-  const [elevenLabsGameMusic, setElevenLabsGameMusic] = useState(false);
   const [autoplayRP, setAutoplayRP] = useState(false);
   const [autoplayConvo, setAutoplayConvo] = useState(false);
-  const [autoplayGame, setAutoplayGame] = useState(false);
   const [progressivePlayback, setProgressivePlayback] = useState(false);
   const [dialogueOnly, setDialogueOnly] = useState(false);
   const [skipTagContent, setSkipTagContent] = useState(false);
@@ -1037,17 +875,11 @@ export function TTSConfigCard() {
     setVoiceAssignments(savedConfig.voiceAssignments ?? []);
     setNarratorVoiceEnabled(savedConfig.narratorVoiceEnabled ?? false);
     setNarratorVoice(savedConfig.narratorVoice ?? "");
-    setNpcDefaultVoicesEnabled(savedConfig.npcDefaultVoicesEnabled ?? false);
-    setNpcDefaultMaleVoices(savedConfig.npcDefaultMaleVoices ?? []);
-    setNpcDefaultFemaleVoices(savedConfig.npcDefaultFemaleVoices ?? []);
     setSpeed(savedConfig.speed);
     setElevenLabsStability(savedConfig.elevenLabsStability ?? 0.5);
     setElevenLabsLanguageCode(savedConfig.elevenLabsLanguageCode ?? "");
-    setElevenLabsGameSoundEffects(savedConfig.elevenLabsGameSoundEffects ?? false);
-    setElevenLabsGameMusic(savedConfig.elevenLabsGameMusic ?? false);
     setAutoplayRP(savedConfig.autoplayRP);
     setAutoplayConvo(savedConfig.autoplayConvo);
-    setAutoplayGame(savedConfig.autoplayGame);
     setProgressivePlayback(savedConfig.progressivePlayback ?? false);
     setDialogueOnly(savedConfig.dialogueOnly ?? false);
     setSkipTagContent(savedConfig.skipTagContent ?? false);
@@ -1104,6 +936,10 @@ export function TTSConfigCard() {
     };
   }, [expanded, ttsState]);
 
+  const preservedSourceProfile =
+    sourceProfilesRef.current[source] ??
+    (savedConfig?.source === source ? ttsSourceProfileFromConfig(savedConfig) : defaultSourceProfile(source));
+
   const buildPayload = (overrides?: Partial<TTSConfig>): TTSConfig => ({
     enabled,
     source,
@@ -1115,17 +951,17 @@ export function TTSConfigCard() {
     voiceAssignments,
     narratorVoiceEnabled,
     narratorVoice,
-    npcDefaultVoicesEnabled,
-    npcDefaultMaleVoices,
-    npcDefaultFemaleVoices,
+    npcDefaultVoicesEnabled: preservedSourceProfile.npcDefaultVoicesEnabled,
+    npcDefaultMaleVoices: preservedSourceProfile.npcDefaultMaleVoices,
+    npcDefaultFemaleVoices: preservedSourceProfile.npcDefaultFemaleVoices,
     speed,
     elevenLabsStability,
     elevenLabsLanguageCode,
-    elevenLabsGameSoundEffects,
-    elevenLabsGameMusic,
+    elevenLabsGameSoundEffects: preservedSourceProfile.elevenLabsGameSoundEffects,
+    elevenLabsGameMusic: preservedSourceProfile.elevenLabsGameMusic,
     autoplayRP,
     autoplayConvo,
-    autoplayGame,
+    autoplayGame: savedConfig?.autoplayGame ?? false,
     progressivePlayback,
     dialogueOnly,
     skipTagContent,
@@ -1199,14 +1035,9 @@ export function TTSConfigCard() {
     setVoiceAssignments(nextProfile.voiceAssignments);
     setNarratorVoiceEnabled(nextProfile.narratorVoiceEnabled);
     setNarratorVoice(nextProfile.narratorVoice);
-    setNpcDefaultVoicesEnabled(nextProfile.npcDefaultVoicesEnabled);
-    setNpcDefaultMaleVoices(nextProfile.npcDefaultMaleVoices);
-    setNpcDefaultFemaleVoices(nextProfile.npcDefaultFemaleVoices);
     setSpeed(nextProfile.speed);
     setElevenLabsStability(nextProfile.elevenLabsStability);
     setElevenLabsLanguageCode(nextProfile.elevenLabsLanguageCode);
-    setElevenLabsGameSoundEffects(nextProfile.elevenLabsGameSoundEffects);
-    setElevenLabsGameMusic(nextProfile.elevenLabsGameMusic);
     setAudioFormat(nextProfile.audioFormat);
     mark({
       source: nextSource,
@@ -1310,10 +1141,8 @@ export function TTSConfigCard() {
         voice,
         narratorVoice,
         ...voiceAssignments.map((assignment) => assignment.voice),
-        ...npcDefaultMaleVoices,
-        ...npcDefaultFemaleVoices,
       ]),
-    [narratorVoice, npcDefaultFemaleVoices, npcDefaultMaleVoices, source, voice, voiceAssignments, voicesData],
+    [narratorVoice, source, voice, voiceAssignments, voicesData],
   );
   const voicesFromProvider = voicesData?.fromProvider ?? false;
   const voicesErrorMessage = voicesError
@@ -1326,54 +1155,6 @@ export function TTSConfigCard() {
     return [{ id: model, name: model }, ...choices];
   }, [model, modelsData]);
   const canRefreshVoices = Boolean(baseUrl.trim()) && (source !== "elevenlabs" || Boolean(apiKey.trim()));
-  const elevenLabsMatchedMaleVoiceOptions = useMemo(
-    () =>
-      voiceOptions.filter((option) => isElevenLabsVoiceForGender(option, "male", ELEVENLABS_DEFAULT_MALE_VOICE_NAMES)),
-    [voiceOptions],
-  );
-  const elevenLabsMatchedFemaleVoiceOptions = useMemo(
-    () =>
-      voiceOptions.filter((option) =>
-        isElevenLabsVoiceForGender(option, "female", ELEVENLABS_DEFAULT_FEMALE_VOICE_NAMES),
-      ),
-    [voiceOptions],
-  );
-  const elevenLabsNpcMaleVoiceOptions = useMemo(() => {
-    let options = elevenLabsMatchedMaleVoiceOptions.length > 0 ? elevenLabsMatchedMaleVoiceOptions : voiceOptions;
-    for (const savedVoice of npcDefaultMaleVoices) {
-      options = addSavedVoiceOption(options, savedVoice);
-    }
-    return options;
-  }, [elevenLabsMatchedMaleVoiceOptions, npcDefaultMaleVoices, voiceOptions]);
-  const elevenLabsNpcFemaleVoiceOptions = useMemo(() => {
-    let options = elevenLabsMatchedFemaleVoiceOptions.length > 0 ? elevenLabsMatchedFemaleVoiceOptions : voiceOptions;
-    for (const savedVoice of npcDefaultFemaleVoices) {
-      options = addSavedVoiceOption(options, savedVoice);
-    }
-    return options;
-  }, [elevenLabsMatchedFemaleVoiceOptions, npcDefaultFemaleVoices, voiceOptions]);
-  const maleNpcVoiceFallbackNote =
-    voiceOptions.length > 0 && elevenLabsMatchedMaleVoiceOptions.length === 0
-      ? "No male-labeled defaults were detected, so this pool uses the provider voice list."
-      : undefined;
-  const femaleNpcVoiceFallbackNote =
-    voiceOptions.length > 0 && elevenLabsMatchedFemaleVoiceOptions.length === 0
-      ? "No female-labeled defaults were detected, so this pool uses the provider voice list."
-      : undefined;
-  const defaultMaleVoiceIds = useMemo(
-    () =>
-      (elevenLabsMatchedMaleVoiceOptions.length > 0 ? elevenLabsMatchedMaleVoiceOptions : voiceOptions).map(
-        (option) => option.id,
-      ),
-    [elevenLabsMatchedMaleVoiceOptions, voiceOptions],
-  );
-  const defaultFemaleVoiceIds = useMemo(
-    () =>
-      (elevenLabsMatchedFemaleVoiceOptions.length > 0 ? elevenLabsMatchedFemaleVoiceOptions : voiceOptions).map(
-        (option) => option.id,
-      ),
-    [elevenLabsMatchedFemaleVoiceOptions, voiceOptions],
-  );
   const characterOptions = useMemo<CharacterOption[]>(() => {
     return ((characters ?? []) as Array<{ id?: string; data?: unknown; comment?: string | null }>)
       .map((character) => {
@@ -1486,40 +1267,6 @@ export function TTSConfigCard() {
   const handleNarratorVoiceChange = (nextVoice: string) => {
     setNarratorVoice(nextVoice);
     mark({ narratorVoice: nextVoice });
-  };
-
-  const toggleNpcDefaultVoices = (enabled: boolean) => {
-    const poolsAreUnpartitioned = sameStringSet(npcDefaultMaleVoices, npcDefaultFemaleVoices);
-    const nextMaleVoices =
-      enabled && (npcDefaultMaleVoices.length === 0 || poolsAreUnpartitioned)
-        ? defaultMaleVoiceIds
-        : npcDefaultMaleVoices;
-    const nextFemaleVoices =
-      enabled && (npcDefaultFemaleVoices.length === 0 || poolsAreUnpartitioned)
-        ? defaultFemaleVoiceIds
-        : npcDefaultFemaleVoices;
-
-    setNpcDefaultVoicesEnabled(enabled);
-    setNpcDefaultMaleVoices(nextMaleVoices);
-    setNpcDefaultFemaleVoices(nextFemaleVoices);
-    mark({
-      npcDefaultVoicesEnabled: enabled,
-      npcDefaultMaleVoices: nextMaleVoices,
-      npcDefaultFemaleVoices: nextFemaleVoices,
-    });
-  };
-
-  const toggleNpcDefaultVoice = (gender: "male" | "female", voiceId: string, checked: boolean) => {
-    const current = gender === "male" ? npcDefaultMaleVoices : npcDefaultFemaleVoices;
-    const next = checked ? [...new Set([...current, voiceId])] : current.filter((id) => id !== voiceId);
-
-    if (gender === "male") {
-      setNpcDefaultMaleVoices(next);
-      mark({ npcDefaultMaleVoices: next });
-    } else {
-      setNpcDefaultFemaleVoices(next);
-      mark({ npcDefaultFemaleVoices: next });
-    }
   };
 
   if (isLoading) return null;
@@ -2024,45 +1771,6 @@ export function TTSConfigCard() {
             </FieldRow>
           )}
 
-          <FieldRow
-            label={localizeUi("ui.panels.ttsconfigcard.randomNpcVoices")}
-            help={localizeUi("ui.panels.ttsconfigcard.whenEnabledTrackedGameNpcsWithoutACharacterSpecific")}
-          >
-            <div className="space-y-2 rounded-xl border border-sky-400/15 bg-sky-400/5 p-2">
-              <ToggleRow
-                label={localizeUi("ui.panels.ttsconfigcard.useDefaultVoicesForRandomNpcs")}
-                checked={npcDefaultVoicesEnabled}
-                onChange={toggleNpcDefaultVoices}
-              />
-              {npcDefaultVoicesEnabled && (
-                <div className="space-y-3 pt-1">
-                  <NpcDefaultVoicePool
-                    label={localizeUi("ui.panels.ttsconfigcard.maleNpcDefaults")}
-                    options={elevenLabsNpcMaleVoiceOptions}
-                    selected={npcDefaultMaleVoices}
-                    onToggle={(voiceId, checked) => toggleNpcDefaultVoice("male", voiceId, checked)}
-                    note={maleNpcVoiceFallbackNote}
-                  />
-                  <NpcDefaultVoicePool
-                    label={localizeUi("ui.panels.ttsconfigcard.femaleNpcDefaults")}
-                    options={elevenLabsNpcFemaleVoiceOptions}
-                    selected={npcDefaultFemaleVoices}
-                    onToggle={(voiceId, checked) => toggleNpcDefaultVoice("female", voiceId, checked)}
-                    note={femaleNpcVoiceFallbackNote}
-                  />
-                  <p className="text-[0.625rem] leading-relaxed text-[var(--muted-foreground)]">
-                    {localizeUi("ui.panels.ttsconfigcard.npcsWithUnclearGenderUseAStablePickFrom")}
-                  </p>
-                  {!voicesFromProvider && (
-                    <p className="text-[0.625rem] leading-relaxed text-amber-300/80">
-                      {localizeUi("ui.panels.ttsconfigcard.saveAndEnableThisTtsProviderThenRefreshVoices")}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </FieldRow>
-
           {/* Speed */}
           <FieldRow label={speedLabel} help={speedHelp}>
             <input
@@ -2143,31 +1851,6 @@ export function TTSConfigCard() {
                 <span>{localizeUi("ui.panels.ttsconfigcard.robust")}</span>
               </div>
             </FieldRow>
-          )}
-
-          {source === "elevenlabs" && (
-            <div className="space-y-1">
-              <span className="text-xs font-medium">{localizeUi("ui.panels.ttsconfigcard.gameAudioGeneration")}</span>
-              <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-                {localizeUi("ui.panels.ttsconfigcard.gameAudioGenerationHelp")}
-              </p>
-              <ToggleRow
-                label={localizeUi("ui.panels.ttsconfigcard.generateGameSoundEffects")}
-                checked={elevenLabsGameSoundEffects}
-                onChange={(value) => {
-                  setElevenLabsGameSoundEffects(value);
-                  mark({ elevenLabsGameSoundEffects: value });
-                }}
-              />
-              <ToggleRow
-                label={localizeUi("ui.panels.ttsconfigcard.generateGameMusic")}
-                checked={elevenLabsGameMusic}
-                onChange={(value) => {
-                  setElevenLabsGameMusic(value);
-                  mark({ elevenLabsGameMusic: value });
-                }}
-              />
-            </div>
           )}
 
           {/* Auto-play */}
@@ -2252,14 +1935,6 @@ export function TTSConfigCard() {
               onChange={(v) => {
                 setAutoplayConvo(v);
                 mark({ autoplayConvo: v });
-              }}
-            />
-            <ToggleRow
-              label={localizeUi("ui.panels.ttsconfigcard.gameNarration")}
-              checked={autoplayGame}
-              onChange={(v) => {
-                setAutoplayGame(v);
-                mark({ autoplayGame: v });
               }}
             />
             <ToggleRow

@@ -401,8 +401,6 @@ export function ConnectionEditor() {
   const [localDecisionTimeoutMs, setLocalDecisionTimeoutMs] = useState<number>(DECISION_TIMEOUT_MS.systemOne);
   const [localAudioSource, setLocalAudioSource] = useState("elevenlabs");
   const [localAudioVoice, setLocalAudioVoice] = useState("");
-  const [localAudioSoundEffects, setLocalAudioSoundEffects] = useState(false);
-  const [localAudioMusic, setLocalAudioMusic] = useState(false);
   const [localMaxTokensOverride, setLocalMaxTokensOverride] = useState<number | null>(null);
   const [localClaudeFastMode, setLocalClaudeFastMode] = useState(false);
   const [localTreatAsLocalEndpoint, setLocalTreatAsLocalEndpoint] = useState(false);
@@ -539,8 +537,6 @@ export function ConnectionEditor() {
     setLocalDecisionTimeoutMs(resolveDecisionConnectionTimeoutMs(c.decisionTimeoutMs, c.decisionSource as string));
     setLocalAudioSource((c.audioSource as string) || "elevenlabs");
     setLocalAudioVoice((c.audioVoice as string) ?? "");
-    setLocalAudioSoundEffects(c.audioSoundEffects === "true" || c.audioSoundEffects === true);
-    setLocalAudioMusic(c.audioMusic === "true" || c.audioMusic === true);
     setLocalMaxTokensOverride(typeof c.maxTokensOverride === "number" ? (c.maxTokensOverride as number) : null);
     setLocalClaudeFastMode(c.claudeFastMode === "true" || c.claudeFastMode === true);
     setLocalTreatAsLocalEndpoint(c.treatAsLocalEndpoint === "true" || c.treatAsLocalEndpoint === true);
@@ -895,9 +891,6 @@ export function ConnectionEditor() {
           : null,
       audioSource: isAudioProvider ? localAudioSource || null : null,
       audioVoice: isAudioProvider ? localAudioVoice || null : null,
-      // Only ElevenLabs can generate game sound effects / music today.
-      audioSoundEffects: isAudioProvider && localAudioSource === "elevenlabs" ? localAudioSoundEffects : false,
-      audioMusic: isAudioProvider && localAudioSource === "elevenlabs" ? localAudioMusic : false,
     };
     // Only send API key if user typed a new one
     if (isLocalAuthProvider) {
@@ -1024,8 +1017,6 @@ export function ConnectionEditor() {
     localDecisionTimeoutMs,
     localAudioSource,
     localAudioVoice,
-    localAudioSoundEffects,
-    localAudioMusic,
     selectedImageService,
     swarmUiWorkflowError,
     selectedImageDefaultsService,
@@ -1142,8 +1133,6 @@ export function ConnectionEditor() {
       videoService,
       audioSource: isAudioProvider ? localAudioSource || null : null,
       audioVoice: isAudioProvider ? localAudioVoice || null : null,
-      audioSoundEffects: isAudioProvider && localAudioSource === "elevenlabs" ? localAudioSoundEffects : false,
-      audioMusic: isAudioProvider && localAudioSource === "elevenlabs" ? localAudioMusic : false,
       imageEndpointId:
         isImageProvider && selectedImageService === "runpod_comfyui" ? localImageEndpointId || null : null,
       imagePromptInstructions: isImageProvider ? normalizeImagePromptInstructions(localImagePromptInstructions) : null,
@@ -1208,8 +1197,6 @@ export function ConnectionEditor() {
     localizeUi,
     localAudioSource,
     localAudioVoice,
-    localAudioSoundEffects,
-    localAudioMusic,
   ]);
 
   const handleTestConnection = useCallback(async () => {
@@ -1698,8 +1685,6 @@ export function ConnectionEditor() {
                       // ElevenLabs endpoints and saves a self-inconsistent row.
                       setLocalAudioSource("elevenlabs");
                       setLocalAudioVoice("");
-                      setLocalAudioSoundEffects(false);
-                      setLocalAudioMusic(false);
                     }
                     // Provider switches must not keep an encrypted key from
                     // the previous provider under the new provider identity.
@@ -2475,38 +2460,6 @@ export function ConnectionEditor() {
                   {localizeUi("ui.connections.connectioneditor.voiceIdOrNameUsedWhenNothingMoreSpecific")}
                 </p>
               </label>
-              {localAudioSource === "elevenlabs" ? (
-                <div className="space-y-2">
-                  <SettingsSwitch
-                    label={localizeUi("ui.connections.connectioneditor.gameSoundEffects")}
-                    description={localizeUi(
-                      "ui.connections.connectioneditor.letGameModeGenerateSoundEffectsWithThisConnection",
-                    )}
-                    checked={localAudioSoundEffects}
-                    onChange={(checked) => {
-                      setLocalAudioSoundEffects(checked);
-                      markDirty();
-                    }}
-                  />
-                  <SettingsSwitch
-                    label={localizeUi("ui.connections.connectioneditor.gameMusic")}
-                    description={localizeUi(
-                      "ui.connections.connectioneditor.letGameModeGenerateMusicWithThisConnection",
-                    )}
-                    checked={localAudioMusic}
-                    onChange={(checked) => {
-                      setLocalAudioMusic(checked);
-                      markDirty();
-                    }}
-                  />
-                </div>
-              ) : (
-                <p className="rounded-xl bg-[var(--secondary)]/40 px-3 py-2 text-[0.625rem] text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
-                  {localizeUi(
-                    "ui.connections.connectioneditor.soundEffectAndMusicGenerationCurrentlyRequiresTheElevenlabs",
-                  )}
-                </p>
-              )}
             </FieldGroup>
           )}
 
