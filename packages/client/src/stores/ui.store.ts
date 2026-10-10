@@ -15,7 +15,6 @@ import {
   type ScenePromptPreferences,
   type ScenePackageOrigin,
 } from "@marinara-engine/shared";
-import { MARINARA_GRADIENT_PRESET } from "../lib/css-colors";
 import { announceChatFloatingUiDismiss } from "../lib/chat-floating-ui-events";
 import { detectConversationTimeZone, normalizeConversationTimeZone } from "../lib/conversation-time-zone";
 import { BASIC_PANEL_SORT_OPTIONS, normalizeBasicPanelSort, type BasicPanelSort } from "../lib/panel-sort";
@@ -333,7 +332,7 @@ function normalizeUserActivity(activity: string): string {
 }
 
 export function getDefaultAppAccentColor() {
-  return MARINARA_GRADIENT_PRESET;
+  return "#7394bd";
 }
 
 export function getDefaultAppBackgroundColor(theme: "dark" | "light") {
