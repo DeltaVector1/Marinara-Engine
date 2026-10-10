@@ -302,6 +302,8 @@ test("TTS edits preserve retired settings in saved profiles", { tag: "@smoke" },
       ...originalProfiles,
       elevenlabs: {
         ...(originalProfiles.elevenlabs ?? originalProfiles.openai ?? original),
+        baseUrl: "http://127.0.0.1:1/tts-smoke",
+        apiKey: "",
         speed: 1,
         ...legacyValues,
       },
@@ -313,7 +315,13 @@ test("TTS edits preserve retired settings in saved profiles", { tag: "@smoke" },
     expect(seedResponse.ok()).toBeTruthy();
 
     await page.goto("/");
-    await page.locator('[data-tour="panel-connections"]').click();
+    const connectionsButton = page.locator('[data-tour="panel-connections"]');
+    if (await connectionsButton.isVisible()) {
+      await connectionsButton.click();
+    } else {
+      await page.locator("[data-topbar-more]").click();
+      await page.getByRole("menuitem", { name: "Connections" }).click();
+    }
     const cardTitle = page.getByText("Text to Speech", { exact: true });
     await expect(cardTitle).toBeVisible();
     const ttsCard = cardTitle.locator("xpath=../../..");
