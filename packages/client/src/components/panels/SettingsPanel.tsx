@@ -1873,7 +1873,6 @@ const VIDEO_PROMPT_TEMPLATE_KEYS = [
   "conversation.callVideo.crying",
   "conversation.callVideo.sighing",
   "conversation.callVideo.custom",
-  "sprites.animatedPortrait",
 ] as const;
 
 const CONVERSATION_CALL_VIDEO_CLIP_LABELS: Record<ConversationCallCharacterVideoClipKind, string> = {
@@ -3985,35 +3984,11 @@ function ChatWidgetStylePreview({
         } as React.CSSProperties
       }
     >
-      <span className="mari-window mari-widget-style-preview__window relative flex min-w-0 flex-col">
-        <span className="mari-window__header flex min-w-0 items-center justify-between gap-1">
-          <span className="mari-window__title min-w-0 truncate">{t("chat.help.targets.settings.title")}</span>
-          <X
-            size="0.625rem"
-            className={cn(
-              "shrink-0",
-              presetIconClassName,
-              presetIconClassName &&
-                "text-[var(--mari-window-control-color,var(--mari-widget-custom-border-solid,var(--mari-widget-accent,var(--marinara-chat-chrome-panel-muted))))]",
-            )}
-          />
-        </span>
-        <span className="mari-window__body block p-1.5">
-          <span className="mari-drawer block">
-            <span className="mari-drawer__header flex min-w-0 items-center gap-1">
-              <FileText size="0.625rem" className={cn("mari-drawer__icon shrink-0", presetIconClassName)} />
-              <span className="mari-drawer__title min-w-0 flex-1 truncate">{t("settings.common.section")}</span>
-              <ChevronDown size="0.625rem" className={cn("mari-drawer__arrow shrink-0", presetIconClassName)} />
-            </span>
-          </span>
-        </span>
-      </span>
-      <span className="flex justify-center pt-3">
-        <span className="mari-window-bubble relative">
-          <span className="mari-window-bubble__paint pointer-events-none" aria-hidden="true" />
-          <span className="mari-window-bubble__icon">
-            <SlidersHorizontal size="0.875rem" className={presetIconClassName} />
-          </span>
+      <span className="mari-drawer block">
+        <span className="mari-drawer__header flex min-w-0 items-center gap-1">
+          <FileText size="0.625rem" className={cn("mari-drawer__icon shrink-0", presetIconClassName)} />
+          <span className="mari-drawer__title min-w-0 flex-1 truncate">{t("settings.common.section")}</span>
+          <ChevronDown size="0.625rem" className={cn("mari-drawer__arrow shrink-0", presetIconClassName)} />
         </span>
       </span>
     </span>
@@ -4442,13 +4417,13 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
                     [
                       {
                         id: "default" as VisualTheme,
-                        label: "Default (Marinara)",
-                        desc: "Y2K / retro aesthetic with glow effects",
+                        label: localizeUi("settings.appearance.visualTheme.default"),
+                        desc: localizeUi("settings.appearance.visualTheme.defaultDescription"),
                       },
                       {
                         id: "sillytavern" as VisualTheme,
-                        label: "SillyTavern",
-                        desc: "Classic SillyTavern look — clean & minimal",
+                        label: localizeUi("settings.appearance.visualTheme.sillyTavern"),
+                        desc: localizeUi("settings.appearance.visualTheme.sillyTavernDescription"),
                       },
                     ] as const
                   ).map((opt) => (
@@ -6402,7 +6377,7 @@ const CSS_TEMPLATE = `/* ══════════════════�
    You can also target shared chrome directly:
    .marinara-chat-toolbar-button { border-radius: 0.5rem; }
    .marinara-chat-popover { box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.4); }
-   [data-window="chat-settings"] .mari-window__header { background: rgb(0 0 0 / 0.2); }
+   .mari-chat-settings-drawer .mari-drawer__header { background: color-mix(in oklab, var(--accent) 50%, transparent); }
 
    You can also add any custom CSS below: */
 `;
