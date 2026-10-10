@@ -66,7 +66,6 @@ import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { CyoaChoices } from "./CyoaChoices";
 import { CHAT_CONTROL_WINDOW_IDS, ChatConnectedChatWindow, ChatControlWindow } from "./ChatControlWindow";
-import { TrackerPanelBubble } from "./TrackerPanelBubble";
 import { PHONE_BUBBLE_SIZE_PX, WINDOW_BUBBLE_SIZE_PX, WINDOW_MARGIN_PX } from "../../lib/floating-window-layout";
 import { useMatchMedia } from "../../hooks/use-match-media";
 import { CHAT_TOOLBAR_ICON_GAP_CLASS, getChatToolbarButtonClass } from "./ChatToolbarControls";
@@ -922,13 +921,6 @@ export function ChatRoleplaySurface({
   };
   // Panel-enabled chats use the Trackers button to reopen their selected surface.
   const phoneLayout = useMatchMedia("(max-width: 767px)");
-  const trackerPanelEnabled = useUIStore((s) => s.trackerPanelEnabled);
-  const trackerPanelOpen = useUIStore((s) => s.trackerPanelOpen);
-  const showTrackerPanelBubble =
-    trackerPanelEnabled &&
-    trackerPanelOpen &&
-    (chatMeta.enableAgents === true || chatMeta.advancedMemory?.enabled === true);
-  const phoneSlotOffset = phoneLayout && showTrackerPanelBubble ? 1 : 0;
   useRenderTimer("rp-surface"); // [#3104 diagnostic]
   const isMobileToolbarViewport = useIsMobileToolbarViewport();
   const streamedMessageId = useChatStore((s) => s.streamedMessageIds.get(activeChatId) ?? null);
@@ -2016,18 +2008,12 @@ export function ChatRoleplaySurface({
       </div>
 
       {/* Package toolbars, Beholder and the connected chat are windows that minimize to bubbles. */}
-      {showTrackerPanelBubble && <TrackerPanelBubble chatId={activeChatId} />}
-      {conversationToolbarPackages.map((item, index) => (
+      {conversationToolbarPackages.map((item) => (
         <ChatControlWindow
           key={`${item.id}-toolbar-window`}
           id={CHAT_CONTROL_WINDOW_IDS.package(item.id)}
           title={item.manifest.name}
           icon={<Puzzle size={14} />}
-          slot={index + 1}
-          phoneSlot={phoneSlotOffset + index + 1}
-          width={280}
-          height={140}
-          helpTarget="agent-controls"
         >
           <div className={cn("flex flex-wrap items-center p-2", CHAT_TOOLBAR_ICON_GAP_CLASS)}>
             <CapabilityElement
@@ -2043,7 +2029,6 @@ export function ChatRoleplaySurface({
         <ChatConnectedChatWindow
           name={linkedChatName}
           onSwitch={() => useChatStore.getState().setActiveChatId(chat.connectedChatId!)}
-          phoneSlot={phoneSlotOffset}
         />
       )}
 
@@ -2051,15 +2036,9 @@ export function ChatRoleplaySurface({
       {chat && chatMeta.enableAgents && (
         <Suspense fallback={null}>
           <RoleplayTrackerWindow
-            beholderSlot={conversationToolbarPackages.length + 1}
-            beholderPhoneSlot={phoneSlotOffset + conversationToolbarPackages.length + 1}
             chatId={chat.id}
             enabledAgentTypes={enabledAgentTypes}
-            isStreaming={isStreaming}
-            manualTrackers={manualTrackersActive}
-            onRerunTrackers={onRerunTrackers}
             onRerunSingleTracker={onRerunSingleTracker}
-            messages={messages}
           />
         </Suspense>
       )}

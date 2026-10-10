@@ -108,7 +108,6 @@ interface SidecarState {
         SidecarConfig,
         | "useForTrackers"
         | "useAsAgentsDefault"
-        | "useForGameScene"
         | "contextSize"
         | "maxTokens"
         | "temperature"
@@ -150,7 +149,7 @@ function shouldKeepPolling(state: Pick<SidecarState, "status" | "config" | "infe
   if (
     state.status === "downloaded" &&
     state.runtime.installed &&
-    (state.config.useForGameScene || state.config.useForTrackers) &&
+    state.config.useForTrackers &&
     !state.inferenceReady
   ) {
     return true;

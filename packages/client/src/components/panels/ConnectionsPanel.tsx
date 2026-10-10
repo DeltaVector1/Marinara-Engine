@@ -665,13 +665,6 @@ function SidecarCard() {
                 className="p-0 hover:bg-transparent"
                 labelClassName="text-xs text-[var(--muted-foreground)]"
               />
-              <SettingsSwitch
-                label={localizeUi("ui.panels.sidecarcard.useForGameSceneAnalysis")}
-                checked={config.useForGameScene}
-                onChange={(checked) => updateConfig({ useForGameScene: checked })}
-                className="p-0 hover:bg-transparent"
-                labelClassName="text-xs text-[var(--muted-foreground)]"
-              />
             </div>
           )}
           {/* Outside the downloaded-model branch on purpose: the decision sidecar is

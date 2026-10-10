@@ -332,17 +332,12 @@ export function ConversationPackageWindows({
     personaInfo,
     toolbarButtonClass: getChatToolbarButtonClass(),
   };
-  return packages.map((item, index) => (
+  return packages.map((item) => (
     <ChatControlWindow
       key={item.id}
       id={CHAT_CONTROL_WINDOW_IDS.package(item.id)}
       title={item.manifest.name}
       icon={<Puzzle size={14} />}
-      // The connected chat takes slot 0.
-      slot={index + 1}
-      width={280}
-      height={140}
-      helpTarget="agent-controls"
     >
       <div className="flex flex-wrap items-center gap-0.5 p-2">
         <CapabilityElement packageId={item.id} view="toolbar" capabilityProps={capabilityProps} className="contents" />

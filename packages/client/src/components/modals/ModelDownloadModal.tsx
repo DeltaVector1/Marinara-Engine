@@ -228,7 +228,7 @@ export function ModelDownloadModal({ open, onClose }: Props) {
   const isDownloading = downloadProgress?.status === "downloading";
   const hasModel = modelDownloaded;
   const activeModelName = hasModel ? modelDisplayName : null;
-  const shouldAutoStart = config.useForTrackers || config.useForGameScene;
+  const shouldAutoStart = config.useForTrackers;
   const isBlockingSetup = isDownloading || status === "downloading_runtime" || status === "downloading_model";
   const isPreparingServer =
     runtime.installed && hasModel && shouldAutoStart && !inferenceReady && status === "starting_server";
@@ -1125,7 +1125,7 @@ export function ModelDownloadModal({ open, onClose }: Props) {
                       </button>
                     )}
                     <button
-                      onClick={() => void updateConfig({ useForTrackers: false, useForGameScene: false })}
+                      onClick={() => void updateConfig({ useForTrackers: false })}
                       className="flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm text-[var(--muted-foreground)] transition-colors hover:bg-[var(--secondary)]"
                     >
                       {localizeUi("ui.modals.modeldownloadmodal.continueWithoutLocalAi")}

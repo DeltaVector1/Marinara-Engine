@@ -50,7 +50,6 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { useTranslation as useUiTranslation } from "react-i18next";
-import { TRACKER_PANEL_BUBBLE_ID, useFloatingWindowStore } from "../../stores/floating-window.store";
 import { closeTrackerPanel } from "../../lib/tracker-panel-surface";
 
 const ChatArea = lazy(() => import("../chat/ChatArea").then((module) => ({ default: module.ChatArea })));
@@ -340,7 +339,6 @@ export function AppShell() {
   const openAgentCatalog = useUIStore((s) => s.openAgentCatalog);
   const setTrackerPanelOpen = useUIStore((s) => s.setTrackerPanelOpen);
   const restoreTrackerPanelOpenForChat = useUIStore((s) => s.restoreTrackerPanelOpenForChat);
-  const trackerPanelSurfaceOpen = useFloatingWindowStore((s) => s.open[TRACKER_PANEL_BUBBLE_ID] === true);
   const refreshLorebooks = useCallback(
     () => queryClient.invalidateQueries({ queryKey: lorebookKeys.all }),
     [queryClient],
@@ -767,7 +765,7 @@ export function AppShell() {
 
   const hasDetailView = detailView != null;
   const trackerPanelModeAvailable = activeChat?.mode === "roleplay";
-  const trackerPanelActive = trackerPanelEnabled && trackerPanelOpen && trackerPanelSurfaceOpen;
+  const trackerPanelActive = trackerPanelEnabled && trackerPanelOpen;
   const trackerPanelSurfaceAvailable = trackerPanelModeAvailable && !hasDetailView;
   // The chat preference chooses the surface; its Trackers button controls visibility.
   const trackerPanelVisible = trackerPanelActive && trackerPanelSurfaceAvailable;
