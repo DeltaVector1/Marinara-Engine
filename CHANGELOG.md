@@ -6,6 +6,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 - Simplified Home and chat navigation with visible labels for frequent actions and a restrained theme-token accent.
 - Removed Game mode, Noodle, character presence and schedules, autonomous Conversation messages, generated sprite tools, storyboards, haptics, and Spotify music controls. Character sprites remain available for manual upload and management.
+- Removed achievements and Home Assistant. Frequent actions now use labeled controls in the chat pane instead of popup and docked tracker windows, with opaque surfaces and one restrained accent to keep reading central.
 - Removed obsolete Windows installer and Tauri pre-alpha packaging, with release versioning and CI checks limited to supported build targets.
 - Removed obsolete feature-specific regression hooks so the supported Conversation and Roleplay checks match the reduced fork.
 

@@ -41,6 +41,12 @@ Build a compact, reading-first workspace for personal Conversation and Roleplay 
 
 Avoid marketing layouts, glowing panels, decorative gradients, and grids of nested cards. Use color to show focus, selection, and action. Keep character art inside the chat or library where it supports the task.
 
+## Implementation plan
+
+- [x] Prune retired features while preserving saved data and stable Conversation and Roleplay flows.
+- [x] Keep the transcript central with opaque surfaces, one restrained accent, and labeled actions.
+- [ ] Check phone-width layout and keyboard access in the UI smoke suite.
+
 ## Layout and controls
 
 - Keep frequent chat actions close to the transcript and composer.
