@@ -7268,6 +7268,12 @@ strong {
   }
 }
 
+@container topbar (max-width: 960px) {
+  .mari-topbar .mari-topbar-action > span {
+    display: none;
+  }
+}
+
 @media (pointer: coarse) {
   ::-webkit-scrollbar {
     width: 0.25rem;

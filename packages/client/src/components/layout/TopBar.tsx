@@ -241,7 +241,7 @@ export function TopBar({ mobileTopbarNavigation }: { mobileTopbarNavigation: boo
     <header
       ref={headerRef}
       data-component="TopBar"
-      className="mari-topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-3"
+      className="mari-topbar @container/topbar relative z-10 flex h-12 flex-shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--card)] px-3"
     >
       <div className="mari-topbar-left flex min-w-0 flex-1 items-center gap-2">
         <div className="mari-topbar-left-controls flex shrink-0 items-center gap-1">
