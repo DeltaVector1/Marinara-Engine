@@ -89,8 +89,6 @@ import { SceneInstructionsSection } from "../../features/chat-settings/sections/
 import { CapabilityElement } from "../capabilities/CapabilityElement";
 import type { AvatarCrop } from "@marinara-engine/shared";
 import {
-  DEFAULT_GAME_DICE_POOL_AGE_TURNS as DEFAULT_DICE_POOL_AGE_TURNS,
-  DEFAULT_GAME_DICE_POOL_WINDOW as DEFAULT_DICE_POOL_WINDOW,
   estimateTextTokens,
   isRoleplayCommandEnabled,
   normalizeAdvancedMemorySettings,
@@ -497,7 +495,6 @@ const CHAT_SETTINGS_ORDER = {
   connection: -1300,
   promptPreset: -1200,
   advancedParameters: -1100,
-  combatStyle: -475,
   persona: -1000,
   characters: -900,
   cardTheming: -850,
@@ -4242,8 +4239,6 @@ export function ChatSettingsDrawer({
             </div>
           )}
 
-          {/* Combat Style — game mode only */}
-
           {/* Scene System Prompt — shown only for scene-created chats */}
           {metadata.sceneSystemPrompt && (
             <SceneInstructionsSection
@@ -7125,7 +7120,6 @@ export function ChatSettingsDrawer({
 
           <div style={{ order: CHAT_SETTINGS_ORDER.functionCalling }}>
             <FunctionCallingSection
-              isGameMode={false}
               narratorProvider={
                 (
                   chatGenerationConnectionsList as Array<{
@@ -7136,39 +7130,6 @@ export function ChatSettingsDrawer({
                 ).find((connection) =>
                   chat.connectionId ? connection.id === chat.connectionId : isConnectionFlagTrue(connection.isDefault),
                 )?.provider
-              }
-              connections={textConnectionsList}
-              toolConnectionId={(metadata.gameGmToolConnectionId as string) ?? ""}
-              onToolConnectionChange={(gameGmToolConnectionId) =>
-                updateMeta.mutate({ id: chat.id, gameGmToolConnectionId })
-              }
-              gameLorebookSearch={metadata.gameLorebookSearch === true}
-              onGameLorebookSearchChange={(gameLorebookSearch) =>
-                updateMeta.mutate({ id: chat.id, gameLorebookSearch })
-              }
-              gameDiceOutcomeNarration={metadata.gameDiceOutcomeNarration !== false}
-              onGameDiceOutcomeNarrationChange={(gameDiceOutcomeNarration) =>
-                updateMeta.mutate({ id: chat.id, gameDiceOutcomeNarration })
-              }
-              gameOneRequestDice={metadata.gameOneRequestDice === true}
-              onGameOneRequestDiceChange={(gameOneRequestDice) =>
-                updateMeta.mutate({ id: chat.id, gameOneRequestDice })
-              }
-              gameDicePoolMode={metadata.gameDicePoolMode === true}
-              onGameDicePoolModeChange={(gameDicePoolMode) => updateMeta.mutate({ id: chat.id, gameDicePoolMode })}
-              gameDicePoolWindow={
-                typeof metadata.gameDicePoolWindow === "number" ? metadata.gameDicePoolWindow : DEFAULT_DICE_POOL_WINDOW
-              }
-              onGameDicePoolWindowChange={(gameDicePoolWindow) =>
-                updateMeta.mutate({ id: chat.id, gameDicePoolWindow })
-              }
-              gameDicePoolAgeTurns={
-                typeof metadata.gameDicePoolAgeTurns === "number"
-                  ? metadata.gameDicePoolAgeTurns
-                  : DEFAULT_DICE_POOL_AGE_TURNS
-              }
-              onGameDicePoolAgeTurnsChange={(gameDicePoolAgeTurns) =>
-                updateMeta.mutate({ id: chat.id, gameDicePoolAgeTurns })
               }
               enableTools={metadata.enableTools as boolean | undefined}
               forceToolCall={metadata.forceToolCall as boolean | undefined}
