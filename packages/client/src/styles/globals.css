@@ -5476,6 +5476,13 @@ strong {
     flex: 1 1 auto !important;
   }
 
+  html[data-mari-software-keyboard-open] .mari-chat-settings-drawer:focus-within {
+    top: calc(var(--mari-visual-viewport-offset-top, 0px) + 0.5rem) !important;
+    bottom: auto !important;
+    height: calc(var(--mari-visual-viewport-height, 100dvh) - 1rem) !important;
+    max-height: none !important;
+  }
+
   html[data-mari-ios-webkit] body > [data-component="ExpandedTextarea"] {
     position: absolute;
     top: var(--mari-visual-viewport-offset-top, 0px);
