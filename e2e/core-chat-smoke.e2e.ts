@@ -16,18 +16,28 @@ test("chat shell opens settings and switches between retained modes", { tag: "@s
     await page.goto("/");
     const chatsButton = page.locator('[data-component="TopBar"] [data-tour="sidebar-toggle"]');
     const sidebarSlot = page.locator('[data-component="ChatSidebarSlot"]');
-    if ((await chatsButton.getAttribute("aria-pressed")) !== "true") await chatsButton.click();
-    await expect(chatsButton).toHaveAttribute("aria-pressed", "true");
-    await expect(sidebarSlot).toHaveAttribute("aria-hidden", "false");
-    const sidebar = sidebarSlot.locator('[data-component="ChatSidebar"]');
+    if ((await chatsButton.count()) > 0 && (await chatsButton.isVisible())) {
+      if ((await chatsButton.getAttribute("aria-pressed")) !== "true") await chatsButton.click();
+      await expect(sidebarSlot).toHaveAttribute("aria-hidden", "false");
+    } else {
+      await expect(page.getByRole("complementary", { name: "Chat list" })).toBeVisible();
+    }
+    const sidebar = page.locator('[data-component="ChatSidebar"]');
     for (const mode of ["conversation", "roleplay"] as const) {
       const modeTab = page.locator(`[data-tour="chat-mode-${mode}"]`);
       await modeTab.click();
       await expect(modeTab).toHaveAttribute("aria-pressed", "true");
       await expect(sidebar.locator(`[data-chat-id="${chats.find((chat) => chat.mode === mode)!.id}"]`)).toBeVisible();
     }
-    await page.locator('[data-component="TopBar"]').getByTitle("Home").click();
-    await page.locator('[data-tour="panel-settings"]').click();
+    const closeChats = page.getByRole("button", { name: "Close chats", exact: true });
+    if (await closeChats.isVisible()) await closeChats.click();
+    const settingsButton = page.locator('[data-component="TopBar"] [data-tour="panel-settings"]');
+    if (await settingsButton.isVisible()) {
+      await settingsButton.click();
+    } else {
+      await page.locator('[data-component="TopBar"] [data-topbar-more]').click();
+      await page.getByRole("menuitem", { name: "Settings" }).click();
+    }
     await expect(page.locator('[data-component="RightPanel"]')).toBeVisible();
   } finally {
     await Promise.allSettled(chats.map(({ id }) => page.request.delete(`/api/chats/${id}?force=true`)));
@@ -105,6 +115,8 @@ test("Conversation and Roleplay render a completed generated reply", { tag: "@sm
         });
         await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chat.id);
         await page.goto("/");
+        const closeChats = page.getByRole("button", { name: "Close chats", exact: true });
+        if (await closeChats.isVisible()) await closeChats.click();
         const composer = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
         await composer.fill(`Reply in ${mode}`);
         if (mode === "conversation") {
@@ -115,6 +127,7 @@ test("Conversation and Roleplay render a completed generated reply", { tag: "@sm
         await expect(page.getByText(reply!, { exact: true })).toBeVisible();
         await expect.poll(() => providerRequestCount).toBe(mode === "conversation" ? 1 : 2);
         await page.reload();
+        if (await closeChats.isVisible()) await closeChats.click();
         await expect(page.getByText(reply!, { exact: true })).toBeVisible();
         await expect.poll(() => providerRequestCount).toBe(mode === "conversation" ? 1 : 2);
         const settingsButton = page.locator("[data-chat-settings-button]");
@@ -200,6 +213,8 @@ test(
       await request.patch(`/api/chats/${chatId}/metadata`, { data: { enableAgents: false } });
       await page.addInitScript((id) => localStorage.setItem("marinara-active-chat-id", id), chatId);
       await page.goto("/");
+      const closeChats = page.getByRole("button", { name: "Close chats", exact: true });
+      if (await closeChats.isVisible()) await closeChats.click();
       const input = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
       const send = page.locator('button[data-action="send-stop"]');
       await input.fill("Stop this response");
