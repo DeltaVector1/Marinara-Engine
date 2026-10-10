@@ -3,9 +3,9 @@ import { normalizeAvatarLookupName } from "../game/npc-avatar-utils.js";
 import { normalizeIllustratorAppearance } from "./illustrator-references.js";
 
 /**
- * Native NovelAI per-character captions shared by the Storyboard planner and the
- * roleplay Illustrator. NovelAI V4/V4.5 accept up to 6 character captions on a
- * 5x5 grid; V5 accepts 22 on a free canvas. Both take normalized centers.
+ * Native NovelAI per-character captions used by the roleplay Illustrator.
+ * NovelAI V4/V4.5 accept up to 6 captions on a 5x5 grid; V5 accepts 22 on a free
+ * canvas. Both take normalized centers.
  */
 const NOVELAI_V4_MAX_CHARACTER_PROMPTS = 6;
 export const NOVELAI_V5_MAX_CHARACTER_PROMPTS = 22;

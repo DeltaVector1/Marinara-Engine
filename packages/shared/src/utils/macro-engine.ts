@@ -521,11 +521,6 @@ export const SUPPORTED_MACROS: readonly SupportedMacroDefinition[] = [
     syntax: "{{include::BOOK::ENTRY}}",
     description: "Text of an entry from the lorebook with this ID or name, even one the chat does not use",
   },
-  {
-    category: "Game",
-    syntax: "{{gameStoryboardKeyframeCount}}",
-    description: "Current Game Mode Keyframes per Turn target (1-200, default 3)",
-  },
   { category: "Time", syntax: "{{date}}", description: "Current real date in the user's timezone" },
   { category: "Time", syntax: "{{time}}", description: "Current real time in the user's timezone" },
   { category: "Time", syntax: "{{datetime}} / {{isotime}}", description: "Current timestamp in the user's timezone" },
@@ -2846,7 +2841,6 @@ export function expandLorebookIncludes(
  *  - {{outlet::name}} — activated lorebook entries assigned to a named Outlet
  *  - {{lorebooksize::ID}} — total number of entries in the lorebook with the given ID
  *  - {{include::ENTRY}} / {{include::BOOK::ENTRY}} — content of a lorebook entry (see expandLorebookIncludes)
- *  - {{gameStoryboardKeyframeCount}} — current Game Mode Keyframes per Turn target
  *  - {{// comment}} — removed (author comments)
  *  - {{trim}} — remove surrounding whitespace
  *  - {{trimStart}} / {{trimEnd}} — directional trim markers

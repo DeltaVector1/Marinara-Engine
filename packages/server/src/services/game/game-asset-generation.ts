@@ -811,10 +811,6 @@ interface SceneIllustrationGenRequest {
   negativePromptOverride?: string;
   /** Receives the exact compiled prompt passed to the image provider. */
   onCompiledPrompt?: (compiled: CompiledGameImagePrompt) => void;
-  /** Selected provider-facing storyboard image prompt template. */
-  storyboardImagePromptTemplateId?: string | null;
-  /** Chat-local provider-facing storyboard image prompt templates. */
-  storyboardImagePromptTemplates?: unknown;
   /** Preserve the full generated scene prompt instead of distilling it into the selected tagged prompt grammar. */
   preserveFullScenePrompt?: boolean;
   /** Optional request-scoped abort signal. */
