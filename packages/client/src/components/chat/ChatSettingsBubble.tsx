@@ -30,7 +30,7 @@ export function ChatSettingsBubble({
       data-chat-toolbar-panel-action="settings"
       data-chat-settings-button
       data-open={open ? "true" : undefined}
-      className={`${getChatToolbarButtonClass({ open, sizeClassName: "h-10 w-10" })} fixed right-3 top-3 z-40`}
+      className={`${getChatToolbarButtonClass({ open, sizeClassName: "h-10 w-10" })} absolute right-3 top-3 z-40`}
       onClick={() => {
         announceChatToolbarAction("settings");
         onToggle();
