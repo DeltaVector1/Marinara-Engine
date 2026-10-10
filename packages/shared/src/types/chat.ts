@@ -418,8 +418,6 @@ export interface ChatMetadata {
   enableMemoryRecall?: boolean;
   /** Discord webhook URL to mirror messages to a Discord channel. */
   discordWebhookUrl?: string;
-  /** When true, Noodle timeline refreshes may include this chat's recent messages as generation context. */
-  noodleTimelineContextEnabled?: boolean;
   /** When true, the Slurp package may add this chat's characters' recent Slurp activity to the prompt. Off unless set. */
   slurp2ActivityContextEnabled?: boolean;
   /** Per-chat ephemeral / enabled overrides for lorebook entries (entryId → state).

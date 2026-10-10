@@ -18,7 +18,7 @@ export const ASSISTANT_CONTINUATION_PROMPT =
 /**
  * Shared undici Agent settings. Both the headers timeout (time to first byte) and the
  * wait between streamed chunks follow CHAT_GENERATION_TIMEOUT_MS, so slow local models
- * get the same budget on background generation (Professor Mari, Noodle, agents) as on
+ * get the same budget on background generation and agents as on
  * the chat routes. A local server often sends headers at once and then spends minutes
  * on a long prompt before the first token; a fixed 2-minute chunk wait cut those calls
  * off (#6970). The wait stays finite so half-open streams cannot hang forever.
@@ -400,7 +400,7 @@ export function fitMessagesToContext(
       : Math.max(1, Math.min(requestedMaxTokens, Math.max(1, usableWindow - reservedInputFloor)));
   let inputBudget = Math.max(0, usableWindow - (maxTokens ?? 0));
 
-  // Single-shot prompts (Noodle refreshes, summarizers, other one-off builders) carry no
+  // Single-shot prompts (summarizers and other one-off builders) carry no
   // messages marked as history, so there is nothing in them that is safe to drop: the trimmer
   // below would delete the prompt body itself and leave only the trailing instruction. Give the
   // output budget back instead, and let the later passes handle a prompt that still cannot fit.

@@ -6,7 +6,6 @@ import {
   noodleInteractions,
   noodlePostUnlocks,
 } from "../../db/schema/noodle.js";
-import { remapNoodlerReservePolicyFingerprint } from "../storage/noodle.storage.js";
 import { newId } from "../../utils/id-generator.js";
 import { ProfileImportRequestError } from "./profile-import-errors.js";
 
@@ -112,6 +111,18 @@ function parseJson(value: unknown): unknown {
     return JSON.parse(value);
   } catch {
     return null;
+  }
+}
+
+function remapNoodlerReservePolicyFingerprint(fingerprint: unknown, accountMap: ReadonlyMap<string, string>): unknown {
+  if (typeof fingerprint !== "string") return fingerprint;
+  try {
+    const parsed = JSON.parse(fingerprint) as { sourceId?: unknown };
+    if (typeof parsed?.sourceId !== "string") return fingerprint;
+    const remapped = accountMap.get(parsed.sourceId);
+    return !remapped || remapped === parsed.sourceId ? fingerprint : JSON.stringify({ ...parsed, sourceId: remapped });
+  } catch {
+    return fingerprint;
   }
 }
 

@@ -158,10 +158,6 @@ async function hardenPrivateBackupTree(rootPath: string): Promise<void> {
   }
 }
 
-function withOptionalNoodleAutoPostPaused<T>(operation: () => Promise<T>): Promise<T> {
-  const service = getCapabilityService<{ pause<TValue>(run: () => Promise<TValue>): Promise<TValue> }>("noodle:backup");
-  return service ? service.pause(operation) : operation();
-}
 const PROFILE_IMPORT_MEMORY_WARNING_BYTES = 512 * 1024 * 1024;
 const PROFILE_EXPORT_JSON_TOO_LARGE_CODE = "PROFILE_EXPORT_JSON_TOO_LARGE";
 const AUTOMATIC_BACKUP_SETTINGS_KEY = "automatic_backup";
@@ -674,7 +670,6 @@ for (const candidate of Object.values(schema)) {
 }
 
 function sanitizeProfileTableRows(tableName: string, rows: Array<Record<string, unknown>>) {
-  if (tableName === "noodler_fan_activity_state") return [];
   if (tableName === "chats") {
     return rows.map((row) => {
       if (typeof row.metadata !== "string") return row;
@@ -692,8 +687,8 @@ function sanitizeProfileTableRows(tableName: string, rows: Array<Record<string, 
     });
   }
   if (tableName === "api_connections") {
-    // The saved model list is a cache the provider can rebuild, like Noodle fan activity above, so
-    // it stays out of portable profiles. Pinned models are settings and travel with the row.
+    // The saved model list is a cache the provider can rebuild, so it stays out of portable
+    // profiles. Pinned models are settings and travel with the row.
     return rows.map((row) => ({ ...row, apiKeyEncrypted: "", managementTokenEncrypted: "", savedModels: null }));
   }
   if (tableName === "agent_configs") {
@@ -998,14 +993,11 @@ async function buildProfileStorageSnapshot(
   app: FastifyInstance,
   options: ProfileStorageSnapshotOptions = {},
 ): Promise<ProfileStorageSnapshot> {
-  // Tables and assets are two separate reads. The NoodleR reserve writes both in one pass, so
-  // without holding it still the archive can contain a row whose media bytes are missing, or
-  // media no surviving row owns.
-  return withOptionalNoodleAutoPostPaused(async () => ({
+  return {
     version: 1,
     tables: await buildProfileTableSnapshot(app),
     files: await collectProfileAssetFiles(getDataDir(), options),
-  }));
+  };
 }
 
 function isProfileStorageSnapshot(value: unknown): value is ProfileStorageSnapshot {
@@ -1674,10 +1666,7 @@ async function buildProfileArchiveSources(
 async function writeNativeProfileZip(app: FastifyInstance, outputPath: string, skipFailedAssets = false) {
   const workingDir = await mkdtemp(join(tmpdir(), "marinara-profile-tables-"));
   try {
-    // Same row/asset consistency requirement as the JSON snapshot above.
-    const sources = await withOptionalNoodleAutoPostPaused(() =>
-      buildProfileArchiveSources(app, "", workingDir, true, skipFailedAssets),
-    );
+    const sources = await buildProfileArchiveSources(app, "", workingDir, true, skipFailedAssets);
     await writeStoredZipArchive(outputPath, sources, {
       skipFailedFileEntries: skipFailedAssets,
       entryLimitBytes: Number.MAX_SAFE_INTEGER,
@@ -3220,10 +3209,8 @@ async function writeFullBackupArchive(
 
   // Capture the manifest after filesystem source sizes so a later change makes
   // the writer omit that source instead of creating a manifest-size mismatch.
-  const sources = await withOptionalNoodleAutoPostPaused(() =>
-    buildProfileArchiveSources(app, backupName, workingDir, false, true, (path) =>
-      omittedEntries.add(profileArchiveEntryPath(backupName, path)),
-    ),
+  const sources = await buildProfileArchiveSources(app, backupName, workingDir, false, true, (path) =>
+    omittedEntries.add(profileArchiveEntryPath(backupName, path)),
   );
   sources.push(...filesystemSources);
 
