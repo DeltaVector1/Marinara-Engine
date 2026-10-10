@@ -691,13 +691,14 @@ export async function runSTBulkImport(
           charGroupIds.set(groupKey, groupId);
         }
 
-        await importSTChat(content, db, {
+        const result = await importSTChat(content, db, {
           characterId: charId,
           chatName: ct.characterName,
           branchName: ct.chatName ?? basename(ct.path, ".jsonl"),
           groupId,
           timestampOverrides: getFileTimestampOverrides(fileInfo),
         });
+        if ("error" in result) throw new Error(result.error);
 
         imported.chats++;
       } catch (err) {
@@ -731,13 +732,15 @@ export async function runSTBulkImport(
         if (!gcGroupIds.has(groupKey)) {
           gcGroupIds.set(groupKey, randomUUID());
         }
-        await importSTChat(content, db, {
+        const result = await importSTChat(content, db, {
           chatName: gc.groupName,
           speakerMap,
           mode: "roleplay",
           groupId: gcGroupIds.get(groupKey)!,
           timestampOverrides: getFileTimestampOverrides(fileInfo),
         });
+        if ("error" in result) throw new Error(result.error);
+
         imported.groupChats++;
       } catch (err) {
         errors.push(`Group chat "${gc.groupName}": ${(err as Error).message}`);

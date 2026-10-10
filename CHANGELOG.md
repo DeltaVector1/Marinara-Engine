@@ -4,6 +4,7 @@ This file is the release-notes source of truth for Marinara Engine. Reuse these 
 
 ## [Unreleased]
 
+- SillyTavern bulk imports now report chats that fail validation instead of counting them as imported.
 - Simplified Home and chat navigation with visible labels for frequent actions and a restrained theme-token accent.
 - Removed Game mode, Noodle, character presence and schedules, autonomous Conversation messages, generated sprite tools, storyboards, haptics, and Spotify music controls. Character sprites remain available for manual upload and management.
 - Removed achievements and Home Assistant. Frequent actions now use labeled controls in the chat pane instead of popup and docked tracker windows, with opaque surfaces and one restrained accent to keep reading central.
