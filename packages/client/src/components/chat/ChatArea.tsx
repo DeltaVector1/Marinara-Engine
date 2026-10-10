@@ -2,18 +2,7 @@ import { notifyRoleplayTTSParagraph, withRoleplayTTSParagraphs } from "../../lib
 // ──────────────────────────────────────────────
 // Chat: Main chat area — mode-aware rendering
 // ──────────────────────────────────────────────
-import {
-  Suspense,
-  lazy,
-  memo,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  type MouseEvent as ReactMouseEvent,
-} from "react";
+import { Suspense, lazy, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQueries, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import {
   useChatMessages,
@@ -76,7 +65,6 @@ import { useAgentStore, EMPTY_AGENT_TYPES } from "../../stores/agent.store";
 import { isBuiltInTrackerAgentType, resolveTrackerRerunTypes } from "../../lib/tracker-agents";
 import { Modal } from "../ui/Modal";
 import { useScene } from "../../hooks/use-scene";
-import { type ChatMode } from "@marinara-engine/shared";
 import { ttsService } from "../../lib/tts-service";
 import { useTTSConfig } from "../../hooks/use-tts";
 import {
@@ -104,11 +92,7 @@ import {
   CHAT_FLOATING_UI_DISMISS_EVENT,
   CHAT_SUMMARY_OPEN_REQUEST_EVENT,
 } from "../../lib/chat-floating-ui-events";
-import {
-  CHAT_TOOLBAR_ACTION_EVENT,
-  readAnnouncedChatToolbarPanelAction,
-  readChatToolbarFloatingPanelAnchor,
-} from "./ChatToolbarControls";
+import { CHAT_TOOLBAR_ACTION_EVENT, readAnnouncedChatToolbarPanelAction } from "./ChatToolbarControls";
 import { SelectionLorebookButton } from "./SelectionLorebookButton";
 import { mirrorCharacterSpritePlacements, mirrorSpritePlacements, normalizeSpritePlacements } from "./sprite-placement";
 import {
@@ -144,7 +128,6 @@ import {
 import { useTranslation as useUiTranslation } from "react-i18next";
 import { ChatResourceDropOverlay } from "./ChatResourceDropOverlay";
 import { HomeView } from "./HomeView";
-import { CHAT_SETTINGS_WINDOW_ID, useFloatingWindowStore } from "../../stores/floating-window.store";
 
 export type { CharacterMap };
 
@@ -426,7 +409,6 @@ const ChatRoleplaySurface = lazy(async () => {
   return { default: module.ChatRoleplaySurface };
 });
 
-type FloatingPanelAnchor = ReturnType<typeof readChatToolbarFloatingPanelAnchor>;
 type OpenSettingsOptions = { initialSection?: ChatSettingsInitialSection };
 type TTSGenerationSnapshot = {
   chatId: string;
@@ -506,14 +488,11 @@ function ChatOpeningState({
 export const ChatArea = memo(function ChatArea() {
   const activeChatId = useChatStore((state) => state.activeChatId);
   const { data: chat, error, refetch } = useChat(activeChatId);
-  const hostsChatSettings = Boolean(activeChatId);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   useEffect(() => {
-    if (!hostsChatSettings) return;
-    return useFloatingWindowStore.getState().registerHost(CHAT_SETTINGS_WINDOW_ID);
-  }, [hostsChatSettings]);
-  // The Chat Settings button shows while a chat that hosts Chat Settings is open.
-  const chatSettingsHosted = useFloatingWindowStore((state) => (state.hosts[CHAT_SETTINGS_WINDOW_ID] ?? 0) > 0);
-  // Windows and popped-out drawers follow the open chat's saved layout.
+    setSettingsOpen(false);
+  }, [activeChatId]);
+  // Other chat windows continue to follow the open chat's saved layout.
   useChatWindowLayout(activeChatId ? (chat?.id === activeChatId ? chat : undefined) : null);
   useEffect(() => {
     if (activeChatId && error instanceof ApiError && error.status === 404) {
@@ -524,13 +503,17 @@ export const ChatArea = memo(function ChatArea() {
     return (
       <ChatOpeningState error={error} onRetry={refetch} onBack={() => useChatStore.getState().setActiveChatId(null)} />
     );
-  const chatSettingsButton =
-    chat && chatSettingsHosted ? <ChatSettingsBubble chatId={chat.id} mode={readChatMode(chat)} /> : null;
   return (
     <>
-      <LocalChatArea />
+      <LocalChatArea settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} />
       <SelectionLorebookButton />
-      {chatSettingsButton}
+      {chat && (
+        <ChatSettingsBubble
+          chatId={chat.id}
+          open={settingsOpen}
+          onToggle={() => setSettingsOpen((current) => !current)}
+        />
+      )}
     </>
   );
 });
@@ -539,11 +522,13 @@ export const ChatArea = memo(function ChatArea() {
 // ponytail: one small entry per chat opened this session; drop entries on chat delete if that ever matters.
 const retainedExpressionTurns = new Map<string, ReturnType<typeof resolveLatestSpriteExpressionTurn>>();
 
-function readChatMode(chat: { mode?: unknown }): ChatMode {
-  return chat.mode === "conversation" ? chat.mode : "roleplay";
-}
-
-const LocalChatArea = memo(function LocalChatArea() {
+const LocalChatArea = memo(function LocalChatArea({
+  settingsOpen,
+  setSettingsOpen,
+}: {
+  settingsOpen: boolean;
+  setSettingsOpen: (open: boolean) => void;
+}) {
   const { t: localizeUi } = useUiTranslation();
   useRenderTimer("chat-area"); // [#3104 diagnostic]
   const activeChatId = useChatStore((s) => s.activeChatId);
@@ -576,10 +561,7 @@ const LocalChatArea = memo(function LocalChatArea() {
   // After the first render with messages, new/re-mounted messages
   // skip the entry animation to avoid a visible flash on refetch.
   const hasAnimatedRef = useRef(false);
-  const settingsOpen = useFloatingWindowStore((s) => s.open[CHAT_SETTINGS_WINDOW_ID] === true);
-  const settingsPinned = useFloatingWindowStore((s) => s.layouts[CHAT_SETTINGS_WINDOW_ID]?.pinned === true);
   const [settingsInitialSection, setSettingsInitialSection] = useState<ChatSettingsInitialSection>(null);
-  const [settingsAnchor, setSettingsAnchor] = useState<FloatingPanelAnchor>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [spriteArrangeMode, setSpriteArrangeMode] = useState(false);
   const [agentInjectionReview, setAgentInjectionReview] = useState<AgentInjectionReviewRequest | null>(null);
@@ -620,32 +602,28 @@ const LocalChatArea = memo(function LocalChatArea() {
     () => (activeChatId ? (allChats?.find((candidate) => candidate.id === activeChatId) ?? null) : null),
     [activeChatId, allChats],
   );
-  const readFloatingPanelAnchor = useCallback((event?: ReactMouseEvent<HTMLElement>): FloatingPanelAnchor => {
-    return readChatToolbarFloatingPanelAnchor(event?.currentTarget ?? null);
-  }, []);
   const handleOpenSettingsPanel = useCallback(
-    (event?: ReactMouseEvent<HTMLElement>, options?: OpenSettingsOptions) => {
+    (event?: Event, options?: OpenSettingsOptions) => {
       void preloadChatSettingsDrawer();
-      const windows = useFloatingWindowStore.getState();
-      const nextOpen = event ? !windows.open[CHAT_SETTINGS_WINDOW_ID] : true;
-      setSettingsAnchor(nextOpen ? readFloatingPanelAnchor(event) : null);
+      const nextOpen = event ? !settingsOpen : true;
+      setSettingsOpen(nextOpen);
       setSettingsInitialSection(nextOpen ? (options?.initialSection ?? null) : null);
-      if (nextOpen) windows.openWindow(CHAT_SETTINGS_WINDOW_ID, event?.currentTarget ?? null);
-      else windows.dismissWindow(CHAT_SETTINGS_WINDOW_ID, { force: true });
     },
-    [readFloatingPanelAnchor],
+    [setSettingsOpen, settingsOpen],
   );
-  // Other chat panels and toolbar actions dismiss Chat Settings unless it is pinned; `force` (its own
-  // close button) always closes it.
-  const handleCloseSettingsPanel = useCallback((options?: { force?: boolean }) => {
-    // React unmounts the window after this handler returns, so a field being edited still saves on blur.
-    if (useFloatingWindowStore.getState().dismissWindow(CHAT_SETTINGS_WINDOW_ID, options)) {
-      blurActiveChatFloatingUiControl();
-    }
-  }, []);
+  // Other chat panels and toolbar actions dismiss Chat Settings.
+  const handleCloseSettingsPanel = useCallback(
+    (_options?: { force?: boolean }) => {
+      // React unmounts the window after this handler returns, so a field being edited still saves on blur.
+      if (settingsOpen) {
+        setSettingsOpen(false);
+        blurActiveChatFloatingUiControl();
+      }
+    },
+    [setSettingsOpen, settingsOpen],
+  );
   useEffect(() => {
     if (settingsOpen) return;
-    setSettingsAnchor(null);
     setSettingsInitialSection(null);
   }, [settingsOpen]);
   const closeFloatingChatDrawers = useCallback(
@@ -2201,7 +2179,7 @@ const LocalChatArea = memo(function LocalChatArea() {
   }, [messages]);
 
   const intuitiveSwipeBlocked =
-    (settingsOpen && !settingsPinned) ||
+    settingsOpen ||
     wizardOpen ||
     spriteArrangeMode ||
     multiSelectMode ||
@@ -2962,7 +2940,7 @@ const LocalChatArea = memo(function LocalChatArea() {
             connectedChatName={connectedChatName}
             sceneInfo={conversationSceneInfo}
             settingsOpen={settingsOpen}
-            settingsAnchor={settingsAnchor}
+            settingsAnchor={null}
             settingsInitialSection={settingsInitialSection}
             wizardOpen={wizardOpen}
             peekPromptData={peekPromptData}
@@ -3085,7 +3063,7 @@ const LocalChatArea = memo(function LocalChatArea() {
           totalMessageCount={totalMessageCount}
           lastAssistantMessageId={lastAssistantMessageId}
           settingsOpen={settingsOpen}
-          settingsAnchor={settingsAnchor}
+          settingsAnchor={null}
           settingsInitialSection={settingsInitialSection}
           wizardOpen={wizardOpen}
           peekPromptData={peekPromptData}
