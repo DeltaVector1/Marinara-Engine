@@ -4,7 +4,6 @@ import { useTranslation, useTranslation as useUiTranslation } from "react-i18nex
 import { ChevronUp, ChevronDown, Layers, ListChecks, Loader2, Trash2, X } from "lucide-react";
 import type { PeekPromptData } from "./chat-area.types";
 import type { LocalSpriteVisualSettings } from "./local-sprite-visual-settings";
-import type { ChatToolbarFloatingPanelAnchor } from "./ChatToolbarControls";
 import { cn } from "../../lib/utils";
 import { Modal } from "../ui/Modal";
 import { NEUTRAL_PANEL_SHELL } from "../ui/neutral-surface-styles";
@@ -34,7 +33,6 @@ const PeekPromptModal = lazy(async () => {
 });
 
 type ChatData = ComponentProps<typeof ChatSettingsDrawer>["chat"];
-type ChatFloatingPanelAnchor = ChatToolbarFloatingPanelAnchor;
 export type ChatSettingsInitialSection = ComponentProps<typeof ChatSettingsDrawer>["initialSection"];
 export type ChatSettingsTools = NonNullable<ComponentProps<typeof ChatSettingsDrawer>["chatTools"]>;
 
@@ -238,8 +236,6 @@ function ChatSettingsLoadingFallback({ onClose }: { onClose: (options?: { force?
 type ChatCommonOverlaysProps = {
   chat: ChatData | null | undefined;
   settingsOpen: boolean;
-  /** Kept until the chat surface caller drops its legacy floating-panel anchor plumbing. */
-  settingsAnchor: ChatFloatingPanelAnchor;
   settingsInitialSection?: ChatSettingsInitialSection;
   /** Drawers only the chat surface can fill (Roleplay's summary, notes, context and agent activity). */
   chatTools?: ChatSettingsTools;

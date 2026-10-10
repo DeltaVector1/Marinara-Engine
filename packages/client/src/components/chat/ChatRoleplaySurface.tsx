@@ -705,7 +705,6 @@ type RoleplaySurfaceProps = {
   totalMessageCount: number;
   lastAssistantMessageId: string | null;
   settingsOpen: boolean;
-  settingsAnchor?: null;
   settingsInitialSection?: ComponentProps<typeof ChatCommonOverlays>["settingsInitialSection"];
   wizardOpen: boolean;
   peekPromptData: PeekPromptData | null;

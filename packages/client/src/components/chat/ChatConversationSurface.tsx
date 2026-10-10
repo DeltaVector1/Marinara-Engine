@@ -38,7 +38,6 @@ type ConversationSurfaceProps = {
   connectedChatName?: string;
   sceneInfo?: SceneInfo;
   settingsOpen: boolean;
-  settingsAnchor: ComponentProps<typeof ChatCommonOverlays>["settingsAnchor"];
   settingsInitialSection?: ComponentProps<typeof ChatCommonOverlays>["settingsInitialSection"];
   wizardOpen: boolean;
   peekPromptData: PeekPromptData | null;
@@ -101,7 +100,6 @@ export function ChatConversationSurface({
   connectedChatName,
   sceneInfo,
   settingsOpen,
-  settingsAnchor,
   settingsInitialSection,
   wizardOpen,
   peekPromptData,
@@ -210,7 +208,6 @@ export function ChatConversationSurface({
       <ChatCommonOverlays
         chat={chat}
         settingsOpen={settingsOpen}
-        settingsAnchor={settingsAnchor}
         settingsInitialSection={settingsInitialSection}
         wizardOpen={wizardOpen}
         peekPromptData={peekPromptData}
