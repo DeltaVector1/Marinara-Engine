@@ -1212,7 +1212,7 @@ export function ChatSidebar() {
           onClick={handleNewChatFromTab}
           disabled={createChat.isPending}
           className={cn(
-            "mari-chrome-control mari-chrome-control--primary mari-chat-mode-action flex-[1.4] text-xs",
+            "mari-chrome-control mari-chrome-control--primary mari-chat-mode-action min-w-0 flex-1 text-xs",
             activeModeConfig.logoModeClass,
           )}
           title={t(`navigation.chatSidebar.new.${activeTab}`)}
@@ -1224,7 +1224,7 @@ export function ChatSidebar() {
         <button
           onClick={() => chatImportInputRef.current?.click()}
           disabled={isImportingChat}
-          className="mari-chrome-control mari-chrome-control--primary flex-1 text-xs"
+          className="mari-chrome-control mari-chrome-control--primary size-10 shrink-0 text-xs"
           title={localize(isImportingChat ? "Importing chat" : "Import SillyTavern or Marinara chat JSONL")}
           aria-label={localize(isImportingChat ? "Importing chat" : "Import SillyTavern or Marinara chat JSONL")}
         >
@@ -1234,7 +1234,7 @@ export function ChatSidebar() {
           onClick={() => (multiSelectMode ? exitMultiSelect() : setMultiSelectMode(true))}
           disabled={displayChats.length === 0}
           className={cn(
-            "mari-chrome-control mari-chrome-control--primary flex-1 text-xs",
+            "mari-chrome-control mari-chrome-control--primary size-10 shrink-0 text-xs",
             multiSelectMode && "mari-chrome-control--selected",
           )}
           title={localize(multiSelectMode ? "Cancel selection" : "Select chats")}
