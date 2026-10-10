@@ -264,7 +264,6 @@ type SettingsSectionId =
   | "chat-display"
   | "roleplay-tracker"
   | "roleplay-messages"
-  | "game-presentation"
   | "motion-backgrounds"
   | "conversation-theme"
   | "chat-backgrounds"
@@ -274,7 +273,6 @@ type SettingsSectionId =
   | "profile-marinara"
   | "sillytavern-import"
   | "admin-access"
-  | "multiplayer"
   | "features"
   | "updates"
   | "support-diagnostics"
@@ -321,7 +319,7 @@ const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     tab: "general",
     label: "Notifications",
     description: "Notification sounds and background notifications by mode.",
-    aliases: ["notifications", "sound", "ping", "browser", "background replies", "conversation", "roleplay", "game"],
+    aliases: ["notifications", "sound", "ping", "browser", "background replies", "conversation", "roleplay"],
   },
   {
     id: "responses",
@@ -424,13 +422,6 @@ const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     aliases: ["roleplay", "avatar", "sprite", "message", "bubble", "opacity", "portrait"],
   },
   {
-    id: "game-presentation",
-    tab: "appearance",
-    label: "Game Presentation",
-    description: "Game VN art scale and dialogue display.",
-    aliases: ["game", "vn", "dialogue", "portrait", "sprite", "full body", "presentation"],
-  },
-  {
     id: "motion-backgrounds",
     tab: "appearance",
     label: "Atmosphere",
@@ -492,13 +483,6 @@ const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     label: "Admin Access",
     description: "Admin authorization for privileged actions.",
     aliases: ["admin", "secret", "access", "authorization"],
-  },
-  {
-    id: "multiplayer",
-    tab: "advanced",
-    label: "Multiplayer WIP",
-    description: "Optional shared roleplay, conversation and game sessions.",
-    aliases: ["multiplayer", "host", "join", "players", "invite", "shared", "online"],
   },
   {
     id: "features",
@@ -816,7 +800,6 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
       "prompt",
       "review",
       "selfie",
-      "noodle",
       "avatar",
       "portrait",
       "sprite",
@@ -838,14 +821,6 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
     label: "Illustration image size",
     description: "Set default generated illustration dimensions.",
     aliases: ["image", "resolution", "canvas", "illustrator"],
-    kind: "Input",
-  },
-  {
-    id: "image-game-size",
-    sectionId: "image-generation",
-    label: "Game scene image size",
-    description: "Set the default dimensions for generated Game scene illustrations.",
-    aliases: ["image", "resolution", "canvas", "game", "illustrator"],
     kind: "Input",
   },
   {
@@ -966,7 +941,7 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
     sectionId: "app-style",
     label: "Chat widget style",
     description:
-      "Choose a look for movable chat buttons, windows and sections. Picking a preset resets Font, Shape and Colors. Professor Mari can create custom themes for you.",
+      "Choose a look for chat panels and sections. Picking a preset resets Font, Shape and Colors. Professor Mari can create custom themes for you.",
     aliases: ["dottore", "mari", "preset", "window", "drawer", "button", "sci-fi", "fantasy"],
     kind: "Button group",
   },
@@ -993,15 +968,6 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
     description: "Set chat widget text colors and gradients.",
     aliases: ["widget", "window", "drawer", "color", "gradient"],
     kind: "Picker",
-  },
-  {
-    id: "chat-widget-button-size",
-    sectionId: "app-style",
-    label: "Button size (px)",
-    description:
-      "Resize movable chat buttons and their icons independently of Display Size. Reset to keep the current default.",
-    aliases: ["widget", "icon", "scale", "pixels", "size", "movable", "tracker", "map"],
-    kind: "Input",
   },
   {
     id: "chat-widget-font",
@@ -1334,44 +1300,12 @@ const SETTINGS_SEARCHABLE_CONTROLS: readonly SettingsSearchableControlMeta[] = [
     kind: "Slider",
   },
   {
-    id: "game-dialogue-portrait-scale",
-    sectionId: "game-presentation",
-    label: "Dialogue portrait scale",
-    description: "Adjust Game mode dialogue portrait scale.",
-    aliases: ["game", "avatar", "portrait", "scale"],
-    kind: "Slider",
-  },
-  {
-    id: "game-full-body-sprite-scale",
-    sectionId: "game-presentation",
-    label: "Full-body sprite scale",
-    description: "Adjust Game mode full-body sprite scale.",
-    aliases: ["game", "sprite", "scale"],
-    kind: "Slider",
-  },
-  {
     id: "chat-list-backgrounds",
     sectionId: "chat-backgrounds",
     label: "Chat list backgrounds",
     description: "Show each chat's background as a banner behind its row in the chat list.",
     aliases: ["sidebar", "chat list", "banner", "background", "row"],
     kind: "Button group",
-  },
-  {
-    id: "game-dialogue-display",
-    sectionId: "game-presentation",
-    label: "Game Dialogue Display",
-    description: "Choose a classic dialogue box or segment history display.",
-    aliases: ["game", "vn", "history"],
-    kind: "Button group",
-  },
-  {
-    id: "game-text-effects",
-    sectionId: "game-presentation",
-    label: "Game text effects",
-    description: "Animate dramatic words and explicit text-effect tags in Game mode.",
-    aliases: ["game", "text", "animation", "effects", "accessibility", "motion"],
-    kind: "Toggle",
   },
   {
     id: "weather-effects",
@@ -1931,7 +1865,6 @@ const QUOTE_FORMAT_OPTIONS: Array<{ id: QuoteFormat; label: string; sample: stri
 ];
 
 const VIDEO_PROMPT_TEMPLATE_KEYS = [
-  "game.video",
   "roleplay.galleryVideoDirector",
   "conversation.callVideo.idle",
   "conversation.callVideo.talking",
@@ -2738,12 +2671,11 @@ function TrackerPanelAppearanceDrawer() {
   );
 }
 
-type AppearanceGroup = "app" | "conversation" | "roleplay" | "game";
+type AppearanceGroup = "app" | "conversation" | "roleplay";
 
 function appearanceGroupForSection(id: SettingsSectionId): AppearanceGroup {
   if (id === "chat-display" || id === "conversation-theme") return "conversation";
   if (id === "roleplay-tracker" || id === "roleplay-messages") return "roleplay";
-  if (id === "game-presentation") return "game";
   return "app";
 }
 
@@ -3011,9 +2943,9 @@ export function SettingsPanel() {
                     <div
                       role="group"
                       aria-label={localizeUi("settings.appearance.modeNavigation")}
-                      className="@container mb-3 grid grid-cols-4 divide-x divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--secondary)]/40"
+                      className="@container mb-3 grid grid-cols-3 divide-x divide-[var(--border)] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--secondary)]/40"
                     >
-                      {(["app", "conversation", "roleplay", "game"] as const).map((mode) => (
+                      {(["app", "conversation", "roleplay"] as const).map((mode) => (
                         <button
                           key={mode}
                           type="button"
@@ -3716,9 +3648,6 @@ function ImageGenerationSettings() {
   const imageIllustrationWidth = useUIStore((s) => s.imageIllustrationWidth);
   const imageIllustrationHeight = useUIStore((s) => s.imageIllustrationHeight);
   const setImageIllustrationDimensions = useUIStore((s) => s.setImageIllustrationDimensions);
-  const imageGameWidth = useUIStore((s) => s.imageGameWidth);
-  const imageGameHeight = useUIStore((s) => s.imageGameHeight);
-  const setImageGameDimensions = useUIStore((s) => s.setImageGameDimensions);
   const imagePortraitWidth = useUIStore((s) => s.imagePortraitWidth);
   const imagePortraitHeight = useUIStore((s) => s.imagePortraitHeight);
   const setImagePortraitDimensions = useUIStore((s) => s.setImagePortraitDimensions);
@@ -3760,14 +3689,6 @@ function ImageGenerationSettings() {
           width={imageIllustrationWidth}
           height={imageIllustrationHeight}
           onCommit={setImageIllustrationDimensions}
-        />
-        <ImageDimensionRow
-          controlId="image-game-size"
-          label={localizeUi("settings.controls.gameGeneration.label")}
-          help={localizeUi("settings.controls.gameGeneration.help")}
-          width={imageGameWidth}
-          height={imageGameHeight}
-          onCommit={setImageGameDimensions}
         />
         <ImageDimensionRow
           controlId="image-portrait-size"
@@ -4132,8 +4053,6 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
   const chatWidgetFont = useUIStore((s) => s.chatWidgetFont);
   const setChatWidgetFont = useUIStore((s) => s.setChatWidgetFont);
   const chatWidgetShape = useUIStore((s) => s.chatWidgetShape);
-  const chatWidgetButtonSize = useUIStore((s) => s.chatWidgetButtonSize);
-  const setChatWidgetButtonSize = useUIStore((s) => s.setChatWidgetButtonSize);
   const setChatWidgetShape = useUIStore((s) => s.setChatWidgetShape);
   const chatWidgetBorderColor = useUIStore((s) => s.chatWidgetBorderColor);
   const setChatWidgetBorderColor = useUIStore((s) => s.setChatWidgetBorderColor);
@@ -4761,36 +4680,6 @@ function AppearanceSettings({ group = "app" }: { group?: AppearanceGroup }) {
                       <option value="arched">{localizeUi("settings.controls.chatWidgetShape.arched")}</option>
                     </select>
                   </label>
-                </div>
-                <div id={getSettingsControlAnchorId("chat-widget-button-size")} className="mt-4 scroll-mt-3">
-                  <label
-                    htmlFor="chat-widget-button-size"
-                    className="inline-flex items-center gap-1 text-xs font-medium"
-                  >
-                    {localizeUi("settings.controls.chatWidgetButtonSize.label")}
-                    <HelpTooltip text={localizeUi("settings.controls.chatWidgetButtonSize.help")} />
-                  </label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <DraftNumberInput
-                      id="chat-widget-button-size"
-                      allowEmpty
-                      value={chatWidgetButtonSize}
-                      min={32}
-                      max={96}
-                      onCommit={setChatWidgetButtonSize}
-                      placeholder={localizeUi("settings.controls.chatWidgetButtonSize.default")}
-                      className="min-w-0 flex-1 rounded-lg bg-[var(--secondary)] px-3 py-2 text-xs outline-none ring-1 ring-transparent focus:ring-[var(--primary)]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setChatWidgetButtonSize(null)}
-                      aria-label={localizeUi("settings.controls.chatWidgetButtonSize.reset")}
-                      title={localizeUi("settings.controls.chatWidgetButtonSize.reset")}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--muted-foreground)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)] focus-visible:ring-2 focus-visible:ring-[var(--primary)]"
-                    >
-                      <RotateCcw size={14} />
-                    </button>
-                  </div>
                 </div>
                 <div className="mt-4 flex flex-col gap-4">
                   <p className="text-[0.6875rem] leading-relaxed text-[var(--muted-foreground)]">
@@ -5921,13 +5810,13 @@ function GenerationsSettings() {
               description={localizeUi("settings.prompts.video.description")}
               help={localizeUi("settings.prompts.video.help")}
               keys={VIDEO_PROMPT_TEMPLATE_KEYS}
-              preferredKey="game.video"
+              preferredKey="roleplay.galleryVideoDirector"
             />
             <PromptOverridesEditor
               title={localizeUi("settings.prompts.image.title")}
               description={localizeUi("settings.prompts.image.description")}
               help={localizeUi("settings.prompts.image.help")}
-              preferredKey="game.npcPortrait"
+              preferredKey="conversation.selfie"
             />
           </div>
         </>
