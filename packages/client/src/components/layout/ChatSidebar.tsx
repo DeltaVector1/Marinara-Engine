@@ -124,30 +124,26 @@ const MODE_CONFIG: Record<
   {
     icon: React.ReactNode;
     label: string;
-    shortLabel: string;
     description: string;
     logoModeClass: string;
     comingSoon?: boolean;
   }
 > = {
   conversation: {
-    icon: <ChatModeIcon mode="conversation" size="0.875rem" className="mari-rgb-static-icon" />,
+    icon: <ChatModeIcon mode="conversation" size="0.875rem" />,
     label: "Conversation",
-    shortLabel: "CONVO",
     description: "A straightforward AI conversation — no roleplay elements.",
     logoModeClass: "mari-chat-logo-mode--conversation",
   },
   roleplay: {
-    icon: <ChatModeIcon mode="roleplay" size="0.875rem" className="mari-rgb-static-icon" />,
+    icon: <ChatModeIcon mode="roleplay" size="0.875rem" />,
     label: "Roleplay",
-    shortLabel: "RP",
     description: "Immersive roleplay with characters, game state tracking, and world simulation.",
     logoModeClass: "mari-chat-logo-mode--roleplay",
   },
   game: {
-    icon: <ChatModeIcon mode="game" size="0.875rem" className="mari-rgb-static-icon" />,
+    icon: <ChatModeIcon mode="game" size="0.875rem" />,
     label: "Game",
-    shortLabel: "GM",
     description: "AI-managed singleplayer RPG with a Game Master, party, dice, maps, and quests.",
     logoModeClass: "mari-chat-logo-mode--game",
   },
@@ -155,7 +151,7 @@ const MODE_CONFIG: Record<
 
 function ChatSidebarTitleIcon() {
   return (
-    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[linear-gradient(135deg,#4de5dd_0%,#eb8951_52%,#e15c8c_100%)] text-white shadow-sm">
+    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[var(--border)] bg-[var(--secondary)] text-[var(--primary)]">
       <MessageSquareText size="0.875rem" strokeWidth={2.35} />
     </div>
   );
@@ -1174,6 +1170,7 @@ export function ChatSidebar() {
           {(["conversation", "roleplay"] as const).map((tab) => {
             const cfg = MODE_CONFIG[tab];
             const isActive = activeTab === tab;
+            const modeLabel = localizeUi(`settings.modes.${tab}`);
             const tabUnread =
               chats?.filter((c) => c.mode === tab).reduce((sum, c) => sum + (unreadCounts.get(c.id) || 0), 0) ?? 0;
             return (
@@ -1184,13 +1181,13 @@ export function ChatSidebar() {
                 data-chat-mode-tab={tab}
                 data-tour={`chat-mode-${tab}`}
                 className={cn(
-                  "mari-chrome-segmented__button gap-1 overflow-visible px-1.5 py-2 text-[0.625rem] leading-normal",
+                  "mari-chrome-segmented__button gap-1 overflow-visible px-1.5 py-2 text-xs leading-normal",
                   isActive && "mari-chrome-segmented__button--selected",
                 )}
               >
                 <span className="shrink-0 leading-none">{cfg.icon}</span>
                 <span className="inline-flex min-h-[1rem] items-center whitespace-nowrap pb-px leading-normal">
-                  {localize(cfg.shortLabel)}
+                  {modeLabel}
                 </span>
                 {tabUnread > 0 && !isActive && (
                   <span className="absolute -top-1 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-md bg-red-500 px-0.5 text-[0.5rem] font-bold leading-none text-white">
@@ -1215,13 +1212,14 @@ export function ChatSidebar() {
           onClick={handleNewChatFromTab}
           disabled={createChat.isPending}
           className={cn(
-            "mari-chrome-control mari-chrome-control--primary mari-chat-mode-action flex-1 text-xs",
+            "mari-chrome-control mari-chrome-control--primary mari-chat-mode-action flex-[1.4] text-xs",
             activeModeConfig.logoModeClass,
           )}
           title={t(`navigation.chatSidebar.new.${activeTab}`)}
           aria-label={t(`navigation.chatSidebar.new.${activeTab}`)}
         >
-          <Plus size="0.8125rem" className="mari-rgb-static-icon" />
+          <Plus size="0.8125rem" aria-hidden="true" />
+          <span className="min-w-0 truncate">{t("home.actions.newChat")}</span>
         </button>
         <button
           onClick={() => chatImportInputRef.current?.click()}
@@ -1411,25 +1409,14 @@ export function ChatSidebar() {
 
         {displayChats.length === 0 && !isLoading && !chatsError && (
           <div className="flex flex-col items-center gap-2 px-3 py-12 text-center">
-            <div className="mari-chrome-accent-soft-tile mari-accent-animated animate-float flex h-12 w-12 items-center justify-center rounded-2xl">
-              <ChatModeIcon mode={activeTab} size="1.25rem" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--border)] bg-[var(--secondary)] text-[var(--muted-foreground)]">
+              <ChatModeIcon mode={activeTab} size="1rem" />
             </div>
             <p className="mari-chrome-text-muted text-xs">
               {t(
                 `navigation.chatSidebar.empty.${searchQuery.trim() || activeTag ? "filtered" : "initial"}.${activeTab}`,
               )}
             </p>
-            <button
-              onClick={handleNewChatFromTab}
-              disabled={createChat.isPending}
-              className={cn(
-                "mari-chrome-control mari-chrome-control--compact mari-chat-mode-action mt-1",
-                activeModeConfig.logoModeClass,
-              )}
-            >
-              <span>+</span>
-              {t(`navigation.chatSidebar.new.${activeTab}`)}
-            </button>
           </div>
         )}
 

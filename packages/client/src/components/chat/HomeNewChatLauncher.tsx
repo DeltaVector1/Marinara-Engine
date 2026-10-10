@@ -68,7 +68,7 @@ export function HomeNewChatLauncher({ mode, className, children, ariaLabel }: Ho
       <button
         type="button"
         onClick={() => (mode ? selectMode(mode) : setSelectorOpen(true))}
-        className={cn("mari-chrome-control mari-chrome-control--small h-8 px-3 py-0 text-xs", className)}
+        className={cn("mari-chrome-control mari-chrome-control--small min-h-10 px-3 py-0 text-xs", className)}
         aria-label={ariaLabel}
       >
         {children ?? (
