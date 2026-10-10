@@ -31,7 +31,8 @@ export function ChatSettingsBubble({
       data-chat-settings-button
       data-open={open ? "true" : undefined}
       className={`${getChatToolbarButtonClass({ open, sizeClassName: "h-10 w-10" })} absolute right-3 top-3 z-40`}
-      onClick={() => {
+      onClick={(event) => {
+        event.currentTarget.focus({ preventScroll: true });
         announceChatToolbarAction("settings");
         onToggle();
       }}
