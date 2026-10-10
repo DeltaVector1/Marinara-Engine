@@ -11,16 +11,12 @@ export function requestChatSummaryOpen(chatId: string) {
   window.dispatchEvent(new CustomEvent(CHAT_SUMMARY_OPEN_REQUEST_EVENT, { detail: { chatId } }));
 }
 
-/**
- * Blurs a focused control in a chat panel that is closing, so a field being edited saves first.
- * `keepWindowFocus` leaves focus alone inside a window that stays open, such as Chat Settings.
- */
-export function blurActiveChatFloatingUiControl(options?: { keepWindowFocus?: boolean }) {
+/** Blurs a focused control in a closing chat panel so the field can save on blur. */
+export function blurActiveChatFloatingUiControl() {
   if (typeof document === "undefined") return;
   const activeElement = document.activeElement;
   if (!(activeElement instanceof HTMLElement)) return;
   if (!activeElement.closest("[data-chat-floating-panel]")) return;
-  if (options?.keepWindowFocus && activeElement.closest(".mari-window")) return;
   activeElement.blur();
 }
 

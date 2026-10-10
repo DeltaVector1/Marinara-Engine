@@ -611,7 +611,7 @@ const LocalChatArea = memo(function LocalChatArea({
   // Other chat panels and toolbar actions dismiss Chat Settings.
   const handleCloseSettingsPanel = useCallback(
     (_options?: { force?: boolean }) => {
-      // React unmounts the window after this handler returns, so a field being edited still saves on blur.
+      // React unmounts the panel after this handler returns, so a field being edited still saves on blur.
       if (settingsOpen) {
         setSettingsOpen(false);
         blurActiveChatFloatingUiControl();
@@ -627,7 +627,7 @@ const LocalChatArea = memo(function LocalChatArea({
     (event?: Event) => {
       const preservedPanel = event ? readAnnouncedChatToolbarPanelAction(event) : null;
       if (preservedPanel !== "settings") handleCloseSettingsPanel();
-      blurActiveChatFloatingUiControl({ keepWindowFocus: true });
+      blurActiveChatFloatingUiControl();
       setPeekPromptData(null);
       setDeleteDialogMessageId(null);
     },
