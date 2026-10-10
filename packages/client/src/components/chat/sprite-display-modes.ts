@@ -1,6 +1,4 @@
-const SPRITE_DISPLAY_MODES = ["expressions", "full-body"] as const;
-
-export type SpriteDisplayMode = (typeof SPRITE_DISPLAY_MODES)[number];
+export type SpriteDisplayMode = "expressions" | "full-body";
 
 export const DEFAULT_SPRITE_DISPLAY_MODES: SpriteDisplayMode[] = ["expressions", "full-body"];
 export const SPRITE_DISPLAY_SCALE_MIN = 0.05;

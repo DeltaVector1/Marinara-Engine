@@ -1,26 +1,25 @@
 import type { AgentResultType } from "@marinara-engine/shared";
 
-const CUSTOM_AGENT_RESULT_TYPE_IDS = [
-  "context_injection",
-  "character_card_create",
-  "text_rewrite",
-  "lorebook_update",
-  "character_tracker_update",
-  "persona_stats_update",
-  "custom_tracker_update",
-  "inventory_tracker_update",
-  "game_state_update",
-  "image_prompt",
-  "prompt_patch",
-  "character_activity_update",
-  "frontend_theme_update",
-  "background_change",
-  "sprite_change",
-  "about_me_update",
-  "cyoa_choices",
-] as const satisfies readonly AgentResultType[];
-
-export type CustomAgentResultType = (typeof CUSTOM_AGENT_RESULT_TYPE_IDS)[number];
+export type CustomAgentResultType = Extract<
+  AgentResultType,
+  | "context_injection"
+  | "character_card_create"
+  | "text_rewrite"
+  | "lorebook_update"
+  | "character_tracker_update"
+  | "persona_stats_update"
+  | "custom_tracker_update"
+  | "inventory_tracker_update"
+  | "game_state_update"
+  | "image_prompt"
+  | "prompt_patch"
+  | "character_activity_update"
+  | "frontend_theme_update"
+  | "background_change"
+  | "sprite_change"
+  | "about_me_update"
+  | "cyoa_choices"
+>;
 
 interface CustomAgentResultExample {
   format: "json" | "text";

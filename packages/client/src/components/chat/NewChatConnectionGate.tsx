@@ -44,7 +44,7 @@ export function NewChatConnectionGate({ mode, onClose }: NewChatConnectionGatePr
         sidecarModelDownloaded,
         sidecarModelDisplayName,
       ),
-    [connections, mode, sidecarModelDisplayName, sidecarModelDownloaded],
+    [connections, sidecarModelDisplayName, sidecarModelDownloaded],
   );
 
   useEffect(() => {

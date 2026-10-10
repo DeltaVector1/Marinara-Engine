@@ -961,7 +961,6 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
   const { data: allPersonas } = usePersonas();
   const updateChat = useUpdateChat();
   const updateMeta = useUpdateChatMetadata();
-  const queryClient = useQueryClient();
   const openRightPanel = useUIStore((s) => s.openRightPanel);
   const [promptPresetTouched, setPromptPresetTouched] = useState(defaultsApplied);
   const [customConversationPromptEnabled, setCustomConversationPromptEnabled] = useState(
@@ -1325,12 +1324,10 @@ function ConversationQuickSetup({ chat, onFinish, defaultsApplied, defaultsActio
     hasConnection,
     hasCharacters,
     chat.id,
-    chatCharIds,
     onFinish,
     updateMeta,
     customizeParameters,
     generationParameters,
-    queryClient,
     customConversationPromptEnabled,
     conversationSystemPromptDraft,
     baseConversationPrompt,
