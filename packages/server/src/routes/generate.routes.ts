@@ -930,7 +930,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         input.impersonate ||
         input.regenerateMessageId ||
         input.continueMessageId ||
-        input.turnGameBots ||
         input.pendingSpatialTransition ||
         input.agentInjectionOverrides.length > 0 ||
         (input.forCharacterId && !roomPolicy.characterIds.includes(input.forCharacterId)))
@@ -1492,7 +1491,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         !input.regenerateMessageId &&
         !input.continueMessageId &&
         !input.impersonate &&
-        !input.turnGameBots &&
         !input.userMessage?.trim() &&
         (input.attachments?.length ?? 0) === 0;
       const lorebookGenerationTriggers = resolveLorebookGenerationTriggers(input, chatMode);

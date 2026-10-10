@@ -180,9 +180,7 @@ export async function capabilityPackagesRoutes(app: FastifyInstance) {
     }
     await refreshCapabilityAgentRegistry();
     return {
-      restartRequired:
-        !removed.manifest.kind.includes("turn-game") &&
-        Boolean(removed.manifest.entrypoints.server || removed.manifest.entrypoints.client),
+      restartRequired: Boolean(removed.manifest.entrypoints.server || removed.manifest.entrypoints.client),
     };
   });
 }

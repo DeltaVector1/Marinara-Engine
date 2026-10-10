@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { generateRequestSchema } from "../../packages/shared/src/schemas/chat.schema.js";
 
 const dataDir = await mkdtemp(join(tmpdir(), "marinara-retired-packages-"));
 process.env.DATA_DIR = dataDir;
@@ -12,10 +13,21 @@ const source = "export default {};";
 const sourceHash = createHash("sha256").update(source).digest("hex");
 const version = "1.0.0";
 const engine = { min: "0.0.0", maxExclusive: "99.0.0" };
-const catalogIds = ["uno", "storyboard", "maps", "conversation-calls", "ordinary-agent", "example-ruleset"];
+const catalogIds = [
+  "uno",
+  "storyboard",
+  "game-surface-agent",
+  "maps",
+  "conversation-calls",
+  "ordinary-agent",
+  "example-ruleset",
+];
+const asset = "retired asset";
+const assetHash = createHash("sha256").update(asset).digest("hex");
 const kindById: Record<string, string[]> = {
   uno: ["turn-game"],
   storyboard: ["agent"],
+  "game-surface-agent": ["agent"],
   maps: ["maps"],
   "conversation-calls": ["conversation-calls"],
   "ordinary-agent": ["agent"],
@@ -31,7 +43,20 @@ function manifest(id: string) {
     engine,
     kind: kindById[id],
     entrypoints: { server: "server.js", client: "client.js" },
-    files: ["server.js", "client.js"].map((path) => ({ path, sha256: sourceHash, bytes: Buffer.byteLength(source) })),
+    ...(id === "game-surface-agent" ? { contributions: { slots: ["game-surface"] } } : {}),
+    ...(id === "uno" || id === "maps"
+      ? {
+          schemaVersion: 2,
+          capabilityApi: { major: 1, minor: 10 },
+          builtAgainst: { engineVersion: "1.0.0", engineCommit: "0".repeat(40) },
+          contributions: { assets: { paths: ["icon.png"] } },
+        }
+      : {}),
+    files: ["server.js", "client.js"]
+      .map((path) => ({ path, sha256: sourceHash, bytes: Buffer.byteLength(source) }))
+      .concat(
+        id === "uno" || id === "maps" ? [{ path: "icon.png", sha256: assetHash, bytes: Buffer.byteLength(asset) }] : [],
+      ),
     permissions: [],
   };
 }
@@ -52,6 +77,12 @@ globalThis.fetch = async () => {
 };
 
 try {
+  assert.equal(
+    Object.hasOwn(generateRequestSchema.parse({ chatId: "legacy", turnGameBots: true }), "turnGameBots"),
+    false,
+    "legacy turn-game bot requests must not activate a retired generation path",
+  );
+
   const sidecarConfigPath = join(dataDir, "models", "sidecar-config.json");
   await mkdir(join(dataDir, "models"), { recursive: true });
   await writeFile(sidecarConfigPath, JSON.stringify({ useForTrackers: false, useForGameScene: true }));
@@ -77,12 +108,21 @@ try {
   );
 
   const installed = [];
-  for (const id of ["uno", "storyboard", "maps", "conversation-calls", "ordinary-agent", "example-ruleset"]) {
+  for (const id of [
+    "uno",
+    "storyboard",
+    "game-surface-agent",
+    "maps",
+    "conversation-calls",
+    "ordinary-agent",
+    "example-ruleset",
+  ]) {
     const packageManifest = manifest(id);
     const packageRoot = join(dataDir, "capability-packages", "versions", id, version);
     await mkdir(packageRoot, { recursive: true });
     await writeFile(join(packageRoot, "server.js"), source);
     await writeFile(join(packageRoot, "client.js"), source);
+    if (id === "uno" || id === "maps") await writeFile(join(packageRoot, "icon.png"), asset);
     installed.push({
       id,
       version,
@@ -104,13 +144,14 @@ try {
     ["conversation-calls", "maps", "ordinary-agent"],
     "startup must not load retired, game, or ruleset server modules",
   );
-  for (const id of ["uno", "storyboard", "example-ruleset"]) {
+  for (const id of ["uno", "storyboard", "game-surface-agent", "example-ruleset"]) {
     assert.equal(await capabilityPackageManager.clientEntrypoint(id), null, `${id} client entrypoint must be retired`);
   }
   for (const id of ["conversation-calls", "maps", "ordinary-agent"]) {
     assert.ok(await capabilityPackageManager.clientEntrypoint(id), `${id} client entrypoint must remain available`);
   }
   assert.equal(await capabilityPackageManager.packageAsset("uno", "icon.png"), null);
+  assert.equal((await capabilityPackageManager.packageAsset("maps", "icon.png"))?.data.toString(), asset);
 
   const beforeInstall = fetchCount;
   await assert.rejects(capabilityPackageManager.install("uno", version, "0".repeat(64)), /not present/);

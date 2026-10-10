@@ -135,10 +135,6 @@ export function getZonedDayBounds(date: Date, timeZone?: string, dayOffset = 0):
   return { start, end: new Date(nextStart.getTime() - 1) };
 }
 
-export function getZonedWeekdayName(date: Date, timeZone?: string): string {
-  return getZonedDateParts(date, timeZone).weekday;
-}
-
 export function formatZonedConversationTime(date: Date, timeZone?: string): string {
   const parts = getZonedDateParts(date, timeZone);
   return `${String(parts.hour).padStart(2, "0")}:${String(parts.minute).padStart(2, "0")}`;

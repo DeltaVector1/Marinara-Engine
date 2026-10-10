@@ -778,7 +778,6 @@ export async function registerDryRunRoute(app: FastifyInstance) {
       generationGuide: body.generationGuide,
       generationGuideSource: body.generationGuideSource,
       regenerateMessageId,
-      turnGameBots: body.turnGameBots,
       userMessage,
       attachments: body.attachments,
     });

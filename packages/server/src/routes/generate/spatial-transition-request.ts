@@ -1,7 +1,7 @@
 import type { PendingSpatialTransition, ResolvedSpatialTravel, SpatialContextSnapshot } from "@marinara-engine/shared";
 
 type SpatialGenerationMode = "conversation" | "roleplay" | "game";
-type SpatialGenerationOrigin = "owner" | "guided" | "autonomous" | "turn_game";
+type SpatialGenerationOrigin = "owner" | "guided" | "autonomous";
 
 type SpatialGenerationRequestError = {
   statusCode: 400;
@@ -52,12 +52,10 @@ export function shouldSaveHiddenGenerationAnchor(input: {
 
 export function resolveSpatialGenerationOrigin(input: {
   autonomous?: boolean;
-  turnGameBots?: boolean;
   generationGuide?: string | null;
   generationGuideSource?: "narrator" | "guide" | "game_start" | null;
 }): SpatialGenerationOrigin {
   if (input.autonomous) return "autonomous";
-  if (input.turnGameBots) return "turn_game";
   if (input.generationGuideSource || input.generationGuide?.trim()) return "guided";
   return "owner";
 }

@@ -671,12 +671,10 @@ export function resolvePromptLastGenerationType(input: {
   generationGuideSource?: unknown;
   impersonate?: unknown;
   regenerateMessageId?: unknown;
-  turnGameBots?: unknown;
   userMessage?: unknown;
 }): string {
   if (input.impersonate === true) return "impersonate";
   if (typeof input.regenerateMessageId === "string" && input.regenerateMessageId.trim()) return "regenerate";
-  if (input.turnGameBots === true) return "turn_game";
   if (typeof input.generationGuide === "string" && input.generationGuide.trim()) {
     const source =
       typeof input.generationGuideSource === "string" && input.generationGuideSource.trim()
