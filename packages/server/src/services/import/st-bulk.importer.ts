@@ -597,7 +597,7 @@ export async function runSTBulkImport(
   rootPath: string,
   options: STBulkImportOptions,
   db: DB,
-  onProgress?: (progress: ImportProgress) => void,
+  onProgress?: (progress: ImportProgress) => void | Promise<void>,
 ): Promise<STBulkImportResult> {
   const scanResult = await scanSTFolder(rootPath);
   if (!scanResult.success || !scanResult.dataDir) {
@@ -630,7 +630,7 @@ export async function runSTBulkImport(
     let idx = 0;
     for (const ch of selectedCharacters) {
       idx++;
-      onProgress?.({ category: "Characters", item: ch.name, current: idx, total, imported });
+      await onProgress?.({ category: "Characters", item: ch.name, current: idx, total, imported });
       try {
         const fileInfo = await stat(ch.path);
         const timestampOverrides = getFileTimestampOverrides(fileInfo);
@@ -716,7 +716,7 @@ export async function runSTBulkImport(
 
     for (const ct of selectedChats) {
       idx++;
-      onProgress?.({ category: "Chats", item: ct.characterName, current: idx, total, imported });
+      await onProgress?.({ category: "Chats", item: ct.characterName, current: idx, total, imported });
 
       try {
         const content = await readFile(ct.path, "utf-8");
@@ -766,7 +766,7 @@ export async function runSTBulkImport(
     let idx = 0;
     for (const gc of selectedGroupChats) {
       idx++;
-      onProgress?.({ category: "Group Chats", item: gc.groupName, current: idx, total, imported });
+      await onProgress?.({ category: "Group Chats", item: gc.groupName, current: idx, total, imported });
       try {
         const content = await readFile(gc.path, "utf-8");
         const fileInfo = await stat(gc.path);
@@ -814,7 +814,7 @@ export async function runSTBulkImport(
     let idx = 0;
     for (const pr of selectedPresets) {
       idx++;
-      onProgress?.({ category: "Presets", item: pr.name, current: idx, total, imported });
+      await onProgress?.({ category: "Presets", item: pr.name, current: idx, total, imported });
       try {
         const raw = JSON.parse(await readFile(pr.path, "utf-8"));
         const fileInfo = await stat(pr.path);
@@ -832,7 +832,7 @@ export async function runSTBulkImport(
     let idx = 0;
     for (const lb of selectedLorebooks) {
       idx++;
-      onProgress?.({ category: "Lorebooks", item: lb.name, current: idx, total, imported });
+      await onProgress?.({ category: "Lorebooks", item: lb.name, current: idx, total, imported });
       try {
         const raw = JSON.parse(await readFile(lb.path, "utf-8"));
         const fileInfo = await stat(lb.path);
@@ -857,7 +857,7 @@ export async function runSTBulkImport(
     let idx = 0;
     for (const bg of selectedBackgrounds) {
       idx++;
-      onProgress?.({ category: "Backgrounds", item: bg.name, current: idx, total, imported });
+      await onProgress?.({ category: "Backgrounds", item: bg.name, current: idx, total, imported });
       try {
         const ext = extname(bg.name).toLowerCase();
         const destName = `${randomUUID()}${ext}`;
@@ -880,7 +880,7 @@ export async function runSTBulkImport(
     let idx = 0;
     for (const p of selectedPersonas) {
       idx++;
-      onProgress?.({ category: "Personas", item: p.name, current: idx, total, imported });
+      await onProgress?.({ category: "Personas", item: p.name, current: idx, total, imported });
       try {
         // Copy avatar image
         const ext = extname(p.path).toLowerCase();
