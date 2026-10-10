@@ -2,11 +2,8 @@
 // Sidecar Local Model Types
 //
 // Types for the built-in Gemma E2B sidecar that
-// handles tracker agents, scene analysis, and
-// game mechanics locally.
+// handles tracker agents locally.
 // ──────────────────────────────────────────────
-
-import type { DirectionCommand } from "./game.js";
 
 /** Available quantization variants for the sidecar model. */
 import type { DecisionThinkingMode } from "./decision.js";
@@ -79,8 +76,6 @@ export interface SidecarConfig {
    *  Takes the place of a `defaultForAgents` connection row, which the sidecar
    *  cannot have — it is a pseudo-connection with no stored row (#5539). */
   useAsAgentsDefault: boolean;
-  /** Whether to use the sidecar for game scene analysis (backgrounds, music, weather, effects). */
-  useForGameScene: boolean;
   /** Context size for the model. Default 8192. */
   contextSize: number;
   /** Maximum completion tokens Marinara should request from the local runtime. */
@@ -172,22 +167,6 @@ export interface SidecarStatusResponse {
   runtimeDiagnostics?: SidecarRuntimeDiagnostics;
 }
 
-// ── Scene Analysis Output ──
-
-/** A single segment-tied effect batch. Applied when the user reaches this segment. */
-interface SceneSegmentEffect {
-  /** 0-based index of the narration segment this effect triggers on. */
-  segment: number;
-  background?: string | null;
-  music?: string | null;
-  sfx?: string[];
-  /** Total sequential plays for each sound effect on this beat. Defaults to 1. */
-  sfxLoopCount?: number;
-  ambient?: string | null;
-  /** Rare cinematic overlays/visual effects to fire when this narration segment appears. */
-  directions?: DirectionCommand[];
-}
-
 /** A provider-ready prompt for one named character in a multi-character scene illustration. */
 export interface SceneIllustrationCharacterPrompt {
   /** Visible character name, matched against the scene's allowed character roster. */
@@ -198,62 +177,6 @@ export interface SceneIllustrationCharacterPrompt {
   negativePrompt?: string;
   /** Optional normalized subject center used by providers with spatial character prompting. */
   position?: { x: number; y: number };
-}
-
-/** Rare request for a VN CG-style illustration background. */
-interface SceneIllustrationRequest {
-  /** 0-based narration segment where the illustration should replace the background. */
-  segment?: number;
-  /** Short visual title for the illustrated moment. */
-  title?: string;
-  /** Image-generation prompt describing the important moment. */
-  prompt: string;
-  /** Names of visible referenced characters, if known. */
-  characters?: string[];
-  /** Optional provider-ready prompts that keep named characters visually distinct. */
-  characterPrompts?: SceneIllustrationCharacterPrompt[];
-  /** Why this scene is important enough to spend an image generation. */
-  reason?: string;
-  /** Optional stable filename hint. */
-  slug?: string;
-}
-
-interface GeneratedSceneIllustration {
-  tag: string;
-  segment?: number;
-}
-
-/** Scene analysis result from the sidecar model for game mode.
- *  Generated after the main model's narration is complete. */
-export interface SceneAnalysis {
-  /** Background tag from the asset manifest to display. */
-  background: string | null;
-  /** Music tag to play, populated by deterministic scoring after analysis. */
-  music: string | null;
-  /** Ambient loop tag, populated by deterministic scoring after analysis. */
-  ambient: string | null;
-  /** Weather description update — applied immediately. */
-  weather: string | null;
-  /** Time of day update — applied immediately. */
-  timeOfDay: string | null;
-  /** NPC reputation changes — applied immediately. */
-  reputationChanges: SceneReputationChange[];
-  /** Segment-indexed effects. Each entry fires when the user reaches that segment. */
-  segmentEffects?: SceneSegmentEffect[];
-  /** Cinematic overlay directions to play for this turn. */
-  directions?: DirectionCommand[];
-  /** Rare important-scene illustration request. Generated only when image generation is enabled. */
-  illustration?: SceneIllustrationRequest | null;
-  /** Generated illustration background tag, populated by the server when available. */
-  generatedIllustration?: GeneratedSceneIllustration | null;
-  /** NPC avatars generated during this scene wrap (populated by server when image gen is enabled). */
-  generatedNpcAvatars?: Array<{ name: string; avatarUrl: string }>;
-}
-
-/** A reputation change from scene analysis. */
-interface SceneReputationChange {
-  npcName: string;
-  action: string;
 }
 
 // ── Model Metadata ──
@@ -339,7 +262,6 @@ export const SIDECAR_DEFAULT_CONFIG: SidecarConfig = {
   customModelRepo: null,
   useForTrackers: false,
   useAsAgentsDefault: false,
-  useForGameScene: true,
   contextSize: 8192,
   maxTokens: 4096,
   temperature: 0.3,

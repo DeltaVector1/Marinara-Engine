@@ -275,10 +275,6 @@ const capabilityPackageManifestBaseSchema = z
 // 1.14: roleplay-tracker and tracker-panel UI contribution slots, package-aware
 //        prompt placement, and package-agent post-processing lifecycle hooks.
 // 1.15: packages can resolve their current embedding connection without reactivation.
-// 1.16: package-declared Game Master verbs — a hash-pinned `gm-verbs.json` asset the engine renders
-//        into the GM prompt, parses back out of the turn, and either writes into the package's own
-//        chat-metadata key or delivers live as a `gm_verb` event (soft seam: read from the asset
-//        regardless of declared capabilityApi; declare 1.16 only to REQUIRE it. Needs `chat-write`).
 // 1.17: opted-in Experience surfaces prepare before startup and supply first-turn world context.
 // 1.18: Experience seed/default declarations in the Engine setup wizard.
 // 1.19: package-contributed tools — a package holding `tools` registers a named tool through

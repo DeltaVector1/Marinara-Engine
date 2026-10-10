@@ -420,7 +420,6 @@ import {
 } from "./generate/conversation-context-block.js";
 import { prepareConversationPromptHistory } from "./generate/conversation-history-runtime.js";
 import { injectCapabilityContexts } from "../services/generation/capability-prompt-runtime.js";
-import { type GmVerbCall } from "../services/capability-packages/capability-gm-verb-runtime.service.js";
 import {
   appendToFirstSystemMessage,
   CONVERSATION_NO_REPEAT_INSTRUCTION,
@@ -7681,12 +7680,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           // group conversations (null elsewhere — caller falls back to the message char).
           let parsedCommandCharacterIds: (string | null)[] | null = null;
           let parsedRawCommandCount = 0;
-          // Package-declared GM verbs parsed out of this pass's narration (#5798). Deliberately its
-          // own array rather than a widening of the CharacterCommand union: these never reach the
-          // Conversation command pipeline, and nothing downstream of that union should have to learn
-          // a shape it will never dispatch.
-          let collectedGmVerbCalls: GmVerbCall[] = [];
-          let gmVerbRefusals: string[] = [];
           let assistantSpatialDirective: ReturnType<typeof extractAssistantSpatialDirective>["directive"] = null;
           let assistantSpatialDirectiveDetected = false;
           let conversationCommandContent: string | null = null;
@@ -8123,21 +8116,18 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             // always-reasoning model that spends its whole output budget thinking
             // arrives here with finish_reason "length" and reasoning tokens at the
             // cap; the fix is a setting, not a retry (#5963).
-            const emptyResponseMessage = gmVerbRefusals.length
-              ? gmVerbRefusals.join("\n")
-              : describeEmptyModelResponse({
-                  finishReason,
-                  usage,
-                  maxTokens: sentOutputBudget(effectiveMaxTokensForSend, conn.maxTokensOverride),
-                  hadThinking: providerThinking.trim().length > 0 || fullThinking.trim().length > 0,
-                });
+            const emptyResponseMessage = describeEmptyModelResponse({
+              finishReason,
+              usage,
+              maxTokens: sentOutputBudget(effectiveMaxTokensForSend, conn.maxTokensOverride),
+              hadThinking: providerThinking.trim().length > 0 || fullThinking.trim().length > 0,
+            });
             logger.warn(
               {
                 chatId: input.chatId,
                 targetCharId,
                 parsedCommandCount: parsedCommands.length,
                 parsedRawCommandCount,
-                gmVerbCallCount: collectedGmVerbCalls.length,
                 providerThinkingLength: providerThinking.length,
                 fullThinkingLength: fullThinking.length,
                 contentReplaced,
@@ -8156,16 +8146,14 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 hasActionableOutput:
                   parsedCommands.length > 0 ||
                   parsedRawCommandCount > 0 ||
-                  collectedGmVerbCalls.length > 0 ||
                   (pendingGameStateToolCalls.length > 0 && !generationSignal.aborted),
                 spatialDirectiveDetected: assistantSpatialDirectiveDetected,
               })
             ) {
               logger.info(
-                "[generate] Model emitted %d enabled command(s) (%d parsed) and %d GM verb(s) with no visible prose for chat %s; saving hidden command anchor",
+                "[generate] Model emitted %d enabled command(s) (%d parsed) with no visible prose for chat %s; saving hidden command anchor",
                 parsedCommands.length,
                 parsedRawCommandCount,
-                collectedGmVerbCalls.length,
                 input.chatId,
               );
               if (input.regenerateMessageId) await chats.addSwipe(input.regenerateMessageId, "");

@@ -114,9 +114,7 @@ export class LocalSidecarProvider extends BaseLLMProvider {
       throw new Error("Local sidecar embeddings are not supported on the MLX backend.");
     }
     if (!sidecarModelService.isEnabled()) {
-      throw new Error(
-        "Local sidecar embeddings require the local model to be enabled for trackers or game scene analysis.",
-      );
+      throw new Error("Local sidecar embeddings require the local model to be enabled for trackers.");
     }
 
     const baseUrl = await sidecarProcessService.ensureReady();

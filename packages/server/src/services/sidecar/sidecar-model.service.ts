@@ -163,7 +163,10 @@ class SidecarModelService {
 
     try {
       if (existsSync(CONFIG_PATH)) {
-        const raw = JSON.parse(readFileSync(CONFIG_PATH, "utf-8")) as Partial<SidecarConfig>;
+        const raw = JSON.parse(readFileSync(CONFIG_PATH, "utf-8")) as Partial<SidecarConfig> & {
+          useForGameScene?: boolean;
+        };
+        delete raw.useForGameScene;
         nextConfig = { ...SIDECAR_DEFAULT_CONFIG, ...raw };
         nextConfig.contextSize = normalizeIntegerSetting(
           nextConfig.contextSize,
@@ -565,7 +568,7 @@ class SidecarModelService {
   }
 
   isEnabled(): boolean {
-    return this.config.useForGameScene || this.config.useForTrackers;
+    return this.config.useForTrackers;
   }
 
   getResolvedBackend(): SidecarBackend {
@@ -611,7 +614,6 @@ class SidecarModelService {
         SidecarConfig,
         | "useForTrackers"
         | "useAsAgentsDefault"
-        | "useForGameScene"
         | "contextSize"
         | "maxTokens"
         | "temperature"

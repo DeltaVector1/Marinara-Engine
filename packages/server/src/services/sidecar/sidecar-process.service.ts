@@ -330,9 +330,7 @@ class SidecarProcessService {
     }
 
     if (!options.forceStart && !sidecarModelService.isEnabled()) {
-      return new Error(
-        "Enable the local model for trackers or game scene analysis, or start it manually from Local AI Model.",
-      );
+      return new Error("Enable the local model for trackers, or start it manually from Local AI Model.");
     }
 
     return new Error(this.startupError ?? "The local sidecar server is not ready");

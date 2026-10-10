@@ -392,7 +392,7 @@ export async function runTestMessage(): Promise<SidecarTestMessageOutput> {
     }
 
     const config = sidecarModelService.getConfig();
-    const shouldKeepRunning = config.useForTrackers || config.useForGameScene;
+    const shouldKeepRunning = config.useForTrackers;
     const baseUrl = await sidecarProcessService.ensureReady({ forceStart: true });
     const backend = sidecarModelService.getResolvedBackend();
     const nonce = `marinara-${randomUUID().slice(0, 8)}`;

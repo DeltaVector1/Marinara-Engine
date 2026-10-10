@@ -397,20 +397,6 @@ class CapabilityModuleRuntime {
     }
   }
 
-  async activatePackage(app: FastifyInstance, packageId: string): Promise<InstalledCapabilityPackage> {
-    prepareCapabilityRuntimeEnvironment();
-    await this.ensureModuleResolution();
-    const runtimePackage = (await capabilityPackageManager.runtimePackages()).find(
-      ({ installed }) => installed.id === packageId,
-    );
-    if (!runtimePackage) throw new Error(`Installed capability package ${packageId} has no server runtime`);
-    await this.deactivatePackage(packageId);
-    await this.activateOne(app, runtimePackage, true, true);
-    const installed = (await capabilityPackageManager.installed()).find((item) => item.id === packageId);
-    if (!installed) throw new Error(`Capability package ${packageId} disappeared during activation`);
-    return installed;
-  }
-
   async deactivatePackage(packageId: string): Promise<void> {
     const cleanup = this.cleanups.get(packageId);
     if (!cleanup) return;
