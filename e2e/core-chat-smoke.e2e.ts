@@ -15,16 +15,11 @@ test("chat shell opens settings and switches between retained modes", { tag: "@s
     await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chats[0]!.id);
     await page.goto("/");
     const chatsButton = page.locator('[data-component="TopBar"] [data-tour="sidebar-toggle"]');
-    const sidebarSlot = page.locator('[data-component="ChatSidebarSlot"]');
-    if ((await sidebarSlot.count()) > 0) {
-      if ((await chatsButton.getAttribute("aria-pressed")) !== "true") await chatsButton.click();
-      await expect(sidebarSlot).toHaveAttribute("aria-hidden", "false");
-    } else {
-      const mobileSidebar = page.getByRole("complementary", { name: "Chat list" });
-      if (!(await mobileSidebar.isVisible())) await chatsButton.click();
-      await expect(mobileSidebar).toBeVisible();
-    }
+    await expect(chatsButton).toBeVisible();
+    if ((await chatsButton.getAttribute("aria-pressed")) !== "true") await chatsButton.click();
+    await expect(chatsButton).toHaveAttribute("aria-pressed", "true");
     const sidebar = page.locator('[data-component="ChatSidebar"]');
+    await expect(sidebar).toBeVisible();
     for (const mode of ["conversation", "roleplay"] as const) {
       const modeTab = page.locator(`[data-tour="chat-mode-${mode}"]`);
       await modeTab.click();
