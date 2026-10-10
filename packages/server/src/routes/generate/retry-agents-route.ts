@@ -9,7 +9,6 @@ import { randomUUID } from "crypto";
 import { logger, logDebugOverride } from "../../lib/logger.js";
 import {
   BUILT_IN_AGENTS,
-  DEFAULT_AGENT_TOOLS,
   applyQuestUpdatesToPlayerStats,
   applyTrackerFieldLocksToGameStatePatch,
   getCustomAgentResultCapability,
@@ -260,7 +259,6 @@ import { normalizeContextInjections } from "./agent-normalizers.js";
 import { resolveCustomWritableLorebookIds } from "../../services/generation/agent-prompt-runtime.js";
 import {
   getAgentFallbackPrompt,
-  musicAgentUsesSource,
   resolveAgentsDefaultConnectionId,
   resolveEffectiveAgentSettings,
 } from "../../services/generation/agent-resolution.js";
@@ -269,13 +267,6 @@ import {
   buildRetryAgentPersona,
   resolveIdentityCharacterScopes,
 } from "../../services/generation/identity-context-runtime.js";
-import {
-  readSpotifyPlaybackTrackUri,
-  readSpotifyStringField,
-  readSpotifyTrackUris,
-  type SpotifyRuntimeAgent,
-} from "../../services/generation/spotify-agent-runtime.js";
-
 type PersonaContext = {
   // Persona-store ID only. A character-backed user identity keeps this null so
   // persona lookups, lorebooks, and persona galleries stay correct. [PR #5583]
@@ -499,16 +490,12 @@ function isChatAgentsEnabled(chatMeta: Record<string, unknown>): boolean {
     : false;
 }
 
-function normalizeRetryAgentTypeId(agentType: string): string {
-  return agentType === "youtube" ? "spotify" : agentType;
-}
-
 function resolveActiveRetryAgentTypes(chatMode: ChatMode, chatMeta: Record<string, unknown>): Set<string> {
   if (!isChatAgentsEnabled(chatMeta)) return new Set();
   const activeAgentIds = Array.isArray(chatMeta.activeAgentIds)
     ? chatMeta.activeAgentIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0)
     : [];
-  const normalizedActiveIds = activeAgentIds.map((agentType) => normalizeRetryAgentTypeId(agentType.trim()));
+  const normalizedActiveIds = activeAgentIds.map((agentType) => agentType.trim());
   return new Set(normalizedActiveIds.filter((agentType) => isAgentAvailableInChatMode(chatMode, agentType)));
 }
 
@@ -759,7 +746,6 @@ async function resolvePersonaContext(
 function resolveRetryAgentContextPolicy(resolvedAgents: readonly ResolvedAgent[]): {
   contextSize: number;
   customAgentVectorAccessEnabled: boolean;
-  musicPlayerSource: "spotify" | "youtube" | "custom" | null;
 } {
   const contextSize =
     resolvedAgents.length > 0
@@ -768,16 +754,7 @@ function resolveRetryAgentContextPolicy(resolvedAgents: readonly ResolvedAgent[]
   const customAgentVectorAccessEnabled = resolvedAgents.some((agent) =>
     customAgentHasCapability(agent.settings, "access_vectors"),
   );
-  const musicAgent = resolvedAgents.find((agent) => agent.type === "spotify" || agent.type === "youtube");
-  const musicSettings = musicAgent?.settings ?? {};
-  const musicPlayerSource = musicAgent
-    ? musicAgent.type === "youtube" || musicAgentUsesSource(musicSettings, "youtube")
-      ? "youtube"
-      : musicAgentUsesSource(musicSettings, "custom")
-        ? "custom"
-        : "spotify"
-    : null;
-  return { contextSize, customAgentVectorAccessEnabled, musicPlayerSource };
+  return { contextSize, customAgentVectorAccessEnabled };
 }
 
 function resolveLorebookKeeperRetryAnchor(target: { id: string; activeSwipeIndex?: number | null }): {
@@ -1461,28 +1438,6 @@ async function buildRetryAgentContext(args: {
     agentContext.memory._forceImageGeneration = true;
   }
 
-  if (contextPolicy.musicPlayerSource === "youtube") {
-    const mode = ((chat as any).mode ?? "conversation") as string;
-    agentContext.memory._youtubeDjConstraints = {
-      manualRetry: true,
-      forceFreshPick: true,
-      mode,
-      retryNote:
-        "This is a manual Music DJ YouTube retry. Pick a fresh fitting track now with action 'play' and a new searchQuery.",
-    };
-  }
-
-  if (contextPolicy.musicPlayerSource === "custom") {
-    const mode = ((chat as any).mode ?? "conversation") as string;
-    agentContext.memory._customMusicDjConstraints = {
-      manualRetry: true,
-      forceFreshPick: true,
-      mode,
-      retryNote:
-        "This is a manual Music DJ Custom retry. Pick a fresh fitting local track path now with action 'play'.",
-    };
-  }
-
   return { agentContext, initialMacroVariables, macroVariables: retryMacroVariables };
 }
 
@@ -1554,12 +1509,11 @@ async function resolveRetryAgents(args: {
   conns: ReturnType<typeof createConnectionsStorage>;
   agentsStore: ReturnType<typeof createAgentsStorage>;
   agentPromptTemplateIds?: unknown;
-  activeMusicPlayerSource?: "spotify" | "youtube" | "custom" | null;
   allowExternalAgentImports: boolean;
   managedParameterDefinitions?: ManagedGenerationParameterDefinition[];
   onFallback?: GenerationFallbackNotifier;
 }): Promise<ResolvedRetryAgents> {
-  const { agentTypes, chat, conns, agentsStore, agentPromptTemplateIds, activeMusicPlayerSource, onFallback } = args;
+  const { agentTypes, chat, conns, agentsStore, agentPromptTemplateIds, onFallback } = args;
   const chatMode = ((chat as { mode?: ChatMode }).mode ?? "conversation") as ChatMode;
   const chatMeta = parseExtra((chat as { metadata?: unknown }).metadata);
   const agentPromptTemplateSelections = {
@@ -1575,7 +1529,7 @@ async function resolveRetryAgents(args: {
   ) {
     activeAgentTypeSet.add("illustrator");
   }
-  const normalizedAgentTypes = agentTypes.map(normalizeRetryAgentTypeId);
+  const normalizedAgentTypes = agentTypes;
   const agentTypeSet = new Set(
     normalizedAgentTypes
       .filter((agentType) => isAgentAvailableInChatMode(chatMode, agentType))
@@ -1912,12 +1866,11 @@ async function resolveRetryAgents(args: {
     const settings = resolveEffectiveAgentSettings({
       agentType: cfg.type as string,
       settings: cfg.settings,
-      activeMusicPlayerSource,
       chatMetadata: chatMeta,
     });
     const selectedPromptTemplate = resolveAgentPromptTemplate({
       promptTemplate: normalizeProseGuardianPromptTemplate(cfg.type as string, cfg.promptTemplate),
-      fallbackPromptTemplate: getAgentFallbackPrompt(cfg.type as string, settings),
+      fallbackPromptTemplate: getAgentFallbackPrompt(cfg.type as string),
       settings,
       selectedPromptTemplateId: agentPromptTemplateSelections[cfg.type as string] ?? null,
     });
@@ -2004,12 +1957,11 @@ async function resolveRetryAgents(args: {
     const settings = resolveEffectiveAgentSettings({
       agentType: builtIn.id,
       settings: undefined,
-      activeMusicPlayerSource,
       chatMetadata: chatMeta,
     });
     const selectedPromptTemplate = resolveAgentPromptTemplate({
       promptTemplate: "",
-      fallbackPromptTemplate: getAgentFallbackPrompt(builtIn.id, settings),
+      fallbackPromptTemplate: getAgentFallbackPrompt(builtIn.id),
       settings,
       selectedPromptTemplateId: agentPromptTemplateSelections[builtIn.id] ?? null,
     });
@@ -2078,304 +2030,6 @@ function retryProviderKey(provider: unknown): string {
     retryProviderIds.set(provider, id);
   }
   return `provider:${id}`;
-}
-
-async function executeSpotifyRetryToolJson(
-  entry: ResolvedRetryAgent,
-  name: string,
-  args: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
-  if (!entry.resolved.toolContext) return { error: "Spotify tool context is unavailable." };
-  const raw = await entry.resolved.toolContext.executeToolCall({
-    id: `spotify-retry-${name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    type: "function",
-    function: {
-      name,
-      arguments: JSON.stringify(args),
-    },
-  });
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : { raw };
-  } catch {
-    return { raw };
-  }
-}
-
-function getSpotifyTracks(data: Record<string, unknown>): Array<{ uri: string; name: string; artist: string }> {
-  const tracks = Array.isArray(data.tracks) ? data.tracks : [];
-  return tracks
-    .map((track) => {
-      if (!track || typeof track !== "object") return null;
-      const record = track as Record<string, unknown>;
-      const uri = typeof record.uri === "string" ? record.uri : "";
-      if (!uri.startsWith("spotify:track:")) return null;
-      return {
-        uri,
-        name: typeof record.name === "string" ? record.name : "Unknown track",
-        artist: typeof record.artist === "string" ? record.artist : "",
-      };
-    })
-    .filter((track): track is { uri: string; name: string; artist: string } => track !== null);
-}
-
-function buildSpotifyRetryQuery(result: AgentResult, context: AgentContext): { query: string; mood: string } {
-  const mood = readSpotifyStringField(result.data, "mood");
-  const searchQuery = readSpotifyStringField(result.data, "searchQuery");
-  const scene = typeof context.mainResponse === "string" ? context.mainResponse.replace(/\[[^\]]+\]/g, " ") : "";
-  const compactScene = scene.replace(/\s+/g, " ").trim().slice(0, 600);
-  return {
-    query: [searchQuery, mood, compactScene].filter(Boolean).join(" "),
-    mood,
-  };
-}
-
-function isBlockingSpotifyRetryToolError(error: string | null | undefined): error is string {
-  return (
-    !!error && /(not configured|not connected|token|scope|premium|active spotify device|playback failed)/i.test(error)
-  );
-}
-
-async function applyDeterministicSpotifyRetryFallback(args: {
-  entry: ResolvedRetryAgent;
-  result: AgentResult;
-  context: AgentContext;
-  constraints: Record<string, unknown>;
-}): Promise<AgentResult> {
-  const { entry, result, context, constraints } = args;
-  if (!entry.resolved.toolContext) {
-    return { ...result, success: false, error: "Spotify tool context is unavailable." };
-  }
-
-  const { query, mood } = buildSpotifyRetryQuery(result, context);
-  const current = await executeSpotifyRetryToolJson(entry, "spotify_get_current_playback", {});
-  const currentUri = readSpotifyPlaybackTrackUri(current) ?? "";
-
-  const artist = typeof constraints.artist === "string" ? constraints.artist.trim() : "";
-  const sourceType = typeof constraints.sourceType === "string" ? constraints.sourceType : "liked";
-  const playlistId =
-    typeof constraints.playlistId === "string" && constraints.playlistId.trim()
-      ? constraints.playlistId.trim()
-      : sourceType === "playlist"
-        ? ""
-        : "liked";
-
-  let sourceResult: Record<string, unknown>;
-  if (artist) {
-    sourceResult = await executeSpotifyRetryToolJson(entry, "spotify_search", {
-      query: [`artist:"${artist}"`, query || mood || "instrumental scene music"].filter(Boolean).join(" "),
-      limit: 20,
-    });
-  } else {
-    sourceResult = await executeSpotifyRetryToolJson(entry, "spotify_get_playlist_tracks", {
-      playlistId: playlistId || "liked",
-      query: query || mood || "scene instrumental",
-      mood: mood || undefined,
-      candidateLimit: 40,
-    });
-  }
-
-  const tracks = getSpotifyTracks(sourceResult);
-  if (tracks.length === 0) {
-    const sourceError = typeof sourceResult.error === "string" ? sourceResult.error : "No Spotify candidates found.";
-    return { ...result, success: false, error: sourceError };
-  }
-
-  const picked = tracks.find((track) => track.uri !== currentUri) ?? tracks[0]!;
-  const play = await executeSpotifyRetryToolJson(entry, "spotify_play", {
-    uri: picked.uri,
-    reason: "Manual Music DJ Spotify retry fallback",
-  });
-  if (play.applied !== true) {
-    const playError = typeof play.error === "string" ? play.error : "Spotify play did not apply playback.";
-    return { ...result, success: false, error: playError };
-  }
-  const playbackPending = play.playbackPending === true;
-  const playedUri = readSpotifyPlaybackTrackUri(play);
-  if (!playbackPending && playedUri !== picked.uri) {
-    return {
-      ...result,
-      success: false,
-      error: "Spotify accepted the retry, but the active track did not change to the selected song.",
-    };
-  }
-  const repeatState = readSpotifyStringField(play, "repeatState") || readSpotifyStringField(play, "repeat");
-  if (!playbackPending && repeatState && repeatState !== "track") {
-    return {
-      ...result,
-      success: false,
-      error: `Spotify accepted the retry, but repeat-track did not stick (current repeat: ${repeatState}).`,
-    };
-  }
-
-  return {
-    ...result,
-    success: true,
-    error: null,
-    data: {
-      action: "play",
-      mood: mood || null,
-      searchQuery: query || null,
-      trackUris: [picked.uri],
-      trackNames: [`${picked.name}${picked.artist ? ` — ${picked.artist}` : ""}`],
-      volume: null,
-      deterministicFallbackApplied: true,
-      repeat: play.repeat ?? null,
-      repeatState: repeatState || null,
-      currentUri: playedUri ?? null,
-      device: readSpotifyStringField(play, "device") || null,
-      display: readSpotifyStringField(play, "display") || null,
-      playbackPending,
-    },
-  };
-}
-
-async function validateSpotifyRetryPlayback(
-  entry: ResolvedRetryAgent,
-  result: AgentResult,
-  context: AgentContext,
-): Promise<AgentResult> {
-  if (entry.resolved.type !== "spotify") return result;
-  if (result.type !== "spotify_control") return result;
-  const spotifyAgent = entry.resolved as SpotifyRuntimeAgent;
-  const spotifyToolError = spotifyAgent.__spotifyToolError;
-  if (isBlockingSpotifyRetryToolError(spotifyToolError)) {
-    return { ...result, success: false, error: spotifyToolError };
-  }
-
-  const constraints =
-    context.memory._spotifyDjConstraints && typeof context.memory._spotifyDjConstraints === "object"
-      ? (context.memory._spotifyDjConstraints as Record<string, unknown>)
-      : {};
-  const forceFreshPick = constraints.manualRetry === true || constraints.forceFreshPick === true;
-  if (!forceFreshPick) return result;
-
-  const toolCalls = spotifyAgent.__spotifyToolCalls;
-  const spotifyPlayCalled = toolCalls instanceof Set && toolCalls.has("spotify_play");
-  const spotifyPlayApplied = spotifyAgent.__spotifyPlayApplied === true;
-  const spotifyPlayError = spotifyAgent.__spotifyPlayError;
-  const spotifyPlayUris = Array.isArray(spotifyAgent.__spotifyPlayUris) ? spotifyAgent.__spotifyPlayUris : [];
-  const spotifyPlayUri = spotifyPlayUris.length === 1 ? spotifyPlayUris[0] : null;
-  const spotifyPlayIsSingleTrack = !!spotifyPlayUri && spotifyPlayUri.startsWith("spotify:track:");
-  const currentBeforePlay = spotifyAgent.__spotifyCurrentBeforePlayUri;
-  const currentAfterPlay = spotifyAgent.__spotifyCurrentAfterPlayUri;
-  const repeatAfterPlay = spotifyAgent.__spotifyRepeatAfterPlayState;
-  const playbackPending = spotifyAgent.__spotifyPlaybackPending === true;
-  if (spotifyPlayCalled && spotifyPlayApplied) {
-    return result;
-  }
-
-  if (
-    spotifyPlayCalled &&
-    spotifyPlayApplied &&
-    spotifyPlayIsSingleTrack &&
-    currentBeforePlay !== spotifyPlayUri &&
-    currentAfterPlay === spotifyPlayUri &&
-    (!repeatAfterPlay || repeatAfterPlay === "track")
-  ) {
-    return result;
-  }
-
-  if (spotifyPlayCalled && spotifyPlayApplied && playbackPending) {
-    return {
-      ...result,
-      success: true,
-      error: null,
-      data:
-        result.data && typeof result.data === "object"
-          ? {
-              ...(result.data as Record<string, unknown>),
-              playbackPending: true,
-              toolPlaybackApplied: true,
-              currentUri: currentAfterPlay ?? null,
-              repeatState: repeatAfterPlay || null,
-            }
-          : {
-              action: "play",
-              trackUris: spotifyPlayUris,
-              playbackPending: true,
-              toolPlaybackApplied: true,
-              currentUri: currentAfterPlay ?? null,
-              repeatState: repeatAfterPlay || null,
-            },
-    };
-  }
-
-  if (spotifyPlayCalled && spotifyPlayApplied) {
-    return applyDeterministicSpotifyRetryFallback({ entry, result, context, constraints });
-  }
-
-  const uris = readSpotifyTrackUris(result.data);
-  const requestedTrackUri = uris.find((uri) => uri.startsWith("spotify:track:")) ?? null;
-  if (!spotifyPlayCalled && result.success && requestedTrackUri && entry.resolved.toolContext) {
-    const fallbackResult = await entry.resolved.toolContext.executeToolCall({
-      id: `spotify-retry-fallback-${Date.now()}`,
-      type: "function",
-      function: {
-        name: "spotify_play",
-        arguments: JSON.stringify({
-          uri: requestedTrackUri,
-          reason: "Manual Music DJ Spotify retry fallback",
-        }),
-      },
-    });
-    try {
-      const parsed = JSON.parse(fallbackResult) as Record<string, unknown>;
-      if (parsed.applied === true) {
-        const fallbackCurrentBefore = spotifyAgent.__spotifyCurrentBeforePlayUri;
-        const fallbackPlayedUri = readSpotifyPlaybackTrackUri(parsed);
-        const fallbackRepeatState =
-          readSpotifyStringField(parsed, "repeatState") || readSpotifyStringField(parsed, "repeat");
-        const fallbackPlaybackPending = parsed.playbackPending === true;
-        if (
-          !fallbackPlaybackPending &&
-          (fallbackCurrentBefore === requestedTrackUri ||
-            fallbackPlayedUri !== requestedTrackUri ||
-            (fallbackRepeatState && fallbackRepeatState !== "track"))
-        ) {
-          return applyDeterministicSpotifyRetryFallback({ entry, result, context, constraints });
-        }
-        return {
-          ...result,
-          data:
-            result.data && typeof result.data === "object"
-              ? {
-                  ...(result.data as Record<string, unknown>),
-                  toolFallbackApplied: true,
-                  currentUri: fallbackPlayedUri,
-                  repeatState: fallbackRepeatState || null,
-                  playbackPending: fallbackPlaybackPending,
-                }
-              : {
-                  action: "play",
-                  trackUris: [requestedTrackUri],
-                  toolFallbackApplied: true,
-                  currentUri: fallbackPlayedUri,
-                  repeatState: fallbackRepeatState || null,
-                  playbackPending: fallbackPlaybackPending,
-                },
-        };
-      }
-      if (typeof parsed.error === "string") {
-        return { ...result, success: false, error: parsed.error };
-      }
-    } catch {
-      // Fall through to explicit failure below.
-    }
-  }
-
-  if (!spotifyPlayCalled) {
-    return applyDeterministicSpotifyRetryFallback({ entry, result, context, constraints });
-  }
-
-  return {
-    ...result,
-    success: false,
-    error:
-      typeof spotifyPlayError === "string" && spotifyPlayError.trim()
-        ? spotifyPlayError
-        : "Music DJ Spotify retry finished without applying spotify_play.",
-  };
 }
 
 function isImagePromptRetryAgent(entry: ResolvedRetryAgent): boolean {
@@ -2577,16 +2231,7 @@ async function executeRetryBatches(
           undefined,
           runProviderJob,
         );
-        for (const result of batchResults) {
-          const entry = regularBatchAgents.find(
-            (agent) => agent.resolved.id === result.agentId || agent.resolved.type === result.agentType,
-          );
-          groupResults.push(
-            entry?.resolved.type === "spotify"
-              ? await validateSpotifyRetryPlayback(entry, result, preparedGroupContext)
-              : result,
-          );
-        }
+        groupResults.push(...batchResults);
       }
 
       for (const entry of imagePromptAgents) {
@@ -2611,7 +2256,7 @@ async function executeRetryBatches(
         const result = await runProviderJob(() =>
           executeAgent(entry.resolved, toolContext, group.provider, group.model, entry.resolved.toolContext),
         );
-        groupResults.push(await validateSpotifyRetryPlayback(entry, result, preparedGroupContext));
+        groupResults.push(result);
       }
 
       return groupResults;
@@ -4209,8 +3854,6 @@ export async function registerRetryAgentsRoute(
        * the state merge, all of which would otherwise have to be duplicated.
        */
       beholderDirective?: string;
-      musicPlayerSource?: "spotify" | "youtube" | "custom";
-      musicPlayerEnabled?: boolean;
       /** Secret Plot re-run mode: full = refresh arc+turn data, turn_only = preserve arc and refresh only turn guidance. */
       secretPlotRerollMode?: "full" | "turn_only";
     };
@@ -4232,8 +3875,6 @@ export async function registerRetryAgentsRoute(
       customLorebookBackfill = false,
       forMessageId,
       beholderDirective,
-      musicPlayerSource = "spotify",
-      musicPlayerEnabled = true,
       secretPlotRerollMode,
     } = request.body;
     const illustratorPromptReviewOverride = rawIllustratorPromptReviewOverride
@@ -4404,12 +4045,6 @@ export async function registerRetryAgentsRoute(
       activeAgentRun.messageId = retryMessageId || null;
       activeAgentRun.swipeIndex = retryMessageId ? retrySwipeIndex : null;
 
-      const activeMusicPlayerSource =
-        musicPlayerEnabled === false
-          ? null
-          : musicPlayerSource === "youtube" || musicPlayerSource === "custom"
-            ? musicPlayerSource
-            : "spotify";
       const customAgentImportPolicy = await runRetrySetupPhase(abortController.signal, () =>
         getCustomAgentImportPolicy(app.db),
       );
@@ -4427,7 +4062,6 @@ export async function registerRetryAgentsRoute(
           conns,
           agentsStore,
           agentPromptTemplateIds,
-          activeMusicPlayerSource,
           allowExternalAgentImports: customAgentImportPolicy.enabled,
           managedParameterDefinitions,
           onFallback,
@@ -4709,18 +4343,6 @@ export async function registerRetryAgentsRoute(
             };
           }
         }
-        if (activeMusicPlayerSource === null) {
-          const spotifyToolNames = new Set(DEFAULT_AGENT_TOOLS.spotify ?? []);
-          for (const agent of toolAgents) {
-            const enabledTools = Array.isArray(agent.settings.enabledTools) ? agent.settings.enabledTools : [];
-            agent.settings = {
-              ...agent.settings,
-              enabledTools: enabledTools.filter(
-                (toolName): toolName is string => typeof toolName === "string" && !spotifyToolNames.has(toolName),
-              ),
-            };
-          }
-        }
         const characterScopes = resolveIdentityCharacterScopes(toolInputs.promptCharacterIds, {
           id: typeof context.memory._userIdentityId === "string" ? context.memory._userIdentityId : null,
           source: context.memory._userIdentitySource === "character" ? "character" : null,
@@ -4745,7 +4367,6 @@ export async function registerRetryAgentsRoute(
           excludedLorebookIds: lorebookScopeExclusions.excludedLorebookIds,
           excludedSourceAgentIds: lorebookScopeExclusions.excludedSourceAgentIds,
           gameState: context.gameState,
-          gameSpotifyMusicEnabled: activeMusicPlayerSource !== null,
           agentContext: context,
           getLorebookSourceMessageRefs: (agent) => {
             const historical = customLorebookReadBehindTargets.get(agent.id);
@@ -4759,7 +4380,6 @@ export async function registerRetryAgentsRoute(
             assertRetrySetupActive();
             sendSseEvent(reply, { type: "metadata_patch", data: patch });
           },
-          observeSpotifyPlaybackBeforePlay: true,
         });
         assertRetrySetupActive();
       };

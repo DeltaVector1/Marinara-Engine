@@ -195,8 +195,6 @@ export function roomGenerationMetadata(metadata: Record<string, unknown>): Recor
     activeAgentIds: Array.isArray(metadata.activeAgentIds)
       ? metadata.activeAgentIds.filter((id) => typeof id === "string" && roomAgentAllowed(id))
       : [],
-    gameUseMusicDj: false,
-    gameUseSpotifyMusic: false,
   };
 }
 

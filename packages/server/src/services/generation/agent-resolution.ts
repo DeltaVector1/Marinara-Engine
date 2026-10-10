@@ -72,7 +72,6 @@ type ResolveAgentPipelineAgentsArgs = {
   chatEnableCaching: boolean;
   chatAnthropicExtendedCacheTtl: boolean;
   chatCachingAtDepth: number;
-  activeMusicPlayerSource?: "spotify" | "youtube" | "custom" | null;
   chatMetadata?: Record<string, unknown>;
   onFallback?: GenerationFallbackNotifier;
   resolveBaseUrl(connection: { baseUrl: string | null; provider: string }): string;
@@ -174,44 +173,19 @@ function parseAgentSettings(settings: unknown): Record<string, unknown> {
 export function resolveEffectiveAgentSettings(args: {
   agentType: string;
   settings: unknown;
-  activeMusicPlayerSource?: "spotify" | "youtube" | "custom" | null;
   chatMetadata?: Record<string, unknown>;
 }): Record<string, unknown> {
-  const { agentType, activeMusicPlayerSource, chatMetadata } = args;
+  const { agentType, chatMetadata } = args;
   const parsed = parseAgentSettings(args.settings);
   let settings = BUILT_IN_AGENTS.some((agent) => agent.id === agentType)
     ? mergeBuiltInAgentSettings(agentType, parsed)
     : parsed;
 
-  if (agentType === "spotify" && activeMusicPlayerSource) {
-    settings = {
-      ...settings,
-      musicProvider: activeMusicPlayerSource,
-      musicPlayerSource: activeMusicPlayerSource,
-      enabledTools: activeMusicPlayerSource === "spotify" ? [...(DEFAULT_AGENT_TOOLS.spotify ?? [])] : [],
-    };
-  }
-
   settings = applyTextRewriteAgentChatSettings(agentType, settings, chatMetadata);
   settings = applyKnowledgeAgentChatSettings(agentType, settings, chatMetadata);
   settings = applyCustomAgentImageChatSettings(agentType, settings, chatMetadata);
 
-  const usesNonSpotifyMusicSource =
-    agentType === "spotify" &&
-    (settings.musicProvider === "youtube" ||
-      settings.musicPlayerSource === "youtube" ||
-      settings.musicProvider === "custom" ||
-      settings.musicPlayerSource === "custom");
-  // Spotify restores playback tools from an empty array; other built-ins treat
-  // an empty array as an explicit opt-out.
   if (
-    agentType === "spotify" &&
-    !usesNonSpotifyMusicSource &&
-    (!Array.isArray(settings.enabledTools) || settings.enabledTools.length === 0)
-  ) {
-    settings = { ...settings, enabledTools: [...(DEFAULT_AGENT_TOOLS.spotify ?? [])] };
-  } else if (
-    agentType !== "spotify" &&
     BUILT_IN_AGENTS.some((agent) => agent.id === agentType) &&
     !Array.isArray(settings.enabledTools) &&
     (DEFAULT_AGENT_TOOLS[agentType]?.length ?? 0) > 0
@@ -222,17 +196,7 @@ export function resolveEffectiveAgentSettings(args: {
   return settings;
 }
 
-export function musicAgentUsesSource(settings: Record<string, unknown>, source: "youtube" | "custom"): boolean {
-  return settings.musicProvider === source || settings.musicPlayerSource === source;
-}
-
-export function getAgentFallbackPrompt(agentType: string, settings: Record<string, unknown>): string {
-  if (agentType === "spotify" && musicAgentUsesSource(settings, "youtube")) {
-    return getDefaultAgentPrompt("youtube");
-  }
-  if (agentType === "spotify" && musicAgentUsesSource(settings, "custom")) {
-    return getDefaultAgentPrompt("local-music");
-  }
+export function getAgentFallbackPrompt(agentType: string): string {
   return getDefaultAgentPrompt(agentType);
 }
 
@@ -394,7 +358,6 @@ export async function resolveAgentPipelineAgents({
   chatEnableCaching,
   chatAnthropicExtendedCacheTtl,
   chatCachingAtDepth,
-  activeMusicPlayerSource,
   chatMetadata,
   onFallback,
   resolveBaseUrl,
@@ -474,12 +437,11 @@ export async function resolveAgentPipelineAgents({
     const settings = resolveEffectiveAgentSettings({
       agentType: cfg.type as string,
       settings: cfg.settings,
-      activeMusicPlayerSource,
       chatMetadata,
     });
     let selectedPromptTemplate = resolveAgentPromptTemplate({
       promptTemplate: normalizeProseGuardianPromptTemplate(cfg.type as string, cfg.promptTemplate),
-      fallbackPromptTemplate: getAgentFallbackPrompt(cfg.type as string, settings),
+      fallbackPromptTemplate: getAgentFallbackPrompt(cfg.type as string),
       settings,
       selectedPromptTemplateId: agentPromptTemplateSelections[cfg.type as string] ?? null,
     });
@@ -665,12 +627,11 @@ export async function resolveAgentPipelineAgents({
     const builtInSettings = resolveEffectiveAgentSettings({
       agentType: builtIn.id,
       settings: undefined,
-      activeMusicPlayerSource,
       chatMetadata,
     });
     let selectedPromptTemplate = resolveAgentPromptTemplate({
       promptTemplate: "",
-      fallbackPromptTemplate: getAgentFallbackPrompt(builtIn.id, builtInSettings),
+      fallbackPromptTemplate: getAgentFallbackPrompt(builtIn.id),
       settings: builtInSettings,
       selectedPromptTemplateId: agentPromptTemplateSelections[builtIn.id] ?? null,
     });

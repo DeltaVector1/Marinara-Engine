@@ -31,7 +31,7 @@ export interface ResolvedAgent extends AgentExecConfig {
   model: string;
   /** Maximum number of same-connection agent LLM jobs that may run in parallel. */
   maxParallelJobs?: number;
-  /** Optional tool context for agents that need function calling (e.g., Spotify). */
+  /** Optional tool context for agents that need function calling. */
   toolContext?: AgentToolContext;
   /** Request-local context identity used to keep incompatible agent batches separate. */
   batchContextKey?: string;
@@ -184,8 +184,7 @@ async function executeGroup(
   const groupContext = resolveAgentContext
     ? await resolveAgentContext(group.agents[0]!, buildAgentContext(group.agents[0]!, context))
     : buildAgentContext(group.agents[0]!, context);
-  // Separate tool-using agents (can't be batched) from regular agents. Spotify always
-  // returns one JSON intent; deterministic host-side playback runs after parsing.
+  // Separate tool-using agents (can't be batched) from regular agents.
   const toolAgents = group.agents.filter((a) => shouldUseToolsDuringAgentExecution(a));
   const batchAgents = group.agents.filter((a) => !shouldUseToolsDuringAgentExecution(a));
 
@@ -270,8 +269,7 @@ async function executeGroup(
 }
 
 export function shouldUseToolsDuringAgentExecution(agent: ResolvedAgent): boolean {
-  if (!agent.toolContext?.tools.length) return false;
-  return agent.type !== "spotify";
+  return !!agent.toolContext?.tools.length;
 }
 
 /**

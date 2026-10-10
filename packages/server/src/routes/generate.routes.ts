@@ -548,7 +548,6 @@ import {
   type RuntimeAgentSectionTokens,
   type RuntimeAgentSectionType,
 } from "../services/generation/runtime-agent-sections.js";
-import { applySpotifyAgentPlaybackFallbacks } from "../services/generation/spotify-agent-runtime.js";
 import {
   formatUnresolvedRoleplayDmFallback,
   replaceRoleplayDmCommandText,
@@ -1653,12 +1652,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
       // character routers can run before prompt assembly and every later pass
       // uses the same visible Agent list.
       logger.info("[generate] chatId=%s, chatMode=%s", input.chatId, chatMode);
-      const activeMusicPlayerSource =
-        input.musicPlayerEnabled === false
-          ? null
-          : input.musicPlayerSource === "youtube" || input.musicPlayerSource === "custom"
-            ? input.musicPlayerSource
-            : "spotify";
       const chatEnableAgents = shouldEnableAgentsForGeneration({
         chatEnableAgents: chatMeta.enableAgents === true,
         impersonate: input.impersonate,
@@ -1673,17 +1666,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           chatMeta.activeAgentIds.includes("combat")
         )
           roleplayCommandAgentIds.add("combat");
-        if (isRoleplayCommandAllowed(chatMeta, "music", null) && activeMusicPlayerSource)
-          roleplayCommandAgentIds.add("spotify");
       }
       const persistedChatActiveAgentIds: string[] = Array.isArray(chatMeta.activeAgentIds)
         ? (chatMeta.activeAgentIds as string[])
         : [];
-      const normalizedPersistedChatActiveAgentIds = persistedChatActiveAgentIds.map((agentId) =>
-        agentId === "youtube" ? "spotify" : agentId,
-      );
-
-      const rawChatActiveAgentIds: string[] = normalizedPersistedChatActiveAgentIds.filter(
+      const rawChatActiveAgentIds: string[] = persistedChatActiveAgentIds.filter(
         (agentId) => isAgentAvailableInChatMode(chatMode, agentId) && roomAgentAllowed(agentId),
       );
       const customAgentImportsEnabled = (await getCustomAgentImportPolicy(app.db)).enabled;
@@ -1722,7 +1709,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
         const settings = resolveEffectiveAgentSettings({
           agentType: agent.type,
           settings: agent.settings,
-          activeMusicPlayerSource,
           chatMetadata: chatMeta,
         });
         effectiveAgentSettingsById.set(agent.id, settings);
@@ -2040,7 +2026,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           chatEnableCaching: conn.enableCaching === "true",
           chatAnthropicExtendedCacheTtl: conn.anthropicExtendedCacheTtl === "true",
           chatCachingAtDepth: conn.cachingAtDepth ?? 5,
-          activeMusicPlayerSource,
           chatMetadata: chatMeta,
           onFallback,
           resolveBaseUrl,
@@ -3704,7 +3689,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           chatEnableCaching: conn.enableCaching === "true",
           chatAnthropicExtendedCacheTtl: conn.anthropicExtendedCacheTtl === "true",
           chatCachingAtDepth: conn.cachingAtDepth ?? 5,
-          activeMusicPlayerSource,
           chatMetadata: chatMeta,
           onFallback,
           resolveBaseUrl,
@@ -5131,7 +5115,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           excludedLorebookIds: lorebookScopeExclusions.excludedLorebookIds,
           excludedSourceAgentIds: lorebookScopeExclusions.excludedSourceAgentIds,
           gameState,
-          gameSpotifyMusicEnabled: false,
           agentContext,
           getLorebookSourceMessageRefs,
           emitMetadataPatch: (patch) => sendSseEvent(reply, { type: "metadata_patch", data: patch }),
@@ -7686,21 +7669,10 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               }
               if (command.type === "document") activity.documentStyle = Math.floor(Math.random() * 3);
               const requiredAgent =
-                command.type === "illustrate"
-                  ? "illustrator"
-                  : command.type === "combat"
-                    ? "combat"
-                    : command.type === "music"
-                      ? "spotify"
-                      : null;
+                command.type === "illustrate" ? "illustrator" : command.type === "combat" ? "combat" : null;
               if (requiredAgent && !resolvedAgents.some((agent) => agent.type === requiredAgent)) continue;
               roleplayActivity.push(activity);
-              if (
-                command.type === "illustrate" ||
-                command.type === "combat" ||
-                command.type === "music" ||
-                command.type === "sound"
-              )
+              if (command.type === "illustrate" || command.type === "combat" || command.type === "sound")
                 currentRoleplayMedia.push(command);
             }
           }
@@ -9572,18 +9544,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             }
           }
 
-          const spotifyFallbackInputResults = postResults;
-          postResults = await applySpotifyAgentPlaybackFallbacks(postResults, resolvedAgents, postAgentContext);
           postResults = postResults.map(markLorebookResultForApproval);
           for (let i = 0; i < postResults.length; i++) {
             const result = postResults[i];
             if (!result) continue;
-            if (
-              result.agentType === "spotify" ||
-              (result.type !== "lorebook_update" && result !== spotifyFallbackInputResults[i])
-            ) {
-              sendAgentEvent(result, { finalized: result.agentType === "spotify" });
-            }
+            if (result.type !== "lorebook_update") sendAgentEvent(result);
           }
 
           // ── Auto-retry failed agents once ──
@@ -9629,18 +9594,10 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   resolvedRetryContext,
                   agentCfg.provider,
                   agentCfg.model,
-                  agentCfg.type === "spotify" ? undefined : agentCfg.toolContext,
+                  agentCfg.toolContext,
                 );
-                const finalizedRetryResults = await applySpotifyAgentPlaybackFallbacks(
-                  [retried],
-                  resolvedAgents,
-                  retryCtx,
-                );
-                const finalizedRetry = finalizedRetryResults[0] ?? retried;
-                sendAgentEventAfterMainStream(finalizedRetry, {
-                  finalized: finalizedRetry.agentType === "spotify",
-                });
-                retryResults.push(finalizedRetry);
+                sendAgentEventAfterMainStream(retried);
+                retryResults.push(retried);
               } catch {
                 retryResults.push(failed);
               }
@@ -9753,12 +9710,10 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               );
               continue;
             }
-            if (command.type !== "illustrate" && command.type !== "music" && command.type !== "combat") continue;
+            if (command.type !== "illustrate" && command.type !== "combat") continue;
             if (command.type === "combat" && combatRequested) continue;
             const agent = resolvedAgents.find(
-              (candidate) =>
-                candidate.type ===
-                (command.type === "illustrate" ? "illustrator" : command.type === "combat" ? "combat" : "spotify"),
+              (candidate) => candidate.type === (command.type === "illustrate" ? "illustrator" : "combat"),
             );
             if (!agent) {
               sendSseEvent(reply, {
@@ -9773,7 +9728,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               : undefined;
             const context = await resolveAgentContext(agent, {
               ...postAgentContext,
-              mainResponse: `${sourceName ? `${sourceName}: ` : ""}${sourceMessage?.content ?? completedResponse}\n\nExplicit scene request: ${command.type === "illustrate" ? `${command.subject}${command.characters?.length ? `\nInvolved characters: ${command.characters.join(", ")}. Depict these participants.` : ""}` : command.type === "combat" ? "Combat starts now. Establish and track the encounter from the current scene." : command.mood}`,
+              mainResponse: `${sourceName ? `${sourceName}: ` : ""}${sourceMessage?.content ?? completedResponse}\n\nExplicit scene request: ${command.type === "illustrate" ? `${command.subject}${command.characters?.length ? `\nInvolved characters: ${command.characters.join(", ")}. Depict these participants.` : ""}` : "Combat starts now. Establish and track the encounter from the current scene."}`,
             });
             try {
               let result: AgentResult;
@@ -9809,16 +9764,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                   durationMs: 0,
                 };
               } else {
-                const selected = await executeAgent(agent, context, agent.provider, agent.model, agent.toolContext);
-                [result] = (
-                  command.type === "music"
-                    ? await applySpotifyAgentPlaybackFallbacks([selected], resolvedAgents, context)
-                    : [selected]
-                ) as [AgentResult];
+                result = await executeAgent(agent, context, agent.provider, agent.model, agent.toolContext);
                 if (command.type === "combat" && result.success) combatRequested = true;
               }
               roleplayMediaTargets.set(result, request);
-              sendAgentEvent(result, { finalized: result.agentType === "spotify" });
+              sendAgentEvent(result);
               postResults.push(result);
             } catch (error) {
               if (agentSignal.aborted) break;

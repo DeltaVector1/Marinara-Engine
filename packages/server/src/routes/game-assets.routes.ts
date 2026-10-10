@@ -20,8 +20,6 @@ import {
   unlinkSync,
 } from "fs";
 import { join, extname, basename, dirname, resolve, sep } from "path";
-import { execFile } from "child_process";
-import { platform } from "os";
 import { z } from "zod";
 import { pipeline } from "stream/promises";
 import { GAME_ASSETS_DIR, buildAssetManifest, getAssetManifest } from "../services/game/asset-manifest.service.js";
@@ -95,7 +93,6 @@ const MAX_TEXT_BYTES = 10 * 1024 * 1024;
 const GENERATED_BACKGROUND_WIDTH = 1280;
 const GENERATED_BACKGROUND_HEIGHT = 720;
 const GENERATED_BACKGROUND_MAX_INPUT_PIXELS = 32_000_000;
-const PICK_FOLDER_TIMEOUT_MS = 60_000;
 const MUSIC_STATES = ["exploration", "dialogue", "combat", "travel_rest"] as const;
 const MUSIC_STATE_SET = new Set<string>(MUSIC_STATES);
 
@@ -106,70 +103,6 @@ const MUSIC_STATE_SET = new Set<string>(MUSIC_STATES);
  */
 function isSafePath(segment: string): boolean {
   return !segment.includes("..") && !segment.includes("\\") && !/^\//.test(segment);
-}
-
-function pickMusicFolder(): Promise<string | null> {
-  return new Promise((resolve) => {
-    let resolved = false;
-    const done = (val: string | null) => {
-      if (resolved) return;
-      resolved = true;
-      resolve(val);
-    };
-
-    const timer = setTimeout(() => done(null), PICK_FOLDER_TIMEOUT_MS);
-    const cleanup = () => clearTimeout(timer);
-    const os = platform();
-
-    if (os === "darwin") {
-      execFile(
-        "osascript",
-        ["-e", 'POSIX path of (choose folder with prompt "Select your music folder")'],
-        (err, stdout) => {
-          cleanup();
-          if (err) return done(null);
-          const p = stdout.trim().replace(/\/$/, "");
-          done(p || null);
-        },
-      );
-    } else if (os === "win32") {
-      const ps = [
-        "-STA",
-        "-NoProfile",
-        "-Command",
-        `Add-Type -AssemblyName System.Windows.Forms;` +
-          `$f = New-Object System.Windows.Forms.Form;` +
-          `$f.TopMost = $true;` +
-          `$f.WindowState = 'Minimized';` +
-          `$f.ShowInTaskbar = $false;` +
-          `$f.Show();` +
-          `$f.Hide();` +
-          `$d = New-Object System.Windows.Forms.FolderBrowserDialog;` +
-          `$d.Description = 'Select your music folder';` +
-          `if ($d.ShowDialog($f) -eq 'OK') { $d.SelectedPath } else { '' };` +
-          `$f.Dispose()`,
-      ];
-      execFile("powershell.exe", ps, (err, stdout) => {
-        cleanup();
-        if (err) return done(null);
-        const p = stdout.trim();
-        done(p || null);
-      });
-    } else {
-      execFile("zenity", ["--file-selection", "--directory", "--title=Select your music folder"], (err, stdout) => {
-        if (!err && stdout.trim()) {
-          cleanup();
-          return done(stdout.trim());
-        }
-        execFile("kdialog", ["--getexistingdirectory", ".", "--title", "Select your music folder"], (err2, stdout2) => {
-          cleanup();
-          if (err2) return done(null);
-          const p = stdout2.trim();
-          done(p || null);
-        });
-      });
-    }
-  });
 }
 
 function cleanupFile(filePath: string): void {
@@ -528,43 +461,6 @@ export async function gameAssetsRoutes(app: FastifyInstance) {
       .send(createReadStream(filePath));
   });
 
-  // ── GET /game-assets/local-music-file?path=:encoded ──
-  // Serves an audio file selected through the local music folder picker.
-  app.get("/local-music-file", async (req, reply) => {
-    if (!requirePrivilegedAccess(req, reply, { feature: "Custom music folder picker" })) return;
-
-    const { path: encoded } = (req.query as { path?: string }) ?? {};
-    if (!encoded) {
-      return reply.status(400).send({ error: "Missing music file" });
-    }
-
-    let filePath = "";
-    try {
-      filePath = Buffer.from(encoded, "base64url").toString("utf8");
-    } catch {
-      return reply.status(400).send({ error: "Invalid music file" });
-    }
-
-    const ext = extname(filePath).toLowerCase();
-    if (!MUSIC_FILE_EXTENSIONS.has(ext)) {
-      return reply.status(400).send({ error: "Unsupported music file type" });
-    }
-
-    let isFile = false;
-    try {
-      isFile = existsSync(filePath) && statSync(filePath).isFile();
-    } catch {
-      isFile = false;
-    }
-    if (!isFile) {
-      return reply.status(404).send({ error: "Music file not found" });
-    }
-
-    const mime = MIME_MAP[ext] ?? "application/octet-stream";
-    const stream = createReadStream(filePath);
-    return reply.header("Content-Type", mime).header("Cache-Control", "private, max-age=60").send(stream);
-  });
-
   // ── POST /game-assets/upload ──
   app.post("/upload", async (req, reply) => {
     const contentType = req.headers["content-type"] ?? "";
@@ -719,14 +615,6 @@ export async function gameAssetsRoutes(app: FastifyInstance) {
       return reply.status(500).send({ error: "Could not open game assets folder" });
     }
     return reply.send({ ok: true, path: target });
-  });
-
-  // ── POST /game-assets/pick-local-music-folder ──
-  app.post("/pick-local-music-folder", async (req, reply) => {
-    if (!requirePrivilegedAccess(req, reply, { feature: "Custom music folder picker" })) return;
-    const selected = await pickMusicFolder();
-    if (!selected) return reply.status(400).send({ success: false, error: "No folder selected" });
-    return { success: true, path: selected };
   });
 
   // ── GET /game-assets/tree ──

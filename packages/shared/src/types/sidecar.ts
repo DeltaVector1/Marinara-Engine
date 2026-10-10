@@ -223,24 +223,6 @@ interface GeneratedSceneIllustration {
   segment?: number;
 }
 
-/** Spotify track candidate offered to scene analysis for Game Mode music selection. */
-export interface SceneSpotifyTrackCandidate {
-  uri: string;
-  name: string;
-  artist: string;
-  album?: string | null;
-  position?: number | null;
-  score?: number | null;
-}
-
-/** Spotify track selected by scene analysis from the provided candidates. */
-interface SceneSpotifyTrackSelection {
-  uri: string;
-  name?: string | null;
-  artist?: string | null;
-  album?: string | null;
-}
-
 /** Scene analysis result from the sidecar model for game mode.
  *  Generated after the main model's narration is complete. */
 export interface SceneAnalysis {
@@ -254,8 +236,6 @@ export interface SceneAnalysis {
   weather: string | null;
   /** Time of day update — applied immediately. */
   timeOfDay: string | null;
-  /** Spotify track to play when Game Mode is configured to use Spotify music. */
-  spotifyTrack?: SceneSpotifyTrackSelection | null;
   /** NPC reputation changes — applied immediately. */
   reputationChanges: SceneReputationChange[];
   /** Segment-indexed effects. Each entry fires when the user reaches that segment. */

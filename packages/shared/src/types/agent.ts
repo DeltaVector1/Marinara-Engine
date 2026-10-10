@@ -54,10 +54,6 @@ export const AGENT_RESULT_TYPE_VALUES = [
   "persona_stats_update",
   "custom_tracker_update",
   "inventory_tracker_update",
-  "spotify_control",
-  "youtube_control",
-  "local_music_control",
-  "haptic_command",
   "cyoa_choices",
   "secret_plot",
   "game_master_narration",
@@ -510,7 +506,11 @@ const RETIRED_BUILT_IN_AGENT_IDS = [
   "schedule-planner",
   "chat-summary",
   "autonomous-messenger",
+  "spotify",
   "youtube",
+  "local-music",
+  "haptic",
+  "storyboard",
   "secret-plot-driver",
 ] as const;
 
@@ -574,8 +574,6 @@ export const CUSTOM_AGENT_CAPABILITY_IDS = [
   "change_frontend_styling",
   "change_backgrounds",
   "change_sprites",
-  "control_media",
-  "control_haptics",
   "edit_about_me",
   "trigger_image_generation",
   "access_vectors",
@@ -682,10 +680,6 @@ const CUSTOM_AGENT_RESULT_CAPABILITY: Partial<Record<AgentResultType, CustomAgen
   frontend_theme_update: "change_frontend_styling",
   background_change: "change_backgrounds",
   sprite_change: "change_sprites",
-  spotify_control: "control_media",
-  youtube_control: "control_media",
-  local_music_control: "control_media",
-  haptic_command: "control_haptics",
   about_me_update: "edit_about_me",
   cyoa_choices: "edit_messages",
   echo_message: "edit_messages",
@@ -781,18 +775,6 @@ const OBSOLETE_BUILT_IN_PROMPT_TEMPLATE_IDS: Record<string, ReadonlySet<string>>
   illustrator: new Set(["illustration", "sketch"]),
 };
 
-const ADDITIONAL_BUILT_IN_PROMPT_TEMPLATE_COLLECTION_KEYS: Record<string, readonly string[]> = {
-  storyboard: [
-    "illustrationTemplates",
-    "videoTemplates",
-    "animationRefinementTemplates",
-    "roleplayEpisodeTemplates",
-    "roleplayStyleTemplates",
-    "roleplayAnimationTemplates",
-    "roleplayOutputTemplates",
-  ],
-};
-
 const RETIRED_BUILT_IN_AGENT_TOOLS: Record<string, ReadonlySet<string>> = {
   expression: new Set(["set_expression"]),
 };
@@ -842,10 +824,7 @@ export function mergeBuiltInAgentSettings(agentType: string, settings: unknown):
     ...normalizedSettings,
   };
 
-  const promptTemplateCollectionKeys = [
-    "promptTemplates",
-    ...(ADDITIONAL_BUILT_IN_PROMPT_TEMPLATE_COLLECTION_KEYS[agentType] ?? []),
-  ];
+  const promptTemplateCollectionKeys = ["promptTemplates"];
   for (const key of promptTemplateCollectionKeys) {
     const obsoleteIds =
       key === "promptTemplates" ? (OBSOLETE_BUILT_IN_PROMPT_TEMPLATE_IDS[agentType] ?? new Set<string>()) : undefined;

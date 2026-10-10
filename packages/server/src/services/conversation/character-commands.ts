@@ -17,11 +17,8 @@
 // - [eightball] (start a one-on-one 8-ball pool game against the user; Conversation mode)
 // - [tic_tac_toe] (start a one-on-one tic-tac-toe game against the user; Conversation mode)
 // - [rock_paper_scissors] (start a one-on-one rock-paper-scissors match against the user; Conversation mode)
-// - [spotify: title="Song title", artist="Artist"] (play a song on the user's active Spotify player)
-// - [youtube: query="Song title Artist"] (play a song on the user's active YouTube player)
 // - [react: emoji="😂"] or [react: emoji=":custom_name:"] (react to the user's latest message; Conversation mode)
 //   with optional `to "Character Name"` suffix to react to that character's most recent part instead
-// - [haptic: action="vibrate", intensity=0.5, duration=3] (haptic device feedback)
 // - <influence>text</influence> (OOC influence for connected roleplay, one-shot)
 // - <note>text</note> (durable note for connected roleplay, persists until cleared)
 // - [dm: character="CharName", message="text"] (Roleplay-only: open a direct-message conversation)

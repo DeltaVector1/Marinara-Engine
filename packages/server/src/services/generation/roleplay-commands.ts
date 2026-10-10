@@ -85,10 +85,6 @@ function readCommand(type: string, body: string): RoleplayCommand | null {
       const description = field("description", 1_000);
       return description ? { type, description } : null;
     }
-    case "music": {
-      const mood = field("mood", 1_000);
-      return mood ? { type, mood } : null;
-    }
     case "roll": {
       const notation = field("notation", 80) || field("dice", 80);
       const character = field("character", 200);
@@ -547,10 +543,6 @@ export function buildRoleplayCommandsReminder(args: {
       '- [document: kind="note|letter|journal|report|poster|terminal" title="title" content="full text"] creates an in-world document. Supply plain text only; the Engine applies the built-in style for that kind. Do not generate HTML or CSS or repeat the document contents in narration.',
     );
   if (enabled("sound")) lines.push('- [sound: description="a brief sound effect"] plays a sound cue. Use sparingly.');
-  if (enabled("music") && args.availableAgentIds.has("spotify"))
-    lines.push(
-      '- [music: mood="scene mood and musical direction"] asks Music DJ to change the soundtrack when the scene calls for it.',
-    );
   if (args.privateAvailable && enabled("notes"))
     lines.push(
       '- [notes: content="brief private state and plans"] keeps private state that should guide future turns: reasoning decisions you want to pass to future turns, unspoken thoughts, changed attitudes, secrets, and pending plans. Do not recap scenes or repeat chat history. To edit existing notes, send their full updated contents to replace the previous ones. Keep only still-relevant details in 1–3 short bullets, under 80 words total. Notes are available to you and the narrator alone. [dismiss_notes] clears them when no longer needed.',

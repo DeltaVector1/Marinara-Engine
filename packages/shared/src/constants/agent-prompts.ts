@@ -126,21 +126,5 @@ Return only valid JSON:
  */
 export function getDefaultAgentPrompt(agentType: string): string {
   const direct = getBuiltInAgentManifest(agentType);
-  if (direct?.defaultPromptTemplate) return direct.defaultPromptTemplate;
-
-  const spotify = getBuiltInAgentManifest("spotify");
-  if (!spotify || (agentType !== "youtube" && agentType !== "local-music")) return "";
-  const settings = spotify.defaultSettings;
-  const options = settings && Array.isArray(settings.promptTemplates) ? settings.promptTemplates : [];
-  const wantedId = agentType === "youtube" ? "youtube" : "custom";
-  const option = options.find(
-    (candidate): candidate is { id: string; promptTemplate: string } =>
-      !!candidate &&
-      typeof candidate === "object" &&
-      "id" in candidate &&
-      candidate.id === wantedId &&
-      "promptTemplate" in candidate &&
-      typeof candidate.promptTemplate === "string",
-  );
-  return option?.promptTemplate ?? "";
+  return direct?.defaultPromptTemplate ?? "";
 }

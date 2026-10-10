@@ -24,10 +24,6 @@ const LEGACY_V1_DEFAULT_AGENT_PROMPT_HASHES: Record<string, readonly string[]> =
   director: ["644db63004a6cf58e747b2ca762084100789e8d5c0b29a3f1bdb1fec40ca4419"],
   "echo-chamber": ["ffaedffd762de790445333550a22319daee5be6176c03dfee772dda37636191e"],
   expression: ["a0dae5ce04e79b55bcb95e375e65d1bbbbdcf36df4c2882635053a4a25e37d2e"],
-  haptic: [
-    "b859e11b47cfaf71addf1098d89f220e463eae709e74c7a11351a4647034a26f",
-    "cd4c7a5c21c310b7c8a3798a8d1bcc9d6eb62fb1753a409de8f3d732e623c85e",
-  ],
   html: [
     "2a0e9739c529c39dd5b9e879b3eed9f05f8dec0f0f46319b6fd159515079dec0",
     "4675d053812349b7500998044af68f319dc6a947ba047614a07e83fab4a87bf6",
@@ -39,7 +35,6 @@ const LEGACY_V1_DEFAULT_AGENT_PROMPT_HASHES: Record<string, readonly string[]> =
   "persona-stats": ["1231c0c952de1dbb031756f371c89467d3a2ef53f7aaa126247ec34b74b118e5"],
   "prose-guardian": ["8cf9672b67ded7204efc3ffd4ab31ad3796896b0cadb2191fe6d0a728129956b"],
   quest: ["74ed682013c1b99742e184fdb6df5f7d6ba8bfc9d6fb52f809d5e9b0ac86645b"],
-  spotify: ["228be333d2af8de652cf868cb033f9d2091bc991ec9f316f7e8115b438386581"],
   "world-state": ["08e275fbcf15de0bc7962ff0f950f0635381af8dca5aeab83e1c928ce2010512"],
 };
 

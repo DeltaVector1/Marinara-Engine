@@ -1,6 +1,5 @@
 import type { AgentResult } from "@marinara-engine/shared";
 import type { ResolvedAgent } from "../agents/agent-pipeline.js";
-import { shouldDeferSpotifyAgentEvent } from "./spotify-agent-runtime.js";
 
 export type AgentResultOwnership = {
   chatId: string;
@@ -39,7 +38,7 @@ export function createAgentEventDispatcher({
   };
 
   const sendAgentEvent = (result: AgentResult, options: { finalized?: boolean } = {}) => {
-    if (!options.finalized && (shouldDeferSpotifyAgentEvent(result) || shouldDeferExpressionAgentEvent(result))) {
+    if (!options.finalized && shouldDeferExpressionAgentEvent(result)) {
       return;
     }
     sendAgentResultEvent(result);

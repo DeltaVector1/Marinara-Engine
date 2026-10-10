@@ -79,13 +79,6 @@ function isPublicAuthPath(url: string): boolean {
   );
 }
 
-function isStateBoundOAuthCallback(request: FastifyRequest): boolean {
-  if (request.method !== "GET" || firstPath(request.url) !== "/api/spotify/callback") return false;
-  const query = request.url.split("?", 2)[1] ?? "";
-  const params = new URLSearchParams(query);
-  return Boolean(params.get("state") && (params.get("code") || params.get("error")));
-}
-
 function pruneExpired(now = Date.now()) {
   for (const [nonce, challenge] of pendingChallenges) {
     if (challenge.expiresAt <= now) pendingChallenges.delete(nonce);
@@ -208,12 +201,7 @@ export function androidLocalAuthHook(request: FastifyRequest, reply: FastifyRepl
     });
     return;
   }
-  if (
-    isPublicAuthPath(request.url) ||
-    isStateBoundOAuthCallback(request) ||
-    hasValidSession(request) ||
-    hasValidSecretHeader(request, secret)
-  ) {
+  if (isPublicAuthPath(request.url) || hasValidSession(request) || hasValidSecretHeader(request, secret)) {
     done();
     return;
   }
