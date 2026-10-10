@@ -15,7 +15,7 @@ import { useAgentStore, EMPTY_AGENT_FAILURES, EMPTY_AGENT_TYPES } from "../store
 import { useChatStore } from "../stores/chat.store";
 import { useGameStateStore } from "../stores/game-state.store";
 import { chatKeys, useChat, useUpdateMessageExtra } from "./use-chats";
-import { discardPendingGameStatePatch } from "./use-game-state-patcher";
+import { discardPendingGameStatePatch, useGameStatePatcher } from "./use-game-state-patcher";
 import { useGenerate } from "./use-generate";
 
 const EMPTY_MESSAGES: Message[] = [];
@@ -76,10 +76,16 @@ const CLEARED_TRACKER_STATE = {
 export function useClearTrackers(chatId: string) {
   const queryClient = useQueryClient();
   const updateMessageExtra = useUpdateMessageExtra(chatId);
+  const { flushPatch } = useGameStatePatcher(chatId);
   const setGameState = useGameStateStore((s) => s.setGameState);
   const resetAgentStore = useAgentStore((s) => s.reset);
-  return useCallback(() => {
+  return useCallback(async () => {
+    await flushPatch();
     discardPendingGameStatePatch(chatId);
+    await Promise.all([
+      api.patch(`/chats/${chatId}/game-state`, { ...CLEARED_TRACKER_STATE, manual: true, clearOverrides: true }),
+      api.delete(`/agents/runs/${chatId}`),
+    ]);
     const prev = useGameStateStore.getState().current;
     if (prev?.chatId === chatId) {
       setGameState({ ...prev, ...CLEARED_TRACKER_STATE } as GameState);
@@ -93,18 +99,14 @@ export function useClearTrackers(chatId: string) {
         ...CLEARED_TRACKER_STATE,
       } as GameState);
     }
-    api
-      .patch(`/chats/${chatId}/game-state`, { ...CLEARED_TRACKER_STATE, manual: true, clearOverrides: true })
-      .catch(() => {});
     // Clear committed agent runs & memory from DB + reset client state
-    api.delete(`/agents/runs/${chatId}`).catch(() => {});
     const messages = readCachedMessages(queryClient.getQueryData<InfiniteData<Message[]>>(chatKeys.messages(chatId)));
     const latestAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant");
     if (latestAssistantMessage) {
       updateMessageExtra.mutate({ messageId: latestAssistantMessage.id, extra: { cyoaChoices: [] } });
     }
     resetAgentStore();
-  }, [chatId, queryClient, resetAgentStore, setGameState, updateMessageExtra]);
+  }, [chatId, flushPatch, queryClient, resetAgentStore, setGameState, updateMessageExtra]);
 }
 
 /** Stops the chat's running agents; throws when none was running. */
