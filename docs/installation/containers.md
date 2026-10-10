@@ -143,7 +143,7 @@ The lite image removes the features that need large local files:
 | Memory Recall (semantic search) | Depends on the local embedding model. |
 | Local Whisper voice input | Speech-to-text for Conversation calls is gone. |
 
-Everything else works the same: chat, roleplay, Game Mode, agents, lorebooks, characters, and connections to remote AI providers. To use any AI features with the lite image, you must connect an external provider (for example OpenRouter, OpenAI, or a self-hosted model). See [Connecting to an AI Provider](../connections/connecting-to-a-provider.md).
+The app supports chat and roleplay, optional agents, lorebooks, characters, and connections to remote AI providers. To use any AI features with the lite image, you must connect an external provider (for example OpenRouter, OpenAI, or a self-hosted model). See [Connecting to an AI Provider](../connections/connecting-to-a-provider.md).
 
 The lite tag is `ghcr.io/pasta-devs/marinara-engine:lite`, and each release also ships a version-pinned lite tag like `ghcr.io/pasta-devs/marinara-engine:X.Y.Z-lite`. To run it:
 

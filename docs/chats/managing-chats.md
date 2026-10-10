@@ -1,28 +1,27 @@
 # Managing Your Chat List
 
-This guide covers the chat list in Marinara Engine. It explains the three mode tabs and how to create, import, rename, delete, organize, search, and bulk-manage your chats. It also covers the recent chats row on the Home screen.
+This guide covers the chat list in Marinara Engine. It explains the two mode tabs and how to create, import, rename, delete, organize, search, and bulk-manage your chats. It also covers the recent chats row on the Home screen.
 
 ## The chat list and mode tabs
 
-Your chats live in the **Chats** panel, the sidebar on the left. At the top of the panel are three mode tabs:
+Your chats live in the **Chats** panel, the sidebar on the left. At the top of the panel are two mode tabs:
 
 - **CONVO** for Conversation, a plain messaging-style chat.
 - **RP** for Roleplay, an immersive scene with characters and world tracking.
-- **GM** for Game, an AI-run single-player RPG.
 
 Each tab shows only the chats of that mode. Clicking a tab switches the list.
 
-Each row in the list shows the chat name and the avatar of its character or characters. In Conversation chats, a small colored dot on the avatar shows each character's status. If a red badge appears on a row, that is the count of unread messages.
+Each row in the list shows the chat name and the avatar of its character or characters. If a red badge appears on a row, that is the count of unread messages.
 
 Some rows show a small branch icon with a number. This means the chat has more than one branch, and the branches are grouped into a single row. To learn what branches are, see [Chat Branches](branches.md).
 
 ## Creating a new chat
 
-1. Pick the mode tab you want (**CONVO**, **RP**, or **GM**).
-2. Click the **+** button near the top of the panel. Its tooltip reads **New Conversation**, **New Roleplay**, or **New Game**, matching the active tab.
+1. Pick the mode tab you want (**CONVO** or **RP**).
+2. Click the **+** button near the top of the panel. Its tooltip reads **New Conversation** or **New Roleplay**, matching the active tab.
 3. The app creates the chat, opens it, and opens the **Chat Settings** panel plus a setup wizard so you can finish setup.
 
-The new chat is named **New Conversation**, **New Roleplay**, or **New Game**. You can rename it later (see Renaming a chat below).
+The new chat is named **New Conversation** or **New Roleplay**. You can rename it later (see Renaming a chat below).
 
 You need at least one connection before a chat will open. A connection links Marinara to an AI provider. If you have no connection yet, a **Set Up** window appears instead of the chat. It asks you to choose a connection first. If you have none at all, it shows **No connections found** with an **Open Connections** button. To set one up, see [Connecting to an AI Provider](../connections/connecting-to-a-provider.md).
 
@@ -89,7 +88,7 @@ Chats that are not in any folder appear in a plain list below the folders.
 
 ## Searching, sorting, and filtering by tag
 
-Each mode tab has its own search box at the top of the list. The placeholder text changes per tab: **Search conversations...**, **Search roleplays...**, or **Search games...**. The search matches the chat name, its tags, and the names of its characters. It does not search inside message text.
+Each mode tab has its own search box at the top of the list. The placeholder text changes per tab: **Search conversations...** or **Search roleplays...**. The search matches the chat name, its tags, and the names of its characters. It does not search inside message text.
 
 Next to the search box is a sort menu with the tooltip **Sort chats**. It has four options:
 

@@ -1,6 +1,6 @@
 # Discord Message Mirror
 
-This guide explains the Discord Message Mirror in Marinara Engine. The mirror copies your chat messages into a Discord channel, one way, as you chat. It works in Conversation, Roleplay, and Game modes.
+This guide explains the Discord Message Mirror in Marinara Engine. The mirror copies your chat messages into a Discord channel, one way, as you chat. It works in Conversation and Roleplay modes.
 
 ## What the mirror does
 
@@ -44,7 +44,6 @@ If the URL is not a valid Discord webhook, you see the red text "Invalid webhook
 Marinara mirrors your messages and the AI replies as they are generated.
 
 - Sender name: your messages use your active persona name. AI messages use the character name.
-- In Game Mode, story narration is sent under the name "Narrator". Turns by party members or NPCs (non-player characters) are sent under the name "Party". If your game uses the **Character GM** option, the game master's replies use that character's name instead.
 - No picture is sent. Discord shows the sender name and the text only.
 - Long messages: Discord caps each message at 2000 characters. A message longer than 1997 characters is shortened, and the mirrored copy ends with "...".
 - Mentions like @everyone or @here inside the text do not ping anyone in your Discord channel.
@@ -61,4 +60,4 @@ Discord limits how fast an app can post. Marinara sends at most one message abou
 
 ## Related guides
 
-- [Connecting a Conversation to a Roleplay or Game](../chats/connected-chats.md)
+- [Connecting a Conversation to a Roleplay](../chats/connected-chats.md)

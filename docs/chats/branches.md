@@ -23,7 +23,7 @@ Marinara copies the chat up to and including that message into a new branch. The
 
 - Keeps the same mode, characters, persona, prompt preset, and connection as the source chat.
 - Copies every message, including all swipes (alternate replies) and which swipe was active. See the [Message Actions guide](messages.md) for how swipes work.
-- Copies tracker and game state snapshots tied to the copied messages, so Roleplay and Game chats keep their state.
+- Copies tracker snapshots tied to the copied messages, so Roleplay chats keep their state.
 - Starts with the display name **New Branch**. You can rename it (see below).
 - Stays in the same chat folder as the source chat.
 

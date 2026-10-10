@@ -8,7 +8,7 @@ Marinara Engine has two parts: a server that does the real work, and a web app t
 
 The server can run on any of these:
 
-- A Windows PC (see [Windows Installation Guide](windows.md)).
+- A computer or server that follows the [macOS and Linux installation guide](macos-linux.md).
 - A Mac or Linux machine (see [macOS / Linux Installation Guide](macos-linux.md)).
 - An Android phone with Termux (see [Android (Termux) Installation Guide](android-termux.md)).
 - A Docker or Podman container (see [Run via Container](containers.md)).

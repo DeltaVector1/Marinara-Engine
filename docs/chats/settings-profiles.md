@@ -2,7 +2,7 @@
 
 A settings profile is a named bundle of reusable chat settings. It can hold a chat's connection, prompt preset, agents, tools, translation, memory recall, advanced parameters, and other per-chat options. Apply the profile to another chat instead of configuring those options again.
 
-You manage profiles at the top of **Chat Settings**. They work in Conversation and Roleplay modes. Game mode does not show the profile controls.
+You manage profiles at the top of **Chat Settings**. They work in Conversation and Roleplay modes.
 
 ## Settings profiles and prompt presets
 
@@ -23,7 +23,7 @@ A profile stores how the chat talks to the AI:
 - Translation
 - Memory Recall
 - Advanced Parameters
-- Window and button layout: window positions and sizes, pins and locks, which tools are inside Chat Settings or popped out, open control windows, and button positions on computers and phones. Profiles without a saved layout, such as **Default**, leave the chat's layout as it is.
+- Button layout: positions of chat controls on computers and phones. Profiles without a saved layout, such as **Default**, leave the chat's layout as it is.
 - Whether the layout tips in Chat Settings are hidden. Applying **Default**, or an older profile without this choice, shows the tips again.
 - Other reusable chat options
 
@@ -64,18 +64,6 @@ Its tooltips describe the current state:
 - **Mark this profile as default for new chats in this mode**
 - **This profile is the default for new chats in this mode**
 - **Select a profile to mark it as default**
-
-## Favorite window layouts
-
-The star beside **Reset View** in the Chat Settings title bar saves a favorite window layout for new chats in the current mode. It also remembers whether you hid the layout tips. You can use this star in Conversation, Roleplay and Game. The star beside the **Profile** dropdown still chooses the default settings profile.
-
-Upgrading an existing installation makes the familiar tool-button layout the favorite for new chats in all three modes. This happens once and keeps any favorite you already saved or cleared. The layout stays the default until you change it yourself. A fresh installation starts with the chat tools inside Chat Settings and no favorite layout selected.
-
-Arrange your windows and buttons, then click the title-bar star to save them. The star fills in while the current arrangement and tips match the favorite. If you move a window or change the arrangement, click the star again to replace the favorite. Click the filled star to clear it and use the standard layout for future chats. These changes leave existing chats as they are.
-
-When a new chat uses a default settings profile, that profile's saved layout takes priority over the favorite layout. Profiles without a saved layout keep the chat's arrangement, including one supplied by a favorite. A profile still applies its own layout tips setting; older profiles without that setting show the tips.
-
-See [Choosing a layout for new chats](chat-settings.md#choosing-a-layout-for-new-chats) for the steps.
 
 ## Importing and exporting profiles
 

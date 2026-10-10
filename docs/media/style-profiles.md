@@ -30,7 +30,7 @@ Some terms used below:
 The built-in profiles are:
 
 - **Off**: adds no house style. Your prompt is sent almost as you wrote it.
-- **Auto**: infers a consistent look from the character, game, scene, and selected image model. This is the default profile.
+- **Auto**: infers a consistent look from the character, scene, and selected image model. This is the default profile.
 - **Anime**: general anime-style tags for clean character art.
 - **Danbooru / Illustrious**: Danbooru-style tags aimed at SDXL anime checkpoints such as Illustrious, Pony, and NovelAI.
 - **Realistic SDXL**: natural-language realism for SDXL models.
@@ -122,7 +122,7 @@ If your subject words disappear for a portrait, avatar, or sprite, try the **ill
 
 Marinara can pick a style profile from three places. The most specific choice wins. The order is:
 
-1. An explicit profile chosen for the current chat or game.
+1. An explicit profile chosen for the current chat.
 2. The **Style Profile** set on the image connection (under **Local Image Defaults** in the connection editor).
 3. The global **Default style** you set in **Settings**.
 

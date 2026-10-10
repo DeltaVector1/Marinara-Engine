@@ -56,7 +56,7 @@ While agents are working on the chat, a small dot shows beside the window's titl
 
 Each tracker has its own collapsible section, called a drawer. Click a drawer's header to collapse it to the tracker's small widget preview, and click it again to see the whole tracker. Marinara remembers which drawers you collapsed.
 
-A tracker can also get its own window: click the pop-out button beside its arrow, or drag its title out of the Trackers window. The new window starts unpinned. Pin it to keep it open when you click elsewhere or close the Trackers window. Its **X** shrinks it to a small button with the tracker's icon, which reopens it where you left it. Click **Put back in Trackers** (the curved arrow just left of **X**), or drag it back onto the Trackers window, to return it. Each chat remembers which trackers are out and where.
+Trackers stay in the panel for the current chat.
 
 At the bottom, **Agent activity** shows what the chat's agents did. From there you can re-run the trackers, retry agents that failed, stop running agents, and **Clear Trackers**. The Tracker Panel has the same section at its bottom.
 
@@ -139,4 +139,3 @@ To set which stat bars and RPG attributes a persona or character starts with, us
 - [Agents: AI Helpers for Your Chats](../agents/agents-overview.md)
 - [Character Colors and RPG Stats](../characters/colors-and-stats.md)
 - [Roleplay Mode: Getting Started](getting-started.md)
-- [Game Mode: HUD Widgets](../game/hud-widgets.md)

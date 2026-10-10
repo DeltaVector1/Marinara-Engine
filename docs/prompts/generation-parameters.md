@@ -20,7 +20,7 @@ Edit base values under **Presets > Parameters**, connection values under **Conne
 
 You should see a help note that reads: "Override generation parameters for this chat. Only change these if you know what you're doing." Every setting below sits inside **Advanced Parameters**.
 
-**Advanced Parameters** is available in every chat mode (Conversation, Roleplay, and Game).
+**Advanced Parameters** is available in every chat mode (Conversation and Roleplay).
 
 ## Each parameter in plain language
 
@@ -60,12 +60,12 @@ In a chat's **Advanced Parameters**, only **Max Output Tokens** and **Reasoning 
 
 ## Default values
 
-The table shows fallback values displayed by the parameter editor and the default Send switches. These are not necessarily the values sent to the model: without a preset, generation starts at `4096` output tokens before connection and chat overrides. An active scene can use `8192`. Game uses saved connection and chat parameters, with task defaults only for unconfigured values. The **Effective** line shows the resolved value.
+The table shows fallback values displayed by the parameter editor and the default Send switches. These are not necessarily the values sent to the model: without a preset, generation starts at `4096` output tokens before connection and chat overrides. An active scene can use `8192`. The **Effective** line shows the resolved value.
 
 | Parameter | Starting value | Sent by default |
 |---|---|---|
 | Temperature | 1 | No |
-| Max Output Tokens | 4096 in Conversation, 8192 in Roleplay; no Game override | Yes |
+| Max Output Tokens | 4096 in Conversation, 8192 in Roleplay | Yes |
 | Top P | 1 | No |
 | Top K | 0 (off) | No |
 | Frequency | 0 | No |
@@ -97,7 +97,7 @@ You write one wrapper per line, with a slot in the middle for the hidden text. C
 
 **Custom Parameters** lets you add raw settings that Marinara does not show as its own field. You type a JSON object, and Marinara merges it into the request sent to the provider.
 
-Custom Parameters saved as connection defaults are sent for every API-backed text generation that uses that connection, including Conversation, Roleplay, Game, Noodle, summaries, agents, and installed agent packages. This also applies to custom endpoints running on your own machine. Per-chat Custom Parameters are added for that chat and override matching connection-level keys.
+Custom Parameters saved as connection defaults are sent for every API-backed text generation that uses that connection, including Conversation, Roleplay, summaries, agents, and installed agent packages. This also applies to custom endpoints running on your own machine. Per-chat Custom Parameters are added for that chat and override matching connection-level keys.
 
 This is an advanced field. A wrong key can make the provider reject the request. The object must use lowercase `true`, `false`, and `null`. Leave this empty unless a provider's guide tells you to add a specific key.
 
@@ -144,8 +144,8 @@ Parameters are resolved one field at a time, in this order:
 1. The selected preset's **Parameters**, or built-in generation defaults when no preset is used (temperature `1`, maximum output `4096`). In Roleplay, a connection's preset override takes precedence over the chat's selected preset.
 2. The connection's **Default Parameters**.
 3. This chat's **Advanced Parameters**.
-4. Mode rules: an active scene chat sets output to `8192`, reasoning to **Maximum**, and verbosity to **High**. Game uses the saved connection and chat parameters without forcing sampling, reasoning, or a minimum output size. Its helper calls also honor saved parameters; task defaults apply only when a value is not configured.
-5. Output limits: Game applies the model's known output limit, and the connection's **Max Output Tokens override** caps requests in every mode. Available context can reduce the output budget further.
+4. In an active scene chat, output defaults to `8192`, reasoning to **Maximum**, and verbosity to **High**.
+5. Output limits: the connection's **Max Output Tokens override** caps requests in every mode. Available context can reduce the output budget further.
 
 The **Effective** line beside a parameter shows the saved value and its winning layer, including mode rules and output caps. In the connection editor it uses the currently open chat with that connection, or a Roleplay baseline when no chat is open. Save edits to refresh it. A disabled Send switch is shown as **not sent**; providers can still impose required parameters or normalize unsupported values. Custom Parameters and context fitting may further change the final request.
 

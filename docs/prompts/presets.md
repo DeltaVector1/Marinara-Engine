@@ -6,7 +6,7 @@ This guide explains prompt presets in Marinara Engine. You will learn what they 
 
 A preset is a reusable blueprint. It decides what information Marinara sends to the AI and in what order. That includes system instructions you write, the character card, your persona, the chat history, lorebook entries, and more.
 
-Presets shape the prompt for **Roleplay** and **Game** chats. **Conversation** mode works differently and uses a single prompt field. See "How Conversation and Game modes differ" below.
+Presets shape prompts for Roleplay chats. Conversation uses one prompt field and can select a preset or a chat-specific prompt.
 
 Presets do not need an API key or account. They only describe how a prompt is built. You still need a working connection to send the prompt. See [Connecting to an AI Provider](../connections/connecting-to-a-provider.md).
 
@@ -46,7 +46,7 @@ The **Preset Editor** has three tabs.
 
 - **Overview**: the preset name, description, wrap format, and author.
 - **Sections**: the actual prompt structure, built from blocks and markers.
-- **Prompts**: the mode prompts used by Conversation and Game chats.
+- **Prompts**: the Roleplay prompts used by chats.
 
 ### Overview tab
 
@@ -58,7 +58,7 @@ The **Prompts** tab holds the mode prompts.
 
 - **Conversation Mode**: a text box used as this preset's Conversation prompt. Leave it empty to use Marinara's built-in conversation prompt.
 - **Roleplay Mode**: not editable here. Roleplay uses the assembled prompt from your **Sections**.
-- **Game Mode**: a text box used as this preset's Game prompt. Leave it empty to use Marinara's built-in game prompt.
+- **Roleplay Mode**: the sections used to assemble the Roleplay prompt.
 
 ## Sections and markers
 
@@ -146,23 +146,11 @@ From **Chat Settings**:
 
 If a preset has variables, a **Configure Preset Variables** window opens when you assign it. Fill in your choices there. See [Preset Variables](preset-variables.md). Switching to a different preset clears any variable choices you made before.
 
-Prompt presets are not available in **Conversation** mode from the panel. Clicking the assign button in a Conversation chat shows a message: "Prompt presets are not available in conversation mode." See the next section for how Conversation and Game chats use presets instead.
+Conversation chats use the **Prompt Preset** section in Chat Settings to choose a preset or edit a chat-specific prompt.
 
-## How Conversation and Game modes differ
+## Conversation prompts
 
-**Conversation** and **Game** chats do not build a prompt from Sections. Instead they use one mode prompt, which you can override per chat.
-
-In these modes, **Chat Settings** shows a **Prompt Preset** section with a **Prompt source** dropdown. The dropdown lists your presets. It defaults to "Default conversation prompt" or "Default game prompt". If you have no presets, it reads "No presets available".
-
-Below the dropdown is a status row. It shows one of three states:
-
-- **Default**: the built-in mode prompt is used.
-- **Preset**: the prompt comes from the chosen preset.
-- **Custom**: you have typed a chat-local edit for this chat only.
-
-Click **Edit Prompt** to type a prompt just for this chat. The editor opens as **Edit Conversation Prompt** or **Edit Game Prompt**. If your edit matches the preset or default exactly, Marinara treats it as not customized. Once a custom edit exists, a **Reset to default prompt** button appears to clear it.
-
-Game chats also have an **Extra instructions** box. Text there is added to the Game prompt. It has a limit of 2000 characters. A sample instruction is "Write in the style of Terry Pratchett."
+Conversation uses a single prompt rather than the Roleplay section layout. Open **Chat Settings → Prompt Preset** to choose a saved preset or edit the prompt for that chat.
 
 ## Decision blocks and prompt caching
 

@@ -6,7 +6,7 @@ Translation is set up per chat. Each chat keeps its own provider, target languag
 
 ## Where to find translation settings
 
-1. Open a chat in any mode (Conversation, Roleplay, or Game).
+1. Open a chat in any mode (Conversation or Roleplay).
 2. Open the **Chat Settings** panel for that chat.
 3. Find the **Translation** section.
 
@@ -78,7 +78,7 @@ You are a translator. Translate the given text accurately, preserving formatting
 
 Below the provider settings are three toggles. All three are off by default.
 
-**Auto-Translate Responses** translates every AI response automatically, right after it is generated. In Game mode, Marinara removes game-master-only tags from the narration before translating it.
+**Auto-Translate Responses** translates every AI response automatically, right after it is generated.
 
 **Translate My Messages** translates your own message into the target language just before it is sent to the AI. The translation replaces your typed text. If the translation fails, Marinara sends your original text instead and shows an error message.
 

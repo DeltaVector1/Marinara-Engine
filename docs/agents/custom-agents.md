@@ -22,7 +22,7 @@ If an installed first-party agent is close, copy it instead. In the **Agents** p
 Two facts matter before you build:
 
 1. Agents are set per chat, not per character. Building an agent in the library does not run it. You must add it to a chat and turn on **Enable Agents** in **Chat Settings**.
-2. Custom agents work in every chat mode: Roleplay, Game Mode, and Conversation. Official packages appear only in their supported modes, while your own custom agents remain available everywhere.
+2. Custom agents work in every chat mode: Roleplay and Conversation. Official packages appear only in their supported modes, while your own custom agents remain available everywhere.
 
 ## Creating a custom agent
 
@@ -62,12 +62,10 @@ Post-Processing custom agents also get a **Turn Data Access** section. It has tw
 | **Create lorebooks** | Create a new agent-made lorebook when its lore output has no target. |
 | **Edit lorebooks** | Write lorebook entries or make lorebook update results. |
 | **Edit messages** | Replace the generated message text with rewritten text, or add continuation choices to it. |
-| **Edit trackers** | Update game, character, persona, or custom tracker state. |
+| **Edit trackers** | Update character, persona, or custom tracker state. |
 | **Frontend styling** | Apply a temporary visual style effect during generation. |
 | **Change chat backgrounds** | Change and persist the background selected for a chat. |
 | **Change character sprites** | Change character and Persona expressions shown in chat. |
-| **Control media playback** | Control Spotify, YouTube, or local music playback. |
-| **Control haptic devices** | Send bounded commands to a connected haptic device. |
 | **Edit About Me details** | Change chat-specific About Me text. Public card changes still require separate approval. |
 | **Image generation** | Trigger the image generator with an image prompt. |
 | **Vectors/embeddings** | Use vector or embedding context. Vectors are a way to search text by meaning. |
@@ -89,16 +87,12 @@ The **Result Type** tells Marinara how to read your agent's output. Most result 
 | **Character Tracker** | Updates the character tracker (present characters). | Edit trackers |
 | **Persona Stats** | Updates persona stats, status, and inventory. | Edit trackers |
 | **Custom Tracker** | Replaces your own custom tracker fields. | Edit trackers |
-| **Game State** | Updates world-state style game data. | Edit trackers |
 | **Image Prompt** | Asks the image generator to draw a scene. | Image generation |
 | **Prompt Patch** | Adds, prepends, or replaces prompt sections. | Main prompt edits |
 | **Frontend Style** | Applies a temporary styling effect. | Frontend styling |
 | **Background Change** | Selects and persists an available chat background. | Change chat backgrounds |
 | **Sprite Change** | Changes character and Persona expressions shown in chat. | Change character sprites |
-| **Spotify Control** | Controls Spotify playback. | Control media playback |
 | **YouTube Control** | Controls YouTube playback. | Control media playback |
-| **Local Music Control** | Controls playback from your local music collection. | Control media playback |
-| **Haptic Command** | Sends a bounded command to a connected haptic device. | Control haptic devices |
 | **About Me Update** | Updates chat-specific About Me text and proposes public edits. | Edit About Me details |
 | **Interactive Choices** | Adds continuation choices to the generated message. | Edit messages |
 
@@ -170,7 +164,7 @@ Together, an agent can skip quiet turns entirely and send a smaller prompt on th
 
 - A tracker includes its "update the location" instructions only when the location changed, instead of re-deriving it every turn.
 - An image agent describes a new picture only when the scene looks different.
-- A music agent is told to change tracks only when the mood shifted.
+- An agent receives only the capabilities you approve.
 - A choice picks one of several instruction sets: `{{#if decision_choice:"The kind of scene in the latest message" == "combat"}}`, `{{else if decision_choice:"The kind of scene in the latest message" == "dialogue"}}`, and so on.
 
 How it runs:
@@ -256,7 +250,7 @@ External Agent imports are locked by default. Open **Settings → Advanced → D
 
 To import, open the **Agents** panel and click **Import agents** for a single file, or **Import agent folder** to pick a whole folder. Marinara shows a permission review before anything is stored. Approve only the capabilities the Agent needs; unchecked capabilities stay blocked. Each file import receives a new custom identity, so it cannot replace a curated Agent with the same internal type.
 
-For safety, Marinara ignores bundled functions, clears tool selections from imported settings, sanitizes temporary CSS before applying it, and checks approved capabilities before an imported Agent can change messages, trackers, lorebooks, backgrounds, sprites, media, haptics, About Me data, prompts, or generated images. Import trusted functions separately from **Function Calls**, review them, and explicitly attach them to the Agent afterward. Turning the Danger Zone toggle off again prevents externally imported Agents from running; locally authored and official Agents are not affected.
+For safety, Marinara ignores bundled functions, clears tool selections from imported settings, sanitizes temporary CSS before applying it, and checks approved capabilities before an imported Agent can change messages, trackers, lorebooks, backgrounds, sprites, media, About Me data, prompts, or generated images. Import trusted functions separately from **Function Calls**, review them, and explicitly attach them to the Agent afterward. Turning the Danger Zone toggle off again prevents externally imported Agents from running; locally authored and official Agents are not affected.
 
 ## Related guides
 

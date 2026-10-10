@@ -8,8 +8,6 @@ Upgrading Marinara Engine does not delete your data. Your chats, characters, per
 
 Marinara keeps your data in a local data folder on the machine that runs the server. Docker and Podman keep it in the `marinara-data` volume. Updating only replaces the app code, not this data folder or volume.
 
-When upgrading from a version that bundled first-party agents, maps, calls, or Conversation games, the first start downloads their matching optional packages from the official catalog. Existing chat selections, agent settings, stored runtime data, and history are preserved. Keep the server online for that first start. If the catalog cannot be reached, Marinara retries the migration the next time it starts instead of deleting or disabling your stored configuration.
-
 If you use a downloaded documentation language (**Settings** → **General** → **Documentation Language**), the first start after an update also checks that language pack for changes and refreshes it automatically. If the download source cannot be reached, Marinara keeps your installed pack (any guides missing from it show in English) and tries again on the next start. Your language choice is never reset by an update.
 
 UI language packs use a separate, manual download flow. On the first upgrade from bundled UI translations,
@@ -36,21 +34,6 @@ Full steps for backups and restoring are in [Backing Up and Restoring Marinara](
 ## Upgrade by platform
 
 Pick the section that matches how you installed Marinara. A "git checkout" below means a copy installed with the Git tool. A "clone" is a downloaded copy made with Git.
-
-### Windows
-
-If you used the Windows installer or a git checkout, the launcher updates you automatically.
-
-1. Close Marinara Engine.
-2. Open it again from the Start Menu shortcut, or run `start.bat`.
-
-The launcher fetches the latest code, reinstalls what changed, rebuilds the app, and starts the new version. This works for both the installer and a manual clone.
-
-For one launch, run `start.bat --skip-update`. To keep the installed Engine version across launches, set `AUTO_UPDATE_ENABLED=false` in the project `.env`. This only disables automatic Engine updates; manual commands and **Settings → Advanced → Check for Updates** remain available.
-
-If the launcher says Node.js is too old, install Node.js 24 LTS, then start Marinara again. LTS means Long Term Support, the recommended stable release of Node.js.
-
-You can also download the newest installer from the GitHub Releases page and run it. It uses the same git-based path, so future updates still run through the launcher.
 
 ### macOS and Linux
 
@@ -206,7 +189,6 @@ For error messages and step-by-step fixes, see [Troubleshooting Marinara Engine]
 
 - [Backing Up and Restoring Marinara](data/backup-and-restore.md)
 - [Troubleshooting Marinara Engine](TROUBLESHOOTING.md)
-- [Windows Installation Guide](installation/windows.md)
 - [macOS / Linux Installation Guide](installation/macos-linux.md)
 - [Run via Container (Docker / Podman)](installation/containers.md)
 - [Android (Termux) Installation Guide](installation/android-termux.md)

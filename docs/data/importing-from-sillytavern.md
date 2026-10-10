@@ -37,7 +37,7 @@ These quick buttons use fixed defaults you cannot change here. They keep all sou
 
 ### Importing a chat into a chosen mode
 
-The single-file **Import Chat (JSONL)** button above always makes a **Roleplay** chat. If you want the chat to land in a different mode, use the small import button at the top of the chat list instead. Its tooltip reads **Import SillyTavern or Marinara chat JSONL**. That button imports the file into whichever mode tab you have open, such as Conversation, Roleplay, or Game. For more on chat import and export, see [Exporting and Importing Chats](../chats/export-import.md).
+The single-file **Import Chat (JSONL)** button above always makes a **Roleplay** chat. If you want the chat to land in a different mode, use the small import button at the top of the chat list instead. Its tooltip reads **Import SillyTavern or Marinara chat JSONL**. That button imports the file into whichever mode tab you have open: Conversation or Roleplay. For more on chat import and export, see [Exporting and Importing Chats](../chats/export-import.md).
 
 ## Import from SillyTavern Folder
 

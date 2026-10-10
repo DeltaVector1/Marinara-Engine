@@ -4,7 +4,7 @@ This guide explains custom tools, also called Functions, in Marinara Engine. A c
 
 ## What function calling is
 
-Function calling lets the AI ask the app to run an action and then use the result in its reply. The app already ships built-in tools, such as dice rolls, lorebook search, and game state updates. Custom tools sit next to those built-in tools in the same **Function Calling** system.
+Function calling lets the AI ask the app to run an action and then use the result in its reply. The app already ships built-in tools, such as dice rolls and lorebook search. Custom tools sit next to those built-in tools in the same **Function Calling** system.
 
 You might want a custom tool to do things like these:
 
@@ -14,9 +14,9 @@ You might want a custom tool to do things like these:
 
 A custom tool is not attached to a character card. Instead, you turn it on for a chat, or you attach it to an agent. An agent is a helper that runs alongside your chat. Both paths are covered below.
 
-Native function calling requires a tool-capable connection. Claude and Grok subscription transports ignore native tool definitions, so Chat Settings shows an availability notice and disables the tool controls for those connections. Their text commands and dice tags remain available. Game chats can select a separate tool-planning connection; see [Optional tool planning and lore searches](../game/getting-started.md#optional-tool-planning-and-lore-searches) for its cost and behavior.
+Native function calling requires a tool-capable connection. Claude and Grok subscription transports ignore native tool definitions, so Chat Settings shows an availability notice and disables the tool controls for those connections. Their text commands and dice tags remain available.
 
-Lorebook searches use semantic ranking when enabled lore entries have compatible vectors. Conversation and Roleplay retain text matching when semantic search is unavailable. Game lore search has its own opt-in and reports missing or incompatible vectors; it never vectorizes a book automatically.
+Lorebook searches use semantic ranking when enabled lore entries have compatible vectors. Conversation and Roleplay retain text matching when semantic search is unavailable.
 
 ## The Functions section
 
@@ -134,7 +134,7 @@ When the AI calls `add_numbers` with `x` set to 2 and `y` set to 3, the tool ret
 
 Both **Webhook** and **Script** tools can receive a hidden context object. This is extra chat data that the AI does not see as tool inputs. Turn on the switch labeled **Include hidden chat context** in the tool editor. The default is off.
 
-When it is on, your webhook or script receives a `context` value alongside the arguments. It can include the chat mode, the active persona name, and the character names in the chat. It can also include saved chat variables and, in Game Mode, the game state. This lets your tool personalize its result without the AI having to pass all that data itself.
+When it is on, your webhook or script receives a `context` value alongside the arguments. It can include the chat mode, the active persona name, and the character names in the chat. It can also include saved chat variables. This lets your tool personalize its result without the AI having to pass all that data itself.
 
 ## Turning on tool use for a chat
 
@@ -142,9 +142,9 @@ Creating a tool does not make the AI use it. You must also turn tool use on for 
 
 1. Open a chat and open **Chat Settings**.
 2. Open the **Function Calling** section (its icon is a wrench).
-3. Turn on **Enable Tool Use**. Its description reads **Allow AI to call functions (dice rolls, game state, etc.)**. It is off by default for a new chat.
+3. Turn on **Enable Tool Use**. Its description reads **Allow AI to call functions (for example, dice rolls)**. It is off by default for a new chat.
 
-With **Enable Tool Use** on and no tools added below, the chat can use all globally enabled tools supported in that chat. That includes built-in tools plus every custom tool you have switched on in the **Functions** section. Game chats also require **Let the GM search lore** for `search_lorebook`; enabling Tool Use alone does not enable lorebook lookups. To limit a chat to a chosen set, add specific tools:
+With **Enable Tool Use** on and no tools added below, the chat can use all globally enabled tools supported in that chat. That includes built-in tools plus every custom tool you have switched on in the **Functions** section. To limit a chat to a chosen set, add specific tools:
 
 1. Click **Add Functions**. A picker opens with a search box.
 2. Check the tools you want. The list mixes built-in tools and your own custom tools.
@@ -154,7 +154,7 @@ Once you add one or more tools, only those tools work in that chat. You can also
 
 ## Attaching tools to an agent
 
-You can also give a tool to an agent instead of a chat. An agent is a semi-autonomous helper, such as a lorebook keeper or a music picker, that runs during generation.
+You can also give a tool to an agent instead of a chat. An agent is a semi-autonomous helper, such as a lorebook keeper, that runs during generation.
 
 1. Open the **Agents** panel and open an agent.
 2. Open its **Tools / Function Calling** group.
@@ -189,7 +189,7 @@ An import skips any tool whose name clashes with an existing tool or a built-in 
 
 ## Reserved names
 
-Your custom tool name cannot match a built-in tool name. Built-in names include `roll_dice`, `update_game_state`, `set_expression`, `trigger_event`, `search_lorebook`, `web_search`, and `update_about_me`, among others. If you try to save one, you get this message:
+Your custom tool name cannot match a built-in tool name. Built-in names include `roll_dice`, `set_expression`, `trigger_event`, `search_lorebook`, `web_search`, and `update_about_me`, among others. If you try to save one, you get this message:
 
 ```
 "your_name" is a reserved built-in tool name.
@@ -224,5 +224,4 @@ I cannot create or edit tools from my phone or another device.
 ## Related guides
 
 - [Creating Custom Agents](../agents/custom-agents.md)
-- [Home Assistant Integration](../integrations/home-assistant.md)
 - [Server Configuration Reference](../CONFIGURATION.md)

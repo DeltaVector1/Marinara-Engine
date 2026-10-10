@@ -103,7 +103,7 @@ Reach for it only when a note genuinely needs to sit beside the latest turn — 
 
 When you choose **Outlet**, an **Outlet name** field appears. Enter an exact, case-sensitive name such as `character_rules`, then put `{{outlet::character_rules}}` in a prompt section. Every entry assigned to that Outlet still follows its normal keyword, constant, probability, filter, timing, entry-limit, and token-budget rules. Only entries activated for the current generation are collected. Entries that share the same Outlet name are joined in Order, separated by new lines.
 
-An Outlet macro with no active matching entries resolves to nothing. Outlet content cannot call another Outlet macro, which prevents recursive Outlet loops. Outlet macros work in prompt sections in Conversation, Roleplay, and Game modes.
+An Outlet macro with no active matching entries resolves to nothing. Outlet content cannot call another Outlet macro, which prevents recursive Outlet loops. Outlet macros work in prompt sections in Conversation and Roleplay modes.
 
 ## Trigger probability
 
@@ -141,7 +141,7 @@ How it runs:
 
 **No answer means no new decision activation.** With no Decision model, or when it does not answer, **Require** cannot admit a new entry, though an existing Sticky hold can keep one active. **Trigger** adds no activation route; the entry can still activate through its ordinary keywords, Constant, semantic or map-location behavior, subject to their usual rules. The editor warns when no Decision model is set. Give important Trigger entries an ordinary activation route too. Use Require to filter optional lore, never to gate something the story depends on. See [Decision Models](../connections/decision-models.md).
 
-Decision activation applies to chat turns. Game setup, experience generation, and the lorebook scans agents run for themselves read decision entries as no.
+Decision activation applies to chat turns. Background agents read decision entries as no.
 
 The entry's own **Sticky** and **Cooldown** work with its Decision field. While an entry is sticky it stays in without its statement being asked again, and while it is on cooldown its statement is not asked. So a Trigger statement with Sticky 3 and Cooldown 5 brings the entry in for a few turns, then rests it, without spending statements on it meanwhile.
 

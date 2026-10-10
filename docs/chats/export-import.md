@@ -31,7 +31,7 @@ The download saves the chat that is currently open, including its messages.
 You can select many chats and download them together in one `.zip` file.
 
 1. Open the chat list in the left sidebar.
-2. Pick the mode tab you want: **CONVO** (Conversation), **RP** (Roleplay), or **GM** (Game). Each tab exports only its own chats.
+2. Pick **CONVO** (Conversation) or **RP** (Roleplay). Each tab exports only its own chats.
 3. Click the **Select chats** button at the top of the chat list.
 4. Click each chat you want to include. A checkbox turns on for each one.
 5. A bar appears at the bottom showing the count, for example "3 selected".

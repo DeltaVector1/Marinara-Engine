@@ -79,7 +79,7 @@ The **Arli AI** service here is for images only. For Arli AI chat models, use th
 
 ## NovelAI
 
-Cloud service with the default Base URL `https://image.novelai.net`. It needs a NovelAI API key. It focuses on anime style art. On V4, V4.5, and V5 models, Marinara sends native per-character prompts with positions for multi-character storyboards and Illustrator scenes. Some newer features, like precise reference images, only work on a V4.5 model.
+Cloud service with the default Base URL `https://image.novelai.net`. It needs a NovelAI API key. It focuses on anime style art. On V4, V4.5, and V5 models, Marinara sends native per-character prompts with per-character prompts for supported scene illustrations. Some newer features, like precise reference images, only work on a V4.5 model.
 
 ## OpenRouter Images
 

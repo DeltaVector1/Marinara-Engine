@@ -2,7 +2,7 @@
 
 This guide covers the extra images you can add to a Conversation Mode chat: custom emojis, custom stickers, and searched GIFs. It also explains how to control which custom emojis and stickers the character is allowed to use in its replies.
 
-These tools work in Conversation Mode only. Roleplay and Game modes get the plain emoji picker, with no custom emojis, no stickers, and no GIF search.
+These tools work in Conversation Mode only. Roleplay mode get the plain emoji picker, with no custom emojis, no stickers, and no GIF search.
 
 ## Where to find these tools
 

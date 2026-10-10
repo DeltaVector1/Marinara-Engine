@@ -8,58 +8,15 @@ An agent is a small AI helper that runs automatically alongside your main chat r
 
 Each agent below shows three quick facts.
 
-- **Phase or integration**: when a normal pipeline agent runs. **Pre-Generation** runs before the reply and can add text to the prompt. **Parallel** runs at the same time as the reply and does not see the finished text. **Post-Processing** runs after the reply is complete and can read it (some can also rewrite it). Feature packages such as Maps, Calls, and Conversation games integrate directly into their chat surface instead. Apps open in their own Home tab.
+- **Phase or integration**: when a normal pipeline agent runs. **Pre-Generation** runs before the reply and can add text to the prompt. **Parallel** runs at the same time as the reply and does not see the finished text. **Post-Processing** runs after the reply is complete and can read it (some can also rewrite it). Feature packages such as Maps and Calls integrate directly into their chat surface instead.
 - **Where it works**: the chat modes that let you add the agent. Most agents work in **Roleplay** chats. A few work in other modes, and each entry says which.
 - **Key settings**: the settings you are most likely to change. You set these when you add the agent, or later in the agent's setup card in **Chat Settings**.
 
-Marinara groups its agents in the **Agents** panel into **Apps**, **Writer Agents**, **Tracker Agents**, and **Misc Agents**. Apps are packages with their own Home tab, like Noodle and Slurp. This reference lists them first, in the Apps section.
+The **Agents** panel shows optional packages compatible with the current Engine version. Review a package description and requested permissions before installing it.
 
 A run interval means the agent runs once every few user and assistant messages instead of after every message. You can change a run interval in the agent's setup, up to 100.
 
 Illustrator also accepts **0** for manual-only generation: it stays available for Gallery actions but never runs automatically. Other agents keep their existing positive intervals.
-
-## Apps
-
-Apps are packages with their own tab in **Home**. You open and use them on their own instead of adding them to a chat. Each one asks you to restart Marinara Engine after you install it.
-
-### Noodle
-
-Adds the optional local Noodle public timeline. It opens in a dedicated Home tab instead of running in the normal chat-agent pipeline.
-
-- **Integration**: Feature package; it contributes the Home tab, local routes, generation and media flows, and background schedulers.
-- **Where it works**: Home, with optional context carried in from Conversation, Roleplay, and Game chats.
-- **Key settings**: install it from **Agents → Download Agents** and restart Marinara Engine when prompted. Inside Noodle, you can configure invited accounts, text and image connections, timeline refreshes, random users, and chat carryover.
-- **Data lifecycle**: uninstalling removes the Home tab and stops package routes and schedulers after restart while preserving existing Noodle data for a later reinstall.
-- **Full guide**: [Noodle: The In-App Social Timeline](../noodle/overview.md).
-
-### Slurp
-
-A private social app for your characters. Turn characters and personas into Creators, post public or locked photos, and watch a simulated audience follow, subscribe, unlock, comment, and message them. By default, it is tuned for adult content. It is all pretend: prices are fictional and involve no real payments.
-
-- **Integration**: App; it opens in its own **Slurp** tab in **Home**.
-- **Where it works**: Home.
-- **Key settings**: install it from **Agents → Download Agents**, restart Marinara Engine when prompted, then open **Home → Slurp**. To let a chat's characters remember their recent Slurp posts and messages, turn on **Include Slurp activity** in that chat's **Chat Settings**, under **Connected Chats**. Carryover must also be on for that chat mode in Slurp's settings. **Slurp Settings → Autopurge** removes old Slurp media to save space; it is off by default.
-- **Older names**: older catalogs list it as **Slurp Remastered**, next to the retired **Slurp Legacy** package. Slurp Legacy gets no more updates.
-- **Full guide**: [Slurp package guide](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/slurp2/README.md).
-
-### Gacha Forge
-
-A complete gacha game. Describe a world and Gacha Forge builds the rest: banners to pull on, a cast the model writes and paints for you, story chapters told by a visual-novel narrator, and the battles, gear, and events that grow around them. Your lorebooks can feed the world, but a hand-written scenario is enough.
-
-- **Integration**: App; it opens in its own **Gacha Forge** tab in **Home**.
-- **Where it works**: Home.
-- **Key settings**: install it from **Agents → Download Agents**, restart Marinara Engine when prompted, then open **Home → Gacha Forge**. Uninstalling removes the tab after a restart.
-- **Full guide**: [Gacha Forge package guide](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/gacha-forge/README.md).
-
-### Modern Life Sim
-
-A life simulation. You live in a small town on a clock, with a job to find and keep, bills to pay, and energy and hunger to look after. The people around you come from your own character cards, and your relationships with them grow scene by scene. A visual-novel narrator tells the scenes that matter.
-
-- **Integration**: App; it opens in its own **Life Sim** tab in **Home**.
-- **Where it works**: Home.
-- **Availability**: **Staging only**, requiring Engine **2.4.4+** (below 4.0.0). It is an alpha. If an update changes something an older save depends on, Life Sim tells you when you open that save, and you can start a new life or continue at your own risk.
-- **Key settings**: install it from **Agents → Download Agents**, restart Marinara Engine when prompted, then open **Home → Life Sim**. It needs a text connection. An image connection is optional: without one, places show illustrated cards instead of generated backgrounds. Optional extras called modules stay off unless you switch them on for a life; the **Adult** module asks you to confirm that you are an adult.
-- **Full guide**: [Modern Life Sim package guide](https://github.com/Pasta-Devs/Marinara-Agents/blob/staging/packages/modern-life-sim/README.md).
 
 ## Writer agents
 
@@ -199,16 +156,6 @@ Tracks money, equipped gear, and carried items as three structured lists without
 - **Where it works**: Roleplay.
 - **Key settings**: **Add as Prompt Section** (on by default). The HUD and Tracker Panel let you edit and lock every name and quantity.
 
-### Quartermaster
-
-Manages the active persona's inventory, equipment slots, item quantities and storage locations, and saved outfits. Its tracker reads the story after replies and applies item changes. A floating dock and the Tracker Panel let you edit the same inventory manually; item and outfit artwork is optional.
-
-- **Phase**: Post-Processing, with inventory context supplied to later replies.
-- **Where it works**: Roleplay; tracks the active persona, not party members or NPCs.
-- **Availability**: requires Engine **2.4.6+**.
-- **Install and activate**: install **Quartermaster** from **Agents → Download Agents** and restart when prompted. In each Roleplay chat, enable agents in **Chat Settings → Agents**, add Quartermaster under **Tracker Agents**, and choose its model connection. Open the dock from the launcher above the Tracker Panel.
-- **Key controls**: equip and store items, save outfits, restore inventory or revert recent tracker changes, and export/import a chat's setup. Image generation uses a separately configured image connection. The appearance macro and replacing the persona's avatar are optional; see the [Quartermaster package guide](https://github.com/Pasta-Devs/Marinara-Agents/blob/main/packages/quartermaster/README.md) before enabling them.
-
 ### Relationship Tracker
 
 Maintains an editable relationship web for the character cards assigned to a Roleplay group chat, plus each character's perception of the active persona. Defined relationships use positive, neutral, negative, or complicated categories. Manual locks protect edited relationships from automatic changes.
@@ -231,19 +178,6 @@ After each reply, deterministic word matching gives the tracker only the most re
 - **Prompt placement**: without a preset marker, selected nags enter the next reply inside `<context><memory_nags>…</memory_nags></context>`. Add a Memory Nag Agent section to place them explicitly.
 - **Data lifecycle**: the vault belongs to one chat and remains stored if the package is disabled or uninstalled, so reinstalling can resume from the last checkpoint. Deleting a memory is permanent and always asks for confirmation.
 
-### World Maps
-
-Adds persistent nested locations and spatial relationships to a story. You can author regions, areas, rooms, and connections, move between locations, and let the current position contribute spatial context to generation. Game Mode also gains the package's world-map view.
-
-- **Integration**: Feature package; it contributes map UI and chat runtime context instead of running as a normal generation-phase agent.
-- **Where it works**: Roleplay and Game.
-- **Key settings**: enable it for the Roleplay chat from **Chat Settings → Agents**, or select it during Game creation and manage it later from that game's settings. Installing or removing it requires a Marinara restart.
-- **Full guide**: [World Maps: Setup, Authoring, and Travel](hierarchical-maps.md).
-
-## Misc agents
-
-Misc agents add extras such as images, music, audience reactions, and card updates.
-
 ### Echo Chamber
 
 Simulates a live audience reacting to your scene, shown as a floating **Echo** widget in the chat area. It reveals one new reaction every 30 seconds.
@@ -257,8 +191,8 @@ Simulates a live audience reacting to your scene, shown as a floating **Echo** w
 Extracts durable memories from chat summaries, character records, and lorebooks into a package-owned vault, then recalls relevant context before the main reply. It supports scoped vault browsing, source imports, pending-draft review, and preset-marker placement for recalled context.
 
 - **Integration**: Feature package; it contributes pre-generation context and memory management UI instead of running as a normal post-processing tracker.
-- **Where it works**: Conversation, Roleplay, and Game.
-- **Key settings**: enablement, recall token budget (128-16,384), maximum recalled chunks (1-100), score threshold, recent-message context (1-20), recall style and semantic, lexical, graph, and keyword weights, resolved-memory inclusion, recall preamble, extraction reasoning and verbosity, generation limits, source limits, prompt templates, AI keyword extraction, and Game-mode extraction.
+- **Where it works**: Conversation and Roleplay.
+- **Key settings**: enablement, recall token budget (128-16,384), maximum recalled chunks (1-100), score threshold, recent-message context (1-20), recall style and semantic, lexical, graph, and keyword weights, resolved-memory inclusion, recall preamble, extraction reasoning and verbosity, generation limits, source limits, prompt templates, AI keyword extraction.
 - **Data lifecycle**: use the Memory Settings backup controls to export or replace the vault, drafts, and settings. Delete all data permanently removes memories, drafts, activity, and derived indexes while retaining settings. Uninstalling the package preserves the Long-Term Memory vault for a later reinstall. Installing, updating, or removing it requires a Marinara restart.
 - **Compatibility**: Engine `2.3.5` through before `4.0.0`. The package uses `agent-runtime`, `chat-read`, `chat-write`, `routes`, `storage`, and `ui` permissions.
 
@@ -275,7 +209,7 @@ Responsible for image and video generations. It writes visual prompts for import
 Creates and updates lorebook entries from important facts in your chat, so your world notes grow as you play.
 
 - **Phase**: Post-Processing.
-- **Where it works**: Roleplay. In Game Mode, a session-end variant called **Game Session Keeper** does the same job at the end of a session.
+- **Where it works**: Roleplay.
 - **Key settings**: it runs once every 8 user and assistant messages by default. A **Target Lorebook** picker chooses where entries go, with an auto-select option. Advanced prompt configurations can return an exact writable lorebook name or a configured alias such as `world`, `npc`, `scene`, or `player`; missing alias destinations are created and linked to the current chat automatically. Omitting a destination keeps the existing single-lorebook behavior.
 
 ### Combat
@@ -294,22 +228,6 @@ Adds in-world visual elements to the latest reply, such as a styled note or scre
 - **Where it works**: Roleplay only.
 - **Key settings**: **Hold Message Until Rewrite** toggle.
 
-### Music DJ
-
-Reads the mood of the scene and plays matching music. It can use Spotify, YouTube, or local audio files.
-
-- **Phase**: Post-Processing.
-- **Where it works**: Roleplay and Game.
-- **Key settings**: a **Music Player** setting picks the provider, and each provider needs its own setup. For the full steps for Spotify, YouTube, and local music, see [Music DJ](../media/music.md).
-
-### Haptic Feedback
-
-Reads the narrative and controls connected intimate toys in real time through Intiface Central. Intiface Central must already be running with a toy connected before you enable this agent.
-
-- **Phase**: Post-Processing.
-- **Where it works**: Conversation, Roleplay, and Game.
-- **Key settings**: a **Touch Sensitivity** choice (**Subtle**, **Standard**, or **Intense**) and an **Intiface URL** field. Sensitivity guides the Agent's choices without capping the available `0.0-1.0` intensity range. For the full setup, see [Haptic Feedback setup](../integrations/haptic-feedback.md).
-
 ### CYOA Choices
 
 Adds clickable "What will you do?" choice buttons after each reply, for a choose-your-own-adventure feel. Each button holds a full action you can send with one click.
@@ -318,79 +236,18 @@ Adds clickable "What will you do?" choice buttons after each reply, for a choose
 - **Where it works**: Roleplay.
 - **Key settings**: **Edit** to rewrite the choices and **Re-roll** to generate new ones.
 
-### Storyboard
-
-Plans still or animated visual storyboards from completed Roleplay exchanges and Game narration. Separate planning and provider-aware formatting preserve source chronology, character identity, and the selected visual style across generated keyframes and videos.
-
-- **Integration**: Agent package; Game and Roleplay use the installed package's prompt templates and settings through the Engine's Storyboard host integration.
-- **Where it works**: Roleplay and Game.
-- **Key settings**: choose still or animation planners, image and video connections, keyframe count, duration, display mode, character-reference handling, Roleplay episode and style templates, and Game illustration/video templates.
-- **Compatibility**: Engine `2.3.5` through before `3.0.0`. The package uses `agent-runtime`, `chat-read`, `prompt-context`, `storage`, and `ui` permissions and does not require a restart.
-- **Full guide**: [Storyboard Agent: Roleplay and Game Mode](../game/storyboard.md).
-
 ### Calls
 
-Adds live audio and video calls with Conversation characters, including user-started and incoming calls, call-only transcripts, text-to-speech, microphone input, and character video clips.
+Adds live audio and video calls with Conversation characters, including user-started and incoming calls, call-only transcripts, text-to-speech, and microphone input.
 
 - **Integration**: Conversation feature package; it adds toolbar, chat-surface, and Chat Settings controls instead of running as a normal generation-phase agent.
 - **Where it works**: Conversation.
-- **Key settings**: open **Chat Settings → Agents → Calls** to enable calls and choose speech, microphone, ringing, and video behavior. See [Conversation Audio and Video Calls](../conversation/calls.md). Installing or removing it requires a Marinara restart.
-
-### UNO
-
-Adds a rules-enforced UNO table for you and Conversation characters, with configurable house rules and support for two to ten total players.
-
-- **Integration**: Conversation game package.
-- **Where it works**: Conversation.
-- **Key settings**: start it from the games picker or with `/uno`; the setup chooses players and house rules. Installing or removing it requires a Marinara restart.
-
-### Chess
-
-Adds a one-on-one Chess board with legal move enforcement, check and checkmate detection, captured pieces, and in-character opponent turns.
-
-- **Integration**: Conversation game package.
-- **Where it works**: Conversation.
-- **Key settings**: start it from the games picker or with `/chess`, then choose the opponent and which side you play. Installing or removing it requires a Marinara restart.
-
-### Poker
-
-Adds a Texas Hold'em table for two to eight total players, with blinds, betting rounds, side pots, showdown evaluation, and in-character opponents.
-
-- **Integration**: Conversation game package.
-- **Where it works**: Conversation.
-- **Key settings**: start it from the games picker or with `/poker`, then choose the players, starting chips, and blind values. Installing or removing it requires a Marinara restart.
-
-### 8-Ball Pool
-
-Adds a one-on-one pool table with solids and stripes, aiming and shot strength, fouls, ball-in-hand, and in-character opponent shots.
-
-- **Integration**: Conversation game package.
-- **Where it works**: Conversation.
-- **Key settings**: start it from the games picker or with `/8ball`, then choose the opponent. Installing or removing it requires a Marinara restart.
-
-### Tic-Tac-Toe
-
-Adds a one-on-one Tic-Tac-Toe board with selectable or random marks, legal turn handling, and win and draw detection.
-
-- **Integration**: Conversation game package.
-- **Where it works**: Conversation.
-- **Key settings**: start it from the games picker or with `/tictactoe` (alias `/ttt`), then choose the opponent and mark. Installing or removing it requires a Marinara restart.
-
-### Rock-Paper-Scissors
-
-Adds a one-on-one Rock-Paper-Scissors match where both choices stay hidden until reveal.
-
-- **Integration**: Conversation game package.
-- **Where it works**: Conversation.
-- **Key settings**: start it from the games picker or with `/rps`, then choose the opponent and a best-of-three, five, or seven match. Installing or removing it requires a Marinara restart.
+- **Key settings**: open **Chat Settings → Agents → Calls** to enable calls and choose speech, microphone, and ringing behavior. See [Conversation Audio and Video Calls](../conversation/calls.md). Installing or removing it requires a Marinara restart.
 
 ## Related guides
 
 - [Agents overview](agents-overview.md)
 - [Illustrator agent](../media/illustrator-agent.md)
-- [Music DJ](../media/music.md)
-- [Haptic Feedback setup](../integrations/haptic-feedback.md)
 - [Knowledge sources](knowledge-sources.md)
 - [Narrative Director and Secret Plot](../roleplay/narrative-director.md)
 - [Conversation Audio and Video Calls](../conversation/calls.md)
-- [Conversation table games](../conversation/table-games.md)

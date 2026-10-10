@@ -23,7 +23,6 @@ The **Send on Enter** setting lives in **Settings**, under the **General** tab, 
 |---|---|---|
 | Roleplay | Off | Enter sends the message |
 | Conversations | On | Enter sends the message |
-| Game | On | Enter sends the message |
 
 When a mode's toggle is off, pressing Enter adds a new line instead. You then click **Send** to post the message. Roleplay is off by default because roleplay messages are often long and need line breaks.
 
@@ -86,8 +85,6 @@ While the server prepares the prompt, a short progress line cycles through these
 - **Generating...**
 
 Each label matches a step Marinara runs before or during the reply. The line clears once the first word of the reply streams in. Some steps only run when a chat uses that feature, so you may not see every label.
-
-If a character's presence is set to a busy or away status, a waiting indicator appears instead of the typing dots. The reply starts once the character is available again.
 
 ## See the model's thinking
 

@@ -17,7 +17,6 @@ If you are asking the team for help, turn on **Debug mode** first so the server 
 - **Host unavailable:** use a separate reachable HTTPS room port, a valid certificate chain/hostname and the matching invitation fingerprint. Do not disable TLS validation, add `null` to trusted origins, expose the normal Engine API or open a host-supplied client to work around an error.
 - **Awaiting approval:** the host must approve the request in Players. No transcript is available before approval. Ask for a fresh invitation if it expired or was revoked.
 - **Disconnected:** keep the guest's own Engine running. The client reconnects to the same pinned host while the explicit session is alive; unsent drafts stay in the current view. Restart ends credentials and needs a fresh join. Stop/Leave remain available when the network fails.
-- **Game waiting:** inspect Players. Disconnected participants are not automatically passed. The host can explicitly Pass/Kick or Pause. Submitting one of two required actions must not run the GM.
 - **Interrupted generation:** do not repeatedly resubmit the round. The host should inspect committed narration/state and explicitly resume forward, or stop the room. Multiplayer does not silently replay an ambiguous model request or apply its world effects twice.
 - **Restricted command or missing media:** the initial room protocol intentionally carries only text. Use the [compatibility matrix](development/multiplayer.md#command-and-feature-compatibility); do not install a peer-provided file or extension as a workaround.
 
@@ -30,10 +29,6 @@ When reporting a connection error, include mode, platform, the visible error and
 If Vite stops with `Reached heap limit` or `JavaScript heap out of memory`, the client build ran out of Node.js heap. This is different from a missing native Rollup binary. Update and rerun `start-termux.sh`: client builds, including in-app updates, now run with their own 1536 MiB heap, capped at half of known device RAM but never below the 1280 MiB the build needs. The RAM cap is rounded down in 128 MiB steps. The running server keeps its smaller profile-based limit. An explicit heap limit in `NODE_OPTIONS` takes precedence for both processes, so check for a previously configured 1024 MiB override: the client no longer builds in 1024 MiB.
 
 Close other apps before retrying. Phones with less than about 3 GB of RAM can still run out of memory or be stopped by Android; keep the complete launcher output when reporting that case. Do not delete your chats or profile to repair a build failure.
-
-### Termux: missing multiplayer guest asset
-
-If startup still reports a missing `packages/client/dist/multiplayer/guest.js` after rebuilding, update Engine and rerun `./start-termux.sh`. The launcher now runs the complete low-memory client build, including the guest assets checked at startup. You do not need to enable multiplayer to repair this build error.
 
 ### Termux: server stops when you open Engine, or Sharp cannot load
 
@@ -59,35 +54,6 @@ An error such as "Failed to load module script" with a `text/html` MIME type can
 Stop the running server, then run `start.bat`, `start.sh` or `start-termux.sh` again. The launcher checks Vite's build inventory, including lazy JavaScript chunks, and rebuilds incomplete client assets before starting. A build made before this check was added is rebuilt once to create its inventory. If rebuilding fails, keep the terminal error for support. For a manual install, run `pnpm build` from the repository root before starting again.
 
 If the launcher check passes but the page is still blank, hard-refresh or try a private browser window. Report the failing asset's full URL, HTTP status, Content-Type and first response line, together with the launcher output. Missing assets now return HTTP 404 instead of the app's HTML page.
-
-### Windows: EPERM or corepack signature error when installing pnpm
-
-pnpm is the package manager Marinara uses to install its code. If you see `EPERM: operation not permitted` or a corepack signature verification failure, corepack could not write into the Node install folder.
-
-Pick one fix:
-
-1. Right-click your terminal, choose Run as administrator, then run the launcher again.
-2. Install pnpm yourself. Run this command, then run the launcher again:
-
-```bash
-npm install -g pnpm@10.34.5
-```
-
-3. Update corepack in an administrator terminal, then run the launcher again:
-
-```bash
-npm install -g corepack
-```
-
-### Windows: `'pnpm' is not recognized` while building the shared package
-
-Marinara v2.3.0 could start pnpm through Corepack successfully and then fail during the shared-package build because that build tried to launch a second, global `pnpm` executable. v2.3.1 removes that nested requirement. Close the failed launcher and run `start.bat` again so it can pull the corrected build script before rebuilding. Your data does not need to be removed.
-
-If the checkout itself cannot update, run `git pull` in the Marinara folder and start it again. As a temporary v2.3.0 workaround, install the pinned package manager globally, rerun the launcher, and then update normally:
-
-```bash
-npm install -g pnpm@10.34.5
-```
 
 ### Launcher update to pnpm 10.34.5
 
@@ -130,7 +96,7 @@ Sometimes the server is running but the browser shows a blank page, or the app l
 
 If **Agents → Download Agents** says the catalog is unavailable, the machine running the Marinara server—not only the browser—must be able to reach the official [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents) catalog over GitHub HTTPS. Installed agents continue to work offline at their current version. Restore the server connection, then click **Refresh** or **Try again** to browse the catalog and check for updates.
 
-If an installed map or call does not appear, close Marinara Engine completely and start it again. Those route-bearing packages remain in **Restart required** state until the next process start. Conversation games are different: current Engine builds hot-activate them immediately. Refresh the catalog if installation failed, then confirm the game shows as ready; adding it under a chat's **Commands** settings is only necessary when you want characters to initiate it themselves, not for the game's manual slash command.
+If an installed map or call does not appear, close Marinara Engine completely and start it again. Those route-bearing packages remain in **Restart required** state until the next process start. Refresh the catalog if installation failed, then confirm the package shows as ready.
 
 If an older installation cannot complete its first package migration, do not delete the `data/capability-packages` folder or your chat data. Marinara leaves the migration incomplete and retries on the next startup. Existing chat selections and settings remain stored while the catalog is unreachable.
 
@@ -231,61 +197,6 @@ The **Card Browser** lets you search public character sites and import character
 
 ## Media generation problems
 
-### Sprite background cleanup struggles with a complex scene
-
-Generated still sprites normally use native transparency or an adaptive flat chroma matte. The built-in cleanup also recognizes older white mattes, preserves enclosed subject details, softens the alpha edge, and removes matte-color spill. A photographed room, detailed scenery, heavy cast shadows, or a subject whose colors match the background may still need the optional AI fallback:
-
-```bash
-pnpm backgroundremover:install
-```
-
-Then restart Marinara and click **Reapply Cleanup** in the sprite generation window. Marinara will still try the built-in matte path first and use the AI model only when the border does not look uniform. If the install fails:
-
-- Confirm Python 3.9 to 3.11 is installed. Newer Python versions can force slow native builds.
-- Rebuild the tool with `pnpm backgroundremover:reinstall`.
-- To force automatic matte cleanup without the AI fallback while you troubleshoot, set `SPRITE_BACKGROUND_REMOVAL_ENGINE=builtin` in `.env`.
-
-### Game Mode or Roleplay storyboards do not appear
-
-Game Mode Storyboards turn a completed GM narration into keyframe images and optional clips. Roleplay Storyboards combine completed exchanges and display the result inline after the assistant response.
-
-- Confirm **Storyboard** is installed from **Agents** > **Download Agents**, then turn on **Enable Agents** and **Enable Storyboards** for the chat.
-- For a manual scene video, open **Chat Settings** > **Gallery**, generate or upload an image, then use its **Video** or **Animate** action. The **Gallery** splits **Images** and **Videos** into tabs, so check the **Videos** tab.
-- For automatic Game Mode Storyboards, open **Chat Settings** > **Agents** > **Storyboards** and confirm **Automatic Storyboard Illustrations** is on. Turn on **Automatic Storyboard Animations** too if you also want clips.
-- In Roleplay, add the **Storyboard** Agent to the chat. Choose **Still images** or **Animations**, set **Messages per episode**, and select the Storyboard image connection. **Manual only** runs from **Create storyboard** in the **Gallery** section of **Chat Settings** instead.
-- Keyframe images need an image connection. Clips also need a video connection.
-- If a custom prompt works better with all characters combined, turn off **Use NovelAI Character Prompts**.
-- Slow providers can hit a timeout. Raise `IMAGE_GEN_TIMEOUT_MS` or `VIDEO_GEN_TIMEOUT_MS` in `.env`, then restart Marinara. The server only reads these values at startup.
-
-See the [Storyboard Agent Guide](game/storyboard.md) for both workflows and [Game Mode: Getting Started](game/getting-started.md) for Game setup.
-
-### Game Mode world generation shows a JSON error
-
-If starting a game fails because the model returned broken JSON, Marinara opens the **Repair JSON** window instead of throwing the whole turn away. JSON is the structured text format the model must return.
-
-1. Fix the brackets, commas, or fields in the editor. The banner reads **JSON is valid.** once the text parses.
-2. Click **Format** to tidy the layout.
-3. Click **Apply Repaired JSON** to use it without regenerating the whole response.
-
-## Voice, calls, and TTS
-
-- If characters do not speak during a call, Text to Speech is not set up. Open **Connections** > **Text to Speech**, enable it, choose a source, enter your key, pick a voice, and save. A character with no voice appears as text only.
-- If the microphone is not working, you may need the local speech model. Install **Calls** from **Agents > Download Agents**, then open **Connections** > **Local Model**, expand the card, find **Local Speech Model**, choose a Whisper model, and click **Download Whisper**. Firefox in particular needs this because it lacks browser speech recognition. Uninstalling Calls deletes its Whisper models to reclaim disk space.
-- On a Lite build, the message **Local Whisper is disabled in Lite mode** means that small build cannot run the local speech model. Use a full Marinara install instead.
-
-### Music DJ Spotify login fails on a remote or network install
-
-The Music DJ agent's Spotify mode uses OAuth. OAuth is a login handoff where Spotify sends you back to a callback address. A redirect URI is that callback address, and Spotify only accepts `https://` addresses or the loopback address `http://127.0.0.1`. It rejects plain network IP addresses.
-
-- If you reach Marinara at localhost, the editor shows a `127.0.0.1` callback. Register that with Spotify and the login completes.
-- If you reach Marinara over HTTPS, the editor shows your HTTPS callback. Register that.
-- If HTTPS is terminated upstream and the host does not match, set `SPOTIFY_REDIRECT_URI` in `.env` to your public callback address.
-- On a plain-HTTP network install, the popup cannot load, but the address bar still holds a valid code. Copy the full URL from the popup. Then expand **Browser couldn't reach the callback?** under the Connect button and paste it. The pasted URL is valid for 10 minutes.
-
-The cleanest long-term fix is to put the server behind HTTPS. Last checked against Marinara Engine 2.2.0. Spotify tightened these rules in February 2025.
-
-## Storage and data
-
 ### Restart Server does not return
 
 Start Marinara using `start.bat`, `start-local.bat`, `start.sh`, `start-termux.sh`, or `pnpm start`. These keep the server attached to its launcher and wait for the old process to exit before starting its replacement. In-app restart closes lingering connections after four seconds and forces exit after eight seconds if shutdown is still stuck; a forced shutdown can interrupt pending writes and is recorded as forced in diagnostics. Direct `node` runs and development watchers are not automatically replaced: stop and restart them from their terminal. Docker continues to use its container restart policy. On Windows, press Ctrl+C in the launcher console and wait for **Shutdown complete** before closing it. Closing or force-killing the terminal can interrupt pending saves.
@@ -385,7 +296,7 @@ To reduce it: exempt Termux from battery optimization and allow background activ
 
 ### Android update runs out of storage while installing dependencies
 
-The built Marinara app is not several gigabytes, and Noodle does not download its own AI models. A large temporary footprint during an update usually comes from pnpm's dependency store and virtual store, especially after several releases or an interrupted forced reinstall.
+The built Marinara app is not several gigabytes. A large temporary footprint during an update usually comes from pnpm's dependency store and virtual store, especially after several releases or an interrupted forced reinstall.
 
 The current launcher prunes packages left over from older releases and avoids rebuilding the dependency store more than once for the same update. If an older launcher already filled the device, update the launcher and reclaim its unreferenced cache before trying again:
 
@@ -409,12 +320,6 @@ cd Marinara-Engine
 pnpm store prune
 ./start-termux.sh
 ```
-
-### Noodle shows `Etc/Unknown` or schedules use the wrong timezone
-
-For Conversation schedules, open Conversation Chat Settings or a character schedule editor and choose **Schedule timezone**. This global selection applies to every Conversation chat, including background autonomous messages, and can be reset with **Use device**.
-
-For Noodle or server jobs without a Conversation override, remove any blank `TZ=` line from `.env` and restart Marinara so the server inherits the host timezone. To choose a host fallback explicitly, set a valid IANA name such as `TZ=Europe/Warsaw` or `TZ=America/New_York`. Current releases treat a blank value as unset, but a restart is still required for Node's timezone state and scheduled jobs to be rebuilt consistently.
 
 ### Container permission denied on a volume mount
 
@@ -493,7 +398,6 @@ Then reach the community:
 - [Upgrading Marinara Engine](UPGRADING.md)
 - [Connecting to an AI Provider](connections/connecting-to-a-provider.md)
 - [Local Model Setup](connections/local-model.md)
-- [Game Mode: Getting Started](game/getting-started.md)
 - [Settings Overview](settings/settings-overview.md)
 
 ### Android Chrome does not offer PWA installation behind Basic Auth

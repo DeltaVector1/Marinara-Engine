@@ -24,11 +24,10 @@ Every chat can store its own persona. You can use different personas in differen
 
 To clear the per-chat persona, click the remove (X) button next to it, or pick **None** at the top of the picker.
 
-In Game Mode this section is framed as your in-game party, but it still uses the **Persona** label.
 
 ### When you create a chat
 
-The New Chat setup wizard has a **Your Persona** field. It uses the same searchable picker and a **None** option. In the New Game Setup wizard, this field is labeled **Player's Persona** instead.
+The New Chat setup wizard has a **Your Persona** field. It uses the same searchable picker and a **None** option.
 
 ## The Quick Persona Switcher
 
@@ -44,9 +43,8 @@ On mobile, persona switching shares a menu with connection switching. Tap the **
 
 ## Which persona wins
 
-The persona selected for the chat determines your identity. If you select **None**, the AI addresses you as "User" and receives no persona details. This applies in Conversation, Roleplay, and Game Mode.
+The persona selected for the chat determines your identity. If you select **None**, the AI addresses you as "User" and receives no persona details. This applies in Conversation and Roleplay.
 
-In Game Mode, you choose your persona in the New Game Setup wizard. The chat keeps that selection.
 
 Switching your persona in the middle of a chat does not rewrite earlier messages. Each message you already sent keeps the persona it was sent under.
 

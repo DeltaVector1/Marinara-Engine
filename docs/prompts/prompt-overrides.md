@@ -10,8 +10,6 @@ This feature is only about picture and video prompts. It does not change the tex
 
 Some terms used below:
 
-- A **sprite** is a piece of character art, such as a facial expression or a full-body pose.
-- A **storyboard** is a set of illustrated frames generated from a Game Mode turn or a completed Roleplay episode.
 
 ## Where to find them
 
@@ -27,11 +25,11 @@ You should see two collapsible editors there.
 
 Click an editor title to expand it.
 
-**Video Generation Prompt Overrides** edits reusable templates for Game and Gallery scene videos, Conversation Call character clips, and animated Expression portraits. Each video prompt template controls how one kind of clip is described to the video model.
+**Video Generation Prompt Overrides** edits reusable templates for Gallery scene videos and Conversation Call character clips. Each video prompt template controls how one kind of clip is described to the video model.
 
-**Image Generation Prompt Overrides** edits the templates used by image, sprite, Game, and prompt-builder systems. This covers Conversation selfies, Game NPC portraits, scene art, storyboard prompts, the **Noodle Post Image** template for Noodle posts, and other registered image builders. Each image prompt template controls how one kind of picture is described to the image model.
+**Image Generation Prompt Overrides** edits templates used by supported image and prompt-builder workflows, including Conversation selfies and Roleplay scene art. Each image prompt template controls how one kind of picture is described to the image model.
 
-So between the two editors you can adjust the prompts for portraits, selfies, sprites, scene art, storyboards, and video clips.
+Use the editors to adjust prompts for selfies, scene art, and video clips.
 
 ## Editing a template
 
@@ -59,13 +57,12 @@ Click **Reset to Default** to drop your custom template and use the built-in one
 
 ## When overrides take effect
 
-A Prompt Override only matters for features that actually generate images or video, such as Game assets, Conversation selfies and calls, sprites, and Noodle post images. Those features also need an image or video generation connection set up first. Without a working generation connection, nothing runs and the template is never used. See [Image Generation Providers and Setup](../media/image-providers.md) and [Scene Video Generation](../media/scene-video.md).
+A Prompt Override only matters for features that actually generate images or video, such as Conversation selfies and calls, and Roleplay scene media. Those features also need an image or video generation connection set up first. Without a working generation connection, nothing runs and the template is never used. See [Image Generation Providers and Setup](../media/image-providers.md) and [Scene Video Generation](../media/scene-video.md).
 
 ## Related guides
 
 - [Image Generation Providers and Setup](../media/image-providers.md)
 - [Scene Video Generation](../media/scene-video.md)
 - [Image Style Profiles](../media/style-profiles.md)
-- [Noodle Settings and Chat Carryover](../noodle/settings.md)
 - [Preset Editor and Prompt Manager](presets.md)
 - [Generation Parameters](generation-parameters.md)

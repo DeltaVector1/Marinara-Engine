@@ -53,9 +53,8 @@ Click **Stored guidance** to open a window that shows the direction used for tha
 
 - **/guided**: you used the `/guided` slash command.
 - **Guided regenerate**: you regenerated the message with a typed direction.
-- **Game start**: the direction came from Game Mode setup.
 
-A **Copy /guided** button appears only for **/guided** and **Guided regenerate** directions. It copies the direction back out as a `/guided` command. You can paste that command later to reuse the same steer. The button does not appear for **Game start** directions.
+A **Copy /guided** button appears only for **/guided** and **Guided regenerate** directions. It copies the direction back out as a `/guided` command. You can paste that command later to reuse the same steer.
 
 For an impersonated message, the window shows the impersonation details instead of a single direction. For the full guided generation and impersonate workflow, see the guide linked below.
 
@@ -76,7 +75,7 @@ Once you know what the model actually received, you can fix the cause. You might
 
 Open **Decision diagnostics** inside Peek Prompt to inspect the current chat's prompt statements and lorebook decisions. Opening the panel or choosing **Preview inputs** prepares the request bodies without asking the Decision model or starting a local model. Expand **Prepared request bodies** to see the recent messages, resolved statements, options, and model-specific request format. Further lorebook statements may become reachable only after an earlier decision is answered.
 
-Choose **Test decisions** to run the eligible questions against your selected Decision model. This makes real decision requests, so a hosted model may charge for them. It does not generate a chat reply, run agents, change game state, or save the test's answers or timers to the chat.
+Choose **Test decisions** to run the eligible questions against your selected Decision model. This makes real decision requests, so a hosted model may charge for them. It does not generate a chat reply, run agents, change chat state, or save the test's answers or timers to the chat.
 
 An explicit test can wait for a local reasoning model even when ordinary pre-reply decisions are deferred. This does not change your preference for live replies; previewing inputs still sends no model requests.
 

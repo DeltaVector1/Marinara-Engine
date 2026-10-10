@@ -169,7 +169,7 @@ On a phone or a narrow screen, she becomes a small round avatar you can drag aro
 
 Next to her chat card, the Home screen shows an **FAQ** panel. This is a fixed, written list of questions and answers. It is not the AI chat.
 
-Type in the **Search FAQ** box to filter the questions. Each question has a colored category tag, such as **Setup**, **Connections**, or **Game Mode**. Tap a question to read its answer.
+Type in the **Search FAQ** box to filter the questions. Each question has a colored category tag, such as **Setup** or **Connections**. Tap a question to read its answer.
 
 Because the FAQ is written into the app, it does not know your live setup. For anything about your own data or current state, use the chat.
 

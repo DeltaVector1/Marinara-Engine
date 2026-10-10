@@ -1,10 +1,10 @@
 # Scene Video Generation
 
-This guide explains how Marinara Engine turns a scene illustration into a short MP4 video clip. It covers the video providers, how to generate a clip from the Gallery, the Game Mode controls, and the video settings. A scene video is a brief animated clip made from one still image.
+This guide explains how Marinara Engine turns a scene illustration into a short MP4 video clip. It covers video providers, the Gallery workflow, and video settings. A scene video is a brief animated clip made from one still image.
 
 ## What scene video does
 
-A scene video takes an existing gallery image and animates it into a short MP4 clip. The still image becomes the first frame, and the AI adds motion. Scene videos work in **Roleplay** and **Game Mode** chats.
+A scene video takes an existing gallery image and animates it into a short MP4 clip. The still image becomes the first frame, and the AI adds motion. Scene videos work in Roleplay chats.
 
 You always need a picture first. Scene video generation cannot run from text alone. You must generate or upload a gallery image before you can animate it.
 
@@ -120,7 +120,7 @@ If a saved option no longer fits the model, for example after Atlas Cloud change
 
 ## Generate a video from the Gallery
 
-Both **Roleplay** and **Game Mode** chats can make scene videos from the **Gallery**. Open **Chat Settings** and expand the **Gallery** section. Game Mode chats also have a second place to do this, **Game Assets**, covered later in this guide.
+Open the **Gallery** section in Chat Settings to create a scene video from an image.
 
 The Gallery has an **Images** tab and a **Videos** tab, each with a count. Still pictures live under **Images**. Finished clips live under **Videos**.
 
@@ -144,54 +144,30 @@ Under the **Videos** tab, each clip plays inline and shows its length and model 
 
 If you try to make a video with no picture in the chat, Marinara shows this message: "Add or generate a gallery image before generating a scene video." Generate or upload a picture first, then try again.
 
-## Game Mode scene video
-
-Game Mode has a second place to make a scene video: **Game Assets**. Click or tap its folder button, which starts near the top right of the chat. It opens as a window on a computer or a full-width panel on a phone. If you moved it into Chat Settings, open the **Game Assets** section there instead.
-
-1. Open **Game Assets**.
-2. Click **Generate video**. Its tooltip reads "Generate a scene video from the latest illustration."
-3. The newest clip plays there when it is ready.
-
-The **Generate video** button stays inactive until the game has both a video connection and a scene illustration. If you click it too early, you may see one of these messages:
-
-- "Choose a Video Generation connection in Game Settings first." Set a video connection for the game.
-- "Generate a scene illustration before generating a scene video." Make a picture first.
-
-If a clip fails, the panel shows "Scene video generation failed." Try again, and check your connection and API key if it keeps failing.
-
 ## Choosing a video connection for a chat
 
 Each chat picks its own video connection. You set this under **Chat Settings**, then **Agents**, then **Scene Videos**.
 
 **Roleplay** chats show a **Scene Videos** card described as "Generate manual MP4 scene videos from gallery images." It has one control, the **Video Connection** dropdown. Pick your Video Generation connection here.
 
-**Game Mode** chats show a **Scene Videos** card described as "Generate MP4 scene videos from game illustrations." It has more controls:
 
-- **Video Connection**: the Video Generation connection this game uses.
-- **Game Video Prompt**: the prompt template that decides how the picture animates. The built-in default is **Cinematic Scene Video**.
+- **Video Connection**: the Video Generation connection used for the chat.
+- **Video Prompt**: the prompt template that decides how the picture animates. The built-in default is **Cinematic Scene Video**.
 - **Edit Video Presets**: add and edit your own copies of the video prompt template for this chat.
 
-The **Game Video Prompt** continues to control manual Gallery and Game Assets videos in Game Mode. Roleplay Gallery animations use **Roleplay Gallery Animation Director** instead. The installed Storyboard Agent owns a separate default **Storyboard Video Prompt**, and each Roleplay or Game chat can override it under **Chat Settings > Agents > Storyboards**. Resetting that choice returns to the Storyboard Agent default; it does not inherit a different chat's prompt.
 
-When you first create a Game Mode chat, the setup wizard also has a **Video Generation Connection** picker. It is on the **Features** step, and it appears after you turn on **Visual Generation**.
 
 If a chat has no video connection of its own, Marinara falls back to the connection you marked **Use as default video connection**. If there is no chat connection and no default, video actions show a warning telling you to pick one.
 
 ## Video generation settings
 
-Some video defaults live in the app settings, not on a connection. Open **Settings**, then **Generations**, then the **Video Generation** section. It is described as "Set default clip lengths and edit reusable video prompts for Game, Gallery, and Calls."
+Some video defaults live in the app settings, not on a connection. Open **Settings**, then **Generations**, then the **Video Generation** section. It is described as "Set default clip lengths and edit reusable video prompts for Gallery and Calls."
 
 The main scene-video setting here is **Scene video fallback length**, which defaults to 10 seconds. It is used only when the selected video connection has no length of its own. You can set it from 1 to 60 seconds.
 
 This section also holds **Video Generation Prompt Overrides**, where you can edit the reusable video prompt templates. **Roleplay Gallery Animation Director** controls the instructions sent to the selected Prompt Model before a Roleplay Gallery clip is generated. Its `${durationSeconds}` variable is replaced with the selected clip length. This is the advanced way to change how clips move without editing any code.
 
 The same section has an **Animated expression length** setting. That belongs to a separate feature, animated portrait sprites. See [Animated Expressions](animated-expressions.md) for that feature.
-
-## Storyboards
-
-The downloadable Storyboard Agent can build ordered keyframe images and clips in Roleplay and Game Mode. Game Mode uses one completed GM turn; Roleplay combines completed exchanges into an inline episode. When animations are enabled, Marinara animates each successful keyframe with the selected video connection and the Agent's **Storyboard Video Prompt**.
-
-Storyboards have their own controls and their own guide. See the [Storyboard Agent Guide](../game/storyboard.md) for installation and both mode workflows.
 
 ## Troubleshooting
 
@@ -218,7 +194,5 @@ Check that the connection has a valid API key and that your account has video ac
 ## Related guides
 
 - [Animated Expressions](animated-expressions.md)
-- [Storyboard Agent Guide](../game/storyboard.md)
-- [LTX 2.3 Storyboards in Game Mode](../game/ltx-2-3-storyboards.md)
 - [Supported AI Providers](../connections/providers-reference.md)
 - [Server Configuration Reference](../CONFIGURATION.md)

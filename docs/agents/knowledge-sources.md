@@ -13,7 +13,7 @@ Marinara does this with two optional agents:
 - **Knowledge Retrieval** reads your chosen sources, summarizes the facts that matter, and adds the summary to the prompt.
 - **Knowledge Router** reads a short list of your entries, picks the ones that fit the scene, and adds those entries word for word.
 
-Both agents work only in **Roleplay** chats. You cannot add them in Conversation Mode or Game Mode. Neither agent is on by default. You add the one you want to a chat yourself.
+Both agents work only in **Roleplay** chats. You cannot add them in Conversation mode. Neither agent is on by default. You add the one you want to a chat yourself.
 
 ## Knowledge Retrieval vs Knowledge Router
 

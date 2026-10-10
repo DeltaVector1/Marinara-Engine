@@ -26,7 +26,6 @@ The tour has 15 steps. Here they are in order, with the exact title of each card
 10. **Chats** Highlights the sidebar toggle and opens the chat sidebar, where your chats live.
 11. **Conversation Mode** Highlights the conversation tab in the chat sidebar. The tab itself is labeled **CONVO**.
 12. **Roleplay Mode** Highlights the roleplay tab in the chat sidebar. The tab itself is labeled **RP**.
-13. **Game Mode** Highlights the game tab in the chat sidebar. The tab itself is labeled **GM**.
 14. **Migrating from SillyTavern?** Highlights the **Settings** button again and opens **Settings** to the **Import** tab.
 15. **You're All Set!** Highlights the **Connections** panel button one more time. This is the closing card.
 

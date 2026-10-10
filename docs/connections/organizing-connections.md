@@ -54,7 +54,7 @@ The random pool lets a chat pick a different connection each time it generates a
 
 To add a connection to the random pool, click the shuffle icon on its row. Its tooltip reads **Add to random pool**. Once the connection is in the pool, the tooltip changes to **In random pool (click to remove)**. Click the icon again to take the connection out.
 
-To make a chat use the random pool, open **Chat Settings**, find the **Connection** section, and choose **🎲 Random** from the dropdown. In Game Mode this dropdown is labeled **GM / Party Model**. Each reply then picks a random connection from your pool.
+To make a chat use the random pool, open **Chat Settings**, find the **Connection** section, and choose **🎲 Random** from the dropdown. Each reply then picks a random connection from your pool.
 
 The **Quick Connection Switcher** is a faster way to change the connection, and its model, for the chat you are in. Click the link icon in the chat input area to open it. It shows your connections on the left and the chosen connection's **Models** on the right:
 

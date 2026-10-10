@@ -1,6 +1,6 @@
 # Text to Speech (TTS) Setup
 
-This guide shows you how to set up Text to Speech in Marinara Engine so the app can read messages and game narration out loud. Text to Speech (TTS) turns written chat text into spoken audio. This guide covers picking a voice provider, choosing voices, auto-play, and the per-message playback controls.
+This guide shows you how to set up Text to Speech in Marinara Engine so the app can read messages out loud. Text to Speech (TTS) turns written chat text into spoken audio. This guide covers picking a voice provider, choosing voices, auto-play, and the per-message playback controls.
 
 ## Where TTS settings live
 
@@ -79,22 +79,12 @@ The **Refresh** button in the Character Voices box reloads the same provider lib
 
 ## Narrator Voice
 
-Narration is text that no single character speaks, such as scene description or a game master's lines. You can give it a separate voice.
+Narration is text that no single character speaks, such as scene description or narration. You can give it a separate voice.
 
 1. In the **Narrator Voice** box, turn on **Use separate narrator voice**.
 2. Pick a voice in the picker that appears.
 
-The app uses this voice when a line's speaker is Narrator, GM, Game Master, or System. That works in Roleplay and Conversation messages. It also covers Game Mode narration lines that have no named speaker. If you use ElevenLabs, pick a narrator voice here. If you leave it empty, narration only falls back when a global voice is set.
-
-## Random NPC Voices (Game Mode only)
-
-This feature gives spare voices to minor game characters. It works only in Game Mode, and only for NPCs that Game Mode tracks. It has no effect in Roleplay or Conversation.
-
-1. In the **Random NPC Voices** box, turn on **Use default voices for random NPCs**.
-2. Two checkbox grids appear: **Male NPC defaults** and **Female NPC defaults**.
-3. Tick the voices you want each pool to draw from.
-
-A tracked NPC without a personal voice gets a stable pick from the matching pool. The same NPC keeps the same voice during a session. An NPC with an assigned character voice always keeps that assigned voice. If the app cannot detect labeled male or female voices, each pool uses the full voice list instead.
+The app uses this voice for narrator lines in Roleplay and Conversation messages. If you use ElevenLabs, pick a narrator voice here. If you leave it empty, narration only falls back when a global voice is set.
 
 ## Audio Format and Speed
 
@@ -120,13 +110,12 @@ Under the **Auto-play** heading, each toggle tells the app to read one kind of n
 
 - **Roleplay messages**: reads new Roleplay replies.
 - **Conversation messages**: reads new Conversation Mode replies.
-- **Game narration**: reads new Game Mode narration and combat lines.
 - **Progressive playback**: when a reply has several lines, starts playing the first line right away instead of waiting for the whole reply.
 - **Only read dialogues**: reads only quoted or tagged spoken lines and skips plain narration.
 
 Auto-play fires only once, on the newest reply, at the moment it finishes. It does not re-read old messages when you reopen or scroll a chat.
 
-The same playback settings also let you **Skip text inside HTML and custom tags**, **Skip fenced code blocks**, or **Skip text inside square brackets**. Code blocks are skipped by default; the other two filters start off. Tag filtering removes the enclosed text, such as a hidden `<simulation>...</simulation>` block, while preserving speaker tags used to select voices. These filters apply to manual playback and auto-play, including Game narration and Roleplay speaker extraction.
+The same playback settings also let you **Skip text inside HTML and custom tags**, **Skip fenced code blocks**, or **Skip text inside square brackets**. Code blocks are skipped by default; the other two filters start off. Tag filtering removes the enclosed text, such as a hidden `<simulation>...</simulation>` block, while preserving speaker tags used to select voices. These filters apply to manual playback and auto-play, including Roleplay speaker extraction.
 
 ## Speaking a single message
 
@@ -138,7 +127,7 @@ Once TTS is on, a **Speak** button (a microphone icon) appears in the toolbar un
 
 While a message is speaking, two more buttons appear. **Pause speaking** and **Resume speaking** hold and continue playback. **Restart speaking** starts the message again from the top.
 
-The speaker-icon button opens a **Line volume** slider from 0 to 100 percent, default 50. This volume is its own saved setting. It is separate from the Game Mode mixer and from the Conversation call volume, so changing one does not change the others.
+The speaker-icon button opens a **Line volume** slider from 0 to 100 percent, default 50. This volume is its own saved setting. It is separate from the Conversation call volume, so changing one does not change the others.
 
 ## Cached clips
 
@@ -152,13 +141,12 @@ The same TTS setup serves every mode, with a few per-mode extras:
 
 - Roleplay uses the **Roleplay messages** auto-play toggle and the per-message **Speak** controls. See [Roleplay Mode: Getting Started](../roleplay/getting-started.md).
 - Conversation Mode uses the **Conversation messages** toggle and the same **Speak** controls. Spoken audio calls are a larger feature covered in [Conversation Audio and Video Calls](../conversation/calls.md).
-- Game Mode uses the **Game narration** toggle. Game Mode also has its own audio mixer with a **TTS** channel next to **Master**, **Music**, **Sound Effects**, and **Ambient**. That channel sets the overall volume of spoken game audio and starts at 100 percent. See [The Game's controls](../game/getting-started.md#the-games-controls).
 
 ## Phonetic name (pronunciation in calls)
 
 If a character or persona name is spelled in a way the voice mispronounces, you can add a **Phonetic name**. In the **Character Editor**, the field is on the **Voice** tab. In the **Persona Editor**, it sits with the other basic info fields. Type how the name should sound.
 
-This override is used only during Conversation audio and video calls. The regular per-message **Speak** button, chat auto-play, and Game Mode narration do not read this field.
+This override is used only during Conversation audio and video calls. The regular per-message **Speak** button and chat auto-play do not read this field.
 
 ## Troubleshooting
 
@@ -172,7 +160,6 @@ This override is used only during Conversation audio and video calls. The regula
 
 - [Conversation Audio and Video Calls](../conversation/calls.md)
 - [Roleplay Mode: Getting Started](../roleplay/getting-started.md)
-- [Game Mode: Getting Started](../game/getting-started.md)
 - [Supported AI Providers](../connections/providers-reference.md)
 - [Creating and Editing Characters](../characters/creating-and-editing-characters.md)
 - [Server Configuration Reference](../CONFIGURATION.md)

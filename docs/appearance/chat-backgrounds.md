@@ -12,14 +12,14 @@ The **Backgrounds** section has three parts:
 2. The **Background Blur** slider.
 3. The background library, where you import, organize, filter, tag, rename, download, and delete images.
 
-A chat background only shows in Roleplay and Game mode chats. Conversation mode uses a gradient instead, which you set in the **Conversation Theme** section. See [Appearance Settings](appearance-settings.md) for that.
+A chat background only shows in Roleplay chats. Conversation mode uses a gradient instead, which you set in the **Conversation Theme** section. See [Appearance Settings](appearance-settings.md) for that.
 
 ## The background library
 
 The library holds every image you can pick from. It mixes images you uploaded with the built-in art bundled with Marinara. Each image shows a small label so you can tell them apart:
 
 - **Library**: an image you uploaded yourself. You can rename, tag, and delete these.
-- **Game asset**: a built-in image bundled with Marinara. These are read-only. You cannot rename, tag, or delete them.
+- built-in: a background bundled with Marinara. These are read-only.
 
 ### Import a background
 
@@ -95,7 +95,7 @@ To go back, click the star on the current default image. You can also click the 
 
 ## Background Blur
 
-**Background Blur** softens the background image behind the chat so text is easier to read. It applies to Roleplay and Game mode backgrounds.
+**Background Blur** softens the background image behind the chat so text is easier to read. It applies to Roleplay backgrounds.
 
 1. In the **Backgrounds** section, find the **Background Blur** slider.
 2. Drag it from 0 to 24. Higher numbers mean more blur.
@@ -105,7 +105,7 @@ The default is 0 (**Off**).
 
 ## How your uploads and built-in backgrounds mix
 
-The library shows your uploads and the built-in **Game asset** images together in one grid. You pick from both the same way. The difference is that **Game asset** images are read-only, so the rename, tag, and delete controls do not appear on them.
+The library shows your uploads and the built-in built-in images together in one grid. You pick from both the same way. The difference is that built-in images are read-only, so the rename, tag, and delete controls do not appear on them.
 
 AI-generated scene backgrounds you create from the Gallery also land in this same library, so you can reuse them later. See [Scene Backgrounds and the Gallery](../media/scene-backgrounds.md).
 

@@ -85,5 +85,4 @@ The steps above cover cards you pick by hand. To move an entire SillyTavern inst
 ## Related guides
 
 - [Creating and Editing Characters](creating-and-editing-characters.md)
-- [Card Browser: Finding and Importing Characters](bot-browser.md)
 - [Importing from SillyTavern](../data/importing-from-sillytavern.md)

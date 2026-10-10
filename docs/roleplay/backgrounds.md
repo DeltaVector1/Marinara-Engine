@@ -33,7 +33,7 @@ While it runs, you see this note: "AI background generation is running. The new 
 
 Manual generation uses the **Illustrator** agent's image connection, then falls back to your default image generation connection. The **Background** agent does not need an image connection because it only selects images already in your library. If Marinara cannot find a connection, generation fails with this message: "Choose an image generation connection for the Illustrator agent, or mark one as the default image connection."
 
-Scene background generation works only in Roleplay and Game modes. It is not available in Conversation mode.
+Scene background generation works only in Roleplay. It is not available in Conversation mode.
 
 ## Set a background for one chat
 
@@ -42,7 +42,7 @@ You can pin a specific backdrop to the chat you are viewing, instead of letting 
 1. Open **Settings**.
 2. Open the **Appearance** tab.
 3. Find the **Backgrounds** section.
-4. Under **Chat Background**, pick an uploaded image or one of your game asset backgrounds.
+4. Under **Chat Background**, pick an uploaded image or one of your uploaded backgrounds.
 
 To go back to the default backdrop, click **Remove** next to **Chat Background**.
 

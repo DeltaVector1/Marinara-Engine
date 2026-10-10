@@ -52,7 +52,6 @@ The window labels the direction by where it came from:
 
 - **/guided**: the direction came from the `/guided` command.
 - **Guided regenerate**: the direction came from a guided **Regenerate** click.
-- **Game start**: the direction came from Game Mode setup.
 
 For `/guided` and guided-regenerate directions, a **Copy /guided** button copies the direction back out as a ready-to-use `/guided` command. You can paste it into another chat to reuse the same steer.
 
@@ -60,7 +59,7 @@ For `/guided` and guided-regenerate directions, a **Copy /guided** button copies
 
 Impersonate has the AI write your next message for you, in the voice of your persona. Your persona is the character you play, written into the chat as `{{user}}`. See [User Personas](../characters/personas.md) for how to set one up.
 
-Impersonate works only in Roleplay chats. It is not available in Conversation or Game chats. If you try it in a Conversation chat, you see the message "Impersonate is not available in Conversation mode."
+Impersonate works only in Roleplay chats. It is not available in Conversation chats. If you try it in a Conversation chat, you see the message "Impersonate is not available in Conversation mode."
 
 ### Using /impersonate
 

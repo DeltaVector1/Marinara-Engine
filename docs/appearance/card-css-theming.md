@@ -129,8 +129,6 @@ Wrap rules in `@chat-mode` blocks to target one surface. CSS outside any block a
 
 Standard `@media` queries work normally inside `@chat-mode` blocks. Use them for responsive layouts.
 
-**Game mode** has baseline support. In **Chat** mode, card CSS reaches the whole game surface. So `[data-card-css]` themes the game area, and `@chat-mode game` targets it. Game uses its own layout. The message-bubble hooks above do not exist there, so target broadly, for example the area background. Per-character (Exclusive) styling of game narration is not available yet.
-
 ## What you can style
 
 The chat structure is the same skeleton in Roleplay and Conversation. These are the elements card CSS can target. Internal utility classes are not stable hooks. They change between versions, so stick to the `mari-*` classes and `data-*` attributes below.
@@ -206,66 +204,6 @@ The avatar is a circle by default. You can reshape and ring it with pure CSS. Th
 }
 ```
 
-### About Me profile popout (Conversation only)
-
-In Conversation mode, clicking an avatar opens a profile popout with the character's or persona's "about me". You can theme it with the same `[data-card-css]` scope. This popout only exists in Conversation mode. It does not exist in roleplay or game. Wrap these rules in `@chat-mode conversation` if you also ship roleplay or game CSS. Both character cards and personas can theme their own popout from their **Creator Notes**.
-
-One caveat for personas: the **Card Theming** control only appears when an active character in the chat has CSS in its **Creator Notes**. Persona-only CSS does not make the control appear. So for a persona's popout theme to work, at least one character in the chat must also carry a `<style>` block.
-
-| Selector | What it targets |
-| --- | --- |
-| `[data-card-css].mari-about-me-popout` | The popout card itself (the scope element): background, border, shape. |
-| `[data-card-css] .mari-about-me-banner` | The top banner strip (defaults to the name color). |
-| `[data-card-css] .mari-about-me-avatar` | The enlarged avatar wrapper. Use `... > div` for the circle. |
-| `[data-card-css] .mari-about-me-status` | The presence status dot (characters only). |
-| `[data-card-css] .mari-about-me-name` | The display name heading. |
-| `[data-card-css] .mari-about-me-handle` | The secondary @name line (shown when a Convo display name differs). |
-| `[data-card-css] .mari-about-me-presence` | The status or activity line (characters only). |
-| `[data-card-css] .mari-about-me-box` | The About Me container box. |
-| `[data-card-css] .mari-about-me-label` | The "ABOUT ME" caption. |
-| `[data-card-css] .mari-about-me-badge` | The Default or Chat-specific pill. |
-| `[data-card-css] .mari-about-me-text` | The rendered about-me body text. |
-
-The popout card is the scope element. Target it with `[data-card-css].mari-about-me-popout` (no space, same element). Target its children with a descendant selector, like `[data-card-css] .mari-about-me-name`. In **Chat** mode the whole area is scoped, so you can use `.mari-about-me-name` directly.
-
-Here is a themed "about me" popout. Paste it into a character's or persona's **Creator Notes**, then enable **Card Theming** in **Chat Settings**. If you paste it into a persona, remember the caveat above. A character in the chat must also have CSS in its **Creator Notes**, or the control stays hidden.
-
-```html
-<style>
-@chat-mode conversation {
-  [data-card-css].mari-about-me-popout {
-    background: radial-gradient(120% 120% at 50% 0%, #241a3a 0%, #14101f 70%);
-    border: 1px solid rgba(180, 120, 255, 0.45);
-    border-radius: 1.25rem;
-  }
-  [data-card-css] .mari-about-me-banner {
-    background: linear-gradient(90deg, #b478ff, #ff77c6);
-  }
-  [data-card-css] .mari-about-me-avatar > div {
-    border-radius: 0.9rem; /* squircle avatar */
-    box-shadow: 0 0 0 2px #b478ff;
-  }
-  [data-card-css] .mari-about-me-name {
-    color: #e9d8ff;
-    text-shadow: 0 0 10px rgba(180, 120, 255, 0.6);
-  }
-  [data-card-css] .mari-about-me-box {
-    background: rgba(180, 120, 255, 0.08);
-    border: 1px solid rgba(180, 120, 255, 0.25);
-    border-radius: 0.75rem;
-  }
-  [data-card-css] .mari-about-me-label {
-    color: #b478ff;
-    letter-spacing: 0.12em;
-  }
-  [data-card-css] .mari-about-me-text {
-    font-family: Georgia, serif;
-    color: #f2e9ff;
-  }
-}
-</style>
-```
-
 ## What you cannot style
 
 The sanitizer strips these for security.
@@ -320,10 +258,9 @@ This is a deliberately extravagant card. It touches every documented hook, in ev
 - an edge sigil on the message row
 - an animated roleplay bubble with a corner rune, and styled narration
 - a Conversation bubble and an eerie typing indicator
-- the avatar-click profile popout, fully themed
-- the game surface
+- the avatar-click profile card, fully themed
 
-Paste it whole into **Creator Notes**, then enable **Card Theming** in **Chat Settings**. It themes messages across Roleplay and Conversation, the popout in Conversation, and the surface in Game (set the mode to **Chat** for game). Sections are split by `@chat-mode` so each mode gets exactly the hooks it has. Everything is sanitizer-safe.
+Paste it whole into **Creator Notes**, then enable **Card Theming** in **Chat Settings**. It themes messages across Roleplay and Conversation, the profile card in Conversation. Sections are split by `@chat-mode` so each mode gets exactly the hooks it has. Everything is sanitizer-safe.
 
 ```html
 <style>
@@ -342,7 +279,7 @@ Paste it whole into **Creator Notes**, then enable **Card Theming** in **Chat Se
 
   /* EVERYWHERE (all modes). */
   /* These descendant hooks only match where message rows exist, so they are inert
-     in Game and safe to leave unwrapped. */
+     in Roleplay and safe to leave unwrapped. */
 
   /* the character name, glowing crimson rune-caps */
   [data-card-css] .mari-message-name {
@@ -460,7 +397,7 @@ Paste it whole into **Creator Notes**, then enable **Card Theming** in **Chat Se
       box-shadow: 0 0 6px rgba(255, 92, 138, 0.85);
     }
 
-    /* the avatar-click profile popout. The popout card is the scope element,
+    /* the avatar-click profile card. The profile card is the scope element,
        so target it with no space, and its children as descendants. */
     [data-card-css].mari-about-me-popout {
       background: radial-gradient(120% 120% at 50% 0%, #241a3a 0%, #12081c 72%);
@@ -506,14 +443,7 @@ Paste it whole into **Creator Notes**, then enable **Card Theming** in **Chat Se
     }
   }
 
-  /* GAME (set the mode to Chat) */
-  @chat-mode game {
-    /* Game has its own layout with no message bubbles. In Chat scope,
-       [data-card-css] is the whole game surface, so theme the area broadly. */
-    [data-card-css] {
-      background-image: radial-gradient(120% 80% at 50% 0%, rgba(58, 10, 46, 0.5), transparent 70%);
-    }
-  }
+
 </style>
 ```
 
@@ -543,7 +473,7 @@ Technical constraints:
   under an extra glow-wrapper div).
 - Style the typing indicator via [data-card-css] .mari-typing-text and
   [data-card-css] .mari-typing-dots span.
-- Conversation only: the avatar-click "about me" popout is themable via
+- Conversation only: the avatar-click "about me" profile card is themable via
   [data-card-css].mari-about-me-popout (the card), the banner via
   .mari-about-me-banner, the avatar via .mari-about-me-avatar > div, the name via
   .mari-about-me-name, the box via .mari-about-me-box, and the body via

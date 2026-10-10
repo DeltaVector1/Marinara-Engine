@@ -30,7 +30,6 @@ Your images, audio, and other media files live in their own folders, each named 
 | `gallery` | Gallery images |
 | `fonts` | Custom fonts you added |
 | `knowledge-sources` | Files you uploaded for knowledge agents |
-| `game-assets` | Game Mode assets |
 | `custom-emojis` | Custom emoji images |
 | `custom-stickers` | Custom sticker images |
 

@@ -1,6 +1,6 @@
 # Combat Encounters (Roleplay)
 
-This guide explains combat encounters in Roleplay Mode. You will learn how to turn on the **Combat** agent, start a fight, and play it in the Encounter modal. It also explains how this feature differs from Game Mode combat.
+This guide explains combat encounters in Roleplay Mode. You will learn how to turn on the **Combat** agent, start a fight, and play it in the Encounter modal.
 
 Combat encounters are an optional Roleplay feature. They give your scene a structured, turn-based battle screen with health bars, enemy and party lists, and a combat log. If you never turn the feature on, your roleplay chats work exactly as before.
 
@@ -72,21 +72,8 @@ When a fight ends naturally, a result banner appears: **VICTORY**, **DEFEAT**, *
 
 If the summary fails to generate, the button reads **Close Anyway** instead. Click it to return to your scene without a summary.
 
-## How it differs from Game Mode combat
-
-Combat encounters are a lighter, separate combat layer for Roleplay Mode. Game Mode has its own, built-in combat system.
-
-The key differences:
-
-- You start a Roleplay encounter yourself with the **Encounter** button. In Game Mode, the AI Game Master starts combat when the story calls for it.
-- Roleplay combat needs the **Combat** agent turned on. Game Mode combat does not use the **Combat** agent and works without it.
-- The two systems use different battle screens and are not shared.
-
-For the Game Mode battle system, see [Game Mode Combat](../game/combat.md).
-
 ## Related guides
 
 - [Roleplay Mode: Getting Started](getting-started.md)
 - [Agents: AI Helpers for Your Chats](../agents/agents-overview.md)
 - [Downloadable Agents Reference](../agents/built-in-agents.md)
-- [Game Mode Combat](../game/combat.md)

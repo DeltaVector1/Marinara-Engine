@@ -69,11 +69,10 @@ Guidelines:
 - `packages/server/` — Fastify API, file-native storage, importers, and AI agents
 - `packages/shared/` — Shared types, schemas, constants, and `APP_VERSION`
 - `android/` — Android WebView wrapper for the Termux-served local app
-- `win/` — Windows installer sources and helper scripts
 - `docs/` — Docs and repo media assets
 - `start.bat`, `start.sh`, `start-termux.sh` — platform launchers
 
-Official downloadable agent and capability-package sources live in the separate [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents) repository. Fixes to agents such as Illustrator, Music DJ, and Lorebook Keeper—including their definitions, default prompts, package-owned runtime code, metadata, artwork/assets, manifests, artifacts, and catalog validation—must use that repository's issues and target its `staging` branch.
+Official downloadable agent and capability-package sources live in the separate [Pasta-Devs/Marinara-Agents](https://github.com/Pasta-Devs/Marinara-Agents) repository. Fixes to agents such as Lorebook Keeper—including their definitions, default prompts, package-owned runtime code, metadata, artwork/assets, manifests, artifacts, and catalog validation—must use that repository's issues and target its `staging` branch.
 
 Marinara Engine owns the host integration: package loading, capability APIs and shared contracts, Engine UI/settings, storage, provider/model routing, orchestration, and compatibility handling. A fix can therefore mention or affect a downloadable agent while still belonging in Engine when it changes only how the host loads, configures, or executes the package. Determine the owning repository before opening an issue, branch, or PR, and split cross-repository changes when both package content and host integration need updates.
 
@@ -142,18 +141,17 @@ Regression guards:
 
 - `pnpm regression` (or `pnpm regression:node`) builds the shared package once, discovers the complete Node regression set from the filesystem, and runs it serially. Pull requests and staging pushes retain this complete lane on a hosted runner.
 - `pnpm regression:prompt` runs fast deterministic checks for prompt assembly, lorebook keyword matching, macros, summaries, and mode-specific generation gates.
-- `pnpm smoke:ui` runs only the `@smoke` tests on desktop Chromium, with one worker. This small suite covers the Home shell, settings persistence, chat-mode navigation, generation stop/refusal, Conversation and Roleplay reasoning, and Game narration. Development PRs into `staging` run it inside the existing required `pnpm-validate` check, so a smoke failure blocks merging. Staging pushes run it as `browser-smoke`. Both replace the full browser matrix at those development boundaries. Keep the smoke selection small; feature-specific regressions belong in focused local runs and the full matrix.
+- `pnpm smoke:ui` runs only the `@smoke` tests on desktop Chromium, with one worker. This small suite covers the Home shell, settings persistence, chat-mode navigation, generation stop/refusal, Conversation and Roleplay generation, stop, and refusal behavior. Development PRs into `staging` run it inside the existing required `pnpm-validate` check, so a smoke failure blocks merging. Staging pushes run it as `browser-smoke`. Both replace the full browser matrix at those development boundaries. Keep the smoke selection small; feature-specific regressions belong in focused local runs and the full matrix.
 - `pnpm regression:ui` still runs the full Playwright suite across desktop Chromium, Android-sized Chromium, and iPhone-sized WebKit. GitHub runs the full matrix nightly at 02:17 UTC against `staging`, on manual dispatch, and on PRs into `main` (including promotion and hotfix candidates). Every test job uses the same immutable commit from its triggering event; the `regression-revision` job records that SHA in its summary. Full-matrix checks retain the `desktop-chromium`, `mobile-chromium`, and `mobile-webkit` verdicts; ordinary development runs skip those full lanes.
   Browser runs clear `.tmp/playwright-data` and use disposable app-server fixtures. Local runs start separate desktop and mobile servers; hosted jobs start only the pair their selected project needs. Stop any process already using the configured Playwright ports before running tests; the suite does not reuse a running development server.
 - `node scripts/run-regressions.mjs` (what `pnpm regression` runs) gives each regression file its own throwaway `DATA_DIR`, `FILE_STORAGE_DIR` and `.env` (through `MARINARA_ENV_FILE`) and removes them when the file finishes. A regression that sets these variables itself keeps its own values. Use `--filter <text>` to run a subset.
-- `pnpm test` checks the Windows installer layout, then runs the Node regression lane. It does not run the UI lane; invoke `pnpm regression:ui` explicitly for browser validation.
+- `pnpm test` runs the Node regression lane. It does not run the UI lane; invoke `pnpm regression:ui` explicitly for browser validation.
 
 Before pushing, run `pnpm check` and the regressions covering the behavior you changed. For browser-affecting work, run `pnpm smoke:ui` plus the relevant spec files or named cases. Include mobile Chromium and WebKit when changing responsive layout, touch/keyboard behavior, media playback, or browser-specific APIs. Shared shell, styling, storage, or routing changes warrant broader coverage. Running the entire browser matrix before every push is not required.
 
 For example, select a focused desktop regression or a mobile case without running every spec:
 
 ```bash
-pnpm regression:ui e2e/game-verb-only-turn.e2e.ts --project=desktop-chromium --workers=1
 pnpm regression:ui e2e/core-flows.e2e.ts --project=mobile-webkit --grep "chat mode tabs" --workers=1
 ```
 
@@ -173,7 +171,7 @@ All server-side logging goes through a shared [Pino](https://getpino.io/) logger
 | ---------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `logger.error()` | Unrecoverable failures that need investigation.     | Storage errors, fatal agent failures, image generation crashes, command exceptions.              |
 | `logger.warn()`  | Something went wrong but the request can continue.  | Non-critical agent failures, empty model responses, missing connections, non-fatal catch blocks. |
-| `logger.info()`  | Operational milestones — "this happened".           | Seed results, game session lifecycle, commands executed, abort requests, device connections.     |
+| `logger.info()`  | Operational milestones — "this happened".           | Seed results, commands executed, abort requests, device connections.     |
 | `logger.debug()` | Verbose detail only useful when actively debugging. | Full prompts/responses, token usage, timing traces, state patches, pipeline internals.           |
 
 ### Code practices
@@ -249,7 +247,7 @@ The overlay is not a substitute for this guide. When instructions conflict, foll
 - Explain the why clearly in the PR description. Reviewers should understand the user problem, regression, or tradeoff being addressed, not just the implementation summary.
 - Update documentation in the same PR when behavior changes affect installation, updates, release flow, launchers, or platform-specific behavior.
 - Include screenshots or short recordings for UI changes.
-- Call out manual validation clearly, especially for launcher, installer, or Android wrapper changes.
+- Call out manual validation clearly, especially for launcher or Android wrapper changes.
 - Add a concise user-focused entry under the appropriate `CHANGELOG.md` `[Unreleased]` heading for every bug fix, behavior change, or new feature. Purely mechanical changes with no product or contributor-workflow impact may omit one.
 - Avoid version drift. If your PR intentionally bumps a release, update every version-bearing file in one pass.
 
@@ -271,15 +269,15 @@ The overlay is not a substitute for this guide. When instructions conflict, foll
 - This applies to AI-assisted PRs too. If an AI assistant writes or updates a feature, instruct it that the English docs change lands in the same PR and the translated packs (or the `[docs-i18n]` follow-up issue) must cover every language currently on `docs-i18n`.
 - Translate prose, headings, table text, and link text only. Code blocks, inline code, file paths, URLs, and link targets (including `#fragments`) stay byte-identical to English, and every file keeps its leading `# ` heading. Per-language conventions, in both cases with in-app UI labels kept in English bold plus a one-time native-language gloss:
   - Spanish: neutral international Spanish ("tú", no regionalisms).
-  - German: natural standard High German (lowercase "du", en dashes `–`, Duden-style compound hyphenation for English loanwords such as "Lorebook-Eintrag"; mode names Conversation/Roleplay/Game Mode stay English).
-  - French: natural standard French (tutoiement; no anglicisms or colloquialisms like "l'appli"/"checker"; plain ASCII spaces before `:` `;` `!` `?` and straight quotes/apostrophes — never `«»` or non-breaking spaces, which break the substring search and copy-paste; en dashes `–` for parentheticals, accents kept on capitals such as `É`; mode names Conversation/Roleplay/Game Mode stay English).
-  - Brazilian Portuguese (`pt-br`): natural Brazilian Portuguese, never European forms ("você" with its imperative — "Clique", "Abra"; arquivo/salvar/tela/usuário — never ficheiro/guardar/ecrã/utilizador; current Acordo Ortográfico spelling; straight quotes and en dashes; mode names Conversation/Roleplay/Game Mode stay English).
-  - Polish: natural Polish ("ty" with 2nd-person imperatives — "Kliknij", "Otwórz"; avoid reader-gendering past-tense forms; product names stay UNDECLINED with a carrier noun where the case demands — "w aplikacji Marinara Engine", never "w Marinarze" — while assimilated loanwords decline normally; straight ASCII quotes only, never „…", and no non-breaking spaces; mode names Conversation/Roleplay/Game Mode stay English).
-  - Russian: natural Russian (lowercase "вы" with its imperative — "Нажмите", "Откройте" — matching mainstream Russian software convention and keeping phrasing gender-neutral via plural agreement, never capitalized "Вы" mid-sentence, never "ты"; product names stay in LATIN SCRIPT and undeclined with a carrier noun where the case demands — "в приложении Marinara Engine", never "в Маринаре" — while Cyrillic-assimilated loanwords such as "промпт", "токен", "пресет", and "лорбук" decline normally; en dashes `–` wherever Russian wants тире, never em dashes; straight ASCII quotes only, never «ёлочки», and no non-breaking spaces; "е" instead of "ё" except in "всё/всём/всё-таки"; mode names Conversation/Roleplay/Game Mode stay English).
-  - Japanese: natural Japanese (polite です・ます prose with noun-phrase 体言止め headings and no "あなた" floods — Japanese drops subjects; product names stay in LATIN SCRIPT, never katakanized — "Marinara Engineでは", never "マリナーラ"; katakana loanwords use the modern trailing-ー spelling — "サーバー"/"ユーザー"/"フォルダー", never "サーバ"/"ユーザ"/"フォルダ" — with community-standard terms such as "ロアブック"; ALL Latin letters and digits stay half-width ASCII (full-width "７８６０" never matches a search for `7860`); no ideographic space U+3000, no non-breaking spaces, no space between Japanese and Latin/bold/code spans, text NFC-normalized; 「」 for Japanese quoting while quoted English UI strings stay byte-exact to the app; mode names Conversation/Roleplay/Game Mode stay English).
-  - Korean: natural Korean (the 합니다체 register standard in Korean software with ~하세요 imperatives and noun-phrase headings; never "당신"; product names stay in LATIN SCRIPT — never transcribed — with phonetically correct particle attachment, "Marinara Engine은", "HUD와"; ONE transcription and ONE spacing per term — "메시지" never "메세지", "콘텐츠" never "컨텐츠", "캐릭터 카드" always spaced that way — because either split fragments the substring search; UI-label glosses match the app's shipped Korean UI strings in `ko.json` where they exist; ALL Latin letters and digits half-width ASCII; no ideographic space U+3000, no non-breaking spaces, straight ASCII quotes only (never 낫표 「」), text NFC-normalized — macOS-decomposed Hangul jamo would silently break search; mode names Conversation/Roleplay/Game Mode stay English).
-  - Simplified Chinese (`zh-hans`): natural Simplified Chinese ("你" address, never "您"; SIMPLIFIED CHARACTERS ONLY — a stray traditional form like "個" or "說" silently breaks search for readers typing simplified; the Chinese SillyTavern community's established terms — "世界书" for lorebook, "角色卡", "提示词" for prompt, "立绘" for sprites, "智能体" for agent; product names stay in LATIN SCRIPT; full-width CJK punctuation ，。（） in prose but ALL Latin letters and digits half-width ASCII — full-width "７８６０" never matches a search for `7860`; glosses in half-width parens tight after a bold/Latin label and full-width （） inside pure Chinese prose; curly “” for Chinese-prose quoting while quoted English UI strings stay byte-exact; no ideographic space U+3000, no NBSP, text NFC-normalized; mode names Conversation/Roleplay/Game Mode stay English).
-  - Hindi: natural modern technical Hindi (the Google/Microsoft Hindi register — Devanagari loanwords like "फ़ाइल"/"सर्वर"/"प्रॉम्प्ट", never शुद्ध purisms like "संगणक"; "आप" address with "करें"-style imperatives, never "तू"/"तुम"; ONE transliteration per term with a fixed nukta policy — nukta kept on ज़/फ़ only, so "फ़ाइल" but "खास", because "फ़ाइल" and "फाइल" are different byte strings that split the substring search; international digits 0-9 only — Devanagari "०७८६०" never matches a search for `7860`; the danda "।" ends Hindi sentences (verbatim English strings keep their own punctuation); product names stay in LATIN SCRIPT with postpositions as separate words — "Marinara Engine में"; straight ASCII quotes; text NFC-normalized with no ZWJ/ZWNJ; mode names Conversation/Roleplay/Game Mode stay English).
+  - German: natural standard High German (lowercase "du", en dashes `–`, Duden-style compound hyphenation for English loanwords such as "Lorebook-Eintrag"; mode names Conversation and Roleplay stay English).
+  - French: natural standard French (tutoiement; no anglicisms or colloquialisms like "l'appli"/"checker"; plain ASCII spaces before `:` `;` `!` `?` and straight quotes/apostrophes — never `«»` or non-breaking spaces, which break the substring search and copy-paste; en dashes `–` for parentheticals, accents kept on capitals such as `É`; mode names Conversation and Roleplay stay English).
+  - Brazilian Portuguese (`pt-br`): natural Brazilian Portuguese, never European forms ("você" with its imperative — "Clique", "Abra"; arquivo/salvar/tela/usuário — never ficheiro/guardar/ecrã/utilizador; current Acordo Ortográfico spelling; straight quotes and en dashes; mode names Conversation and Roleplay stay English).
+  - Polish: natural Polish ("ty" with 2nd-person imperatives — "Kliknij", "Otwórz"; avoid reader-gendering past-tense forms; product names stay UNDECLINED with a carrier noun where the case demands — "w aplikacji Marinara Engine", never "w Marinarze" — while assimilated loanwords decline normally; straight ASCII quotes only, never „…", and no non-breaking spaces; mode names Conversation and Roleplay stay English).
+  - Russian: natural Russian (lowercase "вы" with its imperative — "Нажмите", "Откройте" — matching mainstream Russian software convention and keeping phrasing gender-neutral via plural agreement, never capitalized "Вы" mid-sentence, never "ты"; product names stay in LATIN SCRIPT and undeclined with a carrier noun where the case demands — "в приложении Marinara Engine", never "в Маринаре" — while Cyrillic-assimilated loanwords such as "промпт", "токен", "пресет", and "лорбук" decline normally; en dashes `–` wherever Russian wants тире, never em dashes; straight ASCII quotes only, never «ёлочки», and no non-breaking spaces; "е" instead of "ё" except in "всё/всём/всё-таки"; mode names Conversation and Roleplay stay English).
+  - Japanese: natural Japanese (polite です・ます prose with noun-phrase 体言止め headings and no "あなた" floods — Japanese drops subjects; product names stay in LATIN SCRIPT, never katakanized — "Marinara Engineでは", never "マリナーラ"; katakana loanwords use the modern trailing-ー spelling — "サーバー"/"ユーザー"/"フォルダー", never "サーバ"/"ユーザ"/"フォルダ" — with community-standard terms such as "ロアブック"; ALL Latin letters and digits stay half-width ASCII (full-width "７８６０" never matches a search for `7860`); no ideographic space U+3000, no non-breaking spaces, no space between Japanese and Latin/bold/code spans, text NFC-normalized; 「」 for Japanese quoting while quoted English UI strings stay byte-exact to the app; mode names Conversation and Roleplay stay English).
+  - Korean: natural Korean (the 합니다체 register standard in Korean software with ~하세요 imperatives and noun-phrase headings; never "당신"; product names stay in LATIN SCRIPT — never transcribed — with phonetically correct particle attachment, "Marinara Engine은", "HUD와"; ONE transcription and ONE spacing per term — "메시지" never "메세지", "콘텐츠" never "컨텐츠", "캐릭터 카드" always spaced that way — because either split fragments the substring search; UI-label glosses match the app's shipped Korean UI strings in `ko.json` where they exist; ALL Latin letters and digits half-width ASCII; no ideographic space U+3000, no non-breaking spaces, straight ASCII quotes only (never 낫표 「」), text NFC-normalized — macOS-decomposed Hangul jamo would silently break search; mode names Conversation and Roleplay stay English).
+  - Simplified Chinese (`zh-hans`): natural Simplified Chinese ("你" address, never "您"; SIMPLIFIED CHARACTERS ONLY — a stray traditional form like "個" or "說" silently breaks search for readers typing simplified; the Chinese SillyTavern community's established terms — "世界书" for lorebook, "角色卡", "提示词" for prompt, "立绘" for sprites, "智能体" for agent; product names stay in LATIN SCRIPT; full-width CJK punctuation ，。（） in prose but ALL Latin letters and digits half-width ASCII — full-width "７８６０" never matches a search for `7860`; glosses in half-width parens tight after a bold/Latin label and full-width （） inside pure Chinese prose; curly “” for Chinese-prose quoting while quoted English UI strings stay byte-exact; no ideographic space U+3000, no NBSP, text NFC-normalized; mode names Conversation and Roleplay stay English).
+  - Hindi: natural modern technical Hindi (the Google/Microsoft Hindi register — Devanagari loanwords like "फ़ाइल"/"सर्वर"/"प्रॉम्प्ट", never शुद्ध purisms like "संगणक"; "आप" address with "करें"-style imperatives, never "तू"/"तुम"; ONE transliteration per term with a fixed nukta policy — nukta kept on ज़/फ़ only, so "फ़ाइल" but "खास", because "फ़ाइल" and "फाइल" are different byte strings that split the substring search; international digits 0-9 only — Devanagari "०७८६०" never matches a search for `7860`; the danda "।" ends Hindi sentences (verbatim English strings keep their own punctuation); product names stay in LATIN SCRIPT with postpositions as separate words — "Marinara Engine में"; straight ASCII quotes; text NFC-normalized with no ZWJ/ZWNJ; mode names Conversation and Roleplay stay English).
 - After editing a pack, run `node scripts/docs-i18n/build-manifest.mjs <pack-dir>` to refresh hashes, then `node scripts/docs-i18n/validate-pack.mjs <pack-dir>` from the Engine repo root, before committing to `docs-i18n`.
 
 ## Localization
@@ -318,8 +316,6 @@ Current version touchpoints:
 | `packages/server/package.json`              | Derived workspace version                              |
 | `packages/shared/package.json`              | Derived workspace version                              |
 | `packages/shared/src/constants/defaults.ts` | Shared `APP_VERSION` used by the app and update checks |
-| `win/installer/installer.nsi`               | Windows installer output version                       |
-| `win/installer/install.bat`                 | Windows installer banner text                          |
 | `android/app/build.gradle`                  | Android `versionName` and `versionCode`                |
 
 Android policy:
@@ -331,20 +327,11 @@ Android policy:
 Release-related behavior already in the repo:
 
 - Docker publishing is triggered by `v*` tags.
-- Tagged releases are published from `CHANGELOG.md` by the GitHub release workflow, with a named versioned source ZIP and a temporary Android APK notice prepended so release-page downloaders know the APK still requires Termux. Android releases attach both the versioned APK and the stable `marinara-engine-android.apk` alias used by the one-click latest-download link.
+- Tagged releases are published from `CHANGELOG.md` by the GitHub release workflow, with a named versioned source ZIP and Android APK notice. Android releases attach both the versioned APK and the stable `marinara-engine-android.apk` alias used by the one-click latest-download link.
 - The server update check reads the newest GitHub `v*` tag and uses matching release metadata when it exists.
 - Git-based installs can apply updates automatically; Docker installs are prompted with the pull command instead.
-- Pull request CI runs `pnpm check`, `pnpm version:check`, and the tracked-installer guard.
-- Built installer binaries belong on GitHub Releases and should not be committed back into the repository.
 
 Standard release flow:
-
-For the next main release after v2.4.6, also complete the coordinated
-[Quartermaster and Relationship Tracker catalog promotion](https://github.com/Pasta-Devs/Marinara-Agents/issues/1091).
-In Marinara-Agents, remove these two IDs from `STAGING_ONLY_PACKAGE_IDS`, rebuild their packages,
-and update the published catalog counts and documentation before promoting Agents `staging` to `main`
-alongside this Engine release. Copying the preview catalog to `main` alone keeps both packages hidden
-from stable Engine users. Leave other staging-only packages at their existing release tier.
 
 1. Bump the canonical version in root `package.json`.
 2. Run `pnpm version:sync -- --android-version-code <next-code>` to sync all derived version fields.
@@ -352,17 +339,15 @@ from stable Engine users. Leave other staging-only packages at their existing re
 4. Update `CHANGELOG.md`; when publishing a stable release, update README's current-stable-release link to the matching tag.
 5. Open the promotion PR from `staging` to `main` and wait for its full browser matrix and required checks to pass before merging. If the candidate changes, validate the updated candidate. For a release without a promotion PR, manually run the full matrix against its exact candidate commit before tagging.
 6. Create and push the tag `vX.Y.Z` from the `main` commit that contains that exact version bump.
-7. Let the release workflows publish or update the GitHub Release, named source ZIP, Windows installer, Android WebView shell APK, and GHCR container images (`X.Y.Z`, `X.Y`, `X`, `latest`, plus `X.Y.Z-lite` / `lite`) from the matching changelog entry.
+7. Let the release workflows publish or update the GitHub Release, named source ZIP, Android WebView shell APK, and GHCR container images (`X.Y.Z`, `X.Y`, `X`, `latest`, plus `X.Y.Z-lite` / `lite`) from the matching changelog entry.
 
 Release helpers now in the repo:
 
 - `pnpm version:sync -- --android-version-code <next-code>` updates the derived version files from the root `package.json` version. README's current-stable-release link changes only when that release is published.
 - `pnpm version:check` fails when those derived files drift out of sync.
 - `pnpm credits:check` compares the in-app Credits modal with the GitHub contributors list, and `pnpm credits:sync` refreshes it.
-- `pnpm guard:installer-artifacts` fails when tracked installer binaries appear under `win/installer/*.exe`.
 - `pnpm release:notes -- <version>` renders the matching `CHANGELOG.md` entry for release publication and prepends the temporary Android APK / Termux notice.
 
 ## Immediate Way Forward
 
-- Add launcher and installer smoke tests so startup parity is exercised automatically, not just by manual verification.
 - Consider a release wrapper script that bumps the root version, prompts for `versionCode`, runs `pnpm version:sync`, and opens the changelog entry for editing.

@@ -1,6 +1,6 @@
 # Local Model Setup
 
-This guide explains the built-in **Local Model**, a small AI model that Marinara Engine downloads and runs on your own machine. It needs no API key and no online account. This guide covers setup, the **Runtime Settings**, and how the Local Model powers helpers like tracker agents, Game Mode scene effects, and offline call transcription.
+This guide explains the built-in **Local Model**, a small AI model that Marinara Engine downloads and runs on your own machine. It needs no API key and no online account. This guide covers setup, the **Runtime Settings**, and how the Local Model powers helper agents, lorebook search, and offline call transcription.
 
 ## What the Local Model is
 
@@ -9,14 +9,13 @@ The **Local Model** is a compact language model (Gemma) that runs entirely on yo
 The Local Model is deliberately small. It is meant for background helper work, not for your main chat or roleplay. Marinara uses it for these jobs:
 
 - Tracker agents in Roleplay mode.
-- Scene effects in Game Mode, such as backgrounds, music, and weather.
 - Lorebook embeddings for semantic search.
 - Microphone transcription in Conversation calls, through a separate speech model.
 - Answering activation questions and decision statements, if you pick it as your Decision model. See [Decision Models](decision-models.md).
 
 The setup window calls it the **Local AI Model**. The connection dropdowns call it **Local Model (sidecar)**. These are the same feature.
 
-You should not use the Local Model for main chat, roleplay, Game Master narration, or Professor Mari edits. It is too small for good results there. Use a stronger connection for those. See [Connecting to an AI Provider](connecting-to-a-provider.md).
+You should not use the Local Model for main chat, roleplay, or Professor Mari edits. It is too small for good results there. Use a stronger connection for those. See [Connecting to an AI Provider](connecting-to-a-provider.md).
 
 ## Opening the Local Model card
 
@@ -121,7 +120,7 @@ Notes on the trickier fields:
 - **Pooling Type** defaults to **None**. Switch it to **Mean** when you use the Local Model for lorebook embeddings.
 - **Physical Batch Size** sets how much text the embedding endpoint takes in one batch. Raise it when long lorebook entries fail to vectorize. The app suggests 1024 for Gemma.
 - **Native Tool Calls** must be on for tools to work. The warning reads that Professor Mari and custom agents need this enabled before the local model can run tools. This option is not available on the MLX runtime.
-- **Max Response Tokens** caps normal chat and agent replies. It does not limit Game Mode scene analysis, which has its own internal cap.
+- **Max Response Tokens** caps normal chat and agent replies.
 
 ## Send Test Message
 
@@ -139,17 +138,15 @@ The test uses a fixed prompt. It ignores your Temperature and token settings, so
 Once a model is downloaded, the Local Model card shows two switches:
 
 - **Use for tracker agents (roleplay)**. This is off by default.
-- **Use for game scene analysis**. This is on by default.
 
-These two switches decide whether Marinara keeps the Local Model running in the background. If both are off, the runtime does not start on its own. Turning either one on makes Marinara start the local server automatically. The first start after you turn one on can take a moment.
+This switch decides whether Marinara keeps the Local Model available for tracker agents. Turning it on makes Marinara start the local server automatically. The first start after you turn one on can take a moment.
 
 The card also has a **Use local model for all tracker agents** button. It points every built-in tracker agent at the Local Model in one click. A line below shows how many tracker agents point at the local model, for example "3/7 built-in tracker agents currently point at the local model." This only changes which model the agents use. It does not turn the agents on. See [Memory Recall and Chat Summaries](../agents/memory.md) and your mode guide for enabling agents.
 
-In Game Mode you can also route scene work through the Local Model. In the Game setup, the **Scene Effects Connection** dropdown offers **Local Model (Gemma)**. Picking it turns on the **Use for game scene analysis** switch. See [Game Mode: Getting Started](../game/getting-started.md).
 
 ### Local Model for lorebook embeddings
 
-You can use the Local Model to power semantic lorebook search. In a lorebook's vectorization controls, pick **Local Model (sidecar)** as the connection. This needs **Use for tracker agents (roleplay)** or **Use for game scene analysis** to be on first. If both are off, the request fails with a message that the local model must be enabled for trackers or game scene analysis. This path uses the GGUF runtime and is not available on Apple Silicon MLX. See [Semantic Search for Lorebooks](../lorebooks/semantic-search.md).
+You can use the Local Model to power semantic lorebook search. In a lorebook's vectorization controls, pick **Local Model (sidecar)** as the connection. This needs **Use for tracker agents (roleplay)** to be on first. This path uses the GGUF runtime and is not available on Apple Silicon MLX. See [Semantic Search for Lorebooks](../lorebooks/semantic-search.md).
 
 ## Using the Local Model as a chat connection
 
@@ -157,7 +154,7 @@ Once a model is downloaded, the Local Model appears at the bottom of most connec
 
 If you pick it for a normal chat, a warning appears. It reads that the Local Model is tiny and intended for helpers. It also warns that main chat and roleplay replies may be slow, short, or low quality. This entry is not a real saved connection, so you cannot save connection defaults for it.
 
-Selecting it for a chat starts the local server on demand, even when both helper switches are off. Game Mode's main model dropdown does not list it. Game Mode uses the Local Model only through the **Scene Effects Connection**.
+Selecting it for a chat starts the local server on demand, even when both helper switches are off.
 
 ## Local Speech Model for calls
 
@@ -183,7 +180,7 @@ Your recorded audio never leaves your machine. Only the transcribed text is sent
 
 ## Troubleshooting
 
-**"Sidecar runtime install is disabled."** Installing or reinstalling the runtime is a protected action. Windows one-click installs turn it on for you. On macOS, Linux, and Docker, you have two options. Set `SIDECAR_RUNTIME_INSTALL_ENABLED=true` in the server `.env` file, for example:
+**"Sidecar runtime install is disabled."** Installing or reinstalling the runtime is a protected action. On macOS, Linux, and Docker, you have two options. Set `SIDECAR_RUNTIME_INSTALL_ENABLED=true` in the server `.env` file, for example:
 
 ```
 SIDECAR_RUNTIME_INSTALL_ENABLED=true
@@ -195,9 +192,7 @@ Or enter your Admin Access secret once in **Settings -> Advanced -> Admin Access
 
 **The runtime download reports a size or SHA-256 mismatch.** Marinara discarded the download before extraction. Update Marinara first, then retry so the approved runtime manifest and download agree. If the same release still fails, do not extract or execute the archive manually; report the runtime target and error to the maintainers.
 
-**Lorebook search says the local model is not enabled.** Turn on **Use for tracker agents (roleplay)** or **Use for game scene analysis** in the Local Model card, then try the vectorization again.
-
-**A Game Mode banner reads "Local scene helper failed to start."** Click **Open Local AI Model** in the banner to retry, switch models, or turn off local scene analysis.
+**Lorebook search says the local model is not enabled.** Turn on **Use for tracker agents (roleplay)** in the Local Model card, then try the vectorization again.
 
 For more help, see [Troubleshooting Marinara Engine](../TROUBLESHOOTING.md).
 
@@ -208,5 +203,4 @@ For more help, see [Troubleshooting Marinara Engine](../TROUBLESHOOTING.md).
 - [Connecting a Local or Self-Hosted Model](local-self-hosted.md)
 - [Memory Recall and Chat Summaries](../agents/memory.md)
 - [Conversation Audio and Video Calls](../conversation/calls.md)
-- [Game Mode: Getting Started](../game/getting-started.md)
 - [Semantic Search for Lorebooks](../lorebooks/semantic-search.md)

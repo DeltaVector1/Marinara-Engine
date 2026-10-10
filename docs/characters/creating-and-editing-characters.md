@@ -125,9 +125,9 @@ If Text to Speech is off, or every character shares one voice, a short note repl
 
 The **Advanced** tab holds prompt controls for advanced users. You can leave all of these empty for a normal character.
 
-These character-authored prompt controls apply in Conversation, Roleplay, and Game modes. A selected Conversation or Game preset changes the surrounding prompt, but does not disable the character's Post-History Instructions or Depth Prompt.
+These character-authored prompt controls apply in Conversation and Roleplay. The active preset changes the surrounding prompt, but does not disable the character's Post-History Instructions or Depth Prompt.
 
-- **System Prompt**. Character-specific instructions added through the active preset's character block, Conversation character context, or Game character/GM card as appropriate. This does not replace the chat's main system prompt.
+- **System Prompt**. Character-specific instructions added through the active preset's character block, Conversation character context, as appropriate. This does not replace the chat's main system prompt.
 - **Post-History Instructions**. Text placed near the end of the prompt, close to generation. A common use is a short reminder like "Stay in character".
 - **Depth Prompt**. Text injected at a chosen point in the chat history. **Depth** sets how many messages back it goes. Depth 0 is right after the latest message, and depth 4 is four messages back. The default depth is 4. **Role** sets whether the text is inserted as **System**, **User**, or **Assistant**. The default role is System.
 

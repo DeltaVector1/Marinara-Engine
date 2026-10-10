@@ -6,7 +6,7 @@ This guide covers group chats in Marinara Engine, which are chats that hold two 
 
 A group chat is any chat that has two or more characters in it. There is no separate "group chat" button. A normal chat simply becomes a group chat as soon as you add a second character.
 
-Group chats work in two modes: **Conversation** and **Roleplay**. Game Mode has its own separate party system and is not covered here.
+Group chats work in **Conversation** and **Roleplay**.
 
 The word "group" is used for a few different things in Marinara. A group chat means many characters in one chat. That is different from **Folders**, which are saved lists of characters you can reuse. It is also different from **Chat Branches**, which are alternate versions of the same chat. This guide is only about group chats.
 
@@ -51,7 +51,7 @@ Inside Chat Settings, find the **Characters** section. It shows a member count a
 
 Member order matters. In the **Sequential** response order (explained below), characters reply in the order they appear here. Drag a member to change when they speak.
 
-The **Characters** section does not appear in Game Mode. Game Mode manages its party in a different place.
+
 
 ### Turning a member off without removing them
 
@@ -125,7 +125,7 @@ Most of these settings are saved into settings profiles, so you can reuse them. 
 
 ## Who speaks: Conversation mode
 
-Conversation mode supports the same group chats, but it does not show the **Group Chat** section. Its controls live in the **Autonomous Messaging** section of **Chat Settings** instead.
+Conversation mode supports group chats with per-character reply controls.
 
 By default, a group conversation acts like Merged mode. One reply can voice several characters at once, and their lines are colored by speaker automatically. There is no separate color toggle to set in Conversation mode.
 
@@ -142,13 +142,6 @@ To pick a speaker without typing a mention, use the **Trigger Response** picker.
 
 The button tooltip reads "Trigger character response".
 
-### Character Exchanges
-
-Turn on **Character Exchanges** to let characters talk to each other on their own. It is off by default. The description reads "Characters chat with each other in group chats."
-
-When it is on, the characters can reply to each other while you are away, not only to you. This runs only while Marinara is open in your browser. If you close the app, the exchanges stop. It also shares the same daily message limit that autonomous messages use.
-
-Exchanges work whether or not character schedules are on. In a group set to **Individual**, exchanges and @mention replies between characters never use the group's last check-in of the day, so a later check-in can still use it.
 
 ## Turn handling at a glance
 
@@ -159,8 +152,7 @@ Exchanges work whether or not character schedules are on. In a group set to **In
 | Roleplay, Individual, Smart | AI picks the next speaker or speakers | `@Name` mention overrides the pick |
 | Roleplay, Individual, Manual | Nobody replies on their own | Use the **Trigger Response** picker |
 | Conversation, default | One reply can voice several characters | `@Name` mention targets a character |
-| Conversation, Reply When Mentioned on | Nobody replies without a mention or trigger | `@Name` mention or **Trigger Response** picker |
-| Conversation, Character Exchanges on | Characters can also message each other | Turn it off to stop |
+| Conversation, Reply When Mentioned | Nobody replies without a mention or trigger | `@Name` mention or **Trigger Response** picker |
 
 ## Related guides
 

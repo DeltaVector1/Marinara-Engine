@@ -10,7 +10,7 @@ The panel has six tabs. The table below shows what each tab controls.
 
 | Tab | What you set there |
 | --- | --- |
-| **General** | App behavior, notifications, responses, input, text rules, and game playback. |
+| **General** | App behavior, notifications, responses, input, text rules, and chat behavior. |
 | **Appearance** | Theme, colors, fonts, chat layout, motion, and backgrounds. |
 | **Generations** | Image and video defaults, and reusable prompt templates. |
 | **Addons** | Professor Mari's sandboxed Personal Extension drafts, optionally unlocked External Extensions, and custom themes. |
@@ -31,11 +31,10 @@ Here is where to read more about each tab:
 The **General** tab holds six sections. This page owns two of them in full: **App Behavior** and **Text Rules**. The others are summarized here and covered in detail in their own guides.
 
 - **App Behavior**: language, delete safety, and show/hide toggles. Covered below.
-- **Notifications**: notification sounds plus separate browser and Android app controls. Upload a **Custom sound** in MP3, WAV, OGG, M4A/MP4, or WebM format (up to 10 MB) to replace Marinara's built-in tone for every device connected to this server. You can preview, replace, or remove it at any time; an unreadable custom file falls back to the built-in tone, and the file is included in backups and profile exports. **Background Notifications** cover autonomous Conversation messages, while **Generation Completion Notifications** cover replies you start manually in Conversation, Roleplay, and Game modes. Both work while Marinara remains open but unfocused, and message contents stay hidden.
+- **Notifications**: notification sounds plus separate browser and Android app controls. **Generation Completion Notifications** cover replies you start manually. Message contents stay hidden.
 - **Responses**: how replies stream, save, and paginate. See [Sending and Streaming Messages](../chats/sending-and-streaming.md).
 - **Input & Editing**: message input and fast edit controls. See [Message Actions](../chats/messages.md).
 - **Text Rules**: formatting applied to chat text. Covered below.
-- **Game Playback**: Game mode reading and navigation.
 
 ## App Behavior
 
@@ -48,8 +47,6 @@ This section is at **Settings** > **General** > **App Behavior**. It controls da
   language, see [UI Localization](../development/localization.md).
 - **Documentation Language**: choose the language for Marinara's built-in guides, separate from the interface language above. English is built in and never downloaded. Picking a language other than English shows **Download & Replace**, which downloads that language pack once and removes the previous pack, so only one downloaded language is kept. Guides that are not translated yet open in English with a small `EN` badge, and the docs search works in whichever language is active. Your choice survives updates, and the pack refreshes automatically after an update when its translations changed. If the downloaded guides ever go missing or get damaged, a **Fix documentation** button appears: it re-downloads the pack, and resets the guides to English when the download source cannot be reached.
 - **Confirm before deleting**: on by default. When on, Marinara asks before it permanently deletes a chat, a character, or another item. Keep it on to avoid accidental deletes.
-- **Achievements**: on by default. When on, the Home screen shows the achievements button and unlock notices. When off, tracking stays silent. See [Achievements](../home/achievements.md).
-- **Music Player**: on by default. When on, the compact Music Player is shown. See [Music](../media/music.md).
 - **Mini Mari surprise visits**: on by default. When on, a rare Chibi Professor Mari message can appear while you scroll. Turn it off if it gets in the way.
 
 ## Text Rules
@@ -149,6 +146,5 @@ If the server is unreachable, the app keeps working from your local settings and
 - [Where Your Data Is Stored](../data/where-data-is-stored.md)
 - [Upgrading Marinara Engine](../UPGRADING.md)
 - [Troubleshooting](../TROUBLESHOOTING.md)
-- [Achievements](../home/achievements.md)
 - [Personal Extensions](../extending/personal-extensions.md)
 - [UI Localization](../development/localization.md)

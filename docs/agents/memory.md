@@ -9,7 +9,6 @@ Every AI model can only read a limited amount of text at one time. That limit is
 - **Memory Recall** searches your older messages for the parts most related to what you just said, then quietly adds those parts back into the prompt. It works in every chat mode.
 - **Summaries** compress old messages into short recaps that replace the raw messages in the prompt. Roleplay chats use **Chat Summary**. Conversation chats use **Automatic Summarization**.
 
-Game Mode chats get **Memory Recall** only. They do not have either summary feature.
 
 You can use both systems at the same time. They do different jobs and do not conflict.
 
@@ -26,7 +25,7 @@ You can use both systems at the same time. They do different jobs and do not con
 **Enable Memory Recall** is a per-chat setting. Its default depends on the mode:
 
 - On by default in Conversation chats.
-- On by default in Roleplay or Game chats that have an active Scene.
+- On by default in Roleplay chats that have an active Scene.
 - Off by default in all other chats.
 
 Turning the toggle off stops recalled memories from being added to the prompt. It does not delete anything you have already stored.

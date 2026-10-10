@@ -112,12 +112,9 @@ These macros describe the current chat and the current request.
 | `{{chatId}}` | The current chat's ID. |
 | `{{lastGenerationType}}` | A label for why this reply is being generated. |
 | `{{idle_duration}}` | How long since the last chat activity, as text like `8 minutes` or `1 hour 5 minutes`. |
-| `{{gameStoryboardKeyframeCount}}` | Game Mode's current **Keyframes per Turn** target, from 1 to 6. It defaults to `3`. |
 | `{{agent::TYPE}}` | The saved output of an agent of the given type. |
 
-The value of `{{lastGenerationType}}` is a plain label. Example values seen in the app include `normal`, `continue`, `regenerate`, `impersonate`, `guided`, `autonomous`, `turn_game`, `preview`, `game_setup`, `lorebook_scan`, and `retry_agents`. This list can grow, so treat it as examples, not a fixed set.
-
-`{{gameStoryboardKeyframeCount}}` is supplied to Game Mode GM prompts, including the built-in **Storyboard Game Prompt**. It is a narrative target, not a demand for exactly that many paragraphs. The storyboard planner still returns fewer shots when a turn does not contain enough distinct visual moments.
+The value of `{{lastGenerationType}}` is a plain label. Example values seen in the app include `normal`, `continue`, `regenerate`, `impersonate`, `guided`, `preview`, `lorebook_scan`, and `retry_agents`. This list can grow, so treat it as examples, not a fixed set.
 
 The `{{agent::TYPE}}` macro inserts the saved output of an agent (a background helper that fills in things like a scene tracker). The easiest way to add it is inside the **Preset Editor**: click **Add Section**, open the **Agent Sections** group, and pick an agent. Marinara creates a section that already contains the right `{{agent::TYPE}}` tag. This macro is resolved last, so agent text cannot inject more macros into your prompt.
 
@@ -127,7 +124,7 @@ The `{{agent::TYPE}}` macro inserts the saved output of an agent (a background h
 
 Outlet entries still use normal lorebook activation. Keywords, Constant mode, probability, filters, timing, entry limits, and token budgets decide whether an entry is active for the current generation. Active entries with the same Outlet name are joined in their **Order**, separated by new lines. They are inserted only at the macro; they are not also added at a normal lorebook position.
 
-Use Outlet macros in prompt sections in Conversation, Roleplay, or Game mode. The macro works even when it appears before the preset's lorebook marker, and a preset does not need a lorebook marker when it uses only Outlet entries. An unknown or inactive Outlet resolves to nothing. An Outlet entry cannot expand another Outlet macro, so nested Outlets do not recurse.
+Use Outlet macros in prompt sections in Conversation or Roleplay mode. The macro works even when it appears before the preset's lorebook marker, and a preset does not need a lorebook marker when it uses only Outlet entries. An unknown or inactive Outlet resolves to nothing. An Outlet entry cannot expand another Outlet macro, so nested Outlets do not recurse.
 
 ## Lorebook size macro
 

@@ -2,7 +2,7 @@
 
 This guide explains Conversation calls in Marinara Engine. You will learn how a call works, how to set one up, how to talk during a call, and how to fix common problems.
 
-Calls exist only in Conversation Mode. Roleplay and Game chats do not have a call screen.
+Calls exist only in Conversation Mode. Roleplay chats do not have a call screen.
 
 Calls is an optional agent package. Install **Calls** from **Agents → Download Agents** before following the setup below, then restart Marinara when the catalog asks.
 
@@ -15,7 +15,6 @@ During a call:
 - Characters that have a working Text to Speech (TTS) voice speak their lines out loud. TTS means text turned into spoken audio.
 - Characters without a voice reply as typed messages in the call chat.
 - You answer by microphone or by typing.
-- You can optionally see looping AI-generated video clips of a character instead of a still avatar.
 
 A call is not a peer-to-peer phone call. Marinara records your local browser microphone or camera. It sends that input to the model you picked for that Conversation. It speaks replies through your TTS provider and stores the call data on your own machine.
 
@@ -31,7 +30,6 @@ To run a working voice call, set up these pieces in order. You can skip the step
 4. **Call Audio Pipeline** turned on. This is required to start any call, even a call where you only type or only listen. It also enables microphone input.
 5. Text to Speech set up so characters can speak. Without it, every character joins as text only.
 6. Optional: Local Whisper downloaded from Connections after Calls is installed, if your browser cannot do reliable speech recognition (Firefox needs this).
-7. Optional: a video connection and generated clips if you want **Character Video Presence**.
 8. Optional: an image connection set as the chat Selfie Connection if you want characters to send selfies in the call.
 
 ### Set up Text to Speech
@@ -107,11 +105,8 @@ Most call settings live in **Chat Settings**, then **Agents**, then **Calls**. S
 | **Call Audio Pipeline** | Global | Off |
 | **Audio input mode** | Global | Mic recording + Local Whisper |
 | **Camera and screen input** | Global | Off |
-| **Character video presence** | Global | Off |
-| **Automatic video clips generation** | Global | Off |
-| **Custom clips** | Global | Off |
 
-**Generate voice cues in [tags]** asks the model to add short bracketed cues, such as `[whispering]`, `[laughing]`, or `[sighs]`, inside spoken lines. These cues shape how TTS reads the line and help pick reaction video clips. It is on by default. Turn it off to keep spoken lines plain.
+**Generate voice cues in [tags]** asks the model to add short bracketed cues, such as `[whispering]`, `[laughing]`, or `[sighs]`, inside spoken lines. These cues shape how TTS reads the line. It is on by default. Turn it off to keep spoken lines plain.
 
 ## Start, receive, and end a call
 
@@ -127,13 +122,13 @@ Only one call can be active or ringing per chat. If you start a call while one i
 
 A character can ring you if the **Calls** command is on. When that happens and you are inside that chat, an **Incoming call** banner appears above the message box. The banner has a **Decline call** button and an **Answer call** button.
 
-If you are somewhere else in Marinara, an incoming-call notification appears, similar to the notification for an autonomous character message. A short ringing tone plays. Marinara never answers for you, so you must click **Answer call**.
+If you are somewhere else in Marinara, an incoming-call notification appears. A short ringing tone plays. Marinara never answers for you, so you must click **Answer call**.
 
-Only characters that are currently available join a call. If a schedule or status marks a character as offline, that character does not join the call, even though they belong to the chat.
+Characters in the chat can join the call when they are available.
 
 ### Ending a call
 
-You can end a call at any time with the red **End call** button. It sits on the call screen and on the minimized popout. A character can also leave or end the call through an in-call command.
+You can end a call at any time with the red **End call** button. It sits on the call screen. A character can also leave or end the call through an in-call command.
 
 When the call ends, Marinara stops recording, closes the media safely, and adds a card to the normal Conversation.
 
@@ -156,7 +151,7 @@ The control bar at the bottom of the stage has icon buttons:
 
 If you stay muted for a while, a reminder appears: "You are muted! Remember to unmute yourself first if you want to talk."
 
-If you leave the Conversation while a call is active, the call shrinks into a small floating popout. The popout shows the chat name, the elapsed time, and a red **End call** button. Click the popout body to return to the full call screen. Marinara keeps the call running while you browse other panels.
+The call stays active while you browse other panels.
 
 ### Soundboard
 
@@ -164,51 +159,19 @@ The soundboard is a small library of sounds you can play during any call. Four b
 
 You can upload your own sound with the **Upload** button. Accepted formats are mp3, wav, ogg, webm, and m4a, up to 8 MB each. Your uploads have a delete control. Characters can also play a sound through the soundboard command.
 
-## Character Video Presence and video call clips
-
-**Character Video Presence** replaces a still avatar tile with a looping AI-generated video clip of the character. It is off by default. The toggle is **Character video presence** in **Chat Settings**, then **Agents**, then **Calls**.
-
-To set up video call clips:
-
-1. Create a Video Generation connection under **Settings**, then **Connections**.
-2. Mark one connection as **Default for Videos**, or pick a video connection each time you generate.
-3. Open a character or persona editor.
-4. Open the **Sprites** tab, then the **Clips** sub-tab.
-5. Use **Generate Clips** or **Upload extra** to add the clips you want.
-
-For more on sprites and the editor, see [Character Sprites (Expressions and Full-body)](../characters/sprites.md).
-
-The **Generate Clips** button opens the **Generate Call Clips** window. There you choose a **Video Generation Connection** and choose **Use avatar as reference**. Then you pick which standard clips to make. You can also define one custom clip with a **Clip name** and an action description.
-
-The six standard clip types are **Idle**, **Talking**, **Laughing**, **Angry**, **Crying**, and **Sighing**. During a spoken turn, Marinara reads the voice cues in a line, such as `[sighs]` or `[laughs]`. It picks a matching reaction clip, then returns the character to Idle.
-
-Two extra toggles appear under **Character video presence** when it is on:
-
-- **Automatic video clips generation**: off by default. When on, Marinara auto-generates only the two basic clips, **Idle** and **Talking**, for a call participant that needs them. Reaction clips and custom clips are never auto-generated. You make those by hand from the **Clips** sub-tab.
-- **Custom clips**: off by default. When on, a character can rarely request a one-off clip during a live call, and can replay a ready custom clip afterward. This is meant for special visual requests, not for every mood or line.
-
-Missing clips never block a call. The character just shows a still avatar until a clip is ready. If you trim a clip, it loops inside the trim range you set.
-
-Turning **Character video presence** off also turns off **Automatic video clips generation** and **Custom clips**.
-
-Video call clips are not the same as Gallery **Videos**. Gallery Videos hold scene videos from Roleplay, Game, or Conversation chats. The **Clips** sub-tab holds the reusable presence loops described here.
-
 ## Hidden in-call commands
 
 Characters can use the same hidden bracket commands in a call that they use in normal Conversation messages. Each command needs its matching toggle in **Chat Settings → Agents**, and the master **Commands** toggle inside that section must be on. These commands run silently and are never spoken or shown as prose.
 
 - **Selfies**: a character generates and sends a photo into the call chat. This needs a **Selfie Connection** set for the chat. See [Selfies](selfies.md).
 - **Memories**: a character saves a memory about another character based on the call.
-- **Music**: a character plays a song through the Music Player, if a music source is connected.
-- **Haptics**: a character drives a connected haptic device during intimate moments, if a device is connected.
 - **Reactions**: a character reacts to your latest typed call message with an emoji.
 - **Cross-Post**: a character moves the current topic into a different shared Conversation chat.
-- **Schedule Updates**: a character changes its own online, idle, do-not-disturb, or offline status and activity for the rest of a scheduled block. This only applies to characters that have a schedule. See [Character Schedules and Autonomous Messaging](schedules.md).
 - **Notes** and **Influence**: these save a durable note or a one-time nudge, and appear only when the chat has a connected chat set up.
 - **Soundboard**: a character plays one of the call soundboard sounds.
 - Leave and end: a character can leave the call alone, or end the call for everyone.
 
-Some commands add a small system entry to the call chat. For example, a selfie shows a "sent a selfie" entry with the image, and a custom clip shows a placeholder while the clip renders.
+Some commands add a small system entry to the call chat. For example, a selfie shows a "sent a selfie" entry with the image, .
 
 ## The call-ended summary
 

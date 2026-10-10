@@ -9,7 +9,7 @@ Fonts, backgrounds, and custom CSS themes each have their own guide. This page l
 1. Open **Settings**.
 2. Select the **Appearance** tab.
 
-The tab is split into sections you scroll through: **App Style**, **Text & Scale**, **Conversation Display**, **Tracker Panel**, **Roleplay Messages**, **Game Presentation**, **Atmosphere**, **Conversation Theme**, and **Backgrounds**.
+The tab is split into sections you scroll through: **App Style**, **Text & Scale**, **Conversation Display**, **Tracker Panel**, **Roleplay Messages**, **Atmosphere**, **Conversation Theme**, and **Backgrounds**.
 
 ## Color Scheme (Dark or Light)
 
@@ -47,11 +47,11 @@ You can only use one of these at a time. Turning on **RGB Mode** turns off **Acc
 
 ## Chat widget style
 
-At the bottom of **App Style**, choose **Default**, **Dottore** or **Mari** for movable chat buttons, windows and sections. You can change the font, frame shape and three main colors separately. Color pickers also support gradients.
+At the bottom of **App Style**, choose **Default**, **Dottore** or **Mari** for chat buttons and sections. You can change the font, frame shape and three main colors separately. Color pickers also support gradients.
 
 **Button size (px)** changes movable chat buttons and their icons without changing Display Size. Enter a size from 32 to 96 pixels. Leave the field empty, or use its reset button, to keep the current default. The size is saved with your appearance preferences and stays the same when you choose another preset.
 
-Below the color pickers, **Apply preset font**, **Apply preset shape** and **Apply preset colors** let the rest of the chat match. They start off and work independently. They cover messages, input boxes and chat controls, plus Game Mode's HUD widgets, map panel, side remarks and character sheets; Conversation messages get the optional font and colors while keeping their own shape. Your custom font, shape and color choices are included. For examples and custom themes, see [Custom CSS Themes](custom-css-themes.md#ready-made-chat-window-styles).
+Below the color pickers, **Apply preset font**, **Apply preset shape** and **Apply preset colors** let the rest of the chat match. They start off and work independently. They cover messages, input boxes and chat controls,; Conversation messages get the optional font and colors while keeping their own shape. Your custom font, shape and color choices are included. For examples and custom themes, see [Custom CSS Themes](custom-css-themes.md#ready-made-chat-window-styles).
 
 ## Custom Mouse Pointer
 
@@ -92,24 +92,12 @@ The **Tracker Panel** section styles the Roleplay tracker side panel. That panel
 
 The **Roleplay Messages** section styles messages in Roleplay chats.
 
-- **Chat position** chooses where the messages and the input box sit on wide screens: **Left**, **Center** (the default), or **Right**. They move together, and an open sidebar or a Tracker Panel on the same side moves them along so the chat never sits underneath. On phones and narrow windows the chat keeps the full width, and Game mode keeps its dialogue box centered.
+- **Chat position** chooses where the messages and the input box sit on wide screens: **Left**, **Center** (the default), or **Right**. They move together, and an open sidebar or a Tracker Panel on the same side moves them along so the chat never sits underneath. On phones and narrow windows the chat keeps the full width.
 - **Roleplay Messages Background Opacity** is a slider from 0% to 100%. The default is 90%. Lower it to let the background show through the message bubbles.
 - **Roleplay Avatars** picks the avatar style beside each message. The four options are **None**, **Small Circles** (the default), **Small Rectangles**, and **Glued Side Panel**.
 - **Scrollable Avatars** (default off) keeps avatars visible while you scroll through a long message.
 - **Message avatar scale** is a slider from 75% to 250%. The default is 100%.
 - **Default sprite scale** is a slider from 50% to 175%. The default is 100%. A per-chat sprite size still overrides this default.
-
-## Game Presentation
-
-The **Game Presentation** section scales the art in Game mode. Game mode can show both a dialogue portrait and a full-body sprite. These two sliders set their size.
-
-- **Dialogue portrait scale** is a slider from 75% to 175%. The default is 100%.
-- **Full-body sprite scale** is a slider from 75% to 275%. The default is 135%.
-
-**Game Dialogue Display** chooses how the dialogue box behaves:
-
-- **Classic VN** (the default). One active segment shows in the dialogue box. Older lines are in the **Logs** button.
-- **History Above VN**. Prior segments show above the dialogue box. The full session stays scrollable there.
 
 ## Atmosphere weather effects
 

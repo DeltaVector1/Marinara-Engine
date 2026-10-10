@@ -8,7 +8,7 @@ An agent is a small AI helper that runs automatically for one chat. The **Illust
 
 The Illustrator does not draw every message. By default, after it makes an image it waits for 5 accepted user and assistant messages before it can make another one. Swiping or regenerating the same reply does not advance that interval. If it decides a moment is not worth illustrating, it skips it and makes no image. Every image it creates is saved to the chat **Gallery**.
 
-You can use the Illustrator in **Roleplay** and **Game Mode** chats, and installing it also unlocks Conversation selfies. Its short description in the app reads: "Responsible for image and video generations." The setup steps and settings in this guide are for Roleplay chats. Game Mode uses one simple switch instead, covered in the Game Mode section below.
+You can use the Illustrator in **Roleplay** chats, and installing it also unlocks Conversation selfies. Its short description in the app reads: "Responsible for image and video generations." The setup steps and settings in this guide are for Roleplay chats.
 
 ## Before you start
 
@@ -31,10 +31,6 @@ The Illustrator is off by default. In a **Roleplay** chat, add it like this:
 4. In the **Misc Agents** group, find **Illustrator** and add it with the Plus button.
 
 You should now see an **Illustrator** settings card with its own options. Adding an agent uses extra tokens and can make extra AI calls per turn. The token estimates cover only agent instructions; they are not a running cost estimate.
-
-### Game Mode: the Game Illustrator toggle
-
-Game Mode does not use the steps above, and it does not show the **Prompt Mode** or **Prompt Model** options. Instead, open the game's **Chat Settings** and turn on the single **Game Illustrator** toggle. Its description reads: "Auto-generate scene illustrations, NPC portraits, and location backgrounds during gameplay."
 
 ## Prompt modes
 

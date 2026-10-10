@@ -4,7 +4,7 @@ This guide covers selfies in Conversation Mode. A selfie is an image a character
 
 ## What selfies are
 
-Selfies are a Conversation Mode feature. A character can send a generated picture of themselves during a normal chat. This is different from the scene pictures used in Roleplay Mode and Game Mode. Selfies are made for the messaging-app feel of Conversation Mode.
+Selfies are a Conversation Mode feature. A character can send a generated picture of themselves during a normal chat. This is different from the scene pictures used in Roleplay. Selfies are made for the messaging-app feel of Conversation Mode.
 
 Selfies use image generation. Each selfie your character sends uses one image generation request from the connection you pick. Because of this, selfies are turned off until you set them up.
 
@@ -83,7 +83,7 @@ Here is a picture from my walk!
 [selfie: context="standing beside the river at sunset"]
 ```
 
-`[selfie: "standing beside the river"]` and `[selfie: standing beside the river]` also work. The command is case-insensitive, so `[SELFIE:xxxxx.]` is valid syntax. It is a Conversation command, not a Roleplay or Game Mode image trigger. A literal marker left in the message can indicate that the chat is in another mode or **Commands** is disabled. Confirm that Illustrator is installed, **Generated Selfies** is enabled and **Selfie Connection** is selected. If generation starts but fails, inspect the reported connection or image-provider error; changing the marker's capitalization will not fix it.
+`[selfie: "standing beside the river"]` and `[selfie: standing beside the river]` also work. The command is case-insensitive, so `[SELFIE:xxxxx.]` is valid syntax. It is a Conversation command, not a Roleplay image trigger. A literal marker left in the message can indicate that the chat is in another mode or **Commands** is disabled. Confirm that Illustrator is installed, **Generated Selfies** is enabled and **Selfie Connection** is selected. If generation starts but fails, inspect the reported connection or image-provider error; changing the marker's capitalization will not fix it.
 
 ## Asking for a selfie by hand
 

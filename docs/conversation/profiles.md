@@ -1,6 +1,6 @@
 # Conversation Mode Profiles (Display Name, About Me, Behavior)
 
-This guide covers the small profile that every character and persona gets in Conversation Mode. The profile has three parts: a display name, an "about me" bio, and a behavior directive. These fields work like a chat-app profile (think Discord). They only apply in Conversation Mode and are never used in Roleplay or Game Mode.
+This guide covers the small profile that every character and persona gets in Conversation Mode. The profile has three parts: a display name, an "about me" bio, and a behavior directive. These fields work like a chat-app profile (think Discord). They only apply in Conversation Mode and are never used in Roleplay.
 
 Conversation Mode is the DM or messenger style chat. If you are new to it, read [Conversation Mode: Getting Started](getting-started.md) first. A persona is the profile that stands in for you (the `{{user}}`) in a chat.
 
@@ -37,7 +37,7 @@ Professor Mari uses her normal configured model. There is no separate About Me c
 
 ## Convo Behavior
 
-**Convo Behavior** is a free-text instruction for how the character or persona should act in Conversation Mode. For example: keep replies short and lowercase, and text like a real person rather than a narrator. It is never sent in Roleplay or Game Mode.
+**Convo Behavior** is a free-text instruction for how the character or persona should act in Conversation Mode. For example: keep replies short and lowercase, and text like a real person rather than a narrator. It is never sent in Roleplay.
 
 ### Insertion (where the directive goes)
 
@@ -54,7 +54,7 @@ Post-history instructions are prompt text that the app places after the recent c
 
 ## Chat-specific About Me overrides
 
-The **About Me** on the card is the default bio used everywhere. You can also set a different bio for one single chat. This is the chat-specific override, and it opens through a profile popout.
+The **About Me** on the card is the default bio used everywhere. You can also set a different bio for one single chat. This is the chat-specific override, and it opens in the profile view.
 
 1. In a Conversation Mode chat, click a character's or persona's avatar or name.
 2. A small profile card opens next to the avatar. On mobile it slides up from the bottom.
@@ -63,7 +63,7 @@ The **About Me** on the card is the default bio used everywhere. You can also se
 
 To set an override:
 
-1. Click **Edit** in the popout.
+1. Click **Edit** in the profile view.
 2. Type the bio for this chat. You get an emoji picker, including a **Custom emojis** tab.
 3. Click **Save**. You should see a note that a chat-specific about me was saved.
 

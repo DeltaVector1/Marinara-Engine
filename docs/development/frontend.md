@@ -624,10 +624,6 @@ Plain dialogue with one or more AI characters. Characters can have different sta
 
 An immersive narrative experience with game-state tracking: scene context (location, time, weather), character presence and mood, player stats, inventory and quests, combat encounters, world info from lorebooks, and sprite expressions.
 
-### Game Mode
-
-AI Game Master sessions with party members, dice, game state, assets, storyboards, a journal, and a structured session lifecycle. Game Mode uses dedicated stores and routes for game state, assets, table games, scene videos, and storyboards. See [Game Mode: Getting Started](../game/getting-started.md) for the user-facing workflow.
-
 ## Development
 
 ### Commands

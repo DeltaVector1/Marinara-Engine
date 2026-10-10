@@ -61,7 +61,7 @@ A connection does nothing on its own. Each chat picks which connection to use.
 2. Find the **Connection** section.
 3. Choose your connection from the dropdown.
 
-The dropdown also has two special options. **None** means no connection is chosen yet. **🎲 Random** (a die icon before the word Random) picks a different connection each time from your random pool. In Game Mode, the section is still called **Connection**, but the dropdown inside it is labeled **GM / Party Model**.
+The dropdown also has two special options. **None** means no connection is chosen yet. **🎲 Random** (a die icon before the word Random) picks a different connection each time from your random pool.
 
 When you create a brand-new chat, the **Set Up** dialog asks you to pick a connection first. Choose one, then click **Create Chat**.
 

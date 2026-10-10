@@ -89,7 +89,7 @@ These text boxes support macros. Quote characters you type are auto-formatted to
 
 ### Convo tab
 
-The **Convo** tab holds fields that apply in Conversation mode only. They are never sent in Roleplay or Game mode. They include **Convo Display Name**, **About Me**, and **Convo Behavior**. Because these are shared with characters, they have their own guide. See [Conversation Mode Profiles](../conversation/profiles.md).
+The **Convo** tab holds fields that apply in Conversation mode only. They are never sent in Roleplay. They include **Convo Display Name**, **About Me**, and **Convo Behavior**. Because these are shared with characters, they have their own guide. See [Conversation Mode Profiles](../conversation/profiles.md).
 
 ### Lorebook tab
 
@@ -97,7 +97,7 @@ The **Lorebook** tab lets you attach lorebook entries to your persona. A loreboo
 
 ### Sprites tab
 
-The **Sprites** tab lets you upload standing character art for your persona. Sprites are used in Game Mode and Roleplay. It has category tabs for **Facial Expressions**, **Full-body**, and **Clips**. You can upload one image at a time or use **Upload Folder** to bulk-import a folder of PNG images. Because sprites are a shared system, see [Character Sprites](sprites.md) for the full details.
+The **Sprites** tab lets you upload standing character art for your persona. Sprites are displayed in Roleplay. It has category tabs for **Facial Expressions**, **Full-body**, and **Clips**. You can upload one image at a time or use **Upload Folder** to bulk-import a folder of PNG images. Because sprites are a shared system, see [Character Sprites](sprites.md) for the full details.
 
 ### Gallery tab
 
@@ -119,9 +119,8 @@ Leave any of these blank to use the app's default theme colors. For a fuller wal
 The **Stats** tab has two separate blocks. Both feed the on-screen stat display (HUD) during chat.
 
 - **Enable Persona Stats** turns on status bars for needs like hunger, energy, and mood. When you enable it fresh, you get starter bars for Satiety, Energy, Hygiene, and Mood, each at 100 of 100. The **Persona Stats** agent adjusts these values as the story goes.
-- **Enable RPG Attributes** turns on RPG-style Pools and Attributes. When you enable it fresh, you get starter HP and MP Pools at 100 out of 100 and starter Attributes STR, DEX, CON, INT, WIS, and CHA at 10. These values are sent with the persona card for Combat and Game Mode, and for optional rolls in Roleplay or Game Mode. Tracker agents do not update them.
+- **Enable RPG Attributes** turns on RPG-style Pools and Attributes. When you enable it fresh, you get starter HP and MP Pools at 100 out of 100 and starter Attributes STR, DEX, CON, INT, WIS, and CHA at 10. These values can support optional Roleplay rolls and the Combat agent. Tracker agents do not update them.
 
-When a Game Mode ruleset is installed, or the persona still holds a sheet for a ruleset you no longer have, a **Ruleset sheets** block appears below these two. It holds your persona's starting build for each ruleset, which a new game on that ruleset copies. See [Ruleset sheets](colors-and-stats.md#ruleset-sheets).
 
 The values you set here are the starting defaults for new chats. Persona Status Bars can update automatically when the Persona Stats agent is enabled; persona RPG Pools and Attributes are not agent-managed. For the full explanation, see [Character Colors and RPG Stats](colors-and-stats.md).
 

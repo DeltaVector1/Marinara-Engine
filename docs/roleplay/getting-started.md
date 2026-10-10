@@ -4,7 +4,7 @@ This guide covers what Roleplay Mode is, how to start a roleplay, and what you s
 
 ## What Roleplay Mode is
 
-Roleplay Mode is one of Marinara Engine's chat modes. The others are Conversation and Game. Roleplay gives you an immersive scene view built around a story.
+Roleplay is a chat mode for an immersive scene built around a story.
 
 A roleplay scene can show a background image, character sprites, and a heads-up display of world state. A sprite is a character picture that changes with emotion. A heads-up display, or HUD, shows that state: movable **World State** and **Player & Tracker** buttons on a phone, and the Tracker Panel or the Trackers window on a computer.
 
@@ -12,7 +12,7 @@ Roleplay also uses helpers called agents. An agent is a small automatic task tha
 
 You do not need image generation to use Roleplay Mode. Without it, the mode still works as text-only chat. Sprite slots stay empty, the background shows a solid color, and the HUD still tracks everything. See [Connecting to an AI Provider](../connections/connecting-to-a-provider.md) to set up a connection.
 
-Pick Roleplay Mode when you want an immersive scene. Pick [Conversation Mode](../conversation/getting-started.md) for plain messaging chat. Pick [Game Mode](../game/getting-started.md) for a structured role-playing game with a party, combat, and dice.
+Pick Roleplay when you want an immersive scene. Pick [Conversation](../conversation/getting-started.md) for direct-message style chat.
 
 ## Starting a roleplay
 
@@ -71,7 +71,7 @@ The chat's tools are sections of **Chat Settings**. Open it with the sliders but
 - **Author's Notes**. A free-text note added to the prompt every turn. See below.
 - **Gallery**. The chat's images and videos, where you can generate an illustration or background.
 
-You can pop out any of these sections, including Search, to keep it in a separate window. On a phone, open popped-out sections from the **Chat tools** three-dot menu; tracker buttons stay separate. Older chats keep their familiar tools outside Chat Settings. Open one and choose **Put back in Chat Settings** to move it inside. See [Chat Settings Overview](../chats/chat-settings.md).
+Chat Settings groups the available chat controls into labelled sections. See [Chat Settings Overview](../chats/chat-settings.md).
 
 ### Author's Notes
 
@@ -81,7 +81,7 @@ Type your note in the box. For example: "Keep the tone dark and suspenseful. The
 
 Below the note is an **Injection Depth** number field. It sets how far up the chat history the note is placed. The in-app help reads: "Depth 0 = after the latest message, 4 = four messages from the end." Depth 0 keeps the note closest to the newest reply.
 
-Author's Notes also works the same way in Game Mode and Conversation Mode. This guide is its main reference.
+Author's Notes is available in Roleplay and Conversation.
 
 ## Agent activity
 
@@ -137,7 +137,7 @@ Open the reply's command information and choose **Restore original message** to 
 
 ## Combat encounters
 
-Roleplay Mode has a light combat layer. Enable the **Combat** agent, then click the **Encounter** button above the chat box (its tooltip reads "Start Combat Encounter"). This opens a setup modal and then a combat screen with health bars and action buttons. This is separate from Game Mode's own combat. See [Combat Encounters (Roleplay)](combat-encounters.md) for the full flow.
+Roleplay Mode has a light combat layer. Enable the **Combat** agent, then click the **Encounter** button above the chat box (its tooltip reads "Start Combat Encounter"). This opens a setup modal and then a combat screen with health bars and action buttons. See [Combat Encounters (Roleplay)](combat-encounters.md) for the full flow.
 
 ## Scenes
 
@@ -155,7 +155,7 @@ You can set a cheaper model for agents than for chat. Many users run chat on a s
 
 **HUD widgets show the wrong value.** A tracker agent fills each widget. Open the widget panel and edit the value by hand. If values keep drifting, switch the agent connection to a stronger model. You can also lock a field so the next automatic run does not overwrite it.
 
-**Sprite expressions do not change.** Check that the character has an uploaded sprite library. Image generation is needed only when you want Marinara to create new sprites. Without sprites to show, the expression agent runs but has nothing to display. You can also set an expression by hand with the **/emote** command.
+**Sprite expressions do not change.** Check that the character has uploaded sprites and that Expression Engine is enabled. You can set an expression by hand with the **/emote** command.
 
 **The background never changes.** The **Background** agent picks from your background library. With only one or two backgrounds, it keeps picking those. Add more backgrounds so the agent has more choices. See [Roleplay Backgrounds](backgrounds.md).
 
@@ -169,5 +169,5 @@ You can set a cheaper model for agents than for chat. Many users run chat on a s
 - [Narrative Director and Secret Plot](narrative-director.md)
 - [Scenes: Branching a Roleplay](scenes.md)
 - [Character Sprites](../characters/sprites.md)
-- [Connecting a Conversation to a Roleplay or Game](../chats/connected-chats.md)
+- [Connecting a Conversation to a Roleplay](../chats/connected-chats.md)
 - [Macros](../prompts/macros.md)

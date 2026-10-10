@@ -18,7 +18,7 @@ Many commands have shorter aliases. For example, you can type `/continue` or its
 
 Some commands run in your browser and change the chat right away, with no cost. Other commands ask the AI to generate text, which uses your connected provider and may use tokens. A token is the unit that most AI providers use to measure and bill text. The tables below note what each command does.
 
-Slash commands work in the **Conversation** and **Roleplay** message boxes. In **Game** mode, only `/illustrate` works as a slash command. Anything else you type starting with a slash is sent as normal text.
+Slash commands work in the **Conversation** and **Roleplay** message boxes.
 
 Several commands use message numbers. Marinara counts messages from the first message in the chat as number 1, then 2, then 3, and so on. Commands like `/goto`, `/hide`, and `/unhide` use these numbers.
 
@@ -134,31 +134,14 @@ Your persona is the character that represents you in a chat, written as `{{user}
 
 ## Conversation mode commands
 
-These commands only work in a **Conversation** chat.
+These commands work in a **Conversation** chat.
 
 | Command | What it does |
 |---|---|
-| `/games` | Opens the installed conversation game picker. `/game` and `/play` do the same. |
-| `/selfie [name (optional)]` | Generates a selfie with the installed Illustrator agent. Add a name to choose a character. |
-| `/uno` | Starts a game of UNO with the characters in the chat. |
-| `/chess` | Starts a one-on-one chess game with a character. |
-| `/poker` | Starts a game of Texas Hold'em poker with the characters. |
-| `/8ball` | Starts a one-on-one game of 8-ball pool with a character. `/pool` does the same. |
-| `/status [online\|idle\|dnd\|offline\|clear] [name (optional)]` | Sets or clears a character's presence status. |
-
-The `/uno`, `/chess`, `/poker`, and `/8ball` commands open the setup screen for that game. You can play one game at a time in a chat. For the rules and options, see [Table Games](../conversation/table-games.md).
-
-The `/status` command overrides a character's presence. The status can be `online`, `idle`, `dnd` (do not disturb), or `offline`. Use `clear` to remove an override. This sets the character to idle:
-
-```
-/status idle
-```
-
-In a chat with more than one character, add the character's name at the end, like `/status online Alice`.
+| `/selfie [name (optional)]` | Requests a selfie from the installed Illustrator agent. Add a name to choose a character. |
 
 ## Related guides
 
 - [Message Actions](messages.md)
 - [Guided Generation and Impersonate](guided-and-impersonate.md)
-- [Table Games](../conversation/table-games.md)
 - [Macros](../prompts/macros.md)

@@ -90,4 +90,4 @@ This is why a scene reads cleanly as its own little story. If you want the ongoi
 
 - [Roleplay Mode: Getting Started](getting-started.md)
 - [Chat Branches](../chats/branches.md)
-- [Connecting a Conversation to a Roleplay or Game](../chats/connected-chats.md)
+- [Connecting a Conversation to a Roleplay](../chats/connected-chats.md)
