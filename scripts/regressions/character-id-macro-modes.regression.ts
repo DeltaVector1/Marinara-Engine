@@ -20,10 +20,14 @@ const requireServer = createRequire(new URL("../../packages/server/package.json"
 const Fastify = requireServer("fastify") as typeof import("fastify").default;
 const { getDB, closeDB } = await import("../../packages/server/src/db/connection.js");
 const { generateRoutes } = await import("../../packages/server/src/routes/generate.routes.js");
+const { galleryRoutes } = await import("../../packages/server/src/routes/gallery.routes.js");
 const { chatsRoutes } = await import("../../packages/server/src/routes/chats.routes.js");
 const { createChatsStorage } = await import("../../packages/server/src/services/storage/chats.storage.js");
 const { createConnectionsStorage } = await import("../../packages/server/src/services/storage/connections.storage.js");
 const { createCharactersStorage } = await import("../../packages/server/src/services/storage/characters.storage.js");
+const { createGalleryStorage } = await import("../../packages/server/src/services/storage/gallery.storage.js");
+const { createGameSceneVideosStorage } =
+  await import("../../packages/server/src/services/storage/game-scene-videos.storage.js");
 const { characterDataSchema } = await import("../../packages/shared/dist/index.js");
 const { buildReferencedCharacterContext } = await import("../../packages/server/src/services/prompt/macro-context.js");
 
@@ -43,6 +47,7 @@ const app = Fastify();
 app.decorate("db", db);
 app.decorate("activeGenerations", new Map());
 await app.register(generateRoutes, { prefix: "/api/generate" });
+await app.register(galleryRoutes, { prefix: "/api/gallery" });
 await app.register(chatsRoutes, { prefix: "/api/chats" });
 try {
   await new Promise<void>((done) => provider.listen(0, "127.0.0.1", done));
@@ -236,7 +241,59 @@ try {
   assert.equal(Object.keys(withCards.references).length, 9, "the card path names every referenced character too");
   assert.match(withCards.content, /Guest 8/u, "the first eight cards are added");
   assert.doesNotMatch(withCards.content, /Guest 9/u, "a ninth card is not added");
-  console.log("Character ID macros resolve to names in Conversation and Roleplay prompts.");
+
+  const retiredGameChat = await chats.create({
+    name: "Retired Game mode",
+    mode: "game",
+    characterIds: [],
+    connectionId: null,
+    promptPresetId: null,
+  });
+  assert(retiredGameChat);
+  await chats.createMessage({ chatId: retiredGameChat.id, role: "user", content: "This saved turn stays intact." });
+  const priorProviderRequests = sent.length;
+  const priorMessages = (await chats.listMessages(retiredGameChat.id)).length;
+  const unsupportedGenerate = await app.inject({
+    method: "POST",
+    url: "/api/generate/",
+    payload: { chatId: retiredGameChat.id },
+  });
+  assert.equal(unsupportedGenerate.statusCode, 410, unsupportedGenerate.body);
+  const unsupportedDryRun = await app.inject({
+    method: "POST",
+    url: "/api/generate/dryRun",
+    payload: { chatId: retiredGameChat.id, returnPrompt: true },
+  });
+  assert.equal(unsupportedDryRun.statusCode, 410, unsupportedDryRun.body);
+  const galleryPreview = await app.inject({
+    method: "POST",
+    url: `/api/gallery/${retiredGameChat.id}/generate-image/preview`,
+    payload: { items: [{ id: "scene", title: "Scene", prompt: "A saved Game scene" }] },
+  });
+  assert.equal(galleryPreview.statusCode, 400, galleryPreview.body);
+  const galleryGeneration = await app.inject({
+    method: "POST",
+    url: `/api/gallery/${retiredGameChat.id}/generate-image`,
+    payload: { prompt: "A saved Game scene" },
+  });
+  assert.equal(galleryGeneration.statusCode, 400, galleryGeneration.body);
+  const videoPreview = await app.inject({
+    method: "POST",
+    url: "/api/gallery/generate-scene-video/preview",
+    payload: { chatId: retiredGameChat.id },
+  });
+  assert.equal(videoPreview.statusCode, 400, videoPreview.body);
+  const videoGeneration = await app.inject({
+    method: "POST",
+    url: "/api/gallery/generate-scene-video",
+    payload: { chatId: retiredGameChat.id },
+  });
+  assert.equal(videoGeneration.statusCode, 400, videoGeneration.body);
+  assert.equal(sent.length, priorProviderRequests, "retired Game requests never reach the text provider");
+  assert.equal((await chats.listMessages(retiredGameChat.id)).length, priorMessages, "saved turns remain unchanged");
+  assert.equal((await createGalleryStorage(db).listByChatId(retiredGameChat.id)).length, 0);
+  assert.equal((await createGameSceneVideosStorage(db).listByChatId(retiredGameChat.id)).length, 0);
+  console.log("Character ID macros resolve, and retired Game requests stop before provider or storage work.");
 } finally {
   await app.close();
   provider.closeAllConnections();

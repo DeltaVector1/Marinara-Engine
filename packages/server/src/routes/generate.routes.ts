@@ -904,6 +904,9 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
     if (!chat) {
       return rejectGenerationOutput(reply, 404, { error: "Chat not found" });
     }
+    if (chat.mode === "game") {
+      return rejectGenerationOutput(reply, 410, { error: "Game mode generation is no longer supported" });
+    }
     const roomPolicy = currentRoomGeneration();
     try {
       // Recheck after the wrapper's await: Stop or a new hosting epoch invalidates stale work.

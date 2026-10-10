@@ -8,19 +8,11 @@ import type { PromptOverrideKeyDef } from "./types.js";
 
 import { CHARACTERS_REFERENCE_SHEET } from "./registry/characters.js";
 import {
-  SPRITES_ANIMATED_PORTRAIT,
-  SPRITES_EXPRESSION_SHEET,
-  SPRITES_SINGLE_PORTRAIT,
-  SPRITES_SINGLE_FULL_BODY,
-  SPRITES_FULL_BODY_SHEET,
-} from "./registry/sprites.js";
-import {
   GAME_NPC_PORTRAIT,
   GAME_BACKGROUND,
   MAPS_LOCATION_ARTWORK,
   GAME_SCENE_ILLUSTRATION,
   GAME_NARRATION_SUMMARIZER,
-  GAME_IMAGE_PROMPT_DIRECTOR,
   GAME_VIDEO,
 } from "./registry/game-assets.js";
 import { CONVERSATION_SELFIE } from "./registry/conversation.js";
@@ -35,17 +27,11 @@ import {
 
 export const PROMPT_OVERRIDE_REGISTRY = [
   CHARACTERS_REFERENCE_SHEET,
-  SPRITES_EXPRESSION_SHEET,
-  SPRITES_SINGLE_PORTRAIT,
-  SPRITES_ANIMATED_PORTRAIT,
-  SPRITES_SINGLE_FULL_BODY,
-  SPRITES_FULL_BODY_SHEET,
   GAME_NPC_PORTRAIT,
   GAME_BACKGROUND,
   MAPS_LOCATION_ARTWORK,
   GAME_SCENE_ILLUSTRATION,
   GAME_NARRATION_SUMMARIZER,
-  GAME_IMAGE_PROMPT_DIRECTOR,
   GAME_VIDEO,
   ROLEPLAY_GALLERY_VIDEO_DIRECTOR,
   ...CONVERSATION_CALL_VIDEO_PROMPTS,
@@ -78,17 +64,11 @@ export function listPromptOverrideKeys(): string[] {
 // Re-export the typed key defs for direct import at call sites.
 export {
   CHARACTERS_REFERENCE_SHEET,
-  SPRITES_EXPRESSION_SHEET,
-  SPRITES_SINGLE_PORTRAIT,
-  SPRITES_ANIMATED_PORTRAIT,
-  SPRITES_SINGLE_FULL_BODY,
-  SPRITES_FULL_BODY_SHEET,
   GAME_NPC_PORTRAIT,
   GAME_BACKGROUND,
   MAPS_LOCATION_ARTWORK,
   GAME_SCENE_ILLUSTRATION,
   GAME_NARRATION_SUMMARIZER,
-  GAME_IMAGE_PROMPT_DIRECTOR,
   GAME_VIDEO,
   ROLEPLAY_GALLERY_VIDEO_DIRECTOR,
   CONVERSATION_CALL_VIDEO_PROMPTS,
@@ -100,19 +80,11 @@ export {
 };
 export type { CharactersReferenceSheetCtx } from "./registry/characters.js";
 export type {
-  SpritesExpressionSheetCtx,
-  SpritesSinglePortraitCtx,
-  SpritesAnimatedPortraitCtx,
-  SpritesSingleFullBodyCtx,
-  SpritesFullBodySheetCtx,
-} from "./registry/sprites.js";
-export type {
   GameNpcPortraitCtx,
   GameBackgroundCtx,
   MapsLocationArtworkCtx,
   GameSceneIllustrationCtx,
   GameNarrationSummarizerCtx,
-  GameImagePromptDirectorCtx,
   GameVideoCtx,
 } from "./registry/game-assets.js";
 export type { RoleplayGalleryVideoDirectorCtx } from "./registry/roleplay.js";

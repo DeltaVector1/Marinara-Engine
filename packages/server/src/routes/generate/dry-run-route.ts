@@ -550,6 +550,9 @@ export async function registerDryRunRoute(app: FastifyInstance) {
 
     const chat = await chats.getById(chatId);
     if (!chat) return reply.status(404).send({ error: "Chat not found" });
+    if (chat.mode === "game") {
+      return reply.status(410).send({ error: "Game mode generation is no longer supported" });
+    }
 
     const impersonate = body.impersonate === true;
     const streaming = body.streaming === true;
