@@ -442,7 +442,7 @@ export type { StagedGalleryImage } from "@marinara-engine/shared";
  * startup sweep reclaims the space.
  */
 export function sweepStagedImages(): number {
-  const stagingDir = assertInsideDir(GALLERY_DIR, join(GALLERY_DIR, ".staging"));
+  const stagingDir = assertInsideDir(GALLERY_DIR, join(GALLERY_DIR, ".staging", "noodle"));
   let removed = 0;
   try {
     for (const entry of readdirSync(stagingDir)) {
@@ -467,7 +467,7 @@ export function stageImageToDisk(chatId: string, base64: string, ext: string): S
   const filename = `${newId()}.${effectiveExt}`;
   const relativePath = `${chatId}/${filename}`;
   const finalPath = assertInsideDir(GALLERY_DIR, join(GALLERY_DIR, relativePath));
-  const stagingDir = assertInsideDir(GALLERY_DIR, join(GALLERY_DIR, ".staging"));
+  const stagingDir = assertInsideDir(GALLERY_DIR, join(GALLERY_DIR, ".staging", "noodle"));
   const stagedPath = assertInsideDir(stagingDir, join(stagingDir, `${filename}.${process.pid}.${Date.now()}.tmp`));
   mkdirSync(stagingDir, { recursive: true });
   try {
