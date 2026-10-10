@@ -705,7 +705,7 @@ type RoleplaySurfaceProps = {
   totalMessageCount: number;
   lastAssistantMessageId: string | null;
   settingsOpen: boolean;
-  settingsAnchor: ComponentProps<typeof ChatCommonOverlays>["settingsAnchor"];
+  settingsAnchor?: null;
   settingsInitialSection?: ComponentProps<typeof ChatCommonOverlays>["settingsInitialSection"];
   wizardOpen: boolean;
   peekPromptData: PeekPromptData | null;
@@ -817,7 +817,6 @@ export function ChatRoleplaySurface({
   totalMessageCount,
   lastAssistantMessageId,
   settingsOpen,
-  settingsAnchor,
   settingsInitialSection,
   wizardOpen,
   peekPromptData,
@@ -929,8 +928,6 @@ export function ChatRoleplaySurface({
   const linkedChatName = chat?.connectedChatId
     ? getConnectedChatDisplayName(allChats?.find((c) => c.id === chat.connectedChatId))
     : undefined;
-  const sidebarOpen = useUIStore((s) => s.sidebarOpen);
-  const rightPanelOpen = useUIStore((s) => s.rightPanelOpen);
   const chatBackgroundBlur = useUIStore((s) => s.chatBackgroundBlur);
   const roleplayReducedPaintEffects = useUIStore((s) => s.roleplayReducedPaintEffects);
   const defaultDisplayStyle = useUIStore((s) => s.roleplayDisplayStyle);
@@ -1135,7 +1132,6 @@ export function ChatRoleplaySurface({
   const mobileComposerActive = isMobileToolbarViewport && composerFocused;
   const ambientVisualsPaused =
     generationVisualsPaused || (isMobileToolbarViewport && (keyboardOpen || composerFocused || hasMobileDraftInput));
-  const hideEchoChamberOnMobile = sidebarOpen || rightPanelOpen || settingsOpen || wizardOpen;
   const showSpriteOverlay = expressionAgentEnabled && spriteCharacterIds.length > 0 && spriteDisplayModes.length > 0;
 
   useLayoutEffect(() => {
@@ -2003,7 +1999,7 @@ export function ChatRoleplaySurface({
 
         {/* Always mount so stagger timer runs even when panel is hidden */}
         <Suspense fallback={null}>
-          <EchoChamberPanel hiddenOnMobile={hideEchoChamberOnMobile} />
+          <EchoChamberPanel />
         </Suspense>
       </div>
 
@@ -2046,7 +2042,6 @@ export function ChatRoleplaySurface({
       <ChatCommonOverlays
         chat={chat}
         settingsOpen={settingsOpen}
-        settingsAnchor={settingsAnchor}
         settingsInitialSection={settingsInitialSection}
         chatTools={chatTools}
         wizardOpen={wizardOpen}

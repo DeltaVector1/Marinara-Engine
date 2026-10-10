@@ -88,11 +88,6 @@ export type TrackerPanelSizeProfile = (typeof TRACKER_PANEL_SIZE_PROFILES)[numbe
 export type TrackerDataPanelSection = "world" | "persona" | "characters" | "inventory" | "quests" | "custom";
 export type TrackerPanelCollapsedSections = Partial<Record<TrackerDataPanelSection, boolean>>;
 type TrackerPanelSectionOrder = TrackerDataPanelSection[];
-export type EchoChamberSide = "top-left" | "top-right" | "bottom-left" | "bottom-right";
-interface EchoChamberSize {
-  width: number;
-  height: number;
-}
 export type RoleplayAvatarStyle = "none" | "circles" | "rectangles" | "panel";
 export type RoleplayChatPosition = "left" | "center" | "right";
 
@@ -138,52 +133,10 @@ const TRACKER_PANEL_SIZE_PROFILE_WIDTHS: Record<TrackerPanelSizeProfile, number>
   expanded: 420,
 };
 
-function normalizeEchoChamberSize(value: unknown): EchoChamberSize | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const candidate = value as { width?: unknown; height?: unknown };
-  const width = Number(candidate.width);
-  const height = Number(candidate.height);
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return null;
-  return {
-    width: Math.min(10_000, Math.round(width)),
-    height: Math.min(10_000, Math.round(height)),
-  };
-}
-
-function normalizeEchoChamberSizes(value: unknown): Record<string, EchoChamberSize> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const normalized: Record<string, EchoChamberSize> = {};
-  for (const [chatId, size] of Object.entries(value)) {
-    if (!chatId.trim()) continue;
-    const nextSize = normalizeEchoChamberSize(size);
-    if (nextSize) normalized[chatId] = nextSize;
-  }
-  return normalized;
-}
-
-function normalizeEchoChamberSides(value: unknown): Record<string, EchoChamberSide> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const normalized: Record<string, EchoChamberSide> = {};
-  for (const [chatId, side] of Object.entries(value)) {
-    const normalizedChatId = chatId.trim();
-    if (
-      !normalizedChatId ||
-      typeof side !== "string" ||
-      !["top-left", "top-right", "bottom-left", "bottom-right"].includes(side)
-    ) {
-      continue;
-    }
-    normalized[normalizedChatId] = side as EchoChamberSide;
-  }
-  return normalized;
-}
-
 interface ImmediateUiStorageSnapshot {
   customCursorEnabled: boolean | undefined;
   chatSettingsMoveTipDismissed: boolean | undefined;
   chatWindowIntroDismissed: boolean | undefined;
-  echoChamberSides: string;
-  echoChamberSizes: string;
 }
 
 function readImmediateUiStorageSnapshot(value: string | null): ImmediateUiStorageSnapshot {
@@ -192,8 +145,6 @@ function readImmediateUiStorageSnapshot(value: string | null): ImmediateUiStorag
       customCursorEnabled: undefined,
       chatSettingsMoveTipDismissed: undefined,
       chatWindowIntroDismissed: undefined,
-      echoChamberSides: "{}",
-      echoChamberSizes: "{}",
     };
   }
 
@@ -203,8 +154,6 @@ function readImmediateUiStorageSnapshot(value: string | null): ImmediateUiStorag
         customCursorEnabled?: unknown;
         chatSettingsMoveTipDismissed?: unknown;
         chatWindowIntroDismissed?: unknown;
-        echoChamberSideByChatId?: unknown;
-        echoChamberSizeByChatId?: unknown;
       };
     };
     return {
@@ -216,16 +165,12 @@ function readImmediateUiStorageSnapshot(value: string | null): ImmediateUiStorag
           : undefined,
       chatWindowIntroDismissed:
         typeof parsed.state?.chatWindowIntroDismissed === "boolean" ? parsed.state.chatWindowIntroDismissed : undefined,
-      echoChamberSides: JSON.stringify(normalizeEchoChamberSides(parsed.state?.echoChamberSideByChatId)),
-      echoChamberSizes: JSON.stringify(normalizeEchoChamberSizes(parsed.state?.echoChamberSizeByChatId)),
     };
   } catch {
     return {
       customCursorEnabled: undefined,
       chatSettingsMoveTipDismissed: undefined,
       chatWindowIntroDismissed: undefined,
-      echoChamberSides: "{}",
-      echoChamberSizes: "{}",
     };
   }
 }
@@ -236,9 +181,7 @@ function shouldFlushUiStorageImmediately(previousValue: string | null, nextValue
   return (
     previous.customCursorEnabled !== next.customCursorEnabled ||
     previous.chatSettingsMoveTipDismissed !== next.chatSettingsMoveTipDismissed ||
-    previous.chatWindowIntroDismissed !== next.chatWindowIntroDismissed ||
-    previous.echoChamberSides !== next.echoChamberSides ||
-    previous.echoChamberSizes !== next.echoChamberSizes
+    previous.chatWindowIntroDismissed !== next.chatWindowIntroDismissed
   );
 }
 const TRACKER_PANEL_WIDTH_DEFAULT = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.standard;
@@ -888,9 +831,6 @@ interface UIState {
 
   // ── EchoChamber ──
   echoChamberOpen: boolean;
-  echoChamberSide: EchoChamberSide;
-  echoChamberSideByChatId: Record<string, EchoChamberSide>;
-  echoChamberSizeByChatId: Record<string, EchoChamberSize>;
 
   // ── Impersonate Settings ──
   /** Custom prompt template for /impersonate (empty = use server default). Persisted. */
@@ -1148,9 +1088,6 @@ interface UIState {
   dismissChatSettingsMoveTip: () => void;
   dismissChatWindowIntro: () => void;
   toggleEchoChamber: () => void;
-  setEchoChamberSide: (side: EchoChamberSide) => void;
-  setEchoChamberSideForChat: (chatId: string, side: EchoChamberSide) => void;
-  setEchoChamberSizeForChat: (chatId: string, size: EchoChamberSize) => void;
 }
 
 function getMobileDetailReturnState(state: UIState) {
@@ -1307,7 +1244,6 @@ export function pickSyncedSettings(state: UIState) {
     chatSettingsMoveTipDismissed: state.chatSettingsMoveTipDismissed,
     chatWindowIntroDismissed: state.chatWindowIntroDismissed,
     echoChamberOpen: state.echoChamberOpen,
-    echoChamberSide: state.echoChamberSide,
     convoNotificationSound: state.convoNotificationSound,
     rpNotificationSound: state.rpNotificationSound,
     notificationSoundsOnlyWhenUnfocused: state.notificationSoundsOnlyWhenUnfocused,
@@ -1502,9 +1438,6 @@ function pickPersistedUIState(state: UIState) {
     chatSettingsMoveTipDismissed: state.chatSettingsMoveTipDismissed,
     chatWindowIntroDismissed: state.chatWindowIntroDismissed,
     echoChamberOpen: state.echoChamberOpen,
-    echoChamberSide: state.echoChamberSide,
-    echoChamberSideByChatId: state.echoChamberSideByChatId,
-    echoChamberSizeByChatId: state.echoChamberSizeByChatId,
     convoNotificationSound: state.convoNotificationSound,
     rpNotificationSound: state.rpNotificationSound,
     notificationSoundsOnlyWhenUnfocused: state.notificationSoundsOnlyWhenUnfocused,
@@ -1748,9 +1681,6 @@ export const useUIStore = create<UIState>()(
         chatSettingsMoveTipDismissed: false,
         chatWindowIntroDismissed: false,
         echoChamberOpen: true,
-        echoChamberSide: "bottom-right" as EchoChamberSide,
-        echoChamberSideByChatId: {},
-        echoChamberSizeByChatId: {},
         centerCompact: false,
         chatModeShortcutRequest: null,
 
@@ -2577,29 +2507,6 @@ export const useUIStore = create<UIState>()(
         dismissChatSettingsMoveTip: () => set({ chatSettingsMoveTipDismissed: true }),
         dismissChatWindowIntro: () => set({ chatWindowIntroDismissed: true }),
         toggleEchoChamber: () => set((s) => ({ echoChamberOpen: !s.echoChamberOpen })),
-        setEchoChamberSide: (side) => set({ echoChamberSide: side }),
-        setEchoChamberSideForChat: (chatId, side) => {
-          const normalizedChatId = chatId.trim();
-          if (!normalizedChatId) return;
-          set((state) => ({
-            echoChamberSide: side,
-            echoChamberSideByChatId: {
-              ...state.echoChamberSideByChatId,
-              [normalizedChatId]: side,
-            },
-          }));
-        },
-        setEchoChamberSizeForChat: (chatId, size) => {
-          const normalizedChatId = chatId.trim();
-          const normalizedSize = normalizeEchoChamberSize(size);
-          if (!normalizedChatId || !normalizedSize) return;
-          set((state) => ({
-            echoChamberSizeByChatId: {
-              ...state.echoChamberSizeByChatId,
-              [normalizedChatId]: normalizedSize,
-            },
-          }));
-        },
       };
     },
     {
@@ -2654,16 +2561,6 @@ export const useUIStore = create<UIState>()(
           persisted.imageCharacterSheetWidth ??= persisted.imageBackgroundWidth ?? 1280;
           persisted.imageCharacterSheetHeight ??= persisted.imageBackgroundHeight ?? 720;
         }
-        // v86 -> v87: remember Echo Chamber dimensions independently for each chat.
-        if (version <= 86) {
-          persisted.echoChamberSizeByChatId = {};
-        }
-        persisted.echoChamberSizeByChatId = normalizeEchoChamberSizes(persisted.echoChamberSizeByChatId);
-        // v92 -> v93: remember the Echo Chamber corner independently for each chat.
-        if (version <= 92) {
-          persisted.echoChamberSideByChatId = {};
-        }
-        persisted.echoChamberSideByChatId = normalizeEchoChamberSides(persisted.echoChamberSideByChatId);
         // v87 -> v88: enable Narrator avatar cycling by default for older stores.
         if (version <= 87 && persisted.roleplayNarratorAvatarCycling === undefined) {
           persisted.roleplayNarratorAvatarCycling = true;
