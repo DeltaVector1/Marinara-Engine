@@ -104,8 +104,6 @@ type ResolveGenerationToolsArgs = {
   lorebookEmbeddingOptions?: LorebookEmbeddingOptions;
 };
 
-type ResolveAgentGenerationToolsArgs = ResolveGenerationToolsArgs & {};
-
 type ResolvedGenerationTools = {
   enableChatTools: boolean;
   /**
@@ -786,7 +784,7 @@ async function resolveToolRuntime(
     lorebookEmbeddingOptions,
     nativeToolsAvailable = true,
     getLorebookSourceMessageRefs,
-  }: ResolveAgentGenerationToolsArgs,
+  }: ResolveGenerationToolsArgs,
   options: {
     enableChatTools: boolean;
     autoAttachToolNames: readonly string[];
@@ -814,7 +812,7 @@ async function resolveToolRuntime(
     toolDefs = toolDefs.filter((toolDef) => !CONVERSATION_ONLY_TOOL_NAMES.has(toolDef.function.name));
   }
 
-  let chatResolvedToolNames = new Set((toolDefs ?? []).map((toolDef) => toolDef.function.name));
+  const chatResolvedToolNames = new Set((toolDefs ?? []).map((toolDef) => toolDef.function.name));
 
   const searchLorebookForTools = async (query: string, category?: string | null, requireVectors = false) => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -1073,9 +1071,7 @@ async function resolveToolRuntime(
   };
 }
 
-export async function resolveAgentGenerationTools(
-  args: ResolveAgentGenerationToolsArgs,
-): Promise<ResolvedGenerationTools> {
+export async function resolveAgentGenerationTools(args: ResolveGenerationToolsArgs): Promise<ResolvedGenerationTools> {
   return resolveToolRuntime(args, {
     enableChatTools: false,
     // Agent retries resolve their own tools from agent settings; mode auto-attach is a

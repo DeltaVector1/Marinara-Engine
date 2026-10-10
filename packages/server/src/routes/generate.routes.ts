@@ -9545,12 +9545,6 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           }
 
           postResults = postResults.map(markLorebookResultForApproval);
-          for (let i = 0; i < postResults.length; i++) {
-            const result = postResults[i];
-            if (!result) continue;
-            if (result.type !== "lorebook_update") sendAgentEvent(result);
-          }
-
           // ── Auto-retry failed agents once ──
           const failedResults = postResults.filter((r) => !r.success);
           if (failedResults.length > 0 && !generationSignal.aborted) {
