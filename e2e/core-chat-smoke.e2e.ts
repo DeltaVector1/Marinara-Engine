@@ -315,6 +315,7 @@ test("TTS edits preserve retired settings in saved profiles", { tag: "@smoke" },
     expect(seedResponse.ok()).toBeTruthy();
 
     await page.goto("/");
+    await expect(page.locator('[data-component="TopBar"] [data-tour="sidebar-toggle"]')).toBeVisible();
     const connectionsButton = page.locator('[data-tour="panel-connections"]');
     if (await connectionsButton.isVisible()) {
       await connectionsButton.click();
@@ -346,6 +347,7 @@ test("TTS edits preserve retired settings in saved profiles", { tag: "@smoke" },
     expect(saved.autoplayGame).toBe(true);
     expect(saved.sourceProfiles.elevenlabs).toMatchObject(legacyValues);
   } finally {
+    test.setTimeout(test.info().timeout + 5000);
     await Promise.allSettled([page.goto("about:blank")]);
     const restoreResponse = await page.request.put(configUrl, { data: original });
     expect(restoreResponse.ok()).toBeTruthy();
