@@ -2139,6 +2139,7 @@ export function ConversationInput({
           )}
 
           <button
+            data-action="send-stop"
             onClick={
               isActuallyGenerating
                 ? () => useChatStore.getState().stopGeneration(activeChatId ?? undefined)

@@ -110,10 +110,7 @@ test("Conversation and Roleplay render a completed generated reply", { tag: "@sm
         if (mode === "conversation") {
           await page.getByRole("button", { name: "Send", exact: true }).click();
         } else {
-          await page
-            .getByRole("button")
-            .filter({ has: page.locator("svg.lucide-send") })
-            .click();
+          await page.locator('button[data-action="send-stop"]').click();
         }
         await expect(page.getByText(reply!, { exact: true })).toBeVisible();
         await expect.poll(() => providerRequestCount).toBe(mode === "conversation" ? 1 : 2);
@@ -188,7 +185,7 @@ test(
       await page.addInitScript((id) => localStorage.setItem("marinara-active-chat-id", id), chatId);
       await page.goto("/");
       const input = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
-      const send = page.getByRole("button").filter({ has: page.locator("svg.lucide-send") });
+      const send = page.locator('button[data-action="send-stop"]');
       await input.fill("Stop this response");
       await send.click();
       await expect.poll(() => requests.length).toBe(1);
