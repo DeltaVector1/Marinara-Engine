@@ -15,7 +15,6 @@ import { useAgentStore, EMPTY_AGENT_FAILURES, EMPTY_AGENT_TYPES } from "../store
 import { useChatStore } from "../stores/chat.store";
 import { useGameStateStore } from "../stores/game-state.store";
 import { chatKeys, useChat, useUpdateMessageExtra } from "./use-chats";
-import { agentKeys } from "./use-agents";
 import { discardPendingGameStatePatch, useGameStatePatcher } from "./use-game-state-patcher";
 import { useGenerate } from "./use-generate";
 
@@ -83,27 +82,10 @@ export function useClearTrackers(chatId: string) {
   return useCallback(async () => {
     await flushPatch();
     discardPendingGameStatePatch(chatId);
-    try {
-      await Promise.all([
-        api.patch(`/chats/${chatId}/game-state`, { ...CLEARED_TRACKER_STATE, manual: true, clearOverrides: true }),
-        api.delete(`/agents/runs/${chatId}`),
-      ]);
-      const messages = readCachedMessages(queryClient.getQueryData<InfiniteData<Message[]>>(chatKeys.messages(chatId)));
-      const latestAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant");
-      if (latestAssistantMessage) {
-        await updateMessageExtra.mutateAsync({
-          messageId: latestAssistantMessage.id,
-          extra: { cyoaChoices: [] },
-        });
-      }
-    } catch (error) {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["agent-suite", "game-state", chatId] }),
-        queryClient.invalidateQueries({ queryKey: agentKeys.customRuns(chatId) }),
-      ]);
-      throw error;
-    }
-
+    await Promise.all([
+      api.patch(`/chats/${chatId}/game-state`, { ...CLEARED_TRACKER_STATE, manual: true, clearOverrides: true }),
+      api.delete(`/agents/runs/${chatId}`),
+    ]);
     const prev = useGameStateStore.getState().current;
     if (prev?.chatId === chatId) {
       setGameState({ ...prev, ...CLEARED_TRACKER_STATE } as GameState);
@@ -116,6 +98,12 @@ export function useClearTrackers(chatId: string) {
         createdAt: "",
         ...CLEARED_TRACKER_STATE,
       } as GameState);
+    }
+    // Clear committed agent runs & memory from DB + reset client state
+    const messages = readCachedMessages(queryClient.getQueryData<InfiniteData<Message[]>>(chatKeys.messages(chatId)));
+    const latestAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant");
+    if (latestAssistantMessage) {
+      updateMessageExtra.mutate({ messageId: latestAssistantMessage.id, extra: { cyoaChoices: [] } });
     }
     resetAgentStore();
   }, [chatId, flushPatch, queryClient, resetAgentStore, setGameState, updateMessageExtra]);
