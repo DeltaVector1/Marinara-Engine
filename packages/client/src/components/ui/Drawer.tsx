@@ -43,13 +43,7 @@ export function Drawer({
   const bodyId = `mari-drawer-body-${useId().replace(/:/gu, "")}`;
 
   return (
-    <div
-      data-drawer={id}
-      data-detached="false"
-      {...rootAttributes}
-      className={cn("mari-drawer", className)}
-      style={style}
-    >
+    <div data-drawer={id} {...rootAttributes} className={cn("mari-drawer", className)} style={style}>
       <div className="mari-drawer__header flex w-full items-center gap-2 text-left transition-colors">
         <button
           type="button"
@@ -83,7 +77,7 @@ export function Drawer({
   );
 }
 
-/** Hidden drawers no longer need to stay mounted for detached copies. */
+/** Only render drawer content while the section is open. */
 export function useDrawerContentVisible(_id: string, open: boolean): boolean {
   return open;
 }

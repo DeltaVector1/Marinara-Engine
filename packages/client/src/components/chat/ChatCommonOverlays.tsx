@@ -220,7 +220,7 @@ function ChatSettingsLoadingFallback({ onClose }: { onClose: (options?: { force?
           type="button"
           onClick={() => onClose({ force: true })}
           aria-label={localizeUi("ui.chat.chatsettingsdrawer.closeChatSettings")}
-          className="mari-chrome-control mari-chrome-control--small h-8 w-8 p-0"
+          className="mari-chrome-control mari-chrome-control--small h-10 w-10 p-0"
         >
           <X size="0.875rem" />
         </button>

@@ -220,7 +220,7 @@ export function EchoChamberPanel() {
                 : localizeUi("ui.chat.echochamberpanel.reRunEchoChamber")
             }
             aria-label={localizeUi("ui.chat.echochamberpanel.reRunEchoChamber")}
-            className="mari-chrome-control mari-chrome-control--small h-7 w-7 p-0 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="mari-chrome-control mari-chrome-control--small h-10 w-10 p-0 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <RefreshCw size="0.75rem" className={echoRetryBusy ? "animate-spin" : ""} />
           </button>
@@ -240,7 +240,7 @@ export function EchoChamberPanel() {
               }}
               aria-label={localizeUi("ui.chat.echochamberpanel.clearMessages")}
               title={localizeUi("ui.chat.echochamberpanel.clearMessages")}
-              className="mari-chrome-control mari-chrome-control--small h-7 w-7 p-0"
+              className="mari-chrome-control mari-chrome-control--small h-10 w-10 p-0"
             >
               <Trash2 size="0.75rem" />
             </button>

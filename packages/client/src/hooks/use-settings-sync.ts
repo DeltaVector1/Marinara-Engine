@@ -314,19 +314,6 @@ export function useSettingsSync() {
                 }
               }
 
-              // Dismissal is permanent, even if it happened while this request was pending.
-              // A newer preference blob must not restore guidance dismissed on either device.
-              for (const key of ["chatSettingsMoveTipDismissed", "chatWindowIntroDismissed"] as const) {
-                const locallyDismissed = useUIStore.getState()[key] === true;
-                if (locallyDismissed || parsed.settings[key] === true) {
-                  if (parsed.settings[key] !== true) staleSyncedShape = true;
-                  parsed.settings[key] = true;
-                  if (!locallyDismissed) {
-                    useUIStore.setState({ [key]: true });
-                  }
-                }
-              }
-
               const serverUpdatedAt = parsed.updatedAt;
               const localIsNewer =
                 hasTrustedLocalTimestamp &&

@@ -135,16 +135,12 @@ const TRACKER_PANEL_SIZE_PROFILE_WIDTHS: Record<TrackerPanelSizeProfile, number>
 
 interface ImmediateUiStorageSnapshot {
   customCursorEnabled: boolean | undefined;
-  chatSettingsMoveTipDismissed: boolean | undefined;
-  chatWindowIntroDismissed: boolean | undefined;
 }
 
 function readImmediateUiStorageSnapshot(value: string | null): ImmediateUiStorageSnapshot {
   if (!value) {
     return {
       customCursorEnabled: undefined,
-      chatSettingsMoveTipDismissed: undefined,
-      chatWindowIntroDismissed: undefined,
     };
   }
 
@@ -152,25 +148,15 @@ function readImmediateUiStorageSnapshot(value: string | null): ImmediateUiStorag
     const parsed = JSON.parse(value) as {
       state?: {
         customCursorEnabled?: unknown;
-        chatSettingsMoveTipDismissed?: unknown;
-        chatWindowIntroDismissed?: unknown;
       };
     };
     return {
       customCursorEnabled:
         typeof parsed.state?.customCursorEnabled === "boolean" ? parsed.state.customCursorEnabled : undefined,
-      chatSettingsMoveTipDismissed:
-        typeof parsed.state?.chatSettingsMoveTipDismissed === "boolean"
-          ? parsed.state.chatSettingsMoveTipDismissed
-          : undefined,
-      chatWindowIntroDismissed:
-        typeof parsed.state?.chatWindowIntroDismissed === "boolean" ? parsed.state.chatWindowIntroDismissed : undefined,
     };
   } catch {
     return {
       customCursorEnabled: undefined,
-      chatSettingsMoveTipDismissed: undefined,
-      chatWindowIntroDismissed: undefined,
     };
   }
 }
@@ -178,11 +164,7 @@ function readImmediateUiStorageSnapshot(value: string | null): ImmediateUiStorag
 function shouldFlushUiStorageImmediately(previousValue: string | null, nextValue: string): boolean {
   const previous = readImmediateUiStorageSnapshot(previousValue);
   const next = readImmediateUiStorageSnapshot(nextValue);
-  return (
-    previous.customCursorEnabled !== next.customCursorEnabled ||
-    previous.chatSettingsMoveTipDismissed !== next.chatSettingsMoveTipDismissed ||
-    previous.chatWindowIntroDismissed !== next.chatWindowIntroDismissed
-  );
+  return previous.customCursorEnabled !== next.customCursorEnabled;
 }
 const TRACKER_PANEL_WIDTH_DEFAULT = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.standard;
 const TRACKER_PANEL_WIDTH_MIN = TRACKER_PANEL_SIZE_PROFILE_WIDTHS.compact;
@@ -490,7 +472,7 @@ interface UIState {
   rightPanelWidth: number;
   rightPanel: Panel;
   trackerPanelEnabled: boolean;
-  /** This chat uses the Tracker Panel; its runtime visibility lives in the floating-window store. */
+  /** Whether the current chat shows the Tracker Panel. */
   trackerPanelOpen: boolean;
   trackerPanelOpenByChatId: Record<string, boolean>;
   trackerPanelSide: TrackerPanelSide;
@@ -824,10 +806,6 @@ interface UIState {
 
   // ── Dismissals ──
   linkApiBannerDismissed: boolean;
-  /** The Chat Settings "drag to place it" tip was dismissed on this device. */
-  chatSettingsMoveTipDismissed: boolean;
-  /** The once-only chat window introduction was dismissed across chats and devices. */
-  chatWindowIntroDismissed: boolean;
 
   // ── EchoChamber ──
   echoChamberOpen: boolean;
@@ -1085,8 +1063,6 @@ interface UIState {
   markChatHelpSeen: (mode: ChatModeShortcut) => void;
   setChatHelpButtonHidden: (v: boolean) => void;
   dismissLinkApiBanner: () => void;
-  dismissChatSettingsMoveTip: () => void;
-  dismissChatWindowIntro: () => void;
   toggleEchoChamber: () => void;
 }
 
@@ -1241,8 +1217,6 @@ export function pickSyncedSettings(state: UIState) {
     chatHelpSeenModes: state.chatHelpSeenModes,
     chatHelpButtonHidden: state.chatHelpButtonHidden,
     linkApiBannerDismissed: state.linkApiBannerDismissed,
-    chatSettingsMoveTipDismissed: state.chatSettingsMoveTipDismissed,
-    chatWindowIntroDismissed: state.chatWindowIntroDismissed,
     echoChamberOpen: state.echoChamberOpen,
     convoNotificationSound: state.convoNotificationSound,
     rpNotificationSound: state.rpNotificationSound,
@@ -1435,8 +1409,6 @@ function pickPersistedUIState(state: UIState) {
     chatHelpSeenModes: state.chatHelpSeenModes,
     chatHelpButtonHidden: state.chatHelpButtonHidden,
     linkApiBannerDismissed: state.linkApiBannerDismissed,
-    chatSettingsMoveTipDismissed: state.chatSettingsMoveTipDismissed,
-    chatWindowIntroDismissed: state.chatWindowIntroDismissed,
     echoChamberOpen: state.echoChamberOpen,
     convoNotificationSound: state.convoNotificationSound,
     rpNotificationSound: state.rpNotificationSound,
@@ -1678,8 +1650,6 @@ export const useUIStore = create<UIState>()(
         chatHelpSeenModes: [],
         chatHelpButtonHidden: false,
         linkApiBannerDismissed: false,
-        chatSettingsMoveTipDismissed: false,
-        chatWindowIntroDismissed: false,
         echoChamberOpen: true,
         centerCompact: false,
         chatModeShortcutRequest: null,
@@ -2504,8 +2474,6 @@ export const useUIStore = create<UIState>()(
             chatHelpSeenModes: v ? ["conversation", "roleplay", "game"] : state.chatHelpSeenModes,
           })),
         dismissLinkApiBanner: () => set({ linkApiBannerDismissed: true }),
-        dismissChatSettingsMoveTip: () => set({ chatSettingsMoveTipDismissed: true }),
-        dismissChatWindowIntro: () => set({ chatWindowIntroDismissed: true }),
         toggleEchoChamber: () => set((s) => ({ echoChamberOpen: !s.echoChamberOpen })),
       };
     },

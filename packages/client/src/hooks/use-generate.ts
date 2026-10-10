@@ -1228,8 +1228,6 @@ export function useGenerate() {
       impersonateConnectionId?: string;
       impersonateBlockAgents?: boolean;
       impersonatePromptTemplate?: string;
-      /** When true, this generation drives the active turn-game's bot seats instead of a chat reply. */
-      turnGameBots?: boolean;
       /** Structured Roleplay/Game movement committed atomically with this owner turn. */
       pendingSpatialTransition?: PendingSpatialTransition;
     }) => {
@@ -1488,7 +1486,6 @@ export function useGenerate() {
           vnReplyPublished ||
           chatModeForGeneration !== "roleplay" ||
           params.impersonate ||
-          params.turnGameBots ||
           abortController.signal.aborted ||
           useChatStore.getState().abortControllers.get(params.chatId) !== abortController ||
           !message ||
@@ -3302,7 +3299,6 @@ export function useGenerate() {
         const completedReply =
           !abortController.signal.aborted &&
           !params.impersonate &&
-          !params.turnGameBots &&
           ((sawDoneEvent && receivedContent) ||
             (passiveStreamSettled && passiveRecoveryDurableMessage?.role === "assistant"));
         if (completedReply) {

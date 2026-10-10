@@ -40,16 +40,12 @@ export function deriveActiveLorebookViews({
   chat,
   dropExcluded = false,
   excludedLorebookIds,
-  excludeGameLorebookKeeper = false,
-  gameLorebookKeeperLorebookId = null,
   lorebooks,
 }: {
   activeLorebookIds: string[];
   chat: Pick<Chat, "characterIds" | "id" | "personaId">;
   dropExcluded?: boolean;
   excludedLorebookIds: string[];
-  excludeGameLorebookKeeper?: boolean;
-  gameLorebookKeeperLorebookId?: string | null;
   lorebooks: Lorebook[];
 }): ActiveLorebookView[] {
   const chatCharacterIds = getChatCharacterIds({ characterIds: chat.characterIds });
@@ -58,13 +54,6 @@ export function deriveActiveLorebookViews({
 
   return lorebooks.flatMap((lorebook) => {
     if (dropExcluded && excludedIds.has(lorebook.id)) return [];
-    if (
-      excludeGameLorebookKeeper &&
-      (lorebook.id === gameLorebookKeeperLorebookId || lorebook.sourceAgentId === "game-lorebook-keeper")
-    ) {
-      return [];
-    }
-
     const reasons: LorebookActiveReason[] = [];
     const isPinned = pinnedIds.has(lorebook.id);
 

@@ -905,9 +905,6 @@ export function useUpdateChatMetadata(options?: { serialize?: boolean }) {
         );
       }
       const changedKeys = Object.keys(metadata);
-      const viewOnly =
-        changedKeys.length > 0 &&
-        changedKeys.every((key) => key === "windowLayout" || key === "chatSettingsHintDismissed");
       const version = nextChatMetadataMutationVersion(id, changedKeys);
       if (base) {
         syncCachedChat(qc, {
@@ -916,14 +913,13 @@ export function useUpdateChatMetadata(options?: { serialize?: boolean }) {
             ...(normalizeChatMetadataValue(base.metadata) as Record<string, unknown>),
             ...metadata,
           } as Chat["metadata"],
-          updatedAt: viewOnly ? base.updatedAt : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         });
       }
       return {
         previous,
         version,
         changedKeys,
-        viewOnly,
         enablesBasicRecall,
         previousAdvancedStatus,
         optimisticAdvancedStatus,
@@ -941,7 +937,7 @@ export function useUpdateChatMetadata(options?: { serialize?: boolean }) {
             context.version,
             context.changedKeys,
           ),
-          updatedAt: context.viewOnly ? current.updatedAt : context.previous.updatedAt,
+          updatedAt: context.previous.updatedAt,
         });
       }
       if (context?.enablesBasicRecall) {
@@ -975,7 +971,7 @@ export function useUpdateChatMetadata(options?: { serialize?: boolean }) {
             data.metadata,
             context?.version ?? chatMetadataMutationVersions.get(vars.id) ?? 0,
           ),
-          updatedAt: context?.viewOnly ? base.updatedAt : data.updatedAt,
+          updatedAt: data.updatedAt,
         });
       } else {
         qc.invalidateQueries({ queryKey: chatKeys.detail(vars.id) });

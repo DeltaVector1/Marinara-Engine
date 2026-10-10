@@ -784,7 +784,6 @@ export function ChatSettingsDrawer({
   const callsSettingsMenuId = getAgentSettingsMenuId(chat.id, "conversation-calls");
   const callsSettingsOpen = useUIStore((s) => s.chatSettingsExpandedSections[callsSettingsMenuId] ?? false);
   const setChatSettingsSectionExpanded = useUIStore((s) => s.setChatSettingsSectionExpanded);
-  const showContextUsage = useUIStore((s) => s.showContextUsage);
   const trackerPanelEnabled = useUIStore((s) => s.trackerPanelEnabled);
   const trackerPanelOpen = useUIStore((s) => s.trackerPanelOpen);
   const setTrackerPanelOpen = useUIStore((s) => s.setTrackerPanelOpen);
@@ -852,8 +851,6 @@ export function ChatSettingsDrawer({
     setTrackerPanelOpen(true, chat.id);
   };
   const summaryRetrievalSettings = normalizeSemanticSummaryRetrievalSettings(metadata);
-  // Package integrations only show while their package is installed and usable.
-  const noodleInstalled = isCapabilityPackageAvailable(installedCapabilities, "noodle");
   const slurp2Installed = isCapabilityPackageAvailable(installedCapabilities, "slurp2");
   // Chat variables live in the same map {{setvar}} writes, so a value a prompt
   // or lorebook set shows up here as an editable row.
@@ -866,26 +863,9 @@ export function ChatSettingsDrawer({
       ),
     );
   }, [metadata.macroVariables]);
-  const noodleTimelineContextEnabled = metadata.noodleTimelineContextEnabled === true;
   const slurp2ActivityContextEnabled = metadata.slurp2ActivityContextEnabled === true;
   const renderPackageContextToggles = () => (
     <>
-      {noodleInstalled && (
-        <SettingsSwitch
-          label={localizeUi("ui.chat.chatsettingsdrawer.allowNoodleReferences")}
-          description={localizeUi("ui.chat.chatsettingsdrawer.timelineRefreshesMayIncludeRecentMessagesFromThisChat")}
-          checked={noodleTimelineContextEnabled}
-          onChange={(checked) => updateMeta.mutate({ id: chat.id, noodleTimelineContextEnabled: checked })}
-          labelPosition="start"
-          className={cn(
-            "justify-between rounded-md px-3 py-2.5 text-left",
-            noodleTimelineContextEnabled
-              ? "bg-[var(--primary)]/10 ring-1 ring-[var(--primary)]/30"
-              : "bg-[var(--secondary)] hover:bg-[var(--accent)]",
-          )}
-          labelClassName="text-[0.6875rem] font-medium"
-        />
-      )}
       {slurp2Installed && (
         <SettingsSwitch
           label={localizeUi("ui.chat.chatsettingsdrawer.allowSlurpActivity")}
@@ -952,15 +932,9 @@ export function ChatSettingsDrawer({
   const textConnectionsList = useMemo(() => filterLanguageGenerationConnections(connectionRows), [connectionRows]);
   const sidecarModelDownloaded = useSidecarStore((state) => state.modelDownloaded);
   const sidecarModelDisplayName = useSidecarStore((state) => state.modelDisplayName);
-  const sidecarMaxContext = useSidecarStore((state) => state.config.contextSize);
   const chatGenerationConnectionsList = useMemo(
     () => appendLocalSidecarConnectionOption(textConnectionsList, sidecarModelDownloaded, sidecarModelDisplayName),
-    [false, sidecarModelDisplayName, sidecarModelDownloaded, textConnectionsList],
-  );
-  const gameContextMessagesQuery = useChatMessagePeek(chat.id, 20, false);
-  const gameContextBudget = useMemo(
-    () => null,
-    [chat.connectionId, connections, gameContextMessagesQuery.data, false, showContextUsage, sidecarMaxContext],
+    [sidecarModelDisplayName, sidecarModelDownloaded, textConnectionsList],
   );
   const conversationSummaryConnectionId =
     typeof metadata.summaryConnectionId === "string" ? metadata.summaryConnectionId : "";
@@ -1140,27 +1114,14 @@ export function ChatSettingsDrawer({
     const latestChat = qc.getQueryData<Chat>(chatKeys.detail(chat.id));
     return latestChat ? getChatExcludedLorebookIds(latestChat) : [...excludedLorebookIds];
   }, [chat.id, excludedLorebookIds, qc]);
-  const gameLorebookKeeperEnabled = metadata.gameLorebookKeeperEnabled === true;
-  const gameLorebookKeeperLorebookId =
-    typeof metadata.gameLorebookKeeperLorebookId === "string" ? metadata.gameLorebookKeeperLorebookId : null;
   const activeLorebooks = useMemo<ActiveLorebookView[]>(() => {
     return deriveActiveLorebookViews({
       activeLorebookIds,
       chat,
       excludedLorebookIds,
-      excludeGameLorebookKeeper: false,
-      gameLorebookKeeperLorebookId,
       lorebooks: (lorebooks ?? []) as Lorebook[],
     });
-  }, [
-    activeLorebookIds,
-    excludedLorebookIds,
-    chat,
-    gameLorebookKeeperEnabled,
-    gameLorebookKeeperLorebookId,
-    false,
-    lorebooks,
-  ]);
+  }, [activeLorebookIds, excludedLorebookIds, chat, lorebooks]);
   const lorebookTokenBudget =
     typeof metadata.lorebookTokenBudget === "number" && Number.isFinite(metadata.lorebookTokenBudget)
       ? Math.max(0, Math.floor(metadata.lorebookTokenBudget))
@@ -2060,7 +2021,6 @@ export function ChatSettingsDrawer({
     htmlAgentMeta.name,
     illustratorActive,
     illustratorAgentMeta.name,
-    false,
     isRoleplayMode,
     getRoleplayAgentSettingsOrder,
     knowledgeRetrievalActive,
@@ -3154,16 +3114,7 @@ export function ChatSettingsDrawer({
           (lorebook.personaId && lorebook.personaId === chat.personaId) ||
           (lorebook.chatId && lorebook.chatId === chat.id)),
     );
-  }, [
-    activeLorebookIds,
-    chat.id,
-    chat.personaId,
-    chatCharIds,
-    gameLorebookKeeperEnabled,
-    gameLorebookKeeperLorebookId,
-    false,
-    lorebooks,
-  ]);
+  }, [activeLorebookIds, chat.id, chat.personaId, chatCharIds, lorebooks]);
   const showLorebookMarkerWarning =
     !!chat.promptPresetId && !isConversation && hasScopedOrGlobalLorebooks && !currentPromptPresetHasLorebookMarker;
 
@@ -3263,7 +3214,7 @@ export function ChatSettingsDrawer({
     };
   }, [open]);
   useDialogFocusScope(
-    open,
+    open && firstMesConfirm === null,
     panelRef,
     undefined,
     undefined,
@@ -3273,13 +3224,28 @@ export function ChatSettingsDrawer({
   useEffect(() => {
     if (!open) return;
     const onEscape = (event: KeyboardEvent) => {
-      if (event.isComposing || event.key !== "Escape") return;
+      if (event.isComposing || event.defaultPrevented || event.key !== "Escape" || firstMesConfirm !== null) {
+        return;
+      }
+      const target = event.target;
+      if (
+        !(target instanceof Element) ||
+        !panelRef.current?.contains(target) ||
+        target.closest(
+          "textarea, [contenteditable='true'], input:not([type='checkbox'], [type='radio'], [type='range'], [type='button'], [type='submit'], [type='reset'], [type='color'], [type='file'])",
+        )
+      ) {
+        return;
+      }
       if (!settingsOverlayRegistrationRef.current?.isTopmost()) return;
-      void requestClose();
+      const pressed = event;
+      window.setTimeout(() => {
+        if (!pressed.defaultPrevented) void requestClose();
+      }, 0);
     };
     document.addEventListener("keydown", onEscape);
     return () => document.removeEventListener("keydown", onEscape);
-  }, [open, requestClose]);
+  }, [firstMesConfirm, open, requestClose]);
   // Session-ephemeral: did the user change Day Rollover Hour in this drawer mount?
   // Used to gate the "transitional duplication" warning so it only appears
   // immediately after a change (when the warning is operationally useful) and
@@ -3358,7 +3324,7 @@ export function ChatSettingsDrawer({
         updateMeta.mutate({ id: chat.id, customSystemPrompt: null });
       }
     },
-    [chat.id, fallbackPromptPreset?.id, isConversation, false, setPreset, updateMeta],
+    [chat.id, fallbackPromptPreset?.id, isConversation, setPreset, updateMeta],
   );
 
   const openAgentAddModal = useCallback(
@@ -3451,11 +3417,7 @@ export function ChatSettingsDrawer({
       allowSecretPlot: supportsNarrativeDirectorSecretPlot,
     });
     const nextEnabledTools = nextSettings.enabledTools;
-    if (
-      builtInMeta &&
-      (!Array.isArray(nextEnabledTools) ||
-        (agent.id === "spotify" && nextSettings.musicProvider === "spotify" && nextEnabledTools.length === 0))
-    ) {
+    if (builtInMeta && !Array.isArray(nextEnabledTools)) {
       nextSettings.enabledTools = DEFAULT_AGENT_TOOLS[agent.id] ?? [];
     }
 
@@ -4228,8 +4190,6 @@ export function ChatSettingsDrawer({
             <ConnectionSection
               connectionId={chat.connectionId ?? null}
               connections={chatGenerationConnectionsList}
-              contextBudget={gameContextBudget}
-              isGame={false}
               onConnectionChange={setConnection}
             />
           </div>
