@@ -34,16 +34,8 @@ import { parseChatMetadata } from "../../lib/chat-display";
 import { openGlobalSearch } from "../../lib/chat-insights";
 import { requestChatSummaryOpen } from "../../lib/chat-floating-ui-events";
 import { resolveTrackerPanelContentScale, resolveTrackerPanelDesktopWidth } from "../../lib/tracker-panel-layout";
-import {
-  closeTrackerPanelWindow,
-  openTrackerPanelWindow,
-  TrackerPanelDetachedWindow,
-  type TrackerPanelWindowTarget,
-} from "../../features/tracker-panel/components/TrackerPanelDetachedWindow";
-import { TrackerWindowProvider } from "../../features/tracker-panel/components/TrackerWindowContext";
 import { usePersonaPortraitSaveCoordinator } from "../../features/tracker-panel/hooks/use-persona-portrait-save";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 import { createPortal } from "react-dom";
 import {
   lazy,
@@ -86,9 +78,6 @@ const PersonaEditor = lazy(() =>
 );
 const RegexScriptEditor = lazy(() =>
   import("../agents/RegexScriptEditor").then((module) => ({ default: module.RegexScriptEditor })),
-);
-const GameAssetsBrowserView = lazy(() =>
-  import("../game-assets/GameAssetsBrowserView").then((module) => ({ default: module.GameAssetsBrowserView })),
 );
 const RightPanel = lazy(() => import("./RightPanel").then((module) => ({ default: module.RightPanel })));
 const TrackerDataSidebar = lazy(() =>
@@ -171,44 +160,6 @@ function MainPaneFallback() {
     </div>
   );
 }
-/** Mounts children once `open` becomes true, then keeps them mounted so state persists.
- *  `overlay` mode uses framer-motion slide-in and never unmounts. */
-function MountOnceWhenOpened({
-  open,
-  children,
-  overlay,
-}: {
-  open: boolean;
-  children: React.ReactNode;
-  overlay?: boolean;
-}) {
-  const [everOpened, setEverOpened] = useState(false);
-  useEffect(() => {
-    if (open && !everOpened) setEverOpened(true);
-  }, [open, everOpened]);
-  if (!everOpened) return null;
-  if (overlay) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: 30 }}
-        animate={open ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
-        transition={{ duration: 0.2 }}
-        className={cn(
-          "mari-app-background-paint absolute inset-0 flex flex-col overflow-hidden",
-          open ? "z-20" : "z-10 pointer-events-none",
-        )}
-      >
-        <Suspense fallback={<MainPaneFallback />}>{children}</Suspense>
-      </motion.div>
-    );
-  }
-  return (
-    <div className={open ? "flex flex-1 flex-col overflow-hidden" : "hidden"}>
-      <Suspense fallback={<MainPaneFallback />}>{children}</Suspense>
-    </div>
-  );
-}
-
 function SidePanelFallback() {
   const { t: localizeUi } = useUiTranslation();
   return (
@@ -420,10 +371,6 @@ export function AppShell() {
   const trackerPanelWidth = getTrackerPanelWidthForProfile(trackerPanelSizeProfile);
   const [trackerPanelResolvedWidth, setTrackerPanelResolvedWidth] = useState(trackerPanelWidth);
   const [trackerPanelWidthMeasured, setTrackerPanelWidthMeasured] = useState(false);
-  const [trackerPanelWindowTarget, setTrackerPanelWindowTarget] = useState<TrackerPanelWindowTarget | null>(null);
-  const trackerPanelWindowTargetRef = useRef<TrackerPanelWindowTarget | null>(null);
-  const trackerPanelDockingPopupRef = useRef<TrackerPanelWindowTarget["popup"] | null>(null);
-  const detachTrackerPanelPendingRef = useRef(false);
   const [trackerPanelHost] = useState(() => {
     const host = document.createElement("div");
     host.style.display = "contents";
@@ -585,7 +532,6 @@ export function AppShell() {
   const toolDetailId = useUIStore((s) => s.toolDetailId);
   const personaDetailId = useUIStore((s) => s.personaDetailId);
   const regexDetailId = useUIStore((s) => s.regexDetailId);
-  const gameAssetsBrowserOpen = useUIStore((s) => s.gameAssetsBrowserOpen);
   const activeChatId = useChatStore((s) => s.activeChatId);
   const activeChat = useChatStore((s) => s.activeChat);
   const isPageActive = usePageActivity();
@@ -821,63 +767,15 @@ export function AppShell() {
     <LorebookEditor />
   ) : null;
 
-  const showAmbientDecor = isPageActive && !activeChatId && !detailView && !gameAssetsBrowserOpen;
+  const showAmbientDecor = isPageActive && !activeChatId && !detailView;
   const hasDetailView = detailView != null;
   const trackerPanelModeAvailable = activeChat?.mode === "roleplay";
   const trackerPanelActive = trackerPanelEnabled && trackerPanelOpen && trackerPanelSurfaceOpen;
-  const trackerPanelDetached = trackerPanelWindowTarget !== null;
-  const trackerPanelSurfaceAvailable = trackerPanelModeAvailable && !gameAssetsBrowserOpen && !hasDetailView;
+  const trackerPanelSurfaceAvailable = trackerPanelModeAvailable && !hasDetailView;
   // The chat preference chooses the surface; its Trackers button controls visibility.
-  const trackerPanelVisible = trackerPanelActive && trackerPanelSurfaceAvailable && !trackerPanelDetached;
+  const trackerPanelVisible = trackerPanelActive && trackerPanelSurfaceAvailable;
   const chatSurfaceActive =
-    !gameAssetsBrowserOpen &&
-    !hasDetailView &&
-    (!shellOverlayMode || (!sidebarOpen && !rightPanelOpen && !trackerPanelVisible));
-  const trackerWindowHost = trackerPanelWindowTarget?.popup ?? window;
-
-  const dockTrackerPanel = useCallback(() => {
-    const target = trackerPanelWindowTargetRef.current;
-    if (target) {
-      trackerPanelDockingPopupRef.current = target.popup;
-      closeTrackerPanelWindow(target);
-      trackerPanelWindowTargetRef.current = null;
-    }
-    setTrackerPanelWindowTarget(null);
-  }, []);
-
-  const detachTrackerPanel = useCallback(async () => {
-    if (detachTrackerPanelPendingRef.current) return;
-    trackerPanelDockingPopupRef.current = null;
-    detachTrackerPanelPendingRef.current = true;
-
-    try {
-      const target = await openTrackerPanelWindow({
-        title: localizeUi("ui.layout.appshell.detachedTrackerPanelTitle"),
-        width: trackerPanelWidth,
-      });
-      if (!target) {
-        toast.error(localizeUi("ui.layout.appshell.trackerPanelPopupBlocked"));
-        return;
-      }
-      trackerPanelWindowTargetRef.current = target;
-      setTrackerPanelWindowTarget(target);
-    } catch {
-      toast.error(localizeUi("ui.layout.appshell.trackerPanelWindowFailed"));
-    } finally {
-      detachTrackerPanelPendingRef.current = false;
-    }
-  }, [localizeUi, trackerPanelWidth]);
-
-  const handleTrackerPanelWindowClosed = useCallback((closedTarget: TrackerPanelWindowTarget) => {
-    if (trackerPanelDockingPopupRef.current === closedTarget.popup) {
-      trackerPanelDockingPopupRef.current = null;
-      return;
-    }
-    if (trackerPanelWindowTargetRef.current?.popup !== closedTarget.popup) return;
-    trackerPanelWindowTargetRef.current = null;
-    setTrackerPanelWindowTarget(null);
-    closeTrackerPanel();
-  }, []);
+    !hasDetailView && (!shellOverlayMode || (!sidebarOpen && !rightPanelOpen && !trackerPanelVisible));
 
   // The overlay Tracker Panel hides the chat control that opened it (globals.css), so keyboard focus moves into the panel.
   useEffect(() => {
@@ -893,12 +791,6 @@ export function AppShell() {
     if (!trackerPanelOpen || !activeChat?.mode || trackerPanelModeAvailable) return;
     setTrackerPanelOpen(false, activeChatId);
   }, [activeChat?.mode, activeChatId, setTrackerPanelOpen, trackerPanelModeAvailable, trackerPanelOpen]);
-  useEffect(() => {
-    if (!trackerPanelWindowTarget || (trackerPanelActive && trackerPanelModeAvailable)) return;
-    closeTrackerPanelWindow(trackerPanelWindowTarget);
-    trackerPanelWindowTargetRef.current = null;
-    setTrackerPanelWindowTarget(null);
-  }, [trackerPanelActive, trackerPanelModeAvailable, trackerPanelWindowTarget]);
   useEffect(() => {
     if (trackerPanelVisible) {
       trackerPanelWasActiveRef.current = true;
@@ -998,7 +890,6 @@ export function AppShell() {
   }, [
     activeChat?.mode,
     activeChatId,
-    gameAssetsBrowserOpen,
     centerCompact,
     shellOverlayMode,
     trackerPanelSurfaceAvailable,
@@ -1057,7 +948,6 @@ export function AppShell() {
   }, [
     activeChat?.mode,
     activeChatId,
-    gameAssetsBrowserOpen,
     centerCompact,
     shellOverlayMode,
     trackerPanelAnchoredForMotion,
@@ -1153,30 +1043,15 @@ export function AppShell() {
   const trackerPanelPortal =
     trackerPanelActive &&
     trackerPanelModeAvailable &&
-    (trackerPanelDetached || trackerPanelSurfaceAvailable) &&
+    trackerPanelSurfaceAvailable &&
     createPortal(
-      <TrackerWindowProvider host={trackerWindowHost}>
-        <div
-          data-component={trackerPanelDetached ? "TrackerDataSidebarDetached" : undefined}
-          aria-label={trackerPanelDetached ? localizeUi("ui.layout.appshell.trackerDataPanel") : undefined}
-          className={
-            trackerPanelDetached ? "mari-tracker-panel h-screen w-screen overflow-hidden bg-zinc-950/95" : "contents"
-          }
-          style={trackerPanelDetached ? trackerPanelBackgroundStyle : undefined}
-        >
-          <Suspense fallback={<SidePanelFallback />}>
-            <TrackerDataSidebar
-              detached={trackerPanelDetached}
-              fillHeight={trackerPanelDetached || shellOverlayMode}
-              queuePersonaPortraitSave={queuePersonaPortraitSave}
-              flushPersonaPortraitSave={flushPersonaPortraitSave}
-              onToggleDetached={
-                trackerPanelDetached ? dockTrackerPanel : shellOverlayMode ? undefined : detachTrackerPanel
-              }
-            />
-          </Suspense>
-        </div>
-      </TrackerWindowProvider>,
+      <Suspense fallback={<SidePanelFallback />}>
+        <TrackerDataSidebar
+          fillHeight={shellOverlayMode}
+          queuePersonaPortraitSave={queuePersonaPortraitSave}
+          flushPersonaPortraitSave={flushPersonaPortraitSave}
+        />
+      </Suspense>,
       trackerPanelHost,
     );
 
@@ -1336,16 +1211,12 @@ export function AppShell() {
         <div className="flex-shrink-0 md:hidden h-[env(safe-area-inset-top)] bg-[var(--marinara-page-backing,var(--background))]" />
         <TopBar mobileTopbarNavigation={shellOverlayMode} />
         <div className="mari-app-background-paint relative flex flex-1 flex-col overflow-hidden">
-          {/* Game Assets Browser — kept mounted once opened so state persists across close/reopen */}
-          <MountOnceWhenOpened open={gameAssetsBrowserOpen} overlay>
-            <GameAssetsBrowserView />
-          </MountOnceWhenOpened>
           {/* Overlay mode keeps the chat mounted under panels and editors; globals.css hides its windows then. */}
           <div
             data-chat-covered={chatSurfaceActive ? undefined : "true"}
             className={cn(
               "mari-app-background-paint flex flex-1 flex-col overflow-hidden",
-              (gameAssetsBrowserOpen || (!shellOverlayMode && hasDetailView)) && "hidden",
+              !shellOverlayMode && hasDetailView && "hidden",
             )}
             style={
               {
@@ -1396,14 +1267,6 @@ export function AppShell() {
       <AnimatePresence initial={false} mode="wait">
         {!shellOverlayMode && trackerPanelSurfaceAvailable && trackerPanelDesktop(trackerPanelSide)}
       </AnimatePresence>
-
-      {trackerPanelWindowTarget && trackerPanelActive && trackerPanelModeAvailable && (
-        <TrackerPanelDetachedWindow
-          host={trackerPanelHost}
-          target={trackerPanelWindowTarget}
-          onClosed={handleTrackerPanelWindowClosed}
-        />
-      )}
 
       {trackerPanelPortal}
 

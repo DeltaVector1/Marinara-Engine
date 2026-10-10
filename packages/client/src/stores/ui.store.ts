@@ -689,9 +689,6 @@ interface UIState {
   lorebookDetailInitialEntryId: string | null;
   /** One-shot tab the persona editor should open to. */
   personaDetailInitialTab: string | null;
-  /** When true, the main area shows the browser */
-  /** When true, the main area shows the game assets browser */
-  gameAssetsBrowserOpen: boolean;
   /** When true, the main area shows the full-page character library */
   characterLibraryOpen: boolean;
   /** Which resource collection the shared full-page card library displays */
@@ -1144,8 +1141,6 @@ interface UIState {
   closeCharacterLibrary: () => void;
   openAgentCatalog: (packageId?: string) => void;
   closeAgentCatalog: () => void;
-  openGameAssetsBrowser: () => void;
-  closeGameAssetsBrowser: () => void;
 
   /** Returns true if any full-page detail editor is currently open */
   hasAnyDetailOpen: () => boolean;
@@ -1541,7 +1536,6 @@ function pickPersistedUIState(state: UIState) {
     personaDetailId: state.personaDetailId,
     regexDetailId: state.regexDetailId,
     spatialMapDetailChatId: state.spatialMapDetailChatId,
-    gameAssetsBrowserOpen: state.gameAssetsBrowserOpen,
     characterLibraryOpen: state.characterLibraryOpen,
     cardLibraryKind: state.cardLibraryKind,
     agentCatalogOpen: state.agentCatalogOpen,
@@ -1816,7 +1810,6 @@ export const useUIStore = create<UIState>()(
         lorebookDetailInitialTab: null,
         lorebookDetailInitialEntryId: null,
         personaDetailInitialTab: null,
-        gameAssetsBrowserOpen: false,
         characterLibraryOpen: false,
         cardLibraryKind: "characters" as CardLibraryKind,
         agentCatalogOpen: false,
@@ -2180,7 +2173,6 @@ export const useUIStore = create<UIState>()(
               characterLibraryOpen: preserveCharacterLibrary ? s.characterLibraryOpen : false,
               agentCatalogOpen: false,
               characterLibrarySelectedId: preserveCharacterLibrary ? id : s.characterLibrarySelectedId,
-              gameAssetsBrowserOpen: false,
               ...getMobileDetailReturnState(s),
             };
           }),
@@ -2198,7 +2190,6 @@ export const useUIStore = create<UIState>()(
             lorebookDetailInitialEntryId: options?.entryId ?? null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             characterDetailId: null,
             presetDetailId: null,
             connectionDetailId: null,
@@ -2221,7 +2212,6 @@ export const useUIStore = create<UIState>()(
             presetDetailInitialTab: options?.initialTab ?? null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             connectionDetailId: null,
@@ -2244,7 +2234,6 @@ export const useUIStore = create<UIState>()(
             connectionDetailId: id,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2266,7 +2255,6 @@ export const useUIStore = create<UIState>()(
             agentDetailId: agentType,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2289,7 +2277,6 @@ export const useUIStore = create<UIState>()(
             agentDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2315,7 +2302,6 @@ export const useUIStore = create<UIState>()(
               characterLibraryOpen: preservePersonaLibrary ? s.characterLibraryOpen : false,
               personaLibrarySelectedId: preservePersonaLibrary ? id : s.personaLibrarySelectedId,
               agentCatalogOpen: false,
-              gameAssetsBrowserOpen: false,
               characterDetailId: null,
               lorebookDetailId: null,
               presetDetailId: null,
@@ -2342,7 +2328,6 @@ export const useUIStore = create<UIState>()(
             personaDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             characterDetailId: null,
             lorebookDetailId: null,
             presetDetailId: null,
@@ -2390,7 +2375,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             ...getMobileDetailReturnState(s),
           })),
         openSpatialMapDraftReview: (review) =>
@@ -2407,7 +2391,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             ...getMobileDetailReturnState(s),
           })),
         clearPendingSpatialMapDraftReview: () => set({ pendingSpatialMapDraftReview: null }),
@@ -2435,7 +2418,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
-            gameAssetsBrowserOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
@@ -2455,7 +2437,6 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
-            gameAssetsBrowserOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
@@ -2476,31 +2457,11 @@ export const useUIStore = create<UIState>()(
             regexDetailId: null,
             spatialMapDetailChatId: null,
             pendingSpatialMapDraftReview: null,
-            gameAssetsBrowserOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             rightPanelOpen: isMobileShellViewport() ? false : state.rightPanelOpen,
           })),
         closeAgentCatalog: () => set({ agentCatalogOpen: false, agentCatalogInitialPackageId: null }),
-        openGameAssetsBrowser: () =>
-          set({
-            gameAssetsBrowserOpen: true,
-            characterLibraryOpen: false,
-            agentCatalogOpen: false,
-            detailReturnRightPanel: null,
-            regexDetailId: null,
-            spatialMapDetailChatId: null,
-            personaDetailId: null,
-            characterDetailId: null,
-            lorebookDetailId: null,
-            presetDetailId: null,
-            connectionDetailId: null,
-            agentDetailId: null,
-            toolDetailId: null,
-            ...(isMobileShellViewport() && { rightPanelOpen: false }),
-          }),
-        closeGameAssetsBrowser: () => set({ gameAssetsBrowserOpen: false }),
-
         hasAnyDetailOpen: () => {
           const s = get();
           return !!(
@@ -2514,8 +2475,7 @@ export const useUIStore = create<UIState>()(
             s.regexDetailId ||
             s.spatialMapDetailChatId ||
             s.characterLibraryOpen ||
-            s.agentCatalogOpen ||
-            s.gameAssetsBrowserOpen
+            s.agentCatalogOpen
           );
         },
         closeAllDetails: () =>
@@ -2531,7 +2491,6 @@ export const useUIStore = create<UIState>()(
             spatialMapDetailChatId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
           }),
@@ -2551,7 +2510,6 @@ export const useUIStore = create<UIState>()(
             spatialMapDetailChatId: null,
             characterLibraryOpen: false,
             agentCatalogOpen: false,
-            gameAssetsBrowserOpen: false,
             editorDirty: false,
             detailReturnRightPanel: null,
             chatModeShortcutRequest: {

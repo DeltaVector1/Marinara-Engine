@@ -60,7 +60,7 @@ import { ConvoProfileFields } from "./ConvoProfileFields";
 import { useUIStore } from "../../stores/ui.store";
 import { lorebookKeys, useLorebook, useUpdateLorebook } from "../../hooks/use-lorebooks";
 import { useConnections } from "../../hooks/use-connections";
-import { isCapabilityPackageAvailable, useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
+import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { showConfirmDialog, showPromptDialog } from "../../lib/app-dialogs";
 import { formatCardVersionTimestamp, getCardVersionTitle } from "../../lib/card-version-history";
 import { dataImageUrlToFile } from "../../lib/data-image-file";
@@ -1550,8 +1550,6 @@ function ConvoTab({
 }) {
   const ext = formData.extensions;
   const generateCharacterConvoProfile = useGenerateCharacterConvoProfile();
-  const { data: installedCapabilities = [] } = useInstalledCapabilityPackages(kind === "character");
-  const noodleInstalled = isCapabilityPackageAvailable(installedCapabilities, "noodle");
   const currentCharacterIdRef = useRef(characterId);
   currentCharacterIdRef.current = characterId;
   const currentConvoProfileDraft = {
@@ -1604,10 +1602,6 @@ function ConvoTab({
         }
         imageInstructions={(ext.conversationImageInstructions as string) ?? ""}
         onImageInstructionsChange={(value) => updateExtension("conversationImageInstructions", value)}
-        applyImageInstructionsToNoodle={ext.applyConversationImageInstructionsToNoodle === true}
-        onApplyImageInstructionsToNoodleChange={
-          noodleInstalled ? (value) => updateExtension("applyConversationImageInstructionsToNoodle", value) : undefined
-        }
       />
     </>
   );

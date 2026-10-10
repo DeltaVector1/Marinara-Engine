@@ -10,7 +10,6 @@ import type {
   Message,
   MessageReply,
   ConversationCallSession,
-  ConversationPresenceStatus,
   PendingSpatialTransition,
   SpatialDestinationRelation,
 } from "@marinara-engine/shared";
@@ -57,22 +56,12 @@ type ChatNotification = {
   count: number;
 };
 
-type DelayedCharacterStatus = ConversationPresenceStatus;
-
 export type PendingSpatialTransitionDraft = {
   transition: PendingSpatialTransition;
   destinationName: string;
   relation: SpatialDestinationRelation;
   label?: string;
   status: "ready" | "needs_review";
-};
-
-export type DelayedCharacterInfo = {
-  name: string;
-  status: DelayedCharacterStatus;
-  characterIds?: string[];
-  characterNames?: string[];
-  characterStatuses?: Record<string, DelayedCharacterStatus>;
 };
 
 type ActiveConversationCallSnapshot = {
@@ -245,12 +234,8 @@ interface ChatState {
   typingCharacterName: string | null;
   /** Human-readable label for the current server-side generation phase (e.g. "Running agents..."). */
   generationPhase: string | null;
-  /** Character name + status shown during DND/idle delay (before generation starts). */
-  delayedCharacterInfo: DelayedCharacterInfo | null;
   /** Per-chat typing state so switching chats restores the correct indicator. */
   perChatTyping: Map<string, string>;
-  /** Per-chat delayed state so switching chats restores the correct indicator. */
-  perChatDelayed: Map<string, DelayedCharacterInfo>;
   /** When true, ChatArea should open the settings drawer on next render. */
   shouldOpenSettings: boolean;
   /** When true, ChatArea should show the setup wizard for the newly created chat. */
@@ -307,9 +292,7 @@ interface ChatState {
   clearResponseQueue: (chatId: string) => void;
   setTypingCharacterName: (name: string | null) => void;
   setGenerationPhase: (phase: string | null) => void;
-  setDelayedCharacterInfo: (info: DelayedCharacterInfo | null) => void;
   setPerChatTyping: (chatId: string, name: string | null) => void;
-  setPerChatDelayed: (chatId: string, info: DelayedCharacterInfo | null) => void;
   clearPerChatState: (chatId: string) => void;
   setShouldOpenSettings: (v: boolean) => void;
   setShouldOpenWizard: (v: boolean) => void;
@@ -379,9 +362,7 @@ export const useChatStore = create<ChatState>()(
     responseQueues: new Map(),
     typingCharacterName: null,
     generationPhase: null,
-    delayedCharacterInfo: null,
     perChatTyping: new Map(),
-    perChatDelayed: new Map(),
     shouldOpenSettings: false,
     shouldOpenWizard: false,
     shouldOpenWizardInShortcutMode: false,
@@ -450,17 +431,15 @@ export const useChatStore = create<ChatState>()(
         }
         // Background is NOT cleared here — it's managed by ChatArea's restore effect.
         // Clearing it would cause a black flash and wipe the background for new chats.
-        // Restore per-chat typing/delayed indicators for the newly active chat
+        // Restore the per-chat typing indicator for the newly active chat.
         if (id) {
-          const { perChatTyping, perChatDelayed, abortControllers, streamBuffers, thinkingBuffers } = get();
+          const { perChatTyping, abortControllers, streamBuffers, thinkingBuffers } = get();
           const typing = perChatTyping.get(id) ?? null;
-          const delayed = perChatDelayed.get(id) ?? null;
           // If this chat has an active generation, restore streaming state so the
           // UI shows the typing indicator, stream buffer, and stop button.
           const hasActiveGeneration = abortControllers.has(id);
           set({
             typingCharacterName: typing,
-            delayedCharacterInfo: delayed,
             isStreaming: hasActiveGeneration,
             streamingChatId: hasActiveGeneration ? id : null,
             streamBuffer: hasActiveGeneration ? (streamBuffers.get(id) ?? "") : "",
@@ -469,7 +448,6 @@ export const useChatStore = create<ChatState>()(
         } else {
           set({
             typingCharacterName: null,
-            delayedCharacterInfo: null,
             isStreaming: false,
             streamingChatId: null,
             streamBuffer: "",
@@ -688,8 +666,8 @@ export const useChatStore = create<ChatState>()(
 
     setTypingCharacterName: (name) =>
       set((state) => {
-        if (state.typingCharacterName === name && state.delayedCharacterInfo === null) return state;
-        return { typingCharacterName: name, delayedCharacterInfo: null };
+        if (state.typingCharacterName === name) return state;
+        return { typingCharacterName: name };
       }),
 
     setGenerationPhase: (phase) =>
@@ -698,51 +676,27 @@ export const useChatStore = create<ChatState>()(
         return { generationPhase: phase };
       }),
 
-    setDelayedCharacterInfo: (info) =>
-      set((state) => {
-        if (state.delayedCharacterInfo === info && state.typingCharacterName === null) return state;
-        return { delayedCharacterInfo: info, typingCharacterName: null };
-      }),
-
     setPerChatTyping: (chatId: string, name: string | null) =>
       set((state) => {
         const currentTyping = state.perChatTyping.get(chatId) ?? null;
         if (name === null && currentTyping === null) return state;
-        if (name !== null && currentTyping === name && !state.perChatDelayed.has(chatId)) return state;
+        if (name !== null && currentTyping === name) return state;
         const m = new Map(state.perChatTyping);
         if (name) m.set(chatId, name);
         else m.delete(chatId);
-        const d = new Map(state.perChatDelayed);
-        if (name) d.delete(chatId); // typing clears delayed
-        return { perChatTyping: m, perChatDelayed: d };
-      }),
-
-    setPerChatDelayed: (chatId: string, info: DelayedCharacterInfo | null) =>
-      set((state) => {
-        const currentDelayed = state.perChatDelayed.get(chatId) ?? null;
-        if (info === null && currentDelayed === null) return state;
-        if (info !== null && currentDelayed === info && !state.perChatTyping.has(chatId)) return state;
-        const d = new Map(state.perChatDelayed);
-        if (info) d.set(chatId, info);
-        else d.delete(chatId);
-        const t = new Map(state.perChatTyping);
-        if (info) t.delete(chatId);
-        return { perChatDelayed: d, perChatTyping: t };
+        return { perChatTyping: m };
       }),
 
     clearPerChatState: (chatId: string) =>
       set((state) => {
         const t = new Map(state.perChatTyping);
-        const d = new Map(state.perChatDelayed);
         const thoughts = new Map(state.thinkingBuffers);
         const narrationSaved = new Set(state.narrationSavedChatIds);
         t.delete(chatId);
-        d.delete(chatId);
         thoughts.delete(chatId);
         narrationSaved.delete(chatId);
         return {
           perChatTyping: t,
-          perChatDelayed: d,
           thinkingBuffers: thoughts,
           narrationSavedChatIds: narrationSaved,
           ...(state.activeChatId === chatId ? { thinkingBuffer: "" } : {}),
@@ -995,9 +949,7 @@ export const useChatStore = create<ChatState>()(
         responseQueues: new Map(),
         typingCharacterName: null,
         generationPhase: null,
-        delayedCharacterInfo: null,
         perChatTyping: new Map(),
-        perChatDelayed: new Map(),
         pendingNewChatMode: null,
         pendingNewChatOrigin: null,
         inputDrafts: new Map(),

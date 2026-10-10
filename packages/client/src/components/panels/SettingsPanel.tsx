@@ -150,7 +150,6 @@ import {
 import { useConnections } from "../../hooks/use-connections";
 import { useChatStore } from "../../stores/chat.store";
 import { parseChatMetadata } from "../../lib/chat-display";
-import { useOpenGameAssetsFolder, useRescanGameAssets } from "../../hooks/use-game-assets";
 import { chatKeys } from "../../hooks/use-chats";
 import { useInstalledCapabilityPackages } from "../../hooks/use-capability-packages";
 import { HelpTooltip } from "../ui/HelpTooltip";
@@ -188,11 +187,7 @@ import {
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { downloadJsonFile, sanitizeExportFilenamePart } from "../../lib/download-json";
 import { saveExportFile } from "../../lib/file-download";
-import {
-  HOST_DEVICE_FILE_MANAGER_MESSAGE,
-  HostDeviceFileManagerError,
-  isHostDeviceBrowser,
-} from "../../lib/host-device";
+import { HOST_DEVICE_FILE_MANAGER_MESSAGE, isHostDeviceBrowser } from "../../lib/host-device";
 
 type CustomFontFace = {
   filename: string;
@@ -264,7 +259,6 @@ type SettingsSectionId =
   | "overall-generations"
   | "image-generation"
   | "video-generation"
-  | "game-assets"
   | "app-style"
   | "text-scale"
   | "chat-display"
@@ -383,13 +377,6 @@ const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
     label: "Video Generation",
     description: "Video duration, clip behavior, and reusable video settings.",
     aliases: ["video", "clip", "duration", "conversation call", "animated", "scene"],
-  },
-  {
-    id: "game-assets",
-    tab: "import",
-    label: "Game Assets",
-    description: "Asset folders for music, ambience, sprites, and backgrounds.",
-    aliases: ["assets", "music", "ambient", "sfx", "sprites", "backgrounds", "folder"],
   },
   {
     id: "app-style",
@@ -1943,39 +1930,6 @@ const QUOTE_FORMAT_OPTIONS: Array<{ id: QuoteFormat; label: string; sample: stri
   { id: "typographic", label: "Typographic", sample: "\u201cHello,\u201d it\u2019s me." },
 ];
 
-const GAME_ASSET_CATEGORIES = [
-  {
-    id: "music",
-    label: "Music",
-    defaultFolder: "exploration/fantasy/calm",
-    accept: "audio/*,.mp3,.ogg,.wav,.flac,.m4a,.aac,.webm",
-  },
-  {
-    id: "ambient",
-    label: "Ambient",
-    defaultFolder: "nature",
-    accept: "audio/*,.mp3,.ogg,.wav,.flac,.m4a,.aac,.webm",
-  },
-  {
-    id: "sfx",
-    label: "Sound Effects",
-    defaultFolder: "exploration",
-    accept: "audio/*,.mp3,.ogg,.wav,.flac,.m4a,.aac,.webm",
-  },
-  {
-    id: "sprites",
-    label: "Sprites",
-    defaultFolder: "generic-fantasy",
-    accept: "image/*,.svg",
-  },
-  {
-    id: "backgrounds",
-    label: "Backgrounds",
-    defaultFolder: "custom",
-    accept: "image/*",
-  },
-] as const;
-
 const VIDEO_PROMPT_TEMPLATE_KEYS = [
   "game.video",
   "roleplay.galleryVideoDirector",
@@ -1997,9 +1951,6 @@ const CONVERSATION_CALL_VIDEO_CLIP_LABELS: Record<ConversationCallCharacterVideo
   crying: "Crying",
   sighing: "Sighing",
 };
-
-type GameAssetCategoryId = (typeof GAME_ASSET_CATEGORIES)[number]["id"];
-const GAME_ASSET_CATEGORY_BY_ID = new Map(GAME_ASSET_CATEGORIES.map((category) => [category.id, category]));
 
 const IMAGE_STYLE_SUBJECT_KINDS: ImagePromptKind[] = [
   "avatar",
@@ -4078,217 +4029,6 @@ function VideoGenerationSettings() {
           </div>
         </div>
       )}
-    </SettingsSection>
-  );
-}
-
-function GameAssetsSettings() {
-  const { t: localizeUi } = useUiTranslation();
-  const rescanGameAssets = useRescanGameAssets();
-  const openGameAssetsFolder = useOpenGameAssetsFolder();
-  const openGameAssetsBrowser = useUIStore((s) => s.openGameAssetsBrowser);
-  const assetFileRef = useRef<HTMLInputElement>(null);
-  const [assetCategory, setAssetCategory] = useState<GameAssetCategoryId>("backgrounds");
-  const [assetSubcategory, setAssetSubcategory] = useState<string>(
-    GAME_ASSET_CATEGORY_BY_ID.get("backgrounds")?.defaultFolder ?? "custom",
-  );
-  const [assetFiles, setAssetFiles] = useState<File[]>([]);
-  const [assetUploading, setAssetUploading] = useState(false);
-  const assetCategoryMeta = GAME_ASSET_CATEGORY_BY_ID.get(assetCategory) ?? GAME_ASSET_CATEGORIES[0];
-
-  const handleAssetCategoryChange = (nextCategory: GameAssetCategoryId) => {
-    setAssetCategory(nextCategory);
-    setAssetSubcategory(GAME_ASSET_CATEGORY_BY_ID.get(nextCategory)?.defaultFolder ?? "custom");
-    setAssetFiles([]);
-    if (assetFileRef.current) assetFileRef.current.value = "";
-  };
-
-  const handleOpenGameAssetFolder = (subfolder: string) => {
-    openGameAssetsFolder.mutate(subfolder, {
-      onError: (error) => {
-        if (error instanceof HostDeviceFileManagerError) return;
-        toast.error(
-          getPrivilegedActionErrorMessage(
-            error,
-            localizeUi("ui.panels.gameassetssettings.failedToOpenGameAssetsFolder"),
-          ),
-        );
-      },
-    });
-  };
-
-  const handleGameAssetUpload = async () => {
-    if (assetUploading) return;
-    if (assetFiles.length === 0) {
-      toast.error(localizeUi("ui.panels.gameassetssettings.chooseAtLeastOneAssetFileFirst"));
-      return;
-    }
-    const folder = assetSubcategory.trim().replace(/^\/+|\/+$/g, "") || assetCategoryMeta.defaultFolder;
-    if (folder.includes("..") || folder.includes("\\") || folder.startsWith("/")) {
-      toast.error(localizeUi("ui.panels.gameassetssettings.folderNamesCannotContainPathTraversal"));
-      return;
-    }
-
-    const tooLarge = assetFiles.find((file) => file.size > 50 * 1024 * 1024);
-    if (tooLarge) {
-      toast.error(
-        localizeUi("ui.panels.gameassetssettings.value1IsTooLargeGameAssetsAreLimitedTo", { value1: tooLarge.name }),
-      );
-      return;
-    }
-
-    setAssetUploading(true);
-    try {
-      const uploads = await Promise.allSettled(
-        assetFiles.map((file) => {
-          const form = new FormData();
-          form.append("category", assetCategory);
-          form.append("subcategory", folder);
-          form.append("file", file, file.name);
-          return api.upload<{ tag: string; path: string; manifestCount: number }>("/game-assets/upload", form);
-        }),
-      );
-      const succeeded = uploads.filter((result) => result.status === "fulfilled").length;
-      const failed = uploads.length - succeeded;
-      await rescanGameAssets.mutateAsync();
-      if (succeeded > 0) {
-        toast.success(
-          localizeUi("ui.panels.gameassetssettings.uploadedValue1GameAssetValue2", {
-            value1: succeeded,
-            value2: succeeded === 1 ? "" : localizeUi("ui.noodle.stageprofileview.s"),
-          }),
-        );
-      }
-      if (failed > 0) {
-        const reason = uploads.find((result) => result.status === "rejected");
-        toast.error(
-          reason?.status === "rejected" && reason.reason instanceof Error
-            ? reason.reason.message
-            : localizeUi("ui.panels.gameassetssettings.value1AssetUploadValue2Failed", {
-                value1: failed,
-                value2: failed === 1 ? "" : localizeUi("ui.noodle.stageprofileview.s"),
-              }),
-        );
-      }
-      setAssetFiles([]);
-      if (assetFileRef.current) assetFileRef.current.value = "";
-    } finally {
-      setAssetUploading(false);
-    }
-  };
-
-  return (
-    <SettingsSection
-      title={localizeUi("settings.sections.gameAssets.title")}
-      description={localizeUi("settings.sections.gameAssets.componentDescription")}
-      icon={<FolderOpen size="0.875rem" />}
-      {...getSettingsSectionAnchorProps("game-assets")}
-    >
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={openGameAssetsBrowser}
-            className="mari-chrome-control mari-chrome-control--primary w-full gap-2 text-xs"
-            title={localizeUi("settings.actions.openAssetBrowser")}
-          >
-            <Image size="0.75rem" />
-            {localizeUi("ui.panels.gameassetssettings.assetBrowser")}
-          </button>
-          <button
-            onClick={() => {
-              rescanGameAssets
-                .mutateAsync()
-                .then(() => toast.success(localizeUi("ui.panels.gameassetssettings.gameAssetsRescanned")))
-                .catch(() => toast.error(localizeUi("ui.panels.gameassetssettings.failedToRescanGameAssets")));
-            }}
-            className={cn(SETTINGS_BUTTON_CLASS, "w-full justify-center")}
-          >
-            <RefreshCw size="0.75rem" />
-            {localizeUi("ui.panels.gameassetssettings.rescan")}
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {GAME_ASSET_CATEGORIES.map((folder) => (
-            <button
-              key={folder.id}
-              onClick={() => handleOpenGameAssetFolder(folder.id)}
-              className={cn(SETTINGS_BUTTON_CLASS, "capitalize")}
-            >
-              <FolderOpen size="0.75rem" />
-              {folder.id}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <label className="flex min-w-0 flex-col gap-1">
-            <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-              {localizeUi("ui.panels.gameassetssettings.type")}
-            </span>
-            <select
-              value={assetCategory}
-              onChange={(e) => handleAssetCategoryChange(e.target.value as GameAssetCategoryId)}
-              className="w-full rounded-lg bg-[var(--background)] px-3 py-2 text-xs text-[var(--foreground)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--primary)]"
-            >
-              {GAME_ASSET_CATEGORIES.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex min-w-0 flex-col gap-1">
-            <span className="text-[0.625rem] font-medium text-[var(--muted-foreground)]">
-              {localizeUi("ui.panels.gameassetssettings.folder")}
-            </span>
-            <input
-              value={assetSubcategory}
-              onChange={(e) => setAssetSubcategory(e.target.value)}
-              placeholder={assetCategoryMeta.defaultFolder}
-              className="w-full rounded-lg bg-[var(--background)] px-3 py-2 text-xs text-[var(--foreground)] outline-none ring-1 ring-[var(--border)] focus:ring-[var(--primary)]"
-            />
-          </label>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <input
-            ref={assetFileRef}
-            type="file"
-            multiple
-            accept={assetCategoryMeta.accept}
-            className="hidden"
-            onChange={(e) => setAssetFiles(Array.from(e.target.files ?? []))}
-          />
-          <button onClick={() => assetFileRef.current?.click()} className={cn(SETTINGS_BUTTON_CLASS, "justify-center")}>
-            <Upload size="0.875rem" />
-            {localizeUi("ui.panels.gameassetssettings.chooseFiles")}
-          </button>
-          <button
-            onClick={handleGameAssetUpload}
-            disabled={assetUploading || assetFiles.length === 0}
-            className={cn(
-              SETTINGS_BUTTON_CLASS,
-              "justify-center",
-              assetUploading || assetFiles.length === 0 ? "" : "mari-chrome-control--selected",
-            )}
-          >
-            {assetUploading ? <Loader2 size="0.875rem" className="animate-spin" /> : <Upload size="0.875rem" />}
-            {localizeUi("ui.panels.gameassetssettings.uploadToServer")}
-          </button>
-          {assetFiles.length > 0 && (
-            <span className="truncate text-[0.625rem] text-[var(--muted-foreground)]">
-              {assetFiles.length === 1
-                ? assetFiles[0]?.name
-                : localizeUi("ui.panels.gameassetssettings.value1FilesSelected", { value1: assetFiles.length })}
-            </span>
-          )}
-        </div>
-
-        <p className="text-[0.625rem] leading-relaxed text-[var(--muted-foreground)]">
-          {localizeUi("ui.panels.gameassetssettings.audioSupportsMp3OggWavFlacM4aAacAnd")}
-        </p>
-      </div>
     </SettingsSection>
   );
 }
@@ -7518,8 +7258,6 @@ function ImportSettings() {
           </div>
         </div>
       </SettingsSection>
-
-      <GameAssetsSettings />
     </div>
   );
 }

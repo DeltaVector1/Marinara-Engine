@@ -68,17 +68,13 @@ class TrackerPanelErrorBoundary extends Component<{ children: ReactNode; resetKe
 }
 
 export function TrackerDataSidebar({
-  detached = false,
   fillHeight = false,
   queuePersonaPortraitSave,
   flushPersonaPortraitSave,
-  onToggleDetached,
 }: {
-  detached?: boolean;
   fillHeight?: boolean;
   queuePersonaPortraitSave: (snapshot: PersonaPortraitSaveSnapshot) => void;
   flushPersonaPortraitSave: (personaId: string) => void;
-  onToggleDetached?: () => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
   useRenderTimer("tracker-panel"); // [#3104 diagnostic]
@@ -147,7 +143,7 @@ export function TrackerDataSidebar({
         <CapabilityElement
           packageId={item.id}
           view="tracker"
-          capabilityProps={{ chatId: activeChatId, chatMode: "roleplay", detached }}
+          capabilityProps={{ chatId: activeChatId, chatMode: "roleplay" }}
           className="block"
         />
       </div>
@@ -243,13 +239,11 @@ export function TrackerDataSidebar({
           trackerPanelSide={trackerPanelSide}
           sizeProfile={trackerPanelSizeProfile}
           statDisplayMode={trackerStatDisplayMode}
-          detached={detached}
           activeEditMode={activeEditMode}
           onSetEditMode={setActiveEditMode}
           onSetSide={setTrackerPanelSide}
           onSetSizeProfile={setTrackerPanelSizeProfile}
           onSetStatDisplayMode={setTrackerStatDisplayMode}
-          onToggleDetached={onToggleDetached}
           onClose={closeTrackerPanel}
         />
 

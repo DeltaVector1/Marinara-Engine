@@ -66,7 +66,6 @@ import {
   Shield,
 } from "lucide-react";
 import { decodeEncodedSpeakerTags, formatTextQuotes, type Message, type QuoteFormat } from "@marinara-engine/shared";
-import type { GameTurnStoryboard } from "@marinara-engine/shared";
 import {
   memo,
   useState,
@@ -1009,8 +1008,6 @@ interface ChatMessageProps {
   multiSelectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (toggle: MessageSelectionToggle) => void;
-  storyboard?: GameTurnStoryboard | null;
-  storyboardGenerating?: boolean;
 }
 
 /** Regex to match a plain image URL as the entire content. */

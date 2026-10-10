@@ -384,17 +384,14 @@ export function ConversationInput({
   const agentsProcessing = useAgentStore((s) =>
     activeChatId ? s.processingChatIds.includes(activeChatId) : s.isProcessing,
   );
-  const delayedCharacterInfo = useChatStore((s) => s.delayedCharacterInfo);
   const hasActiveStream = isStreamingGlobal && streamingChatId === activeChatId;
   const isStreaming = hasActiveStream && !isBackgroundIllustration;
   const isSendBlocked = isGenerationSendBlocked({
     streamActive: hasActiveStream,
     agentsProcessing,
     backgroundIllustration: isBackgroundIllustration,
-    delayedResponse: delayedCharacterInfo !== null,
   });
-  // Show stop button only during actual generation, not during busy delay
-  const isActuallyGenerating = isStreaming && !delayedCharacterInfo;
+  const isActuallyGenerating = isStreaming;
   const replyDraft = useChatStore((s) => (activeChatId ? s.replyDrafts.get(activeChatId) : undefined));
   const setReplyDraft = useChatStore((s) => s.setReplyDraft);
   const setInputDraft = useChatStore((s) => s.setInputDraft);
@@ -486,7 +483,7 @@ export function ConversationInput({
     return null;
   }, [messagesData]);
   const lastMessageRole = lastMessage?.role ?? null;
-  const canRetry = !delayedCharacterInfo && !isSendBlocked && lastMessageRole === "user";
+  const canRetry = !isSendBlocked && lastMessageRole === "user";
   const canSubmit = hasInput || attachments.length > 0 || canRetry;
   const showRetrySendState = canRetry && !hasInput && attachments.length === 0;
   const sendButtonTitle = isActuallyGenerating
@@ -1049,19 +1046,6 @@ export function ConversationInput({
     // Extract @mentions from the raw message (before regex transforms)
     const mentioned = extractMentions(raw);
 
-    // A presence-delayed request refreshes chat history immediately before
-    // prompting. Persist additional user messages without starting a competing
-    // generation; the waiting request will include all of them when it resumes.
-    if (delayedCharacterInfo) {
-      await createDurableMessageWithRollback({
-        content: message,
-        attachments: pendingAttachments,
-        submitted: submittedInput,
-        scrollToBottom: true,
-      });
-      return;
-    }
-
     try {
       const succeeded = await generate({
         chatId: activeChatId,
@@ -1086,7 +1070,6 @@ export function ConversationInput({
     canRetry,
     isReadingAttachments,
     isSendBlocked,
-    delayedCharacterInfo,
     generate,
     applyToUserInput,
     extractMentions,
@@ -1299,7 +1282,7 @@ export function ConversationInput({
   ]);
 
   const handleGuidedGenerationButton = useCallback(async () => {
-    if (!activeChatId || isSendBlocked || delayedCharacterInfo) return;
+    if (!activeChatId || isSendBlocked) return;
     if (hasPendingAttachments) {
       toast.info(localizeUi("ui.chat.chatinput.clearOrSendAttachmentsBeforeUsingGuidedGeneration"));
       return;
@@ -1307,7 +1290,7 @@ export function ConversationInput({
     const text = textareaRef.current?.value?.trim() ?? "";
     if (!text) return;
     await runQuickSlashCommand(`/guided ${text}`, "Guided generation failed");
-  }, [activeChatId, isSendBlocked, delayedCharacterInfo, hasPendingAttachments, runQuickSlashCommand, localizeUi]);
+  }, [activeChatId, isSendBlocked, hasPendingAttachments, runQuickSlashCommand, localizeUi]);
 
   const sendCustomQuickReply = useCallback(
     async (content: string) => {
@@ -1334,7 +1317,7 @@ export function ConversationInput({
     };
     const getGuideDisabledReason = () => {
       if (!activeChatId) return "Select or create a chat first.";
-      if (isSendBlocked || delayedCharacterInfo) {
+      if (isSendBlocked) {
         return localizeUi("ui.chat.conversationinput.waitForTheCurrentResponseToBegin");
       }
       if (hasPendingAttachments) return "Clear or post attachments first.";
@@ -1358,7 +1341,7 @@ export function ConversationInput({
         label: "Guide reply",
         description: "Send as /guided direction",
         icon: <WandSparkles size="0.875rem" />,
-        disabled: !activeChatId || isSendBlocked || !!delayedCharacterInfo || !hasInput || hasPendingAttachments,
+        disabled: !activeChatId || isSendBlocked || !hasInput || hasPendingAttachments,
         disabledReason: getGuideDisabledReason(),
         onSelect: handleGuidedGenerationButton,
       });
@@ -1390,7 +1373,6 @@ export function ConversationInput({
   }, [
     activeChatId,
     isSendBlocked,
-    delayedCharacterInfo,
     isReadingAttachments,
     hasInput,
     attachments.length,

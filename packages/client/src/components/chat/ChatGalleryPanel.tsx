@@ -17,7 +17,6 @@ import { parseChatMetadata } from "../../lib/chat-display";
 
 type GalleryChatMetadata = Chat["metadata"] & {
   imageGenConnectionId?: string | null;
-  enableSpriteGeneration?: boolean;
 };
 
 /** The gallery for one chat, with the generate actions its chat surface offers. */
@@ -28,8 +27,6 @@ export function ChatGalleryPanel({ chat }: { chat: Chat }) {
     onGenerateSelfie,
     selfieCharacters,
     onGenerateBackground,
-    onGenerateStoryboard,
-    onViewStoryboard,
     onGenerateVideo,
     onAnimateImage,
   } = useChatGalleryActions(chat.id) ?? {};
@@ -80,8 +77,6 @@ export function ChatGalleryPanel({ chat }: { chat: Chat }) {
       onIllustrateWithAgent={onIllustrateWithAgent}
       onGenerateSelfie={illustratorAvailable ? onGenerateSelfie : undefined}
       selfieCharacters={selfieCharacters}
-      onGenerateStoryboard={onGenerateStoryboard}
-      onViewStoryboard={onViewStoryboard}
       onGenerateVideo={illustratorAvailable ? onGenerateVideo : undefined}
       onAnimateImage={illustratorAvailable ? onAnimateImage : undefined}
       onGenerateBackground={illustratorAvailable ? onGenerateBackground : undefined}

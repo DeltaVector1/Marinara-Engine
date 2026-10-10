@@ -446,7 +446,6 @@ export type SpriteCleanupEngine = "auto" | "backgroundremover" | "builtin";
 
 interface SpriteCapabilities {
   imageProcessingAvailable: boolean;
-  spriteGenerationAvailable: boolean;
   backgroundRemovalAvailable: boolean;
   reason: string | null;
   backgroundRemover?: {
@@ -556,7 +555,6 @@ export function useCharacterSprites(characterId: string | null) {
     enabled: !!characterId,
   });
 }
-
 
 export function useUploadSprite() {
   const qc = useQueryClient();

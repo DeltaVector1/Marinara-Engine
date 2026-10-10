@@ -3,7 +3,7 @@
 // ──────────────────────────────────────────────
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api-client";
-import { encodeAssetPath } from "../components/game-assets/encode-asset-path";
+import { encodeAssetPath } from "../lib/encode-asset-path";
 import { HOST_DEVICE_FILE_MANAGER_MESSAGE, HostDeviceFileManagerError, isHostDeviceBrowser } from "../lib/host-device";
 import { toast } from "sonner";
 

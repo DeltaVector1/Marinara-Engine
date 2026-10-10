@@ -39,7 +39,6 @@ import {
 import { SectionHeader, TRACKER_SECTION_SHELL_CLASS } from "../controls/SectionControls";
 import { StatList } from "../controls/StatList";
 import { useTrackerLockContext } from "../TrackerLockContext";
-import { useTrackerWindow } from "../TrackerWindowContext";
 import type { PersonaPortraitSaveSnapshot } from "../../hooks/use-persona-portrait-save";
 import type { StatIconLookup } from "../../hooks/use-stat-icons";
 import { PersonaPortraitStage } from "./PersonaPortraitStage";
@@ -97,7 +96,6 @@ export function PersonaInventoryPanel({
 }) {
   const { t: localizeUi } = useUiTranslation();
   const { fieldLocks, lockMode, onToggleFieldLock } = useTrackerLockContext();
-  const trackerWindow = useTrackerWindow();
   const personaPortraitSaveTimeoutsRef = useRef(new Map<string, number>());
   const [personaPortraitFocusOverride, setPersonaPortraitFocusOverride] = useState<{
     personaId: string;
@@ -136,10 +134,10 @@ export function PersonaInventoryPanel({
           queuePersonaPortraitSave({ id: persona.id, portraitFocusX, portraitFocusY, portraitZoom });
           const existingTimeout = personaPortraitSaveTimeoutsRef.current.get(persona.id);
           if (existingTimeout !== undefined) {
-            trackerWindow.clearTimeout(existingTimeout);
+            window.clearTimeout(existingTimeout);
             personaPortraitSaveTimeoutsRef.current.delete(persona.id);
           }
-          const timeoutId = trackerWindow.setTimeout(() => {
+          const timeoutId = window.setTimeout(() => {
             if (personaPortraitSaveTimeoutsRef.current.get(persona.id) !== timeoutId) return;
             personaPortraitSaveTimeoutsRef.current.delete(persona.id);
             flushPersonaPortraitSave(persona.id);
@@ -185,7 +183,7 @@ export function PersonaInventoryPanel({
       const livePersonaIds = [...personaPortraitSaveTimeoutsRef.current.keys()];
       for (const personaId of livePersonaIds) {
         const timeoutId = personaPortraitSaveTimeoutsRef.current.get(personaId);
-        if (timeoutId !== undefined) trackerWindow.clearTimeout(timeoutId);
+        if (timeoutId !== undefined) window.clearTimeout(timeoutId);
       }
       personaPortraitSaveTimeoutsRef.current.clear();
 
@@ -193,12 +191,12 @@ export function PersonaInventoryPanel({
         flushPersonaPortraitSave(personaId);
       }
     };
-    trackerWindow.addEventListener("pagehide", flushOnPageHide);
+    window.addEventListener("pagehide", flushOnPageHide);
     return () => {
-      trackerWindow.removeEventListener("pagehide", flushOnPageHide);
+      window.removeEventListener("pagehide", flushOnPageHide);
       flushOnPageHide();
     };
-  }, [flushPersonaPortraitSave, trackerWindow]);
+  }, [flushPersonaPortraitSave]);
 
   return (
     <div className={cn(TRACKER_SECTION_SHELL_CLASS, "transition-colors duration-200")}>

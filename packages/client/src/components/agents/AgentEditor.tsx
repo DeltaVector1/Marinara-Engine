@@ -1132,7 +1132,6 @@ export function AgentEditor() {
   const isIllustratorAgent = agentDetailId === "illustrator" || dbConfig?.type === "illustrator";
   const isCustomImagePromptAgent = (isCustomAgent || isNewCustomAgent) && localResultType === "image_prompt";
   const supportsImagePromptSettings = isIllustratorAgent || isCustomImagePromptAgent;
-  const isStoryboardAgent = agentDetailId === "storyboard" || dbConfig?.type === "storyboard";
 
   // Knowledge Retrieval agent — lorebook source selector
   const isKnowledgeRetrievalAgent = agentDetailId === "knowledge-retrieval" || dbConfig?.type === "knowledge-retrieval";
@@ -1427,11 +1426,9 @@ export function AgentEditor() {
           : {}),
         ...(mayIncludeTurnData && localIncludePreGenInjections ? { includePreGenInjections: true } : {}),
         ...(mayIncludeTurnData && localIncludeParallelResults ? { includeParallelResults: true } : {}),
-        ...(!isStoryboardAgent && localContextSize !== "" ? { contextSize: Number(localContextSize) } : {}),
-        ...(!isStoryboardAgent && localMaxTokens !== "" ? { maxTokens: clampAgentMaxTokens(localMaxTokens) } : {}),
-        ...(!isDirectorAgent && !isStoryboardAgent && localRunInterval !== ""
-          ? { runInterval: Number(localRunInterval) }
-          : {}),
+        ...(localContextSize !== "" ? { contextSize: Number(localContextSize) } : {}),
+        ...(localMaxTokens !== "" ? { maxTokens: clampAgentMaxTokens(localMaxTokens) } : {}),
+        ...(!isDirectorAgent && localRunInterval !== "" ? { runInterval: Number(localRunInterval) } : {}),
         ...(isEchoChamberAgent ? { messageDelaySeconds: localEchoMessageDelaySeconds } : {}),
         ...(localInjectAsSection ? { injectAsSection: true } : {}),
         ...(isMusicAgent
@@ -1588,7 +1585,6 @@ export function AgentEditor() {
     isCustomAgent,
     isNewCustomAgent,
     supportsImagePromptSettings,
-    isStoryboardAgent,
     isProseGuardianAgent,
     isContinuityAgent,
     isHtmlAgent,
@@ -1668,11 +1664,9 @@ export function AgentEditor() {
         : {}),
       ...(mayIncludeTurnData && localIncludePreGenInjections ? { includePreGenInjections: true } : {}),
       ...(mayIncludeTurnData && localIncludeParallelResults ? { includeParallelResults: true } : {}),
-      ...(!isStoryboardAgent && localContextSize !== "" ? { contextSize: Number(localContextSize) } : {}),
-      ...(!isStoryboardAgent && localMaxTokens !== "" ? { maxTokens: clampAgentMaxTokens(localMaxTokens) } : {}),
-      ...(!isDirectorAgent && !isStoryboardAgent && localRunInterval !== ""
-        ? { runInterval: Number(localRunInterval) }
-        : {}),
+      ...(localContextSize !== "" ? { contextSize: Number(localContextSize) } : {}),
+      ...(localMaxTokens !== "" ? { maxTokens: clampAgentMaxTokens(localMaxTokens) } : {}),
+      ...(!isDirectorAgent && localRunInterval !== "" ? { runInterval: Number(localRunInterval) } : {}),
       ...(isEchoChamberAgent ? { messageDelaySeconds: localEchoMessageDelaySeconds } : {}),
       ...(localInjectAsSection ? { injectAsSection: true } : {}),
       ...(exportingMusicAgent
@@ -2769,72 +2763,70 @@ export function AgentEditor() {
             </FieldGroup>
           )}
 
-          {!isStoryboardAgent && (
-            <FieldGroup
-              label={localizeUi("ui.agents.agenteditor.agentBudget")}
-              icon={<Clock size="0.875rem" className="text-[var(--primary)]" />}
-              help={localizeUi("ui.agents.agenteditor.controlsHowMuchRecentChatContextTheAgentReads")}
-            >
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-[0.6875rem] font-medium text-[var(--muted-foreground)]">
-                    {localizeUi("ui.agents.agenteditor.contextSize")}
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      min={1}
-                      max={200}
-                      value={localContextSize}
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setLocalContextSize(v === "" ? "" : Math.max(1, Math.min(200, parseInt(v) || 1)));
-                        markDirty();
-                      }}
-                      placeholder={String(DEFAULT_AGENT_CONTEXT_SIZE)}
-                      className="w-28 rounded-xl bg-[var(--secondary)] px-3 py-2.5 text-sm tabular-nums ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                    />
-                    <span className="text-[0.6875rem] text-[var(--muted-foreground)]">
-                      {localizeUi("ui.agents.agenteditor.messages")}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <label className="mb-1 block text-[0.6875rem] font-medium text-[var(--muted-foreground)]">
-                    {localizeUi("ui.agents.agenteditor.maxOutputTokens")}
-                  </label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      min={MIN_AGENT_MAX_TOKENS}
-                      value={localMaxTokens}
-                      onChange={(e) => {
-                        setLocalMaxTokens(normalizeAgentMaxTokensInput(e.target.value));
-                        markDirty();
-                      }}
-                      onBlur={() => {
-                        if (localMaxTokens !== "") {
-                          setLocalMaxTokens(clampAgentMaxTokens(localMaxTokens));
-                        }
-                      }}
-                      placeholder={String(DEFAULT_AGENT_MAX_TOKENS)}
-                      className="w-32 rounded-xl bg-[var(--secondary)] px-3 py-2.5 text-sm tabular-nums ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                    />
-                    <span className="text-[0.6875rem] text-[var(--muted-foreground)]">
-                      {localizeUi("ui.agents.agenteditor.tokens")}
-                    </span>
-                  </div>
+          <FieldGroup
+            label={localizeUi("ui.agents.agenteditor.agentBudget")}
+            icon={<Clock size="0.875rem" className="text-[var(--primary)]" />}
+            help={localizeUi("ui.agents.agenteditor.controlsHowMuchRecentChatContextTheAgentReads")}
+          >
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-[0.6875rem] font-medium text-[var(--muted-foreground)]">
+                  {localizeUi("ui.agents.agenteditor.contextSize")}
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min={1}
+                    max={200}
+                    value={localContextSize}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setLocalContextSize(v === "" ? "" : Math.max(1, Math.min(200, parseInt(v) || 1)));
+                      markDirty();
+                    }}
+                    placeholder={String(DEFAULT_AGENT_CONTEXT_SIZE)}
+                    className="w-28 rounded-xl bg-[var(--secondary)] px-3 py-2.5 text-sm tabular-nums ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                  />
+                  <span className="text-[0.6875rem] text-[var(--muted-foreground)]">
+                    {localizeUi("ui.agents.agenteditor.messages")}
+                  </span>
                 </div>
               </div>
-              <p className="mt-1 text-[0.625rem] text-[var(--muted-foreground)]">
-                {localizeUi("ui.agents.agenteditor.eachAgentOnlySeesItsOwnContextSizeWhen")}
-              </p>
-              <p className="mt-1 text-[0.625rem] text-[var(--muted-foreground)]">
-                {localizeUi("ui.agents.agenteditor.for8kLocalModelsTry")} {DEFAULT_AGENT_MAX_TOKENS.toLocaleString()}{" "}
-                {localizeUi("ui.agents.agenteditor.orLowerSoTheAgentPromptKeepsEnoughRoom")}
-              </p>
-            </FieldGroup>
-          )}
+              <div>
+                <label className="mb-1 block text-[0.6875rem] font-medium text-[var(--muted-foreground)]">
+                  {localizeUi("ui.agents.agenteditor.maxOutputTokens")}
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    min={MIN_AGENT_MAX_TOKENS}
+                    value={localMaxTokens}
+                    onChange={(e) => {
+                      setLocalMaxTokens(normalizeAgentMaxTokensInput(e.target.value));
+                      markDirty();
+                    }}
+                    onBlur={() => {
+                      if (localMaxTokens !== "") {
+                        setLocalMaxTokens(clampAgentMaxTokens(localMaxTokens));
+                      }
+                    }}
+                    placeholder={String(DEFAULT_AGENT_MAX_TOKENS)}
+                    className="w-32 rounded-xl bg-[var(--secondary)] px-3 py-2.5 text-sm tabular-nums ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                  />
+                  <span className="text-[0.6875rem] text-[var(--muted-foreground)]">
+                    {localizeUi("ui.agents.agenteditor.tokens")}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p className="mt-1 text-[0.625rem] text-[var(--muted-foreground)]">
+              {localizeUi("ui.agents.agenteditor.eachAgentOnlySeesItsOwnContextSizeWhen")}
+            </p>
+            <p className="mt-1 text-[0.625rem] text-[var(--muted-foreground)]">
+              {localizeUi("ui.agents.agenteditor.for8kLocalModelsTry")} {DEFAULT_AGENT_MAX_TOKENS.toLocaleString()}{" "}
+              {localizeUi("ui.agents.agenteditor.orLowerSoTheAgentPromptKeepsEnoughRoom")}
+            </p>
+          </FieldGroup>
 
           {isProseGuardianAgent && (
             <FieldGroup
@@ -4166,177 +4158,175 @@ export function AgentEditor() {
           )}
 
           {/* ── Prompt Template ── */}
-          {!isStoryboardAgent ? (
-            <FieldGroup
-              label={localizeUi("ui.agents.agenteditor.promptTemplate")}
-              icon={<FileText size="0.875rem" className="text-[var(--primary)]" />}
-              help={localizeUi("ui.agents.agenteditor.theSystemInstructionsThisAgentReceivesBuiltInAgents")}
-            >
-              {/* Toolbar — only show default/override status for built-in agents */}
-              {builtIn && (
-                <div className="flex items-center gap-2 mb-2">
-                  {isUsingDefaultPrompt ? (
-                    <span className="flex items-center gap-1 rounded-lg bg-emerald-400/10 px-2.5 py-1 text-[0.625rem] font-medium text-emerald-400">
-                      <Check size="0.625rem" /> {localizeUi("ui.agents.agenteditor.usingBuiltInDefault")}
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 rounded-lg bg-amber-400/10 px-2.5 py-1 text-[0.625rem] font-medium text-amber-400">
-                      <FileText size="0.625rem" /> {localizeUi("ui.agents.agenteditor.customOverride")}
-                    </span>
-                  )}
-                  <div className="flex-1" />
-                  {!isUsingDefaultPrompt && (
-                    <button
-                      onClick={handleResetPrompt}
-                      className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[0.625rem] font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-                    >
-                      <RotateCcw size="0.625rem" /> {localizeUi("ui.agents.agenteditor.resetToDefault")}
-                    </button>
-                  )}
-                  {isUsingDefaultPrompt && defaultPrompt && (
-                    <button
-                      onClick={handleLoadDefault}
-                      className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[0.625rem] font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-                    >
-                      <FileText size="0.625rem" /> {localizeUi("ui.agents.agenteditor.copyDefaultToEdit")}
-                    </button>
-                  )}
-                </div>
-              )}
-
-              {builtIn && isUsingDefaultPrompt ? (
-                <div className="relative">
-                  <pre className="w-full max-h-[50vh] overflow-y-auto resize-y rounded-xl bg-[var(--secondary)] px-4 py-3 font-mono text-xs leading-relaxed ring-1 ring-[var(--border)] text-[var(--muted-foreground)] whitespace-pre-wrap">
-                    {defaultPrompt || "No default prompt."}
-                  </pre>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
-                    {promptTemplateHelp}
-                    <p className="ml-auto shrink-0 text-right text-[0.625rem] text-[var(--muted-foreground)]">
-                      {formatEstimatedTokens(estimateTextTokens(defaultPrompt || ""), localizeUi)}
-                    </p>
-                  </div>
-                  <span className="absolute right-3 top-2 rounded-md bg-[var(--card)] px-1.5 py-0.5 text-[0.5625rem] font-medium text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
-                    {localizeUi("ui.agents.agenteditor.defaultClickCopyDefaultToEditToCustomize")}
+          <FieldGroup
+            label={localizeUi("ui.agents.agenteditor.promptTemplate")}
+            icon={<FileText size="0.875rem" className="text-[var(--primary)]" />}
+            help={localizeUi("ui.agents.agenteditor.theSystemInstructionsThisAgentReceivesBuiltInAgents")}
+          >
+            {/* Toolbar — only show default/override status for built-in agents */}
+            {builtIn && (
+              <div className="flex items-center gap-2 mb-2">
+                {isUsingDefaultPrompt ? (
+                  <span className="flex items-center gap-1 rounded-lg bg-emerald-400/10 px-2.5 py-1 text-[0.625rem] font-medium text-emerald-400">
+                    <Check size="0.625rem" /> {localizeUi("ui.agents.agenteditor.usingBuiltInDefault")}
                   </span>
-                </div>
-              ) : (
-                <MacroTextarea
-                  showTokenCount
-                  value={localPrompt}
-                  tokenCountFooter={promptTemplateHelp}
-                  onChange={(value) => {
-                    setLocalPrompt(value);
-                    markDirty();
-                  }}
-                  rows={16}
-                  title={localizeUi("ui.agents.agenteditor.promptTemplate")}
-                  placeholder={
-                    isCustomAgent || isNewCustomAgent
-                      ? customPromptPlaceholder
-                      : localizeUi("ui.agents.agenteditor.writeTheSystemPromptForThisAgent")
-                  }
-                  className="w-full resize-y rounded-xl bg-[var(--secondary)] px-4 py-3 font-mono text-xs leading-relaxed ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] max-h-[60vh] overflow-y-auto"
-                />
-              )}
-
-              <div className="mt-4 space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-xs font-semibold text-[var(--foreground)]">
-                      {localizeUi("ui.agents.agenteditor.namedPromptOptions")}
-                    </p>
-                    <p className="text-[0.625rem] text-[var(--muted-foreground)]">
-                      {localizeUi("ui.agents.agenteditor.chatsCanPickOneOfTheseWithoutChangingThe")}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddPromptTemplate}
-                    className="flex items-center gap-1.5 rounded-lg bg-[var(--secondary)] px-2.5 py-1.5 text-[0.6875rem] font-medium text-[var(--foreground)] ring-1 ring-[var(--border)] transition-colors hover:bg-[var(--accent)]"
-                  >
-                    <Plus size="0.6875rem" />
-                    {localizeUi("ui.agents.agenteditor.addOption")}
-                  </button>
-                </div>
-
-                {localPromptTemplates.length === 0 ? (
-                  <p className="rounded-xl bg-[var(--secondary)]/60 px-3 py-2 text-[0.6875rem] text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
-                    {localizeUi("ui.agents.agenteditor.noNamedOptionsYetTheChatMenuWillShow")}
-                  </p>
                 ) : (
-                  <div className="space-y-3">
-                    {localPromptTemplates.map((option, index) => {
-                      const defaultPromptTemplate = defaultPromptTemplateById.get(option.id);
-                      const matchesDefaultPrompt =
-                        !!defaultPromptTemplate && option.promptTemplate === defaultPromptTemplate.promptTemplate;
-                      return (
-                        <div
-                          key={option.id}
-                          className="rounded-xl bg-[var(--secondary)]/70 p-3 ring-1 ring-[var(--border)]"
-                        >
-                          <div className="mb-2 flex items-center gap-2">
-                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[var(--background)] text-[0.6875rem] font-semibold text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
-                              {index + 1}
-                            </span>
-                            <input
-                              value={option.name}
-                              onChange={(e) => handleUpdatePromptTemplate(option.id, { name: e.target.value })}
-                              className="min-w-0 flex-1 rounded-lg bg-[var(--background)] px-2.5 py-1.5 text-sm ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                              placeholder={localizeUi("ui.agents.agenteditor.optionName")}
-                            />
-                            {defaultPromptTemplate && (
-                              <button
-                                type="button"
-                                onClick={() => handleResetPromptTemplate(option.id)}
-                                disabled={matchesDefaultPrompt}
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[var(--muted-foreground)]"
-                                title={
-                                  matchesDefaultPrompt
-                                    ? localizeUi("ui.agents.agenteditor.promptAlreadyMatchesTheDefault")
-                                    : localizeUi("ui.agents.agenteditor.restoreDefaultPrompt")
-                                }
-                              >
-                                <RotateCcw size="0.75rem" />
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePromptTemplate(option.id)}
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
-                              title={localizeUi("ui.agents.agenteditor.removePromptOption")}
-                            >
-                              <Trash2 size="0.75rem" />
-                            </button>
-                          </div>
-                          <input
-                            value={option.description ?? ""}
-                            onChange={(e) => handleUpdatePromptTemplate(option.id, { description: e.target.value })}
-                            className="mb-2 w-full rounded-lg bg-[var(--background)] px-2.5 py-1.5 text-xs ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                            placeholder={localizeUi("ui.agents.agenteditor.shortDescriptionShownInChatSettings")}
-                          />
-                          <MacroTextarea
-                            showTokenCount
-                            value={option.promptTemplate}
-                            onChange={(value) => handleUpdatePromptTemplate(option.id, { promptTemplate: value })}
-                            rows={7}
-                            title={
-                              option.name
-                                ? localizeUi("ui.agents.agenteditor.value1Prompt", { value1: option.name })
-                                : localizeUi("ui.agents.agenteditor.promptOptionValue1", { value1: index + 1 })
-                            }
-                            className="w-full resize-y rounded-lg bg-[var(--background)] px-3 py-2 font-mono text-xs leading-relaxed ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                            placeholder={localizeUi("ui.agents.agenteditor.writeThePromptTemplateForThisOption")}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <span className="flex items-center gap-1 rounded-lg bg-amber-400/10 px-2.5 py-1 text-[0.625rem] font-medium text-amber-400">
+                    <FileText size="0.625rem" /> {localizeUi("ui.agents.agenteditor.customOverride")}
+                  </span>
+                )}
+                <div className="flex-1" />
+                {!isUsingDefaultPrompt && (
+                  <button
+                    onClick={handleResetPrompt}
+                    className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[0.625rem] font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                  >
+                    <RotateCcw size="0.625rem" /> {localizeUi("ui.agents.agenteditor.resetToDefault")}
+                  </button>
+                )}
+                {isUsingDefaultPrompt && defaultPrompt && (
+                  <button
+                    onClick={handleLoadDefault}
+                    className="flex items-center gap-1 rounded-lg px-2.5 py-1 text-[0.625rem] font-medium text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                  >
+                    <FileText size="0.625rem" /> {localizeUi("ui.agents.agenteditor.copyDefaultToEdit")}
+                  </button>
                 )}
               </div>
+            )}
 
-              {/* Default prompt preview removed — now shown inline above */}
-            </FieldGroup>
-          ) : null}
+            {builtIn && isUsingDefaultPrompt ? (
+              <div className="relative">
+                <pre className="w-full max-h-[50vh] overflow-y-auto resize-y rounded-xl bg-[var(--secondary)] px-4 py-3 font-mono text-xs leading-relaxed ring-1 ring-[var(--border)] text-[var(--muted-foreground)] whitespace-pre-wrap">
+                  {defaultPrompt || "No default prompt."}
+                </pre>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {promptTemplateHelp}
+                  <p className="ml-auto shrink-0 text-right text-[0.625rem] text-[var(--muted-foreground)]">
+                    {formatEstimatedTokens(estimateTextTokens(defaultPrompt || ""), localizeUi)}
+                  </p>
+                </div>
+                <span className="absolute right-3 top-2 rounded-md bg-[var(--card)] px-1.5 py-0.5 text-[0.5625rem] font-medium text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
+                  {localizeUi("ui.agents.agenteditor.defaultClickCopyDefaultToEditToCustomize")}
+                </span>
+              </div>
+            ) : (
+              <MacroTextarea
+                showTokenCount
+                value={localPrompt}
+                tokenCountFooter={promptTemplateHelp}
+                onChange={(value) => {
+                  setLocalPrompt(value);
+                  markDirty();
+                }}
+                rows={16}
+                title={localizeUi("ui.agents.agenteditor.promptTemplate")}
+                placeholder={
+                  isCustomAgent || isNewCustomAgent
+                    ? customPromptPlaceholder
+                    : localizeUi("ui.agents.agenteditor.writeTheSystemPromptForThisAgent")
+                }
+                className="w-full resize-y rounded-xl bg-[var(--secondary)] px-4 py-3 font-mono text-xs leading-relaxed ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] max-h-[60vh] overflow-y-auto"
+              />
+            )}
+
+            <div className="mt-4 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-[var(--foreground)]">
+                    {localizeUi("ui.agents.agenteditor.namedPromptOptions")}
+                  </p>
+                  <p className="text-[0.625rem] text-[var(--muted-foreground)]">
+                    {localizeUi("ui.agents.agenteditor.chatsCanPickOneOfTheseWithoutChangingThe")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddPromptTemplate}
+                  className="flex items-center gap-1.5 rounded-lg bg-[var(--secondary)] px-2.5 py-1.5 text-[0.6875rem] font-medium text-[var(--foreground)] ring-1 ring-[var(--border)] transition-colors hover:bg-[var(--accent)]"
+                >
+                  <Plus size="0.6875rem" />
+                  {localizeUi("ui.agents.agenteditor.addOption")}
+                </button>
+              </div>
+
+              {localPromptTemplates.length === 0 ? (
+                <p className="rounded-xl bg-[var(--secondary)]/60 px-3 py-2 text-[0.6875rem] text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
+                  {localizeUi("ui.agents.agenteditor.noNamedOptionsYetTheChatMenuWillShow")}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {localPromptTemplates.map((option, index) => {
+                    const defaultPromptTemplate = defaultPromptTemplateById.get(option.id);
+                    const matchesDefaultPrompt =
+                      !!defaultPromptTemplate && option.promptTemplate === defaultPromptTemplate.promptTemplate;
+                    return (
+                      <div
+                        key={option.id}
+                        className="rounded-xl bg-[var(--secondary)]/70 p-3 ring-1 ring-[var(--border)]"
+                      >
+                        <div className="mb-2 flex items-center gap-2">
+                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[var(--background)] text-[0.6875rem] font-semibold text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
+                            {index + 1}
+                          </span>
+                          <input
+                            value={option.name}
+                            onChange={(e) => handleUpdatePromptTemplate(option.id, { name: e.target.value })}
+                            className="min-w-0 flex-1 rounded-lg bg-[var(--background)] px-2.5 py-1.5 text-sm ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                            placeholder={localizeUi("ui.agents.agenteditor.optionName")}
+                          />
+                          {defaultPromptTemplate && (
+                            <button
+                              type="button"
+                              onClick={() => handleResetPromptTemplate(option.id)}
+                              disabled={matchesDefaultPrompt}
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[var(--muted-foreground)]"
+                              title={
+                                matchesDefaultPrompt
+                                  ? localizeUi("ui.agents.agenteditor.promptAlreadyMatchesTheDefault")
+                                  : localizeUi("ui.agents.agenteditor.restoreDefaultPrompt")
+                              }
+                            >
+                              <RotateCcw size="0.75rem" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePromptTemplate(option.id)}
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+                            title={localizeUi("ui.agents.agenteditor.removePromptOption")}
+                          >
+                            <Trash2 size="0.75rem" />
+                          </button>
+                        </div>
+                        <input
+                          value={option.description ?? ""}
+                          onChange={(e) => handleUpdatePromptTemplate(option.id, { description: e.target.value })}
+                          className="mb-2 w-full rounded-lg bg-[var(--background)] px-2.5 py-1.5 text-xs ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                          placeholder={localizeUi("ui.agents.agenteditor.shortDescriptionShownInChatSettings")}
+                        />
+                        <MacroTextarea
+                          showTokenCount
+                          value={option.promptTemplate}
+                          onChange={(value) => handleUpdatePromptTemplate(option.id, { promptTemplate: value })}
+                          rows={7}
+                          title={
+                            option.name
+                              ? localizeUi("ui.agents.agenteditor.value1Prompt", { value1: option.name })
+                              : localizeUi("ui.agents.agenteditor.promptOptionValue1", { value1: index + 1 })
+                          }
+                          className="w-full resize-y rounded-lg bg-[var(--background)] px-3 py-2 font-mono text-xs leading-relaxed ring-1 ring-[var(--border)] placeholder:text-[var(--muted-foreground)]/50 focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                          placeholder={localizeUi("ui.agents.agenteditor.writeThePromptTemplateForThisOption")}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Default prompt preview removed — now shown inline above */}
+          </FieldGroup>
 
           {/* ── Available Tools (Function Calling) ── */}
           <FieldGroup

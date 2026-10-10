@@ -17,7 +17,6 @@ import {
   Images,
   Search,
   Film,
-  PanelsTopLeft,
   Copy,
   Check,
   Bot,
@@ -62,10 +61,6 @@ interface ChatGalleryProps {
   selfieCharacters?: Array<{ id: string; name: string }>;
   /** Run Illustrator in its background prompt mode. */
   onGenerateBackground?: () => void | Promise<void>;
-  /** Generate a storyboard for the latest completed Game Mode GM turn. */
-  onGenerateStoryboard?: () => void | Promise<void>;
-  /** Show the latest Game Mode storyboard viewer. */
-  onViewStoryboard?: () => void;
   /** Generate a scene video from the latest illustration. */
   onGenerateVideo?: () => void | Promise<void>;
   /** Generate a scene video from a specific gallery illustration. */
@@ -102,8 +97,6 @@ export function ChatGallery({
   onGenerateSelfie,
   selfieCharacters = [],
   onGenerateBackground,
-  onGenerateStoryboard,
-  onViewStoryboard,
   onGenerateVideo,
   onAnimateImage,
 }: ChatGalleryProps) {
@@ -135,7 +128,6 @@ export function ChatGallery({
   const isGeneratingSelfie = useGalleryStore((s) => s.selfieGeneratingChatIds.has(chatId));
   const isGeneratingVideo = useGalleryStore((s) => s.videoGeneratingChatIds.has(chatId));
   const isGeneratingBackground = useGalleryStore((s) => s.backgroundGeneratingChatIds.has(chatId));
-  const isGeneratingStoryboard = useGalleryStore((s) => s.storyboardGeneratingChatIds.has(chatId));
   const pinImage = useGalleryStore((s) => s.pinImage);
   const pinVideo = useGalleryStore((s) => s.pinVideo);
   const unpinImage = useGalleryStore((s) => s.unpinImage);
@@ -143,7 +135,6 @@ export function ChatGallery({
   const setChatGeneratingSelfie = useGalleryStore((s) => s.setChatGeneratingSelfie);
   const setChatGeneratingVideo = useGalleryStore((s) => s.setChatGeneratingVideo);
   const setChatGeneratingBackground = useGalleryStore((s) => s.setChatGeneratingBackground);
-  const setChatGeneratingStoryboard = useGalleryStore((s) => s.setChatGeneratingStoryboard);
   const assetSearchActive = assetSearch.trim().length > 0;
   const { data: assetItems, isLoading: assetsLoading } = useChatAssetBrowser(chatId, assetSearchActive);
   const portalRoot = typeof document !== "undefined" ? document.body : null;
@@ -450,21 +441,6 @@ export function ChatGallery({
     }
   };
 
-  const handleGenerateStoryboard = async () => {
-    if (!onGenerateStoryboard || useGalleryStore.getState().storyboardGeneratingChatIds.has(chatId)) return;
-
-    setChatGeneratingStoryboard(chatId, true);
-    try {
-      await onGenerateStoryboard();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : localizeUi("ui.chat.chatgallery.storyboardGenerationFailed"),
-      );
-    } finally {
-      setChatGeneratingStoryboard(chatId, false);
-    }
-  };
-
   const handleAnimateImage = async (image: ChatImage) => {
     if (!sceneVideosEnabled || !onAnimateImage || useGalleryStore.getState().videoGeneratingChatIds.has(chatId)) {
       return;
@@ -565,7 +541,6 @@ export function ChatGallery({
   const actionCount = [
     canIllustrate,
     onGenerateSelfie,
-    onGenerateStoryboard,
     sceneVideosEnabled && onGenerateVideo,
     onGenerateBackground,
   ].filter(Boolean).length;
@@ -592,11 +567,7 @@ export function ChatGallery({
   return (
     <>
       <div className="flex flex-col gap-3">
-        {(canIllustrate ||
-          onGenerateSelfie ||
-          onGenerateStoryboard ||
-          (sceneVideosEnabled && onGenerateVideo) ||
-          onGenerateBackground) && (
+        {(canIllustrate || onGenerateSelfie || (sceneVideosEnabled && onGenerateVideo) || onGenerateBackground) && (
           <div className={cn("mari-gallery-generation-actions", actionGridClass)}>
             {canIllustrate && (
               <div ref={illustrateMenuRef} className="relative min-w-0">
@@ -695,26 +666,6 @@ export function ChatGallery({
                   </select>
                 )}
               </div>
-            )}
-            {onGenerateStoryboard && (
-              <button
-                type="button"
-                onClick={() => void handleGenerateStoryboard()}
-                disabled={isGeneratingStoryboard}
-                aria-busy={isGeneratingStoryboard}
-                className="flex min-w-0 items-center justify-center gap-2 rounded-xl bg-[var(--primary)]/15 px-3 py-3 text-xs font-medium text-[var(--primary)] transition-all hover:bg-[var(--primary)]/25 disabled:cursor-wait disabled:opacity-75"
-              >
-                {isGeneratingStoryboard ? (
-                  <Loader2 size="1rem" className="shrink-0 animate-spin" />
-                ) : (
-                  <PanelsTopLeft size="1rem" className="shrink-0" />
-                )}
-                <span className="min-w-0 truncate">
-                  {isGeneratingStoryboard
-                    ? localizeUi("ui.chat.chatgallery.creating")
-                    : localizeUi("ui.chat.chatgallery.createStoryboard")}
-                </span>
-              </button>
             )}
             {sceneVideosEnabled && onGenerateVideo && (
               <button
@@ -846,18 +797,7 @@ export function ChatGallery({
           </div>
         )}
 
-        {onViewStoryboard && (
-          <button
-            type="button"
-            onClick={onViewStoryboard}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[var(--secondary)] px-4 py-3 text-xs font-medium text-[var(--foreground)] transition-all hover:bg-[var(--accent)]"
-          >
-            <PanelsTopLeft size="1rem" />
-            {localizeUi("ui.chat.chatgallery.viewStoryboard")}
-          </button>
-        )}
-
-        {(isIllustrating || isGeneratingVideo || isGeneratingBackground || isGeneratingStoryboard) && (
+        {(isIllustrating || isGeneratingVideo || isGeneratingBackground) && (
           <div
             className="rounded-xl border border-[var(--primary)]/25 bg-[var(--primary)]/10 px-3 py-2 text-xs text-[var(--primary)]"
             role="status"
@@ -865,11 +805,9 @@ export function ChatGallery({
           >
             {isGeneratingVideo
               ? localizeUi("ui.chat.chatgallery.aiVideoGenerationIsRunningTheNewVideoWill")
-              : isGeneratingStoryboard
-                ? localizeUi("ui.chat.chatgallery.storyboardGenerationIsRunningKeyframesWillAppearInThe")
-                : isGeneratingBackground
-                  ? localizeUi("ui.chat.chatgallery.illustratorIsGeneratingABackgroundImageForThisScene")
-                  : localizeUi("ui.chat.chatgallery.aiImageGenerationIsRunningTheNewImageWill")}
+              : isGeneratingBackground
+                ? localizeUi("ui.chat.chatgallery.illustratorIsGeneratingABackgroundImageForThisScene")
+                : localizeUi("ui.chat.chatgallery.aiImageGenerationIsRunningTheNewImageWill")}
           </div>
         )}
 

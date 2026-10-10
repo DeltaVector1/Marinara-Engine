@@ -21,7 +21,6 @@ import type {
 import { cn } from "../../../../lib/utils";
 import type { StatIconLookup } from "../../hooks/use-stat-icons";
 import { trackerEditableText } from "../../lib/tracker-display";
-import { useTrackerWindow } from "../TrackerWindowContext";
 import {
   makeUniqueCharacterCustomFieldName,
   normalizeCharacterCustomFieldName,
@@ -131,8 +130,7 @@ export function FeaturedCharacterTrackerCard({
   onUploadAvatar: () => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
-  const trackerWindow = useTrackerWindow();
-  const trackerDocument = trackerWindow.document;
+  const trackerDocument = window.document;
   const {
     fieldLocks,
     hiddenTrackerFields,
@@ -206,8 +204,8 @@ export function FeaturedCharacterTrackerCard({
       );
     };
     const closeAfterCurrentBlur = () => {
-      if (queuedClose !== undefined) trackerWindow.clearTimeout(queuedClose);
-      queuedClose = trackerWindow.setTimeout(() => {
+      if (queuedClose !== undefined) window.clearTimeout(queuedClose);
+      queuedClose = window.setTimeout(() => {
         setThoughtsOpen(false);
       }, 0);
     };
@@ -225,12 +223,12 @@ export function FeaturedCharacterTrackerCard({
     trackerDocument.addEventListener("focusin", handleFocusIn, true);
     trackerDocument.addEventListener("keydown", handleKeyDown, true);
     return () => {
-      if (queuedClose !== undefined) trackerWindow.clearTimeout(queuedClose);
+      if (queuedClose !== undefined) window.clearTimeout(queuedClose);
       trackerDocument.removeEventListener("pointerdown", handlePointerDown, true);
       trackerDocument.removeEventListener("focusin", handleFocusIn, true);
       trackerDocument.removeEventListener("keydown", handleKeyDown, true);
     };
-  }, [thoughtsOpen, trackerDocument, trackerWindow, useInlineThoughtBubble]);
+  }, [thoughtsOpen, trackerDocument, useInlineThoughtBubble]);
 
   const addCharacterStat = () => {
     onUpdate({

@@ -81,7 +81,6 @@ const OFFICIAL_PACKAGE_MODES: Readonly<Record<string, readonly CatalogMode[]>> =
   cyoa: ["roleplay"],
   "echo-chamber": ["roleplay"],
   illustrator: ["conversation", "roleplay", "game"],
-  storyboard: ["roleplay", "game"],
   html: ["roleplay"],
   "lorebook-keeper": ["roleplay", "game"],
   noodle: ["conversation", "roleplay", "game"],

@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 import { Lock, Pencil, Unlock } from "lucide-react";
 import { cn } from "../../../../lib/utils";
 import { visibleText } from "../../lib/tracker-display";
-import { useTrackerWindow } from "../TrackerWindowContext";
 import { useTranslation as useUiTranslation } from "react-i18next";
 
 export const WORLD_INSTRUMENT_TEXT_STYLE =
@@ -180,8 +179,7 @@ export function WorldValueText({
   className?: string;
   minScale?: number;
 }) {
-  const trackerWindow = useTrackerWindow();
-  const trackerDocument = trackerWindow.document;
+  const trackerDocument = window.document;
   const text = value === null || value === undefined ? "" : String(value);
   const displayText = text || "Not recorded";
   const containerRef = useRef<HTMLSpanElement>(null);
@@ -196,7 +194,7 @@ export function WorldValueText({
     const updateScale = () => {
       measure.style.fontSize = "";
       measure.style.lineHeight = "";
-      const computed = trackerWindow.getComputedStyle(measure);
+      const computed = window.getComputedStyle(measure);
       const baseFontSize = Number.parseFloat(computed.fontSize);
       const baseLineHeight = Number.parseFloat(computed.lineHeight);
       if (!container.clientWidth || !baseFontSize || !baseLineHeight) return;
@@ -234,17 +232,15 @@ export function WorldValueText({
 
     updateScale();
     const resizeObserver =
-      typeof trackerWindow.ResizeObserver === "undefined"
-        ? null
-        : new trackerWindow.ResizeObserver(() => updateScale());
+      typeof window.ResizeObserver === "undefined" ? null : new window.ResizeObserver(() => updateScale());
     resizeObserver?.observe(container);
     void trackerDocument.fonts?.ready.then(updateScale);
-    if (!resizeObserver) trackerWindow.addEventListener("resize", updateScale);
+    if (!resizeObserver) window.addEventListener("resize", updateScale);
     return () => {
       resizeObserver?.disconnect();
-      if (!resizeObserver) trackerWindow.removeEventListener("resize", updateScale);
+      if (!resizeObserver) window.removeEventListener("resize", updateScale);
     };
-  }, [displayText, maxLines, minScale, trackerDocument, trackerWindow]);
+  }, [displayText, maxLines, minScale, trackerDocument]);
 
   const fittedStyle: CSSProperties = {
     display: "-webkit-box",

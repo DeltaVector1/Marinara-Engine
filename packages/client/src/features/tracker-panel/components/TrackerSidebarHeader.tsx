@@ -1,17 +1,5 @@
 import { useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
-import {
-  BarChart3,
-  ExternalLink,
-  EyeOff,
-  Gauge,
-  Lock,
-  PanelLeft,
-  PanelRight,
-  Plus,
-  Settings2,
-  Trash2,
-  Unlock,
-} from "lucide-react";
+import { BarChart3, EyeOff, Gauge, Lock, PanelLeft, PanelRight, Plus, Settings2, Trash2, Unlock } from "lucide-react";
 import { HelpTooltip } from "../../../components/ui/HelpTooltip";
 import { TrackerPanelIcon } from "../../../components/ui/TrackerPanelIcon";
 import { TrackerSizeTierIcon } from "../../../components/ui/TrackerSizeTierIcon";
@@ -26,7 +14,7 @@ const TRACKER_PANEL_SIZE_LABELS: Record<TrackerPanelSizeProfile, string> = {
   standard: "Standard",
   expanded: "Expanded",
 };
-const TRACKER_TOOLBAR_ITEM_ORDER = ["detach", "side", "size", "statDisplay", "hide", "lock", "add", "delete"] as const;
+const TRACKER_TOOLBAR_ITEM_ORDER = ["side", "size", "statDisplay", "hide", "lock", "add", "delete"] as const;
 type TrackerToolbarItem = (typeof TRACKER_TOOLBAR_ITEM_ORDER)[number];
 
 const isToolbarButton = (target: EventTarget | null): target is HTMLButtonElement =>
@@ -36,25 +24,21 @@ export function TrackerSidebarHeader({
   trackerPanelSide,
   sizeProfile,
   statDisplayMode,
-  detached,
   activeEditMode,
   onSetEditMode,
   onSetSide,
   onSetSizeProfile,
   onSetStatDisplayMode,
-  onToggleDetached,
   onClose,
 }: {
   trackerPanelSide: TrackerPanelSide;
   sizeProfile: TrackerPanelSizeProfile;
   statDisplayMode: TrackerStatDisplayMode;
-  detached: boolean;
   activeEditMode: TrackerEditMode | null;
   onSetEditMode: (mode: TrackerEditMode | null) => void;
   onSetSide: (side: TrackerPanelSide) => void;
   onSetSizeProfile: (profile: TrackerPanelSizeProfile) => void;
   onSetStatDisplayMode: (mode: TrackerStatDisplayMode) => void;
-  onToggleDetached?: () => void;
   onClose: () => void;
 }) {
   const { t: localizeUi } = useUiTranslation();
@@ -66,10 +50,6 @@ export function TrackerSidebarHeader({
   const deleteMode = activeEditMode === "delete";
   const hideMode = activeEditMode === "hide";
   const lockMode = activeEditMode === "lock";
-  const resolvedToolbarFocusIndex =
-    !onToggleDetached && toolbarFocusIndex === TRACKER_TOOLBAR_ITEM_ORDER.indexOf("detach")
-      ? TRACKER_TOOLBAR_ITEM_ORDER.indexOf("side")
-      : toolbarFocusIndex;
   const sizeIndex = Math.max(0, TRACKER_PANEL_SIZE_SEQUENCE.indexOf(sizeProfile));
   const nextSizeProfile = TRACKER_PANEL_SIZE_SEQUENCE[(sizeIndex + 1) % TRACKER_PANEL_SIZE_SEQUENCE.length]!;
   const sizeLabel = TRACKER_PANEL_SIZE_LABELS[sizeProfile];
@@ -107,7 +87,7 @@ export function TrackerSidebarHeader({
     const index = TRACKER_TOOLBAR_ITEM_ORDER.indexOf(item);
     return {
       "data-tracker-toolbar-item": index,
-      tabIndex: resolvedToolbarFocusIndex === index ? 0 : -1,
+      tabIndex: toolbarFocusIndex === index ? 0 : -1,
     };
   };
 
@@ -189,21 +169,16 @@ export function TrackerSidebarHeader({
         </span>
       )}
       {settingsButton}
-      {/* The panel stays dark in light theme, so the icon takes the panel's muted color.
-          ponytail: HelpTooltip portals into the main window, so the popped-out panel has no help;
-          make HelpTooltip use its own ownerDocument if the help is needed there. */}
-      {!detached && (
-        <HelpTooltip
-          text={localizeUi("navigation.sidebarHelp.trackerPanel")}
-          ariaLabel={localizeUi("navigation.sidebarHelp.button", {
-            sidebar: localizeUi("ui.layout.appshell.detachedTrackerPanelTitle"),
-          })}
-          side="bottom"
-          wide
-          className="shrink-0 [--marinara-chat-chrome-panel-muted:var(--muted-foreground)]"
-          buttonClassName="h-6 w-6 justify-center"
-        />
-      )}
+      <HelpTooltip
+        text={localizeUi("navigation.sidebarHelp.trackerPanel")}
+        ariaLabel={localizeUi("navigation.sidebarHelp.button", {
+          sidebar: localizeUi("navigation.sidebarHelp.trackerPanel"),
+        })}
+        side="bottom"
+        wide
+        className="shrink-0 [--marinara-chat-chrome-panel-muted:var(--muted-foreground)]"
+        buttonClassName="h-6 w-6 justify-center"
+      />
     </div>
   );
 
@@ -214,32 +189,6 @@ export function TrackerSidebarHeader({
         aria-label={localizeUi("ui.trackerPanel.trackersidebarheader.trackerDisplaySettings")}
         className="flex items-center gap-0.5 rounded-md bg-[var(--background)]/30 p-0.5 ring-1 ring-[var(--border)]/45 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--foreground)_4%,transparent)]"
       >
-        {onToggleDetached ? (
-          <button
-            {...getToolbarItemProps("detach")}
-            type="button"
-            onClick={onToggleDetached}
-            title={localizeUi(
-              detached
-                ? "ui.trackerPanel.trackersidebarheader.dockTrackerPanel"
-                : "ui.trackerPanel.trackersidebarheader.detachTrackerPanel",
-            )}
-            aria-label={localizeUi(
-              detached
-                ? "ui.trackerPanel.trackersidebarheader.dockTrackerPanel"
-                : "ui.trackerPanel.trackersidebarheader.detachTrackerPanel",
-            )}
-            aria-pressed={detached}
-            className={cn(
-              "flex h-6 w-6 shrink-0 items-center justify-center rounded-sm ring-1 transition-all focus-visible:outline-none focus-visible:ring-[var(--primary)] active:scale-90",
-              detached
-                ? "bg-[var(--foreground)]/12 text-[var(--foreground)] ring-[var(--foreground)]/24"
-                : "text-[var(--muted-foreground)]/62 ring-transparent hover:bg-[var(--accent)] hover:text-[var(--foreground)] hover:ring-[var(--border)]",
-            )}
-          >
-            <ExternalLink size="0.8rem" />
-          </button>
-        ) : null}
         <button
           {...getToolbarItemProps("side")}
           type="button"

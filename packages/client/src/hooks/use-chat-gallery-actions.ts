@@ -19,10 +19,6 @@ interface ChatGalleryActions {
   selfieCharacters?: Array<{ id: string; name: string }>;
   /** Run Illustrator in its background prompt mode. */
   onGenerateBackground?: () => void | Promise<void>;
-  /** Generate a storyboard for the latest completed turn. */
-  onGenerateStoryboard?: () => void | Promise<void>;
-  /** Show the latest Game Mode storyboard viewer. */
-  onViewStoryboard?: () => void;
   /** Generate a scene video from the latest illustration. */
   onGenerateVideo?: () => void | Promise<void>;
   /** Generate a scene video from a specific gallery illustration. */

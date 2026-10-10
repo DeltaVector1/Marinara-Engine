@@ -397,7 +397,6 @@ export function ConversationView({
   const regenerateMessageId = useChatStore((s) => s.regenerateMessageId);
   const streamingCharacterId = useChatStore((s) => s.streamingCharacterId);
   const typingCharacterName = useChatStore((s) => s.typingCharacterName);
-  const delayedCharacterInfo = useChatStore((s) => s.delayedCharacterInfo);
   const conversationMessageStyle = useUIStore((s) => s.conversationMessageStyle);
   const hasDraftInput = useChatStore((s) => s.hasCurrentInput);
   const isGroupConversation = chatCharIds.length > 1;
@@ -413,31 +412,6 @@ export function ConversationView({
     isGroupConversation || liveTypingName.includes(",") || liveTypingName.includes(" & ") ? "are" : "is";
   const liveTypingLabel = `${liveTypingName} ${liveTypingVerb} typing`;
   const liveTypingText = `${liveTypingName} ${liveTypingVerb} typing...`;
-  const delayedDisplayName = useMemo(() => {
-    if (!delayedCharacterInfo) return "";
-    const ids = delayedCharacterInfo.characterIds ?? [];
-    const namesFromIds = ids
-      .map((id) => characterMap.get(id)?.name)
-      .filter((name): name is string => typeof name === "string" && name.trim().length > 0);
-    if (namesFromIds.length > 0 && namesFromIds.length === ids.length) return namesFromIds.join(", ");
-
-    const namesFromEvent = (delayedCharacterInfo.characterNames ?? []).filter(
-      (name): name is string => typeof name === "string" && name.trim().length > 0,
-    );
-    const usefulEventNames = namesFromEvent.filter((name) => {
-      const normalized = normalizeTextForMatch(name);
-      return normalized !== "character" && normalized !== "characters";
-    });
-    if (usefulEventNames.length > 0) return usefulEventNames.join(", ");
-    if (namesFromIds.length > 0) return namesFromIds.join(", ");
-    const fallbackName = delayedCharacterInfo.name?.trim() ?? "";
-    const normalizedFallbackName = normalizeTextForMatch(fallbackName);
-    if (fallbackName && normalizedFallbackName !== "character" && normalizedFallbackName !== "characters") {
-      return fallbackName;
-    }
-    return "Character";
-  }, [characterMap, delayedCharacterInfo]);
-  const delayedDisplayVerb = delayedDisplayName.includes(",") || delayedDisplayName.includes(" & ") ? "are" : "is";
   // Single typer → tag the typing row so exclusive-mode card CSS can target it via
   // `[data-card-css="<id>"] .mari-typing-*`. Multiple/unknown typers stay untagged.
   const typingCardCssId = isGroupConversation
@@ -464,12 +438,11 @@ export function ConversationView({
 
   const shouldRenderLiveStreamMessage =
     hasLiveStream &&
-    !delayedCharacterInfo &&
     !regenerateMessageId &&
     !isStreamWindingDown &&
     (conversationMessageStyle === "bubble" || !!streamBuffer || !!thinkingBuffer);
   const showTypingIndicator =
-    hasLiveStream && !delayedCharacterInfo && !streamBuffer && !thinkingBuffer && conversationMessageStyle !== "bubble";
+    hasLiveStream && !streamBuffer && !thinkingBuffer && conversationMessageStyle !== "bubble";
 
   // Per-scheme conversation gradient from settings. When a scheme's values are
   // still the defaults, use CSS variables so visual themes can override the
@@ -649,7 +622,6 @@ export function ConversationView({
     streamBuffer,
     thinkingBuffer,
     hasLiveStream,
-    delayedCharacterInfo,
     typingCharacterName,
     isOptimistic,
     scheduleStreamScrollToBottom,
@@ -961,7 +933,7 @@ export function ConversationView({
   );
 
   const streamingDraftKey =
-    hasLiveStream && conversationMessageStyle === "bubble" && !delayedCharacterInfo
+    hasLiveStream && conversationMessageStyle === "bubble"
       ? `${chatId}:${regenerateMessageId ?? "new"}:${liveStreamCharacterId ?? "assistant"}`
       : null;
   const [streamingBubbleDraft, setStreamingBubbleDraft] = useState<{ key: string; text: string }>({
@@ -1457,23 +1429,6 @@ export function ConversationView({
           onShowNewer={transcriptWindow.hiddenAfterCount > 0 ? showNewerTranscriptMessages : undefined}
           onJumpToLatest={transcriptWindow.hiddenAfterCount > 0 ? jumpToLatestTranscriptMessages : undefined}
         />
-
-        {/* Delayed indicator (DND/idle — waiting for character to become available) */}
-        {delayedCharacterInfo && hasLiveStream && !streamBuffer && !thinkingBuffer && (
-          <div className="flex items-center gap-2 px-4 py-1.5 text-[0.8125rem] text-[var(--text-secondary)]">
-            <span className="italic">
-              {delayedCharacterInfo.status === "dnd"
-                ? localizeUi("ui.chat.conversationview.value1Value2BusyTheyLlRespondWhenTheyRe", {
-                    value1: delayedDisplayName,
-                    value2: delayedDisplayVerb,
-                  })
-                : localizeUi("ui.chat.conversationview.value1Value2AwayTheyLlRespondInAMoment", {
-                    value1: delayedDisplayName,
-                    value2: delayedDisplayVerb,
-                  })}
-            </span>
-          </div>
-        )}
 
         {/* Typing indicator — classic mode only; bubble regen uses the draft row instead */}
         {showTypingIndicator && (

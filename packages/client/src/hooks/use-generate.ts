@@ -52,7 +52,6 @@ import {
   type RecoveredSpatialOwnerTurnResponse,
 } from "./spatial-owner-turn-recovery";
 import type { PendingAgentWriteApproval, PendingCardUpdate } from "../stores/agent.store";
-import type { DelayedCharacterInfo } from "../stores/chat.store";
 import {
   applyQuestUpdatesToPlayerStats,
   applyTrackerFieldLocksToGameStatePatch,
@@ -1193,7 +1192,6 @@ export function useGenerate() {
   const completeQueuedResponse = useChatStore((s) => s.completeQueuedResponse);
   const clearResponseQueue = useChatStore((s) => s.clearResponseQueue);
   const setTypingCharacterName = useChatStore((s) => s.setTypingCharacterName);
-  const setDelayedCharacterInfo = useChatStore((s) => s.setDelayedCharacterInfo);
   const setProcessingRun = useAgentStore((s) => s.setProcessingRun);
   const addResult = useAgentStore((s) => s.addResult);
   const addDebugEntry = useAgentStore((s) => s.addDebugEntry);
@@ -1816,6 +1814,7 @@ export function useGenerate() {
 
         await waitForPendingChatMetadataSaves(params.chatId);
         const currentBackground = getActiveChatBackgroundForGeneration(params.chatId);
+        const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
 
         for await (const event of api.streamEvents(
           "/generate",
@@ -1823,6 +1822,7 @@ export function useGenerate() {
             ...params,
             submissionId,
             ...(currentBackground !== undefined ? { currentBackground } : {}),
+            userTimeZone,
             debugMode,
             trimIncompleteModelOutput,
             continueAddsNewline,
@@ -1923,10 +1923,8 @@ export function useGenerate() {
               receivedContent = true;
               // Always clear per-chat indicators so switching back shows nothing
               useChatStore.getState().setPerChatTyping(params.chatId, null);
-              useChatStore.getState().setPerChatDelayed(params.chatId, null);
               if (isActiveChat()) {
                 setTypingCharacterName(null); // Clear typing indicator once response starts
-                setDelayedCharacterInfo(null); // Clear delayed indicator too
                 useChatStore.getState().setGenerationPhase(null); // Clear phase indicator
               }
               // Fire the "Mari is thinking…" pill on the first token — that's
@@ -2301,7 +2299,6 @@ export function useGenerate() {
               appendThinkingBuffer(chunk, params.chatId);
               if (isFirstThinking && isActiveChat()) {
                 setTypingCharacterName(null);
-                setDelayedCharacterInfo(null);
                 useChatStore.getState().setGenerationPhase(null);
                 setMariPhase(params.chatId, "thinking");
                 window.dispatchEvent(
@@ -2687,7 +2684,6 @@ export function useGenerate() {
                   setRegenerateMessageId(null);
                   setStreamingCharacterId(null);
                   setTypingCharacterName(null);
-                  setDelayedCharacterInfo(null);
                 }
               }
               break;
@@ -3021,40 +3017,6 @@ export function useGenerate() {
               const typingLabel = typingNames?.length === 1 ? typingNames[0] : (typingNames?.join(", ") ?? "Character");
               useChatStore.getState().setPerChatTyping(params.chatId, typingLabel);
               if (isActiveChat()) setTypingCharacterName(typingLabel);
-              break;
-            }
-
-            case "delayed": {
-              // Character is busy (DND/idle) — show waiting indicator
-              const delayedNames = (event as any).characters as string[] | undefined;
-              const delayedLabel =
-                delayedNames?.length === 1 ? delayedNames[0] : (delayedNames?.join(", ") ?? "Character");
-              const delayedStatus = ((event as any).status as DelayedCharacterInfo["status"] | undefined) ?? "idle";
-              const delayedInfo: DelayedCharacterInfo = {
-                name: delayedLabel,
-                status: delayedStatus,
-                characterIds: Array.isArray((event as any).characterIds)
-                  ? ((event as any).characterIds as string[])
-                  : undefined,
-                characterNames: delayedNames,
-                characterStatuses:
-                  (event as any).characterStatuses && typeof (event as any).characterStatuses === "object"
-                    ? ((event as any).characterStatuses as DelayedCharacterInfo["characterStatuses"])
-                    : undefined,
-              };
-              useChatStore.getState().setPerChatDelayed(params.chatId, delayedInfo);
-              if (isActiveChat()) setDelayedCharacterInfo(delayedInfo);
-              // Refresh character data so sidebar status dots update immediately
-              qc.invalidateQueries({ queryKey: characterKeys.list() });
-              break;
-            }
-
-            case "offline": {
-              // Character is offline — message was saved but no generation
-              const names = (event as any).characters as string[] | undefined;
-              const label = names?.length === 1 ? names[0] : "Characters";
-              toast(`${label} is offline. They'll respond when they're back online.`, { icon: "💤" });
-              setProcessingRun(agentProcessingRunId, false, params.chatId);
               break;
             }
 
@@ -3418,7 +3380,6 @@ export function useGenerate() {
             setRegenerateMessageId(null);
             setStreamingCharacterId(null);
             setTypingCharacterName(null);
-            setDelayedCharacterInfo(null);
           }
         }
         setProcessingRun(agentProcessingRunId, false, params.chatId);
@@ -3506,7 +3467,6 @@ export function useGenerate() {
       completeQueuedResponse,
       clearResponseQueue,
       setTypingCharacterName,
-      setDelayedCharacterInfo,
       setProcessingRun,
       addResult,
       addDebugEntry,
