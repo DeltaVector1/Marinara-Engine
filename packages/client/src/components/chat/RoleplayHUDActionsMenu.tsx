@@ -50,7 +50,7 @@ interface RoleplayHUDActionsMenuProps {
   customAgentRunsLoading: boolean;
   agentConfigs?: AgentConfigRow[];
   enabledAgentTypes?: Set<string>;
-  clearGameState: () => Promise<void>;
+  clearGameState: () => void;
   onRetriggerTrackers?: () => void;
   onRetryFailedAgents?: () => void;
   onStopAgents?: () => Promise<void>;
@@ -403,13 +403,8 @@ export function RoleplayHUDActionsMenu({
                   tone: "destructive",
                 });
                 if (!confirmed) return;
-                try {
-                  await clearGameState();
-                  onClose();
-                } catch (error) {
-                  console.error("Failed to clear tracker data", error);
-                  if (error instanceof Error && error.message) toast.error(error.message);
-                }
+                clearGameState();
+                onClose();
               }}
               className={cn(
                 "flex w-full items-center gap-2 px-3 py-2 text-[0.625rem] text-[var(--muted-foreground)] transition-colors hover:bg-[var(--accent)]/45 hover:text-[var(--foreground)]",
