@@ -92,6 +92,8 @@ interface ImportSTChatOptions {
   promptPresetId?: string | null;
   /** Source file timestamps to preserve when trustworthy */
   timestampOverrides?: TimestampOverrides | null;
+  /** Bulk import may receive older group histories that start with a message instead of a header. */
+  allowHeaderless?: boolean;
 }
 
 function normalizeTranscriptTimestamps(
@@ -286,14 +288,30 @@ function sanitizeImportedMarinaraMetadata(
  */
 export async function importSTChat(jsonlContent: string, db: DB, opts?: ImportSTChatOptions) {
   const storage = createChatsStorage(db);
-  const lines = jsonlContent.split("\n").filter((l) => l.trim());
+  const lines = jsonlContent.split(/\r?\n/);
+  const firstLineIndex = lines.findIndex((line) => line.trim().length > 0);
+  if (firstLineIndex < 0) return { error: "Invalid JSONL: empty file" };
 
-  if (lines.length < 2) {
-    return { error: "Invalid JSONL: too few lines" };
+  let firstValue: unknown;
+  try {
+    firstValue = JSON.parse(lines[firstLineIndex]!);
+  } catch {
+    return { error: `Invalid JSONL: invalid first line (${firstLineIndex + 1})` };
   }
 
-  // Parse header
-  const header = JSON.parse(lines[0]!) as STChatHeader;
+  const firstRecord = isRecord(firstValue) ? firstValue : null;
+  const hasHeaderFields =
+    firstRecord !== null && ["user_name", "character_name", "chat_metadata"].some((key) => key in firstRecord);
+  const isHeaderlessMessage =
+    firstRecord !== null && ["mes", "swipes", "is_user", "is_system", "role"].some((key) => key in firstRecord);
+  const hasHeader = hasHeaderFields;
+  if (!hasHeader && !(opts?.allowHeaderless && isHeaderlessMessage)) {
+    return { error: `Invalid JSONL: first line is not a chat header (${firstLineIndex + 1})` };
+  }
+
+  // Some older group histories contain messages only, with no header line.
+  const header = (hasHeader ? firstRecord : {}) as STChatHeader;
+  const firstMessageIndex = hasHeader ? firstLineIndex + 1 : firstLineIndex;
   const characterName = header.character_name ?? "Unknown";
   const userName = header.user_name ?? "User";
   const headerMetadata = isRecord(header.chat_metadata) ? header.chat_metadata : {};
@@ -334,15 +352,29 @@ export async function importSTChat(jsonlContent: string, db: DB, opts?: ImportST
 
   const messageTimestamps: string[] = [];
   const parsedMsgInputs: ParsedSTChatMessageInput[] = [];
+  const warnings: string[] = [];
   const normalizedSpeakerMap = new Map<string, string>();
   for (const [speaker, characterId] of Object.entries(opts?.speakerMap ?? {})) {
     const key = normalizeSpeakerKey(speaker);
     if (key && !normalizedSpeakerMap.has(key)) normalizedSpeakerMap.set(key, characterId);
   }
 
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = firstMessageIndex; i < lines.length; i++) {
+    if (!lines[i]!.trim()) continue;
+    let parsed: unknown;
     try {
-      const stMsg = JSON.parse(lines[i]!) as STChatMessage;
+      parsed = JSON.parse(lines[i]!);
+    } catch {
+      warnings.push(`Skipped malformed line ${i + 1}: invalid JSON`);
+      continue;
+    }
+    if (!isRecord(parsed) || !["mes", "swipes", "is_user", "is_system", "role"].some((key) => key in parsed)) {
+      warnings.push(`Skipped malformed line ${i + 1}: not a chat message`);
+      continue;
+    }
+
+    try {
+      const stMsg = parsed as STChatMessage;
 
       const role =
         normalizeImportedRole(stMsg.role) ??
@@ -417,7 +449,7 @@ export async function importSTChat(jsonlContent: string, db: DB, opts?: ImportST
         swipes,
       });
     } catch {
-      // Skip malformed lines
+      warnings.push(`Skipped malformed line ${i + 1}: invalid chat message`);
     }
   }
 
@@ -585,5 +617,6 @@ export async function importSTChat(jsonlContent: string, db: DB, opts?: ImportST
     characterName,
     userName,
     messagesImported: msgInputs.length,
+    ...(warnings.length > 0 ? { warnings } : {}),
   };
 }

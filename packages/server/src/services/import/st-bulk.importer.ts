@@ -2,7 +2,7 @@
 // Importer: SillyTavern Bulk Import (folder scan)
 // ──────────────────────────────────────────────
 import { readdir, readFile, stat, copyFile, mkdir } from "fs/promises";
-import { join, extname, basename, relative } from "path";
+import { join, extname, basename, dirname, relative } from "path";
 import { existsSync, readdirSync } from "fs";
 import { randomUUID } from "crypto";
 import { inflateSync } from "node:zlib";
@@ -165,10 +165,44 @@ function makeScanItemId(category: string, dataDir: string, filePath: string) {
   return `${category}:${relative(dataDir, filePath).replace(/\\/g, "/")}`;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
 function isPlaceholderChatName(value: unknown) {
   if (typeof value !== "string") return true;
   const name = value.trim().toLowerCase();
   return !name || name === "unused" || name === "new chat";
+}
+
+async function inferSTGroupMembers(filePath: string): Promise<string[]> {
+  try {
+    const content = await readFile(filePath, "utf-8");
+    const members = new Map<string, string>();
+    for (const line of content.split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      let value: unknown;
+      try {
+        value = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (!isRecord(value)) continue;
+      if (["user_name", "character_name", "chat_metadata"].some((key) => key in value)) continue;
+      if (!["mes", "swipes", "is_user", "is_system", "role"].some((key) => key in value)) continue;
+      if (value.is_user === true || value.is_system === true) continue;
+      if (value.role === "user" || value.role === "system") continue;
+      const speaker =
+        (typeof value.original_avatar === "string" && value.original_avatar.trim()) ||
+        (typeof value.name === "string" ? value.name.trim() : "");
+      const member = speaker.replace(/\.(png|json)$/i, "").trim();
+      const key = normalizeTextForMatch(member);
+      if (key && key !== "user" && !members.has(key)) members.set(key, member);
+    }
+    return [...members.values()];
+  } catch {
+    return [];
+  }
 }
 
 function isConfidentBuiltinPreset(filePath: string) {
@@ -198,7 +232,7 @@ interface STBulkScanResult {
   dataDir?: string;
   characters: Array<STBulkScanItemBase & { format: string }>;
   chats: Array<STBulkScanItemBase & { characterName: string; folderName: string; chatName: string }>;
-  groupChats: Array<STBulkScanItemBase & { groupName: string; members: string[] }>;
+  groupChats: Array<STBulkScanItemBase & { groupName: string; chatName: string; members: string[] }>;
   presets: Array<STBulkScanItemBase & { isBuiltin?: boolean }>;
   lorebooks: STBulkScanItemBase[];
   backgrounds: STBulkScanItemBase[];
@@ -297,28 +331,41 @@ export async function scanSTFolder(rootPath: string): Promise<STBulkScanResult> 
   if (existsSync(chatsDir)) {
     const jsonlFiles = await listFilesRecursive(chatsDir, ".jsonl");
     for (const f of jsonlFiles) {
+      const fileBaseName = basename(f, ".jsonl");
+      const folderName = basename(dirname(f));
+      let charName = folderName;
       try {
         const content = await readFile(f, "utf-8");
-        const firstLine = content.split("\n")[0];
+        const firstLine = content.split(/\r?\n/).find((line) => line.trim().length > 0);
         if (firstLine) {
           const header = JSON.parse(firstLine);
-          const fileBaseName = basename(f, ".jsonl");
-          const folderName = basename(join(f, ".."));
-          const charName = isPlaceholderChatName(header.character_name) ? folderName : String(header.character_name);
-          const fileInfo = await stat(f);
-          chats.push({
-            id: makeScanItemId("chats", dataDir, f),
-            path: f,
-            name: fileBaseName,
-            chatName: fileBaseName,
-            characterName: String(charName),
-            folderName,
-            modifiedAt: parseTrustedTimestamp(fileInfo.mtime),
-          });
+          if (
+            isRecord(header) &&
+            ["user_name", "character_name", "chat_metadata"].some((key) => key in header) &&
+            !isPlaceholderChatName(header.character_name)
+          ) {
+            charName = String(header.character_name);
+          }
         }
       } catch {
-        // skip
+        // Keep unreadable and invalid histories in the preview so apply can report them.
       }
+
+      let modifiedAt: string | null = null;
+      try {
+        modifiedAt = parseTrustedTimestamp((await stat(f)).mtime);
+      } catch {
+        // Keep the history visible; apply reports the read or stat failure.
+      }
+      chats.push({
+        id: makeScanItemId("chats", dataDir, f),
+        path: f,
+        name: fileBaseName,
+        chatName: fileBaseName,
+        characterName: String(charName),
+        folderName,
+        modifiedAt,
+      });
     }
   }
 
@@ -390,7 +437,7 @@ export async function scanSTFolder(rootPath: string): Promise<STBulkScanResult> 
   // 6. Group chats — groups/ (metadata) + group chats/ (JSONL files)
   const groupsDir = join(dataDir, "groups");
   const groupChatsDir = join(dataDir, "group chats");
-  if (existsSync(groupsDir)) {
+  {
     // SillyTavern stores group chats as flat `<chatId>.jsonl` files and
     // associates them through each group's `chats` array.
     const groupMetaMap = new Map<string, { name: string; members: string[] }>();
@@ -418,42 +465,30 @@ export async function scanSTFolder(rootPath: string): Promise<STBulkScanResult> 
       }
     }
 
-    // Scan group chat JSONL files
+    // Include orphan histories and use each file name as its branch label.
     if (existsSync(groupChatsDir)) {
-      const gcEntries = await readdir(groupChatsDir, { withFileTypes: true });
-      for (const e of gcEntries) {
-        if (e.isFile() && extname(e.name).toLowerCase() === ".jsonl") {
-          const meta = groupMetaMap.get(basename(e.name, extname(e.name)));
-          if (!meta) continue;
-          const f = join(groupChatsDir, e.name);
-          groupChats.push({
-            id: makeScanItemId("groupChats", dataDir, f),
-            path: f,
-            name: meta.name,
-            groupName: meta.name,
-            members: meta.members,
-            modifiedAt: null,
-          });
-          continue;
+      const jsonlFiles = await listFilesRecursive(groupChatsDir, ".jsonl");
+      for (const f of jsonlFiles) {
+        const chatName = basename(f, extname(f));
+        const folderName = basename(dirname(f));
+        const meta = groupMetaMap.get(chatName) ?? groupMetaMap.get(folderName);
+        const groupName = meta?.name ?? (folderName === basename(groupChatsDir) ? chatName : folderName);
+        const members = meta?.members.length ? meta.members : await inferSTGroupMembers(f);
+        let modifiedAt: string | null = null;
+        try {
+          modifiedAt = parseTrustedTimestamp((await stat(f)).mtime);
+        } catch {
+          // Keep the history visible; apply reports the read or stat failure.
         }
-        if (!e.isDirectory()) continue;
-        const groupId = e.name;
-        const meta = groupMetaMap.get(groupId);
-        if (!meta) continue;
-
-        const gcFolder = join(groupChatsDir, groupId);
-        const jsonlFiles = await listFiles(gcFolder, ".jsonl");
-        for (const f of jsonlFiles) {
-          const fileInfo = await stat(f);
-          groupChats.push({
-            id: makeScanItemId("groupChats", dataDir, f),
-            path: f,
-            name: meta.name,
-            groupName: meta.name,
-            members: meta.members,
-            modifiedAt: parseTrustedTimestamp(fileInfo.mtime),
-          });
-        }
+        groupChats.push({
+          id: makeScanItemId("groupChats", dataDir, f),
+          path: f,
+          name: groupName,
+          groupName,
+          chatName,
+          members,
+          modifiedAt,
+        });
       }
     }
   }
@@ -711,8 +746,11 @@ export async function runSTBulkImport(
           branchName: ct.chatName ?? basename(ct.path, ".jsonl"),
           groupId,
           timestampOverrides: getFileTimestampOverrides(fileInfo),
+          allowHeaderless: true,
         });
         if ("error" in result) throw new Error(result.error);
+        for (const warning of result.warnings ?? [])
+          errors.push(`Chat "${ct.characterName}" (${ct.chatName}): ${warning}`);
 
         imported.chats++;
       } catch (err) {
@@ -752,12 +790,16 @@ export async function runSTBulkImport(
         }
         const result = await importSTChat(content, db, {
           chatName: gc.groupName,
+          branchName: gc.chatName,
           speakerMap,
           mode: "roleplay",
           groupId: gcGroupIds.get(groupKey)!,
           timestampOverrides: getFileTimestampOverrides(fileInfo),
+          allowHeaderless: true,
         });
         if ("error" in result) throw new Error(result.error);
+        for (const warning of result.warnings ?? [])
+          errors.push(`Group chat "${gc.groupName}" (${gc.chatName}): ${warning}`);
 
         imported.groupChats++;
       } catch (err) {

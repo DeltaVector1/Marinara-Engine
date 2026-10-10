@@ -24,16 +24,21 @@ try {
   const validChat = [header, { name: "Test Character", mes: "A valid chat message." }]
     .map((line) => JSON.stringify(line))
     .join("\n");
-  const headerOnly = JSON.stringify(header);
+  const invalidFirstLine = "not valid JSON";
 
   writeFileSync(join(dataDir, "chats", "Test Character", "valid.jsonl"), validChat);
-  writeFileSync(join(dataDir, "chats", "Test Character", "header-only.jsonl"), headerOnly);
+  writeFileSync(join(dataDir, "chats", "Test Character", "invalid-first-line.jsonl"), invalidFirstLine);
   writeFileSync(
     join(dataDir, "groups", "test-group.json"),
-    JSON.stringify({ id: "test-group", name: "Test Group", members: [], chats: ["valid-group", "header-only-group"] }),
+    JSON.stringify({
+      id: "test-group",
+      name: "Test Group",
+      members: [],
+      chats: ["valid-group", "invalid-first-line-group"],
+    }),
   );
   writeFileSync(join(dataDir, "group chats", "valid-group.jsonl"), validChat);
-  writeFileSync(join(dataDir, "group chats", "header-only-group.jsonl"), headerOnly);
+  writeFileSync(join(dataDir, "group chats", "invalid-first-line-group.jsonl"), invalidFirstLine);
 
   const { createFileNativeDB } = await import("../../packages/server/src/db/file-backed-store.js");
   const { chats, messages } = await import("../../packages/server/src/db/schema/index.js");
@@ -65,8 +70,8 @@ try {
     personas: 0,
   });
   assert.deepEqual(result.errors, [
-    'Chat "Test Character": Invalid JSONL: too few lines',
-    'Group chat "Test Group": Invalid JSONL: too few lines',
+    'Chat "Test Character": Invalid JSONL: invalid first line (1)',
+    'Group chat "Test Group": Invalid JSONL: invalid first line (1)',
   ]);
   assert.equal((await db.select().from(chats)).length, 2);
   assert.equal((await db.select().from(messages)).length, 2);
