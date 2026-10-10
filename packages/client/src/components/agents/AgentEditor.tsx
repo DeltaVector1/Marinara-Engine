@@ -5,21 +5,11 @@ import { useDecisionCalibration, useHasDecisionModel } from "../../hooks/use-dec
 // Click an agent → opens this editor
 // ──────────────────────────────────────────────
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useUIStore } from "../../stores/ui.store";
 import { showConfirmDialog } from "../../lib/app-dialogs";
-import { api, getPrivilegedActionErrorMessage } from "../../lib/api-client";
-import { HostDeviceFileManagerError } from "../../lib/host-device";
-import {
-  agentKeys,
-  useAgentConfigs,
-  useUpdateAgent,
-  useCreateAgent,
-  type AgentConfigRow,
-} from "../../hooks/use-agents";
+import { useAgentConfigs, useUpdateAgent, useCreateAgent, type AgentConfigRow } from "../../hooks/use-agents";
 import { useConnections } from "../../hooks/use-connections";
-import { useOpenGameAssetsFolder } from "../../hooks/use-game-assets";
 import {
   isCustomToolSelectable,
   useCustomToolCapabilities,
@@ -44,12 +34,9 @@ import {
   Trash2,
   Plus,
   Layers,
-  Music,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   BookOpen,
-  FolderOpen,
   Upload,
   Loader2,
   ImageIcon,
@@ -125,7 +112,7 @@ import {
 import { CUSTOM_AGENT_RESULT_EXAMPLES, type CustomAgentResultType } from "../../lib/custom-agent-result-examples";
 import { downloadZipFile } from "../../lib/download-zip";
 import { useSidecarStore } from "../../stores/sidecar.store";
-import { Trans, useTranslation as useUiTranslation } from "react-i18next";
+import { useTranslation as useUiTranslation } from "react-i18next";
 
 function parseActivationKeywordsText(value: string): string[] {
   const seen = new Set<string>();
@@ -160,33 +147,8 @@ const MAX_LOREBOOK_READ_BEHIND_MESSAGES = 100;
 const DEFAULT_LOREBOOK_BACKFILL_CHUNK_SIZE = 25;
 const MAX_LOREBOOK_BACKFILL_CHUNK_SIZE = 100;
 const DEFAULT_PROSE_GUARDIAN_BANNED_WORDS = "ozone";
-type MusicProvider = "spotify" | "youtube" | "custom";
-type CustomMusicSource = "game-assets" | "folder";
 const DEFAULT_PROSE_GUARDIAN_AVOID =
   "no repetition of any phrases or sentence structure from the last messages, if the last output started with dialogue line, this one needs to start with narration, no purple prose";
-
-function normalizeCustomMusicFolderInput(value: string): string {
-  const raw = value.trim().replace(/\\/g, "/");
-  let start = 0;
-  let end = raw.length;
-  while (raw[start] === "/") start++;
-  while (end > start && raw[end - 1] === "/") end--;
-  const normalized = raw.slice(start, end);
-  if (!normalized || normalized.includes("..")) return "music";
-  return normalized.startsWith("music") ? normalized : `music/${normalized}`;
-}
-
-function normalizeMusicProvider(settings: Record<string, unknown>): MusicProvider {
-  if (settings.musicProvider === "custom" || settings.musicPlayerSource === "custom") return "custom";
-  if (settings.musicProvider === "youtube" || settings.musicPlayerSource === "youtube") return "youtube";
-  return "spotify";
-}
-
-function normalizeCustomMusicSource(settings: Record<string, unknown>): CustomMusicSource {
-  const source = settings.customMusicSource ?? settings.localMusicSource;
-  return source === "folder" ? "folder" : "game-assets";
-}
-
 function normalizeLorebookReadBehindMessages(value: unknown): number {
   const numeric = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
   if (!Number.isFinite(numeric)) return 0;
@@ -197,21 +159,6 @@ function normalizeLorebookBackfillChunkSize(value: unknown): number {
   const numeric = typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
   if (!Number.isFinite(numeric)) return DEFAULT_LOREBOOK_BACKFILL_CHUNK_SIZE;
   return Math.max(1, Math.min(MAX_LOREBOOK_BACKFILL_CHUNK_SIZE, Math.trunc(numeric)));
-}
-
-function normalizeExternalMusicFolderInput(value: unknown): string {
-  return typeof value === "string" ? value.trim() : "";
-}
-
-// Mirrors the server's buildSpotifyRedirectUri rule: Spotify only accepts
-// https:// or http://127.0.0.1, so fall back to loopback whenever the page
-// is served over plain HTTP from a non-loopback host.
-function getDisplayedSpotifyRedirectUri(): string {
-  if (typeof window === "undefined") return "http://127.0.0.1:7860/api/spotify/callback";
-  const { protocol, hostname, origin, port } = window.location;
-  const isLoopback = hostname === "127.0.0.1" || hostname === "::1" || hostname === "[::1]";
-  if (protocol === "https:" || isLoopback) return `${origin}/api/spotify/callback`;
-  return `http://127.0.0.1:${port || "7860"}/api/spotify/callback`;
 }
 
 // ═══════════════════════════════════════════════
@@ -293,11 +240,6 @@ const CUSTOM_AGENT_CAPABILITY_META: Array<{
     id: "change_sprites",
     label: "settings.agentImports.capabilities.change_sprites.label",
     description: "settings.agentImports.capabilities.change_sprites.description",
-  },
-  {
-    id: "control_media",
-    label: "settings.agentImports.capabilities.control_media.label",
-    description: "settings.agentImports.capabilities.control_media.description",
   },
   {
     id: "edit_about_me",
@@ -486,24 +428,6 @@ const CUSTOM_AGENT_RESULT_TYPE_OPTIONS: Array<{
     requiredCapability: "change_sprites",
   },
   {
-    id: "spotify_control",
-    label: "settings.agentImports.results.spotify_control.label",
-    description: "settings.agentImports.results.spotify_control.description",
-    requiredCapability: "control_media",
-  },
-  {
-    id: "youtube_control",
-    label: "settings.agentImports.results.youtube_control.label",
-    description: "settings.agentImports.results.youtube_control.description",
-    requiredCapability: "control_media",
-  },
-  {
-    id: "local_music_control",
-    label: "settings.agentImports.results.local_music_control.label",
-    description: "settings.agentImports.results.local_music_control.description",
-    requiredCapability: "control_media",
-  },
-  {
     id: "about_me_update",
     label: "settings.agentImports.results.about_me_update.label",
     description: "settings.agentImports.results.about_me_update.description",
@@ -625,8 +549,6 @@ export function AgentEditor() {
   const { data: customToolCapabilities } = useCustomToolCapabilities();
   const updateAgent = useUpdateAgent();
   const createAgent = useCreateAgent();
-  const openGameAssetsFolder = useOpenGameAssetsFolder();
-  const qc = useQueryClient();
   const deleteAgent = useDeleteAgent();
   const connectionIndexRef = useRef<{
     loaded: boolean;
@@ -753,11 +675,6 @@ export function AgentEditor() {
   const [localLorebookBackfillChunkSize, setLocalLorebookBackfillChunkSize] = useState(
     DEFAULT_LOREBOOK_BACKFILL_CHUNK_SIZE,
   );
-  const [localMusicProvider, setLocalMusicProvider] = useState<MusicProvider>("spotify");
-  const [localCustomMusicSource, setLocalCustomMusicSource] = useState<CustomMusicSource>("game-assets");
-  const [localCustomMusicFolder, setLocalCustomMusicFolder] = useState("music");
-  const [localCustomMusicExternalFolder, setLocalCustomMusicExternalFolder] = useState("");
-  const [localSpotifyClientId, setLocalSpotifyClientId] = useState("");
   const [localSourceLorebookIds, setLocalSourceLorebookIds] = useState<string[]>([]);
   const [localUseChatActiveLorebooks, setLocalUseChatActiveLorebooks] = useState(false);
   const [localTriggerLorebooksForAgentCalls, setLocalTriggerLorebooksForAgentCalls] = useState(false);
@@ -775,23 +692,6 @@ export function AgentEditor() {
   const [localProseGuardianHoldForRewrite, setLocalProseGuardianHoldForRewrite] = useState(true);
   const [localSecretPlotEnabled, setLocalSecretPlotEnabled] = useState(false);
   const [localSecretPlotRunInterval, setLocalSecretPlotRunInterval] = useState(8);
-  const [spotifyStatus, setSpotifyStatus] = useState<{
-    connected: boolean;
-    expired: boolean;
-    redirectUri: string | null;
-  } | null>(null);
-  const [spotifyConnecting, setSpotifyConnecting] = useState(false);
-  const [spotifyConnectError, setSpotifyConnectError] = useState<string | null>(null);
-  const [spotifyPasteOpen, setSpotifyPasteOpen] = useState(false);
-  const [spotifyPasteValue, setSpotifyPasteValue] = useState("");
-  const [spotifyPasteError, setSpotifyPasteError] = useState<string | null>(null);
-  const [spotifyPasteSubmitting, setSpotifyPasteSubmitting] = useState(false);
-  const spotifyPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const spotifyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [localYoutubeApiKey, setLocalYoutubeApiKey] = useState("");
-  const [youtubeConfigured, setYoutubeConfigured] = useState(false);
-  const [youtubeSaving, setYoutubeSaving] = useState(false);
-  const [youtubeError, setYoutubeError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   /**
    * Re-seed the threshold once the decision model's calibration arrives.
@@ -819,8 +719,6 @@ export function AgentEditor() {
     setLocalActivationThreshold(seed);
   }, [decisionCalibration.defaultThreshold]);
   const setEditorDirty = useUIStore((s) => s.setEditorDirty);
-  const musicPlayerSource = useUIStore((s) => s.musicPlayerSource);
-  const setMusicPlayerSource = useUIStore((s) => s.setMusicPlayerSource);
   useEffect(() => {
     setEditorDirty(dirty);
   }, [dirty, setEditorDirty]);
@@ -891,21 +789,6 @@ export function AgentEditor() {
       setLocalLorebookReadBehindMessages(normalizeLorebookReadBehindMessages(settings.lorebookReadBehindMessages));
       setLocalLorebookBackfillEnabled(settings.lorebookBackfillEnabled === true);
       setLocalLorebookBackfillChunkSize(normalizeLorebookBackfillChunkSize(settings.lorebookBackfillChunkSize));
-      setLocalMusicProvider(normalizeMusicProvider(settings));
-      setLocalCustomMusicSource(normalizeCustomMusicSource(settings));
-      setLocalCustomMusicFolder(
-        normalizeCustomMusicFolderInput(
-          typeof settings.customMusicFolder === "string"
-            ? settings.customMusicFolder
-            : typeof settings.localMusicFolder === "string"
-              ? settings.localMusicFolder
-              : "music",
-        ),
-      );
-      setLocalCustomMusicExternalFolder(
-        normalizeExternalMusicFolderInput(settings.customMusicExternalFolder ?? settings.localMusicExternalFolder),
-      );
-      setLocalSpotifyClientId(typeof settings.spotifyClientId === "string" ? settings.spotifyClientId : "");
       setLocalSourceLorebookIds(normalizeStringArray(settings.sourceLorebookIds));
       setLocalUseChatActiveLorebooks(
         (settings.useChatActiveLorebooks as boolean | undefined) ?? defaultSettings.useChatActiveLorebooks === true,
@@ -983,7 +866,6 @@ export function AgentEditor() {
       setLocalActivationScanDepth(DEFAULT_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH);
       setLocalInjectAsSection(defaultSettings.injectAsSection === true);
       setLocalEnabledTools(DEFAULT_AGENT_TOOLS[builtIn.id] ?? []);
-      setLocalSpotifyClientId("");
       setLocalSourceLorebookIds([]);
       setLocalUseChatActiveLorebooks(defaultSettings.useChatActiveLorebooks === true);
       setLocalTriggerLorebooksForAgentCalls(false);
@@ -1015,18 +897,6 @@ export function AgentEditor() {
       setLocalLorebookReadBehindMessages(0);
       setLocalLorebookBackfillEnabled(false);
       setLocalLorebookBackfillChunkSize(DEFAULT_LOREBOOK_BACKFILL_CHUNK_SIZE);
-      setLocalMusicProvider(normalizeMusicProvider(defaultSettings));
-      setLocalCustomMusicSource(normalizeCustomMusicSource(defaultSettings));
-      setLocalCustomMusicFolder(
-        normalizeCustomMusicFolderInput(
-          typeof defaultSettings.customMusicFolder === "string" ? defaultSettings.customMusicFolder : "music",
-        ),
-      );
-      setLocalCustomMusicExternalFolder(
-        normalizeExternalMusicFolderInput(
-          defaultSettings.customMusicExternalFolder ?? defaultSettings.localMusicExternalFolder,
-        ),
-      );
       setLocalPrompt("");
     } else {
       // Brand new custom agent — start empty
@@ -1050,7 +920,6 @@ export function AgentEditor() {
       setLocalActivationScanDepth(DEFAULT_CUSTOM_AGENT_ACTIVATION_SCAN_DEPTH);
       setLocalInjectAsSection(false);
       setLocalEnabledTools([]);
-      setLocalSpotifyClientId("");
       setLocalSourceLorebookIds([]);
       setLocalUseChatActiveLorebooks(false);
       setLocalTriggerLorebooksForAgentCalls(false);
@@ -1078,10 +947,6 @@ export function AgentEditor() {
       setLocalLorebookReadBehindMessages(0);
       setLocalLorebookBackfillEnabled(false);
       setLocalLorebookBackfillChunkSize(DEFAULT_LOREBOOK_BACKFILL_CHUNK_SIZE);
-      setLocalMusicProvider("spotify");
-      setLocalCustomMusicSource("game-assets");
-      setLocalCustomMusicFolder("music");
-      setLocalCustomMusicExternalFolder("");
       setLocalPrompt("");
     }
     setDirty(false);
@@ -1096,27 +961,7 @@ export function AgentEditor() {
     normalizeImageConnectionOverride,
   ]);
 
-  // Fetch music connection status when viewing Music DJ.
-  const isSpotifyAgent = agentDetailId === "spotify" || dbConfig?.type === "spotify";
-  const isMusicAgent = isSpotifyAgent;
-
-  const showsYoutubeSettings = isMusicAgent;
-
-  // In YouTube mode Music DJ runs tool-free and returns its pick as a search-query
-  // JSON, so the editor reflects the YouTube-specific built-in prompt and skips the
-  // (Spotify-only) tool toggles.
-  const musicDjYoutubeMode = isMusicAgent && localMusicProvider === "youtube";
-  const musicDjCustomMode = isMusicAgent && localMusicProvider === "custom";
-
-  // Default prompt for this agent type. Music DJ has a separate built-in prompt per
-  // provider, so show the service-specific prompt when that provider is selected.
-  const defaultPrompt = useMemo(
-    () =>
-      agentDetailId
-        ? getDefaultAgentPrompt(musicDjCustomMode ? "local-music" : musicDjYoutubeMode ? "youtube" : agentDetailId)
-        : "",
-    [agentDetailId, musicDjCustomMode, musicDjYoutubeMode],
-  );
+  const defaultPrompt = useMemo(() => (agentDetailId ? getDefaultAgentPrompt(agentDetailId) : ""), [agentDetailId]);
 
   // Lorebook Keeper agent — run interval setting
   const isLorebookKeeperAgent = agentDetailId === "lorebook-keeper" || dbConfig?.type === "lorebook-keeper";
@@ -1146,8 +991,6 @@ export function AgentEditor() {
   // The fixed rules of the server's shouldRunAgentIndividually: these agents never share a request.
   // Built-in rewrite agents still join the combined editor request, so their switch always works.
   const alwaysRunsAlone =
-    musicDjYoutubeMode ||
-    musicDjCustomMode ||
     isIllustratorAgent ||
     isLorebookKeeperAgent ||
     agentDetailId === "beholder" ||
@@ -1197,53 +1040,6 @@ export function AgentEditor() {
   const uploadSource = useUploadKnowledgeSource();
   const deleteSource = useDeleteKnowledgeSource();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (!isMusicAgent || !dbConfig?.id) {
-      setSpotifyStatus(null);
-      return;
-    }
-    let cancelled = false;
-    fetch(`/api/spotify/status?agentId=${encodeURIComponent(dbConfig.id)}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled)
-          setSpotifyStatus({ connected: data.connected, expired: data.expired, redirectUri: data.redirectUri ?? null });
-      })
-      .catch(() => {
-        if (!cancelled) setSpotifyStatus(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [isMusicAgent, dbConfig?.id]);
-
-  // Fetch YouTube key-configured status when viewing Music DJ (Spotify); the legacy YouTube-agent path is unreachable.
-  useEffect(() => {
-    if (!showsYoutubeSettings || !dbConfig?.id) {
-      setYoutubeConfigured(false);
-      return;
-    }
-    let cancelled = false;
-    fetch(`/api/youtube/status?agentId=${encodeURIComponent(dbConfig.id)}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (!cancelled) setYoutubeConfigured(data.configured === true);
-      })
-      .catch(() => {
-        if (!cancelled) setYoutubeConfigured(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [showsYoutubeSettings, dbConfig?.id]);
-
-  // Clean up Spotify polling timers on unmount
-  useEffect(() => {
-    return () => {
-      if (spotifyPollRef.current) clearInterval(spotifyPollRef.current);
-      if (spotifyTimeoutRef.current) clearTimeout(spotifyTimeoutRef.current);
-    };
-  }, []);
 
   // Whether the prompt textarea shows the default or a custom override
   const isUsingDefaultPrompt = !localPrompt.trim();
@@ -1369,24 +1165,26 @@ export function AgentEditor() {
     const savedAuthor = localAuthor.trim() || (builtIn ? DEFAULT_AGENT_AUTHOR : "Unknown");
     const savedPromptTemplates = normalizeAgentPromptTemplateOptions(localPromptTemplates);
 
-    // Preserve OAuth fields the form doesn't expose. The server replaces
-    // `settings` wholesale, so anything we omit here would be wiped — and the
-    // Spotify tokens live in settings rather than their own column.
+    // Preserve encrypted provider credentials the form does not expose when saving agent settings.
     const currentSettings: Record<string, unknown> = parseAgentSettingsRecord(dbConfig?.settings);
-    const preservedSpotifyFields: Record<string, unknown> = {};
+    const preservedSettings: Record<string, unknown> = {};
     for (const key of [
       "spotifyAccessToken",
       "spotifyRefreshToken",
       "spotifyExpiresAt",
       "spotifyScope",
-      // YouTube key is encrypted server-side and not exposed by the form — preserve it
-      // so a normal agent Save doesn't wipe the stored key.
+      "spotifyClientId",
+      "musicProvider",
+      "musicPlayerSource",
+      "customMusicSource",
+      "customMusicFolder",
+      "customMusicExternalFolder",
       "youtubeApiKey",
       "customAgentRepositorySource",
       CUSTOM_AGENT_IMPORT_SOURCE_SETTING,
       CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING,
     ]) {
-      if (currentSettings[key] !== undefined) preservedSpotifyFields[key] = currentSettings[key];
+      if (currentSettings[key] !== undefined) preservedSettings[key] = currentSettings[key];
     }
     const savedConnectionId = normalizeTextConnectionOverride(localConnectionId);
     const savedImageConnectionId =
@@ -1400,7 +1198,7 @@ export function AgentEditor() {
       connectionId: savedConnectionId || null,
       promptTemplate: localPrompt,
       settings: {
-        ...preservedSpotifyFields,
+        ...preservedSettings,
         author: savedAuthor,
         promptTemplates: savedPromptTemplates,
         ...(isEditingCustomAgent ? { customCapabilities } : {}),
@@ -1431,17 +1229,7 @@ export function AgentEditor() {
         ...(!isDirectorAgent && localRunInterval !== "" ? { runInterval: Number(localRunInterval) } : {}),
         ...(isEchoChamberAgent ? { messageDelaySeconds: localEchoMessageDelaySeconds } : {}),
         ...(localInjectAsSection ? { injectAsSection: true } : {}),
-        ...(isMusicAgent
-          ? {
-              musicProvider: localMusicProvider,
-              customMusicSource: localCustomMusicSource,
-              customMusicFolder: normalizeCustomMusicFolderInput(localCustomMusicFolder),
-              ...(localCustomMusicExternalFolder.trim()
-                ? { customMusicExternalFolder: localCustomMusicExternalFolder.trim() }
-                : {}),
-            }
-          : {}),
-        enabledTools: isMusicAgent && localMusicProvider !== "spotify" ? [] : effectiveEnabledTools,
+        enabledTools: effectiveEnabledTools,
         ...(lorebookTargetEnabled
           ? {
               ...(lorebookWriterEnabled ? { lorebookWriteEnabled: true } : {}),
@@ -1456,7 +1244,6 @@ export function AgentEditor() {
               lorebookBackfillChunkSize: localLorebookBackfillChunkSize,
             }
           : {}),
-        ...(localSpotifyClientId ? { spotifyClientId: localSpotifyClientId } : {}),
         ...(isKnowledgeRetrievalAgent ||
         isKnowledgeRouterAgent ||
         (isEditingCustomAgent && localTriggerLorebooksForAgentCalls)
@@ -1559,11 +1346,6 @@ export function AgentEditor() {
     localLorebookReadBehindMessages,
     localLorebookBackfillEnabled,
     localLorebookBackfillChunkSize,
-    localMusicProvider,
-    localCustomMusicSource,
-    localCustomMusicFolder,
-    localCustomMusicExternalFolder,
-    localSpotifyClientId,
     localUseChatActiveLorebooks,
     localTriggerLorebooksForAgentCalls,
     localBatchWithOtherAgents,
@@ -1590,7 +1372,6 @@ export function AgentEditor() {
     isHtmlAgent,
     isDirectorAgent,
     isEchoChamberAgent,
-    isMusicAgent,
     isKnowledgeRetrievalAgent,
     isKnowledgeRouterAgent,
     updateAgent,
@@ -1642,7 +1423,6 @@ export function AgentEditor() {
     ).filter((tool) => customCapabilities.edit_messages === true || tool !== MESSAGE_EDIT_TOOL_NAME);
     const savedAuthor = localAuthor.trim() || (builtIn ? DEFAULT_AGENT_AUTHOR : "Unknown");
     const savedPromptTemplates = normalizeAgentPromptTemplateOptions(localPromptTemplates);
-    const exportingMusicAgent = agentType === "spotify";
     const settings = sanitizeAgentSettingsForTransfer({
       author: savedAuthor,
       promptTemplates: savedPromptTemplates,
@@ -1669,17 +1449,7 @@ export function AgentEditor() {
       ...(!isDirectorAgent && localRunInterval !== "" ? { runInterval: Number(localRunInterval) } : {}),
       ...(isEchoChamberAgent ? { messageDelaySeconds: localEchoMessageDelaySeconds } : {}),
       ...(localInjectAsSection ? { injectAsSection: true } : {}),
-      ...(exportingMusicAgent
-        ? {
-            musicProvider: localMusicProvider,
-            customMusicSource: localCustomMusicSource,
-            customMusicFolder: normalizeCustomMusicFolderInput(localCustomMusicFolder),
-            ...(localCustomMusicExternalFolder.trim()
-              ? { customMusicExternalFolder: localCustomMusicExternalFolder.trim() }
-              : {}),
-          }
-        : {}),
-      enabledTools: exportingMusicAgent && localMusicProvider !== "spotify" ? [] : effectiveEnabledTools,
+      enabledTools: effectiveEnabledTools,
       ...(lorebookTargetEnabled
         ? {
             ...(lorebookWriterEnabled ? { lorebookWriteEnabled: true } : {}),
@@ -1694,7 +1464,6 @@ export function AgentEditor() {
             lorebookBackfillChunkSize: localLorebookBackfillChunkSize,
           }
         : {}),
-      ...(localSpotifyClientId ? { spotifyClientId: localSpotifyClientId } : {}),
       ...(isKnowledgeRetrievalAgent ||
       isKnowledgeRouterAgent ||
       (isEditingCustomAgent && localTriggerLorebooksForAgentCalls)
@@ -1768,48 +1537,6 @@ export function AgentEditor() {
   }, [defaultPrompt]);
 
   const markDirty = useCallback(() => setDirty(true), []);
-
-  const handleMusicProviderChange = useCallback(
-    (provider: MusicProvider) => {
-      setLocalMusicProvider(provider);
-      setMusicPlayerSource(provider);
-      if (provider === "spotify" && localEnabledTools.length === 0) {
-        setLocalEnabledTools(DEFAULT_AGENT_TOOLS.spotify ?? []);
-      } else if (provider !== "spotify" && localEnabledTools.length > 0) {
-        setLocalEnabledTools([]);
-      }
-      setDirty(true);
-    },
-    [localEnabledTools.length, setMusicPlayerSource],
-  );
-
-  const handleOpenCustomMusicFolder = async () => {
-    const subfolder = normalizeCustomMusicFolderInput(localCustomMusicFolder);
-    try {
-      await openGameAssetsFolder.mutateAsync(subfolder);
-      toast.success(localizeUi("ui.agents.agenteditor.openedGameAssetsValue1", { value1: subfolder }));
-    } catch (error) {
-      if (error instanceof HostDeviceFileManagerError) return;
-      toast.error(
-        getPrivilegedActionErrorMessage(error, localizeUi("ui.agents.agenteditor.couldNotOpenTheCustomMusicFolder")),
-      );
-    }
-  };
-
-  const handleSelectCustomMusicFolder = useCallback(async () => {
-    try {
-      const data = await api.post<{ success: boolean; path: string }>("/game-assets/pick-local-music-folder");
-      if (data.success !== true || !data.path) throw new Error("No folder selected.");
-      setLocalCustomMusicExternalFolder(data.path);
-      setLocalCustomMusicSource("folder");
-      setDirty(true);
-      toast.success(localizeUi("ui.agents.agenteditor.selectedCustomMusicFolder"));
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : localizeUi("ui.agents.agenteditor.couldNotSelectACustomMusicFolder"),
-      );
-    }
-  }, [localizeUi]);
 
   const toggleCustomCapability = useCallback(
     (capability: CustomAgentCapability) => {
@@ -3287,601 +3014,6 @@ export function AgentEditor() {
             />
           </FieldGroup>
 
-          {isMusicAgent && (
-            <FieldGroup
-              label={localizeUi("settings.controls.musicPlayer.label")}
-              icon={<Music size="0.875rem" className="text-[var(--muted-foreground)]" />}
-              help={localizeUi("ui.agents.agenteditor.chooseWhichServiceMusicDjShouldUseForFuture")}
-            >
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-1">
-                  {(["spotify", "youtube", "custom"] as const).map((provider) => {
-                    const active = localMusicProvider === provider;
-                    const label = provider === "spotify" ? "Spotify" : provider === "youtube" ? "YouTube" : "Custom";
-                    return (
-                      <button
-                        key={provider}
-                        type="button"
-                        onClick={() => handleMusicProviderChange(provider)}
-                        aria-pressed={active}
-                        className={cn(
-                          "rounded-md px-3 py-2 text-xs font-medium transition-all",
-                          active
-                            ? "bg-white/12 text-white shadow-sm"
-                            : "text-white/45 hover:bg-white/8 hover:text-white/75",
-                        )}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="text-[0.625rem] text-white/40">
-                  {localizeUi("ui.agents.agenteditor.visiblePlayer")}{" "}
-                  {musicPlayerSource === "spotify"
-                    ? localizeUi("ui.agents.agenteditor.spotify")
-                    : musicPlayerSource === "youtube"
-                      ? localizeUi("ui.chat.youtubeplayer.youtube")
-                      : localizeUi("settings.notifications.customSound.status.custom")}
-                  {localizeUi("ui.agents.agenteditor.savedProvider")}{" "}
-                  {localMusicProvider === "spotify"
-                    ? localizeUi("ui.agents.agenteditor.spotify")
-                    : localMusicProvider === "youtube"
-                      ? localizeUi("ui.chat.youtubeplayer.youtube")
-                      : localizeUi("settings.notifications.customSound.status.custom")}
-                  .
-                </p>
-              </div>
-            </FieldGroup>
-          )}
-
-          {/* ── Spotify Settings (only shown for Spotify agent) ── */}
-          {isMusicAgent && (
-            <FieldGroup
-              label={localizeUi("ui.agents.agenteditor.spotifyConnection")}
-              icon={<Music size="0.875rem" className="text-green-400" />}
-              help={localizeUi("ui.agents.agenteditor.connectYourSpotifyAccountToLetThisAgentControl")}
-            >
-              <div className="space-y-3">
-                {/* Client ID input */}
-                <div>
-                  <label className="block text-[0.6875rem] font-medium text-white/60 mb-1">
-                    {localizeUi("ui.agents.agenteditor.spotifyClientId")}
-                  </label>
-                  <input
-                    type="text"
-                    value={localSpotifyClientId}
-                    onChange={(e) => {
-                      setLocalSpotifyClientId(e.target.value);
-                      setDirty(true);
-                    }}
-                    placeholder={localizeUi("ui.agents.agenteditor.pasteYourSpotifyAppClientId")}
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/20 font-mono"
-                  />
-                </div>
-
-                {/* Connection status & buttons */}
-                {spotifyStatus?.connected ? (
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1.5 rounded-lg bg-green-500/10 px-3 py-2 text-xs font-medium text-green-400">
-                      <Check size="0.75rem" />
-                      {spotifyStatus.expired
-                        ? localizeUi("ui.agents.agenteditor.connectedTokenExpiredWillAutoRefresh")
-                        : localizeUi("ui.agents.agenteditor.connectedToSpotify")}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!dbConfig?.id) return;
-                        await fetch("/api/spotify/disconnect", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ agentId: dbConfig.id }),
-                        });
-                        setSpotifyStatus({
-                          connected: false,
-                          expired: false,
-                          redirectUri: spotifyStatus?.redirectUri ?? null,
-                        });
-                        // Strip tokens from the cached agent row synchronously
-                        // so a Save click racing with the pending refetch can't
-                        // resurrect them via handleSave's preservation path.
-                        qc.setQueryData<AgentConfigRow[] | undefined>(agentKeys.all, (rows) =>
-                          rows?.map((row) => {
-                            if (row.id !== dbConfig.id) return row;
-                            const parsed: Record<string, unknown> =
-                              typeof row.settings === "string"
-                                ? JSON.parse(row.settings)
-                                : ((row.settings as unknown as Record<string, unknown>) ?? {});
-                            const {
-                              spotifyAccessToken: _a,
-                              spotifyRefreshToken: _b,
-                              spotifyExpiresAt: _c,
-                              spotifyScope: _d,
-                              ...rest
-                            } = parsed;
-                            return { ...row, settings: JSON.stringify(rest) };
-                          }),
-                        );
-                        await qc.invalidateQueries({ queryKey: agentKeys.all });
-                      }}
-                      className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50 transition-colors hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20"
-                    >
-                      {localizeUi("ui.agents.agenteditor.disconnect")}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={!localSpotifyClientId.trim() || !dbConfig?.id || spotifyConnecting}
-                    onClick={async () => {
-                      if (!localSpotifyClientId.trim() || !dbConfig?.id) return;
-                      setSpotifyConnecting(true);
-                      setSpotifyConnectError(null);
-                      try {
-                        // Save clientId first if dirty
-                        if (dirty) {
-                          await updateAgent.mutateAsync({
-                            id: dbConfig.id,
-                            settings: {
-                              ...(dbConfig.settings
-                                ? typeof dbConfig.settings === "string"
-                                  ? JSON.parse(dbConfig.settings as string)
-                                  : dbConfig.settings
-                                : {}),
-                              spotifyClientId: localSpotifyClientId,
-                            },
-                          });
-                        }
-                        const res = await fetch(
-                          `/api/spotify/authorize?${new URLSearchParams({
-                            clientId: localSpotifyClientId,
-                            agentId: dbConfig.id,
-                          })}`,
-                        );
-                        const data = await res.json().catch(() => ({}));
-                        if (!res.ok || !data.authUrl) {
-                          throw new Error(data.error ?? `Authorize request failed (${res.status})`);
-                        }
-                        window.open(data.authUrl, "_blank", "width=500,height=700");
-                        // Clear any existing poll before starting a new one
-                        if (spotifyPollRef.current) clearInterval(spotifyPollRef.current);
-                        if (spotifyTimeoutRef.current) clearTimeout(spotifyTimeoutRef.current);
-                        // Poll for connection status
-                        spotifyPollRef.current = setInterval(async () => {
-                          try {
-                            const statusRes = await fetch(
-                              `/api/spotify/status?agentId=${encodeURIComponent(dbConfig.id)}`,
-                            );
-                            const status = await statusRes.json();
-                            if (status.connected) {
-                              clearInterval(spotifyPollRef.current!);
-                              spotifyPollRef.current = null;
-                              if (spotifyTimeoutRef.current) {
-                                clearTimeout(spotifyTimeoutRef.current);
-                                spotifyTimeoutRef.current = null;
-                              }
-                              setSpotifyStatus({
-                                connected: true,
-                                expired: false,
-                                redirectUri: status.redirectUri ?? null,
-                              });
-                              setSpotifyConnecting(false);
-                              setSpotifyPasteOpen(false);
-                              setSpotifyPasteValue("");
-                              setSpotifyPasteError(null);
-                              // Refetch so the cached settings include the new
-                              // tokens before any subsequent handleSave runs.
-                              await qc.invalidateQueries({ queryKey: agentKeys.all });
-                            }
-                          } catch {
-                            // keep polling
-                          }
-                        }, 2000);
-                        // Stop polling after the server-side pendingAuth TTL
-                        spotifyTimeoutRef.current = setTimeout(() => {
-                          if (spotifyPollRef.current) {
-                            clearInterval(spotifyPollRef.current);
-                            spotifyPollRef.current = null;
-                          }
-                          spotifyTimeoutRef.current = null;
-                          setSpotifyConnecting(false);
-                        }, 10 * 60_000);
-                      } catch (err) {
-                        setSpotifyConnectError(err instanceof Error ? err.message : "Failed to start Spotify auth");
-                        setSpotifyConnecting(false);
-                      }
-                    }}
-                    className={cn(
-                      "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-medium transition-all",
-                      localSpotifyClientId.trim() && dbConfig?.id
-                        ? "bg-[#1DB954] text-white hover:bg-[#1ed760] active:scale-95"
-                        : "bg-white/5 text-white/30 cursor-not-allowed",
-                    )}
-                  >
-                    <Music size="0.875rem" />
-                    {spotifyConnecting
-                      ? localizeUi("ui.agents.agenteditor.waitingForAuthorization")
-                      : localizeUi("ui.agents.agenteditor.connectSpotifyAccount")}
-                  </button>
-                )}
-
-                {spotifyConnectError && !spotifyStatus?.connected && (
-                  <p className="text-[0.6875rem] text-red-400/80">{spotifyConnectError}</p>
-                )}
-
-                {/* Paste-back fallback for installs where the browser can't reach the loopback callback. */}
-                {spotifyConnecting && !spotifyStatus?.connected && dbConfig?.id && (
-                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-[0.6875rem] text-white/50 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => setSpotifyPasteOpen((v) => !v)}
-                      className="text-white/60 hover:text-white/80 transition-colors text-left w-full"
-                    >
-                      {spotifyPasteOpen ? "▾" : "▸"}{" "}
-                      {localizeUi("ui.agents.agenteditor.browserCouldnTReachTheCallback")}
-                    </button>
-                    {spotifyPasteOpen && (
-                      <div className="space-y-2 pt-1">
-                        <p className="text-white/40 leading-relaxed">
-                          {localizeUi("ui.agents.agenteditor.ifYouReRunningMarinaraOnADifferentMachine")}{" "}
-                          <code className="text-white/50">127.0.0.1</code>{" "}
-                          {localizeUi("ui.agents.agenteditor.orHttpsCallbacksCopyTheFullUrlFromThe")}
-                        </p>
-                        <textarea
-                          value={spotifyPasteValue}
-                          onChange={(e) => {
-                            setSpotifyPasteValue(e.target.value);
-                            setSpotifyPasteError(null);
-                          }}
-                          rows={3}
-                          placeholder={localizeUi("ui.agents.agenteditor.http1270017860ApiSpotifyCallback")}
-                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[0.6875rem] text-white placeholder-white/20 outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/20 font-mono"
-                        />
-                        {spotifyPasteError && <p className="text-red-400/80 text-[0.625rem]">{spotifyPasteError}</p>}
-                        <button
-                          type="button"
-                          disabled={!spotifyPasteValue.trim() || spotifyPasteSubmitting}
-                          onClick={async () => {
-                            if (!dbConfig?.id || !spotifyPasteValue.trim()) return;
-                            setSpotifyPasteSubmitting(true);
-                            setSpotifyPasteError(null);
-                            try {
-                              const res = await fetch("/api/spotify/exchange", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ callbackUrl: spotifyPasteValue.trim() }),
-                              });
-                              const data = await res.json().catch(() => ({}));
-                              if (!res.ok || !data.success) {
-                                setSpotifyPasteError(data.error ?? `Request failed (${res.status})`);
-                              } else {
-                                if (spotifyPollRef.current) {
-                                  clearInterval(spotifyPollRef.current);
-                                  spotifyPollRef.current = null;
-                                }
-                                if (spotifyTimeoutRef.current) {
-                                  clearTimeout(spotifyTimeoutRef.current);
-                                  spotifyTimeoutRef.current = null;
-                                }
-                                const statusRes = await fetch(
-                                  `/api/spotify/status?agentId=${encodeURIComponent(dbConfig.id)}`,
-                                );
-                                const status = await statusRes.json().catch(() => null);
-                                setSpotifyStatus({
-                                  connected: status?.connected ?? true,
-                                  expired: status?.expired ?? false,
-                                  redirectUri: status?.redirectUri ?? null,
-                                });
-                                setSpotifyConnecting(false);
-                                setSpotifyPasteOpen(false);
-                                setSpotifyPasteValue("");
-                                // Refetch so the cached settings include the
-                                // new tokens before any subsequent handleSave.
-                                await qc.invalidateQueries({ queryKey: agentKeys.all });
-                              }
-                            } catch (err) {
-                              setSpotifyPasteError(err instanceof Error ? err.message : "Submission failed");
-                            } finally {
-                              setSpotifyPasteSubmitting(false);
-                            }
-                          }}
-                          className={cn(
-                            "rounded-lg px-3 py-1.5 text-[0.6875rem] font-medium transition-all",
-                            spotifyPasteValue.trim() && !spotifyPasteSubmitting
-                              ? "bg-[#1DB954] text-white hover:bg-[#1ed760] active:scale-95"
-                              : "bg-white/5 text-white/30 cursor-not-allowed",
-                          )}
-                        >
-                          {spotifyPasteSubmitting
-                            ? localizeUi("ui.agents.agenteditor.submitting")
-                            : localizeUi("ui.agents.agenteditor.completeConnection")}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Setup instructions */}
-                <div className="rounded-lg border border-green-500/10 bg-green-500/5 p-3 text-[0.6875rem] text-white/50 space-y-2">
-                  <p className="font-medium text-green-400/80">{localizeUi("ui.agents.agenteditor.setup")}</p>
-                  <ol className="list-decimal list-inside space-y-1 text-white/40">
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.goToThe")}{" "}
-                      <a
-                        href="https://developer.spotify.com/dashboard"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-400 hover:underline inline-flex items-center gap-0.5"
-                      >
-                        {localizeUi("ui.agents.agenteditor.spotifyDeveloperDashboard")}{" "}
-                        <ExternalLink size="0.5625rem" />
-                      </a>
-                    </li>
-                    <li>{localizeUi("ui.agents.agenteditor.createANewAppSelectWebApi")}</li>
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.inRedirectUrisAdd")}{" "}
-                      <code className="text-white/50 select-all">
-                        {spotifyStatus?.redirectUri ?? getDisplayedSpotifyRedirectUri()}
-                      </code>
-                    </li>
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.copyThe")}{" "}
-                      <strong>{localizeUi("ui.agents.agenteditor.clientId")}</strong>{" "}
-                      {localizeUi("ui.agents.agenteditor.andPasteItAbove")}
-                    </li>
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.saveTheAgentThenClick")}{" "}
-                      <strong>{localizeUi("ui.agents.agenteditor.connectSpotifyAccount")}</strong>
-                    </li>
-                  </ol>
-                  <p className="text-[0.625rem] text-white/30 mt-1">
-                    {localizeUi("ui.agents.agenteditor.requiresSpotifyPremiumTokensRefreshAutomaticallyNoNeedTo")}
-                  </p>
-                  <p className="text-[0.625rem] text-white/30 leading-relaxed">
-                    {localizeUi("ui.agents.agenteditor.spotifyOnlyAccepts")}{" "}
-                    <code className="text-white/40">{"https://"}</code>{" "}
-                    {localizeUi("ui.agents.agenteditor.redirectUrisOrLoopback")}
-                    <code className="text-white/40">{"http://127.0.0.1"}</code>
-                    {localizeUi("ui.agents.agenteditor.ifYouReRunningMarinaraOnAnotherMachineOver")}{" "}
-                    <code className="text-white/40">{"SPOTIFY_REDIRECT_URI"}</code>{" "}
-                    {localizeUi("ui.agents.agenteditor.toYourHttpsUrl")}
-                  </p>
-                </div>
-              </div>
-            </FieldGroup>
-          )}
-
-          {/* ── YouTube Settings (shown for Music DJ and legacy YouTube agent) ── */}
-          {showsYoutubeSettings && (
-            <FieldGroup
-              label={localizeUi("ui.agents.agenteditor.youtubeConnection")}
-              icon={<Music size="0.875rem" className="text-red-400" />}
-              help={localizeUi("ui.agents.agenteditor.playsMoodMatchedMusicFromYoutubeInAnEmbedded")}
-            >
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-[0.6875rem] font-medium text-white/60 mb-1">
-                    {localizeUi("ui.agents.agenteditor.youtubeDataApiKey")}
-                  </label>
-                  <input
-                    type="password"
-                    value={localYoutubeApiKey}
-                    onChange={(e) => {
-                      setLocalYoutubeApiKey(e.target.value);
-                      setYoutubeError(null);
-                    }}
-                    placeholder={
-                      youtubeConfigured
-                        ? localizeUi("ui.agents.agenteditor.keyConfiguredPasteANewOneToReplace")
-                        : localizeUi("ui.agents.agenteditor.pasteYourYoutubeDataApiKeyAiza")
-                    }
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder-white/30 outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/20 font-mono"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    disabled={youtubeSaving || !localYoutubeApiKey.trim()}
-                    onClick={async () => {
-                      setYoutubeSaving(true);
-                      setYoutubeError(null);
-                      try {
-                        // agentId is optional — the server creates the built-in Music DJ
-                        // config if it doesn't exist yet, so the user never has to hit the
-                        // top-right Save first.
-                        const res = await fetch("/api/youtube/save-key", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ agentId: dbConfig?.id, apiKey: localYoutubeApiKey.trim() }),
-                        });
-                        if (!res.ok) {
-                          const data = await res.json().catch(() => ({}));
-                          throw new Error(data.error ?? `Save failed (${res.status})`);
-                        }
-                        setYoutubeConfigured(true);
-                        setLocalYoutubeApiKey("");
-                        // Refresh the agent list so dbConfig (the new/updated config row) populates.
-                        qc.invalidateQueries({ queryKey: agentKeys.all });
-                      } catch (err) {
-                        setYoutubeError(err instanceof Error ? err.message : "Save failed");
-                      } finally {
-                        setYoutubeSaving(false);
-                      }
-                    }}
-                    className="rounded-lg bg-red-500/15 px-3 py-2 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/25 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {youtubeSaving
-                      ? localizeUi("chat.settings.inlineEditor.saving")
-                      : youtubeConfigured
-                        ? localizeUi("ui.agents.agenteditor.updateKey")
-                        : localizeUi("ui.agents.agenteditor.saveKey")}
-                  </button>
-
-                  {youtubeConfigured && (
-                    <>
-                      <span className="flex items-center gap-1.5 rounded-lg bg-green-500/10 px-3 py-2 text-xs font-medium text-green-400">
-                        <Check size="0.75rem" />
-                        {localizeUi("ui.agents.agenteditor.apiKeyConfigured")}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!dbConfig?.id) return;
-                          await fetch("/api/youtube/disconnect", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ agentId: dbConfig.id }),
-                          });
-                          setYoutubeConfigured(false);
-                        }}
-                        className="text-xs text-white/50 hover:text-red-400"
-                      >
-                        {localizeUi("settings.notifications.customSound.actions.remove")}
-                      </button>
-                    </>
-                  )}
-                </div>
-
-                {youtubeError && <p className="text-[0.6875rem] text-red-400">{youtubeError}</p>}
-
-                <div className="rounded-lg bg-white/5 p-3 text-[0.6875rem] text-white/50 leading-relaxed">
-                  <p className="mb-1 font-medium text-white/60">
-                    {localizeUi("ui.agents.agenteditor.howToGetAFreeKey")}
-                  </p>
-                  <ol className="ml-4 list-decimal space-y-1">
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.openThe")}{" "}
-                      <a
-                        href="https://console.cloud.google.com/apis/library/youtube.googleapis.com"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-red-400 hover:underline inline-flex items-center gap-0.5"
-                      >
-                        {localizeUi("ui.agents.agenteditor.googleCloudConsole")} <ExternalLink size="0.5625rem" />
-                      </a>{" "}
-                      {localizeUi("ui.agents.agenteditor.andCreateOrPickAProject")}
-                    </li>
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.enableThe")}{" "}
-                      <strong>{localizeUi("ui.agents.agenteditor.youtubeDataApiV3")}</strong>.
-                    </li>
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.goTo")}{" "}
-                      <strong>{localizeUi("ui.agents.agenteditor.credentialsCreateCredentialsApiKey")}</strong>
-                      {localizeUi("ui.agents.agenteditor.thenPasteItAbove")}
-                    </li>
-                    <li>
-                      {localizeUi("ui.agents.agenteditor.leaveTheKey")}{" "}
-                      <strong>{localizeUi("ui.agents.agenteditor.unrestricted")}</strong>
-                      {localizeUi("ui.agents.agenteditor.orRestrictItOnlyBy")}{" "}
-                      <em>{localizeUi("ui.agents.agenteditor.api")}</em>{" "}
-                      {localizeUi("ui.agents.agenteditor.youtubeDataApiV3NotByHttpReferrerSearch")}
-                    </li>
-                  </ol>
-                  <p className="mt-1 text-[0.625rem] text-white/30">
-                    {localizeUi("ui.agents.agenteditor.theFreeQuota100SearchesDayIsPlentyFor")}
-                  </p>
-                </div>
-              </div>
-            </FieldGroup>
-          )}
-
-          {isMusicAgent && (
-            <FieldGroup
-              label={localizeUi("ui.agents.agenteditor.customMusicLibrary")}
-              icon={<FolderOpen size="0.875rem" className="text-[var(--muted-foreground)]" />}
-              help={localizeUi("ui.agents.agenteditor.chooseWhereTheCustomMusicDjLooksForLocal")}
-            >
-              <div className="space-y-3">
-                <EditorSwitchRow
-                  label={localizeUi("ui.agents.agenteditor.useGameAssetsMusicFolder")}
-                  checked={localCustomMusicSource === "game-assets"}
-                  onChange={(checked) => {
-                    setLocalCustomMusicSource(checked ? "game-assets" : "folder");
-                    setDirty(true);
-                  }}
-                  description={
-                    localCustomMusicSource === "game-assets"
-                      ? localizeUi("ui.agents.agenteditor.customModeWillSearchAudioUploadedToGameAssets")
-                      : localizeUi("ui.agents.agenteditor.customModeWillSearchTheFolderSelectedFromThis")
-                  }
-                />
-
-                {localCustomMusicSource === "game-assets" ? (
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                    <label className="mb-1 block text-[0.6875rem] font-medium text-white/60">
-                      {localizeUi("ui.agents.agenteditor.gameAssetsMusicFolder")}
-                    </label>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <input
-                        type="text"
-                        value={localCustomMusicFolder}
-                        onChange={(event) => {
-                          setLocalCustomMusicFolder(event.target.value);
-                          setDirty(true);
-                        }}
-                        onBlur={() => setLocalCustomMusicFolder((current) => normalizeCustomMusicFolderInput(current))}
-                        placeholder={localizeUi("ui.agents.agenteditor.music")}
-                        className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-xs text-white outline-none placeholder-white/30 focus:border-[var(--primary)]/50 focus:ring-1 focus:ring-[var(--primary)]/20"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleOpenCustomMusicFolder}
-                        className="mari-editor-action mari-editor-action--secondary inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold"
-                      >
-                        <ExternalLink size="0.8rem" />
-                        {localizeUi("ui.agents.agenteditor.openFolder")}
-                      </button>
-                    </div>
-                    <p className="mt-2 text-[0.625rem] leading-relaxed text-white/40">
-                      <Trans
-                        i18nKey="ui.agents.agenteditor.gameAssetsMusicFolderGuidance"
-                        components={{
-                          folder: <code />,
-                          subfolder: <code />,
-                        }}
-                      />
-                    </p>
-                  </div>
-                ) : (
-                  <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                    <label className="mb-1 block text-[0.6875rem] font-medium text-white/60">
-                      {localizeUi("ui.agents.agenteditor.musicFolderOnThisDevice")}
-                    </label>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <input
-                        type="text"
-                        value={localCustomMusicExternalFolder}
-                        onChange={(event) => {
-                          setLocalCustomMusicExternalFolder(event.target.value);
-                          setDirty(true);
-                        }}
-                        onBlur={() =>
-                          setLocalCustomMusicExternalFolder((current) => normalizeExternalMusicFolderInput(current))
-                        }
-                        placeholder={localizeUi("ui.agents.agenteditor.noFolderSelected")}
-                        className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 font-mono text-xs text-white outline-none placeholder-white/30"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSelectCustomMusicFolder}
-                        className="mari-editor-action mari-editor-action--secondary inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold"
-                      >
-                        <FolderOpen size="0.8rem" />
-                        {localizeUi("ui.agents.agenteditor.selectFolder")}
-                      </button>
-                    </div>
-                    <p className="mt-2 text-[0.625rem] leading-relaxed text-white/40">
-                      {localizeUi("ui.agents.agenteditor.theFolderPickerOpensOnTheDeviceRunningMarinara")}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </FieldGroup>
-          )}
-
           {/* ── Knowledge Source Lorebooks (Knowledge Retrieval + Knowledge Router) ── */}
           {(isKnowledgeRetrievalAgent ||
             isKnowledgeRouterAgent ||
@@ -4336,59 +3468,49 @@ export function AgentEditor() {
             collapsible
             expanded={toolsSectionOpen}
             onExpandedChange={setToolsSectionOpen}
-            summary={
-              musicDjYoutubeMode
-                ? "Not used in YouTube mode"
-                : `${selectedVisibleToolCount}/${availableVisibleToolCount} enabled`
-            }
+            summary={`${selectedVisibleToolCount}/${availableVisibleToolCount} enabled`}
           >
-            {musicDjYoutubeMode ? (
-              <p className="rounded-xl bg-[var(--secondary)]/60 px-3 py-2 text-[0.6875rem] text-[var(--muted-foreground)] ring-1 ring-[var(--border)]">
-                {localizeUi("ui.agents.agenteditor.inYoutubeModeMusicDjDoesnTUseFunction")}
+            <>
+              <p className="text-[0.625rem] text-[var(--muted-foreground)] mb-3">
+                {localizeUi("ui.agents.agenteditor.toggleToolsOnOrOffForThisAgentWhen")}
               </p>
-            ) : (
-              <>
-                <p className="text-[0.625rem] text-[var(--muted-foreground)] mb-3">
-                  {localizeUi("ui.agents.agenteditor.toggleToolsOnOrOffForThisAgentWhen")}
-                </p>
-                <div className="space-y-2">
-                  {visibleBuiltInTools.map((tool: ToolDefinition) => (
-                    <ToolCard
-                      key={tool.name}
-                      tool={tool}
-                      enabled={localEnabledTools.includes(tool.name)}
-                      onToggle={(name) => {
-                        setLocalEnabledTools((prev) =>
-                          prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
-                        );
-                        markDirty();
-                      }}
-                    />
-                  ))}
-                  {selectableCustomTools.map((tool) => (
-                    <ToolCard
-                      key={tool.name}
-                      tool={{
-                        name: tool.name,
-                        description: tool.description,
-                        parameters: JSON.parse(tool.parametersSchema || "{}"),
-                      }}
-                      enabled={localEnabledTools.includes(tool.name)}
-                      onToggle={(name) => {
-                        setLocalEnabledTools((prev) =>
-                          prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
-                        );
-                        markDirty();
-                      }}
-                      isCustom
-                    />
-                  ))}
-                </div>
-                <p className="mt-2 text-[0.625rem] text-[var(--muted-foreground)]">
-                  {localizeUi("ui.agents.agenteditor.toolUseMustAlsoBeEnabledPerChatVia")}
-                </p>
-              </>
-            )}
+              <div className="space-y-2">
+                {visibleBuiltInTools.map((tool: ToolDefinition) => (
+                  <ToolCard
+                    key={tool.name}
+                    tool={tool}
+                    enabled={localEnabledTools.includes(tool.name)}
+                    onToggle={(name) => {
+                      setLocalEnabledTools((prev) =>
+                        prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
+                      );
+                      markDirty();
+                    }}
+                  />
+                ))}
+                {selectableCustomTools.map((tool) => (
+                  <ToolCard
+                    key={tool.name}
+                    tool={{
+                      name: tool.name,
+                      description: tool.description,
+                      parameters: JSON.parse(tool.parametersSchema || "{}"),
+                    }}
+                    enabled={localEnabledTools.includes(tool.name)}
+                    onToggle={(name) => {
+                      setLocalEnabledTools((prev) =>
+                        prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
+                      );
+                      markDirty();
+                    }}
+                    isCustom
+                  />
+                ))}
+              </div>
+              <p className="mt-2 text-[0.625rem] text-[var(--muted-foreground)]">
+                {localizeUi("ui.agents.agenteditor.toolUseMustAlsoBeEnabledPerChatVia")}
+              </p>
+            </>
           </FieldGroup>
         </div>
       </div>

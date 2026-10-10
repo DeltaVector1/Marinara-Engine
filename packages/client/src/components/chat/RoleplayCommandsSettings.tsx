@@ -61,13 +61,9 @@ export function RoleplayCommandsSettings({
                     ? installedAgentIds.has("illustrator") && metadata.activeAgentIds?.includes("illustrator") === true
                     : key === "combat"
                       ? installedAgentIds.has("combat") && metadata.activeAgentIds?.includes("combat") === true
-                      : key === "music"
-                        ? installedAgentIds.has("spotify") &&
-                          metadata.enableAgents === true &&
-                          metadata.activeAgentIds?.includes("spotify") === true
-                        : key === "notes" || key === "memory" || key === "whisper"
-                          ? privateAvailable
-                          : true;
+                      : key === "notes" || key === "memory" || key === "whisper"
+                        ? privateAvailable
+                        : true;
                 const checked = available && isRoleplayCommandEnabled(metadata, key);
                 const audienceKey =
                   key === "roll"

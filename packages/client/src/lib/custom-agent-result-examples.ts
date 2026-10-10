@@ -16,9 +16,6 @@ const CUSTOM_AGENT_RESULT_TYPE_IDS = [
   "frontend_theme_update",
   "background_change",
   "sprite_change",
-  "spotify_control",
-  "youtube_control",
-  "local_music_control",
   "about_me_update",
   "cyoa_choices",
 ] as const satisfies readonly AgentResultType[];
@@ -156,27 +153,6 @@ export const CUSTOM_AGENT_RESULT_EXAMPLES: Record<CustomAgentResultType, CustomA
         transition: "crossfade|bounce|shake|hop|none",
       },
     ],
-  }),
-  spotify_control: jsonExample({
-    action: "play|volume|none",
-    mood: "Brief detected mood",
-    searchQuery: "Search query or null",
-    trackUris: ["spotify:track:..."],
-    trackNames: ["Track and artist"],
-    volume: 50,
-  }),
-  youtube_control: jsonExample({
-    action: "play|volume|none",
-    mood: "Brief detected mood",
-    searchQuery: "YouTube search query",
-    volume: 50,
-  }),
-  local_music_control: jsonExample({
-    action: "play|volume|none",
-    mood: "Brief detected mood",
-    path: "Exact available asset path",
-    trackName: "Display name",
-    volume: 50,
   }),
   about_me_update: jsonExample({
     updates: [

@@ -1200,10 +1200,6 @@ export function useGenerate() {
   const enqueueEchoMessages = useAgentStore((s) => s.enqueueEchoMessages);
   const setCyoaChoices = useAgentStore((s) => s.setCyoaChoices);
   const clearCyoaChoices = useAgentStore((s) => s.clearCyoaChoices);
-  const setYoutubePlay = useAgentStore((s) => s.setYoutubePlay);
-  const setYoutubeVolume = useAgentStore((s) => s.setYoutubeVolume);
-  const setLocalMusicPlay = useAgentStore((s) => s.setLocalMusicPlay);
-  const setLocalMusicVolume = useAgentStore((s) => s.setLocalMusicVolume);
   const enqueuePendingCardUpdate = useAgentStore((s) => s.enqueuePendingCardUpdate);
   const enqueuePendingAgentWriteApproval = useAgentStore((s) => s.enqueuePendingAgentWriteApproval);
   const setFailedAgentFailures = useAgentStore((s) => s.setFailedAgentFailures);
@@ -1805,8 +1801,7 @@ export function useGenerate() {
       };
 
       try {
-        const { debugMode, trimIncompleteModelOutput, continueAddsNewline, musicPlayerEnabled, musicPlayerSource } =
-          useUIStore.getState();
+        const { debugMode, trimIncompleteModelOutput, continueAddsNewline } = useUIStore.getState();
 
         // Flush any pending game-state widget edits so the server sees them before committing
         const flushPatch = useGameStateStore.getState().flushPatch;
@@ -1826,8 +1821,6 @@ export function useGenerate() {
             debugMode,
             trimIncompleteModelOutput,
             continueAddsNewline,
-            musicPlayerEnabled,
-            musicPlayerSource,
             streaming: transportStreaming,
           },
           abortController.signal,
@@ -2067,9 +2060,6 @@ export function useGenerate() {
                   spriteChangeReceived = true;
                   invalidateCurrentMessagesIfSafe();
                 }
-                if (result.resultType === "spotify_control") {
-                  qc.invalidateQueries({ queryKey: ["spotify", "player"] });
-                }
               }
 
               const writeApproval = result.success
@@ -2123,42 +2113,6 @@ export function useGenerate() {
                   const choices = (d.choices as Array<{ label: string; text: string }>) ?? [];
                   if (choices.length > 0) {
                     setCyoaChoices(choices, params.chatId);
-                  }
-                }
-
-                // Drive the embedded YouTube player from the agent's intent.
-                if (result.resultType === "youtube_control") {
-                  const d = result.data as Record<string, unknown>;
-                  const action = d.action as string;
-                  if (typeof d.volume === "number" && Number.isFinite(d.volume)) {
-                    setYoutubeVolume(Math.max(0, Math.min(100, d.volume)));
-                  }
-                  if (action === "play" && typeof d.searchQuery === "string" && d.searchQuery.trim()) {
-                    setYoutubePlay({ searchQuery: d.searchQuery.trim(), mood: (d.mood as string) ?? "" });
-                  }
-                }
-
-                // Drive the embedded Custom local player from the agent's exact asset pick.
-                if (result.resultType === "local_music_control") {
-                  const d = result.data as Record<string, unknown>;
-                  const action = d.action as string;
-                  if (typeof d.volume === "number" && Number.isFinite(d.volume)) {
-                    setLocalMusicVolume(Math.max(0, Math.min(100, d.volume)));
-                  }
-                  const path = typeof d.path === "string" ? d.path.trim() : "";
-                  if (action === "play" && path) {
-                    const trackName = typeof d.trackName === "string" ? d.trackName.trim() : "";
-                    const fallbackTitle =
-                      path
-                        .split("/")
-                        .pop()
-                        ?.replace(/\.[^.]+$/, "")
-                        .replace(/[-_]+/g, " ") || "Local track";
-                    setLocalMusicPlay({
-                      path,
-                      title: trackName || fallbackTitle,
-                      mood: (d.mood as string) ?? "",
-                    });
                   }
                 }
               }
@@ -2806,38 +2760,6 @@ export function useGenerate() {
               }
               break;
             }
-            case "spotify_command": {
-              const spotifyData = event.data as {
-                track?: { name?: string; artist?: string };
-                title?: string;
-                artist?: string;
-              };
-              const trackName = spotifyData.track?.name ?? spotifyData.title ?? "Spotify track";
-              const artistName = spotifyData.track?.artist ?? spotifyData.artist ?? "Spotify";
-              toast(`Playing ${trackName} - ${artistName}`, { icon: "🎵" });
-              qc.invalidateQueries({ queryKey: ["spotify", "player"] });
-              break;
-            }
-
-            case "spotify_command_error": {
-              const spotifyData = event.data as { title?: string; artist?: string; error?: string };
-              toast.error(spotifyData.error ?? "Spotify song command failed.");
-              break;
-            }
-
-            case "youtube_command": {
-              const youtubeData = event.data as { searchQuery?: string; mood?: string };
-              const searchQuery = youtubeData.searchQuery?.trim();
-              if (searchQuery) {
-                setYoutubePlay({
-                  searchQuery,
-                  mood: youtubeData.mood ?? "Conversation music command",
-                });
-                toast(`Playing YouTube: ${searchQuery}`, { icon: "▶" });
-              }
-              break;
-            }
-
             case "illustration": {
               recordClientRuntimeEvent("image-arrived");
               illustrationSettled = true;
@@ -3475,10 +3397,6 @@ export function useGenerate() {
       enqueueEchoMessages,
       setCyoaChoices,
       clearCyoaChoices,
-      setYoutubePlay,
-      setYoutubeVolume,
-      setLocalMusicPlay,
-      setLocalMusicVolume,
       enqueuePendingCardUpdate,
       enqueuePendingAgentWriteApproval,
       clearFailedAgentTypes,
@@ -3546,8 +3464,6 @@ export function useGenerate() {
             ...(options?.illustratorRetryTargets ? { illustratorRetryTargets: options.illustratorRetryTargets } : {}),
             ...(options?.illustratorMessageRange ? { illustratorMessageRange: options.illustratorMessageRange } : {}),
             ...(options?.forceImageGeneration ? { forceImageGeneration: true } : {}),
-            musicPlayerEnabled: useUIStore.getState().musicPlayerEnabled,
-            musicPlayerSource: useUIStore.getState().musicPlayerSource,
             lorebookKeeperBackfill: options?.lorebookKeeperBackfill === true,
             customLorebookBackfill: options?.customLorebookBackfill === true,
             ...(options?.forMessageId ? { forMessageId: options.forMessageId } : {}),
@@ -3596,9 +3512,6 @@ export function useGenerate() {
                 if (result.resultType === "sprite_change") {
                   spriteChangeReceived = true;
                   qc.invalidateQueries({ queryKey: chatKeys.messages(chatId) });
-                }
-                if (result.resultType === "spotify_control") {
-                  qc.invalidateQueries({ queryKey: ["spotify", "player"] });
                 }
               }
 
@@ -3660,39 +3573,6 @@ export function useGenerate() {
                   const d = result.data as Record<string, unknown>;
                   const choices = (d.choices as Array<{ label: string; text: string }>) ?? [];
                   if (shouldApplyVisibleResult) setCyoaChoices(choices, chatId);
-                }
-                // YouTube re-pick: drive the in-app player with the fresh intent.
-                if (result.resultType === "youtube_control" && shouldApplyVisibleResult) {
-                  const d = result.data as Record<string, unknown>;
-                  const action = d.action as string;
-                  if (typeof d.volume === "number" && Number.isFinite(d.volume)) {
-                    setYoutubeVolume(Math.max(0, Math.min(100, d.volume)));
-                  }
-                  if (action === "play" && typeof d.searchQuery === "string" && d.searchQuery.trim()) {
-                    setYoutubePlay({ searchQuery: d.searchQuery.trim(), mood: (d.mood as string) ?? "" });
-                  }
-                }
-                if (result.resultType === "local_music_control" && shouldApplyVisibleResult) {
-                  const d = result.data as Record<string, unknown>;
-                  const action = d.action as string;
-                  if (typeof d.volume === "number" && Number.isFinite(d.volume)) {
-                    setLocalMusicVolume(Math.max(0, Math.min(100, d.volume)));
-                  }
-                  const path = typeof d.path === "string" ? d.path.trim() : "";
-                  if (action === "play" && path) {
-                    const trackName = typeof d.trackName === "string" ? d.trackName.trim() : "";
-                    const fallbackTitle =
-                      path
-                        .split("/")
-                        .pop()
-                        ?.replace(/\.[^.]+$/, "")
-                        .replace(/[-_]+/g, " ") || "Local track";
-                    setLocalMusicPlay({
-                      path,
-                      title: trackName || fallbackTitle,
-                      mood: (d.mood as string) ?? "",
-                    });
-                  }
                 }
                 if (result.resultType === "background_change" && shouldApplyVisibleResult) {
                   const bg = result.data as { chosen?: string | null; generated?: boolean };
@@ -3937,10 +3817,6 @@ export function useGenerate() {
       clearFailedAgentTypes,
       clearThoughtBubbles,
       setCyoaChoices,
-      setYoutubePlay,
-      setYoutubeVolume,
-      setLocalMusicPlay,
-      setLocalMusicVolume,
       setFailedAgentFailures,
       setProcessingRun,
       qc,
@@ -4055,54 +3931,6 @@ function formatAgentBubble(agentType: string, agentName: string, data: unknown):
       const reactions = normalizeEchoChamberMessages(d.reactions);
       if (!reactions.length) return null;
       return reactions.map((r) => `💬 ${r.characterName}: ${r.reaction}`).join("\n");
-    }
-
-    case "spotify": {
-      const error = typeof d.error === "string" ? d.error.trim() : "";
-      if (error) return `🎵 Music DJ could not run: ${error}`;
-      if (d.parseError === true) {
-        return "🎵 Music DJ ran, but did not return playable track details";
-      }
-      const action = d.action as string;
-      const mood = (d.mood as string) ?? "";
-      const display = typeof d.display === "string" ? d.display.trim() : "";
-      if (action === "none") return mood ? `🎵 Keeping current track — ${mood}` : "🎵 Keeping current track";
-      if (action === "play") {
-        const localPath = typeof d.path === "string" ? d.path.trim() : "";
-        if (localPath) {
-          const trackName = typeof d.trackName === "string" ? d.trackName.trim() : "";
-          const fallbackTitle =
-            localPath
-              .split("/")
-              .pop()
-              ?.replace(/\.[^.]+$/, "")
-              .replace(/[-_]+/g, " ") || localPath;
-          return `🎵 ${trackName || fallbackTitle}${mood ? ` — ${mood}` : ""}`;
-        }
-        // Support both array and singular formats
-        const trackNames: string[] = Array.isArray(d.trackNames)
-          ? (d.trackNames as string[])
-          : d.trackName
-            ? [d.trackName as string]
-            : [];
-        if (trackNames.length === 0) {
-          if (display) return display;
-          const youtubeQuery = typeof d.searchQuery === "string" ? d.searchQuery.trim() : "";
-          if (youtubeQuery) return `🎵 ${youtubeQuery}${mood ? ` — ${mood}` : ""}`;
-          const queued = typeof d.queued === "number" && Number.isFinite(d.queued) ? d.queued : 0;
-          if (queued > 1) return `🎵 Queued ${queued} Spotify tracks${mood ? `: ${mood}` : ""}`;
-          return mood ? `🎵 Music DJ started playback: ${mood}` : "🎵 Music DJ started playback";
-        }
-        if (trackNames.length === 1) {
-          return `🎵 ${trackNames[0]}${mood ? ` — ${mood}` : ""}`;
-        }
-        const list = trackNames.map((t, i) => `${i + 1}. ${t}`).join("\n");
-        return `🎵 Queued ${trackNames.length} tracks${mood ? ` — ${mood}` : ""}\n${list}`;
-      }
-      if (action === "volume") {
-        return `🔊 Volume → ${d.volume}%${mood ? ` (${mood})` : ""}`;
-      }
-      return mood ? `🎵 ${mood}` : null;
     }
 
     case "prose-guardian": {

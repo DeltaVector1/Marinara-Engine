@@ -2028,6 +2028,7 @@ export const ChatInput = memo(function ChatInput({
         {/* Send / Stop button */}
 
         <button
+          data-action="send-stop"
           onClick={isStreaming ? () => useChatStore.getState().stopGeneration(activeChatId ?? undefined) : handleSend}
           disabled={
             (!isStreaming && (isInputBusy || isReadingAttachments)) ||
