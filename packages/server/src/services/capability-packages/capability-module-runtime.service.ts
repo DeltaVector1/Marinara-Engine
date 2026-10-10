@@ -10,7 +10,6 @@ import {
   type CapabilityRuntimeLogArgument,
   type InstalledCapabilityPackage,
   parseAgentSettingsRecord,
-  type PackagedAchievementDefinition,
   type SceneOriginProvider,
 } from "@marinara-engine/shared";
 import { isDebugAgentsEnabled } from "../../config/runtime-config.js";
@@ -32,8 +31,6 @@ import {
   createCapabilityEmbeddingHost,
   createConfiguredCapabilityEmbeddingHost,
 } from "./capability-embedding.service.js";
-import { createCapabilityAchievementHost } from "./capability-achievement-host.service.js";
-import { registerCapabilityAchievements } from "./capability-achievement-registry.service.js";
 import { createCapabilityPersistenceHost } from "./capability-persistence.service.js";
 import { createCapabilityResourceHost } from "./capability-resources.service.js";
 import {
@@ -75,9 +72,6 @@ type CapabilityActivationContext = {
     registerPromptContext(contributor: CapabilityPromptContextContributor): Cleanup;
     /** Offer the model a tool this package handles. Requires the `tools` permission. */
     registerTool(registration: CapabilityToolRegistration): Cleanup;
-    /** Contribute badges to the Home achievements panel, shown under this package's own section.
-     *  Requires the `achievements` permission. */
-    registerAchievements(achievements: readonly PackagedAchievementDefinition[]): Cleanup;
     /** Let this package's threads be the origin of a roleplay scene. Requires the `scenes` permission. */
     registerSceneOrigin(provider: SceneOriginProvider): Cleanup;
     registerPrivilegedRoutes(
@@ -127,7 +121,6 @@ async function createCapabilityRuntimeHost(
       debugOverride: (overrideEnabled: boolean, message: string, ...args: CapabilityRuntimeLogArgument[]) =>
         logDebugOverride(overrideEnabled, message, ...args),
     }),
-    achievements: createCapabilityAchievementHost(app.db, packageId, permissions),
     persistence: createCapabilityPersistenceHost(app.db, permissions),
     resources: createCapabilityResourceHost(app.db),
   });
@@ -242,7 +235,6 @@ class CapabilityModuleRuntime {
     const { installed } = runtimePackage;
     const registeredCleanups: Cleanup[] = [];
     const toolCleanups: Array<() => void> = [];
-    const achievementCleanups: Array<() => void> = [];
     let moduleCleanup: Cleanup | undefined;
     // A package can keep hold of the activation context and call back into it later. Once this
     // activation has been torn down, those calls must not reach the host: a tool registered after
@@ -317,28 +309,6 @@ class CapabilityModuleRuntime {
             }
             return trackCleanup(registerCapabilitySceneOrigin(installed.id, provider));
           },
-          registerAchievements: (achievements) => {
-            if (!installed.manifest.permissions?.includes("achievements")) {
-              throw new Error(
-                `Capability package ${installed.id} must declare the "achievements" permission to register achievements`,
-              );
-            }
-            if (!activationLive) {
-              throw new Error(
-                `Capability package ${installed.id} cannot register achievements after its activation ended`,
-              );
-            }
-            const release = registerCapabilityAchievements(
-              {
-                packageId: installed.id,
-                packageName: installed.manifest.name,
-                packageVersion: installed.version,
-              },
-              achievements,
-            );
-            achievementCleanups.push(release);
-            return trackCleanup(release);
-          },
           registerPrivilegedRoutes: async (routes, options) =>
             trackCleanup(await registerCapabilityPrivilegedRoutes(app, installed, routes, options)),
           runInternalRoute: (options) => runCapabilityInternalRoute(app, installed.id, options),
@@ -360,7 +330,6 @@ class CapabilityModuleRuntime {
         // Release only this activation's tools before awaiting package cleanup. An old
         // teardown cannot delete replacements registered by a concurrent activation.
         for (const release of toolCleanups.splice(0)) release();
-        for (const release of achievementCleanups.splice(0)) release();
         try {
           if (moduleCleanup) await withDeadline(moduleCleanup(), "Capability module cleanup", 8000);
         } finally {
@@ -388,7 +357,6 @@ class CapabilityModuleRuntime {
       });
       activationLive = false;
       for (const release of toolCleanups.splice(0)) release();
-      for (const release of achievementCleanups.splice(0)) release();
       try {
         try {
           if (moduleCleanup) await withDeadline(moduleCleanup(), "Capability module cleanup", 8000);

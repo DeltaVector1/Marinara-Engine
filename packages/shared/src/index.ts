@@ -34,7 +34,6 @@ export * from "./types/image-generation-defaults.js";
 export * from "./types/video-generation-defaults.js";
 export * from "./types/video-generation-settings.js";
 export * from "./types/image-style-profile.js";
-export * from "./types/achievement.js";
 export * from "./types/conversation-call.js";
 export * from "./types/noodle.js";
 export * from "./types/spatial-context.js";
@@ -88,7 +87,6 @@ export * from "./constants/image-style-profiles.js";
 export * from "./constants/security.js";
 export * from "./constants/conversation-prompt.js";
 export * from "./constants/image-captioning-prompt.js";
-export * from "./constants/achievements.js";
 export * from "./constants/tracker-custom-field-icons.js";
 export * from "./constants/stat-icons.js";
 

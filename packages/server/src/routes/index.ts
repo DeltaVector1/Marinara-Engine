@@ -35,7 +35,6 @@ import { chatPresetsRoutes } from "./chat-presets.routes.js";
 import { uiLanguagesRoutes } from "./ui-languages.routes.js";
 import { themesRoutes } from "./themes.routes.js";
 import { appSettingsRoutes } from "./app-settings.routes.js";
-import { achievementsRoutes } from "./achievements.routes.js";
 import { gameAssetsRoutes } from "./game-assets.routes.js";
 import { sidecarRoutes } from "./sidecar.routes.js";
 import { ttsRoutes } from "./tts.routes.js";
@@ -86,7 +85,6 @@ export async function registerRoutes(app: FastifyInstance) {
   await app.register(uiLanguagesRoutes, { prefix: "/api/ui-languages" });
   await app.register(themesRoutes, { prefix: "/api/themes" });
   await app.register(appSettingsRoutes, { prefix: "/api/app-settings" });
-  await app.register(achievementsRoutes, { prefix: "/api/achievements" });
   await app.register(gameAssetsRoutes, { prefix: "/api/game-assets" });
   await app.register(ttsRoutes, { prefix: "/api/tts" });
   await app.register(promptOverridesRoutes, { prefix: "/api/prompt-overrides" });
