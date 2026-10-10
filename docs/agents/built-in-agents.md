@@ -247,6 +247,7 @@ Adds live audio and video calls with Conversation characters, including user-sta
 ## Related guides
 
 - [Agents overview](agents-overview.md)
+- [World Maps: Setup, Authoring, and Travel](hierarchical-maps.md)
 - [Illustrator agent](../media/illustrator-agent.md)
 - [Knowledge sources](knowledge-sources.md)
 - [Narrative Director and Secret Plot](../roleplay/narrative-director.md)

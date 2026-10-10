@@ -86,3 +86,4 @@ Did an agent you expected not run? Check that **Enable Agents** is on. Check tha
 - [Creating Custom Agents](custom-agents.md)
 - [Agent Approvals and the Agent Suite](approvals-and-agent-suite.md)
 - [Roleplay HUD and Trackers](../roleplay/hud-and-trackers.md)
+- [World Maps: Setup, Authoring, and Travel](hierarchical-maps.md)
