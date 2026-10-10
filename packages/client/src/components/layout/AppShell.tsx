@@ -21,7 +21,6 @@ import { useDialogStore } from "../../stores/dialog.store";
 import { useUpdateChatMetadata } from "../../hooks/use-chats";
 import { lorebookKeys } from "../../hooks/use-lorebooks";
 import { dispatchChatVisualViewportChange } from "../../hooks/use-visual-viewport-chat-bottom";
-import { usePageActivity } from "../../hooks/use-page-activity";
 import { useCapabilityAgentRegistry, useCapabilityClientModules } from "../../hooks/use-capability-packages";
 import { CapabilityElement } from "../capabilities/CapabilityElement";
 import { FeatureAgentDetailHost } from "../agents/FeatureAgentDetailHost";
@@ -534,7 +533,6 @@ export function AppShell() {
   const regexDetailId = useUIStore((s) => s.regexDetailId);
   const activeChatId = useChatStore((s) => s.activeChatId);
   const activeChat = useChatStore((s) => s.activeChat);
-  const isPageActive = usePageActivity();
   const [trackerPanelTop, setTrackerPanelTop] = useState(TRACKER_PANEL_EDGE_OFFSET);
   const [trackerPanelExitLayoutHold, setTrackerPanelExitLayoutHold] = useState(false);
   const [trackerPanelToggleAnchorY, setTrackerPanelToggleAnchorY] = useState<number | null>(null);
@@ -767,7 +765,6 @@ export function AppShell() {
     <LorebookEditor />
   ) : null;
 
-  const showAmbientDecor = isPageActive && !activeChatId && !detailView;
   const hasDetailView = detailView != null;
   const trackerPanelModeAvailable = activeChat?.mode === "roleplay";
   const trackerPanelActive = trackerPanelEnabled && trackerPanelOpen && trackerPanelSurfaceOpen;
@@ -1122,22 +1119,8 @@ export function AppShell() {
     <div
       data-component="AppShell"
       data-chat-surface-active={chatSurfaceActive ? "true" : undefined}
-      className={cn(
-        "mari-app mari-app-background-paint fixed inset-0 flex overflow-hidden",
-        showAmbientDecor && "retro-scanlines noise-bg geometric-grid",
-      )}
+      className="mari-app mari-app-background-paint fixed inset-0 flex overflow-hidden"
     >
-      {/* Y2K decorative stars */}
-      {showAmbientDecor && (
-        <>
-          <div className="y2k-star hidden md:block" style={{ top: "10%", left: "5%", animationDelay: "0s" }} />
-          <div className="y2k-star-md hidden md:block" style={{ top: "25%", right: "8%", animationDelay: "1.5s" }} />
-          <div className="y2k-star-lg hidden md:block" style={{ top: "60%", left: "3%", animationDelay: "3s" }} />
-          <div className="y2k-star hidden md:block" style={{ top: "80%", right: "12%", animationDelay: "0.8s" }} />
-          <div className="y2k-star-md hidden md:block" style={{ top: "45%", left: "50%", animationDelay: "2.2s" }} />
-        </>
-      )}
-
       {/* Mobile navigation backdrop */}
       {mobileNavigationPanel && (
         <div
