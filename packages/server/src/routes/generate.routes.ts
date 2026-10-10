@@ -6450,14 +6450,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           };
           const targetCharacterProfile = targetCharId ? characterMacroProfilesById.get(targetCharId) : undefined;
           const deferredTargetCharacterProfile = deferCharacterMacros ? targetCharacterProfile : undefined;
-          // Turn-game board awareness: when a table game is active in this chat,
-          // give THIS responder the current board — from their own seat when they
-          // are playing (own hand / color / last move), spectator view otherwise.
-          // Injected per character so one player's private hand can never leak
-          // into another responder's prompt; impersonation gets the human seat,
-          // and a merged generation that may voice several characters at once
-          // stays on the hand-free spectator view.
-          let gameAwareMessagesForGen = await prepareConversationLorebookForResponder(targetCharId, messagesForGen);
+          let responderMessagesForGen = await prepareConversationLorebookForResponder(targetCharId, messagesForGen);
           let responderLorebookScan =
             (targetCharId ? conversationLorebookScansByResponder.get(targetCharId) : undefined) ??
             lorebookPromptScanResult;
@@ -6485,11 +6478,11 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
               wrapFormat,
             });
             if (responderAwarenessBlock) {
-              gameAwareMessagesForGen = [...gameAwareMessagesForGen];
-              const firstUserIdx = gameAwareMessagesForGen.findIndex(
+              responderMessagesForGen = [...responderMessagesForGen];
+              const firstUserIdx = responderMessagesForGen.findIndex(
                 (message) => message.role === "user" || message.role === "assistant",
               );
-              gameAwareMessagesForGen.splice(firstUserIdx >= 0 ? firstUserIdx : gameAwareMessagesForGen.length, 0, {
+              responderMessagesForGen.splice(firstUserIdx >= 0 ? firstUserIdx : responderMessagesForGen.length, 0, {
                 role: "system",
                 content: responderAwarenessBlock,
               });
@@ -6502,8 +6495,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                 ? [targetCharId]
                 : []
               : characterIds;
-          gameAwareMessagesForGen = filterPromptMessagesForCharacterAudience(
-            gameAwareMessagesForGen,
+          responderMessagesForGen = filterPromptMessagesForCharacterAudience(
+            responderMessagesForGen,
             audienceCharacterIds,
           );
           if (
@@ -6525,8 +6518,8 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             }
             const scopedLorebookScan = await scopedScanPromise;
             responderLorebookScan = scopedLorebookScan;
-            gameAwareMessagesForGen = scopeLorebookPromptMessagesForCharacter(
-              gameAwareMessagesForGen,
+            responderMessagesForGen = scopeLorebookPromptMessagesForCharacter(
+              responderMessagesForGen,
               lorebookPromptScanResult,
               scopedLorebookScan,
             );
@@ -6535,7 +6528,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
             ? conversationContextBlocksByCharacterId.get(targetCharId)
             : undefined;
           if (isGroupChat && usesIndividualGroupGeneration && targetContextBlock && conversationContextBlockValue) {
-            gameAwareMessagesForGen = gameAwareMessagesForGen.map((message) => ({
+            responderMessagesForGen = responderMessagesForGen.map((message) => ({
               ...message,
               content: replaceConversationContextBlockForTarget(
                 message.content,
@@ -6558,7 +6551,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
           const scopedMessagesForGen =
             isGroupChat && usesIndividualGroupGeneration && targetCharId
               ? scopeIndividualGroupMessagesForTarget(
-                  gameAwareMessagesForGen,
+                  responderMessagesForGen,
                   targetCharId,
                   charInfo,
                   deferGroupPromptRegex
@@ -6577,7 +6570,7 @@ export async function generateRoutes(app: FastifyInstance, options: GenerateRout
                       }
                     : undefined,
                 )
-              : gameAwareMessagesForGen;
+              : responderMessagesForGen;
           // Each responder owns its injections; never mutate the shared prompt array.
           const targetScopedMessagesForGen = scopedMessagesForGen.map((message) => ({ ...message }));
           if (!deferGroupPromptRegex && !promptTargetCharacterId && targetCharId) {
