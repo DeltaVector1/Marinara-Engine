@@ -1,7 +1,7 @@
 // ──────────────────────────────────────────────
 // Importer: SillyTavern Bulk Import (folder scan)
 // ──────────────────────────────────────────────
-import { readdir, readFile, stat, copyFile, mkdir } from "fs/promises";
+import { readdir, readFile, stat, realpath, copyFile, mkdir } from "fs/promises";
 import { join, extname, basename, dirname, relative } from "path";
 import { existsSync, readdirSync } from "fs";
 import { randomUUID } from "crypto";
@@ -370,8 +370,19 @@ export async function scanSTFolder(rootPath: string): Promise<STBulkScanResult> 
   }
 
   // 3. Presets — JSON files in TextGen Settings/ and OpenAI Settings/
+  const scannedPresetDirectories = new Set<string>();
   for (const folder of ["TextGen Settings", "OpenAI Settings", "textgen settings", "openai settings"]) {
     const presetDir = join(dataDir, folder);
+    let directoryIdentity: string;
+    try {
+      const directoryInfo = await stat(presetDir);
+      directoryIdentity =
+        directoryInfo.ino === 0 ? await realpath(presetDir) : `${directoryInfo.dev}:${directoryInfo.ino}`;
+    } catch {
+      continue;
+    }
+    if (scannedPresetDirectories.has(directoryIdentity)) continue;
+    scannedPresetDirectories.add(directoryIdentity);
     const files = await listFiles(presetDir, ".json");
     for (const f of files) {
       try {
