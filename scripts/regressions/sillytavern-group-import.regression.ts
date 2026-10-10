@@ -82,7 +82,12 @@ try {
   );
   writeFileSync(
     join(dataDir, "groups", "twin-group.json"),
-    JSON.stringify({ id: "twin-group", name: "The Twins", members: ["Twin_A.json", "Twin_B.json"], chats: ["twins-session"] }),
+    JSON.stringify({
+      id: "twin-group",
+      name: "The Twins",
+      members: ["Twin_A.json", "Twin_B.json"],
+      chats: ["twins-session"],
+    }),
   );
   writeFileSync(
     join(dataDir, "group chats", "twins-session.jsonl"),
@@ -133,7 +138,9 @@ try {
   const importedChats = await db.select().from(chats);
   const labCharacterIds = [characterIdsByName.get("Il Dottore")!, characterIdsByName.get("Professor Mari")!];
   const laboratoryChats = importedChats.filter(
-    (chat) => JSON.parse(chat.characterIds).length === 2 && labCharacterIds.every((id) => JSON.parse(chat.characterIds).includes(id)),
+    (chat) =>
+      JSON.parse(chat.characterIds).length === 2 &&
+      labCharacterIds.every((id) => JSON.parse(chat.characterIds).includes(id)),
   );
   assert.equal(laboratoryChats.length, 2);
   assert.equal(new Set(laboratoryChats.map((chat) => chat.groupId)).size, 1);
@@ -143,7 +150,9 @@ try {
   const importedMessages = new Map((await db.select().from(messages)).map((message) => [message.content, message]));
 
   const twinIds = new Set(
-    importedCharacters.filter((character) => JSON.parse(character.data).name === "Twin").map((character) => character.id),
+    importedCharacters
+      .filter((character) => JSON.parse(character.data).name === "Twin")
+      .map((character) => character.id),
   );
   assert.equal(twinIds.size, 2);
   const twinPrivateChats = importedChats.filter((chat) => {
