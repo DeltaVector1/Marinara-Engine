@@ -6,12 +6,7 @@ const AGENT_CATEGORY_ORDER: Record<string, number> = {
   misc: 2,
 };
 
-const STANDALONE_ROLEPLAY_AGENT_SETTINGS = new Set([
-  "memory-nag",
-  "hierarchical-maps",
-  "beholder",
-  "long-term-memory",
-]);
+const STANDALONE_ROLEPLAY_AGENT_SETTINGS = new Set(["memory-nag", "hierarchical-maps", "beholder", "long-term-memory"]);
 
 export function hasStandaloneRoleplayAgentSettings(agentId: string): boolean {
   return STANDALONE_ROLEPLAY_AGENT_SETTINGS.has(agentId);

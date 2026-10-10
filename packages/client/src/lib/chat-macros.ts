@@ -1,9 +1,4 @@
-import {
-  resolveChatPersonaCandidate,
-  resolveMacros,
-  type MacroContext,
-  type Persona,
-} from "@marinara-engine/shared";
+import { resolveChatPersonaCandidate, resolveMacros, type MacroContext, type Persona } from "@marinara-engine/shared";
 
 interface MacroCharacterData {
   id?: string;
@@ -58,9 +53,7 @@ export function getChatCharacterIds(chat: { characterIds?: unknown } | null | un
   return [];
 }
 
-function parseCharacterMacroData(
-  raw: { id?: string; data: unknown } | null | undefined,
-): MacroCharacterData | null {
+function parseCharacterMacroData(raw: { id?: string; data: unknown } | null | undefined): MacroCharacterData | null {
   if (!raw) return null;
 
   try {

@@ -8,7 +8,6 @@ interface GameAssetSelectionMetadata {
   excludedFolders?: string[];
 }
 
-
 function normalizeGameAssetFolderPath(path: string | null | undefined): string {
   return (path ?? "")
     .trim()
@@ -44,7 +43,6 @@ export function serializeGameAssetSelection(excludedFolders: Iterable<string>): 
   ).sort((a, b) => a.localeCompare(b));
   return folders.length > 0 ? { excludedFolders: folders } : null;
 }
-
 
 export function getGameAssetFolderSelectionStatus(
   path: string,

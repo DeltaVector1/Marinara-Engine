@@ -1,5 +1,4 @@
-type DiceShapeKind =
-  "coin" | "tetra" | "cube" | "diamond" | "kite" | "dodeca" | "crystal" | "icosa" | "medallion";
+type DiceShapeKind = "coin" | "tetra" | "cube" | "diamond" | "kite" | "dodeca" | "crystal" | "icosa" | "medallion";
 
 interface DiceShapeDefinition {
   kind: DiceShapeKind;

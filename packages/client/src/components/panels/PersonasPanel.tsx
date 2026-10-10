@@ -563,10 +563,7 @@ export function PersonasPanel() {
 
   return (
     <div className="flex min-h-full flex-col gap-2 p-3">
-      <div
-        className="mari-chrome-segmented"
-        data-component="PersonaLibraryActions"
-      >
+      <div className="mari-chrome-segmented" data-component="PersonaLibraryActions">
         <button
           type="button"
           onClick={openPersonaLibrary}

@@ -22,7 +22,6 @@ export const spatialContextKeys = {
   detail: (chatId: string) => [...spatialContextKeys.all, chatId] as const,
 };
 
-
 export interface CommitSpatialOwnerTurnInput {
   chatId: string;
   content: string;
@@ -35,9 +34,6 @@ interface CommitSpatialOwnerTurnResponse {
   spatial: SpatialContextResponse;
   travel?: ResolvedSpatialTravel;
 }
-
-
-
 
 export function useSpatialContext(chatId: string | null, enabled = true) {
   return useQuery({

@@ -30,7 +30,6 @@ export const capabilityPackageKeys = {
   releaseNotes: (id: string) => [...capabilityPackageKeys.all, "release-notes", id] as const,
 };
 
-
 export function useCapabilityCatalog(enabled = true) {
   return useQuery({
     queryKey: capabilityPackageKeys.catalog(),

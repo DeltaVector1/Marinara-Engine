@@ -24,9 +24,6 @@ export interface EmbeddedLorebookImportPreview {
   error?: string;
 }
 
-
-
-
 function optionalRecord(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
 }
@@ -121,8 +118,6 @@ export function mergeEmbeddedCharacterCardFields(
 
   return foundField ? next : null;
 }
-
-
 
 export async function inspectCharacterFilesForEmbeddedLorebooks(
   files: File[],

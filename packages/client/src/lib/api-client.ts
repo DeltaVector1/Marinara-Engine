@@ -122,8 +122,6 @@ export function getPrivilegedActionErrorMessage(error: unknown, fallback: string
   return fallback;
 }
 
-
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
@@ -218,7 +216,6 @@ async function releaseSseReader(reader: ReadableStreamDefaultReader<Uint8Array>,
     /* lock may already be released */
   }
 }
-
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await apiFetch(path, init);

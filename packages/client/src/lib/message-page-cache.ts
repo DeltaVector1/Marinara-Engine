@@ -30,10 +30,7 @@ function chatIdOfMessagesQueryKey(queryKey: readonly unknown[]): string | null {
 }
 
 /** Drops pages from the OLD end, keeping `pages`/`pageParams` in lockstep. */
-function trimMessagePagesToNewest<T>(
-  data: InfiniteData<T> | undefined,
-  keep: number,
-): InfiniteData<T> | undefined {
+function trimMessagePagesToNewest<T>(data: InfiniteData<T> | undefined, keep: number): InfiniteData<T> | undefined {
   if (!data?.pages || keep <= 0 || data.pages.length <= keep) return data;
   return {
     ...data,

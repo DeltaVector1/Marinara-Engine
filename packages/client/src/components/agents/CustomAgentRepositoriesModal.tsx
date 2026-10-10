@@ -1,8 +1,20 @@
 import { useMemo, useState } from "react";
 import { Check, ExternalLink, GitFork, Loader2, Plus, RefreshCw, Trash2, TriangleAlert } from "lucide-react";
-import { CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING, normalizeCustomAgentCapabilities, type CustomAgentCapability, type CustomAgentRepositoryChange, type CustomAgentRepositoryPreview } from "@marinara-engine/shared";
+import {
+  CUSTOM_AGENT_PERMISSIONS_EXPLICIT_SETTING,
+  normalizeCustomAgentCapabilities,
+  type CustomAgentCapability,
+  type CustomAgentRepositoryChange,
+  type CustomAgentRepositoryPreview,
+} from "@marinara-engine/shared";
 import { toast } from "sonner";
-import { useAddCustomAgentRepository, useCustomAgentRepositories, usePreviewCustomAgentRepository, useRemoveCustomAgentRepository, useSyncCustomAgentRepository } from "../../hooks/use-custom-agent-repositories";
+import {
+  useAddCustomAgentRepository,
+  useCustomAgentRepositories,
+  usePreviewCustomAgentRepository,
+  useRemoveCustomAgentRepository,
+  useSyncCustomAgentRepository,
+} from "../../hooks/use-custom-agent-repositories";
 import { getPrivilegedActionErrorMessage } from "../../lib/api-client";
 import { showConfirmDialog } from "../../lib/app-dialogs";
 import { cn } from "../../lib/utils";

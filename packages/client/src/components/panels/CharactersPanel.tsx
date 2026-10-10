@@ -788,10 +788,7 @@ export function CharactersPanel() {
       data-component="CharactersPanelScroll"
       className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto p-3 [scrollbar-gutter:stable]"
     >
-      <div
-        className="mari-chrome-segmented"
-        data-component="CharacterLibraryActions"
-      >
+      <div className="mari-chrome-segmented" data-component="CharacterLibraryActions">
         <button
           type="button"
           onClick={() => openCharacterLibrary()}
