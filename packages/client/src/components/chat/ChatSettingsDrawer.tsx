@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { RoleplayCommandsSettings } from "./RoleplayCommandsSettings";
 import { ChatBranchesPanel } from "./ChatBranchesPanel";
 import { ChatMessageSearch } from "./ChatMessageSearch";
-import { ChatWindowFavoriteButton } from "./ChatWindowFavoriteButton";
 import { AgentActivitySection } from "../agents/AgentActivitySection";
 import { useKeepFocusedFieldAboveKeyboard } from "../../hooks/use-keep-focused-field-above-keyboard";
 import {
@@ -34,9 +33,7 @@ import {
   Camera,
   Clapperboard,
   RefreshCw,
-  RotateCcw,
   Settings2,
-  Info,
   ArrowRightLeft,
   Archive,
   Unlink,
@@ -73,9 +70,7 @@ import {
   Search,
 } from "lucide-react";
 import { NEUTRAL_PANEL_SCROLL_AREA } from "../ui/neutral-surface-styles";
-import { FloatingWindow } from "../ui/FloatingWindow";
 import { TrackerPanelIcon } from "../ui/TrackerPanelIcon";
-import { type ChatToolbarFloatingPanelAnchor } from "./ChatToolbarControls";
 import { PickerDropdown } from "../../features/chat-settings/PickerDropdown";
 import { PersonaHistoryReassignDropdown } from "../../features/chat-settings/sections/PersonaHistoryReassignDropdown";
 import { ChatSettingsSection as Section } from "../../features/chat-settings/ChatSettingsSection";
@@ -205,11 +200,7 @@ import { addSilentGreetingSwipes } from "../../lib/message-swipes";
 import { useUIStore } from "../../stores/ui.store";
 import { abortGenerationForChat, useChatStore } from "../../stores/chat.store";
 import { blurActiveChatFloatingUiControl } from "../../lib/chat-floating-ui-events";
-import { CHAT_SETTINGS_WINDOW_ID, useFloatingWindowStore } from "../../stores/floating-window.store";
-import { getChatSettingsWindowProps, useTrackerPanelClearance } from "./chat-settings-window";
-import { useMatchMedia } from "../../hooks/use-match-media";
-import { readCurrentWindowLayout } from "../../hooks/use-chat-window-layout";
-import { useChatControlDockStore, useHostHasDetachedDrawers } from "../ui/drawer-host";
+import { useChatControlDockStore } from "../ui/drawer-host";
 import { useDialogFocusScope } from "../../hooks/use-dialog-focus-scope";
 import { useTouchFolderDrag } from "../../hooks/use-touch-folder-drag";
 import {
@@ -336,8 +327,6 @@ const ActiveLorebookEntriesContent = lazy(() =>
 );
 const BeholderChatSettingsPanel = lazy(() => import("./BeholderChatSettingsPanel"));
 
-const DRAWER_WINDOW_SCROLL_AREA = cn(NEUTRAL_PANEL_SCROLL_AREA, "@container");
-
 /** Chat tools that used to be top buttons, which only the chat surface can fill. */
 export interface ChatSettingsTools {
   /** Roleplay: the Chat Summary drawer. */
@@ -350,11 +339,10 @@ export interface ChatSettingsTools {
 
 interface ChatSettingsDrawerProps {
   chat: Chat;
-  /** The window shows. While it is closed, popped-out sections keep it mounted out of sight. */
+  /** Whether the Chat Settings panel is open. */
   open: boolean;
-  /** `force` closes a pinned window too; without it, a pinned window stays open. */
+  /** Close the Chat Settings panel after honoring its active-editor guard. */
   onClose: (options?: { force?: boolean }) => void;
-  anchor?: ChatToolbarFloatingPanelAnchor;
   /** Show the Help Layout button beside the title (chats that mount the Help overlay). */
   showHelpLayout?: boolean;
   initialSection?: "memory-recall" | "summary" | null;
@@ -727,9 +715,8 @@ function getChatActiveAgentIds(chat: Chat): string[] {
 
 export function ChatSettingsDrawer({
   chat,
-  open: windowOpen,
+  open,
   onClose,
-  anchor,
   initialSection,
   chatTools,
   spriteArrangeMode = false,
@@ -743,9 +730,6 @@ export function ChatSettingsDrawer({
   const { t: localizeUi } = useUiTranslation();
   const { t } = useTranslation();
   const qc = useQueryClient();
-  // Popped-out sections render from here, so the settings stay live while any of them is open.
-  const sectionsPoppedOut = useHostHasDetachedDrawers(CHAT_SETTINGS_WINDOW_ID);
-  const open = windowOpen || sectionsPoppedOut;
   const setControlDockHost = useChatControlDockStore((state) => state.setElement);
   const panelRef = useRef<HTMLDivElement | null>(null);
   // On phones the sheet keeps the field being typed in (a summary, the notes) above the keyboard.
@@ -801,13 +785,8 @@ export function ChatSettingsDrawer({
   const showContextUsage = useUIStore((s) => s.showContextUsage);
   const trackerPanelEnabled = useUIStore((s) => s.trackerPanelEnabled);
   const trackerPanelOpen = useUIStore((s) => s.trackerPanelOpen);
-  const trackerPanelSide = useUIStore((s) => s.trackerPanelSide);
-  // Phones show Chat Settings as a full-width sheet.
-  const phoneLayout = useMatchMedia("(max-width: 767px)");
-  const trackerPanelClearance = useTrackerPanelClearance(!phoneLayout);
   const setTrackerPanelOpen = useUIStore((s) => s.setTrackerPanelOpen);
   const setTrackerPanelEnabled = useUIStore((s) => s.setTrackerPanelEnabled);
-  const resetView = useFloatingWindowStore((s) => s.resetView);
 
   const { data: allCharacters } = useCharacters({ includeBuiltIn: true });
   const { data: characterGroups } = useCharacterGroups();
@@ -3333,12 +3312,12 @@ export function ChatSettingsDrawer({
 
   useEffect(() => {
     // A hidden host may only be mounted to render detached tools; that must not change AI settings.
-    if (!windowOpen || !shouldApplyModePromptDefault || chat.promptPresetId || !fallbackPromptPreset?.id) return;
+    if (!open || !shouldApplyModePromptDefault || chat.promptPresetId || !fallbackPromptPreset?.id) return;
     const fallbackKey = `${chat.id}:${fallbackPromptPreset.id}`;
     if (modePromptDefaultAppliedRef.current === fallbackKey) return;
     modePromptDefaultAppliedRef.current = fallbackKey;
     updateChat.mutate({ id: chat.id, promptPresetId: fallbackPromptPreset.id });
-  }, [chat.id, chat.promptPresetId, fallbackPromptPreset?.id, windowOpen, shouldApplyModePromptDefault, updateChat]);
+  }, [chat.id, chat.promptPresetId, fallbackPromptPreset?.id, open, shouldApplyModePromptDefault, updateChat]);
 
   const handleModePromptPresetChange = useCallback(
     (promptPresetId: string | null) => {
@@ -3510,8 +3489,7 @@ export function ChatSettingsDrawer({
     return {
       connectionId: chat.connectionId ?? null,
       promptPresetId: chat.promptPresetId ?? null,
-      // The window layout as shown, even if its save to the chat is still waiting.
-      metadata: { ...metadata, windowLayout: readCurrentWindowLayout() },
+      metadata,
     };
   }, [chat.connectionId, chat.promptPresetId, metadata]);
 
@@ -3969,98 +3947,44 @@ export function ChatSettingsDrawer({
   };
 
   if (!open) return null;
-  // Only the loaded settings add the Chat Settings classes below; themes and select styling target them.
-  const windowProps = getChatSettingsWindowProps(anchor);
-
-  const resetViewLabel = localizeUi("chat.settings.resetView");
   const trackerPanelLabel = localizeUi("ui.panels.trackerpanelappearancedrawer.trackerPanel");
-  const handleResetView = async (button: HTMLButtonElement) => {
-    const confirmed = await showConfirmDialog({
-      title: localizeUi("chat.settings.resetViewConfirm.title"),
-      message: localizeUi("chat.settings.resetViewConfirm.message"),
-      confirmLabel: localizeUi("chat.settings.resetViewConfirm.confirm"),
-      cancelLabel: localizeUi("chat.delete.dialog.cancel"),
-    });
-    if (confirmed) resetView();
-    if (button.isConnected) button.focus({ preventScroll: true });
-  };
-  // Reset View and the favorite arrangement, then the Tracker Panel dice and window controls.
-  const headerControls = (
-    <>
-      <button
-        type="button"
-        data-chat-help="reset-view"
-        data-chat-settings-control="reset-view"
-        aria-label={resetViewLabel}
-        title={resetViewLabel}
-        className="mari-window__control"
-        onClick={(event) => void handleResetView(event.currentTarget)}
-      >
-        <RotateCcw size="0.8125rem" />
-      </button>
-      <ChatWindowFavoriteButton mode={chatMode} hintsDismissed={metadata.chatSettingsHintDismissed === true} />
-      {trackerPanelToggleAvailable && (
-        <button
-          type="button"
-          data-tracker-panel-toggle="chat-settings"
-          data-chat-settings-control="tracker-panel"
-          aria-pressed={trackerPanelShown}
-          aria-label={trackerPanelLabel}
-          title={trackerPanelLabel}
-          className="mari-window__control"
-          onClick={toggleTrackerPanel}
-        >
-          <TrackerPanelIcon size="0.9375rem" />
-        </button>
-      )}
-    </>
-  );
   return (
     <>
-      <FloatingWindow
-        id={CHAT_SETTINGS_WINDOW_ID}
-        hidden={!windowOpen}
-        // Sections pop out into windows that look like this one.
-        drawerHost={{ title: localizeUi("chat.toolbar.settings"), scrollClassName: DRAWER_WINDOW_SCROLL_AREA }}
-        presentation={phoneLayout ? "sheet" : "window"}
-        title={localizeUi("chat.toolbar.settings")}
-        titleIcon={<Settings2 size="0.8125rem" className="shrink-0 text-[var(--muted-foreground)]" />}
-        headerControls={headerControls}
-        closeLabel={localizeUi("ui.chat.chatsettingsdrawer.closeChatSettings")}
-        {...windowProps}
-        // A window the user has not moved opens beside a right-side Tracker Panel, not over it.
-        defaultLayoutKey={`${trackerPanelSide}:${trackerPanelClearance}`}
-        className={cn(windowProps.className, "mari-chat-settings-popover mari-chat-settings-drawer")}
-        bodyRef={panelRef}
-        onRequestClose={() => requestClose()}
+      <aside
+        ref={panelRef}
+        role="dialog"
+        aria-labelledby="chat-settings-title"
+        data-chat-settings-panel
+        className="mari-chat-settings-drawer fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-xl"
       >
-        {/* Desktop-only: drag-and-drop hint (sidebar drag is disabled on mobile overlays) */}
-        {metadata.chatSettingsHintDismissed !== true && (
-          <div
-            data-chat-settings-top-row
-            className="flex shrink-0 items-start gap-2 border-b border-[var(--border)] px-4 py-2 text-[0.6875rem] leading-snug text-[var(--muted-foreground)] max-md:hidden"
-          >
-            <Info size="0.8125rem" className="mt-px shrink-0" />
-            {/* The slash-joined list has no spaces, so let it wrap in a narrow window. */}
-            <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-              {localizeUi("chat.settings.dragDropHint")} {localizeUi("chat.settings.moveResizeHint")}{" "}
-              {localizeUi("chat.settings.dragOutHint")}
-              {modeSettingsSurfaces.showSettingsProfiles && <> {localizeUi("chat.settings.profilesHint")}</>}{" "}
-              {localizeUi("chat.settings.favoriteLayout.hint")}
-            </span>
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
+          <h2 id="chat-settings-title" className="text-sm font-semibold">
+            {localizeUi("chat.toolbar.settings")}
+          </h2>
+          <div className="flex items-center gap-2">
+            {trackerPanelToggleAvailable && (
+              <button
+                type="button"
+                data-tracker-panel-toggle="chat-settings"
+                aria-pressed={trackerPanelShown}
+                aria-label={trackerPanelLabel}
+                title={trackerPanelLabel}
+                className="mari-chrome-control mari-chrome-control--small h-8 w-8 p-0"
+                onClick={toggleTrackerPanel}
+              >
+                <TrackerPanelIcon size="0.9375rem" />
+              </button>
+            )}
             <button
               type="button"
-              onClick={() => updateMeta.mutate({ id: chat.id, chatSettingsHintDismissed: true })}
-              disabled={updateMeta.isPending}
-              aria-label={localizeUi("chat.settings.dismissHints")}
-              title={localizeUi("chat.settings.dismissHints")}
-              className="shrink-0 rounded p-1.5 hover:bg-[var(--muted)] hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--primary)] disabled:opacity-50"
+              onClick={() => void requestClose()}
+              aria-label={localizeUi("ui.chat.chatsettingsdrawer.closeChatSettings")}
+              className="mari-chrome-control mari-chrome-control--small h-8 w-8 p-0"
             >
-              <X size="0.875rem" aria-hidden="true" />
+              <X size="0.875rem" />
             </button>
           </div>
-        )}
-
+        </header>
         <div
           className={cn(
             NEUTRAL_PANEL_SCROLL_AREA,
@@ -7335,7 +7259,7 @@ export function ChatSettingsDrawer({
             </div>
           )}
         </div>
-      </FloatingWindow>
+      </aside>
 
       {/* Choice selection modal for preset variables */}
       <ChoiceSelectionModal

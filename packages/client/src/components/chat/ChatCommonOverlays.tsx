@@ -4,15 +4,10 @@ import { useTranslation, useTranslation as useUiTranslation } from "react-i18nex
 import { ChevronUp, ChevronDown, Layers, ListChecks, Loader2, Trash2, X } from "lucide-react";
 import type { PeekPromptData } from "./chat-area.types";
 import type { LocalSpriteVisualSettings } from "./local-sprite-visual-settings";
+import type { ChatToolbarFloatingPanelAnchor } from "./ChatToolbarControls";
 import { cn } from "../../lib/utils";
 import { Modal } from "../ui/Modal";
 import { NEUTRAL_PANEL_SHELL } from "../ui/neutral-surface-styles";
-import { type ChatToolbarFloatingPanelAnchor } from "./ChatToolbarControls";
-import { FloatingWindow } from "../ui/FloatingWindow";
-import { useMatchMedia } from "../../hooks/use-match-media";
-import { CHAT_SETTINGS_WINDOW_ID } from "../../stores/floating-window.store";
-import { getChatSettingsWindowProps } from "./chat-settings-window";
-import { useHostHasDetachedDrawers } from "../ui/drawer-host";
 
 const loadChatSettingsDrawer = async () => {
   const module = await import("./ChatSettingsDrawer");
@@ -216,36 +211,34 @@ function MultiSelectBar({
   );
 }
 
-function ChatSettingsLoadingFallback({
-  anchor,
-  onClose,
-}: {
-  anchor: ChatFloatingPanelAnchor;
-  onClose: (options?: { force?: boolean }) => void;
-}) {
+function ChatSettingsLoadingFallback({ onClose }: { onClose: (options?: { force?: boolean }) => void }) {
   const { t: localizeUi } = useUiTranslation();
-  const phoneLayout = useMatchMedia("(max-width: 767px)");
 
   return (
-    <FloatingWindow
-      id={CHAT_SETTINGS_WINDOW_ID}
-      presentation={phoneLayout ? "sheet" : "window"}
-      title={localizeUi("chat.toolbar.settings")}
-      titleIcon={<Loader2 size="0.8125rem" className="mari-chrome-accent-icon shrink-0 animate-spin" />}
-      closeLabel={localizeUi("ui.chat.chatsettingsdrawer.closeChatSettings")}
-      {...getChatSettingsWindowProps(anchor)}
-      onRequestClose={() => onClose({ force: true })}
-    >
-      <div className="mari-chrome-text-muted flex min-h-32 items-center justify-center px-4 py-8 text-xs">
+    <aside className="mari-chat-settings-drawer fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-xl">
+      <header className="flex shrink-0 items-center justify-between border-b border-[var(--border)] px-4 py-3">
+        <h2 className="text-sm font-semibold">{localizeUi("chat.toolbar.settings")}</h2>
+        <button
+          type="button"
+          onClick={() => onClose({ force: true })}
+          aria-label={localizeUi("ui.chat.chatsettingsdrawer.closeChatSettings")}
+          className="mari-chrome-control mari-chrome-control--small h-8 w-8 p-0"
+        >
+          <X size="0.875rem" />
+        </button>
+      </header>
+      <div className="mari-chrome-text-muted flex min-h-32 flex-1 items-center justify-center px-4 py-8 text-xs">
+        <Loader2 size="0.8125rem" className="mr-2 animate-spin" />
         {localizeUi("ui.chat.chatsettingsloadingfallback.loadingSettings")}
       </div>
-    </FloatingWindow>
+    </aside>
   );
 }
 
 type ChatCommonOverlaysProps = {
   chat: ChatData | null | undefined;
   settingsOpen: boolean;
+  /** Kept until the chat surface caller drops its legacy floating-panel anchor plumbing. */
   settingsAnchor: ChatFloatingPanelAnchor;
   settingsInitialSection?: ChatSettingsInitialSection;
   /** Drawers only the chat surface can fill (Roleplay's summary, notes, context and agent activity). */
@@ -278,7 +271,6 @@ type ChatCommonOverlaysProps = {
 export function ChatCommonOverlays({
   chat,
   settingsOpen,
-  settingsAnchor,
   settingsInitialSection,
   chatTools,
   wizardOpen,
@@ -305,21 +297,14 @@ export function ChatCommonOverlays({
   onSelectAllAboveSelection,
   onSelectAllBelowSelection,
 }: ChatCommonOverlaysProps) {
-  // Popped-out sections render from inside Chat Settings, so it stays mounted (hidden) while any is out.
-  const settingsSectionsPoppedOut = useHostHasDetachedDrawers(CHAT_SETTINGS_WINDOW_ID);
   return (
     <>
-      {chat && (settingsOpen || settingsSectionsPoppedOut) && (
-        <Suspense
-          fallback={
-            settingsOpen ? <ChatSettingsLoadingFallback anchor={settingsAnchor} onClose={onCloseSettings} /> : null
-          }
-        >
+      {chat && settingsOpen && (
+        <Suspense fallback={<ChatSettingsLoadingFallback onClose={onCloseSettings} />}>
           <ChatSettingsDrawer
             chat={chat}
             open={settingsOpen}
             onClose={onCloseSettings}
-            anchor={settingsAnchor}
             showHelpLayout
             initialSection={settingsInitialSection}
             chatTools={chatTools ?? {}}
