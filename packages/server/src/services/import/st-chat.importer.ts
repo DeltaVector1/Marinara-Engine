@@ -2,13 +2,14 @@
 // Importer: SillyTavern Chat (JSONL)
 // ──────────────────────────────────────────────
 import type { DB } from "../../db/connection.js";
-import { createChatsStorage } from "../storage/chats.storage.js";
+import { createChatsStorage, readRoleplayInterruption } from "../storage/chats.storage.js";
 import { createSpatialContextStorage } from "../storage/spatial-context.storage.js";
 import {
   normalizeTextForMatch,
   normalizeChatSummaryEntries,
   compileChatSummaryEntries,
   SPATIAL_CONTEXT_LIMITS,
+  getRoleplayCommandActivity,
   type ChatMode,
 } from "@marinara-engine/shared";
 import { copyAdvancedMemoryRecords, remapAdvancedMemoryMetadata } from "../advanced-memory-transfer.js";
@@ -210,6 +211,12 @@ function normalizeImportedExtra(raw: unknown): Record<string, unknown> {
   return extra;
 }
 
+function hasRoleplayInterruptionReceipt(extra: Record<string, unknown> | undefined): boolean {
+  return Boolean(
+    extra && getRoleplayCommandActivity(extra).some((activity) => readRoleplayInterruption(activity.interruption)),
+  );
+}
+
 function normalizeImportedThinking(raw: unknown): string | null {
   return typeof raw === "string" && raw.trim().length > 0 ? raw : null;
 }
@@ -352,6 +359,7 @@ export async function importSTChat(jsonlContent: string, db: DB, opts?: ImportST
 
   const messageTimestamps: string[] = [];
   const parsedMsgInputs: ParsedSTChatMessageInput[] = [];
+  let hasInterruptionReceipt = false;
   const warnings: string[] = [];
   const normalizedSpeakerMap = new Map<string, string>();
   for (const [speaker, characterId] of Object.entries(opts?.speakerMap ?? {})) {
@@ -412,6 +420,9 @@ export async function importSTChat(jsonlContent: string, db: DB, opts?: ImportST
           createdAt: storedSwipe?.createdAt ?? null,
         };
       });
+      hasInterruptionReceipt ||=
+        hasRoleplayInterruptionReceipt(storedMessageExtra) ||
+        swipes.some((swipe) => hasRoleplayInterruptionReceipt(swipe.extra));
 
       // Resolve character ID for this message
       let messageCharacterId: string | null = null;
@@ -517,7 +528,7 @@ export async function importSTChat(jsonlContent: string, db: DB, opts?: ImportST
         : [],
     ),
   );
-  await storage.remapRoleplayInterruptionTargets(chat.id, sourceToImportedMessageId);
+  if (hasInterruptionReceipt) await storage.remapRoleplayInterruptionTargets(chat.id, sourceToImportedMessageId);
   if (importedMode === "roleplay" && marinaraMetadata.advancedMemory) {
     const existing = await storage.getById(chat.id);
     const metadata = existing?.metadata ? (JSON.parse(existing.metadata) as Record<string, unknown>) : {};
