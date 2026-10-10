@@ -585,6 +585,7 @@ export async function runSTBulkImport(
   const selectedPersonas = resolveSelectedItems(scanResult.personas, options.personas);
   const tagImportMode = options.characterTagImportMode ?? "all";
   const regexScriptScope = options.regexScriptScope ?? "character";
+  const importedCharacterIdsByFilename = new Map<string, string>();
   const existingTagKeys =
     tagImportMode === "existing" && selectedCharacters.length > 0 ? await getExistingCharacterTagKeys(db) : undefined;
 
@@ -606,17 +607,26 @@ export async function runSTBulkImport(
             const b64 = buf.toString("base64");
             const dataUrl = `data:image/png;base64,${b64}`;
             (card as Record<string, unknown>)._avatarDataUrl = dataUrl;
-            await importSTCharacter(card as Record<string, unknown>, db, {
+            const result = await importSTCharacter(card as Record<string, unknown>, db, {
               timestampOverrides,
               tagImportMode,
               existingTagKeys,
               regexScriptScope,
             });
+            const filenameKey = normalizeTextForMatch(basename(ch.path, extname(ch.path)));
+            if (result.characterId && filenameKey) importedCharacterIdsByFilename.set(filenameKey, result.characterId);
             imported.characters++;
           }
         } else {
           const raw = JSON.parse(await readFile(ch.path, "utf-8"));
-          await importSTCharacter(raw, db, { timestampOverrides, tagImportMode, existingTagKeys, regexScriptScope });
+          const result = await importSTCharacter(raw, db, {
+            timestampOverrides,
+            tagImportMode,
+            existingTagKeys,
+            regexScriptScope,
+          });
+          const filenameKey = normalizeTextForMatch(basename(ch.path, extname(ch.path)));
+          if (result.characterId && filenameKey) importedCharacterIdsByFilename.set(filenameKey, result.characterId);
           imported.characters++;
         }
       } catch (err) {
@@ -682,7 +692,11 @@ export async function runSTBulkImport(
 
         // Prefer folder name first because ST chat folders usually track the
         // character card filename more reliably than character_name headers.
-        const charId = charNameToId.get(normalizedFolderName) ?? charNameToId.get(normalizedCharacterName) ?? null;
+        const charId =
+          importedCharacterIdsByFilename.get(normalizedFolderName) ??
+          charNameToId.get(normalizedFolderName) ??
+          charNameToId.get(normalizedCharacterName) ??
+          null;
 
         const groupKey = normalizedFolderName || normalizedCharacterName;
         let groupId = charGroupIds.get(groupKey);
@@ -722,10 +736,14 @@ export async function runSTBulkImport(
         const speakerMap: Record<string, string> = {};
         const memberCharacterIds = new Set<string>();
         for (const memberName of gc.members) {
-          const cid = charNameToId.get(normalizeTextForMatch(memberName));
+          const memberKey = normalizeTextForMatch(memberName);
+          const cid = importedCharacterIdsByFilename.get(memberKey) ?? charNameToId.get(memberKey);
           if (cid) memberCharacterIds.add(cid);
         }
         for (const [alias, characterId] of charNameToId) {
+          if (memberCharacterIds.has(characterId)) speakerMap[alias] = characterId;
+        }
+        for (const [alias, characterId] of importedCharacterIdsByFilename) {
           if (memberCharacterIds.has(characterId)) speakerMap[alias] = characterId;
         }
         const groupKey = normalizeTextForMatch(gc.groupName);
