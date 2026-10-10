@@ -67,11 +67,6 @@ export function normalizeChatWidgetShape(value: unknown): ChatWidgetShape {
   return value === "rounded" || value === "square" || value === "cut-corner" || value === "arched" ? value : "preset";
 }
 
-/** No override preserves the existing desktop, phone and custom-theme sizes. */
-export function normalizeChatWidgetButtonSize(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? Math.max(32, Math.min(96, Math.round(value))) : null;
-}
-
 export function normalizeChatWidgetColor(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
@@ -610,7 +605,6 @@ interface UIState {
   chatWidgetPreset: ChatWidgetPreset;
   chatWidgetFont: string;
   chatWidgetShape: ChatWidgetShape;
-  chatWidgetButtonSize: number | null;
   chatWidgetBorderColor: string;
   chatWidgetBackgroundColor: string;
   chatWidgetTextColor: string;
@@ -941,7 +935,6 @@ interface UIState {
   setChatWidgetPreset: (preset: ChatWidgetPreset) => void;
   setChatWidgetFont: (font: string) => void;
   setChatWidgetShape: (shape: ChatWidgetShape) => void;
-  setChatWidgetButtonSize: (size: number | null) => void;
   setChatWidgetBorderColor: (color: string) => void;
   setChatWidgetBackgroundColor: (color: string) => void;
   setChatWidgetTextColor: (color: string) => void;
@@ -1119,7 +1112,6 @@ export function pickSyncedSettings(state: UIState) {
     chatWidgetPreset: state.chatWidgetPreset,
     chatWidgetFont: state.chatWidgetFont,
     chatWidgetShape: state.chatWidgetShape,
-    chatWidgetButtonSize: state.chatWidgetButtonSize,
     chatWidgetBorderColor: state.chatWidgetBorderColor,
     chatWidgetBackgroundColor: state.chatWidgetBackgroundColor,
     chatWidgetTextColor: state.chatWidgetTextColor,
@@ -1306,7 +1298,6 @@ function pickPersistedUIState(state: UIState) {
     chatWidgetPreset: state.chatWidgetPreset,
     chatWidgetFont: state.chatWidgetFont,
     chatWidgetShape: state.chatWidgetShape,
-    chatWidgetButtonSize: state.chatWidgetButtonSize,
     chatWidgetBorderColor: state.chatWidgetBorderColor,
     chatWidgetBackgroundColor: state.chatWidgetBackgroundColor,
     chatWidgetTextColor: state.chatWidgetTextColor,
@@ -1533,7 +1524,6 @@ export const useUIStore = create<UIState>()(
         chatWidgetPreset: "default" as ChatWidgetPreset,
         chatWidgetFont: "",
         chatWidgetShape: "preset" as ChatWidgetShape,
-        chatWidgetButtonSize: null,
         chatWidgetBorderColor: "",
         chatWidgetBackgroundColor: "",
         chatWidgetTextColor: "",
@@ -2189,7 +2179,6 @@ export const useUIStore = create<UIState>()(
           }),
         setChatWidgetFont: (font) => set({ chatWidgetFont: normalizeChatWidgetFont(font) }),
         setChatWidgetShape: (shape) => set({ chatWidgetShape: normalizeChatWidgetShape(shape) }),
-        setChatWidgetButtonSize: (size) => set({ chatWidgetButtonSize: normalizeChatWidgetButtonSize(size) }),
         setChatWidgetBorderColor: (color) => set({ chatWidgetBorderColor: normalizeChatWidgetColor(color) }),
         setChatWidgetBackgroundColor: (color) => set({ chatWidgetBackgroundColor: normalizeChatWidgetColor(color) }),
         setChatWidgetTextColor: (color) => set({ chatWidgetTextColor: normalizeChatWidgetColor(color) }),
@@ -2393,7 +2382,6 @@ export const useUIStore = create<UIState>()(
             chatWidgetPreset: "default" as ChatWidgetPreset,
             chatWidgetFont: "",
             chatWidgetShape: "preset" as ChatWidgetShape,
-            chatWidgetButtonSize: null,
             chatWidgetBorderColor: "",
             chatWidgetBackgroundColor: "",
             chatWidgetTextColor: "",
@@ -2582,7 +2570,6 @@ export const useUIStore = create<UIState>()(
           roleplayChatPosition: normalizeRoleplayChatPosition(persisted.roleplayChatPosition),
           chatWidgetFont: normalizeChatWidgetFont(persisted.chatWidgetFont),
           chatWidgetShape: normalizeChatWidgetShape(persisted.chatWidgetShape),
-          chatWidgetButtonSize: normalizeChatWidgetButtonSize(persisted.chatWidgetButtonSize),
           chatWidgetBorderColor: normalizeChatWidgetColor(persisted.chatWidgetBorderColor),
           chatWidgetBackgroundColor: normalizeChatWidgetColor(persisted.chatWidgetBackgroundColor),
           chatWidgetTextColor: normalizeChatWidgetColor(persisted.chatWidgetTextColor),
