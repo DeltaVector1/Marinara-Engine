@@ -18,12 +18,6 @@ const TOOL_ORDER = [
   "read-chat-variable",
   "write-chat-variable",
   "update-about-me",
-  "spotify-get-current-playback",
-  "spotify-get-playlists",
-  "spotify-get-playlist-tracks",
-  "spotify-search",
-  "spotify-play",
-  "spotify-set-volume",
 ];
 
 async function readManifestFolders(baseDir, manifestFile = "manifest.ts") {
@@ -78,4 +72,8 @@ const lines = [
   "",
 ];
 
-await writeFile(join(srcDir, "features", "function-calls", "tool-registry.generated.ts"), `${lines.join("\n")}\n`, "utf8");
+await writeFile(
+  join(srcDir, "features", "function-calls", "tool-registry.generated.ts"),
+  `${lines.join("\n")}\n`,
+  "utf8",
+);

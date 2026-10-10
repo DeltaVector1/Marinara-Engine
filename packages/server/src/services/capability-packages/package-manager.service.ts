@@ -18,8 +18,10 @@ import {
   installedCapabilityPackageSchema,
   packagedAgentDefinitionsSchema,
   capabilityReleaseNotesSchema,
+  isRetiredBuiltInAgentId,
   type CapabilityCatalog,
   type CapabilityCatalogPackage,
+  type CapabilityPackageManifest,
   type StampedCapabilityCatalog,
   type StampedCapabilityCatalogPackage,
   type PackagedAgentDefinition,
@@ -41,6 +43,37 @@ const UPDATE_DECISIONS = join(ROOT, "update-decisions-v1.json");
 const AVAILABILITY_MIGRATION = join(ROOT, "availability-migration-v1.json");
 const HIERARCHICAL_MAPS_SELECTION_CORRECTION = join(ROOT, "hierarchical-maps-selection-correction-v1.json");
 const NON_DOWNLOADABLE_CORE_PACKAGE_IDS = new Set(["about-me-keeper"]);
+const RETIRED_CAPABILITY_PACKAGE_IDS = new Set([
+  "chess",
+  "autonomous-messenger",
+  "chat-summary",
+  "eightball",
+  "haptic",
+  "local-music",
+  "music-dj",
+  "noodle",
+  "noodler",
+  "poker",
+  "prompt-reviewer",
+  "response-orchestrator",
+  "rock-paper-scissors",
+  "schedule-planner",
+  "secret-plot-driver",
+  "spotify",
+  "storyboard",
+  "tic-tac-toe",
+  "uno",
+  "youtube",
+]);
+
+function isRetiredCapabilityPackage(manifest: CapabilityPackageManifest): boolean {
+  return (
+    RETIRED_CAPABILITY_PACKAGE_IDS.has(manifest.id) ||
+    manifest.kind.some((kind) => kind === "turn-game" || kind === "ruleset") ||
+    manifest.contributions?.conversationGame !== undefined ||
+    manifest.contributions?.slots?.includes("game-surface") === true
+  );
+}
 const OFFICIAL_AGENT_RAW_ROOT = "https://raw.githubusercontent.com/Pasta-Devs/Marinara-Agents";
 type OfficialAgentBranch = "main" | "staging";
 
@@ -621,7 +654,7 @@ function findCompatibleCapabilityPackageUpdates(
 ) {
   const catalogById = new Map(catalog.packages.map((entry) => [entry.manifest.id, entry]));
   return installedPackages.flatMap((installed) => {
-    if (NON_DOWNLOADABLE_CORE_PACKAGE_IDS.has(installed.id)) return [];
+    if (isRetiredCapabilityPackage(installed.manifest)) return [];
     const entry = catalogById.get(installed.id);
     if (!entry) return [];
     if (compareCapabilityPackageVersions(entry.manifest.version, installed.version) <= 0) return [];
@@ -666,6 +699,7 @@ function findPendingCapabilityPackageUpdates(
 
 async function installCatalogPackage(entry: CapabilityCatalogPackage, activateDuringStartup = false) {
   const { manifest, artifact } = entry;
+  if (isRetiredCapabilityPackage(manifest)) throw new Error("This capability package has been retired");
   const installIssue = getCapabilityPackageInstallIssue(manifest);
   if (installIssue) throw new Error(installIssue);
   const initiallyInstalled = await readInstalledVersion(manifest.id);
@@ -978,7 +1012,10 @@ export const capabilityPackageManager = {
         ...catalog.packages.map((entry) => decorate(entry, CATALOG_URL, false)),
         ...(previewCatalogUrl ? previewPackages.map((entry) => decorate(entry, previewCatalogUrl, true)) : []),
       ]
-        .filter((entry) => !NON_DOWNLOADABLE_CORE_PACKAGE_IDS.has(entry.manifest.id))
+        .filter(
+          (entry) =>
+            !NON_DOWNLOADABLE_CORE_PACKAGE_IDS.has(entry.manifest.id) && !isRetiredCapabilityPackage(entry.manifest),
+        )
         .sort(
           (left, right) =>
             CATALOG_SORT_COLLATOR.compare(left.manifest.name, right.manifest.name) ||
@@ -1022,12 +1059,14 @@ export const capabilityPackageManager = {
     const definitions = [];
     const ids = new Set<string>();
     for (const installed of registry.packages) {
+      if (isRetiredCapabilityPackage(installed.manifest)) continue;
       // A restart-required update still has its previous package runtime active. Keep
       // its agent definitions visible until restart, just like the active client module.
       const servable = await resolveServableInstalledPackage(installed);
       if (!servable) continue;
       const parsed = await readInstalledAgentDefinitions(servable);
       for (const definition of parsed) {
+        if (isRetiredBuiltInAgentId(definition.id)) continue;
         if (ids.has(definition.id)) throw new Error(`Agent ${definition.id} is provided by more than one package`);
         ids.add(definition.id);
         definitions.push({ ...definition, packageId: installed.id });
@@ -1044,7 +1083,12 @@ export const capabilityPackageManager = {
   async runtimePackages() {
     const registry = await readRegistry();
     return registry.packages
-      .filter((installed) => installed.status !== "error" && installed.manifest.entrypoints.server)
+      .filter(
+        (installed) =>
+          !isRetiredCapabilityPackage(installed.manifest) &&
+          installed.status !== "error" &&
+          installed.manifest.entrypoints.server,
+      )
       .map((installed) => ({
         installed,
         serverEntrypoint: inside(
@@ -1068,7 +1112,7 @@ export const capabilityPackageManager = {
 
   async clientEntrypoint(packageId: string) {
     const installed = (await readRegistry()).packages.find((item) => item.id === packageId);
-    if (!installed) return null;
+    if (!installed || isRetiredCapabilityPackage(installed.manifest)) return null;
     const servable = await resolveServableInstalledPackage(installed);
     if (!servable) return null;
     const entrypoint = servable.manifest.entrypoints.client;
@@ -1098,7 +1142,7 @@ export const capabilityPackageManager = {
    *  TOCTOU re-verification below it are identical for both sources. */
   async packageAsset(packageId: string, assetPath: string) {
     const installed = (await readRegistry()).packages.find((item) => item.id === packageId);
-    if (!installed) return null;
+    if (!installed || isRetiredCapabilityPackage(installed.manifest)) return null;
     const servable = await resolveServableInstalledPackage(installed);
     if (!servable) return null;
     // Every normalization below treats an unsafe path — requested OR declared —
@@ -1169,7 +1213,7 @@ export const capabilityPackageManager = {
    *  Engine; it widens what `chat-write` means for packages that already hold it (#5798). */
   async gmVerbTableSource(packageId: string): Promise<Buffer | null> {
     const installed = (await readRegistry()).packages.find((item) => item.id === packageId);
-    if (!installed) return null;
+    if (!installed || isRetiredCapabilityPackage(installed.manifest)) return null;
     if (!isInstalledCapabilityReady(installed)) {
       logger.info(
         "[capability/gm-verbs] Package %s is not ready (status=%s); its verbs stay unavailable until restart",

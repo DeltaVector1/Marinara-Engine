@@ -4,7 +4,6 @@ import { z } from "zod";
 export const REQUEST_TIMEOUTS = {
   chat: { env: "CHAT_GENERATION_TIMEOUT_MS", unit: 1000, defaultSeconds: 300, maxSeconds: 3600 },
   agents: { env: "AGENT_CALL_TIMEOUT_MS", unit: 1000, defaultSeconds: 300, maxSeconds: 3600 },
-  imagePrompt: { env: "GAME_DYNAMIC_IMAGE_PROMPT_TIMEOUT_MS", unit: 1000, defaultSeconds: 45, maxSeconds: 3600 },
   images: { env: "IMAGE_GEN_TIMEOUT_MS", unit: 1000, defaultSeconds: 1800, maxSeconds: 86400 },
   video: { env: "VIDEO_GEN_TIMEOUT_MS", unit: 1000, defaultSeconds: 1800, maxSeconds: 86400 },
   comfyui: { env: "COMFYUI_GEN_TIMEOUT", unit: 1, defaultSeconds: 2400, maxSeconds: 86400 },

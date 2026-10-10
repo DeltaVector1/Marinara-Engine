@@ -507,10 +507,13 @@ const RETIRED_BUILT_IN_AGENT_IDS = [
   "chat-summary",
   "autonomous-messenger",
   "spotify",
+  "music-dj",
   "youtube",
   "local-music",
   "haptic",
   "storyboard",
+  "noodle",
+  "noodler",
   "secret-plot-driver",
 ] as const;
 

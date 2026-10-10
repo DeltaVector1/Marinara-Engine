@@ -3,7 +3,6 @@ import { spatialContextSnapshots } from "../../db/schema/index.js";
 import { logger } from "../../lib/logger.js";
 import { createChatsStorage } from "../storage/chats.storage.js";
 
-const CONVERSATION_GAME_PACKAGES = ["uno", "chess", "poker", "eightball", "tic-tac-toe", "rock-paper-scissors"];
 const HIERARCHICAL_MAPS_ID = "hierarchical-maps";
 const HIERARCHICAL_MAPS_MIGRATED_MODES = new Set(["roleplay", "game"]);
 
@@ -27,7 +26,6 @@ function buildLegacyChatCapabilityPatch(chat: { mode: string; metadata: unknown 
   );
   const before = active.size;
   if (chat.mode === "conversation") {
-    for (const id of CONVERSATION_GAME_PACKAGES) active.add(id);
     if (metadata.conversationCallsEnabled === true) active.add("conversation-calls");
   }
   return active.size === before ? null : { activeAgentIds: [...active] };
