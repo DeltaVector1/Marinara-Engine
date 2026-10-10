@@ -45,7 +45,7 @@ Avoid marketing layouts, glowing panels, decorative gradients, and grids of nest
 
 - [x] Prune retired features while preserving saved data and stable Conversation and Roleplay flows.
 - [x] Keep the transcript central with opaque surfaces, one restrained accent, and labeled actions.
-- [ ] Check phone-width layout and keyboard access in the UI smoke suite.
+- [x] Check phone-width layout and keyboard access in the UI smoke suite.
 
 ## Layout and controls
 
