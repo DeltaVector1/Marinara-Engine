@@ -644,7 +644,7 @@ Choose the overall import strategy after reviewing the expected outcome:
   that still need importing.
 
 After import, Maps lists the concrete lorebooks it reused and created. Created
-copies remain in the Lorebooks library if the map is later deleted. 
+copies remain in the Lorebooks library if the map is later deleted.
 
 Bundled artwork is also restored and its image links are remapped. Chat-owned
 artwork returns to the destination chat's Gallery. Shared artwork is reused
