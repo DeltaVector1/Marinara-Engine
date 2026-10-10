@@ -128,14 +128,8 @@ pnpm version:check
 pnpm regression
 pnpm regression:prompt
 pnpm smoke:ui
-pnpm smoke:production
 pnpm regression:ui
 ```
-
-`pnpm smoke:production` opens the compiled frontend with the compiled server in isolated test data,
-using desktop Chromium, mobile Chromium, and mobile WebKit. Run `pnpm check` first to build it. The
-required PR check runs its Chromium case; this catches startup failures that the Vite development
-server and HTTP-only container health checks cannot detect.
 
 Regression guards:
 
@@ -149,10 +143,10 @@ Regression guards:
 
 Before pushing, run `pnpm check` and the regressions covering the behavior you changed. For browser-affecting work, run `pnpm smoke:ui` plus the relevant spec files or named cases. Include mobile Chromium and WebKit when changing responsive layout, touch/keyboard behavior, media playback, or browser-specific APIs. Shared shell, styling, storage, or routing changes warrant broader coverage. Running the entire browser matrix before every push is not required.
 
-For example, select a focused desktop regression or a mobile case without running every spec:
+For example, select a focused mobile case without running every spec:
 
 ```bash
-pnpm regression:ui e2e/core-flows.e2e.ts --project=mobile-webkit --grep "chat mode tabs" --workers=1
+pnpm regression:ui e2e/core-chat-smoke.e2e.ts --project=mobile-webkit --grep "mobile chat composer" --workers=1
 ```
 
 Record the commands, results, and tested revision in the PR. Rerun affected checks after later edits; do not present results from an earlier revision as validation of changed code. Explain any unavailable browser or skipped coverage. These automated checks do not replace manual verification of the changed behavior.

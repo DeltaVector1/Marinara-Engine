@@ -8,6 +8,8 @@ Upgrading Marinara Engine does not delete your data. Your chats, characters, per
 
 Marinara keeps your data in a local data folder on the machine that runs the server. Docker and Podman keep it in the `marinara-data` volume. Updating only replaces the app code, not this data folder or volume.
 
+Older data directories that predate package availability tracking receive a one-time optional-package migration on startup. Marinara downloads the currently published package catalog, preserves existing chat and package configuration, and updates legacy chat selections for retained integrations such as Conversation Calls and Maps. The Maps correction removes an old implicit selection only when the chat has no saved map data. Keep the server online for this first start. If the catalog is unreachable or the migration cannot finish, startup retries it on the next launch; it does not delete chat history.
+
 If you use a downloaded documentation language (**Settings** → **General** → **Documentation Language**), the first start after an update also checks that language pack for changes and refreshes it automatically. If the download source cannot be reached, Marinara keeps your installed pack (any guides missing from it show in English) and tries again on the next start. Your language choice is never reset by an update.
 
 UI language packs use a separate, manual download flow. On the first upgrade from bundled UI translations,
