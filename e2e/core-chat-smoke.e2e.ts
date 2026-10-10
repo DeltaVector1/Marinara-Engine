@@ -279,3 +279,67 @@ test(
     }
   },
 );
+
+test("TTS edits preserve retired settings in saved profiles", { tag: "@smoke" }, async ({ page }) => {
+  const configUrl = "/api/tts/config";
+  const originalResponse = await page.request.get(configUrl);
+  expect(originalResponse.ok()).toBeTruthy();
+  const original = (await originalResponse.json()) as Record<string, unknown>;
+  const originalProfiles = (original.sourceProfiles ?? {}) as Record<string, Record<string, unknown>>;
+  const legacyValues = {
+    elevenLabsGameSoundEffects: true,
+    elevenLabsGameMusic: false,
+    npcDefaultVoicesEnabled: true,
+    npcDefaultMaleVoices: [`legacy-male-${Date.now()}`],
+    npcDefaultFemaleVoices: [`legacy-female-${Date.now()}`],
+  };
+  const seeded = {
+    ...original,
+    enabled: false,
+    source: "openai",
+    autoplayGame: true,
+    sourceProfiles: {
+      ...originalProfiles,
+      elevenlabs: {
+        ...(originalProfiles.elevenlabs ?? originalProfiles.openai ?? original),
+        speed: 1,
+        ...legacyValues,
+      },
+    },
+  };
+
+  try {
+    const seedResponse = await page.request.put(configUrl, { data: seeded });
+    expect(seedResponse.ok()).toBeTruthy();
+
+    await page.goto("/");
+    await page.locator('[data-tour="panel-connections"]').click();
+    const cardTitle = page.getByText("Text to Speech", { exact: true });
+    await expect(cardTitle).toBeVisible();
+    const ttsCard = cardTitle.locator("xpath=../../..");
+    await ttsCard.locator('button[title="Expand"]').click();
+    const sourceSelect = ttsCard.locator("select").first();
+    await sourceSelect.selectOption("elevenlabs");
+
+    await expect
+      .poll(async () => ((await (await page.request.get(configUrl)).json()) as { source: string }).source)
+      .toBe("elevenlabs");
+    const speed = ttsCard.locator('input[type="range"]').first();
+    await speed.focus();
+    await speed.press("ArrowRight");
+
+    await expect
+      .poll(async () => ((await (await page.request.get(configUrl)).json()) as { speed: number }).speed)
+      .toBe(1.05);
+    const saved = (await (await page.request.get(configUrl)).json()) as {
+      autoplayGame: boolean;
+      sourceProfiles: Record<string, Record<string, unknown>>;
+    };
+    expect(saved.autoplayGame).toBe(true);
+    expect(saved.sourceProfiles.elevenlabs).toMatchObject(legacyValues);
+  } finally {
+    await Promise.allSettled([page.goto("about:blank")]);
+    const restoreResponse = await page.request.put(configUrl, { data: original });
+    expect(restoreResponse.ok()).toBeTruthy();
+  }
+});
