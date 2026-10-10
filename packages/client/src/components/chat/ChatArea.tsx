@@ -24,7 +24,6 @@ import {
 
 import { getCurrentInputSnapshot, useChatStore } from "../../stores/chat.store";
 import { hasActiveTextSelection } from "../../lib/text-selection";
-import { useChatWindowLayout } from "../../hooks/use-chat-window-layout";
 import { ChatSettingsBubble } from "./ChatSettingsBubble";
 import { useGenerate } from "../../hooks/use-generate";
 import { useGenerateGallerySelfie } from "../../hooks/use-gallery";
@@ -492,8 +491,6 @@ export const ChatArea = memo(function ChatArea() {
   useEffect(() => {
     setSettingsOpen(false);
   }, [activeChatId]);
-  // Other chat windows continue to follow the open chat's saved layout.
-  useChatWindowLayout(activeChatId ? (chat?.id === activeChatId ? chat : undefined) : null);
   useEffect(() => {
     if (activeChatId && error instanceof ApiError && error.status === 404) {
       useChatStore.getState().setActiveChatId(null);
@@ -2940,7 +2937,6 @@ const LocalChatArea = memo(function LocalChatArea({
             connectedChatName={connectedChatName}
             sceneInfo={conversationSceneInfo}
             settingsOpen={settingsOpen}
-            settingsAnchor={null}
             settingsInitialSection={settingsInitialSection}
             wizardOpen={wizardOpen}
             peekPromptData={peekPromptData}
@@ -3063,7 +3059,6 @@ const LocalChatArea = memo(function LocalChatArea({
           totalMessageCount={totalMessageCount}
           lastAssistantMessageId={lastAssistantMessageId}
           settingsOpen={settingsOpen}
-          settingsAnchor={null}
           settingsInitialSection={settingsInitialSection}
           wizardOpen={wizardOpen}
           peekPromptData={peekPromptData}
