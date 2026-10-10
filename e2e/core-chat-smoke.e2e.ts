@@ -16,11 +16,13 @@ test("chat shell opens settings and switches between retained modes", { tag: "@s
     await page.goto("/");
     const chatsButton = page.locator('[data-component="TopBar"] [data-tour="sidebar-toggle"]');
     const sidebarSlot = page.locator('[data-component="ChatSidebarSlot"]');
-    if ((await chatsButton.count()) > 0 && (await chatsButton.isVisible())) {
+    if ((await sidebarSlot.count()) > 0) {
       if ((await chatsButton.getAttribute("aria-pressed")) !== "true") await chatsButton.click();
       await expect(sidebarSlot).toHaveAttribute("aria-hidden", "false");
     } else {
-      await expect(page.getByRole("complementary", { name: "Chat list" })).toBeVisible();
+      const mobileSidebar = page.getByRole("complementary", { name: "Chat list" });
+      if (!(await mobileSidebar.isVisible())) await chatsButton.click();
+      await expect(mobileSidebar).toBeVisible();
     }
     const sidebar = page.locator('[data-component="ChatSidebar"]');
     for (const mode of ["conversation", "roleplay"] as const) {
@@ -115,9 +117,10 @@ test("Conversation and Roleplay render a completed generated reply", { tag: "@sm
         });
         await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chat.id);
         await page.goto("/");
+        const composer = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
+        await expect(composer).toBeVisible();
         const closeChats = page.getByRole("button", { name: "Close chats", exact: true });
         if (await closeChats.isVisible()) await closeChats.click();
-        const composer = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
         await composer.fill(`Reply in ${mode}`);
         if (mode === "conversation") {
           await page.getByRole("button", { name: "Send", exact: true }).click();
@@ -213,9 +216,10 @@ test(
       await request.patch(`/api/chats/${chatId}/metadata`, { data: { enableAgents: false } });
       await page.addInitScript((id) => localStorage.setItem("marinara-active-chat-id", id), chatId);
       await page.goto("/");
+      const input = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
+      await expect(input).toBeVisible();
       const closeChats = page.getByRole("button", { name: "Close chats", exact: true });
       if (await closeChats.isVisible()) await closeChats.click();
-      const input = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
       const send = page.locator('button[data-action="send-stop"]');
       await input.fill("Stop this response");
       await send.click();
