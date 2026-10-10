@@ -265,6 +265,12 @@ try {
     payload: { chatId: retiredGameChat.id, returnPrompt: true },
   });
   assert.equal(unsupportedDryRun.statusCode, 410, unsupportedDryRun.body);
+  const unsupportedRetry = await app.inject({
+    method: "POST",
+    url: "/api/generate/retry-agents",
+    payload: { chatId: retiredGameChat.id, agentTypes: ["custom-agent"] },
+  });
+  assert.equal(unsupportedRetry.statusCode, 410, unsupportedRetry.body);
   const galleryPreview = await app.inject({
     method: "POST",
     url: `/api/gallery/${retiredGameChat.id}/generate-image/preview`,

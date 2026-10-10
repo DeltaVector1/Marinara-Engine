@@ -3884,6 +3884,11 @@ export async function registerRetryAgentsRoute(
     if (!chatId || !agentTypes?.length) {
       return reply.status(400).send({ error: "chatId and agentTypes are required" });
     }
+    const chat = await chats.getById(chatId);
+    if (!chat) return reply.status(404).send({ error: "Chat not found" });
+    if (chat.mode === "game") {
+      return reply.status(410).send({ error: "Game mode generation is no longer supported" });
+    }
     if (rawIllustratorPromptReviewOverride && !illustratorPromptReviewOverride) {
       return reply.status(400).send({ error: "Invalid Illustrator prompt review override" });
     }
@@ -3955,11 +3960,6 @@ export async function registerRetryAgentsRoute(
     reply.raw.on("close", onClientClose);
 
     try {
-      const chat = await runRetrySetupPhase(abortController.signal, () => chats.getById(chatId));
-      if (!chat) {
-        throw new Error("Chat not found");
-      }
-
       const chatMeta = parseExtra(chat.metadata);
       const currentBackgroundSource =
         requestedCurrentBackground !== undefined ? requestedCurrentBackground : chatMeta.background;
