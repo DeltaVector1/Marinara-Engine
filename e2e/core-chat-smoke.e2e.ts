@@ -117,6 +117,22 @@ test("Conversation and Roleplay render a completed generated reply", { tag: "@sm
         await page.reload();
         await expect(page.getByText(reply!, { exact: true })).toBeVisible();
         await expect.poll(() => providerRequestCount).toBe(mode === "conversation" ? 1 : 2);
+        const settingsButton = page.locator("[data-chat-settings-button]");
+        await settingsButton.click();
+        await expect(settingsButton).toHaveAttribute("aria-expanded", "true");
+        const settingsPanel = page.locator("[data-chat-settings-panel]");
+        await expect(settingsPanel).toBeVisible();
+        await expect(settingsPanel.locator("h2")).toBeVisible();
+        await settingsPanel.locator("[data-chat-settings-close]").click();
+        await expect(settingsPanel).toHaveCount(0);
+        await expect(settingsButton).toHaveAttribute("aria-expanded", "false");
+        await expect(settingsButton).toBeFocused();
+        await settingsButton.click();
+        await expect(settingsPanel).toBeVisible();
+        await page.keyboard.press("Escape");
+        await expect(settingsPanel).toHaveCount(0);
+        await expect(settingsButton).toHaveAttribute("aria-expanded", "false");
+        await expect(settingsButton).toBeFocused();
       } finally {
         await Promise.allSettled([page.request.delete(`/api/chats/${chat.id}?force=true`)]);
       }

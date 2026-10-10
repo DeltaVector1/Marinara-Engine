@@ -202,6 +202,7 @@ import { abortGenerationForChat, useChatStore } from "../../stores/chat.store";
 import { blurActiveChatFloatingUiControl } from "../../lib/chat-floating-ui-events";
 import { useChatControlDockStore } from "../ui/drawer-host";
 import { useDialogFocusScope } from "../../hooks/use-dialog-focus-scope";
+import { registerModalOverlay, type ModalOverlayRegistration } from "../../lib/modal-overlay-registry";
 import { useTouchFolderDrag } from "../../hooks/use-touch-folder-drag";
 import {
   useChatPresets,
@@ -731,12 +732,13 @@ export function ChatSettingsDrawer({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const setControlDockHost = useChatControlDockStore((state) => state.setElement);
-  const panelRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLElement | null>(null);
   // On phones the sheet keeps the field being typed in (a summary, the notes) above the keyboard.
   useKeepFocusedFieldAboveKeyboard(panelRef);
   const modePromptDefaultAppliedRef = useRef<string | null>(null);
   const agentSuiteCloseGuardRef = useRef<(() => Promise<boolean>) | null>(null);
   const drawerClosingRef = useRef(false);
+  const settingsOverlayRegistrationRef = useRef<ModalOverlayRegistration | null>(null);
   const updateChat = useUpdateChat();
   const updateMeta = useUpdateChatMetadata();
   // Generation waits for queued saves, so the next reply uses the narration mode shown here (#6959).
@@ -3251,6 +3253,33 @@ export function ChatSettingsDrawer({
       drawerClosingRef.current = false;
     }
   }, [flushProseGuardianDrafts, onClose, showAgentSuiteModal]);
+  useEffect(() => {
+    if (!open) return;
+    const registration = registerModalOverlay();
+    settingsOverlayRegistrationRef.current = registration;
+    return () => {
+      registration.release();
+      settingsOverlayRegistrationRef.current = null;
+    };
+  }, [open]);
+  useDialogFocusScope(
+    open,
+    panelRef,
+    undefined,
+    undefined,
+    undefined,
+    () => settingsOverlayRegistrationRef.current?.isTopmost() ?? true,
+  );
+  useEffect(() => {
+    if (!open) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.isComposing || event.key !== "Escape") return;
+      if (!settingsOverlayRegistrationRef.current?.isTopmost()) return;
+      void requestClose();
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
+  }, [open, requestClose]);
   // Session-ephemeral: did the user change Day Rollover Hour in this drawer mount?
   // Used to gate the "transitional duplication" warning so it only appears
   // immediately after a change (when the warning is operationally useful) and
@@ -3953,8 +3982,10 @@ export function ChatSettingsDrawer({
       <aside
         ref={panelRef}
         role="dialog"
+        aria-modal="true"
         aria-labelledby="chat-settings-title"
         data-chat-settings-panel
+        tabIndex={-1}
         className="mari-chat-settings-drawer fixed inset-y-0 right-0 z-50 flex w-full max-w-xl flex-col border-l border-[var(--border)] bg-[var(--background)] shadow-xl"
       >
         <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
@@ -3969,7 +4000,7 @@ export function ChatSettingsDrawer({
                 aria-pressed={trackerPanelShown}
                 aria-label={trackerPanelLabel}
                 title={trackerPanelLabel}
-                className="mari-chrome-control mari-chrome-control--small h-8 w-8 p-0"
+                className="mari-chrome-control mari-chrome-control--small h-10 w-10 p-0"
                 onClick={toggleTrackerPanel}
               >
                 <TrackerPanelIcon size="0.9375rem" />
@@ -3977,9 +4008,10 @@ export function ChatSettingsDrawer({
             )}
             <button
               type="button"
+              data-chat-settings-close
               onClick={() => void requestClose()}
               aria-label={localizeUi("ui.chat.chatsettingsdrawer.closeChatSettings")}
-              className="mari-chrome-control mari-chrome-control--small h-8 w-8 p-0"
+              className="mari-chrome-control mari-chrome-control--small h-10 w-10 p-0"
             >
               <X size="0.875rem" />
             </button>
