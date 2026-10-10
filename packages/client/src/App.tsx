@@ -17,7 +17,6 @@ import { Translation } from "react-i18next";
 import { APP_VERSION } from "@marinara-engine/shared";
 import { CustomThemeInjector } from "./components/layout/CustomThemeInjector";
 import { PersonalExtensionInjector } from "./components/layout/PersonalExtensionInjector";
-import { ModelDownloadModal } from "./components/modals/ModelDownloadModal";
 import { StorageMigrationNoticeModal } from "./components/modals/StorageMigrationNoticeModal";
 import { AppDialogRenderer } from "./components/ui/AppDialogRenderer";
 import { CsrfOriginWarningBanner } from "./components/diagnostics/CsrfOriginWarningBanner";
@@ -68,6 +67,9 @@ const VERSION_CHECK_TIMEOUT_MS = 10_000;
 const CLIENT_BUILD = formatRuntimeBuild(APP_VERSION, __MARINARA_BUILD_COMMIT__);
 const LazyModalRenderer = lazy(() =>
   import("./components/layout/ModalRenderer").then((module) => ({ default: module.ModalRenderer })),
+);
+const LazyModelDownloadModal = lazy(() =>
+  import("./components/modals/ModelDownloadModal").then((module) => ({ default: module.ModelDownloadModal })),
 );
 const LazyAppShell = lazy(() =>
   import("./components/layout/AppShell").then((module) => ({ default: module.AppShell })),
@@ -1162,7 +1164,11 @@ export function App() {
           (isLite || !showDownloadModal)
         }
       />
-      {!isLite && <ModelDownloadModal open={showDownloadModal} onClose={() => setShowDownloadModal(false)} />}
+      {!isLite && showDownloadModal && (
+        <Suspense fallback={null}>
+          <LazyModelDownloadModal open onClose={() => setShowDownloadModal(false)} />
+        </Suspense>
+      )}
       {hasModalOpen && (
         <Suspense fallback={null}>
           <LazyModalRenderer />
