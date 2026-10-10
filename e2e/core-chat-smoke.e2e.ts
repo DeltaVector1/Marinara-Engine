@@ -14,18 +14,23 @@ test("chat shell opens settings and switches between retained modes", { tag: "@s
   try {
     await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chats[0]!.id);
     await page.goto("/");
-    const sidebar = page.locator('[data-component="ChatSidebar"]');
-    if (!(await sidebar.isVisible())) await page.locator('[data-tour="sidebar-toggle"]').click();
-    await expect(sidebar).toBeVisible();
+    const chatsButton = page.locator('[data-component="TopBar"] [data-tour="sidebar-toggle"]');
+    const sidebarSlot = page.locator('[data-component="ChatSidebarSlot"]');
+    if ((await chatsButton.getAttribute("aria-pressed")) !== "true") await chatsButton.click();
+    await expect(chatsButton).toHaveAttribute("aria-pressed", "true");
+    await expect(sidebarSlot).toHaveAttribute("aria-hidden", "false");
+    const sidebar = sidebarSlot.locator('[data-component="ChatSidebar"]');
     for (const mode of ["conversation", "roleplay"] as const) {
-      await page.locator(`[data-tour="chat-mode-${mode}"]`).click();
+      const modeTab = page.locator(`[data-tour="chat-mode-${mode}"]`);
+      await modeTab.click();
+      await expect(modeTab).toHaveAttribute("aria-pressed", "true");
       await expect(sidebar.locator(`[data-chat-id="${chats.find((chat) => chat.mode === mode)!.id}"]`)).toBeVisible();
     }
     await page.locator('[data-component="TopBar"]').getByTitle("Home").click();
     await page.locator('[data-tour="panel-settings"]').click();
     await expect(page.locator('[data-component="RightPanel"]')).toBeVisible();
   } finally {
-    await Promise.all(chats.map(({ id }) => page.request.delete(`/api/chats/${id}?force=true`)));
+    await Promise.allSettled(chats.map(({ id }) => page.request.delete(`/api/chats/${id}?force=true`)));
   }
 });
 
@@ -33,7 +38,8 @@ test("Conversation and Roleplay render a completed generated reply", { tag: "@sm
   const replies = ["A generated Conversation reply.", "A generated Roleplay reply."];
   let providerRequestCount = 0;
   const provider = createServer((incoming, outgoing) => {
-    if (incoming.method !== "POST" || incoming.url !== "/v1/chat/completions") {
+    const path = new URL(incoming.url ?? "/", "http://127.0.0.1").pathname;
+    if (incoming.method !== "POST" || path !== "/v1/chat/completions") {
       outgoing.writeHead(200, { "content-type": "application/json" });
       outgoing.end(JSON.stringify({ data: [{ id: "smoke-model" }] }));
       return;
@@ -99,18 +105,31 @@ test("Conversation and Roleplay render a completed generated reply", { tag: "@sm
         });
         await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chat.id);
         await page.goto("/");
-        await page.locator("textarea.mari-chat-input-textarea").fill(`Reply in ${mode}`);
-        await page.locator("button.mari-chat-send-btn").click();
+        const composer = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
+        await composer.fill(`Reply in ${mode}`);
+        if (mode === "conversation") {
+          await page.getByRole("button", { name: "Send", exact: true }).click();
+        } else {
+          await page
+            .getByRole("button")
+            .filter({ has: page.locator("svg.lucide-send") })
+            .click();
+        }
+        await expect(page.getByText(reply!, { exact: true })).toBeVisible();
+        await expect.poll(() => providerRequestCount).toBe(mode === "conversation" ? 1 : 2);
+        await page.reload();
         await expect(page.getByText(reply!, { exact: true })).toBeVisible();
         await expect.poll(() => providerRequestCount).toBe(mode === "conversation" ? 1 : 2);
       } finally {
-        await page.request.delete(`/api/chats/${chat.id}?force=true`);
+        await Promise.allSettled([page.request.delete(`/api/chats/${chat.id}?force=true`)]);
       }
     }
   } finally {
-    if (characterId) await page.request.delete(`/api/characters/${characterId}`);
-    if (connectionId) await page.request.delete(`/api/connections/${connectionId}`);
-    await new Promise<void>((resolve, reject) => provider.close((error) => (error ? reject(error) : resolve())));
+    await Promise.allSettled([
+      characterId ? page.request.delete(`/api/characters/${characterId}`) : Promise.resolve(),
+      connectionId ? page.request.delete(`/api/connections/${connectionId}`) : Promise.resolve(),
+      new Promise<void>((resolve) => provider.close(() => resolve())),
+    ]);
   }
 });
 
@@ -121,7 +140,8 @@ test(
     const requests: unknown[] = [];
     const openResponses = new Set<import("node:http").ServerResponse>();
     const provider = createServer((incoming, response) => {
-      if (incoming.method !== "POST" || incoming.url !== "/v1/chat/completions") {
+      const path = new URL(incoming.url ?? "/", "http://127.0.0.1").pathname;
+      if (incoming.method !== "POST" || path !== "/v1/chat/completions") {
         response.writeHead(200, { "content-type": "application/json" });
         response.end(JSON.stringify({ data: [{ id: "smoke-model" }] }));
         return;
@@ -167,8 +187,8 @@ test(
       await request.patch(`/api/chats/${chatId}/metadata`, { data: { enableAgents: false } });
       await page.addInitScript((id) => localStorage.setItem("marinara-active-chat-id", id), chatId);
       await page.goto("/");
-      const input = page.locator("textarea.mari-chat-input-textarea");
-      const send = page.locator("button.mari-chat-send-btn");
+      const input = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
+      const send = page.getByRole("button").filter({ has: page.locator("svg.lucide-send") });
       await input.fill("Stop this response");
       await send.click();
       await expect.poll(() => requests.length).toBe(1);
@@ -196,8 +216,8 @@ test(
       await Promise.allSettled([
         chatId ? request.delete(`/api/chats/${chatId}?force=true`) : Promise.resolve(),
         connectionId ? request.delete(`/api/connections/${connectionId}`) : Promise.resolve(),
+        new Promise<void>((resolve) => provider.close(() => resolve())),
       ]);
-      await new Promise<void>((resolve, reject) => provider.close((error) => (error ? reject(error) : resolve())));
     }
   },
 );
@@ -215,7 +235,9 @@ test(
     try {
       await page.addInitScript((chatId) => localStorage.setItem("marinara-active-chat-id", chatId), chat.id);
       await page.goto("/");
-      const composer = page.locator("textarea.mari-chat-input-textarea");
+      const openComposer = page.getByRole("button", { name: "Show message input", exact: true });
+      if (await openComposer.isVisible()) await openComposer.click();
+      const composer = page.getByRole("textbox").and(page.locator('[data-chat-composer="true"]'));
       await expect(composer).toBeVisible();
       await composer.fill("A short message\nwith a second line");
       const box = await composer.boundingBox();
@@ -226,7 +248,7 @@ test(
       expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
       expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
     } finally {
-      await page.request.delete(`/api/chats/${chat.id}?force=true`);
+      await Promise.allSettled([page.request.delete(`/api/chats/${chat.id}?force=true`)]);
     }
   },
 );
