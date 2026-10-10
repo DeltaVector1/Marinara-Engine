@@ -16,7 +16,6 @@ import {
   type ScenePackageOrigin,
 } from "@marinara-engine/shared";
 import { announceChatFloatingUiDismiss } from "../lib/chat-floating-ui-events";
-import { detectConversationTimeZone, normalizeConversationTimeZone } from "../lib/conversation-time-zone";
 import { BASIC_PANEL_SORT_OPTIONS, normalizeBasicPanelSort, type BasicPanelSort } from "../lib/panel-sort";
 import { DEFAULT_APP_LANGUAGE, type AppLanguage } from "../localization/locale-types";
 import { deferEditorLeave } from "../lib/editor-leave";
@@ -81,7 +80,6 @@ export type ConversationAvatarShape = "circle" | "square";
 export type TrackerPanelSide = "left" | "right";
 export type TrackerThoughtBubbleDisplay = "inline" | "floating";
 export type TrackerStatDisplayMode = "bars" | "gauges";
-type MusicPlayerSource = "spotify" | "youtube" | "custom";
 const TRACKER_TEMPERATURE_UNITS = ["celsius", "fahrenheit"] as const;
 export type TrackerTemperatureUnit = (typeof TRACKER_TEMPERATURE_UNITS)[number];
 export const QUICK_REPLIES_SETTINGS_CONTROL_ID = "quick-replies" as const;
@@ -95,7 +93,6 @@ interface EchoChamberSize {
   width: number;
   height: number;
 }
-export type UserStatus = "active" | "idle" | "dnd" | "invisible";
 export type RoleplayAvatarStyle = "none" | "circles" | "rectangles" | "panel";
 export type RoleplayChatPosition = "left" | "center" | "right";
 
@@ -103,7 +100,6 @@ export type RoleplayChatPosition = "left" | "center" | "right";
 function normalizeRoleplayChatPosition(value: unknown): RoleplayChatPosition {
   return value === "left" || value === "right" ? value : "center";
 }
-export type GameDialogueDisplayMode = "classic" | "stacked";
 /** How much of the chat list shows each chat's background as a row banner. */
 export type ChatListBackgroundMode = "hover" | "always" | "off";
 type SummaryPopoverSourceMode = "last" | "range";
@@ -115,11 +111,6 @@ export function normalizeConversationBackgroundImageOpacity(value: unknown): num
     ? Math.max(0, Math.min(100, Math.round(value)))
     : DEFAULT_CONVERSATION_BACKGROUND_IMAGE_OPACITY;
 }
-interface FloatingWidgetPosition {
-  x: number;
-  y: number;
-}
-const DEFAULT_MOBILE_MUSIC_WIDGET_POSITION = { x: 16, y: 144 } as const;
 interface SummaryPopoverSettings {
   sourceMode: SummaryPopoverSourceMode;
   contextSize: number | null;
@@ -135,19 +126,6 @@ interface PendingSpatialMapDraftReview {
   mode?: "ai" | "template";
   /** Opaque package-owned selection handed from a capability setup surface to its review surface. */
   selection?: unknown;
-}
-
-interface GameSetupLearnedOptions {
-  genres: string[];
-  tones: string[];
-  settings: string[];
-  goals: string[];
-  preferences: string[];
-}
-
-interface GameSetupRememberedText {
-  playerGoals: string;
-  preferences: string;
 }
 
 export const SIDEBAR_WIDTH_MIN = 240;
@@ -277,9 +255,6 @@ const DEFAULT_CHAT_CHROME_TEXT_DARK = "#d4d4d4";
 const DEFAULT_CHAT_CHROME_TEXT_LIGHT = "#1a1025";
 const IMAGE_DIMENSION_MIN = 64;
 const IMAGE_DIMENSION_MAX = 4096;
-const GAME_SETUP_LEARNED_LIMIT = 60;
-const USER_ACTIVITY_MAX_LENGTH = 120;
-const RECENT_USER_ACTIVITY_LIMIT = 8;
 export const TRACKER_DATA_PANEL_SECTIONS: TrackerDataPanelSection[] = [
   "world",
   "persona",
@@ -301,18 +276,6 @@ const ROLEPLAY_AVATAR_SCALE_MAX = 2.5;
 const ROLEPLAY_SPRITE_SCALE_MIN = 0.5;
 const ROLEPLAY_SPRITE_SCALE_MAX = 1.75;
 
-const DEFAULT_GAME_SETUP_LEARNED_OPTIONS: GameSetupLearnedOptions = {
-  genres: [],
-  tones: [],
-  settings: [],
-  goals: [],
-  preferences: [],
-};
-
-const DEFAULT_GAME_SETUP_REMEMBERED_TEXT: GameSetupRememberedText = {
-  playerGoals: "",
-  preferences: "",
-};
 const DEFAULT_SUMMARY_POPOVER_SETTINGS: SummaryPopoverSettings = {
   sourceMode: "last",
   contextSize: null,
@@ -326,10 +289,6 @@ const DEFAULT_SCENE_PROMPT_PREFERENCES: ScenePromptPreferences = {
   tense: "present",
   extraInstructions: "",
 };
-
-function normalizeUserActivity(activity: string): string {
-  return activity.replace(/\s+/g, " ").trim().slice(0, USER_ACTIVITY_MAX_LENGTH);
-}
 
 export function getDefaultAppAccentColor() {
   return "#7394bd";
@@ -554,34 +513,6 @@ function normalizeDefaultRoleplayBackground(value: unknown) {
   return `/api/backgrounds/file/${encodeURIComponent(trimmed)}`;
 }
 
-function normalizeLearnedGameSetupOption(value: unknown) {
-  if (typeof value !== "string") return "";
-  return value.replace(/\s+/g, " ").trim().slice(0, 160);
-}
-
-function normalizeRememberedGameSetupText(value: unknown) {
-  if (typeof value !== "string") return "";
-  return value.trim().slice(0, 2000);
-}
-
-function mergeLearnedGameSetupOptions(existing: string[] | undefined, incoming: unknown[]) {
-  const byKey = new Map<string, string>();
-
-  for (const value of existing ?? []) {
-    const normalized = normalizeLearnedGameSetupOption(value);
-    if (normalized) byKey.set(normalized.toLowerCase(), normalized);
-  }
-
-  for (const value of [...incoming].reverse()) {
-    const normalized = normalizeLearnedGameSetupOption(value);
-    if (!normalized) continue;
-    byKey.delete(normalized.toLowerCase());
-    byKey.set(normalized.toLowerCase(), normalized);
-  }
-
-  return [...byKey.values()].reverse().slice(0, GAME_SETUP_LEARNED_LIMIT);
-}
-
 /** Legacy browser-local custom theme preserved for one-time migration. */
 interface CustomTheme {
   id: string;
@@ -767,33 +698,12 @@ interface UIState {
   showPaidAgentConnectionWarning: boolean;
   /** Typewriter speed: 1 (very slow) to 100 (instant). Controls how fast streaming tokens appear. */
   streamingSpeed: number;
-  /** When true, Game mode narration segments are revealed in full as soon as they become active. */
-  gameInstantTextReveal: boolean;
-  /**
-   * When true, the mouse wheel skips through past assistant turns in Game mode (up = back,
-   * down = forward) and clicking the scene background acts like the Next button. While
-   * scrolled into the past, the Next button changes to "Return" so the player can jump back
-   * to where they were reading.
-   */
-  gameMiddleMouseNav: boolean;
-  /** Game mode dialogue layout: classic VN box or a VN box with a scrollable segment history above it. */
-  gameDialogueDisplayMode: GameDialogueDisplayMode;
-  /**
-   * Game mode narration box collapsed to its handle, so the scene, map or Experience behind it
-   * is visible. The player's standing preference — the box still opens itself whenever it holds
-   * something they must act on (a turn to type, a segment to advance).
-   */
-  gameNarrationCollapsed: boolean;
   /**
    * Chat-list row banners. "hover" (default) paints the active and hovered rows; touch
    * devices have no hover, so there it means the active row only. "always" paints every
    * row — more images decoded at once, though the sidebar requests downscaled copies.
    */
   chatListBackgrounds: ChatListBackgroundMode;
-  /** Game narration text speed: 1 (very slow) to 100 (instant). Controls the typewriter in game mode. */
-  gameTextSpeed: number;
-  /** Delay in ms between auto-advancing narration segments when auto-play is enabled. */
-  gameAutoPlayDelay: number;
   /** When true, image generation requests are sent one at a time for providers that reject concurrent jobs. */
   queueImageGenerationRequests: boolean;
   /** When true, generated image prompts are shown for review before supported provider calls are sent. */
@@ -866,24 +776,10 @@ interface UIState {
   professorMariSuggestionsEnabled: boolean;
   /** When true, Professor Mari's deterministic Home navigator is available. */
   professorMariNavigationEnabled: boolean;
-  /** When true, achievements appear on Home and announce unlocks. Backend tracking stays silent either way. */
-  achievementsEnabled: boolean;
-  /** When true, show the global Music Player surface. */
-  musicPlayerEnabled: boolean;
-  /** Which Music Player surface to show. */
-  musicPlayerSource: MusicPlayerSource;
-  /** User-set YouTube player volume (0–100). The DJ can also steer this. */
-  youtubePlayerVolume: number;
-  /** User-set local Custom music player volume (0–100). The DJ can also steer this. */
-  localMusicPlayerVolume: number;
   /** User-set Conversation Call character voice volume (0–100). */
   conversationCallVoiceVolume: number;
   /** When true, mute character voices in Conversation Calls. */
   conversationCallVoiceMuted: boolean;
-  /** Mobile floating-widget collapsed state, shared by the Spotify, YouTube, and local-music players despite the spotify-prefixed name. */
-  spotifyMobileWidgetCollapsed: boolean;
-  /** Mobile floating-widget position in viewport pixels, shared by the Spotify, YouTube, and local-music players despite the spotify-prefixed name. */
-  spotifyMobileWidgetPosition: FloatingWidgetPosition;
   /** When true, Roleplay and Conversation modes support arrow-key and touch-swipe navigation between message swipes. */
   intuitiveSwipeNavigation: boolean;
   /** When true, moving past the newest swipe on the latest assistant message creates a new reroll. */
@@ -914,8 +810,6 @@ interface UIState {
   showRoleplayThinkingInMessages: boolean;
   /** When true, inline Roleplay reasoning stays expanded until the user collapses it. */
   keepRoleplayThinkingExpanded: boolean;
-  /** Whether Game mode applies animated emphasis to narration and dialogue text. */
-  gameTextEffectsEnabled: boolean;
   /** Layout style for roleplay message avatars */
   roleplayAvatarStyle: RoleplayAvatarStyle;
   /** Scale multiplier for Roleplay message avatars. */
@@ -934,10 +828,6 @@ interface UIState {
   roleplayVnAutoPlayDelay: number;
   roleplayVnPortraitScale: number;
   roleplayVnSpriteScale: number;
-  /** Scale multiplier for Game mode VN dialogue portraits. */
-  gameAvatarScale: number;
-  /** Scale multiplier for Game mode center full-body sprites. */
-  gameFullBodySpriteScale: number;
   /** Text outline/stroke width in px (0 = off) */
   textStrokeWidth: number;
   /** Text outline/stroke color */
@@ -955,7 +845,6 @@ interface UIState {
   // ── Sound ──
   convoNotificationSound: boolean;
   rpNotificationSound: boolean;
-  gameNotificationSound: boolean;
   notificationSoundsOnlyWhenUnfocused: boolean;
   notificationPosition: "top" | "bottom";
   chatWizardDefaults: Partial<Record<ChatWizardMode, ChatWizardDefaults>>;
@@ -968,21 +857,9 @@ interface UIState {
   /** User's custom default system prompt for new conversations (null = built-in default). */
   customConversationPrompt: string | null;
 
-  // ── Schedule Generation Preferences ──
-  /** Free-form user guidance injected into the conversation-mode schedule generation prompt (empty = unset). */
-  scheduleGenerationPreferences: string;
-  /** IANA timezone used by every Conversation schedule. Defaults to the browser-detected timezone. */
-  conversationTimeZone: string;
-  /** Custom Game setup chips learned from previous games. Synced so they follow the user. */
-  learnedGameSetupOptions: GameSetupLearnedOptions;
-  /** Last submitted free-text Game setup fields. Synced so new games can start from the previous setup. */
-  rememberedGameSetupText: GameSetupRememberedText;
-
   // ── Input ──
   enterToSendRP: boolean;
   enterToSendConvo: boolean;
-  enterToSendGame: boolean;
-  enterToSendProfessorMari: boolean;
 
   // ── Roleplay Effects ──
   weatherEffects: boolean;
@@ -1014,16 +891,6 @@ interface UIState {
   echoChamberSide: EchoChamberSide;
   echoChamberSideByChatId: Record<string, EchoChamberSide>;
   echoChamberSizeByChatId: Record<string, EchoChamberSize>;
-
-  // ── User Status ──
-  /** The user's manually chosen status. Persisted. */
-  userStatusManual: UserStatus;
-  /** Effective status: matches manual, but auto-flips to "idle" on inactivity */
-  userStatus: UserStatus;
-  /** Optional short activity shown with the user's status in Conversation mode. */
-  userActivity: string;
-  /** Recent user activity strings shown under the chat sidebar status editor. */
-  recentUserActivities: string[];
 
   // ── Impersonate Settings ──
   /** Custom prompt template for /impersonate (empty = use server default). Persisted. */
@@ -1167,13 +1034,7 @@ interface UIState {
   setDebugMode: (v: boolean) => void;
   setShowPaidAgentConnectionWarning: (v: boolean) => void;
   setStreamingSpeed: (v: number) => void;
-  setGameInstantTextReveal: (v: boolean) => void;
-  setGameMiddleMouseNav: (v: boolean) => void;
-  setGameDialogueDisplayMode: (v: GameDialogueDisplayMode) => void;
-  setGameNarrationCollapsed: (v: boolean) => void;
   setChatListBackgrounds: (v: ChatListBackgroundMode) => void;
-  setGameTextSpeed: (v: number) => void;
-  setGameAutoPlayDelay: (v: number) => void;
   setQueueImageGenerationRequests: (v: boolean) => void;
   setReviewImagePromptsBeforeSend: (v: boolean) => void;
   setAutoSaveGeneratedImagesToGalleries: (v: boolean) => void;
@@ -1221,15 +1082,8 @@ interface UIState {
   setChibiProfessorMariEnabled: (v: boolean) => void;
   setProfessorMariSuggestionsEnabled: (v: boolean) => void;
   setProfessorMariNavigationEnabled: (v: boolean) => void;
-  setAchievementsEnabled: (v: boolean) => void;
-  setMusicPlayerEnabled: (v: boolean) => void;
-  setMusicPlayerSource: (v: MusicPlayerSource) => void;
-  setYoutubePlayerVolume: (v: number) => void;
-  setLocalMusicPlayerVolume: (v: number) => void;
   setConversationCallVoiceVolume: (v: number) => void;
   setConversationCallVoiceMuted: (v: boolean) => void;
-  setSpotifyMobileWidgetCollapsed: (v: boolean) => void;
-  setSpotifyMobileWidgetPosition: (position: FloatingWidgetPosition) => void;
   setIntuitiveSwipeNavigation: (v: boolean) => void;
   setIntuitiveSwipeRerollLatest: (v: boolean) => void;
   setEditLastMessageOnArrowUp: (v: boolean) => void;
@@ -1244,7 +1098,6 @@ interface UIState {
   setRoleplayReducedPaintEffects: (v: boolean) => void;
   setShowRoleplayThinkingInMessages: (v: boolean) => void;
   setKeepRoleplayThinkingExpanded: (v: boolean) => void;
-  setGameTextEffectsEnabled: (v: boolean) => void;
   setRoleplayAvatarStyle: (v: RoleplayAvatarStyle) => void;
   setRoleplayAvatarScale: (v: number) => void;
   setRoleplayAvatarsScrollable: (v: boolean) => void;
@@ -1256,8 +1109,6 @@ interface UIState {
   setRoleplayVnAutoPlayDelay: (v: number) => void;
   setRoleplayVnPortraitScale: (v: number) => void;
   setRoleplayVnSpriteScale: (v: number) => void;
-  setGameAvatarScale: (v: number) => void;
-  setGameFullBodySpriteScale: (v: number) => void;
   setTextStrokeWidth: (v: number) => void;
   setTextStrokeColor: (v: string) => void;
   setCenterCompact: (v: boolean) => void;
@@ -1267,7 +1118,6 @@ interface UIState {
   resetAppearanceSettings: () => void;
   setConvoNotificationSound: (v: boolean) => void;
   setRpNotificationSound: (v: boolean) => void;
-  setGameNotificationSound: (v: boolean) => void;
   setNotificationSoundsOnlyWhenUnfocused: (v: boolean) => void;
   setNotificationPosition: (v: "top" | "bottom") => void;
   setChatWizardDefaults: (mode: ChatWizardMode, defaults: ChatWizardDefaults | null) => void;
@@ -1276,17 +1126,8 @@ interface UIState {
   setGenerationBrowserNotifications: (v: boolean) => void;
   setGenerationMobileNotifications: (v: boolean) => void;
   setCustomConversationPrompt: (v: string | null) => void;
-  setScheduleGenerationPreferences: (v: string) => void;
-  setConversationTimeZone: (v: string) => void;
-  rememberGameSetupOptions: (
-    options: Partial<GameSetupLearnedOptions>,
-    text?: Partial<GameSetupRememberedText>,
-  ) => void;
-  forgetGameSetupOption: (group: keyof GameSetupLearnedOptions, value: string) => void;
   setEnterToSendRP: (v: boolean) => void;
   setEnterToSendConvo: (v: boolean) => void;
-  setEnterToSendGame: (v: boolean) => void;
-  setEnterToSendProfessorMari: (v: boolean) => void;
   setWeatherEffects: (v: boolean) => void;
   // Impersonate settings actions
   setImpersonatePromptTemplate: (v: string) => void;
@@ -1310,10 +1151,6 @@ interface UIState {
   setEchoChamberSide: (side: EchoChamberSide) => void;
   setEchoChamberSideForChat: (chatId: string, side: EchoChamberSide) => void;
   setEchoChamberSizeForChat: (chatId: string, size: EchoChamberSize) => void;
-  setUserStatus: (status: UserStatus) => void;
-  setUserStatusManual: (status: UserStatus) => void;
-  setUserActivity: (activity: string) => void;
-  rememberUserActivity: (activity: string) => void;
 }
 
 function getMobileDetailReturnState(state: UIState) {
@@ -1334,7 +1171,6 @@ function restoreMobileDetailReturnPanel(panel: Panel | null) {
 /**
  * Returns the subset of UI state that is synced to the server so it persists
  * across devices and browsers. Excludes device-local sizing preferences,
- * legacy migration flags, auto-computed fields (userStatus), and items tracked
  * via their own server resources (custom themes).
  */
 export function pickSyncedSettings(state: UIState) {
@@ -1380,13 +1216,7 @@ export function pickSyncedSettings(state: UIState) {
     enableStreaming: state.enableStreaming,
     streamingSpeed: state.streamingSpeed,
     showPaidAgentConnectionWarning: state.showPaidAgentConnectionWarning,
-    gameInstantTextReveal: state.gameInstantTextReveal,
-    gameMiddleMouseNav: state.gameMiddleMouseNav,
-    gameDialogueDisplayMode: state.gameDialogueDisplayMode,
-    gameNarrationCollapsed: state.gameNarrationCollapsed,
     chatListBackgrounds: state.chatListBackgrounds,
-    gameTextSpeed: state.gameTextSpeed,
-    gameAutoPlayDelay: state.gameAutoPlayDelay,
     queueImageGenerationRequests: state.queueImageGenerationRequests,
     reviewImagePromptsBeforeSend: state.reviewImagePromptsBeforeSend,
     autoSaveGeneratedImagesToGalleries: state.autoSaveGeneratedImagesToGalleries,
@@ -1438,15 +1268,8 @@ export function pickSyncedSettings(state: UIState) {
     chibiProfessorMariEnabled: state.chibiProfessorMariEnabled,
     professorMariSuggestionsEnabled: state.professorMariSuggestionsEnabled,
     professorMariNavigationEnabled: state.professorMariNavigationEnabled,
-    achievementsEnabled: state.achievementsEnabled,
-    musicPlayerEnabled: state.musicPlayerEnabled,
-    musicPlayerSource: state.musicPlayerSource,
-    youtubePlayerVolume: state.youtubePlayerVolume,
-    localMusicPlayerVolume: state.localMusicPlayerVolume,
     conversationCallVoiceVolume: state.conversationCallVoiceVolume,
     conversationCallVoiceMuted: state.conversationCallVoiceMuted,
-    spotifyMobileWidgetCollapsed: state.spotifyMobileWidgetCollapsed,
-    spotifyMobileWidgetPosition: state.spotifyMobileWidgetPosition,
     intuitiveSwipeNavigation: state.intuitiveSwipeNavigation,
     intuitiveSwipeRerollLatest: state.intuitiveSwipeRerollLatest,
     editLastMessageOnArrowUp: state.editLastMessageOnArrowUp,
@@ -1459,7 +1282,6 @@ export function pickSyncedSettings(state: UIState) {
     chatFontOpacity: state.chatFontOpacity,
     showRoleplayThinkingInMessages: state.showRoleplayThinkingInMessages,
     keepRoleplayThinkingExpanded: state.keepRoleplayThinkingExpanded,
-    gameTextEffectsEnabled: state.gameTextEffectsEnabled,
     roleplayAvatarStyle: state.roleplayAvatarStyle,
     roleplayAvatarScale: state.roleplayAvatarScale,
     roleplayAvatarsScrollable: state.roleplayAvatarsScrollable,
@@ -1471,16 +1293,12 @@ export function pickSyncedSettings(state: UIState) {
     roleplayVnAutoPlayDelay: state.roleplayVnAutoPlayDelay,
     roleplayVnPortraitScale: state.roleplayVnPortraitScale,
     roleplayVnSpriteScale: state.roleplayVnSpriteScale,
-    gameAvatarScale: state.gameAvatarScale,
-    gameFullBodySpriteScale: state.gameFullBodySpriteScale,
     textStrokeWidth: state.textStrokeWidth,
     textStrokeColor: state.textStrokeColor,
     visualTheme: state.visualTheme,
     convoGradient: state.convoGradient,
     enterToSendRP: state.enterToSendRP,
     enterToSendConvo: state.enterToSendConvo,
-    enterToSendGame: state.enterToSendGame,
-    enterToSendProfessorMari: state.enterToSendProfessorMari,
     weatherEffects: state.weatherEffects,
     hasCompletedOnboarding: state.hasCompletedOnboarding,
     chatHelpSeenModes: state.chatHelpSeenModes,
@@ -1490,12 +1308,8 @@ export function pickSyncedSettings(state: UIState) {
     chatWindowIntroDismissed: state.chatWindowIntroDismissed,
     echoChamberOpen: state.echoChamberOpen,
     echoChamberSide: state.echoChamberSide,
-    userStatusManual: state.userStatusManual,
-    userActivity: state.userActivity,
-    recentUserActivities: state.recentUserActivities,
     convoNotificationSound: state.convoNotificationSound,
     rpNotificationSound: state.rpNotificationSound,
-    gameNotificationSound: state.gameNotificationSound,
     notificationSoundsOnlyWhenUnfocused: state.notificationSoundsOnlyWhenUnfocused,
     notificationPosition: state.notificationPosition,
     chatWizardDefaults: state.chatWizardDefaults,
@@ -1504,14 +1318,10 @@ export function pickSyncedSettings(state: UIState) {
     generationBrowserNotifications: state.generationBrowserNotifications,
     generationMobileNotifications: state.generationMobileNotifications,
     customConversationPrompt: state.customConversationPrompt,
-    scheduleGenerationPreferences: state.scheduleGenerationPreferences,
-    conversationTimeZone: state.conversationTimeZone,
     impersonateCyoaChoices: state.impersonateCyoaChoices,
     impersonatePresetId: state.impersonatePresetId,
     impersonateConnectionId: state.impersonateConnectionId,
     impersonateBlockAgents: state.impersonateBlockAgents,
-    learnedGameSetupOptions: state.learnedGameSetupOptions,
-    rememberedGameSetupText: state.rememberedGameSetupText,
   };
 }
 
@@ -1597,13 +1407,7 @@ function pickPersistedUIState(state: UIState) {
     debugMode: state.debugMode,
     showPaidAgentConnectionWarning: state.showPaidAgentConnectionWarning,
     streamingSpeed: state.streamingSpeed,
-    gameInstantTextReveal: state.gameInstantTextReveal,
-    gameMiddleMouseNav: state.gameMiddleMouseNav,
-    gameDialogueDisplayMode: state.gameDialogueDisplayMode,
-    gameNarrationCollapsed: state.gameNarrationCollapsed,
     chatListBackgrounds: state.chatListBackgrounds,
-    gameTextSpeed: state.gameTextSpeed,
-    gameAutoPlayDelay: state.gameAutoPlayDelay,
     queueImageGenerationRequests: state.queueImageGenerationRequests,
     reviewImagePromptsBeforeSend: state.reviewImagePromptsBeforeSend,
     autoSaveGeneratedImagesToGalleries: state.autoSaveGeneratedImagesToGalleries,
@@ -1655,15 +1459,8 @@ function pickPersistedUIState(state: UIState) {
     chibiProfessorMariEnabled: state.chibiProfessorMariEnabled,
     professorMariSuggestionsEnabled: state.professorMariSuggestionsEnabled,
     professorMariNavigationEnabled: state.professorMariNavigationEnabled,
-    achievementsEnabled: state.achievementsEnabled,
-    musicPlayerEnabled: state.musicPlayerEnabled,
-    musicPlayerSource: state.musicPlayerSource,
-    youtubePlayerVolume: state.youtubePlayerVolume,
-    localMusicPlayerVolume: state.localMusicPlayerVolume,
     conversationCallVoiceVolume: state.conversationCallVoiceVolume,
     conversationCallVoiceMuted: state.conversationCallVoiceMuted,
-    spotifyMobileWidgetCollapsed: state.spotifyMobileWidgetCollapsed,
-    spotifyMobileWidgetPosition: state.spotifyMobileWidgetPosition,
     intuitiveSwipeNavigation: state.intuitiveSwipeNavigation,
     intuitiveSwipeRerollLatest: state.intuitiveSwipeRerollLatest,
     editLastMessageOnArrowUp: state.editLastMessageOnArrowUp,
@@ -1677,7 +1474,6 @@ function pickPersistedUIState(state: UIState) {
     roleplayReducedPaintEffects: state.roleplayReducedPaintEffects,
     showRoleplayThinkingInMessages: state.showRoleplayThinkingInMessages,
     keepRoleplayThinkingExpanded: state.keepRoleplayThinkingExpanded,
-    gameTextEffectsEnabled: state.gameTextEffectsEnabled,
     roleplayAvatarStyle: state.roleplayAvatarStyle,
     roleplayAvatarScale: state.roleplayAvatarScale,
     roleplayAvatarsScrollable: state.roleplayAvatarsScrollable,
@@ -1689,16 +1485,12 @@ function pickPersistedUIState(state: UIState) {
     roleplayVnAutoPlayDelay: state.roleplayVnAutoPlayDelay,
     roleplayVnPortraitScale: state.roleplayVnPortraitScale,
     roleplayVnSpriteScale: state.roleplayVnSpriteScale,
-    gameAvatarScale: state.gameAvatarScale,
-    gameFullBodySpriteScale: state.gameFullBodySpriteScale,
     textStrokeWidth: state.textStrokeWidth,
     textStrokeColor: state.textStrokeColor,
     visualTheme: state.visualTheme,
     convoGradient: state.convoGradient,
     enterToSendRP: state.enterToSendRP,
     enterToSendConvo: state.enterToSendConvo,
-    enterToSendGame: state.enterToSendGame,
-    enterToSendProfessorMari: state.enterToSendProfessorMari,
     weatherEffects: state.weatherEffects,
     hasMigratedCustomThemesToServer: state.hasMigratedCustomThemesToServer,
     activeCustomTheme: state.activeCustomTheme,
@@ -1713,13 +1505,8 @@ function pickPersistedUIState(state: UIState) {
     echoChamberSide: state.echoChamberSide,
     echoChamberSideByChatId: state.echoChamberSideByChatId,
     echoChamberSizeByChatId: state.echoChamberSizeByChatId,
-    userStatusManual: state.userStatusManual,
-    userStatus: state.userStatus,
-    userActivity: state.userActivity,
-    recentUserActivities: state.recentUserActivities,
     convoNotificationSound: state.convoNotificationSound,
     rpNotificationSound: state.rpNotificationSound,
-    gameNotificationSound: state.gameNotificationSound,
     notificationSoundsOnlyWhenUnfocused: state.notificationSoundsOnlyWhenUnfocused,
     notificationPosition: state.notificationPosition,
     chatWizardDefaults: state.chatWizardDefaults,
@@ -1728,16 +1515,12 @@ function pickPersistedUIState(state: UIState) {
     generationBrowserNotifications: state.generationBrowserNotifications,
     generationMobileNotifications: state.generationMobileNotifications,
     customConversationPrompt: state.customConversationPrompt,
-    scheduleGenerationPreferences: state.scheduleGenerationPreferences,
-    conversationTimeZone: state.conversationTimeZone,
     impersonatePromptTemplate: state.impersonatePromptTemplate,
     activeImpersonatePromptTemplateId: state.activeImpersonatePromptTemplateId,
     impersonateCyoaChoices: state.impersonateCyoaChoices,
     impersonatePresetId: state.impersonatePresetId,
     impersonateConnectionId: state.impersonateConnectionId,
     impersonateBlockAgents: state.impersonateBlockAgents,
-    learnedGameSetupOptions: state.learnedGameSetupOptions,
-    rememberedGameSetupText: state.rememberedGameSetupText,
   };
 }
 
@@ -1856,13 +1639,7 @@ export const useUIStore = create<UIState>()(
         debugMode: false,
         showPaidAgentConnectionWarning: true,
         streamingSpeed: 50,
-        gameInstantTextReveal: false,
-        gameMiddleMouseNav: false,
-        gameDialogueDisplayMode: "classic" as GameDialogueDisplayMode,
-        gameNarrationCollapsed: false,
         chatListBackgrounds: "hover" as ChatListBackgroundMode,
-        gameTextSpeed: 50,
-        gameAutoPlayDelay: 3000,
         queueImageGenerationRequests: true,
         reviewImagePromptsBeforeSend: false,
         autoSaveGeneratedImagesToGalleries: true,
@@ -1914,15 +1691,8 @@ export const useUIStore = create<UIState>()(
         chibiProfessorMariEnabled: true,
         professorMariSuggestionsEnabled: true,
         professorMariNavigationEnabled: true,
-        achievementsEnabled: true,
-        musicPlayerEnabled: true,
-        musicPlayerSource: "youtube" as MusicPlayerSource,
-        youtubePlayerVolume: 70,
-        localMusicPlayerVolume: 70,
         conversationCallVoiceVolume: 100,
         conversationCallVoiceMuted: false,
-        spotifyMobileWidgetCollapsed: true,
-        spotifyMobileWidgetPosition: { ...DEFAULT_MOBILE_MUSIC_WIDGET_POSITION },
         intuitiveSwipeNavigation: false,
         intuitiveSwipeRerollLatest: false,
         editLastMessageOnArrowUp: true,
@@ -1937,7 +1707,6 @@ export const useUIStore = create<UIState>()(
         roleplayReducedPaintEffects: false,
         showRoleplayThinkingInMessages: false,
         keepRoleplayThinkingExpanded: false,
-        gameTextEffectsEnabled: true,
         roleplayAvatarStyle: "circles" as RoleplayAvatarStyle,
         roleplayAvatarScale: 1,
         roleplayAvatarsScrollable: false,
@@ -1949,8 +1718,6 @@ export const useUIStore = create<UIState>()(
         roleplayVnAutoPlayDelay: 3000,
         roleplayVnPortraitScale: 1,
         roleplayVnSpriteScale: 1.35,
-        gameAvatarScale: 1,
-        gameFullBodySpriteScale: 1.35,
         textStrokeWidth: 0.5,
         textStrokeColor: "#000000",
         visualTheme: "default" as VisualTheme,
@@ -1960,7 +1727,6 @@ export const useUIStore = create<UIState>()(
         },
         convoNotificationSound: true,
         rpNotificationSound: true,
-        gameNotificationSound: true,
         notificationSoundsOnlyWhenUnfocused: false,
         notificationPosition: "top",
         chatWizardDefaults: {},
@@ -1969,14 +1735,8 @@ export const useUIStore = create<UIState>()(
         generationBrowserNotifications: false,
         generationMobileNotifications: false,
         customConversationPrompt: null,
-        scheduleGenerationPreferences: "",
-        conversationTimeZone: detectConversationTimeZone(),
-        learnedGameSetupOptions: DEFAULT_GAME_SETUP_LEARNED_OPTIONS,
-        rememberedGameSetupText: DEFAULT_GAME_SETUP_REMEMBERED_TEXT,
         enterToSendRP: false,
         enterToSendConvo: true,
-        enterToSendGame: true,
-        enterToSendProfessorMari: true,
         weatherEffects: true,
         activeCustomTheme: null,
         customThemes: [],
@@ -1991,10 +1751,6 @@ export const useUIStore = create<UIState>()(
         echoChamberSide: "bottom-right" as EchoChamberSide,
         echoChamberSideByChatId: {},
         echoChamberSizeByChatId: {},
-        userStatusManual: "active" as const,
-        userStatus: "active" as UserStatus,
-        userActivity: "",
-        recentUserActivities: [],
         centerCompact: false,
         chatModeShortcutRequest: null,
 
@@ -2544,13 +2300,7 @@ export const useUIStore = create<UIState>()(
         setDebugMode: (v) => set({ debugMode: v }),
         setShowPaidAgentConnectionWarning: (v) => set({ showPaidAgentConnectionWarning: v }),
         setStreamingSpeed: (v) => set({ streamingSpeed: Math.max(1, Math.min(100, v)) }),
-        setGameInstantTextReveal: (v) => set({ gameInstantTextReveal: v }),
-        setGameMiddleMouseNav: (v) => set({ gameMiddleMouseNav: v }),
-        setGameDialogueDisplayMode: (v) => set({ gameDialogueDisplayMode: v }),
-        setGameNarrationCollapsed: (v) => set({ gameNarrationCollapsed: v }),
         setChatListBackgrounds: (v) => set({ chatListBackgrounds: v }),
-        setGameTextSpeed: (v) => set({ gameTextSpeed: Math.max(1, Math.min(100, v)) }),
-        setGameAutoPlayDelay: (v) => set({ gameAutoPlayDelay: Math.max(200, Math.min(10000, Math.round(v))) }),
         setQueueImageGenerationRequests: (v) => set({ queueImageGenerationRequests: v }),
         setReviewImagePromptsBeforeSend: (v) => set({ reviewImagePromptsBeforeSend: v }),
         setAutoSaveGeneratedImagesToGalleries: (v) => set({ autoSaveGeneratedImagesToGalleries: v }),
@@ -2651,30 +2401,9 @@ export const useUIStore = create<UIState>()(
         setProfessorMariNavigationEnabled: (v) => {
           set({ professorMariNavigationEnabled: v });
         },
-        setAchievementsEnabled: (v) => set({ achievementsEnabled: v }),
-        setMusicPlayerEnabled: (v) => set({ musicPlayerEnabled: v }),
-        setMusicPlayerSource: (v) =>
-          set({
-            musicPlayerEnabled: true,
-            musicPlayerSource: v,
-          }),
-        setYoutubePlayerVolume: (v) => set({ youtubePlayerVolume: Math.max(0, Math.min(100, Math.round(v))) }),
-        setLocalMusicPlayerVolume: (v) => set({ localMusicPlayerVolume: Math.max(0, Math.min(100, Math.round(v))) }),
         setConversationCallVoiceVolume: (v) =>
           set({ conversationCallVoiceVolume: Math.max(0, Math.min(100, Math.round(v))) }),
         setConversationCallVoiceMuted: (v) => set({ conversationCallVoiceMuted: v }),
-        setSpotifyMobileWidgetCollapsed: (v) => set({ spotifyMobileWidgetCollapsed: v }),
-        setSpotifyMobileWidgetPosition: (position) =>
-          set({
-            spotifyMobileWidgetPosition: {
-              x: Number.isFinite(position.x)
-                ? Math.max(8, Math.round(position.x))
-                : DEFAULT_MOBILE_MUSIC_WIDGET_POSITION.x,
-              y: Number.isFinite(position.y)
-                ? Math.max(8, Math.round(position.y))
-                : DEFAULT_MOBILE_MUSIC_WIDGET_POSITION.y,
-            },
-          }),
         setIntuitiveSwipeNavigation: (v) => set({ intuitiveSwipeNavigation: v }),
         setIntuitiveSwipeRerollLatest: (v) => set({ intuitiveSwipeRerollLatest: v }),
         setEditLastMessageOnArrowUp: (v) => set({ editLastMessageOnArrowUp: v }),
@@ -2701,7 +2430,6 @@ export const useUIStore = create<UIState>()(
           }),
         setKeepRoleplayThinkingExpanded: (v) =>
           set((state) => ({ keepRoleplayThinkingExpanded: state.showRoleplayThinkingInMessages && v })),
-        setGameTextEffectsEnabled: (v) => set({ gameTextEffectsEnabled: v }),
         setRoleplayAvatarStyle: (v) => set({ roleplayAvatarStyle: v }),
         setRoleplayAvatarScale: (v) =>
           set({ roleplayAvatarScale: Math.max(ROLEPLAY_AVATAR_SCALE_MIN, Math.min(ROLEPLAY_AVATAR_SCALE_MAX, v)) }),
@@ -2709,7 +2437,6 @@ export const useUIStore = create<UIState>()(
         setRoleplayNarratorAvatarCycling: (v) => set({ roleplayNarratorAvatarCycling: v }),
         setRoleplaySpriteScale: (v) =>
           set({ roleplaySpriteScale: Math.max(ROLEPLAY_SPRITE_SCALE_MIN, Math.min(ROLEPLAY_SPRITE_SCALE_MAX, v)) }),
-        setGameAvatarScale: (v) => set({ gameAvatarScale: Math.max(0.75, Math.min(1.75, v)) }),
         setRoleplayDisplayStyle: (v) => set({ roleplayDisplayStyle: v }),
         setRoleplayChatPosition: (v) => set({ roleplayChatPosition: normalizeRoleplayChatPosition(v) }),
         setRoleplayVnAutoPlay: (v) => set({ roleplayVnAutoPlay: v }),
@@ -2719,7 +2446,6 @@ export const useUIStore = create<UIState>()(
           set({ roleplayVnPortraitScale: Number.isFinite(v) ? Math.max(0.75, Math.min(1.75, v)) : 1 }),
         setRoleplayVnSpriteScale: (v) =>
           set({ roleplayVnSpriteScale: Number.isFinite(v) ? Math.max(0.75, Math.min(2.75, v)) : 1.35 }),
-        setGameFullBodySpriteScale: (v) => set({ gameFullBodySpriteScale: Math.max(0.75, Math.min(2.75, v)) }),
         setTextStrokeWidth: (v) => set({ textStrokeWidth: Math.max(0, Math.min(5, v)) }),
         setTextStrokeColor: (v) => set({ textStrokeColor: v }),
         setCenterCompact: (v) => set({ centerCompact: v }),
@@ -2783,7 +2509,6 @@ export const useUIStore = create<UIState>()(
             roleplayReducedPaintEffects: false,
             showRoleplayThinkingInMessages: false,
             keepRoleplayThinkingExpanded: false,
-            gameTextEffectsEnabled: true,
             roleplayAvatarStyle: "circles" as RoleplayAvatarStyle,
             roleplayAvatarScale: 1,
             roleplayAvatarsScrollable: false,
@@ -2795,11 +2520,7 @@ export const useUIStore = create<UIState>()(
             roleplayVnAutoPlayDelay: 3000,
             roleplayVnPortraitScale: 1,
             roleplayVnSpriteScale: 1.35,
-            gameDialogueDisplayMode: "classic" as GameDialogueDisplayMode,
-            gameNarrationCollapsed: false,
             chatListBackgrounds: "hover" as ChatListBackgroundMode,
-            gameAvatarScale: 1,
-            gameFullBodySpriteScale: 1.35,
             textStrokeWidth: 0.5,
             textStrokeColor: "#000000",
             visualTheme: "default" as VisualTheme,
@@ -2811,7 +2532,6 @@ export const useUIStore = create<UIState>()(
           }),
         setConvoNotificationSound: (v) => set({ convoNotificationSound: v }),
         setRpNotificationSound: (v) => set({ rpNotificationSound: v }),
-        setGameNotificationSound: (v) => set({ gameNotificationSound: v }),
         setNotificationSoundsOnlyWhenUnfocused: (v) => set({ notificationSoundsOnlyWhenUnfocused: v }),
         setNotificationPosition: (v) => set({ notificationPosition: v === "bottom" ? "bottom" : "top" }),
         setChatWizardDefaults: (mode, defaults) =>
@@ -2826,49 +2546,8 @@ export const useUIStore = create<UIState>()(
         setGenerationBrowserNotifications: (v) => set({ generationBrowserNotifications: v }),
         setGenerationMobileNotifications: (v) => set({ generationMobileNotifications: v }),
         setCustomConversationPrompt: (v) => set({ customConversationPrompt: v }),
-        setScheduleGenerationPreferences: (v) => set({ scheduleGenerationPreferences: v }),
-        setConversationTimeZone: (v) => set({ conversationTimeZone: normalizeConversationTimeZone(v) }),
-        rememberGameSetupOptions: (options, text) =>
-          set((state) => {
-            const learned = state.learnedGameSetupOptions ?? DEFAULT_GAME_SETUP_LEARNED_OPTIONS;
-            const remembered = state.rememberedGameSetupText ?? DEFAULT_GAME_SETUP_REMEMBERED_TEXT;
-            return {
-              learnedGameSetupOptions: {
-                genres: mergeLearnedGameSetupOptions(learned.genres, options.genres ?? []),
-                tones: mergeLearnedGameSetupOptions(learned.tones, options.tones ?? []),
-                settings: mergeLearnedGameSetupOptions(learned.settings, options.settings ?? []),
-                goals: mergeLearnedGameSetupOptions(learned.goals, options.goals ?? []),
-                preferences: mergeLearnedGameSetupOptions(learned.preferences, options.preferences ?? []),
-              },
-              rememberedGameSetupText: {
-                playerGoals:
-                  text?.playerGoals !== undefined
-                    ? normalizeRememberedGameSetupText(text.playerGoals)
-                    : remembered.playerGoals,
-                preferences:
-                  text?.preferences !== undefined
-                    ? normalizeRememberedGameSetupText(text.preferences)
-                    : remembered.preferences,
-              },
-            };
-          }),
-        forgetGameSetupOption: (group, value) =>
-          set((state) => {
-            const learned = state.learnedGameSetupOptions ?? DEFAULT_GAME_SETUP_LEARNED_OPTIONS;
-            const targetKey = normalizeLearnedGameSetupOption(value).toLowerCase();
-            if (!targetKey) return state;
-            const next = learned[group].filter(
-              (entry) => normalizeLearnedGameSetupOption(entry).toLowerCase() !== targetKey,
-            );
-            if (next.length === learned[group].length) return state;
-            return {
-              learnedGameSetupOptions: { ...learned, [group]: next },
-            };
-          }),
         setEnterToSendRP: (v) => set({ enterToSendRP: v }),
         setEnterToSendConvo: (v) => set({ enterToSendConvo: v }),
-        setEnterToSendGame: (v) => set({ enterToSendGame: v }),
-        setEnterToSendProfessorMari: (v) => set({ enterToSendProfessorMari: v }),
         setWeatherEffects: (v) => set({ weatherEffects: v }),
         setImpersonatePromptTemplate: (v) => set({ impersonatePromptTemplate: v }),
         selectImpersonatePromptTemplate: (template) =>
@@ -2921,20 +2600,6 @@ export const useUIStore = create<UIState>()(
             },
           }));
         },
-        setUserStatus: (status) => set({ userStatus: status }),
-        setUserStatusManual: (status) => set({ userStatusManual: status, userStatus: status }),
-        setUserActivity: (activity) => set({ userActivity: activity.slice(0, USER_ACTIVITY_MAX_LENGTH) }),
-        rememberUserActivity: (activity) =>
-          set((state) => {
-            const normalized = normalizeUserActivity(activity);
-            if (!normalized) return { recentUserActivities: state.recentUserActivities };
-            return {
-              recentUserActivities: [
-                normalized,
-                ...state.recentUserActivities.filter((item) => item.toLowerCase() !== normalized.toLowerCase()),
-              ].slice(0, RECENT_USER_ACTIVITY_LIMIT),
-            };
-          }),
       };
     },
     {
@@ -3012,15 +2677,6 @@ export const useUIStore = create<UIState>()(
         if (version <= 90 && persisted.professorMariNavigationEnabled === undefined) {
           persisted.professorMariNavigationEnabled = true;
         }
-        // v94 -> v95: existing custom positions stay untouched; the exact legacy
-        // default is the only reliable indication that the widget was never moved.
-        if (
-          version <= 94 &&
-          persisted.spotifyMobileWidgetPosition?.x === 16 &&
-          persisted.spotifyMobileWidgetPosition?.y === 96
-        ) {
-          persisted.spotifyMobileWidgetPosition = { ...DEFAULT_MOBILE_MUSIC_WIDGET_POSITION };
-        }
         if (version <= 95) {
           persisted.showRoleplayThinkingInMessages = false;
           persisted.keepRoleplayThinkingExpanded = false;
@@ -3041,7 +2697,6 @@ export const useUIStore = create<UIState>()(
         persisted.keepRoleplayThinkingExpanded =
           persisted.showRoleplayThinkingInMessages && persisted.keepRoleplayThinkingExpanded === true;
         persisted.roleplayNarratorAvatarCycling = persisted.roleplayNarratorAvatarCycling !== false;
-        persisted.gameTextEffectsEnabled = persisted.gameTextEffectsEnabled !== false;
         persisted.defaultDialogueColor =
           typeof persisted.defaultDialogueColor === "string" ? persisted.defaultDialogueColor : "";
         persisted.chatChromeTextColor = normalizeChatChromeTextColor(persisted.chatChromeTextColor);

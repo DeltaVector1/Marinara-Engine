@@ -1275,7 +1275,6 @@ export function useGenerate() {
       // Used to guard global UI state updates (typing indicator, delayed info, stream
       // buffer, etc.) so that a background chat's events don't corrupt the active view.
       const isActiveChat = () => useChatStore.getState().activeChatId === params.chatId;
-      const isGameGeneration = false;
       const completionNotifications: Array<() => void> = [];
       const notifyWhenReady = (notify: () => void) => {
         completionNotifications.push(notify);
@@ -1466,7 +1465,6 @@ export function useGenerate() {
       let pendingText = ""; // Tokens waiting to be typed out
       let receivedContent = false; // Whether any actual message content was received
       let receivedThinking = false; // Whether provider-native thinking chunks were received
-      const gameTurnLoadedSoundPlayed = false;
       let sawDoneEvent = false;
       let illustrationQueued = false;
       let illustrationSettled = false;
@@ -3202,13 +3200,8 @@ export function useGenerate() {
               .addNotification(params.chatId, identity.name ?? "Character", identity.avatarUrl, identity.avatarCrop);
           }
           const isRp = chat?.mode === "roleplay";
-          const isGame = isGameGeneration;
           const uiState = useUIStore.getState();
-          const soundEnabled = isGame
-            ? sawDoneEvent && uiState.gameNotificationSound && !gameTurnLoadedSoundPlayed
-            : isRp
-              ? uiState.rpNotificationSound
-              : uiState.convoNotificationSound;
+          const soundEnabled = isRp ? uiState.rpNotificationSound : uiState.convoNotificationSound;
           notifyWhenReady(() =>
             playConfiguredNotificationPing(soundEnabled, uiState.notificationSoundsOnlyWhenUnfocused),
           );

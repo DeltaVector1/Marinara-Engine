@@ -20,7 +20,6 @@ import {
   type AppSettingsResponse,
 } from "@marinara-engine/shared";
 import { api } from "../lib/api-client";
-import { normalizeConversationTimeZone } from "../lib/conversation-time-zone";
 import { normalizeChatWidgetFont } from "../lib/font-family";
 import {
   normalizeChatWidgetColor,
@@ -286,11 +285,6 @@ export function useSettingsSync() {
               if ("scenePromptPreferences" in parsed.settings) {
                 parsed.settings.scenePromptPreferences = normalizeScenePromptPreferences(
                   parsed.settings.scenePromptPreferences,
-                );
-              }
-              if ("conversationTimeZone" in parsed.settings) {
-                parsed.settings.conversationTimeZone = normalizeConversationTimeZone(
-                  parsed.settings.conversationTimeZone,
                 );
               }
               if ("chatWidgetPreset" in parsed.settings) {
