@@ -703,6 +703,9 @@ export async function galleryRoutes(app: FastifyInstance) {
     const promptOverridesStorage = createPromptOverridesStorage(app.db);
     const chat = await chats.getById(input.chatId);
     if (!chat) throw new GallerySceneVideoRequestError(404, "Chat not found");
+    if (chat.mode === "game") {
+      throw new GallerySceneVideoRequestError(400, "Game scene video generation is no longer supported.");
+    }
 
     const meta = parseChatMetadata(chat.metadata);
     const videoConnectionId = await resolveSceneVideoConnectionId(meta, connections);
