@@ -37,7 +37,7 @@
     2.  Dark Theme Variables .............. colors, palette, fonts
     3.  Light Theme Variables ............. light-mode overrides
     4.  Light Theme Component Overrides ... glass, grid, scrollbar tweaks
-    4a2. Chat Settings Preview & Drawers .mari-window preview, .mari-drawer
+    4a2. Drawers ......................... .mari-drawer
     5.  Base Reset & Body ................. border reset, body defaults
     6.  Custom Cursors .................... Y2K SVG cursors
     7.  Scrollbars ........................ retro scrollbar styling
@@ -217,7 +217,6 @@
   --marinara-topbar-surface: var(--card);
   --marinara-topbar-border: var(--border);
   --marinara-shell-edge-border: var(--border);
-  --mari-window-backdrop-filter: none;
   --mari-logo-cyan: var(--primary);
   --mari-logo-cyan-deep: color-mix(in srgb, var(--primary) 76%, var(--background));
   --mari-logo-orange: var(--primary);
@@ -572,8 +571,7 @@
   color: var(--marinara-chat-chrome-button-text-active);
 }
 
-/* Windows take these colours from --mari-window-* so custom themes can override them. */
-[data-marinara-chat-chrome-accent-mode="gradient"] .marinara-chat-popover:not(.mari-window) {
+[data-marinara-chat-chrome-accent-mode="gradient"] .marinara-chat-popover {
   border-color: var(--marinara-chat-chrome-panel-border);
   background: var(--marinara-chat-chrome-panel-bg);
 }
@@ -614,175 +612,13 @@
 }
 
 /* ─────────────────────────────────────────────
-   4a2. CHAT SETTINGS PREVIEW AND DRAWERS
-   Chat Settings keeps a small static widget-style preview. Drawer remains the
-   shared collapsible section used by settings and tracker panels.
-
-   Classes:     .mari-window, .mari-window__header, .mari-window__title,
-                .mari-window__body, .mari-window-bubble, .mari-window-bubble__icon;
-                .mari-drawer, .mari-drawer__header, .mari-drawer__icon,
-                .mari-drawer__title, .mari-drawer__count, .mari-drawer__summary,
-                .mari-drawer__help, .mari-drawer__actions, .mari-drawer__arrow,
-                .mari-drawer__body
-   Variables:   set these on :root or on a selector such as
-                [data-chat-widget-preview]. Unset, each falls back to its
-                theme token where the preview or drawer is drawn.
-     --mari-window-bg                   var(--marinara-chat-chrome-panel-bg)
-     --mari-window-text                 var(--marinara-chat-chrome-panel-text)
-     --mari-window-border               var(--marinara-chat-chrome-panel-border)
-     --mari-window-border-width         1px
-     --mari-window-radius               calc(var(--radius) + 0.25rem)
-     --mari-window-shadow               0 25px 50px -12px rgb(0 0 0 / 0.4)
-     --mari-window-backdrop-filter      blur(12px)
-     --mari-window-header-bg            transparent
-     --mari-window-header-text          var(--marinara-chat-chrome-panel-title)
-     --mari-window-header-border        var(--marinara-chat-chrome-panel-divider)
-     --mari-window-header-padding       0.625rem 0.75rem
-     --mari-window-control-color        var(--marinara-chat-chrome-panel-muted)
-     --mari-window-focus-ring           var(--marinara-chat-chrome-focus-ring)
-     --mari-window-bubble-size          2rem
-     --mari-window-bubble-bg            var(--marinara-chat-chrome-button-bg)
-     --mari-window-bubble-bg-hover      var(--marinara-chat-chrome-button-bg-hover)
-     --mari-window-bubble-text          var(--marinara-chat-chrome-button-text)
-     --mari-window-bubble-text-hover    var(--marinara-chat-chrome-button-text-hover)
-     --mari-window-bubble-border        var(--marinara-chat-chrome-button-border)
-     --mari-window-bubble-radius        calc(var(--radius) + 0.125rem)
-     --mari-window-bubble-shadow        0 4px 12px rgb(0 0 0 / 0.25)
-     --mari-drawer-bg                   transparent
-     --mari-drawer-border               var(--border)
-     --mari-drawer-header-bg            transparent
-     --mari-drawer-header-bg-hover      color-mix(in oklab, var(--accent) 50%, transparent)
-     --mari-drawer-header-padding       0.75rem 1rem
-     --mari-drawer-title-color          inherit
-     --mari-drawer-icon-color           var(--muted-foreground)
-     --mari-drawer-arrow-color          var(--muted-foreground)
-     --mari-drawer-count-bg             color-mix(in oklab, var(--primary) 15%, transparent)
-     --mari-drawer-count-text           var(--primary)
-     --mari-drawer-body-padding-inline  1rem
-     --mari-drawer-body-padding-bottom  0.75rem
+   4a2. DRAWERS
+   Classes: .mari-drawer, .mari-drawer__header, .mari-drawer__icon,
+            .mari-drawer__title, .mari-drawer__count, .mari-drawer__summary,
+            .mari-drawer__help, .mari-drawer__actions, .mari-drawer__arrow,
+            .mari-drawer__body
    ───────────────────────────────────────────── */
-/* In the components layer so Tailwind classes on the settings preview or Drawer can override these defaults;
-   custom theme CSS, which is not layered, overrides both. */
 @layer components {
-  .mari-window {
-    --mari-widget-field-option-bg: var(--mari-widget-custom-background-solid);
-    --mari-widget-field-option-text: var(--mari-widget-custom-text-solid);
-    border: var(--mari-window-border-width, 1px) solid
-      var(
-        --mari-widget-shell-border,
-        var(
-          --mari-window-border,
-          var(--mari-widget-custom-border-solid, var(--mari-widget-border, var(--marinara-chat-chrome-panel-border)))
-        )
-      );
-    border-radius: var(--mari-window-radius, var(--mari-widget-radius, calc(var(--radius) + 0.25rem)));
-    background: var(
-      --mari-widget-shell-bg,
-      var(
-        --mari-window-bg,
-        var(--mari-widget-custom-background, var(--mari-widget-bg, var(--marinara-chat-chrome-panel-bg)))
-      )
-    );
-    color: var(
-      --mari-window-text,
-      var(--mari-widget-custom-text-solid, var(--mari-widget-text, var(--marinara-chat-chrome-panel-text)))
-    );
-    box-shadow: var(
-      --mari-window-shadow,
-      var(--mari-widget-shadow, var(--mari-widget-frame-shadow, 0 25px 50px -12px rgb(0 0 0 / 0.4)))
-    );
-    -webkit-backdrop-filter: var(--mari-widget-shell-backdrop-filter, var(--mari-window-backdrop-filter, blur(12px)));
-    backdrop-filter: var(--mari-widget-shell-backdrop-filter, var(--mari-window-backdrop-filter, blur(12px)));
-  }
-
-  .mari-window__header {
-    border-bottom: 1px solid
-      var(
-        --mari-window-header-border,
-        var(--mari-widget-custom-border-solid, var(--mari-widget-border, var(--marinara-chat-chrome-panel-divider)))
-      );
-    border-top-left-radius: inherit;
-    border-top-right-radius: inherit;
-    background: var(
-      --mari-widget-header-shell-bg,
-      var(--mari-window-header-bg, var(--mari-widget-custom-background, var(--mari-widget-header-bg, transparent)))
-    );
-    padding: var(--mari-window-header-padding, var(--mari-widget-header-padding, 0.625rem 0.75rem));
-  }
-
-  .mari-window__title {
-    color: var(
-      --mari-window-header-text,
-      var(--mari-widget-custom-text-solid, var(--mari-widget-accent, var(--marinara-chat-chrome-panel-title)))
-    );
-  }
-
-  /* Static bubble preview in Chat Settings. */
-  .mari-window-bubble {
-    display: inline-flex;
-    width: var(--mari-window-bubble-size, 2rem);
-    height: var(--mari-window-bubble-size, 2rem);
-    align-items: center;
-    justify-content: center;
-    border: 1px solid
-      var(
-        --mari-widget-button-shell,
-        var(
-          --mari-window-bubble-border,
-          var(--mari-widget-custom-border-solid, var(--mari-widget-gold, var(--marinara-chat-chrome-button-border)))
-        )
-      );
-    border-radius: var(--mari-window-bubble-radius, var(--mari-widget-bubble-radius, calc(var(--radius) + 0.125rem)));
-    background: var(
-      --mari-widget-button-shell,
-      var(
-        --mari-window-bubble-bg,
-        var(
-          --mari-widget-bubble-bg,
-          var(--mari-widget-custom-background, var(--mari-widget-bg, var(--marinara-chat-chrome-button-bg)))
-        )
-      )
-    );
-    color: var(
-      --mari-window-bubble-text,
-      var(
-        --mari-widget-button-text,
-        var(--mari-widget-custom-border-solid, var(--mari-widget-accent, var(--marinara-chat-chrome-button-text)))
-      )
-    );
-    box-shadow: var(--mari-window-bubble-shadow, var(--mari-widget-button-shadow, 0 4px 12px rgb(0 0 0 / 0.25)));
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-
-  .mari-window-bubble__icon {
-    display: contents;
-  }
-
-  /* An explicit pixel size also grows SVG icons and character portraits, independent of Display Size. */
-  :root[data-chat-widget-button-size] .mari-window-bubble__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: calc(var(--mari-window-bubble-size) * 0.5);
-    height: calc(var(--mari-window-bubble-size) * 0.5);
-    font-size: calc(var(--mari-window-bubble-size) * 0.3125);
-    line-height: 1;
-  }
-
-  :root[data-chat-widget-button-size] .mari-window-bubble__icon > * {
-    width: 100% !important;
-    height: 100% !important;
-    font-size: inherit !important;
-  }
-
-  /* Clip the preview's sample section to its rounded bottom corners. */
-  .mari-window__body {
-    overflow: hidden;
-    border-bottom-left-radius: inherit;
-    border-bottom-right-radius: inherit;
-  }
-
   .mari-drawer {
     border-bottom: 1px solid
       var(--mari-drawer-border, var(--mari-widget-custom-border-solid, var(--mari-widget-border, var(--border))));
